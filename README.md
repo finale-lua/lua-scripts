@@ -5,9 +5,8 @@ A central repository for all JW Lua scripts for Finale. These guidelines are sug
 1. [Adding Scripts](#adding-scripts)
    1. [Naming scripts](#naming-scripts)
    2. [Style Guide](#style-guide)
-2. [Submit a bug](#submit-a-bug)
-3. [Submit ideas for future scripts](#submit-ideas-for-future-scripts)
-4. [Become a contributor](#become-a-contributor)
+2. [Submit a bug, feature request, or script request](#submit-a-bug-feature-request-or-script-request)
+3. [Become a contributor](#become-a-contributor)
 
 ## Adding Scripts
 
