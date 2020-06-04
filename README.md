@@ -9,6 +9,7 @@ A central repository for all JW Lua scripts for Finale. These guidelines are sug
 4. [Become a contributor](#become-a-contributor)
 
 ## Adding Scripts
+
 Just create a pull request. All scripts must have in their [PluginDef](http://jwmusic.nu/jwplugins/wiki/doku.php?id=jwlua:development#connect_to_finale_jw_lua):
 
 - finaleplugin.Author
