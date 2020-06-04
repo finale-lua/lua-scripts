@@ -13,7 +13,6 @@ Just create a pull request. All scripts must have in their [PluginDef](http://jw
 
 - finaleplugin.Author
 - finaleplugin.Version (beta versions OK)
-- finaleplugin.Notes (detailed description of the plugin)
 - finaleplugin.RevisionNotes (if there are revisions and/or bug fixes)
 
 Note: All scripts added to the repo will have a CC1 license. See [LICENSE](https://github.com/Nick-Mazuk/jw-lua-scripts/blob/master/LICENSE) for specific terms. This is to encourage widespread use and encourage other JW Lua coders to build off your scripts.
