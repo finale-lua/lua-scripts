@@ -39,25 +39,9 @@ Each word should take things from general to specific. So anything dealing with 
 
 Though not strictly necessesary, try to follow the [style guide](https://github.com/Nick-Mazuk/jw-lua-scripts/blob/master/Style%20Guide.md). That way, we can all edit and read each other's code easily.
 
-## Submit a bug
+## Submit a bug, feature request, or script request
 
-If you find a bug, please create an issue with the label "bug". Include the following:
-
-- Script name and version
-- Mention the author of the script (e.g., @Nick-Mazuk)
-- Expected behavior
-- Actual behavior
-- Your setup details
-  - Finale Version
-  - Mac or Windows
-  - JW Lua version
-
-## Submit ideas for future scripts
-
-If you have an idea for a future script, create an issue with the label "script request". Include the following:
-
-- Expected behavior (more detail, the better)
-- Use cases (why it will be helpful)
+[Please submit an issue to keep things organized](https://github.com/Nick-Mazuk/jw-lua-scripts/issues/new/choose).
 
 ## Become a contributor
 
