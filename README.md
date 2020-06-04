@@ -4,6 +4,7 @@ A central repository for all JW Lua scripts for Finale. These guidelines are sug
 
 1. [Adding Scripts](#adding-scripts)
    1. [Naming scripts](#naming-scripts)
+   2. [Style Guide](#style-guide)
 2. [Submit a bug](#submit-a-bug)
 3. [Submit ideas for future scripts](#submit-ideas-for-future-scripts)
 4. [Become a contributor](#become-a-contributor)
@@ -33,6 +34,10 @@ Let's follow a unified syntax to help organize everything. Use snake case:
 ✖ articulation_Delete_From_Rests.lua
 
 Each word should take things from general to specific. So anything dealing with articulations should start with "articulations". Anything with page layout should start with "layout". See the [JW Lua docs for Category Tags](http://jwmusic.nu/jwplugins/wiki/doku.php?id=jwlua:finaleplugin_properties#categorytags_string) to find an good starting place.
+
+### Style Guide
+
+Though not strictly necessesary, try to follow the [style guide](https://github.com/Nick-Mazuk/jw-lua-scripts/blob/master/Style%20Guide.md). That way, we can all edit and read each other's code easily.
 
 ## Submit a bug
 
