@@ -2,6 +2,12 @@
 
 A central repository for all JW Lua scripts for Finale. These guidelines are suggestions for now until we agree on some way to standardize and organize things.
 
+1. [Adding Scripts](#adding-scripts)
+   1. [Naming scripts](#naming-scripts)
+2. [Submit a bug](#submit-a-bug)
+3. [Submit ideas for future scripts](#submit-ideas-for-future-scripts)
+4. [Become a contributor](#become-a-contributor)
+
 ## Adding Scripts
 Just create a pull request. All scripts must have in their [PluginDef](http://jwmusic.nu/jwplugins/wiki/doku.php?id=jwlua:development#connect_to_finale_jw_lua):
 
