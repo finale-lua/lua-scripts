@@ -23,12 +23,12 @@ if current_part:IsScore() then
     end
     if part_ID ~= nil then
         local part = finale.FCPart(part_ID)
-        part:SwitchTo()
+        part:ViewInDocument()
     else
         finenv.UI():AlertInfo("Hmm, this part doesn't seem to be generated.\nTry generating parts and try again", "No Part Detected")
     end
 else
     local score_ID = parts:GetScore()
     local part = finale.FCPart(score_ID:GetID())
-    part:SwitchTo()
+    part:ViewInDocument()
 end
