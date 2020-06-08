@@ -9,6 +9,9 @@ function plugindef()
     return "Octave Doubling Up", "Octave Doubling Up", "Doubles the current note an octave higher"
 end
 
+local path = finale.FCString()
+path:SetRunningLuaFolderPath()
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library")
 
 function pitch_entry_double_octave_up()
