@@ -6,7 +6,7 @@ function plugindef()
     finaleplugin.Date = "July 2, 2019"
     finaleplugin.CategoryTags = "Chord"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
-    return "Toggle Chord Visibility", "Toggle Chord Visibility", "Toggles the chords' visibility"
+    return "Toggle Chord Visibility 2", "Toggle Chord Visibility 2", "Toggles the chords' visibility"
 end
 
 local musicRegion = finenv.Region()
