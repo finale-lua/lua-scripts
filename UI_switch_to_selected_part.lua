@@ -24,14 +24,12 @@ if current_part:IsScore() then
     end
     if part_ID ~= nil then
         local part = finale.FCPart(part_ID)
-        --print ("before view in doc: start staff ", music_region:GetStartStaff(), " start slot ", music_region:GetStartSlot(), " instrument list ", music_region:GetInstrumentList())
         part:ViewInDocument()
         --Finale does not always calculate the selected region correctly for the part, leading to an invalid selection state, so fix it when switching to parts
         music_region:SetInstrumentList(0)
         music_region:SetStartStaff(top_staff)
         music_region:SetEndStaff(top_staff)
         music_region:SetInDocument()
-        --print ("after view in doc: start staff ", music_region:GetStartStaff(), " start slot ", music_region:GetStartSlot(), " instrument list ", music_region:GetInstrumentList())
         --scroll the selected region into view, because Finale sometimes loses track of it
         ui:MoveToMeasure (music_region:GetStartMeasure(), music_region:GetStartStaff())
     else
