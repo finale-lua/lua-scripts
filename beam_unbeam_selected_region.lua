@@ -3,8 +3,9 @@ function plugindef()
    -- are both reserved for the plug-in definition.
    finaleplugin.RequireSelection = true
    finaleplugin.Author = "Robert Patterson"
+    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
    finaleplugin.Version = "1.0"
-   finaleplugin.Date = "6/8/2020"
+   finaleplugin.Date = "June 8, 2020"
    finaleplugin.CategoryTags = "Note"
    return "Unbeam Selected Region", "Unbeam Selected Region", "Unbeam Selected Region"
 end
