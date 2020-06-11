@@ -41,5 +41,8 @@ else
     --Finale manages to keep the selected region displayed when switching back to score, so nothing needs to be done here
     part:ViewInDocument()
    --scroll the selected region into view, because Finale sometimes loses track of it
-    ui:MoveToMeasure (music_region:GetStartMeasure(), music_region:GetStartStaff())
+    ui:MoveToMeasure (music_region:GetStartMeasure(), top_staff)
 end
+
+-- JW Lua sometimes adds to the Undo stack here, so suppress that behavior since we haven't changed anything
+finenv.StartNewUndoBlock("Switch To Selected Part", false)
