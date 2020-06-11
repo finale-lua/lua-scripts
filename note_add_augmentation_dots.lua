@@ -8,9 +8,14 @@ function plugindef()
     return "Add Augmentation Dots", "Add Augmentation Dots", "Add an augmentation dot to all notes and rests in selected region."
 end
 
+local path = finale.FCString()
+path:SetRunningLuaFolderPath()
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local library = require("library")
+
 function note_add_augmentation_dots()
     for entry in eachentrysaved(finenv.Region()) do
-        entry.Duration = bit32.bor(entry.Duration, bit32.rshift(entry.Duration, 1))
+        library.add_augmentation_dot(entry)
     end
     finenv.Region():RebeamMusic()
 end

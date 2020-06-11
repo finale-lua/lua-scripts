@@ -10,21 +10,10 @@ function plugindef()
    return "Unbeam Selected Region", "Unbeam Selected Region", "Unbeam Selected Region"
 end
 
-function entry_get_next_same_v (entry)
-    local next_entry = entry:Next()
-    if entry:GetVoice2() then
-        if (nil ~= next_entry) and next_entry:GetVoice2() then
-            return next_entry
-        end
-        return nil
-    end
-    if entry:GetVoice2Launch() then
-        while (nil ~= next_entry) and  next_entry:GetVoice2() do
-            next_entry = next_entry:Next()
-        end
-    end
-    return next_entry
-end
+local path = finale.FCString()
+path:SetRunningLuaFolderPath()
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local library = require("library")
 
 function unbeam_selected_region()
     for note_entry in eachentrysaved(finenv.Region()) do
@@ -32,7 +21,7 @@ function unbeam_selected_region()
         if note_entry:GetDuration() < 1024 then   -- less than quarter note duration
                 note_entry:SetBeamBeat(true)
         end
-        local next_entry = entry_get_next_same_v (note_entry)
+        local next_entry = library.get_next_same_v (note_entry)
         if (nil ~= next_entry) and (next_entry:GetDuration() < 1024) and not finenv.Region():IsEntryPosWithin(next_entry) then
             next_entry:SetBeamBeat(true)
         end
