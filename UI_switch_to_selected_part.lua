@@ -17,9 +17,11 @@ parts:LoadAll()
 local current_part = parts:GetCurrent()
 if current_part:IsScore() then
     local part_ID = nil
+    parts:SortByOrderID()
     for part in each(parts) do
-        if part:IsStaffIncluded(top_staff) then
+        if (not part:IsScore()) and part:IsStaffIncluded(top_staff) then
             part_ID = part:GetID()
+            break
         end
     end
     if part_ID ~= nil then
