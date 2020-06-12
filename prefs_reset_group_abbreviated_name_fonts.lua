@@ -3,7 +3,7 @@ function plugindef()
     -- are both reserved for the plug-in definition.
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.1"
+    finaleplugin.Version = "1.0.2"
     finaleplugin.Date = "June 12, 2020"
     finaleplugin.CategoryTags = "Staff"
     return "Reset Abbreviated Group Name Fonts", "Reset Abbreviated Group Name Fonts",
@@ -17,10 +17,7 @@ local library = require("general_library")
 local enigma_string = require("enigma_string")
 
 function prefs_reset_group_abbreviated_name_fonts()
-    local sel_region = finenv.Region()
-    if sel_region:IsEmpty() then
-        sel_region:SetFullDocument()
-    end
+    local sel_region = library.get_selected_region_or_whole_doc()
     local font_info = finale.FCFontInfo()
     font_info:LoadFontPrefs(finale.FONTPREF_ABRVGROUPNAME)
     local groups = finale.FCGroups()
