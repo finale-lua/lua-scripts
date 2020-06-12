@@ -27,4 +27,17 @@ function library.get_next_same_v (entry)
     return next_entry
 end
 
+function library.change_string_font (string, font_info)
+    local final_text = font_info:CreateEnigmaStyleString()
+    string:TrimEnigmaFontTags()
+    final_text:AppendString(string)
+    string:SetString (final_text)
+end
+
+function library.change_text_block_font (text_block, font_info)
+    local new_text = text_block:CreateRawTextString()
+    library.change_string_font(new_text, font_info)
+    text_block:SaveRawTextString(new_text)
+end
+
 return library
