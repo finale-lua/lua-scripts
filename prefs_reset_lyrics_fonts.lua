@@ -5,8 +5,8 @@ function plugindef()
    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
    finaleplugin.Version = "1.0"
    finaleplugin.Date = "June 12, 2020"
-   finaleplugin.CategoryTags = "Staff"
-   return "Reset Lyrics Fonts", "Reset Lyrics Fonts", "Reset lyrics to document's default font settings."
+   finaleplugin.CategoryTags = "Lyric"
+   return "Reset Lyrics Fonts", "Reset Lyrics Fonts", "Reset lyrics to document\'s default font settings."
 end
 
 local path = finale.FCString()
@@ -52,4 +52,3 @@ function prefs_reset_lyrics_fonts()
 end
 
 prefs_reset_lyrics_fonts()
-
