@@ -180,9 +180,10 @@ There are three quick steps:
 
 1. Install the [lua-linter](https://marketplace.visualstudio.com/items?itemName=dcr30.lualinter) extension
 2. Install `luac` if you haven't already
-   1. On Mac with Homebrew: `brew install luac`
+   1. On Mac with Homebrew: `brew install lua`
    2. Else: https://www.lua.org/download.html
 3. Ensure the `luaconfig.config` file in this repo is in the same folder you are editing the Lua script in. If you are editing in this repo, the `luaconfig.config` file is included automatically.
+4. Make sure the preference "Format on Save" is enabled in VS Code.
 
 This linter will take care of these things every time you save a file:
 
