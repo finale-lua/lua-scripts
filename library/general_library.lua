@@ -58,6 +58,17 @@ function library.group_is_contained_in_region(staff_group, region)
     return true
 end
 
+function library.staff_group_is_multistaff_instrument(staff_group)
+    local multistaff_instruments = finale.FCMultiStaffInstruments()
+    multistaff_instruments:LoadAll()
+    for inst in each(multistaff_instruments) do
+        if inst:ContainsStaff(staff_group.StartStaff) and (inst.GroupID == staff_group:GetItemID()) then
+            return true
+        end
+    end
+    return false
+end
+
 function library.get_selected_region_or_whole_doc()
     local sel_region = finenv.Region()
     if sel_region:IsEmpty() then
