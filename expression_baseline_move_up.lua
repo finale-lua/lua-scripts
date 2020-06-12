@@ -1,20 +1,19 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Date = "6/6/2020"
+    finaleplugin.Date = "June 12, 2020"
     finaleplugin.CategoryTags = "Expression"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     return "Move Expression Baseline Up", "Move Expression Baseline Up",
            "Moves the selected expression baseline up one space"
 end
 
-function ToEvpus(text)
-    local str = finale.FCString()
-    str.LuaString = text
-    return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
-end
+local path = finale.FCString()
+path:SetRunningLuaFolderPath()
+package.path = package.path .. ";" .. path.LuaString .. "/library/?.lua"
+local measurement = require("measurement")
 
 function expression_baseline_move_up()
     local region = finenv.Region()
@@ -35,7 +34,7 @@ function expression_baseline_move_up()
         baselines:LoadAllForSystem(finale.BASELINEMODE_EXPRESSIONABOVE, i)
         for j = start_staff, end_staff, 1 do
             bl = baselines:AssureSavedStaff(finale.BASELINEMODE_EXPRESSIONABOVE, i, j)
-            bl.VerticalOffset = bl.VerticalOffset + ToEvpus("1s")
+            bl.VerticalOffset = bl.VerticalOffset + measurement.convert_to_EVPUs("1s")
             bl:Save()
         end
     end

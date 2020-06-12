@@ -2,16 +2,11 @@
 -- Simply import this file to another Lua script to use any of these scripts
 local library = {}
 
-function library.change_octave(pitch_string, n)
-    pitch_string.LuaString = pitch_string.LuaString:sub(1, -2) .. (tonumber(string.sub(pitch_string.LuaString, -1)) + n)
-    return pitch_string
-end
-
 function library.add_augmentation_dot(entry)
     entry.Duration = bit32.bor(entry.Duration, bit32.rshift(entry.Duration, 1))
 end
 
-function library.get_next_same_v (entry)
+function library.get_next_same_v(entry)
     local next_entry = entry:Next()
     if entry.Voice2 then
         if (nil ~= next_entry) and next_entry.Voice2 then
@@ -27,7 +22,7 @@ function library.get_next_same_v (entry)
     return next_entry
 end
 
-function library.group_overlaps_region (staff_group, region)
+function library.group_overlaps_region(staff_group, region)
     if region:IsFullDocumentSpan() then
         return true
     end
