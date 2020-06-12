@@ -27,19 +27,6 @@ function library.get_next_same_v (entry)
     return next_entry
 end
 
-function library.change_string_font (string, font_info)
-    local final_text = font_info:CreateEnigmaString(nil)
-    string:TrimEnigmaFontTags()
-    final_text:AppendString(string)
-    string:SetString (final_text)
-end
-
-function library.change_text_block_font (text_block, font_info)
-    local new_text = text_block:CreateRawTextString()
-    library.change_string_font(new_text, font_info)
-    text_block:SaveRawTextString(new_text)
-end
-
 function library.group_overlaps_region (staff_group, region)
     if region:IsFullDocumentSpan() then
         return true
