@@ -37,6 +37,21 @@ function prefs_reset_staff_abbreviated_name_fonts()
             end
         end
     end
+    --duplicate patterson plugin functionality which updates staff styles if the entire document is selected
+    if sel_region:IsFullDocumentSpan() then
+        local staff_styles = finale.FCStaffStyleDefs()
+        staff_styles:LoadAll()
+        for staff_style in each(staff_styles) do
+            if staff_style.UseAbbreviatedName then
+                text_block = finale.FCTextBlock()
+                if text_block:Load(staff_style:GetAbbreviatedNameID()) then
+                    if enigma_string.change_first_text_block_font (text_block, font_info) then
+                        text_block:Save()
+                    end
+                end
+            end
+        end
+    end
 end
 
 prefs_reset_staff_abbreviated_name_fonts()
