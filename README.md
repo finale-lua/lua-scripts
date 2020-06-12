@@ -37,11 +37,11 @@ Each word should take things from general to specific. So anything dealing with 
 
 ### Style Guide
 
-Though not strictly necessesary, try to follow the [style guide](https://github.com/Nick-Mazuk/jw-lua-scripts/blob/master/Style%20Guide.md). That way, we can all edit and read each other's code easily.
+Though not strictly necessary, try to follow the [style guide](https://github.com/Nick-Mazuk/jw-lua-scripts/blob/master/Style%20Guide.md). That way, we can all edit and read each other's code easily.
 
 ### Using the Standard Library
 
-The standard library is a set of premade Lua functions you can use in your code. Functions are grouped into modules to speed up run-time and for quicker development.
+The standard library is a set of pre-made Lua functions you can use in your code. Functions are grouped into modules to speed up run-time and for quicker development.
 
 ```lua
 -- use once at top of script file, tells JW Lua where the library modules are saved
@@ -64,6 +64,6 @@ If you wish to contribute to the standard library, create a pull request.
 
 ## Become a contributor
 
-To become a collaberator and edit the repo freely, email hello@finalesuperuser.com.
+To become a collaborator and edit the repo freely, email hello@finalesuperuser.com.
 
-Note: not all requests to become a collaberator will be accepted. You may always create a pull request even if you are not a collaberator.
+Note: not all requests to become a collaborator will be accepted. You may always create a pull request even if you are not a collaborator.
