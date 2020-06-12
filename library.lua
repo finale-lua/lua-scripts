@@ -28,7 +28,7 @@ function library.get_next_same_v (entry)
 end
 
 function library.change_string_font (string, font_info)
-    local final_text = font_info:CreateEnigmaStyleString()
+    local final_text = font_info:CreateEnigmaString(nil)
     string:TrimEnigmaFontTags()
     final_text:AppendString(string)
     string:SetString (final_text)
@@ -38,6 +38,28 @@ function library.change_text_block_font (text_block, font_info)
     local new_text = text_block:CreateRawTextString()
     library.change_string_font(new_text, font_info)
     text_block:SaveRawTextString(new_text)
+end
+
+function library.group_overlaps_region (staff_group, region)
+    if region:IsFullDocumentSpan() then
+        return true
+    end
+    local staff_exists = false
+    local sys_staves = finale.FCSystemStaves()
+    sys_staves:LoadAllForRegion(region)
+    for sys_staff in each(sys_staves) do
+        if staff_group:ContainsStaff(sys_staff:GetStaff()) then
+            staff_exists = true
+            break
+        end
+    end
+    if not staff_exists then
+        return false
+    end
+    if (staff_group.StartMeasure > region.EndMeasure) or (staff_group.EndMeasure < region.StartMeasure) then
+        return false
+    end
+    return true
 end
 
 return library
