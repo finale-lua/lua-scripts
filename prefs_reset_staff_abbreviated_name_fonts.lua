@@ -1,18 +1,19 @@
 function plugindef()
-   -- This function and the 'finaleplugin' namespace
-   -- are both reserved for the plug-in definition.
-   finaleplugin.Author = "Robert Patterson"
-   finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-   finaleplugin.Version = "1.0"
-   finaleplugin.Date = "June 12, 2020"
-   finaleplugin.CategoryTags = "Staff"
-   return "Reset Abbreviated Staff Name Fonts", "Reset Abbreviated Staff Name Fonts", "Reset all abbreviated staff names to document's default font settings."
+    -- This function and the 'finaleplugin' namespace
+    -- are both reserved for the plug-in definition.
+    finaleplugin.Author = "Robert Patterson"
+    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
+    finaleplugin.Version = "1.0.1"
+    finaleplugin.Date = "June 12, 2020"
+    finaleplugin.CategoryTags = "Staff"
+    return "Reset Abbreviated Staff Name Fonts", "Reset Abbreviated Staff Name Fonts",
+           "Reset all abbreviated staff names to document's default font settings."
 end
 
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
-local library = require("library")
+package.path = package.path .. ";" .. path.LuaString .. "/library?.lua"
+local library = require("general_library")
 local enigma_string = require("enigma_string")
 
 function prefs_reset_staff_abbreviated_name_fonts()
@@ -31,7 +32,7 @@ function prefs_reset_staff_abbreviated_name_fonts()
         if 0 ~= staff_name_id then
             text_block = finale.FCTextBlock()
             if text_block:Load(staff_name_id) then
-                if enigma_string.change_first_text_block_font (text_block, font_info) then
+                if enigma_string.change_first_text_block_font(text_block, font_info) then
                     text_block:Save()
                 end
             end
