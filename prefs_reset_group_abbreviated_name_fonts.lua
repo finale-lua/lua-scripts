@@ -16,7 +16,7 @@ local library = require("library")
 local enigma_string = require("enigma_string")
 
 function prefs_reset_group_abbreviated_name_fonts()
-    local sel_region = finenv.Region();
+    local sel_region = finenv.Region()
     if sel_region:IsEmpty() then
         sel_region:SetFullDocument()
     end
