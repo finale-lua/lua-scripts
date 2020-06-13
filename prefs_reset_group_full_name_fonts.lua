@@ -13,14 +13,11 @@ end
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "/library/?.lua"
-local library = require("general")
+local library = require("general_library")
 local enigma_string = require("enigma_string")
 
 function prefs_reset_group_full_name_fonts()
-    local sel_region = finenv.Region()
-    if sel_region:IsEmpty() then
-        sel_region:SetFullDocument()
-    end
+    local sel_region = library.get_selected_region_or_whole_doc()
     local font_info = finale.FCFontInfo()
     font_info:LoadFontPrefs(finale.FONTPREF_GROUPNAME)
     local groups = finale.FCGroups()

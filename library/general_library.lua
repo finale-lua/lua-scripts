@@ -44,4 +44,37 @@ function library.group_overlaps_region(staff_group, region)
     return true
 end
 
+-- this function requires the entire group to be contained
+-- if the start or end staff are not visible in the region,
+-- it returns false
+
+function library.group_is_contained_in_region(staff_group, region)
+    if not region:IsStaffIncluded(staff_group.StartStaff) then
+        return false
+    end
+    if not region:IsStaffIncluded(staff_group.EndStaff) then
+        return false
+    end
+    return true
+end
+
+function library.staff_group_is_multistaff_instrument(staff_group)
+    local multistaff_instruments = finale.FCMultiStaffInstruments()
+    multistaff_instruments:LoadAll()
+    for inst in each(multistaff_instruments) do
+        if inst:ContainsStaff(staff_group.StartStaff) and (inst.GroupID == staff_group:GetItemID()) then
+            return true
+        end
+    end
+    return false
+end
+
+function library.get_selected_region_or_whole_doc()
+    local sel_region = finenv.Region()
+    if sel_region:IsEmpty() then
+        sel_region:SetFullDocument()
+    end
+    return sel_region
+end
+
 return library
