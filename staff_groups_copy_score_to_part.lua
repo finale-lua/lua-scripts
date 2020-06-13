@@ -70,10 +70,10 @@ function staff_groups_copy_score_to_part()
                 new_group.ShowGroupName = staff_group.ShowGroupName
                 new_group.UseAbbreviatedNamePositioning = staff_group.UseAbbreviatedNamePositioning
                 new_group.UseFullNamePositioning = staff_group.UseFullNamePositioning
-                if staff_group.HasFullName then
+                if staff_group.HasFullName and (0 ~= staff_group:GetFullNameID()) then
                     new_group:SaveNewFullNameBlock(staff_group:CreateFullNameString())
                 end
-                if staff_group.HasAbbreviatedName then
+                if staff_group.HasAbbreviatedName and (0 ~= staff_group:GetAbbreviatedNameID()) then
                     new_group:SaveNewAbbreviatedNameBlock(staff_group:CreateAbbreviatedNameString())
                 end
                 new_group:SaveNew(0)
