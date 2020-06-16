@@ -77,7 +77,8 @@ jobs:
         git pull ${REMOTE}
         git fetch
         git checkout gh-pages
-        git add .
+        git checkout master scripts.txt
+        git add scripts.txt
         git status
         git commit -am "Updated scripts.txt"
         git push ${REMOTE} gh-pages  
