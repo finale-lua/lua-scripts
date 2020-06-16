@@ -75,6 +75,7 @@ jobs:
         git config user.name "${{ github.actor }}"
 
         git pull ${REMOTE}
+        git fetch
         git checkout gh-pages
         git add .
         git status
