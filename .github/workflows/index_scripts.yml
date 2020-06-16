@@ -77,14 +77,10 @@ jobs:
         git pull ${REMOTE}
         git fetch
         git checkout gh-pages
+        git add .
+        git commit -am "Updated scripts.txt"
+        git push ${REMOTE}
     - name: Retrieves artifact
       uses: actions/download-artifact@v2
       with:
-        name: scripts
-    - name: Pushes scripts to repo
-      run: |
-        ls -R
-        git add .
-        git commit -am "Updated scripts.txt"
-        echo 'I made it here!!!'
-        git push ${REMOTE}  
+        name: scripts 
