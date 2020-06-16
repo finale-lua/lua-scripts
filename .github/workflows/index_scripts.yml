@@ -84,8 +84,8 @@ jobs:
         name: scripts
     - name: Pushes scripts to repo
       run: |
-        scriptsChanged=$(git diff --exit-code scripts.txt)
-        if [[ $scriptsChanged != 0 ]]; then
+        scriptsChanged=$(git status)
+        if [[ $scriptsChanged == *"scripts.txt"* ]]; then
           git add scripts.txt
           git commit -am "Updated scripts.txt"
           git push ${REMOTE}
