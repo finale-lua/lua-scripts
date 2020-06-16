@@ -84,7 +84,6 @@ jobs:
         path: scripts.txt 
     - name: Pushes scripts to repo
       run: |
-        ls -R
         git status
         git add .
         git status
