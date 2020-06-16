@@ -65,3 +65,15 @@ jobs:
       with:
         name: scripts
         path: scripts.txt
+    - name: Push changes to repo
+      run: |
+        REMOTE=https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        git config user.email "${{ github.actor }}@users.noreply.github.com"
+        git config user.name "${{ github.actor }}"
+
+        git pull ${REMOTE}
+        git checkout gh-pages
+        git add .
+        git status
+        git commit -am "Updated scripts.txt"
+        git push ${REMOTE} gh-pages  
