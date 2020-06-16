@@ -68,7 +68,7 @@ jobs:
       with:
         name: scripts
         path: scripts.txt
-    - name: Push changes to repo
+    - name: Clones repo
       run: |
         REMOTE=https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
         git config user.email "${{ github.actor }}@users.noreply.github.com"
@@ -77,8 +77,13 @@ jobs:
         git pull ${REMOTE}
         git fetch
         git checkout gh-pages
-        git checkout master scripts.txt
-        git add scripts.txt
+    - name: Retrieves artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: scripts
+    - name: Pushes scripts to repo
+      run: |
+        git add .
         git status
         git commit -am "Updated scripts.txt"
         git push ${REMOTE} gh-pages  
