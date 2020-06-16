@@ -77,4 +77,44 @@ function library.get_selected_region_or_whole_doc()
     return sel_region
 end
 
+function library.get_first_cell_on_or_after_page(page_num)
+    local curr_page_num = page_num
+    local curr_page = finale.FCPage()
+    local got1 = false
+    --skip over any blank pages
+    while curr_page:Load(curr_page_num) do
+        if curr_page:GetFirstSystem() > 0 then
+            got1 = true
+            break
+        end
+        curr_page_num = curr_page_num + 1
+    end
+    if got1 then
+        local staff_sys = finale.FCStaffSystem()
+        staff_sys:Load(curr_page:GetFirstSystem())
+        return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
+    end
+    --if we got here there were nothing but blank pages left at the end
+    local end_region = finale.FCMusicRegion()
+    end_region:SetFullDocument()
+    return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
+end
+
+function library.get_top_left_visible_cell()
+    if not finenv.UI():IsPageView() then
+        local all_region = finale.FCMusicRegion()
+        all_region:SetFullDocument()
+        return finale.FCCell(finenv.UI():GetCurrentMeasure(), all_region.StartStaff)
+    end
+    return library.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())
+end
+
+function library.get_top_left_selected_or_visible_cell()
+    local sel_region = finenv.Region()
+    if not sel_region:IsEmpty() then
+        return finale.FCCell(sel_region.StartMeasure, sel_region.StartStaff)
+    end
+    return library.get_top_left_visible_cell()
+end
+
 return library
