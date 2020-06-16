@@ -64,7 +64,7 @@ jobs:
             done < $f
             echo "" >> scripts.txt
         done
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         name: scripts
         path: scripts.txt
@@ -81,8 +81,11 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: scripts
+        path: scripts.txt 
     - name: Pushes scripts to repo
       run: |
+        ls -R
+        git status
         git add .
         git status
         git commit -am "Updated scripts.txt"
