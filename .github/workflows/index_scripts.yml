@@ -84,8 +84,6 @@ jobs:
     - name: Pushes scripts to repo
       run: |
         ls -R
-        git status
         git add .
-        git status
         git commit -am "Updated scripts.txt"
         git push ${REMOTE} gh-pages  
