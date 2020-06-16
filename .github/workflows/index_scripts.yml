@@ -86,4 +86,5 @@ jobs:
         ls -R
         git add .
         git commit -am "Updated scripts.txt"
+        echo 'I made it here!!!'
         git push ${REMOTE} gh-pages  
