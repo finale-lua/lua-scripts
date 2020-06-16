@@ -84,6 +84,8 @@ jobs:
         name: scripts
     - name: Pushes scripts to repo
       run: |
-        git add .
-        git commit -am "Updated scripts.txt"
-        git push ${REMOTE}   
+        if [[ git diff-index --quiet HEAD != 0 ]]; then
+          git add .
+          git commit -am "Updated scripts.txt"
+          git push ${REMOTE}
+        fi
