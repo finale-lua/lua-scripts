@@ -21,7 +21,7 @@ jobs:
     - uses: actions/checkout@v2
       name: creates text file with data for all .lua scripts
 
-      shell: bash
+    - shell: bash
       run: |
         true > scripts.txt
 
@@ -61,7 +61,7 @@ jobs:
             done < $f
             echo "" >> scripts.txt
         done
-      uses: actions/upload-artifact@v1
-        with:
-          name: scripts
-          path: scripts.txt
+    - uses: actions/upload-artifact@v1
+      with:
+        name: scripts
+        path: scripts.txt
