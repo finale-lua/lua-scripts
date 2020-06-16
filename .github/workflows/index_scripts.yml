@@ -19,9 +19,9 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
+      name: creates text file with data for all .lua scripts
 
-    # Runs a single command using the runners shell
-    - name: creates text file with data for all .lua scripts
+      shell: bash
       run: |
         true > scripts.txt
 
@@ -61,3 +61,7 @@ jobs:
             done < $f
             echo "" >> scripts.txt
         done
+      uses: actions/upload-artifact@v1
+        with:
+          name: scripts
+          path: scripts.txt
