@@ -12,8 +12,8 @@ end
 
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "/library/?.lua"
-local library = require("general_library")
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local library = require("library.general_library")
 
 function beam_selected_region()
 

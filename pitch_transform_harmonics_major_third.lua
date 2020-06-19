@@ -12,10 +12,10 @@ end
 
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "/library/?.lua"
-local articulation = require("articulation")
-local transposition = require("transposition")
-local notehead = require("notehead")
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local articulation = require("library.articulation")
+local transposition = require("library.transposition")
+local notehead = require("library.notehead")
 
 function pitch_transform_harmonics_major_third()
     for entry in eachentrysaved(finenv.Region()) do

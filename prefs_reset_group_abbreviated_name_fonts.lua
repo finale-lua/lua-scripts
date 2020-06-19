@@ -12,9 +12,9 @@ end
 
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "/library/?.lua"
-local library = require("general_library")
-local enigma_string = require("enigma_string")
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local library = require("library.general_library")
+local enigma_string = require("library.enigma_string")
 
 function prefs_reset_group_abbreviated_name_fonts()
     local sel_region = library.get_selected_region_or_whole_doc()
