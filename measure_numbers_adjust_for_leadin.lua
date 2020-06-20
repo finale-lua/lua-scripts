@@ -64,7 +64,6 @@ function measure_numbers_adjust_for_leadin()
     local sel_region = finenv.Region()
 
     for system in each(systems) do
-        -- print ("system id = ", system.ItemNo, " timestamp ", os.time())
         local system_region = finale.FCMusicRegion()
         if system:CalcRegion(system_region) and system_region:IsOverlapping(sel_region) then
             -- getting metrics doesn't work for mm rests (past the first measure) but it takes a really big performance hit, so skip any that aren't first
@@ -90,7 +89,6 @@ function measure_numbers_adjust_for_leadin()
                                     -- if it did, we would subtract it here. Instead use the valus derived from document settings above.
                                     lead_in = lead_in - barline_thickness
                                     if (0 ~= lead_in) then
-                                        print ("    lead in found at cell ", cell.Measure, " ", cell.Staff, " timestamp ", os.time())
                                         lead_in = lead_in - additional_offset
                                         -- Finale scales the lead_in by the staff percent, so remove that if any
                                         local staff_percent = (cell_metrics.StaffScaling / 10000.0) / (cell_metrics.SystemScaling / 10000.0)
