@@ -1,5 +1,4 @@
 function plugindef()
-    finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0"
@@ -7,6 +6,11 @@ function plugindef()
     finaleplugin.CategoryTags = "Measure"
     return "Measure Numbers Adjust for Key, Time, Repeat", "Measure Numbers Adjust for Key, Time, Repeat", "Adjusts all measure numbers left where there is a key signature, time signature, or start repeat."
 end
+
+local path = finale.FCString()
+path:SetRunningLuaFolderPath()
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local library = require("library.general_library")
 
 -- Currently the PDK Framework does not appear to provide access to the true barline thickness per measure from the PDK metrics.
 -- As a subtitute this sets barline_thickness to your configured single barline thickness in your document prefs (in evpus)
@@ -36,20 +40,7 @@ local is_mid_system_default_number_visible_and_left_aligned = function (meas_num
             return false
         end
     end
-    local staff = finale.FCCurrentStaffSpec()
-    if not staff:LoadForCell(cell, 0) then
-        return false
-    end
-    if meas_num_region:GetShowOnTopStaff() and (cell.Staff == system.TopStaff) then
-        return true
-    end
-    if meas_num_region:GetShowOnBottomStaff() and (cell.Staff == system:CalcBottomStaff()) then
-        return true
-    end
-    if staff.ShowMeasureNumbers then
-        return not meas_num_region:GetExcludeOtherStaves(current_is_part)
-    end
-    return false
+    return library.is_default_measure_number_visible_on_cell (meas_num_region, cell, system, current_is_part)
 end
 
 function measure_numbers_adjust_for_leadin()
@@ -61,7 +52,7 @@ function measure_numbers_adjust_for_leadin()
     parts:LoadAll()
     local current_part = parts:GetCurrent()
     local current_is_part = not current_part:IsScore()
-    local sel_region = finenv.Region()
+    local sel_region = library.get_selected_region_or_whole_doc()
 
     for system in each(systems) do
         local system_region = finale.FCMusicRegion()
