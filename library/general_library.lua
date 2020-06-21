@@ -117,4 +117,22 @@ function library.get_top_left_selected_or_visible_cell()
     return library.get_top_left_visible_cell()
 end
 
+function library.is_default_measure_number_visible_on_cell (meas_num_region, cell, staff_system, current_is_part)
+    local staff = finale.FCCurrentStaffSpec()
+    if not staff:LoadForCell(cell, 0) then
+        return false
+    end
+    if meas_num_region:GetShowOnTopStaff() and (cell.Staff == staff_system.TopStaff) then
+        return true
+    end
+    if meas_num_region:GetShowOnBottomStaff() and (cell.Staff == staff_system:CalcBottomStaff()) then
+        return true
+    end
+    if staff.ShowMeasureNumbers then
+        return not meas_num_region:GetExcludeOtherStaves(current_is_part)
+    end
+    return false
+end
+
+
 return library
