@@ -4,16 +4,17 @@ function plugindef()
     finaleplugin.Version = "1.2"
     finaleplugin.Date = "June 12, 2020"
     finaleplugin.CategoryTags = "UI"
-    return "Switch To Selected Part", "Switch To Selected Part", "Switches to the first part of the top staff in a selected region in a score. Switches back to the score if viewing a part."
+    return "Switch To Selected Part", "Switch To Selected Part",
+           "Switches to the first part of the top staff in a selected region in a score. Switches back to the score if viewing a part."
 end
 
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "/library/?.lua"
-local library = require("general_library")
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local library = require("library.general_library")
 
 function ui_switch_to_selected_part()
-            
+
     local music_region = finenv.Region()
     local selection_exists = not music_region:IsEmpty()
     local ui = finenv.UI()
@@ -34,25 +35,26 @@ function ui_switch_to_selected_part()
         if part_ID ~= nil then
             local part = finale.FCPart(part_ID)
             part:ViewInDocument()
-            --Finale does not always calculate the selected region correctly for the part, leading to an invalid selection state, so fix it when switching to parts
+            -- Finale does not always calculate the selected region correctly for the part, leading to an invalid selection state, so fix it when switching to parts
             if selection_exists then
                 music_region:SetInstrumentList(0)
                 music_region:SetStartStaff(top_cell.Staff)
                 music_region:SetEndStaff(top_cell.Staff)
                 music_region:SetInDocument()
             end
-            --scroll the selected region into view, because Finale sometimes loses track of it
-            ui:MoveToMeasure (top_cell.Measure, music_region.StartStaff)
+            -- scroll the selected region into view, because Finale sometimes loses track of it
+            ui:MoveToMeasure(top_cell.Measure, music_region.StartStaff)
         else
-            finenv.UI():AlertInfo("Hmm, this part doesn't seem to be generated.\nTry generating parts and try again", "No Part Detected")
+            finenv.UI():AlertInfo(
+                "Hmm, this part doesn't seem to be generated.\nTry generating parts and try again", "No Part Detected")
         end
     else
         local score_ID = parts:GetScore()
         local part = finale.FCPart(score_ID:GetID())
-        --Finale manages to keep the selected region displayed when switching back to score, so nothing needs to be done here
+        -- Finale manages to keep the selected region displayed when switching back to score, so nothing needs to be done here
         part:ViewInDocument()
-    --scroll the selected region into view, because Finale sometimes loses track of it
-        ui:MoveToMeasure (top_cell.Measure, top_cell.Staff)
+        -- scroll the selected region into view, because Finale sometimes loses track of it
+        ui:MoveToMeasure(top_cell.Measure, top_cell.Staff)
     end
 
     -- JW Lua sometimes adds to the Undo stack here, so suppress that behavior since we haven't changed anything

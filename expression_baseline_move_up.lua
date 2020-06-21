@@ -12,7 +12,7 @@ end
 
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "/library/?.lua"
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local measurement = require("measurement")
 
 function expression_baseline_move_up()

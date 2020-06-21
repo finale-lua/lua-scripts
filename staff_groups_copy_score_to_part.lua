@@ -1,18 +1,19 @@
 function plugindef()
-   -- This function and the 'finaleplugin' namespace
-   -- are both reserved for the plug-in definition.
-   finaleplugin.Author = "Robert Patterson"
-   finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-   finaleplugin.Version = "1.0"
-   finaleplugin.Date = "June 12, 2020"
-   finaleplugin.CategoryTags = "Staff"
-   return "Group Copy Score to Part", "Group Copy Score to Part", "Copies any applicable groups from the score to the current part in view."
+    -- This function and the 'finaleplugin' namespace
+    -- are both reserved for the plug-in definition.
+    finaleplugin.Author = "Robert Patterson"
+    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
+    finaleplugin.Version = "1.0"
+    finaleplugin.Date = "June 12, 2020"
+    finaleplugin.CategoryTags = "Staff"
+    return "Group Copy Score to Part", "Group Copy Score to Part",
+           "Copies any applicable groups from the score to the current part in view."
 end
 
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "/library/?.lua"
-local library = require("general_library")
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local library = require("library.general_library")
 
 function staff_groups_copy_score_to_part()
 
@@ -23,7 +24,7 @@ function staff_groups_copy_score_to_part()
         finenv.UI():AlertInfo("This script is only valid when viewing a part.", "Not In Part View")
         return
     end
- 
+
     local del_groups = finale.FCGroups()
     del_groups:LoadAll()
     for del_group in each(del_groups) do

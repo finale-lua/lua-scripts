@@ -46,12 +46,13 @@ The standard library is a set of pre-made Lua functions you can use in your code
 
 ```lua
 -- use once at top of script file, tells JW Lua where the library modules are saved
+-- These first few lines will eventually be phased out
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "/library/?.lua"
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 
 -- load each library module you'll use
-local library = require("file_name") -- no path, no ".lua"
+local library = require("library.file_name") -- no path, no ".lua"
 
 -- run a library function
 library.function_name()

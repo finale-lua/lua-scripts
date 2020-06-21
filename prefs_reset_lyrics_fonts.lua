@@ -11,8 +11,8 @@ end
 
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "/library/?.lua"
-local enigma_string = require("enigma_string")
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local enigma_string = require("library.enigma_string")
 
 -- lyrics_block: pass in one of finale.FCVerseLyricsText(), finale.FCChorusLyricsText(), finale.FCSectionLyricsText()
 -- pref_id pass in the corresponding finale.FONTPREF_LYRICSVERSE, finale.FONTPREF_LYRICSCHORUS, finale.FONTPREF_LYRICSSECTION
