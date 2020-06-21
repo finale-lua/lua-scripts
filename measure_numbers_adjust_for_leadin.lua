@@ -40,14 +40,14 @@ local is_mid_system_default_number_visible_and_left_aligned = function (meas_num
     if not staff:LoadForCell(cell, 0) then
         return false
     end
-    if staff.ShowMeasureNumbers then
-        return true
-    end
     if meas_num_region:GetShowOnTopStaff() and (cell.Staff == system.TopStaff) then
         return true
     end
     if meas_num_region:GetShowOnBottomStaff() and (cell.Staff == system:CalcBottomStaff()) then
         return true
+    end
+    if staff.ShowMeasureNumbers then
+        return not meas_num_region:GetExcludeOtherStaves()
     end
     return false
 end
@@ -83,7 +83,7 @@ function measure_numbers_adjust_for_leadin()
                             local cell = finale.FCCell(meas_num, staff)
                             if is_mid_system_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest) then
                                 local cell_metrics = finale.FCCellMetrics()
-                                if cell_metrics:LoadAtCell(cell) and (cell_metrics.StaffScaling ~= 0) then --metrics are all zero for measures inside mm rests, so skip those
+                                if cell_metrics:LoadAtCell(cell) then
                                     local lead_in = cell_metrics.MusicStartPos - cell_metrics:GetLeftEdge()
                                     -- FCCellMetrics currently does not provide the barline width, which is available in the underlying PDK struct.
                                     -- if it did, we would subtract it here. Instead use the valus derived from document settings above.
@@ -117,6 +117,7 @@ function measure_numbers_adjust_for_leadin()
                                             measure:Save()
                                         end
                                     end
+                                    cell_metrics:FreeMetrics() -- not sure if this is needed, but it can't hurt
                                 end
                             end
                         end
