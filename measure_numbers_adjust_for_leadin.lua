@@ -47,7 +47,7 @@ local is_mid_system_default_number_visible_and_left_aligned = function (meas_num
         return true
     end
     if staff.ShowMeasureNumbers then
-        return not meas_num_region:GetExcludeOtherStaves()
+        return not meas_num_region:GetExcludeOtherStaves(current_is_part)
     end
     return false
 end
