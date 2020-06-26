@@ -1,6 +1,6 @@
 function plugindef()
     finaleplugin.RequireSelection = false
-    finaleplugin.Author = "Jari Williamson"
+    finaleplugin.Author = "Jari Williamsson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0.1"
     finaleplugin.RevisionNotes = [[
