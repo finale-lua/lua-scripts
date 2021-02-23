@@ -81,4 +81,33 @@ function enigma_string.change_text_block_font (text_block, font_info)
     text_block:SaveRawTextString(new_text)
 end
 
+function enigma_string.remove_inserts (fcstring, replace_with_generic)
+    -- so far this just supports page-level inserts. if this ever needs to work with expressions, we'll need to
+    -- add the last three items in the (Finale 26) text insert menu, which are playback inserts not available to page text
+    local text_cmds = {"^arranger", "^composer", "^copyright", "^date", "^description", "^fdate", "^filename",
+                        "^lyricist", "^page", "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages"}
+    local lua_string = fcstring.LuaString
+    for i, text_cmd in ipairs(text_cmds) do
+        print("searching for " .. text_cmd .. " in ".. lua_string)
+        local starts_at = string.find(lua_string, text_cmd, 1, true) -- true: do a plain search
+        while nil ~= starts_at do
+            print("got a " .. text_cmd)
+            local replace_with = ""
+            if replace_with_generic then
+                replace_with = string.sub(text_cmd, 2)
+            end
+            local after_text_at = starts_at+string.len(text_cmd)
+            local next_at = string.find(lua_string, ")", after_text_at, true)
+            if nil ~= next_at then
+                next_at = next_at + 1
+            else
+                next_at = starts_at
+            end
+            lua_string = string.sub(lua_string, 1, starts_at-1) .. replace_with .. string.sub(lua_string, next_at)
+            starts_at = string.find(lua_string, text_cmd, 1, true)
+        end
+    end
+    fcstring.LuaString = lua_string
+end
+
 return enigma_string
