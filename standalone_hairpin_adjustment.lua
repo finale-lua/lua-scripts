@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "CJ Garcia"
     finaleplugin.Copyright = "© 2021 CJ Garcia Music"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.1"
     finaleplugin.Date = "2/29/2021"
     return "Hairpin and Dynamic Adjustments", "Hairpin and Dynamic Adjustments", "Adjusts hairpins to remove collisions with dynamics and aligns hairpins with dynamics."
 end
@@ -70,7 +70,7 @@ function vertical_dynamic_adjustment(region, direction)
             end
         end
     else
-        for noteentry in eachentrysaved(region) do
+        for noteentry in eachentry(region) do
             if noteentry:IsNote() then
                 for note in each(noteentry) do
                     table.insert(staff_pos, note:CalcStaffPosition())
@@ -89,8 +89,6 @@ function vertical_dynamic_adjustment(region, direction)
             end
         end
     end
-
-
 
     if has_hairpins == true then
         local ssmm = finale.FCSmartShapeMeasureMarks()
@@ -239,7 +237,7 @@ function hairpin_adjustments(range_settings, adjustment_type)
     local end_cushion = false
 
     local notes_in_region = {}
-    for noteentry in eachentrysaved(music_reg) do
+    for noteentry in eachentry(music_reg) do
         if noteentry:IsNote() then
             table.insert(notes_in_region, noteentry)
         end
@@ -298,7 +296,7 @@ function set_first_last_note_in_range(staff)
 
     local notes_in_region = {}
 
-    for noteentry in eachentrysaved(music_region) do
+    for noteentry in eachentry(music_region) do
         if noteentry:IsNote() then
             table.insert(notes_in_region, noteentry)
         end
