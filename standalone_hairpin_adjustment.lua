@@ -20,7 +20,7 @@ function vertical_dynamic_adjustment(region, direction)
         local create_def = e:CreateTextExpressionDef()
         local cd = finale.FCCategoryDef()
         if cd:Load(create_def:GetCategoryID()) then
-            if string.find(cd:CreateName().LuaString, "Dynamic") then
+            if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
                 if e:CalcMetricPos(arg_point) then
                     has_dynamics = true
                     table.insert(lowest_item, arg_point:GetY())
@@ -52,7 +52,7 @@ function vertical_dynamic_adjustment(region, direction)
             local create_def = e:CreateTextExpressionDef()
             local cd = finale.FCCategoryDef()
             if cd:Load(create_def:GetCategoryID()) then
-                if string.find(cd:CreateName().LuaString, "Dynamic") then
+                if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
                     if e:CalcMetricPos(arg_point) then
                         local difference_pos =  arg_point:GetY() - lowest_item[1]
                         if direction == "near" then
@@ -164,7 +164,7 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         local create_def = e:CreateTextExpressionDef()
         local cd = finale.FCCategoryDef()
         if cd:Load(create_def:GetCategoryID()) then
-            if string.find(cd:CreateName().LuaString, "Dynamic") then
+            if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
                 local text_met = finale.FCTextMetrics()
                 local string = create_def:CreateTextString()
                 string:TrimEnigmaTags()
@@ -223,7 +223,7 @@ function hairpin_adjustments(range_settings, adjustment_type)
             local create_def = e:CreateTextExpressionDef()
             local cd = finale.FCCategoryDef()
             if cd:Load(create_def:GetCategoryID()) then
-                if string.find(cd:CreateName().LuaString, "Dynamic") then
+                if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
                     table.insert(expression_list, e)
                 end
             end
