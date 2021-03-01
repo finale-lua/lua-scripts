@@ -13,6 +13,7 @@ function expression.get_music_region(expression)
     exp_region.EndMeasure = expression.Measure
     exp_region.StartMeasurePos = expression.MeasurePos
     exp_region.EndMeasurePos = expression.MeasurePos
+    return exp_region
 end
 
 function expression.get_associated_entry(expression)
@@ -22,14 +23,30 @@ function expression.get_associated_entry(expression)
     end
     for entry in eachentry(exp_region) do
         if (0 == exp_region.LayerAssignment) or (entry.LayerNumber == exp.LayerAssignment) then
-            return entry
+            if not entry:GetGraceNote() then -- for now skip all grace notes: we can revisit this if need be
+                return entry
+            end
         end
     end
     return nil
 end
 
-function expression.handle_offset(expression)
+function expression.handle_offset_for_smart_shape(expression)
+    local manual_horizontal = expression.HorizontalPos
+    local def_horizontal = 0 
+    local alignment_offset = 0
+    local exp_def = expression:CreateTextExpressionDef()
+    if nil ~= exp_def then
+        def_horizontal = exp_def.HorizontalOffset
+    end
     local exp_entry = expression.get_associated_entry(expression)
+    if (nil ~= exp_entry) && (nil ~= exp_def) then
+        local em = finale.FCEntryMetrics()
+        if em.Load(exp_entry) then
+            if 
+        end
+    end
+    return (manual_horizontal + def_horizontal + alignment_offset)
 end
 
 return expression
