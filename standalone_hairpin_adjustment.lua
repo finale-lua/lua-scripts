@@ -45,7 +45,7 @@ function vertical_dynamic_adjustment(region, direction)
 
     table.sort(lowest_item)
 
-    if has_dynamics == true then
+    if has_dynamics then
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(region)
         for e in each(expressions) do
@@ -92,7 +92,7 @@ function vertical_dynamic_adjustment(region, direction)
 
 
 
-    if has_hairpins == true then
+    if has_hairpins then
         local ssmm = finale.FCSmartShapeMeasureMarks()
         ssmm:LoadAllForRegion(region, true)
         for mark in each(ssmm) do
@@ -106,7 +106,7 @@ function vertical_dynamic_adjustment(region, direction)
                     if direction == "near" then
                         difference_pos = lowest_item[#lowest_item] - arg_point:GetY()
                     end
-                    if has_dynamics == true then
+                    if has_dynamics then
                         if direction == "far" then
                             left_seg:SetEndpointOffsetY((current_pos - difference_pos) + 12)
                             right_seg:SetEndpointOffsetY((current_pos - difference_pos) + 12)
@@ -130,7 +130,7 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
     local left_dynamic_cushion = 9
     local right_dynamic_cushion = -9
     local left_selection_cushion = 0
-    local right_selection_cushion = -18
+    local right_selection_cushion = 0
 
     if left_or_right == "left" then
         the_seg = hairpin:GetTerminateSegmentLeft()
@@ -143,17 +143,17 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
     region:SetStartStaff(region_settings[1])
     region:SetEndStaff(region_settings[1])
 
-    if multiple_hairpin_bool == false then
+    if multiple_hairpin_bool then
+        region:SetStartMeasure(the_seg:GetMeasure())
+        region:SetStartMeasurePos(the_seg:GetMeasurePos())
+        region:SetEndMeasure(the_seg:GetMeasure())
+        region:SetEndMeasurePos(the_seg:GetMeasurePos())
+    else
         region:SetStartMeasure(region_settings[2])
         region:SetEndMeasure(region_settings[2])
         region:SetStartMeasurePos(region_settings[3])
         region:SetEndMeasurePos(region_settings[3])
         the_seg:SetMeasurePos(region_settings[3])
-    else
-        region:SetStartMeasure(the_seg:GetMeasure())
-        region:SetStartMeasurePos(the_seg:GetMeasurePos())
-        region:SetEndMeasure(the_seg:GetMeasure())
-        region:SetEndMeasurePos(the_seg:GetMeasurePos())
     end
 
 
@@ -188,9 +188,17 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
             the_seg:SetEndpointOffsetX(total_x)
         end
     end
-    if cushion_bool == true then
+    if cushion_bool then
         the_seg = hairpin:GetTerminateSegmentRight()
-        the_seg:SetEndpointOffsetX(right_selection_cushion)
+        region:SetStartMeasure(the_seg:GetMeasure())
+        region:SetStartMeasurePos(the_seg:GetMeasurePos())
+        region:SetEndMeasure(the_seg:GetMeasure())
+        region:SetEndMeasurePos(the_seg:GetMeasurePos())
+        local entry_width = 0
+        for noteentry in eachentry(region) do
+            entry_width = noteentry:CalcWidestNoteheadWidth()
+        end
+        the_seg:SetEndpointOffsetX(right_selection_cushion + entry_width)
     end
     hairpin:Save()
 end
@@ -250,9 +258,9 @@ function hairpin_adjustments(range_settings, adjustment_type)
     music_reg:SetStartMeasurePos(notes_in_region[#notes_in_region]:GetMeasurePos())
     music_reg:SetEndMeasurePos(notes_in_region[#notes_in_region]:GetMeasurePos())
     
-    if (has_dynamic(music_reg) == true) and (#notes_in_region > 1) then
+    if (has_dynamic(music_reg)) and (#notes_in_region > 1) then
         end_pos = notes_in_region[#notes_in_region]:GetMeasurePos()
-    elseif (has_dynamic(music_reg) == true) and (#notes_in_region == 1) then
+    elseif (has_dynamic(music_reg)) and (#notes_in_region == 1) then
         end_pos = range_settings[5]
     else
         end_cushion = true
@@ -340,7 +348,7 @@ function dynamics_align_hairpins_and_dynamics()
         local music_region = finenv.Region()
         music_region:SetCurrentSelection()
         if music_region:IsStaffIncluded(staff:GetItemNo()) then
-            if set_first_last_note_in_range(staff:GetItemNo()) ~= false then
+            if set_first_last_note_in_range(staff:GetItemNo()) then
                 hairpin_adjustments(set_first_last_note_in_range(staff:GetItemNo()), "both")
             end
         end
