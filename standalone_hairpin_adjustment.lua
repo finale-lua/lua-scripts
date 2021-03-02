@@ -7,6 +7,11 @@ function plugindef()
     return "Hairpin and Dynamic Adjustments", "Hairpin and Dynamic Adjustments", "Adjusts hairpins to remove collisions with dynamics and aligns hairpins with dynamics."
 end
 
+local path = finale.FCString()
+path:SetRunningLuaFolderPath()
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local expression = require("library.expression")
+
 function vertical_dynamic_adjustment(region, direction)
     local lowest_item = {}
     local staff_pos = {}
@@ -172,11 +177,15 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         end
     end
     if #expression_list > 0 then
-        local dyn_width = (expression_list[1][1] / 2)
-        local dyn_def = expression_list[1][2]:CreateTextExpressionDef()
-        local manual_horizontal = expression_list[1][2]:GetHorizontalPos()
-        local horizontal_offset = dyn_def:GetHorizontalOffset()
-        local total_offset = manual_horizontal + horizontal_offset
+        local dyn_exp = expression_list[1][2]
+        local dyn_def = dyn_exp:CreateTextExpressionDef()
+        local dyn_width = expression_list[1][1] -- the full value is needed for finale.EXPRJUSTIFY_LEFT
+        if finale.EXPRJUSTIFY_CENTER == dyn_def.HorizontalJustification then
+            dyn_width = dyn_width / 2
+        elseif finale.EXPRJUSTIFY_RIGHT == dyn_def.HorizontalJustification then
+            dyn_width = 0
+        end
+        local total_offset = expression.calc_handle_offset_for_smart_shape(dyn_exp)
         if left_or_right == "left" then
             local total_x = dyn_width + left_dynamic_cushion + total_offset
             the_seg:SetEndpointOffsetX(total_x)
