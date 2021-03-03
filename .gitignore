@@ -8,3 +8,8 @@ jwluatagfile.xml
 SciLexer.dll
 jwlua64.fxtco
 .vscode
+
+# ignore Finale files in the folder (used for testing)
+TestCases
+*.mus
+*.musx
