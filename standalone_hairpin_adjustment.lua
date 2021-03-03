@@ -211,7 +211,7 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
             region:SetEndMeasure(the_seg:GetMeasure())
             region:SetEndMeasurePos(the_seg:GetMeasurePos())
             for noteentry in eachentry(region) do
-                local this_width =  noteentry:CalcWidestNoteheadWidth()
+                local this_width =  note_entry.calc_right_of_all_noteheads(noteentry)
                 if this_width > entry_width then
                     entry_width = this_width
                 end
