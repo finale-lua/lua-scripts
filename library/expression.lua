@@ -8,7 +8,7 @@ function expression.get_music_region(exp_assign)
     if not exp_assign:IsSingleStaffAssigned() then
         return nil
     end
-    local exp_region = finenv.Region()
+    local exp_region = finale.FCMusicRegion()
     exp_region.StartStaff = exp_assign.Staff
     exp_region.EndStaff = exp_assign.Staff
     exp_region.StartMeasure = exp_assign.Measure

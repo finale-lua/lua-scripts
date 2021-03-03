@@ -182,7 +182,7 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         the_seg = hairpin:GetTerminateSegmentRight()
     end
 
-    local region = finenv.Region()
+    local region = finale.FCMusicRegion()
     region:SetStartStaff(region_settings[1])
     region:SetEndStaff(region_settings[1])
 
@@ -257,7 +257,8 @@ end
 
 function hairpin_adjustments(range_settings, adjustment_type)
 
-    local music_reg = finenv.Region()
+    local music_reg = finale.FCMusicRegion()
+    music_reg:SetCurrentSelection()
     music_reg:SetStartStaff(range_settings[1])
     music_reg:SetEndStaff(range_settings[1])
     music_reg:SetStartMeasure(range_settings[2])
@@ -318,34 +319,27 @@ function hairpin_adjustments(range_settings, adjustment_type)
         end_cushion = true
     end
 
+    music_reg:SetStartStaff(range_settings[1])
+    music_reg:SetEndStaff(range_settings[1])
+    music_reg:SetStartMeasure(range_settings[2])
+    music_reg:SetEndMeasure(range_settings[3])
+    music_reg:SetStartMeasurePos(range_settings[4])
+    music_reg:SetEndMeasurePos(end_pos)
+
     if adjustment_type == "both" then
         for key, value in pairs(hairpin_list) do
             horizontal_hairpin_adjustment("left", value, {range_settings[1], range_settings[2], range_settings[4]}, end_cushion, true)
             horizontal_hairpin_adjustment("right", value, {range_settings[1], range_settings[3], end_pos}, end_cushion, true)
         end
-        music_reg:SetStartStaff(range_settings[1])
-        music_reg:SetEndStaff(range_settings[1])
-        music_reg:SetStartMeasure(range_settings[2])
-        music_reg:SetEndMeasure(range_settings[3])
-        music_reg:SetStartMeasurePos(range_settings[4])
-        music_reg:SetEndMeasurePos(end_pos)
-
         vertical_dynamic_adjustment(music_reg, "far")
     else 
-        music_reg:SetStartStaff(range_settings[1])
-        music_reg:SetEndStaff(range_settings[1])
-        music_reg:SetStartMeasure(range_settings[2])
-        music_reg:SetEndMeasure(range_settings[3])
-        music_reg:SetStartMeasurePos(range_settings[4])
-        music_reg:SetEndMeasurePos(end_pos)
-
         vertical_dynamic_adjustment(music_reg, adjustment_type)
     end
 end
 
 function set_first_last_note_in_range(staff)
 
-    local music_region = finenv.Region()
+    local music_region = finale.FCMusicRegion()
     local range_settings = {}
     music_region:SetCurrentSelection()
     music_region:SetStartStaff(staff)
@@ -382,7 +376,7 @@ function dynamics_align_hairpins_and_dynamics()
     local staves = finale.FCStaves()
     staves:LoadAll()
     for staff in each(staves) do
-        local music_region = finenv.Region()
+        local music_region = finale.FCMusicRegion()
         music_region:SetCurrentSelection()
         if music_region:IsStaffIncluded(staff:GetItemNo()) then
             local range_settings = set_first_last_note_in_range(staff:GetItemNo())
