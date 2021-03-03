@@ -23,12 +23,43 @@ local extend_to_end_of_right_entry = true   -- if true, extend hairpins through 
 
 -- end of parameters
 
+function calc_cell_relative_vertical_position(fccell, page_offset)
+    local relative_position = page_offset
+    local cell_metrics = fccell:CreateCellMetrics()
+    if nil ~= cell_metrics then
+        relative_position = page_offset - cell_metrics.ReferenceLinePos
+        cell_metrics:FreeMetrics()
+    end
+    return relative_position
+end
+
+function expression_calc_relative_vertical_position(fcexpression)
+    local arg_point = finale.FCPoint(0, 0)
+    if not fcexpression:CalcMetricPos(arg_point) then
+        return false, 0
+    end
+    local cell = finale.FCCell(fcexpression.Measure, fcexpression.Staff)
+    local vertical_pos = calc_cell_relative_vertical_position(cell, arg_point:GetY())
+    return true, vertical_pos
+end
+
+function smartshape_calc_relative_vertical_position(fcsmartshape)
+    local arg_point = finale.FCPoint(0, 0)
+    -- due to a limitation in Finale, CalcRightCellMetricPos is not reliable, so only check CalcLeftCellMetricPos
+    if not fcsmartshape:CalcLeftCellMetricPos(arg_point) then 
+        return false, 0
+    end
+    local ss_seg = fcsmartshape:GetTerminateSegmentLeft()
+    local cell = finale.FCCell(ss_seg.Measure, ss_seg.Staff)
+    local vertical_pos = calc_cell_relative_vertical_position(cell, arg_point:GetY())
+    return true, vertical_pos
+end
+
 function vertical_dynamic_adjustment(region, direction)
     local lowest_item = {}
     local staff_pos = {}
     local has_dynamics = false
     local has_hairpins = false
-    local arg_point = finale.FCPoint(0, 0)
 
     local expressions = finale.FCExpressions()
     expressions:LoadAllForRegion(region)
@@ -37,9 +68,10 @@ function vertical_dynamic_adjustment(region, direction)
         local cd = finale.FCCategoryDef()
         if cd:Load(create_def:GetCategoryID()) then
             if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
-                if e:CalcMetricPos(arg_point) then
+                local success, staff_offset = expression_calc_relative_vertical_position(e)
+                if success then
                     has_dynamics = true
-                    table.insert(lowest_item, arg_point:GetY())
+                    table.insert(lowest_item, staff_offset)
                 end
             end
         end
@@ -51,10 +83,9 @@ function vertical_dynamic_adjustment(region, direction)
         local smart_shape = mark:CreateSmartShape()
         if smart_shape:IsHairpin() then
             has_hairpins = true
-            if smart_shape:CalcLeftCellMetricPos(arg_point) then 
-                table.insert(lowest_item, arg_point:GetY())
-            elseif smart_shape:CalcRightCellMetricPos(arg_point) then
-                table.insert(lowest_item, arg_point:GetY())
+            local success, staff_offset = smartshape_calc_relative_vertical_position(smart_shape)
+            if success then 
+                table.insert(lowest_item, staff_offset)
             end
         end
     end
@@ -69,10 +100,11 @@ function vertical_dynamic_adjustment(region, direction)
             local cd = finale.FCCategoryDef()
             if cd:Load(create_def:GetCategoryID()) then
                 if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
-                    if e:CalcMetricPos(arg_point) then
-                        local difference_pos =  arg_point:GetY() - lowest_item[1]
+                    local success, staff_offset = expression_calc_relative_vertical_position(e)
+                    if success then
+                        local difference_pos =  staff_offset - lowest_item[1]
                         if direction == "near" then
-                            difference_pos = lowest_item[#lowest_item] - arg_point:GetY()
+                            difference_pos = lowest_item[#lowest_item] - staff_offset
                         end
                         local current_pos = e:GetVerticalPos()
                         if direction == "far" then
@@ -112,13 +144,14 @@ function vertical_dynamic_adjustment(region, direction)
         for mark in each(ssmm) do
             local smart_shape = mark:CreateSmartShape()
             if smart_shape:IsHairpin() then
-                if smart_shape:CalcLeftCellMetricPos(arg_point) then
+                local success, staff_offset = smartshape_calc_relative_vertical_position(smart_shape)
+                if success then 
                     local left_seg = smart_shape:GetTerminateSegmentLeft()
                     local right_seg = smart_shape:GetTerminateSegmentRight()
                     local current_pos = left_seg:GetEndpointOffsetY()
-                    local difference_pos = arg_point:GetY() - lowest_item[1]
+                    local difference_pos = staff_offset - lowest_item[1]
                     if direction == "near" then
-                        difference_pos = lowest_item[#lowest_item] - arg_point:GetY()
+                        difference_pos = lowest_item[#lowest_item] - staff_offset
                     end
                     if has_dynamics then
                         if direction == "far" then
