@@ -61,9 +61,6 @@ function vertical_dynamic_adjustment(region, direction)
     local has_dynamics = false
     local has_hairpins = false
 
-    finenv.UI():AlertInfo("smeas: " .. tostring(region.StartMeasure) .. " smeaspos: " .. tostring(region.StartMeasurePos) ..
-                        " emeas: " .. tostring(region.EndMeasure) .. " emeaspos: " .. tostring(region.EndMeasurePos) .. " staff: " .. tostring(region.StartStaff), "info")
-
     local expressions = finale.FCExpressions()
     expressions:LoadAllForRegion(region)
     for e in each(expressions) do
@@ -95,8 +92,6 @@ function vertical_dynamic_adjustment(region, direction)
 
     table.sort(lowest_item)
 
-    finenv.UI():AlertInfo("lowest_item[1]: " .. tostring(lowest_item[1]) .. " lowest_item[#]: " .. tostring(lowest_item[#lowest_item]) .. " #: " .. tostring(#lowest_item), "info")
-
     if has_dynamics then
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(region)
@@ -112,7 +107,6 @@ function vertical_dynamic_adjustment(region, direction)
                             difference_pos = lowest_item[#lowest_item] - staff_offset
                         end
                         local current_pos = e:GetVerticalPos()
-                        --finenv.UI():AlertInfo("exp curr: " .. tostring(current_pos) .. " diff: " .. tostring(difference_pos), "info")
                         if direction == "far" then
                             e:SetVerticalPos(current_pos - difference_pos)
                         else
@@ -159,8 +153,6 @@ function vertical_dynamic_adjustment(region, direction)
                     if direction == "near" then
                         difference_pos = lowest_item[#lowest_item] - staff_offset
                     end
-                    --finenv.UI():AlertInfo("Hairpin curr: " .. tostring(current_pos) .. " diff: " .. tostring(difference_pos) ..
-                     --                       " lowest[1]: " .. tostring(lowest_item[1]) .. " lowest[#]: " .. tostring(lowest_item[#lowest_item]) , "info")
                     if has_dynamics then
                         if direction == "far" then
                             left_seg:SetEndpointOffsetY((current_pos - difference_pos) + 12)
