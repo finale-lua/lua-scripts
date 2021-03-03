@@ -312,7 +312,8 @@ function hairpin_adjustments(range_settings, adjustment_type)
     music_reg:SetEndMeasurePos(notes_in_region[#notes_in_region]:GetMeasurePos())
     
     if (has_dynamic(music_reg)) and (#notes_in_region > 1) then
-        end_pos = notes_in_region[#notes_in_region]:GetMeasurePos()
+        local last_note = notes_in_region[#notes_in_region]
+        end_pos = last_note:GetMeasurePos() + last_note:GetDuration()
     elseif (has_dynamic(music_reg)) and (#notes_in_region == 1) then
         end_pos = range_settings[5]
     else
@@ -366,7 +367,7 @@ function set_first_last_note_in_range(staff)
         if notes_in_region[#notes_in_region]:GetDuration() >= 2048 then
             end_pos = end_pos + notes_in_region[#notes_in_region]:GetDuration() 
         end
-        
+
         return {staff, start_measure, end_measure, start_pos, end_pos}
     end
     return nil
