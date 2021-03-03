@@ -42,9 +42,6 @@ function expression.calc_handle_offset_for_smart_shape(exp_assign)
         def_horizontal = exp_def.HorizontalOffset
     end
     local exp_entry = expression.get_associated_entry(exp_assign)
-    if nil == exp_entry then
-        finenv.UI():AlertInfo("entry is nil", "info")
-    end
     if (nil ~= exp_entry) and (nil ~= exp_def) then
         if finale.ALIGNHORIZ_LEFTOFPRIMARYNOTEHEAD == exp_def.HorizontalAlignmentPoint then
             alignment_offset = note_entry.calc_left_of_primary_notehead(exp_entry)

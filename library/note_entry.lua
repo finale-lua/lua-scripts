@@ -43,7 +43,6 @@ end
 
 function note_entry.calc_center_of_primary_notehead(entry)
     local left, right = note_entry.calc_widths(entry)
-                               finenv.UI():AlertInfo("L: " .. tostring(left) .. " R: " .. tostring(right), "info")
     if entry:CalcStemUp() then
         return left / 2
     end
