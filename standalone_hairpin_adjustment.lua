@@ -319,14 +319,9 @@ function hairpin_adjustments(range_settings, adjustment_type)
     end
 
     if adjustment_type == "both" then
-        if #hairpin_list == 1 then
-            horizontal_hairpin_adjustment("left", hairpin_list[1], {range_settings[1], range_settings[2], range_settings[4]}, end_cushion, false)
-            horizontal_hairpin_adjustment("right", hairpin_list[1], {range_settings[1], range_settings[3], end_pos}, end_cushion, false)
-        elseif #hairpin_list > 1 then
-            for key, value in pairs(hairpin_list) do
-                horizontal_hairpin_adjustment("left", value, {range_settings[1], range_settings[2], range_settings[4]}, end_cushion, true)
-                horizontal_hairpin_adjustment("right", value, {range_settings[1], range_settings[3], end_pos}, end_cushion, true)
-            end
+        for key, value in pairs(hairpin_list) do
+            horizontal_hairpin_adjustment("left", value, {range_settings[1], range_settings[2], range_settings[4]}, end_cushion, true)
+            horizontal_hairpin_adjustment("right", value, {range_settings[1], range_settings[3], end_pos}, end_cushion, true)
         end
         music_reg:SetStartStaff(range_settings[1])
         music_reg:SetEndStaff(range_settings[1])
@@ -378,19 +373,9 @@ function set_first_last_note_in_range(staff)
             end_pos = end_pos + notes_in_region[#notes_in_region]:GetDuration() 
         end
         
-        range_settings[staff] = {staff, start_measure, end_measure, start_pos, end_pos}
-
-        for key, value in pairs(range_settings) do
-            local a = value[1]
-            local b = value[2]
-            local c = value[3]
-            local d = value[4]
-            local e = value[5]
-            return {a, b, c, d, e}
-        end
-    else
-        return false
+        return {staff, start_measure, end_measure, start_pos, end_pos}
     end
+    return nil
 end
 
 function dynamics_align_hairpins_and_dynamics()
@@ -400,8 +385,9 @@ function dynamics_align_hairpins_and_dynamics()
         local music_region = finenv.Region()
         music_region:SetCurrentSelection()
         if music_region:IsStaffIncluded(staff:GetItemNo()) then
-            if set_first_last_note_in_range(staff:GetItemNo()) then
-                hairpin_adjustments(set_first_last_note_in_range(staff:GetItemNo()), "both")
+            local range_settings = set_first_last_note_in_range(staff:GetItemNo())
+            if nil ~= range_settings then
+                hairpin_adjustments(range_settings, "both")
             end
         end
     end
