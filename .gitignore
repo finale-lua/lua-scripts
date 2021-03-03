@@ -9,7 +9,6 @@ SciLexer.dll
 jwlua64.fxtco
 .vscode
 
-# ignore Finale files in the folder (used for testing)
-TestCases
+# ignore Finale files (used for testing)
 *.mus
 *.musx
