@@ -11,6 +11,7 @@ local path = finale.FCString()
 path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local expression = require("library.expression")
+local note_entry = require("library.note_entry")
 
 -- These parameters can be adjusted to suit any user's taste.
 -- ToDo: optionally read them in from a text file, maybe?
@@ -91,7 +92,7 @@ function vertical_dynamic_adjustment(region, direction)
     end
 
     table.sort(lowest_item)
-
+ 
     if has_dynamics then
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(region)
@@ -261,8 +262,6 @@ function hairpin_adjustments(range_settings, adjustment_type)
     music_reg:SetCurrentSelection()
     music_reg:SetStartStaff(range_settings[1])
     music_reg:SetEndStaff(range_settings[1])
-    music_reg:SetStartMeasure(range_settings[2])
-    music_reg:SetEndMeasure(range_settings[3])
 
     local hairpin_list = {}
 
@@ -367,7 +366,7 @@ function set_first_last_note_in_range(staff)
         if notes_in_region[#notes_in_region]:GetDuration() >= 2048 then
             end_pos = end_pos + notes_in_region[#notes_in_region]:GetDuration() 
         end
-
+        
         return {staff, start_measure, end_measure, start_pos, end_pos}
     end
     return nil
