@@ -12,6 +12,15 @@ path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local expression = require("library.expression")
 
+-- These parameters can be adjusted to suit any user's taste.
+-- ToDo: optionally read them in from a text file, maybe?
+
+local left_dynamic_cushion = 9              -- space between a dynamic and a hairpin on the left
+local right_dynamic_cushion = -9            -- space between a dynamic and a haripin on the right
+local left_selection_cushion = 0            -- currently not used
+local right_selection_cushion = 0           -- additional space between a hairpin and the end of the selection
+local extend_to_end_of_right_entry = true   -- if true, extend hairpins through the end of their right note entries
+
 function vertical_dynamic_adjustment(region, direction)
     local lowest_item = {}
     local staff_pos = {}
@@ -130,10 +139,6 @@ end
 
 function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, cushion_bool, multiple_hairpin_bool)
     local the_seg = hairpin:GetTerminateSegmentLeft()
-    local left_dynamic_cushion = 9
-    local right_dynamic_cushion = -9
-    local left_selection_cushion = 0
-    local right_selection_cushion = 0
 
     if left_or_right == "left" then
         the_seg = hairpin:GetTerminateSegmentLeft()
@@ -198,13 +203,18 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
     end
     if cushion_bool then
         the_seg = hairpin:GetTerminateSegmentRight()
-        region:SetStartMeasure(the_seg:GetMeasure())
-        region:SetStartMeasurePos(the_seg:GetMeasurePos())
-        region:SetEndMeasure(the_seg:GetMeasure())
-        region:SetEndMeasurePos(the_seg:GetMeasurePos())
         local entry_width = 0
-        for noteentry in eachentry(region) do
-            entry_width = noteentry:CalcWidestNoteheadWidth()
+        if extend_to_end_of_right_entry then
+            region:SetStartMeasure(the_seg:GetMeasure())
+            region:SetStartMeasurePos(the_seg:GetMeasurePos())
+            region:SetEndMeasure(the_seg:GetMeasure())
+            region:SetEndMeasurePos(the_seg:GetMeasurePos())
+            for noteentry in eachentry(region) do
+                local this_width =  noteentry:CalcWidestNoteheadWidth()
+                if this_width > entry_width then
+                    entry_width = this_width
+                end
+            end
         end
         the_seg:SetEndpointOffsetX(right_selection_cushion + entry_width)
     end
