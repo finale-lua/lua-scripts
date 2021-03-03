@@ -8,6 +8,11 @@ jwluatagfile.xml
 SciLexer.dll
 jwlua64.fxtco
 .vscode
-.mus
-.musx
+
+# ignore Finale files (used for testing)
+*.mus
+*.musx
+
+# script_settings folder is for settting user-specific parameters
+# and should not be tracked in this repo
 script_settings
