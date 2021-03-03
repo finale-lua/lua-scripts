@@ -36,14 +36,16 @@ end
 function expression.calc_handle_offset_for_smart_shape(exp_assign)
     local manual_horizontal = exp_assign.HorizontalPos
     local def_horizontal = 0 
-    local alignment_offset = 0 -- zero is for finale.ALIGNHORIZ_LEFTOFALLNOTEHEAD
+    local alignment_offset = 0
     local exp_def = exp_assign:CreateTextExpressionDef()
     if nil ~= exp_def then
         def_horizontal = exp_def.HorizontalOffset
     end
     local exp_entry = expression.get_associated_entry(exp_assign)
     if (nil ~= exp_entry) and (nil ~= exp_def) then
-        if finale.ALIGNHORIZ_LEFTOFPRIMARYNOTEHEAD == exp_def.HorizontalAlignmentPoint then
+        if finale.ALIGNHORIZ_LEFTOFALLNOTEHEAD == exp_def.HorizontalAlignmentPoint then
+            alignment_offset = note_entry.calc_left_of_all_noteheads(exp_entry)
+        elseif finale.ALIGNHORIZ_LEFTOFPRIMARYNOTEHEAD == exp_def.HorizontalAlignmentPoint then
             alignment_offset = note_entry.calc_left_of_primary_notehead(exp_entry)
         elseif finale.ALIGNHORIZ_STEM == exp_def.HorizontalAlignmentPoint then
             alignment_offset = note_entry.calc_stem_offset(exp_entry)
@@ -52,7 +54,7 @@ function expression.calc_handle_offset_for_smart_shape(exp_assign)
         elseif finale.ALIGNHORIZ_CENTERALLNOTEHEADS == exp_def.HorizontalAlignmentPoint then
             alignment_offset = note_entry.calc_center_of_all_noteheads(exp_entry)
         elseif finale.ALIGNHORIZ_RIGHTALLNOTEHEADS == exp_def.HorizontalAlignmentPoint then
-            alignment_offset = note_entry.calc_width(exp_entry)
+            alignment_offset = note_entry.calc_right_of_all_noteheads(exp_entry)
         end
     end
     return (manual_horizontal + def_horizontal + alignment_offset)

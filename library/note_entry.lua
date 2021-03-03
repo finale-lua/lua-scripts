@@ -23,22 +23,29 @@ function note_entry.calc_widths(entry)
     return left_width, right_width
 end
 
-function note_entry.calc_width(entry)
-    local left, right = note_entry.calc_widths(entry)
-    return left + right
-end
+-- These functions return the offset for an expression handle.
+-- Expression handles are vertical when they are left-aligned
+-- with the primary notehead rectangle.
 
-function note_entry.calc_left_of_primary_notehead(entry)
+function note_entry.calc_left_of_all_noteheads(entry)
     if entry:CalcStemUp() then
         return 0
     end
     local left, right = note_entry.calc_widths(entry)
-    return left
+    return -left
+end
+
+function note_entry.calc_left_of_primary_notehead(entry)
+    return 0
 end
 
 function note_entry.calc_center_of_all_noteheads(entry)
-    local width = note_entry.calc_width(entry)
-    return width / 2
+    local left, right = note_entry.calc_widths(entry)
+    local width_centered = (left + right) / 2
+    if not entry:CalcStemUp() then
+        width_centered = width_centered - left
+    end
+    return width_centered
 end
 
 function note_entry.calc_center_of_primary_notehead(entry)
@@ -46,12 +53,23 @@ function note_entry.calc_center_of_primary_notehead(entry)
     if entry:CalcStemUp() then
         return left / 2
     end
-    return left + (right / 2)
+    return right / 2
 end
 
 function note_entry.calc_stem_offset(entry)
+    if not entry:CalcStemUp() then
+        return 0
+    end
     local left, right = note_entry.calc_widths(entry)
     return left
+end
+
+function note_entry.calc_right_of_all_noteheads(entry)
+    local left, right = note_entry.calc_widths(entry)
+    if entry:CalcStemUp() then
+        return left + right
+    end
+    return right
 end
 
 return note_entry
