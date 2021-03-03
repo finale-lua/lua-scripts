@@ -18,7 +18,7 @@ local expression = require("library.expression")
 local left_dynamic_cushion = 9              -- space between a dynamic and a hairpin on the left
 local right_dynamic_cushion = -9            -- space between a dynamic and a haripin on the right
 local left_selection_cushion = 0            -- currently not used
-local right_selection_cushion = 0           -- additional space between a hairpin and the end of the selection
+local right_selection_cushion = 0           -- additional space between a hairpin and the end of its beat region
 local extend_to_end_of_right_entry = true   -- if true, extend hairpins through the end of their right note entries
 
 function vertical_dynamic_adjustment(region, direction)
@@ -163,7 +163,6 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         region:SetEndMeasurePos(region_settings[3])
         the_seg:SetMeasurePos(region_settings[3])
     end
-
 
     local expressions = finale.FCExpressions()
     expressions:LoadAllForRegion(region)
