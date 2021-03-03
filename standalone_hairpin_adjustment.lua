@@ -21,6 +21,8 @@ local left_selection_cushion = 0            -- currently not used
 local right_selection_cushion = 0           -- additional space between a hairpin and the end of its beat region
 local extend_to_end_of_right_entry = true   -- if true, extend hairpins through the end of their right note entries
 
+-- end of parameters
+
 function vertical_dynamic_adjustment(region, direction)
     local lowest_item = {}
     local staff_pos = {}
