@@ -88,10 +88,8 @@ function enigma_string.remove_inserts (fcstring, replace_with_generic)
                         "^lyricist", "^page", "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages"}
     local lua_string = fcstring.LuaString
     for i, text_cmd in ipairs(text_cmds) do
-        print("searching for " .. text_cmd .. " in ".. lua_string)
         local starts_at = string.find(lua_string, text_cmd, 1, true) -- true: do a plain search
         while nil ~= starts_at do
-            print("got a " .. text_cmd)
             local replace_with = ""
             if replace_with_generic then
                 replace_with = string.sub(text_cmd, 2)
