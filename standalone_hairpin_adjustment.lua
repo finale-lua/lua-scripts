@@ -12,15 +12,19 @@ path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local expression = require("library.expression")
 local note_entry = require("library.note_entry")
+local configuration = require("library.configuration")
 
--- These parameters can be adjusted to suit any user's taste.
--- ToDo: optionally read them in from a text file, maybe?
+-- These parameters can be changed with a config.txt file
 
-local left_dynamic_cushion = 9              -- space between a dynamic and a hairpin on the left
-local right_dynamic_cushion = -9            -- space between a dynamic and a haripin on the right
-local left_selection_cushion = 0            -- currently not used
-local right_selection_cushion = 0           -- additional space between a hairpin and the end of its beat region
-local extend_to_end_of_right_entry = true   -- if true, extend hairpins through the end of their right note entries
+local config = {
+    left_dynamic_cushion = 9,                   -- space between a dynamic and a hairpin on the left
+    right_dynamic_cushion = -9,                 -- space between a dynamic and a haripin on the right
+    left_selection_cushion = 0,                 -- currently not used
+    right_selection_cushion = 0,                -- additional space between a hairpin and the end of its beat region
+    extend_to_end_of_right_entry = true         -- if true, extend hairpins through the end of their right note entries
+}
+
+configuration.get_parameters ("standalone_hairpin_adjustment.config.txt", config)
 
 -- end of parameters
 
@@ -228,18 +232,18 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         end
         local total_offset = expression.calc_handle_offset_for_smart_shape(dyn_exp)
         if left_or_right == "left" then
-            local total_x = dyn_width + left_dynamic_cushion + total_offset
+            local total_x = dyn_width + config.left_dynamic_cushion + total_offset
             the_seg:SetEndpointOffsetX(total_x)
         elseif left_or_right == "right" then
             cushion_bool = false
-            local total_x = (0 - dyn_width) + right_dynamic_cushion + total_offset
+            local total_x = (0 - dyn_width) + config.right_dynamic_cushion + total_offset
             the_seg:SetEndpointOffsetX(total_x)
         end
     end
     if cushion_bool then
         the_seg = hairpin:GetTerminateSegmentRight()
         local entry_width = 0
-        if extend_to_end_of_right_entry then
+        if config.extend_to_end_of_right_entry then
             region:SetStartMeasure(the_seg:GetMeasure())
             region:SetStartMeasurePos(the_seg:GetMeasurePos())
             region:SetEndMeasure(the_seg:GetMeasure())
@@ -251,7 +255,7 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
                 end
             end
         end
-        the_seg:SetEndpointOffsetX(right_selection_cushion + entry_width)
+        the_seg:SetEndpointOffsetX(config.right_selection_cushion + entry_width)
     end
     hairpin:Save()
 end
