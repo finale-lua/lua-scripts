@@ -17,14 +17,15 @@ local configuration = require("library.configuration")
 -- These parameters can be changed with a config.txt file
 
 local config = {
-    left_dynamic_cushion = 9,                   -- space between a dynamic and a hairpin on the left
-    right_dynamic_cushion = -9,                 -- space between a dynamic and a haripin on the right
+    left_dynamic_cushion = 9,                   -- space between a dynamic and a hairpin on the left (evpu)
+    right_dynamic_cushion = -9,                 -- space between a dynamic and a haripin on the right (evpu)
     left_selection_cushion = 0,                 -- currently not used
-    right_selection_cushion = 0,                -- additional space between a hairpin and the end of its beat region
+    right_selection_cushion = 0,                -- additional space between a hairpin and the end of its beat region (evpu)
     extend_to_end_of_right_entry = true,        -- if true, extend hairpins through the end of their right note entries
     limit_to_hairpins_on_notes = true,          -- if true, only hairpins attached to notes are considered
     vertical_adjustment_type = "far",           -- possible values: "near", "far", "none"
-    horizontal_adjustment_type = "both"         -- possible values: "both", "left", "right", "none"
+    horizontal_adjustment_type = "both",        -- possible values: "both", "left", "right", "none"
+    vertical_displacement_for_hairpins = 12     -- alignment displacement for hairpins relative to dynamics handle (evpu)
 }
 
 configuration.get_parameters("standalone_hairpin_adjustment.config.txt", config)
@@ -93,7 +94,7 @@ function vertical_dynamic_adjustment(region, direction)
             has_hairpins = true
             local success, staff_offset = smartshape_calc_relative_vertical_position(smart_shape)
             if success then 
-                table.insert(lowest_item, staff_offset)
+                table.insert(lowest_item, staff_offset - config.vertical_displacement_for_hairpins)
             end
         end
     end
@@ -142,7 +143,7 @@ function vertical_dynamic_adjustment(region, direction)
                 min_lowest_position = -160
             else
                 local below_note_cushion = 45
-                min_lowest_position = (staff_pos[1] * 12) - below_note_cushion
+                min_lowest_position = (staff_pos[1] * 12) - below_note_cushion -- multiply by 12 to convert staff position to evpu
             end
             if lowest_item[1] > min_lowest_position then
                 lowest_item[1] = min_lowest_position
@@ -167,11 +168,11 @@ function vertical_dynamic_adjustment(region, direction)
                     end
                     if has_dynamics then
                         if direction == "far" then
-                            left_seg:SetEndpointOffsetY((current_pos - difference_pos) + 12)
-                            right_seg:SetEndpointOffsetY((current_pos - difference_pos) + 12)
+                            left_seg:SetEndpointOffsetY((current_pos - difference_pos) + config.vertical_displacement_for_hairpins)
+                            right_seg:SetEndpointOffsetY((current_pos - difference_pos) + config.vertical_displacement_for_hairpins)
                         else
-                            left_seg:SetEndpointOffsetY((current_pos + difference_pos) + 12)
-                            right_seg:SetEndpointOffsetY((current_pos + difference_pos) + 12)
+                            left_seg:SetEndpointOffsetY((current_pos + difference_pos) + config.vertical_displacement_for_hairpins)
+                            right_seg:SetEndpointOffsetY((current_pos + difference_pos) + config.vertical_displacement_for_hairpins)
                         end
                     else
                         if "far" == direction then
