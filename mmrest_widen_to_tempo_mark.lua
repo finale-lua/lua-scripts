@@ -15,19 +15,20 @@ path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library.general_library")
 local configuration = require("library.configuration")
+local enigma_string = require("library.enigma_string")
 
 local config = {
-    additional_padding = 48         -- amount to add to mmrest length, beyond the width of the tempo mark (evpus)
+    additional_padding = 0         -- amount to add to (or subtract from) mmrest length, beyond the width of the tempo mark (evpus)
 }
 
 configuration.get_parameters("mmrest_widen_to_tempo_mark.config.txt", config)
 
--- NOTE: Due to a limitation in either Finale or the PDK Framework, it is not possible to
+-- NOTE: Due to a limitation somewhere in either Finale or the PDK Framework, it is not possible to
 --          use CalcMetricPos for expressions assigned to top or bottom staff. Therefore,
---          this function produces best result when the exp is assigned to the individual staves
+--          this function produces best results when the expression is assigned to the individual staves
 --          in the parts, rather than just Top Staff or Bottom Staff. However, it works
 --          decently well without the get_expression_offset calculation for Top Staff and Bottom Staff
---          assignments. Therefore, you will see an effort in this code to go either way.
+--          assignments, hence the effort in this code to go either way.
 
 function get_expression_offset(exp, cell)
     local mm = finale.FCCellMetrics()
@@ -64,6 +65,7 @@ function mmrest_widen_to_tempo_mark()
                             local text_met = finale.FCTextMetrics()
                             local fcstring = expression_def:CreateTextString()
                             local font_info = fcstring:CreateLastFontInfo()
+                            enigma_string.expand_value_tag(fcstring, expression_def:GetPlaybackTempoValue())
                             fcstring:TrimEnigmaTags()
                             text_met:LoadString(fcstring, font_info, 100)
                             local this_width = text_met:CalcWidthEVPUs() + config.additional_padding

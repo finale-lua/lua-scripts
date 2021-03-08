@@ -108,4 +108,9 @@ function enigma_string.remove_inserts (fcstring, replace_with_generic)
     fcstring.LuaString = lua_string
 end
 
+function enigma_string.expand_value_tag(fcstring, value_num)
+    value_num = math.floor(value_num +0.5)
+    fcstring.LuaString = fcstring.LuaString:gsub("%^value%(%)", tostring(value_num)) -- in case value_num is not an integer
+end
+
 return enigma_string
