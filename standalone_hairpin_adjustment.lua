@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "CJ Garcia"
     finaleplugin.Copyright = "© 2021 CJ Garcia Music"
-    finaleplugin.Version = "1.1"
+    finaleplugin.Version = "1.2"
     finaleplugin.Date = "2/29/2021"
     return "Hairpin and Dynamic Adjustments", "Hairpin and Dynamic Adjustments", "Adjusts hairpins to remove collisions with dynamics and aligns hairpins with dynamics."
 end
@@ -17,14 +17,18 @@ local configuration = require("library.configuration")
 -- These parameters can be changed with a config.txt file
 
 local config = {
-    left_dynamic_cushion = 9,                   -- space between a dynamic and a hairpin on the left
-    right_dynamic_cushion = -9,                 -- space between a dynamic and a haripin on the right
+    left_dynamic_cushion = 9,                   -- space between a dynamic and a hairpin on the left (evpu)
+    right_dynamic_cushion = -9,                 -- space between a dynamic and a haripin on the right (evpu)
     left_selection_cushion = 0,                 -- currently not used
-    right_selection_cushion = 0,                -- additional space between a hairpin and the end of its beat region
-    extend_to_end_of_right_entry = true         -- if true, extend hairpins through the end of their right note entries
+    right_selection_cushion = 0,                -- additional space between a hairpin and the end of its beat region (evpu)
+    extend_to_end_of_right_entry = true,        -- if true, extend hairpins through the end of their right note entries
+    limit_to_hairpins_on_notes = true,          -- if true, only hairpins attached to notes are considered
+    vertical_adjustment_type = "far",           -- possible values: "near", "far", "none"
+    horizontal_adjustment_type = "both",        -- possible values: "both", "left", "right", "none"
+    vertical_displacement_for_hairpins = 12     -- alignment displacement for hairpins relative to dynamics handle (evpu)
 }
 
-configuration.get_parameters ("standalone_hairpin_adjustment.config.txt", config)
+configuration.get_parameters("standalone_hairpin_adjustment.config.txt", config)
 
 -- end of parameters
 
@@ -90,7 +94,7 @@ function vertical_dynamic_adjustment(region, direction)
             has_hairpins = true
             local success, staff_offset = smartshape_calc_relative_vertical_position(smart_shape)
             if success then 
-                table.insert(lowest_item, staff_offset)
+                table.insert(lowest_item, staff_offset - config.vertical_displacement_for_hairpins)
             end
         end
     end
@@ -133,12 +137,16 @@ function vertical_dynamic_adjustment(region, direction)
 
         table.sort(staff_pos)
 
-        if staff_pos[1] ~= nil then
+        if (nil ~= staff_pos[1]) and ("far" == direction) then
+            local min_lowest_position = lowest_item[1]
             if staff_pos[1] > -7 then
-                lowest_item[1] = -160
+                min_lowest_position = -160
             else
                 local below_note_cushion = 45
-                lowest_item[1] = (staff_pos[1] * 12) - below_note_cushion
+                min_lowest_position = (staff_pos[1] * 12) - below_note_cushion -- multiply by 12 to convert staff position to evpu
+            end
+            if lowest_item[1] > min_lowest_position then
+                lowest_item[1] = min_lowest_position
             end
         end
     end
@@ -160,15 +168,20 @@ function vertical_dynamic_adjustment(region, direction)
                     end
                     if has_dynamics then
                         if direction == "far" then
-                            left_seg:SetEndpointOffsetY((current_pos - difference_pos) + 12)
-                            right_seg:SetEndpointOffsetY((current_pos - difference_pos) + 12)
+                            left_seg:SetEndpointOffsetY((current_pos - difference_pos) + config.vertical_displacement_for_hairpins)
+                            right_seg:SetEndpointOffsetY((current_pos - difference_pos) + config.vertical_displacement_for_hairpins)
                         else
-                            left_seg:SetEndpointOffsetY((current_pos + difference_pos) + 12)
-                            right_seg:SetEndpointOffsetY((current_pos + difference_pos) + 12)
+                            left_seg:SetEndpointOffsetY((current_pos + difference_pos) + config.vertical_displacement_for_hairpins)
+                            right_seg:SetEndpointOffsetY((current_pos + difference_pos) + config.vertical_displacement_for_hairpins)
                         end
                     else
-                        left_seg:SetEndpointOffsetY(lowest_item[1])
-                        right_seg:SetEndpointOffsetY(lowest_item[1])
+                        if "far" == direction then
+                            left_seg:SetEndpointOffsetY(lowest_item[1])
+                            right_seg:SetEndpointOffsetY(lowest_item[1])
+                        elseif "near" == direction then
+                            left_seg:SetEndpointOffsetY(lowest_item[#lowest_item])
+                            right_seg:SetEndpointOffsetY(lowest_item[#lowest_item])
+                        end
                     end
                     smart_shape:Save()
                 end
@@ -191,7 +204,7 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
     region:SetStartStaff(region_settings[1])
     region:SetEndStaff(region_settings[1])
 
-    if multiple_hairpin_bool then
+    if multiple_hairpin_bool or not config.limit_to_hairpins_on_notes then
         region:SetStartMeasure(the_seg:GetMeasure())
         region:SetStartMeasurePos(the_seg:GetMeasurePos())
         region:SetEndMeasure(the_seg:GetMeasure())
@@ -260,7 +273,7 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
     hairpin:Save()
 end
 
-function hairpin_adjustments(range_settings, adjustment_type)
+function hairpin_adjustments(range_settings)
 
     local music_reg = finale.FCMusicRegion()
     music_reg:SetCurrentSelection()
@@ -300,7 +313,7 @@ function hairpin_adjustments(range_settings, adjustment_type)
     end
 
     local end_pos = range_settings[5]
-    local end_cushion = false
+    local end_cushion = not config.limit_to_hairpins_on_notes
 
     local notes_in_region = {}
     for noteentry in eachentry(music_reg) do
@@ -309,16 +322,19 @@ function hairpin_adjustments(range_settings, adjustment_type)
         end
     end
 
-    music_reg:SetStartMeasure(notes_in_region[#notes_in_region]:GetMeasure())
-    music_reg:SetEndMeasure(notes_in_region[#notes_in_region]:GetMeasure())
-    music_reg:SetStartMeasurePos(notes_in_region[#notes_in_region]:GetMeasurePos())
-    music_reg:SetEndMeasurePos(notes_in_region[#notes_in_region]:GetMeasurePos())
-    
-    if (has_dynamic(music_reg)) and (#notes_in_region > 1) then
-        local last_note = notes_in_region[#notes_in_region]
-        end_pos = last_note:GetMeasurePos() + last_note:GetDuration()
-    elseif (has_dynamic(music_reg)) and (#notes_in_region == 1) then
-        end_pos = range_settings[5]
+    if #notes_in_region > 0 then
+        music_reg:SetStartMeasure(notes_in_region[#notes_in_region]:GetMeasure())
+        music_reg:SetEndMeasure(notes_in_region[#notes_in_region]:GetMeasure())
+        music_reg:SetStartMeasurePos(notes_in_region[#notes_in_region]:GetMeasurePos())
+        music_reg:SetEndMeasurePos(notes_in_region[#notes_in_region]:GetMeasurePos())
+        if (has_dynamic(music_reg)) and (#notes_in_region > 1) then
+            local last_note = notes_in_region[#notes_in_region]
+            end_pos = last_note:GetMeasurePos() + last_note:GetDuration()
+        elseif (has_dynamic(music_reg)) and (#notes_in_region == 1) then
+            end_pos = range_settings[5]
+        else
+            end_cushion = true
+        end
     else
         end_cushion = true
     end
@@ -330,14 +346,24 @@ function hairpin_adjustments(range_settings, adjustment_type)
     music_reg:SetStartMeasurePos(range_settings[4])
     music_reg:SetEndMeasurePos(end_pos)
 
-    if adjustment_type == "both" then
+    if "none" ~= config.horizontal_adjustment_type then
+        local multiple_hairpins = (#hairpin_list > 1)
         for key, value in pairs(hairpin_list) do
-            horizontal_hairpin_adjustment("left", value, {range_settings[1], range_settings[2], range_settings[4]}, end_cushion, true)
-            horizontal_hairpin_adjustment("right", value, {range_settings[1], range_settings[3], end_pos}, end_cushion, true)
+            if ("both" == config.horizontal_adjustment_type) or ("left" == config.horizontal_adjustment_type) then
+                horizontal_hairpin_adjustment("left", value, {range_settings[1], range_settings[2], range_settings[4]}, end_cushion, multiple_hairpins)
+            end
+            if ("both" == config.horizontal_adjustment_type) or ("right" == config.horizontal_adjustment_type) then
+                horizontal_hairpin_adjustment("right", value, {range_settings[1], range_settings[3], end_pos}, end_cushion, multiple_hairpins)
+            end
         end
-        vertical_dynamic_adjustment(music_reg, "far")
-    else 
-        vertical_dynamic_adjustment(music_reg, adjustment_type)
+    end
+    if "none" ~= config.vertical_adjustment_type then
+        if ("both" == config.vertical_adjustment_type) or ("far" == config.vertical_adjustment_type) then
+            vertical_dynamic_adjustment(music_reg, "far")
+        end
+        if ("both" == config.vertical_adjustment_type) or ("near" == config.vertical_adjustment_type) then
+            vertical_dynamic_adjustment(music_reg, "near")
+        end
     end
 end
 
@@ -348,6 +374,16 @@ function set_first_last_note_in_range(staff)
     music_region:SetCurrentSelection()
     music_region:SetStartStaff(staff)
     music_region:SetEndStaff(staff)
+
+    if not config.limit_to_hairpins_on_notes then
+        local end_meas_pos = music_region.EndMeasurePos
+        local meas = finale.FCMeasure()
+        meas:Load(music_region.EndMeasure)
+        if end_meas_pos > meas:GetDuration() then
+            end_meas_pos = meas:GetDuration()
+        end
+        return {staff, music_region.StartMeasure, music_region.EndMeasure, music_region.StartMeasurePos, end_meas_pos}
+    end
 
     local notes_in_region = {}
 
@@ -385,7 +421,7 @@ function dynamics_align_hairpins_and_dynamics()
         if music_region:IsStaffIncluded(staff:GetItemNo()) then
             local range_settings = set_first_last_note_in_range(staff:GetItemNo())
             if nil ~= range_settings then
-                hairpin_adjustments(range_settings, "both")
+                hairpin_adjustments(range_settings)
             end
         end
     end

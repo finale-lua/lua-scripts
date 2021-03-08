@@ -11,7 +11,7 @@
 --
 -- <parameter-name> = <parameter-value>
 --
--- Parameter values must be numbers or booleans. (If we need strings, that can be an enhancement.)
+-- Parameter values must be numbers or booleans or strings.
 
 local configuration = {}
 
@@ -30,7 +30,7 @@ local file_exists = function(file_path)
 end
 
 local strip_leading_trailing_whitespace = function (str)
-    return str:match("^%s*(.-)%s*$") -- regular expression magic taken from the Internet
+    return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
 end
 
 local get_parameters_from_file = function(file_name)
@@ -44,7 +44,7 @@ local get_parameters_from_file = function(file_name)
     end
 
     for line in io.lines(file_path) do
-        local comment_at = string.find(line, comment_marker, 1, true) -- true means use raw string rather than reg. exp.
+        local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
         if nil ~= comment_at then
             line = string.sub(line, 1, comment_at-1)
         end
@@ -52,7 +52,11 @@ local get_parameters_from_file = function(file_name)
         if nil ~= delimiter_at then
             local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at-1))
             local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at+1))
-            if "true" == val_string then
+            if '"' == val_string:sub(1,1) and '"' == val_string:sub(#val_string,#val_string) then -- double-quote string
+                parameters[name] = string.gsub(val_string, '"(.+)"', "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
+            elseif "'" == val_string:sub(1,1) and "'" == val_string:sub(#val_string,#val_string) then -- single-quote string
+                parameters[name] = string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
+            elseif "true" == val_string then
                 parameters[name] = true
             elseif "false" == val_string then
                 parameters[name] = false
