@@ -22,19 +22,23 @@ local config = {
 
 configuration.get_parameters("mmrest_widen_to_tempo_mark.config.txt", config)
 
+-- NOTE: Due to a limitation in either Finale or the PDK Framework, it is not possible to
+--          use CalcMetricPos for expressions assigned to top or bottom staff. Therefore,
+--          this function produces best result when the exp is assigned to the individual staves
+--          in the parts, rather than just Top Staff or Bottom Staff. However, it works
+--          decently well without the get_expression_offset calculation for Top Staff and Bottom Staff
+--          assignments. Therefore, you will see an effort in this code to go either way.
+
 function get_expression_offset(exp, cell)
     local mm = finale.FCCellMetrics()
     if not mm:LoadAtCell(cell) then
-        finenv.UI():AlertInfo("met failed, m: " .. tostring(cell.Measure) .. " s: " .. tostring(cell.Staff) , "get_expression_offset")
         return 0
     end
     local point = finale.FCPoint(0, 0)
     if not exp:CalcMetricPos(point) then
-        finenv.UI():AlertInfo("calc failed but got muspos: " .. tostring(mm.MusicStartPos), "get_expression_offset")
         return 0
     end
-    local retval = mm.MusicStartPos - point.X   -- ToDo: mm.MusicStartPos may need to be scaled. we'll see.
-    finenv.UI():AlertInfo("muspos: " .. tostring(mm.MusicStartPos) .. " x: " .. tostring(point.X) .. " diff: " .. tostring(retval), "get_expression_offset")
+    local retval = point.X - mm.MusicStartPos
     mm:FreeMetrics()
     return retval
 end
@@ -48,8 +52,10 @@ function mmrest_widen_to_tempo_mark()
         if mmrest:Load(meas.ItemNo) then
             local expression_assignments = finale.FCExpressions()
             expression_assignments:LoadAllForItem(meas.ItemNo)
-            local new_width = mmrest.Width
-            local got1 = false
+            local new_width_top_bot = mmrest.Width
+            local got_top_bot = false
+            local new_width_staff = mmrest.Width
+            local got_staff = false
             for expression_assignment in each(expression_assignments) do
                 if not expression_assignment:IsShape() then
                     local expression_def = finale.FCTextExpressionDef()
@@ -60,18 +66,29 @@ function mmrest_widen_to_tempo_mark()
                             local font_info = fcstring:CreateLastFontInfo()
                             fcstring:TrimEnigmaTags()
                             text_met:LoadString(fcstring, font_info, 100)
-                            local cell = finale.FCCell(meas.ItemNo, sel_region.StartStaff)
-                            local this_width = text_met:GetAdvanceWidthEVPUs() + config.additional_padding + get_expression_offset(expression_assignment, cell)
-                            if this_width > new_width then
-                                got1 = true
-                                new_width = this_width
+                            local this_width = text_met:CalcWidthEVPUs() + config.additional_padding
+                            if expression_assignment.Staff <= 0 then
+                                if this_width > new_width_top_bot then
+                                    new_width_top_bot = this_width
+                                    got_top_bot = true
+                                end
+                            else
+                                local cell = finale.FCCell(meas.ItemNo, expression_assignment.Staff)
+                                local this_width = this_width + get_expression_offset(expression_assignment, cell)
+                                if this_width > new_width_staff then
+                                    got_staff = true
+                                    new_width_staff = this_width
+                                end
                             end
                         end
                     end
                 end
             end
-            if got1 then
-                mmrest.Width = new_width
+            if got_staff then
+                mmrest.Width = new_width_staff
+                mmrest:Save()
+            elseif got_top_bot then
+                mmrest.Width = new_width_top_bot
                 mmrest:Save()
             end
         end
