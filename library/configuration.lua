@@ -44,7 +44,7 @@ local get_parameters_from_file = function(file_name)
     end
 
     for line in io.lines(file_path) do
-        local comment_at = string.find(line, comment_marker, 1, true) -- true means use raw string rather than reg. exp.
+        local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
         if nil ~= comment_at then
             line = string.sub(line, 1, comment_at-1)
         end
