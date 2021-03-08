@@ -204,7 +204,7 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
     region:SetStartStaff(region_settings[1])
     region:SetEndStaff(region_settings[1])
 
-    if multiple_hairpin_bool then
+    if multiple_hairpin_bool or not config.limit_to_hairpins_on_notes then
         region:SetStartMeasure(the_seg:GetMeasure())
         region:SetStartMeasurePos(the_seg:GetMeasurePos())
         region:SetEndMeasure(the_seg:GetMeasure())
@@ -313,7 +313,7 @@ function hairpin_adjustments(range_settings)
     end
 
     local end_pos = range_settings[5]
-    local end_cushion = false
+    local end_cushion = not config.limit_to_hairpins_on_notes
 
     local notes_in_region = {}
     for noteentry in eachentry(music_reg) do
@@ -347,12 +347,13 @@ function hairpin_adjustments(range_settings)
     music_reg:SetEndMeasurePos(end_pos)
 
     if "none" ~= config.horizontal_adjustment_type then
+        local multiple_hairpins = (#hairpin_list > 1)
         for key, value in pairs(hairpin_list) do
             if ("both" == config.horizontal_adjustment_type) or ("left" == config.horizontal_adjustment_type) then
-                horizontal_hairpin_adjustment("left", value, {range_settings[1], range_settings[2], range_settings[4]}, end_cushion, true)
+                horizontal_hairpin_adjustment("left", value, {range_settings[1], range_settings[2], range_settings[4]}, end_cushion, multiple_hairpins)
             end
             if ("both" == config.horizontal_adjustment_type) or ("right" == config.horizontal_adjustment_type) then
-                horizontal_hairpin_adjustment("right", value, {range_settings[1], range_settings[3], end_pos}, end_cushion, true)
+                horizontal_hairpin_adjustment("right", value, {range_settings[1], range_settings[3], end_pos}, end_cushion, multiple_hairpins)
             end
         end
     end
@@ -375,7 +376,13 @@ function set_first_last_note_in_range(staff)
     music_region:SetEndStaff(staff)
 
     if not config.limit_to_hairpins_on_notes then
-        return {staff, music_region.StartMeasure, music_region.EndMeasure, music_region.StartMeasurePos, music_region.EndMeasurePos}
+        local end_meas_pos = music_region.EndMeasurePos
+        local meas = finale.FCMeasure()
+        meas:Load(music_region.EndMeasure)
+        if end_meas_pos > meas:GetDuration() then
+            end_meas_pos = meas:GetDuration()
+        end
+        return {staff, music_region.StartMeasure, music_region.EndMeasure, music_region.StartMeasurePos, end_meas_pos}
     end
 
     local notes_in_region = {}
