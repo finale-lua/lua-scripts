@@ -10,6 +10,7 @@ function expression.get_music_region(exp_assign)
         return nil
     end
     local exp_region = finale.FCMusicRegion()
+    exp_region:SetCurrentSelection() -- called to match the selected IU list (e.g., if using Staff Sets)
     exp_region.StartStaff = exp_assign.Staff
     exp_region.EndStaff = exp_assign.Staff
     exp_region.StartMeasure = exp_assign.Measure

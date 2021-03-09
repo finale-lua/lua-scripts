@@ -2,6 +2,17 @@
 -- Simply import this file to another Lua script to use any of these scripts
 local note_entry = {}
 
+function note_entry.get_music_region(entry)
+    local exp_region = finale.FCMusicRegion()
+    exp_region.StartStaff = entry.Staff
+    exp_region.EndStaff = entry.Staff
+    exp_region.StartMeasure = entry.Measure
+    exp_region.EndMeasure = entry.Measure
+    exp_region.StartMeasurePos = entry.MeasurePos
+    exp_region.EndMeasurePos = entry.MeasurePos
+    return exp_region
+end
+
 -- return widest left-side notehead width and widest right-side notehead width
 function note_entry.calc_widths(entry)
     local left_width = 0
