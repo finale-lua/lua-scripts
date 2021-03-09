@@ -113,4 +113,15 @@ function enigma_string.expand_value_tag(fcstring, value_num)
     fcstring.LuaString = fcstring.LuaString:gsub("%^value%(%)", tostring(value_num)) -- in case value_num is not an integer
 end
 
+function enigma_string.calc_text_advance_width(inp_string)
+    -- copy inp_string to avoid side effects
+    local fcstring = finale.FCString()
+    fcstring.LuaString = inp_string.LuaString
+    local text_met = finale.FCTextMetrics()
+    local font_info = fcstring:CreateLastFontInfo()
+    fcstring:TrimEnigmaTags()
+    text_met:LoadString(fcstring, font_info, 100)
+    return text_met:CalcWidthEVPUs()
+end
+
 return enigma_string

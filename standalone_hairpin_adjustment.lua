@@ -225,12 +225,7 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         local cd = finale.FCCategoryDef()
         if cd:Load(create_def:GetCategoryID()) then
             if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
-                local text_met = finale.FCTextMetrics()
-                local string = create_def:CreateTextString()
-                local font_info = string:CreateLastFontInfo()
-                string:TrimEnigmaTags()
-                text_met:LoadString(string, font_info, 100)
-                table.insert(expression_list, {text_met:GetAdvanceWidthEVPUs(), e, e:GetItemInci()})
+                table.insert(expression_list, {expression.calc_text_width(create_def), e, e:GetItemInci()})
             end
         end
     end

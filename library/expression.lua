@@ -3,6 +3,7 @@
 local expression = {}
 
 local note_entry = require("library.note_entry")
+local enigma_string = require("library.enigma_string")
 
 function expression.get_music_region(exp_assign)
     if not exp_assign:IsSingleStaffAssigned() then
@@ -58,6 +59,17 @@ function expression.calc_handle_offset_for_smart_shape(exp_assign)
         end
     end
     return (manual_horizontal + def_horizontal + alignment_offset)
+end
+
+-- expand_tags is optional (default false) (currently only supports ^value())
+function expression.calc_text_width(expression_def, expand_tags)
+    expand_tags = expand_tags or false
+    local fcstring = expression_def:CreateTextString()
+    if expand_tags then
+        enigma_string.expand_value_tag(fcstring, expression_def:GetPlaybackTempoValue())
+    end
+    local retval = enigma_string.calc_text_advance_width(fcstring)
+    return retval
 end
 
 return expression

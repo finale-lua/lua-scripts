@@ -16,6 +16,7 @@ package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library.general_library")
 local configuration = require("library.configuration")
 local enigma_string = require("library.enigma_string")
+local expression = require("library.expression")
 
 local config = {
     additional_padding = 0         -- amount to add to (or subtract from) mmrest length, beyond the width of the tempo mark (evpus)
@@ -62,13 +63,7 @@ function mmrest_widen_to_tempo_mark()
                     local expression_def = finale.FCTextExpressionDef()
                     if expression_def:Load(expression_assignment.ID) then
                         if finale.DEFAULTCATID_TEMPOMARKS == expression_def.CategoryID then
-                            local text_met = finale.FCTextMetrics()
-                            local fcstring = expression_def:CreateTextString()
-                            local font_info = fcstring:CreateLastFontInfo()
-                            enigma_string.expand_value_tag(fcstring, expression_def:GetPlaybackTempoValue())
-                            fcstring:TrimEnigmaTags()
-                            text_met:LoadString(fcstring, font_info, 100)
-                            local this_width = text_met:CalcWidthEVPUs() + config.additional_padding
+                            local this_width = expression.calc_text_width(expression_def, true) + config.additional_padding -- true: expand tags (currently only supports ^value())
                             if expression_assignment.Staff <= 0 then
                                 if this_width > new_width_top_bot then
                                     new_width_top_bot = this_width
