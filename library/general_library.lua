@@ -72,7 +72,7 @@ end
 function library.get_selected_region_or_whole_doc()
     local sel_region = finenv.Region()
     if sel_region:IsEmpty() then
-        sel_region:SetFullDocument()
+        sel_region:SetFullDocument() -- side-effect warning: this also changes finenv.Region() to full doc
     end
     return sel_region
 end
@@ -134,5 +134,15 @@ function library.is_default_measure_number_visible_on_cell (meas_num_region, cel
     return false
 end
 
+-- from_page: page to update from (optional) 1 if omitted
+-- unfreeze_measures: (optional) false if omitted
+function library.update_layout(from_page, unfreeze_measures)
+    from_page = from_page or 1
+    unfreeze_measures = unfreeze_measures or false
+    local page = finale.FCPage()
+    if page:Load(from_page) then
+        page:UpdateLayout(unfreeze_measures)
+    end
+end
 
 return library
