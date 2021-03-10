@@ -4,6 +4,7 @@ local note_entry = {}
 
 function note_entry.get_music_region(entry)
     local exp_region = finale.FCMusicRegion()
+    exp_region:SetCurrentSelection() -- called to match the selected IU list (e.g., if using Staff Sets)
     exp_region.StartStaff = entry.Staff
     exp_region.EndStaff = entry.Staff
     exp_region.StartMeasure = entry.Measure
@@ -11,6 +12,76 @@ function note_entry.get_music_region(entry)
     exp_region.StartMeasurePos = entry.MeasurePos
     exp_region.EndMeasurePos = entry.MeasurePos
     return exp_region
+end
+
+--For some reason the headRect is not included in the PDK Framework, so we have to laboriously
+--reconstruct it here
+--entry_metrics can be omitted, in which case they are constructed and released here
+--return entry_metrics, loaded_here
+local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
+    if nil ~= entry_metrics then
+        return entry_metrics, false
+    end
+    entry_metrics = finale.FCEntryMetrics()
+    if entry_metrics:Load(entry) then
+        return entry_metrics, true
+    end
+    return nil, false
+end
+
+function note_entry.get_evpu_notehead_height(entry)
+    local highest_note = entry:CalcHighestNote(nil)
+    local lowest_note = entry:CalcLowestNote(nil)
+    local evpu_height = (2 + highest_note:CalcStaffPosition() - lowest_note:CalcStaffPosition()) * 12 -- 12 evpu per staff step; add 2 staff steps to accommodate for notehead height at top and bottom
+    return evpu_height
+end
+
+function note_entry.get_top_note_position(entry, entry_metrics)
+    local retval = -math.huge
+    local loaded_here = false
+    entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
+    if nil == entry_metrics then
+        return retval
+    end
+    if not entry:CalcStemUp() then
+        retval = entry_metrics.TopPosition
+    else
+        local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
+        if nil ~= cell_metrics then
+            local evpu_height = note_entry.get_evpu_notehead_height(entry)
+            local scaled_height = math.floor(((cell_metrics.StaffScaling*evpu_height)/10000) + 0.5)
+            retval = entry_metrics.BottomPosition + scaled_height
+            cell_metrics:FreeMetrics()
+        end
+    end
+    if loaded_here then
+        entry_metrics:FreeMetrics()
+    end
+    return retval
+end
+
+function note_entry.get_bottom_note_position(entry, entry_metrics)
+    local retval = math.huge
+    local loaded_here = false
+    entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
+    if nil == entry_metrics then
+        return retval
+    end
+    if entry:CalcStemUp() then
+        retval = entry_metrics.BottomPosition
+    else
+        local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
+        if nil ~= cell_metrics then
+            local evpu_height = note_entry.get_evpu_notehead_height(entry)
+            local scaled_height = math.floor(((cell_metrics.StaffScaling*evpu_height)/10000) + 0.5)
+            retval = entry_metrics.TopPosition - scaled_height
+            cell_metrics:FreeMetrics()
+        end
+    end
+    if loaded_here then
+        entry_metrics:FreeMetrics()
+    end
+    return retval
 end
 
 -- return widest left-side notehead width and widest right-side notehead width
