@@ -2,6 +2,9 @@
 -- Simply import this file to another Lua script to use any of these scripts
 local note_entry = {}
 
+-- This function may not be used, though it has been tested and works.
+-- If you use this function, remove this comment.
+-- If you remove this function, be sure to check that it still isn't used.
 function note_entry.get_music_region(entry)
     local exp_region = finale.FCMusicRegion()
     exp_region:SetCurrentSelection() -- called to match the selected IU list (e.g., if using Staff Sets)
@@ -29,6 +32,9 @@ local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
     return nil, false
 end
 
+-- This function may not be used, though it has been tested and works.
+-- If you use this function, remove this comment.
+-- If you remove this function, be sure to check that it still isn't used.
 function note_entry.get_evpu_notehead_height(entry)
     local highest_note = entry:CalcHighestNote(nil)
     local lowest_note = entry:CalcLowestNote(nil)
@@ -36,6 +42,9 @@ function note_entry.get_evpu_notehead_height(entry)
     return evpu_height
 end
 
+-- This function may not be used, though it has been tested and works.
+-- If you use this function, remove this comment.
+-- If you remove this function, be sure to check that it still isn't used.
 function note_entry.get_top_note_position(entry, entry_metrics)
     local retval = -math.huge
     local loaded_here = false
@@ -60,6 +69,9 @@ function note_entry.get_top_note_position(entry, entry_metrics)
     return retval
 end
 
+-- This function may not be used, though it has been tested and works.
+-- If you use this function, remove this comment.
+-- If you remove this function, be sure to check that it still isn't used.
 function note_entry.get_bottom_note_position(entry, entry_metrics)
     local retval = math.huge
     local loaded_here = false
