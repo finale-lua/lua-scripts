@@ -3,12 +3,14 @@
 local expression = {}
 
 local note_entry = require("library.note_entry")
+local enigma_string = require("library.enigma_string")
 
 function expression.get_music_region(exp_assign)
     if not exp_assign:IsSingleStaffAssigned() then
         return nil
     end
     local exp_region = finale.FCMusicRegion()
+    exp_region:SetCurrentSelection() -- called to match the selected IU list (e.g., if using Staff Sets)
     exp_region.StartStaff = exp_assign.Staff
     exp_region.EndStaff = exp_assign.Staff
     exp_region.StartMeasure = exp_assign.Measure
@@ -58,6 +60,17 @@ function expression.calc_handle_offset_for_smart_shape(exp_assign)
         end
     end
     return (manual_horizontal + def_horizontal + alignment_offset)
+end
+
+-- expand_tags is optional (default false) (currently only supports ^value())
+function expression.calc_text_width(expression_def, expand_tags)
+    expand_tags = expand_tags or false
+    local fcstring = expression_def:CreateTextString()
+    if expand_tags then
+        enigma_string.expand_value_tag(fcstring, expression_def:GetPlaybackTempoValue())
+    end
+    local retval = enigma_string.calc_text_advance_width(fcstring)
+    return retval
 end
 
 return expression
