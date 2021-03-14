@@ -15,6 +15,23 @@ package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local note_entry = require("library.note_entry")
 
 function add_gliss_line_if_needed(start_note, end_note)
+    -- search for existing
+    local smartshapeentrymarks = finale.FCSmartShapeEntryMarks(start_note.Entry)
+    smartshapeentrymarks:LoadAll()
+    for ssem in each(smartshapeentrymarks) do
+        if ssem:CalcLeftMark() then
+            local ss = finale.FCSmartShape()
+            if ss:Load(ssem.ShapeNumber) then
+                if (ss.ShapeType == finale.SMARTSHAPE_TABSLIDE) then
+                    local rightseg = ss:GetTerminateSegmentRight()
+                    if (rightseg.EntryNumber == end_note.Entry.EntryNumber) and (rightseg.NoteID == end_note.NoteID) then
+                        return ss -- return the found smart shape, in case caller needs it
+                    end
+                end
+            end
+        end
+    end
+    -- not found, so create new
     local smartshape = finale.FCSmartShape()
     smartshape.ShapeType = finale.SMARTSHAPE_TABSLIDE
     smartshape.EntryBased = true
