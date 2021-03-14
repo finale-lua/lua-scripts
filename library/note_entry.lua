@@ -166,4 +166,19 @@ function note_entry.calc_right_of_all_noteheads(entry)
     return right
 end
 
+-- this function assumes for note in each(note_entry) always iterates in the same direction
+-- (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
+-- currently the PDK Framework does not seem to offer a better option
+-- note_index is zero-based
+function note_entry.calc_note_at_index(entry, note_index)
+    local x = 0
+    for note in each(entry) do
+        if x == note_index then
+            return note
+        end
+        x = x + 1
+    end
+    return nil
+end
+
 return note_entry
