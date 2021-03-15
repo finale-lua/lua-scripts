@@ -10,17 +10,20 @@ function plugindef()
 end
 
 -- The goal of this script is to automate jeté bowing notation as given in Gould, Elaine, "Behind Bars", p. 404
+-- For the best results with staccato dots, use an articulation with "Avoid Staff Lines" unchecked.
 
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local note_entry = require("library.note_entry")
+local articulation = require("library.articulation")
 local configuration = require("library.configuration")
 
 local max_layers = 4            -- this should be in the PDK, but for some reason isn't
 
 local config = {
-    dot_character = 46          -- ascii code for "."
+    dot_character = 46,         -- ascii code for "."
+    hide_last_note = false
 }
 
 configuration.get_parameters("note_automatic_jete.config.txt", config)
@@ -68,22 +71,29 @@ function add_gliss_line_if_needed(start_note, end_note)
     return nil
 end
 
-function find_staccato_articulation(entry, by_def_id)
-    by_def_id = by_def_id or 0
+-- return found articulation and point position
+-- if we are finding by the character, it must be note-side
+function find_staccato_articulation(entry, find_by_def_id)
+    find_by_def_id = find_by_def_id or 0
     local artics = entry:CreateArticulations()
     for artic in each(artics) do
-        if by_def_id == artic.ID then
-            return artic
-        elseif 0 == by_def_id then
-            local artic_def = artic:CreateArticulationDef()
-            if nil ~= artic_def then
-                if config.dot_character == artic_def.MainSymbolChar then
-                    return artic
+        local fcpoint = finale.FCPoint(0, 0)
+        if artic:CalcMetricPos(fcpoint) then
+            if find_by_def_id == artic.ID then
+                return artic, fcpoint
+            elseif 0 == find_by_def_id then
+                local artic_def = artic:CreateArticulationDef()
+                if nil ~= artic_def then
+                    if config.dot_character == artic_def.MainSymbolChar then
+                        if articulation.is_note_side(artic, fcpoint) then
+                            return artic, fcpoint
+                        end
+                    end
                 end
             end
         end
     end
-    return nil
+    return nil, nil
 end
 
 function note_automatic_jete()
@@ -98,8 +108,15 @@ function note_automatic_jete()
             -- find first and last entries
             local first_entry_num = nil
             local last_entry_num = nil
+            local entries = {}
+            local last_meas = nil
             for entry in eachentry(staff_region) do
                 if entry.LayerNumber == layer then
+                    -- break if we skipped a measure
+                    if last_meas and (last_meas < (entry.Measure - 1)) then
+                        break
+                    end
+                    last_meas = entry.Measure
                     local is_rest = entry:IsRest()
                     -- break on rests, but only if we've found a non-rest
                     if is_rest and (nil ~= first_entry_num) then
@@ -110,6 +127,7 @@ function note_automatic_jete()
                             first_entry_num = entry.EntryNumber
                         end
                         last_entry_num = entry.EntryNumber
+                        entries[entry.EntryNumber] = entry
                     end
                 end
             end
@@ -117,13 +135,10 @@ function note_automatic_jete()
                 local lpoint = nil
                 local rpoint = nil
                 local dot_artic_def = 0
-                for entry in eachentrysaved(staff_region) do
-                    if entry.LayerNumber == layer then
+                for entry in eachentrysaved(staff_region) do    -- don't use pairs(entries) because we need to save the entries on this pass
+                    if nil ~= entries[entry.EntryNumber] then
                         if entry.EntryNumber == first_entry_num then
-                            local last_entry = entry
-                            while (nil ~= last_entry) and (last_entry.EntryNumber ~= last_entry_num) do
-                                last_entry = last_entry:Next()
-                            end
+                            local last_entry = entries[last_entry_num]
                             if nil ~= last_entry then
                                 local x = 0
                                 for note in each(entry) do
@@ -134,19 +149,14 @@ function note_automatic_jete()
                                     x = x + 1
                                 end
                                 -- get first and last points for artic defs
-                                local lartic = find_staccato_articulation(entry)
-                                local larg_point = finale.FCPoint(0, 0)
-                                if (nil ~= lartic) and lartic:CalcMetricPos(larg_point) then
-                                    lpoint = larg_point
+                                local lartic = nil
+                                lartic, lpoint = find_staccato_articulation(entry)
+                                if nil ~= lartic then
                                     dot_artic_def = lartic.ID
-                                    local rartic = find_staccato_articulation(last_entry, dot_artic_def)
-                                    local rarg_point = finale.FCPoint(0, 0)
-                                    if (nil ~= rartic) and rartic:CalcMetricPos(rarg_point) then
-                                        rpoint = rarg_point
-                                    end
+                                    _, rpoint = find_staccato_articulation(last_entry, dot_artic_def)
                                 end
                             end
-                        elseif entry.EntryNumber ~= last_entry_num then
+                        elseif (entry.EntryNumber ~= last_entry_num) or config.hide_last_note then
                             entry.LedgerLines = false
                             entry:SetAccidentals(false)
                             for note in each(entry) do
@@ -162,21 +172,18 @@ function note_automatic_jete()
                     end
                 end
                 -- shift dot articulations, if any
-                if lpoint.X ~= rpoint.X then -- prevent divide-by-zero, but it should not happen if we're here
+                if lpoint and rpoint and (lpoint.X ~= rpoint.X) then -- prevent divide-by-zero, but it should not happen if we're here
                     local linear_multplier = (rpoint.Y - lpoint.Y) / (rpoint.X - lpoint.X)
                     local linear_constant = (rpoint.X*lpoint.Y - lpoint.X*rpoint.Y) / (rpoint.X - lpoint.X)
                     finale.FCNoteEntry.MarkEntryMetricsForUpdate()
-                    for entry in eachentry(staff_region) do
-                        if entry.LayerNumber == layer then
-                            if (entry.EntryNumber ~= first_entry_num) and (entry.EntryNumber ~= last_entry_num) then
-                                local artic = find_staccato_articulation(entry, dot_artic_def)
-                                local arg_point = finale.FCPoint(0, 0)
-                                if (nil ~= artic) and artic:CalcMetricPos(arg_point) then
-                                    local new_y = linear_multplier*arg_point.X + linear_constant -- apply linear equation
-                                    local old_vpos = artic.VerticalPos
-                                    artic.VerticalPos = artic.VerticalPos + (math.floor(new_y + 0.5) - arg_point.Y)
-                                    artic:Save()
-                                end
+                    for key, entry in pairs(entries) do
+                        if (entry.EntryNumber ~= first_entry_num) and (entry.EntryNumber ~= last_entry_num) then
+                            local artic, arg_point = find_staccato_articulation(entry, dot_artic_def)
+                            if nil ~= artic then
+                                local new_y = linear_multplier*arg_point.X + linear_constant -- apply linear equation
+                                local old_vpos = artic.VerticalPos
+                                artic.VerticalPos = artic.VerticalPos - (note_entry.stem_sign(entry) * (math.floor(new_y + 0.5) - arg_point.Y))
+                                artic:Save()
                             end
                         end
                     end

@@ -42,9 +42,7 @@ function note_entry.get_evpu_notehead_height(entry)
     return evpu_height
 end
 
--- This function may not be used, though it has been tested and works.
--- If you use this function, remove this comment.
--- If you remove this function, be sure to check that it still isn't used.
+-- entry_metrics is an optional parameter
 function note_entry.get_top_note_position(entry, entry_metrics)
     local retval = -math.huge
     local loaded_here = false
@@ -69,9 +67,7 @@ function note_entry.get_top_note_position(entry, entry_metrics)
     return retval
 end
 
--- This function may not be used, though it has been tested and works.
--- If you use this function, remove this comment.
--- If you remove this function, be sure to check that it still isn't used.
+-- entry_metrics is an optional parameter
 function note_entry.get_bottom_note_position(entry, entry_metrics)
     local retval = math.huge
     local loaded_here = false
@@ -179,6 +175,16 @@ function note_entry.calc_note_at_index(entry, note_index)
         x = x + 1
     end
     return nil
+end
+
+-- returns 1 if upstem, -1 otherwise
+-- this is useful for many x,y positioning fields in Finale that mirror +/-
+-- based on stem direction
+function note_entry.stem_sign(entry)
+    if entry:CalcStemUp() then
+        return 1
+    end
+    return -1
 end
 
 return note_entry
