@@ -174,7 +174,8 @@ function note_automatic_jete()
                                 if (nil ~= artic) and artic:CalcMetricPos(arg_point) then
                                     local new_y = linear_multplier*arg_point.X + linear_constant -- apply linear equation
                                     local old_vpos = artic.VerticalPos
-                                    artic.VerticalPos = artic.VerticalPos + (math.floor(new_y + 0.5) - arg_point.Y)                                    artic:Save()
+                                    artic.VerticalPos = artic.VerticalPos + (math.floor(new_y + 0.5) - arg_point.Y)
+                                    artic:Save()
                                 end
                             end
                         end
