@@ -15,12 +15,15 @@ local path = finale.FCString()
 path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local note_entry = require("library.note_entry")
+local configuration = require("library.configuration")
 
 local max_layers = 4            -- this should be in the PDK, but for some reason isn't
 
 local config = {
     dot_character = 46          -- ascii code for "."
 }
+
+configuration.get_parameters("note_automatic_jete.config.txt", config)
 
 function add_gliss_line_if_needed(start_note, end_note)
     -- search for existing
@@ -30,7 +33,7 @@ function add_gliss_line_if_needed(start_note, end_note)
         if ssem:CalcLeftMark() then
             local ss = finale.FCSmartShape()
             if ss:Load(ssem.ShapeNumber) then
-                if ss:IsTabSlide() then --(ss.ShapeType == finale.SMARTSHAPE_TABSLIDE) then
+                if ss:IsTabSlide() then
                     local rightseg = ss:GetTerminateSegmentRight()
                     if (rightseg.EntryNumber == end_note.Entry.EntryNumber) and (rightseg.NoteID == end_note.NoteID) then
                         return ss -- return the found smart shape, in case caller needs it
@@ -159,7 +162,6 @@ function note_automatic_jete()
                     end
                 end
                 -- shift dot articulations, if any
-                --finenv.UI():AlertInfo("l: (" .. tostring(lpoint.X) .. "," .. tostring(lpoint.Y) .. ") r: (" .. tostring(rpoint.X) .. "," .. tostring(rpoint.Y) .. ")", "show points")
                 if lpoint.X ~= rpoint.X then -- prevent divide-by-zero, but it should not happen if we're here
                     local linear_multplier = (rpoint.Y - lpoint.Y) / (rpoint.X - lpoint.X)
                     local linear_constant = (rpoint.X*lpoint.Y - lpoint.X*rpoint.Y) / (rpoint.X - lpoint.X)
@@ -172,9 +174,7 @@ function note_automatic_jete()
                                 if (nil ~= artic) and artic:CalcMetricPos(arg_point) then
                                     local new_y = linear_multplier*arg_point.X + linear_constant -- apply linear equation
                                     local old_vpos = artic.VerticalPos
-                                    artic.VerticalPos = artic.VerticalPos + (math.floor(new_y + 0.5) - arg_point.Y)
-                                    --finenv.UI():AlertInfo("old/new vpos: (" .. tostring(old_vpos) .. "," .. tostring(artic.VerticalPos) .. ") old/new y ("  .. tostring(arg_point.Y) .. "," .. tostring(new_y) .. ")", "info")
-                                    artic:Save()
+                                    artic.VerticalPos = artic.VerticalPos + (math.floor(new_y + 0.5) - arg_point.Y)                                    artic:Save()
                                 end
                             end
                         end
