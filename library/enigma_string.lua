@@ -114,14 +114,23 @@ function enigma_string.expand_value_tag(fcstring, value_num)
 end
 
 function enigma_string.calc_text_advance_width(inp_string)
-    -- copy inp_string to avoid side effects
-    local fcstring = finale.FCString()
-    fcstring.LuaString = inp_string.LuaString
-    local text_met = finale.FCTextMetrics()
-    local font_info = fcstring:CreateLastFontInfo()
-    fcstring:TrimEnigmaTags()
-    text_met:LoadString(fcstring, font_info, 100)
-    return text_met:CalcWidthEVPUs()
+    local accumulated_string = ""
+    local accumulated_width = 0
+    local enigma_strings = inp_string:CreateEnigmaStrings(true) -- true: include non-commands
+    for str in each(enigma_strings) do
+        accumulated_string = accumulated_string .. str.LuaString
+        if string.sub(str.LuaString, 1, 1) ~= "^" then -- if this string segment is not a command, calculate its width
+            local fcstring = finale.FCString()
+            local text_met = finale.FCTextMetrics()
+            fcstring.LuaString = accumulated_string
+            local font_info = fcstring:CreateLastFontInfo()
+            fcstring.LuaString = str.LuaString
+            fcstring:TrimEnigmaTags()
+            text_met:LoadString(fcstring, font_info, 100)
+            accumulated_width = accumulated_width + text_met:CalcWidthEVPUs()
+        end
+    end
+    return accumulated_width
 end
 
 return enigma_string
