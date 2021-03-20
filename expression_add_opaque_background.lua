@@ -4,11 +4,17 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "June 22, 2020"
+    finaleplugin.Version = "1.1"
+    finaleplugin.Date = "March 20, 2021"
     finaleplugin.CategoryTags = "Expression"
     return "Expression Add Opaque Background", "Expression Add Opaque Background", "Add an opaque background to any single-staff text expression in the currenly selected region."
 end
+
+local path = finale.FCString()
+path:SetRunningLuaFolderPath()
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local library = require("library.general_library")
+local expression = require("library.expression")
 
 -- note: if an expression already has an enclosure, this routine simply makes it opaque
 
@@ -33,34 +39,37 @@ if (nil == enclosure) then
 end
 
 function expression_add_opaque_background()
+    local current_part = library.get_current_part()
     local expression_assignments = finale.FCExpressions()
     expression_assignments:LoadAllForRegion(finenv.Region())
     for expression_assignment in each(expression_assignments) do
         if not expression_assignment:IsShape() and expression_assignment:IsSingleStaffAssigned() then
-            local expression_def = finale.FCTextExpressionDef()
-            if expression_def:Load(expression_assignment.ID) then
-                if not expression_def.UseEnclosure then -- this prevents us from modifying existing enclosures
-                    enclosure.FixedSize = false
-                    enclosure.HorizontalMargin = 0
-                    enclosure.HorizontalOffset = 0
-                    enclosure.LineWidth = 0
-                    enclosure.Mode = finale.ENCLOSUREMODE_NONE
-                    enclosure.Opaque = true
-                    enclosure.RoundedCornerRadius = 0
-                    enclosure.RoundedCorners = false
-                    enclosure.Shape = finale.ENCLOSURE_RECTANGLE
-                    enclosure.VerticalMargin = 0
-                    enclosure.VerticalOffset = 0
-                    enclosure:SaveAs(expression_def.ItemNo)
-                    expression_def:SetUseEnclosure(true)
-                else
-                    local my_enclosure = expression_def:CreateEnclosure()
-                    if (nil ~= my_enclosure) then
-                        my_enclosure.Opaque = true
-                        my_enclosure:Save()
+            if expression.is_for_current_part(expression_assignment, current_part) then
+                local expression_def = finale.FCTextExpressionDef()
+                if expression_def:Load(expression_assignment.ID) then
+                    if not expression_def.UseEnclosure then -- this prevents us from modifying existing enclosures
+                        enclosure.FixedSize = false
+                        enclosure.HorizontalMargin = 0
+                        enclosure.HorizontalOffset = 0
+                        enclosure.LineWidth = 0
+                        enclosure.Mode = finale.ENCLOSUREMODE_NONE
+                        enclosure.Opaque = true
+                        enclosure.RoundedCornerRadius = 0
+                        enclosure.RoundedCorners = false
+                        enclosure.Shape = finale.ENCLOSURE_RECTANGLE
+                        enclosure.VerticalMargin = 0
+                        enclosure.VerticalOffset = 0
+                        enclosure:SaveAs(expression_def.ItemNo)
+                        expression_def:SetUseEnclosure(true)
+                    else
+                        local my_enclosure = expression_def:CreateEnclosure()
+                        if (nil ~= my_enclosure) then
+                            my_enclosure.Opaque = true
+                            my_enclosure:Save()
+                        end
                     end
+                    expression_def:Save()
                 end
-                expression_def:Save()
             end
         end
     end

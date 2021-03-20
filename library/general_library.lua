@@ -145,4 +145,10 @@ function library.update_layout(from_page, unfreeze_measures)
     end
 end
 
+function library.get_current_part()
+    local parts = finale.FCParts()
+    parts:LoadAll()
+    return parts:GetCurrent()
+end
+
 return library

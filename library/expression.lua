@@ -2,6 +2,7 @@
 -- Simply import this file to another Lua script to use any of these scripts
 local expression = {}
 
+local library = require("library.general_library")
 local note_entry = require("library.note_entry")
 local enigma_string = require("library.enigma_string")
 
@@ -71,6 +72,17 @@ function expression.calc_text_width(expression_def, expand_tags)
     end
     local retval = enigma_string.calc_text_advance_width(fcstring)
     return retval
+end
+
+-- current_part is optional
+function expression.is_for_current_part(exp_assign, current_part)
+    current_part = current_part or library.get_current_part()
+    if current_part:IsScore() and exp_assign.ScoreAssignment then
+        return true
+    elseif current_part:IsPart() and exp_assign.PartAssignment then
+        return true
+    end
+    return false
 end
 
 return expression
