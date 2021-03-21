@@ -151,4 +151,16 @@ function library.get_current_part()
     return parts:GetCurrent()
 end
 
+function library.get_page_format_prefs()
+    local current_part = library.get_current_part()
+    local page_format_prefs = finale.FCPageFormatPrefs()
+    local success = false
+    if current_part:IsScore() then
+        success = page_format_prefs:LoadScore()
+    else
+        success = page_format_prefs:LoadParts()
+    end
+    return page_format_prefs, success
+end
+
 return library
