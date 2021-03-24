@@ -40,11 +40,6 @@ local signed_modulus = function(n, d)
     return sign(n) * (math.abs(n) % d)
 end
 
-local get_key_signature = function(note)
-    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
-    return cell:GetKeySignature()
-end
-
 -- return number of steps, diatonic steps map, and number of steps in fifth
 local get_key_info = function(key)
     local number_of_steps = standard_key_number_of_steps
@@ -113,7 +108,8 @@ end
 -- 
 
 function transposition.chromatic_transpose(note, interval, alteration)
-    local key = get_key_signature(note)
+    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+    local key = cell:GetKeySignature()
     local number_of_steps, diatonic_steps, fifth_steps = get_key_info(key)
     local interval_normalized = signed_modulus(interval, #diatonic_steps)
     local steps_in_alteration = calc_steps_in_alteration(key, interval, alteration)
