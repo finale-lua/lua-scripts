@@ -34,6 +34,8 @@ local sign = function(n)
     return 1
 end
 
+-- this is necessary becuase the % operator in lua appears always to return a positive value,
+-- unlike the % operator in c++
 local signed_modulus = function(n, d)
     return sign(n) * (math.abs(n) % d)
 end
@@ -43,11 +45,10 @@ local get_key_signature = function(note)
     return cell:GetKeySignature()
 end
 
--- return number of steps, diatonic steps, root index, and number of diatonic steps in fifth
+-- return number of steps, diatonic steps map, and number of steps in fifth
 local get_key_info = function(key)
     local number_of_steps = standard_key_number_of_steps
     local diatonic_steps = standard_key_major_diatonic_steps
-    local root_index = key:CalcScaleRootIndex()
     if not key:IsPredefined() then
         number_of_steps = config.custom_key_sig_number_of_steps
         diatonic_steps = config.custom_key_sig_diatonic_steps
@@ -55,9 +56,9 @@ local get_key_info = function(key)
         diatonic_steps = standard_key_minor_diatonic_steps
     end
     -- 0.5849625 is log(3/2)/log(2), which is how to calculate the 5th per Ere Lievonen.
-    -- For standard key sigs (and most others) this calculation comes out to 5
+    -- For most key sigs this calculation comes out to the 5th scale degree, which is 7 steps for standard keys
     local fifth_steps = math.floor((number_of_steps*0.5849625) + 0.5) 
-    return number_of_steps, diatonic_steps, root_index, fifth_steps
+    return number_of_steps, diatonic_steps, fifth_steps
 end
 
 local calc_scale_degree = function(interval, number_of_diatonic_steps_in_key)
@@ -69,15 +70,10 @@ local calc_scale_degree = function(interval, number_of_diatonic_steps_in_key)
 end
 
 local calc_steps_between_scale_degrees = function(key, first_disp, second_disp)
-    --finenv.UI():AlertInfo("first note: " .. tostring(first_disp) .. " second note: " .. tostring(second_disp), "calc_steps_between_scale_degrees")
     local number_of_steps_in_key, diatonic_steps = get_key_info(key)
     local first_scale_degree = calc_scale_degree(first_disp, #diatonic_steps)
     local second_scale_degree = calc_scale_degree(second_disp, #diatonic_steps)
     local number_of_steps = sign(second_disp - first_disp) * (diatonic_steps[second_scale_degree+1] - diatonic_steps[first_scale_degree+1])
-    --finenv.UI():AlertInfo("first deg: " .. tostring(first_scale_degree) .. " second deg: " .. tostring(second_scale_degree) ..
-    --        " diasteps2: " ..tostring(diatonic_steps[second_scale_degree+1]) .. " diatsteps 1 " .. tostring(diatonic_steps[first_scale_degree+1]) .. 
-    --        " numsteps: " .. tostring(number_of_steps),
-   --         "calc_steps_between_scale_degrees")
     if number_of_steps < 0 then
         number_of_steps = number_of_steps + number_of_steps_in_key
     end
@@ -85,22 +81,18 @@ local calc_steps_between_scale_degrees = function(key, first_disp, second_disp)
 end
 
 local calc_steps_in_alteration = function(key, interval, alteration)
-    local number_of_steps_in_key, _, _, fifth_steps = get_key_info(key)
+    local number_of_steps_in_key, _, fifth_steps = get_key_info(key)
     local plus_fifths = sign(interval) * alteration * 7 -- number of fifths to add for alteration
     local minus_octaves = sign(interval) * alteration * -4 -- number of octaves to subtract for alteration
     local new_alteration = sign(interval) * ((plus_fifths*fifth_steps) + (minus_octaves*number_of_steps_in_key)) -- new alteration for chromatic interval
-    --finenv.UI():AlertInfo("interval " .. tostring(interval) .. " plus_fifths: " .. tostring(plus_fifths) .. " minus oct: " .. tostring(minus_octaves), "info")
-    --finenv.UI():AlertInfo("org alt: " .. tostring(alteration) .. " new alt: " .. tostring(new_alteration), "info")
     return new_alteration
 end
 
 local calc_steps_in_normalized_interval = function(key, interval_normalized)
-    local number_of_steps_in_key, _, _, fifth_steps = get_key_info(key)
+    local number_of_steps_in_key, _, fifth_steps = get_key_info(key)
     local plus_fifths = diatonic_interval_adjustments[math.abs(interval_normalized)+1][1] -- number of fifths to add for interval
     local minus_octaves = diatonic_interval_adjustments[math.abs(interval_normalized)+1][2] -- number of octaves to subtract for alteration
     local number_of_steps_in_interval = sign(interval_normalized) * ((plus_fifths*fifth_steps) + (minus_octaves*number_of_steps_in_key))
-    finenv.UI():AlertInfo("interval " .. tostring(interval_normalized) .. " plus_fifths: " .. tostring(plus_fifths) .. " minus oct: " .. tostring(minus_octaves) ..
-                            " 5steps: " .. tostring(fifth_steps) .. " 8vesteps: " .. tostring(number_of_steps_in_key), "calc_steps_in_normalized_interval")
     return number_of_steps_in_interval
 end
 
@@ -122,16 +114,12 @@ end
 
 function transposition.chromatic_transpose(note, interval, alteration)
     local key = get_key_signature(note)
-    local number_of_steps, diatonic_steps, root_index, fifth_steps = get_key_info(key)
+    local number_of_steps, diatonic_steps, fifth_steps = get_key_info(key)
     local interval_normalized = signed_modulus(interval, #diatonic_steps)
-    finenv.UI():AlertInfo("int: " .. tostring(interval) .. " int norm: " .. tostring(interval_normalized), "transposition.chromatic_transpose")
     local steps_in_alteration = calc_steps_in_alteration(key, interval, alteration)
     local steps_in_interval = calc_steps_in_normalized_interval(key, interval_normalized)
     local steps_in_diatonic_interval = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + interval_normalized)
     local effective_alteration = steps_in_alteration + steps_in_interval - sign(interval)*steps_in_diatonic_interval
-    finenv.UI():AlertInfo("step alt: " .. tostring(steps_in_alteration) .. " steps int: " .. tostring(steps_in_interval) ..
-                            " steps diat: " .. tostring(steps_in_diatonic_interval) .. " eff alt: " .. tostring(effective_alteration), "transposition.chromatic_transpose")
-
     transposition.diatonic_transpose(note, interval)
     note.RaiseLower = note.RaiseLower + effective_alteration
 end
@@ -143,39 +131,14 @@ end
 
 function transposition.chromatic_major_third_down(note)
     transposition.chromatic_transpose(note, -2, -0)
-    --[[
-    local original_midi_key = note:CalcMIDIKey()
-    transposition.diatonic_transpose(note, -2)
-
-    -- fixes any errors from the diatonic transposition
-    if (note:CalcMIDIKey() - original_midi_key ~= 4) then
-        local error = note:CalcMIDIKey() - original_midi_key + 4
-        print(note:CalcMIDIKey() - original_midi_key + 4)
-        note.RaiseLower = note.RaiseLower - error
-    end
-    ]]
 end 
 
 function transposition.chromatic_perfect_fourth_up(note)
-    local original_midi_key = note:CalcMIDIKey()
-    transposition.diatonic_transpose(note, 3)
-
-    -- fixes any errors from the diatonic transposition
-    if (note:CalcMIDIKey() - original_midi_key ~= 5) then
-        local error = note:CalcMIDIKey() - original_midi_key - 5
-        note.RaiseLower = note.RaiseLower + error
-    end
+    transposition.chromatic_transpose(note, 3, 0)
 end
 
 function transposition.chromatic_perfect_fifth_down(note)
-    local original_midi_key = note:CalcMIDIKey()
-    transposition.diatonic_transpose(note, -4)
-
-    -- fixes any errors from the diatonic transposition
-    if (note:CalcMIDIKey() - original_midi_key ~= 7) then
-        local error = note:CalcMIDIKey() - original_midi_key + 7
-        note.RaiseLower = note.RaiseLower - error
-    end
+    transposition.chromatic_transpose(note, -4, -0)
 end
 
 return transposition
