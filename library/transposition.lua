@@ -10,6 +10,8 @@
 -- 
 local transposition = {}
 
+local configuration = require("library.configuration")
+
 local standard_key_number_of_steps          = 12
 local standard_key_major_diatonic_steps     = { 0, 2, 4, 5, 7, 9, 11 }
 local standard_key_minor_diatonic_steps     = { 0, 2, 3, 5, 7, 8, 10 }
@@ -18,10 +20,12 @@ local standard_key_minor_diatonic_steps     = { 0, 2, 3, 5, 7, 8, 10 }
 --second number is minus_octaves
 local diatonic_interval_adjustments         = { {0,0}, {2,-1}, {4,-2}, {-1,1}, {1,0}, {3,-1}, {5,-2}, {0,1} }
 
-local config = {
-    custom_key_sig_number_of_steps          = standard_key_number_of_steps,
-    custom_key_sig_diatonic_steps           = standard_key_major_diatonic_steps
+local custom_key_sig_config = {
+    number_of_steps                         = standard_key_number_of_steps,
+    diatonic_steps                          = standard_key_major_diatonic_steps
 }
+
+configuration.get_parameters("custom_key_sig.config.txt", custom_key_sig_config)
 
 -- 
 -- HELPER functions
@@ -45,8 +49,8 @@ local get_key_info = function(key)
     local number_of_steps = standard_key_number_of_steps
     local diatonic_steps = standard_key_major_diatonic_steps
     if not key:IsPredefined() then
-        number_of_steps = config.custom_key_sig_number_of_steps
-        diatonic_steps = config.custom_key_sig_diatonic_steps
+        number_of_steps = custom_key_sig_config.number_of_steps
+        diatonic_steps = custom_key_sig_config.diatonic_steps
     elseif key:IsMinor() then
         diatonic_steps = standard_key_minor_diatonic_steps
     end

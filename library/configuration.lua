@@ -11,7 +11,13 @@
 --
 -- <parameter-name> = <parameter-value>
 --
--- Parameter values must be numbers or booleans or strings.
+-- Parameter values may be:
+--      Strings delimited with either single- or double-quotes)
+--      Tables delimited with {}
+--      Booleans (true or false)
+--      Integers
+--
+-- Currently tables embedded within tables is not supported.
 
 local configuration = {}
 
@@ -33,6 +39,32 @@ local strip_leading_trailing_whitespace = function (str)
     return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
 end
 
+local parse_parameter -- forward function declaration
+
+local parse_table = function(val_string)
+    local ret_table = {}
+    for element in val_string:gmatch('[^,%s]+') do  -- lua pattern magic taken from the Internet
+        local parsed_element = parse_parameter(element)
+        table.insert(ret_table, parsed_element)
+    end
+    return ret_table
+end
+
+parse_parameter = function(val_string)
+    if '"' == val_string:sub(1,1) and '"' == val_string:sub(#val_string,#val_string) then -- double-quote string
+        return string.gsub(val_string, '"(.+)"', "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
+    elseif "'" == val_string:sub(1,1) and "'" == val_string:sub(#val_string,#val_string) then -- single-quote string
+        return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
+    elseif "{" == val_string:sub(1,1) and "}" == val_string:sub(#val_string,#val_string) then
+        return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
+    elseif "true" == val_string then
+        return true
+    elseif "false" == val_string then
+        return false
+    end
+    return tonumber(val_string)
+end
+
 local get_parameters_from_file = function(file_name)
     local parameters = {}
 
@@ -52,17 +84,7 @@ local get_parameters_from_file = function(file_name)
         if nil ~= delimiter_at then
             local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at-1))
             local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at+1))
-            if '"' == val_string:sub(1,1) and '"' == val_string:sub(#val_string,#val_string) then -- double-quote string
-                parameters[name] = string.gsub(val_string, '"(.+)"', "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
-            elseif "'" == val_string:sub(1,1) and "'" == val_string:sub(#val_string,#val_string) then -- single-quote string
-                parameters[name] = string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
-            elseif "true" == val_string then
-                parameters[name] = true
-            elseif "false" == val_string then
-                parameters[name] = false
-            else
-                parameters[name] = tonumber(val_string)
-            end
+            parameters[name] = parse_parameter(val_string)
         end
     end
     
