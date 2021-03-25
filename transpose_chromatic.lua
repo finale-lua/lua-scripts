@@ -5,15 +5,11 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "March 25, 2020"
     finaleplugin.CategoryTags = "Note"
-    return "Transpose By Steps...", "Transpose By Steps",
-           "Transpose by the number of steps given, simplifying spelling as needed."
+    return "Transpose Chromatic...", "Transpose Chromatic",
+           "Chromatic transposition of selected region (supports microtone systems)."
 end
 
 --[[
-This function allows you to specify a number of chromatic steps by which to transpose and the script
-simplifies the spelling. Chromatic steps are half-steps in 12-tone music, but they are smaller if you are
-using a microtone sytem defined in a custom key signature.
-
 For this script to function correctly with custom key signatures, you must create a custom_key_sig.config.txt file in the
 the script_settings folder with the following two options for the custom key signature you are using. Unfortunately,
 the current version of JW Lua does allow scripts to read this information from the Finale document.
@@ -28,32 +24,46 @@ local path = finale.FCString()
 path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local transposition = require("library.transposition")
+local note_entry = require("Library.note_entry")
 
-function do_transpose_by_step(number_of_steps)
+function do_transpose_chromatic(interval, alteration, simplify, plus_octaves, preserve_originals)
     local success = true
     for entry in eachentrysaved(finenv.Region()) do
+        local note_count = entry.Count
+        local note_index = 0
         for note in each(entry) do
-            if not transposition.stepwise_transpose(note, number_of_steps) then
+            if preserve_originals then
+                note_index = note_index + 1
+                if note_index > note_count then
+                    break
+                end
+                local dup_note = note_entry.duplicate_note(note)
+                if nil ~= dup_note then
+                    note = dup_note
+                end
+            end
+            if not transposition.chromatic_transpose(note, interval, alteration, simplify) then
                 success = false
             end
+            transposition.change_octave(note, plus_octaves)
         end
     end
     return success
 end
 
-function transpose_by_step()
+function transpose_chromatic()
     local dialog = finenv.UserValueInput()
-    dialog.Title = "Transpose By Step"
-    dialog:SetTypes("Number")
-    dialog:SetDescriptions("Number Of Steps")
+    dialog.Title = "Transpose Chromatic"
+    dialog:SetTypes("NumberedList", "NumberedList", "Boolean", "Number")
+    dialog:SetDescriptions("Direction", "Interval", "Simplify Spelling", "Plus Octaves")
     dialog:SetInitValues(0)
     local returnvalues = dialog:Execute()
     if nil ~= returnvalues then
         local number_of_steps = math.floor(returnvalues[1] + 0.5) -- in case user entered a decimal
-        if not do_transpose_by_step(number_of_steps) then
+        if not do_transpose_chromatic(2, -1, false, 0, true) then
             finenv.UI():AlertError("Finale is unable to represent some of the transposed pitches. These pitches were left at their original value.", "Transposition Error")
         end
     end
 end
 
-transpose_by_step()
+transpose_chromatic()

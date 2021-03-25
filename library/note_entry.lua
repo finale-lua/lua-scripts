@@ -187,4 +187,16 @@ function note_entry.stem_sign(entry)
     return -1
 end
 
+-- returns reference to added FCNote or nil if not success
+function note_entry.duplicate_note(note)
+    local new_note = note.Entry:AddNewNote()
+    if nil ~= new_note then
+        new_note.Displacement = note.Displacement
+        new_note.RaiseLower = note.RaiseLower
+        new_note.Tie = note.Tie
+        new_note.TieBackwards = note.TieBackwards
+    end
+    return new_note
+end
+
 return note_entry

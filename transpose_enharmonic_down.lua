@@ -18,7 +18,7 @@ in 31-EDO, Dbb is not the same pitch as C.
 
 For this script to function correctly with custom key signatures, you must create a custom_key_sig.config.txt file in the
 the script_settings folder with the following two options for the custom key signature you are using. Unfortunately,
-the current version of JW Lua does allow scripts to read this information from the finale document.
+the current version of JW Lua does allow scripts to read this information from the Finale document.
 
 (This example is for 31-EDO.)
 

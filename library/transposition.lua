@@ -62,8 +62,9 @@ local get_key_info = function(key)
         diatonic_steps = standard_key_minor_diatonic_steps
     end
     -- 0.5849625 is log(3/2)/log(2), which is how to calculate the 5th per Ere Lievonen.
-    -- For most key sigs this calculation comes out to the 5th scale degree, which is 7 steps for standard keys
-    local fifth_steps = math.floor((number_of_steps*0.5849625) + 0.5) 
+    -- For basically any practical key sig this calculation comes out to the 5th scale degree,
+    -- which is 7 steps for standard keys
+    local fifth_steps = math.floor((number_of_steps*0.5849625) + 0.5)
     return number_of_steps, diatonic_steps, fifth_steps
 end
 
@@ -108,7 +109,6 @@ local simplify_spelling = function (note, min_abs_alteration)
         local curr_abs_disp = math.abs(note.RaiseLower)
         local direction = curr_sign
         local success = transposition.enharmonic_transpose(note, direction, true) -- true: ignore errors (success is always true)
-        finenv.UI():AlertInfo("curralt: " .. tostring(curr_sign*curr_abs_disp) .. " newalt: " .. tostring(note.RaiseLower) .. " success: " .. tostring(success), "simplify_spelling")
         if not success then
             return false
         end
@@ -202,11 +202,6 @@ function transposition.stepwise_transpose(note, number_of_steps)
         note.RaiseLower = curr_alt
     end
     return success
-end
-
-function transposition.set_notes_to_same_pitch(note_a, note_b)
-    note_b.Displacement = note_a.Displacement
-    note_b.RaiseLower = note_a.RaiseLower
 end
 
 function transposition.chromatic_major_third_down(note)

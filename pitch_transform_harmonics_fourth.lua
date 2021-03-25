@@ -16,6 +16,7 @@ package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local articulation = require("library.articulation")
 local transposition = require("library.transposition")
 local notehead = require("library.notehead")
+local note_entry = require("Library.note_entry")
 
 function pitch_transform_harmonics_fourth()
     for entry in eachentrysaved(finenv.Region()) do
@@ -24,10 +25,8 @@ function pitch_transform_harmonics_fourth()
             local note = entry:CalcLowestNote(nil)
             transposition.change_octave(note, -2)
 
-            local new_note = entry:AddNewNote()
-            new_note.Tie = note.Tie
+            local new_note = note_entry.duplicate_note(note)
 
-            transposition.set_notes_to_same_pitch(note, new_note)
             transposition.chromatic_perfect_fourth_up(new_note)
 
             notehead.change_shape(new_note, "diamond")
