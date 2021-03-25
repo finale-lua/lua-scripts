@@ -16,6 +16,8 @@ local standard_key_number_of_steps          = 12
 local standard_key_major_diatonic_steps     = { 0, 2, 4, 5, 7, 9, 11 }
 local standard_key_minor_diatonic_steps     = { 0, 2, 3, 5, 7, 8, 10 }
 
+local max_allowed_abs_alteration            = 7 -- Finale cannot represent an alteration outside +/- 7
+
 --first number is plus_fifths
 --second number is minus_octaves
 local diatonic_interval_adjustments         = { {0,0}, {2,-1}, {4,-2}, {-1,1}, {1,0}, {3,-1}, {5,-2}, {0,1} }
@@ -95,6 +97,25 @@ local calc_steps_in_normalized_interval = function(key, interval_normalized)
     return number_of_steps_in_interval
 end
 
+local simplify_spelling = function (note, min_abs_alteration)
+    while math.abs(note.RaiseLower) > min_abs_alteration do
+        local curr_sign = sign(note.RaiseLower)
+        local curr_abs_disp = math.abs(note.RaiseLower)
+        local direction = curr_sign
+        local success = transposition.enharmonic_transpose(note, direction)
+        if not success then
+            return false
+        end
+        if math.abs(note.RaiseLower) >= curr_abs_disp then
+            return transposition.enharmonic_transpose(note, -1*direction)
+        end
+        if curr_sign ~= sign(note.RaiseLower) then
+            break
+        end
+    end
+    return true
+end
+
 -- 
 -- DIATONIC transposition (affect only Displacement)
 -- 
@@ -107,11 +128,38 @@ function transposition.change_octave(note, n)
     transposition.diatonic_transpose(note, 7*n)
 end
 
+--
+-- ENHARMONIC transposition (different than dim 2nd transposition in microtone systmes)
+--
+
+-- direction is positive or negative
+function transposition.enharmonic_transpose(note, direction)
+    local curr_disp = note.Displacement
+    local curr_alt = note.RaiseLower
+    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+    local key = cell:GetKeySignature()
+    local key_step_enharmonic = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + sign(direction))
+    transposition.diatonic_transpose(note, sign(direction))
+    note.RaiseLower = note.RaiseLower - sign(direction)*key_step_enharmonic
+    if math.abs(note.RaiseLower) > max_allowed_abs_alteration then
+        note.Displacement = curr_disp
+        note.RaiseLower = curr_alt
+        return false
+    end
+    return true
+end
+
 -- 
 -- CHROMATIC transposition (affect Displacement and RaiseLower)
 -- 
 
-function transposition.chromatic_transpose(note, interval, alteration)
+-- simplify is an optional parameter
+-- return value is false if the note could not be represented (quite possible, especially in 96 EDO microtone systems)
+function transposition.chromatic_transpose(note, interval, alteration, simplify)
+    simplify = simplify or false
+    local curr_disp = note.Displacement
+    local curr_alt = note.RaiseLower
+
     local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
     local key = cell:GetKeySignature()
     local number_of_steps, diatonic_steps, fifth_steps = get_key_info(key)
@@ -122,6 +170,17 @@ function transposition.chromatic_transpose(note, interval, alteration)
     local effective_alteration = steps_in_alteration + steps_in_interval - sign(interval)*steps_in_diatonic_interval
     transposition.diatonic_transpose(note, interval)
     note.RaiseLower = note.RaiseLower + effective_alteration
+
+    local min_abs_alteration = max_allowed_abs_alteration
+    if simplify then
+        min_abs_alteration = 0
+    end
+    local success = simplify_spelling(note, min_abs_alteration)
+    if not success then -- if Finale can't represent the transposition, revert it to original value
+        note.Displacement = curr_disp
+        note.RaiseLower = curr_alt
+    end
+    return success
 end
 
 function transposition.set_notes_to_same_pitch(note_a, note_b)
