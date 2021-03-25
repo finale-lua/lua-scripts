@@ -46,6 +46,11 @@ local signed_modulus = function(n, d)
     return sign(n) * (math.abs(n) % d)
 end
 
+local get_key = function(note)
+    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+    return cell:GetKeySignature()
+end
+
 -- return number of steps, diatonic steps map, and number of steps in fifth
 local get_key_info = function(key)
     local number_of_steps = standard_key_number_of_steps
@@ -102,7 +107,8 @@ local simplify_spelling = function (note, min_abs_alteration)
         local curr_sign = sign(note.RaiseLower)
         local curr_abs_disp = math.abs(note.RaiseLower)
         local direction = curr_sign
-        local success = transposition.enharmonic_transpose(note, direction)
+        local success = transposition.enharmonic_transpose(note, direction, true) -- true: ignore errors (success is always true)
+        finenv.UI():AlertInfo("curralt: " .. tostring(curr_sign*curr_abs_disp) .. " newalt: " .. tostring(note.RaiseLower) .. " success: " .. tostring(success), "simplify_spelling")
         if not success then
             return false
         end
@@ -133,14 +139,18 @@ end
 --
 
 -- direction is positive or negative
-function transposition.enharmonic_transpose(note, direction)
+-- ignore error is optional (false)
+function transposition.enharmonic_transpose(note, direction, ignore_error)
+    ignore_error = ignore_error or false
     local curr_disp = note.Displacement
     local curr_alt = note.RaiseLower
-    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
-    local key = cell:GetKeySignature()
+    local key = get_key(note)
     local key_step_enharmonic = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + sign(direction))
     transposition.diatonic_transpose(note, sign(direction))
     note.RaiseLower = note.RaiseLower - sign(direction)*key_step_enharmonic
+    if ignore_error then
+        return true
+    end
     if math.abs(note.RaiseLower) > max_allowed_abs_alteration then
         note.Displacement = curr_disp
         note.RaiseLower = curr_alt
@@ -160,8 +170,7 @@ function transposition.chromatic_transpose(note, interval, alteration, simplify)
     local curr_disp = note.Displacement
     local curr_alt = note.RaiseLower
 
-    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
-    local key = cell:GetKeySignature()
+    local key = get_key(note)
     local number_of_steps, diatonic_steps, fifth_steps = get_key_info(key)
     local interval_normalized = signed_modulus(interval, #diatonic_steps)
     local steps_in_alteration = calc_steps_in_alteration(key, interval, alteration)
@@ -176,6 +185,18 @@ function transposition.chromatic_transpose(note, interval, alteration, simplify)
         min_abs_alteration = 0
     end
     local success = simplify_spelling(note, min_abs_alteration)
+    if not success then -- if Finale can't represent the transposition, revert it to original value
+        note.Displacement = curr_disp
+        note.RaiseLower = curr_alt
+    end
+    return success
+end
+
+function transposition.stepwise_transpose(note, number_of_steps)
+    local curr_disp = note.Displacement
+    local curr_alt = note.RaiseLower
+    note.RaiseLower = note.RaiseLower + number_of_steps
+    local success = simplify_spelling(note, 0)
     if not success then -- if Finale can't represent the transposition, revert it to original value
         note.Displacement = curr_disp
         note.RaiseLower = curr_alt
