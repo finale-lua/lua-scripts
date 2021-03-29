@@ -137,7 +137,7 @@ function vertical_dynamic_adjustment(region, direction)
 
         table.sort(staff_pos)
 
-        if (nil ~= staff_pos[1]) and ("far" == direction) then
+        if (nil ~= staff_pos[1]) and ("far" == direction) and (#lowest_item > 0) then
             local min_lowest_position = lowest_item[1]
             if staff_pos[1] > -7 then
                 min_lowest_position = -160

@@ -13,16 +13,14 @@ local path = finale.FCString()
 path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local transposition = require("library.transposition")
+local note_entry = require("Library.note_entry")
 
 function pitch_entry_double_octave_up()
     for entry in eachentrysaved(finenv.Region()) do
         if (entry.Count == 1) then
             local note = entry:CalcLowestNote(nil)
-            local new_note = entry:AddNewNote()
-            transposition.set_notes_to_same_pitch(note, new_note)
+            local new_note = note_entry.duplicate_note(note)
             transposition.change_octave(new_note, 1)
-            new_note.Tie = note.Tie
-            new_note.TieBackwards = note.TieBackwards
         end
     end
 end
