@@ -2,6 +2,8 @@
 -- Simply import this file to another Lua script to use any of these scripts
 local notehead = {}
 
+local configuration = require("library.configuration")
+
 local config = {
     diamond_open                = 79,
     diamond_closed              = 79,   -- per Elaine Gould, use open diamond even on closed regular notes, but allow it to be overridden
@@ -10,14 +12,7 @@ local config = {
     diamond_breve_offset        = 14
 }
 
--- use this func because CalcStemUp is not reliable for wholes or breves
--- also it's not reliable after transposition
-local calc_stem_up = function(note)
-    if note.Entry.FreezeStem then
-        return note.Entry:CalcStemUp()
-    end
-    return (note:CalcStaffPosition() < -5) -- this works a lot of the time, and when it doesn't the user can use free-stem to make it right
-end
+configuration.get_parameters("notehead.config.txt", config)
 
 function notehead.change_shape(note, shape)
     local notehead = finale.FCNoteheadMod()
@@ -35,7 +30,7 @@ function notehead.change_shape(note, shape)
             notehead_char = config.diamond_closed
         end
         if (0 ~= offset) then
-            if calc_stem_up(note) then
+            if entry:CalcStemUp() then
                 notehead.HorizontalPos = -1*offset
             else
                 notehead.HorizontalPos = offset

@@ -20,15 +20,19 @@ local note_entry = require("Library.note_entry")
 
 function pitch_transform_harmonics_fifth()
     for entry in eachentrysaved(finenv.Region()) do
-        if (entry.Count == 1) then
+        if (entry.Count == 1) and (not entry:IsRest()) then
             articulation.delete_from_entry_by_char_num(entry, 111)
             local note = entry:CalcLowestNote(nil)
             transposition.change_octave(note, -1)
-
             local new_note = note_entry.duplicate_note(note)
-
             transposition.chromatic_perfect_fifth_down(new_note)
-
+        end
+    end
+    -- we have to change the note shapes in a separate pass because we may need to get the stem direction
+    -- after transposition, which means the entry has to be saved first
+    for entry in eachentrysaved(finenv.Region()) do
+        if (entry.Count == 2) then
+            local note = entry:CalcHighestNote(nil)
             notehead.change_shape(note, "diamond")
         end
     end
