@@ -2,8 +2,8 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "June 15, 2020"
+    finaleplugin.Version = "1.0.1"
+    finaleplugin.Date = "March 30, 2021"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     return "String Harmonics 5th - Sounding Pitch", "String Harmonics 5th - Sounding Pitch",

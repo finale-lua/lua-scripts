@@ -199,4 +199,15 @@ function note_entry.duplicate_note(note)
     return new_note
 end
 
+function note_entry.spans_number_of_octaves(entry)
+    local top_note = entry:CalcHighestNote(nil)
+    local bottom_note = entry:CalcLowestNote(nil)
+    local displacement_diff = top_note.Displacement - bottom_note.Displacement
+    local num_octaves = math.floor(displacement_diff / 7)
+    if 0 ~= (displacement_diff % 7) then
+        num_octaves = num_octaves + 1
+    end
+    return num_octaves
+end
+
 return note_entry
