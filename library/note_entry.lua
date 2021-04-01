@@ -199,4 +199,18 @@ function note_entry.duplicate_note(note)
     return new_note
 end
 
+--[[
+    NoteEntry: note_entry.calc_spans_number_of_octaves(entry)
+    Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals)
+    @ entry (FCNoteEntry) the entry to calculate from
+    : number of octaves spanned
+]]
+function note_entry.calc_spans_number_of_octaves(entry)
+    local top_note = entry:CalcHighestNote(nil)
+    local bottom_note = entry:CalcLowestNote(nil)
+    local displacement_diff = top_note.Displacement - bottom_note.Displacement
+    local num_octaves = math.ceil(displacement_diff / 7)
+    return num_octaves
+end
+
 return note_entry

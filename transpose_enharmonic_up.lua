@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0"
-    finaleplugin.Date = "March 25, 2020"
-    finaleplugin.CategoryTags = "Note"
+    finaleplugin.Date = "March 25, 2021"
+    finaleplugin.CategoryTags = "Pitch"
     return "Enharmonic Transpose Up", "Enharmonic Transpose Up",
            "Transpose up enharmonically all notes in selected regions."
 end
