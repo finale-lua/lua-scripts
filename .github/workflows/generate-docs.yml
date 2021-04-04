@@ -13,7 +13,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: nick-mazuk/lua-docs-generator@v1.0.5
+      - uses: nick-mazuk/lua-docs-generator@v1.0.6
         with:
           input: './library'
           output: './docs/library'
