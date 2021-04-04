@@ -19,6 +19,7 @@ note_entry.get_music_region(entry)
 | Input | Type | Description |
 | --- | --- | --- |
 | `entry` | `FCNoteEntry` |  |
+
 | Output type | Description |
 | --- | --- |
 | `FCMusicRegion` |  |
@@ -70,6 +71,7 @@ Get the widest left-side notehead width and widest right-side notehead width.
 | Input | Type | Description |
 | --- | --- | --- |
 | `entry` | `FCNoteEntry` |  |
+
 | Output type | Description |
 | --- | --- |
 | `number, number` | widest left-side notehead width and widest right-side notehead width |
@@ -101,6 +103,7 @@ based on stem direction.
 | Input | Type | Description |
 | --- | --- | --- |
 | `entry` | `FCNoteEntry` |  |
+
 | Output type | Description |
 | --- | --- |
 | `number` | 1 if upstem, -1 otherwise |
@@ -114,6 +117,7 @@ note_entry.duplicate_note(note)
 | Input | Type | Description |
 | --- | --- | --- |
 | `note` | `FCNote` |  |
+
 | Output type | Description |
 | --- | --- |
 | `FCNote | nil` | reference to added FCNote or nil if not success |
@@ -129,6 +133,7 @@ Calculates the numer of octaves spanned by a chord (considering only staff posit
 | Input | Type | Description |
 | --- | --- | --- |
 | `entry` | `FCNoteEntry` | the entry to calculate from |
+
 | Output type | Description |
 | --- | --- |
 | `number` | of octaves spanned |

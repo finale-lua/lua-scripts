@@ -18,6 +18,7 @@ enigma_string.trim_first_enigma_font_tags(string)
 | Input | Type | Description |
 | --- | --- | --- |
 | `string` | `string` |  |
+
 | Output type | Description |
 | --- | --- |
 | `string | nill` | the first font info that was stripped or nil if none |
