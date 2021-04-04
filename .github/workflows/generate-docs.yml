@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: nick-mazuk/lua-docs-generator@v1.0.3
+      - uses: nick-mazuk/lua-docs-generator@v1.0.4
         with:
           input: './library'
           output: './docs/library'
