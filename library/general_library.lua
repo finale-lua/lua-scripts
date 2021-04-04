@@ -1,5 +1,6 @@
--- A library of helpful JW Lua scripts
--- Simply import this file to another Lua script to use any of these scripts
+--[[
+$module Library
+]]
 local library = {}
 
 function library.add_augmentation_dot(entry)
@@ -134,8 +135,12 @@ function library.is_default_measure_number_visible_on_cell (meas_num_region, cel
     return false
 end
 
--- from_page: page to update from (optional) 1 if omitted
--- unfreeze_measures: (optional) false if omitted
+--[[
+% update_layout(from_page, unfreeze_measures)
+
+@ [from_page] (number) page to update from, defaults to 1
+@ [unfreeze_measures] (boolean) defaults to false
+]]
 function library.update_layout(from_page, unfreeze_measures)
     from_page = from_page or 1
     unfreeze_measures = unfreeze_measures or false

@@ -1,10 +1,17 @@
--- Helpful JW Lua scripts for note entries
--- Simply import this file to another Lua script to use any of these scripts
+--[[
+$module Note Entry
+]]
 local note_entry = {}
 
 -- This function may not be used, though it has been tested and works.
 -- If you use this function, remove this comment.
 -- If you remove this function, be sure to check that it still isn't used.
+--[[
+% get_music_region(entry)
+
+@ entry (FCNoteEntry)
+: (FCMusicRegion)
+]]
 function note_entry.get_music_region(entry)
     local exp_region = finale.FCMusicRegion()
     exp_region:SetCurrentSelection() -- called to match the selected IU list (e.g., if using Staff Sets)
@@ -35,6 +42,13 @@ end
 -- This function may not be used, though it has been tested and works.
 -- If you use this function, remove this comment.
 -- If you remove this function, be sure to check that it still isn't used.
+--[[
+% get_evpu_notehead_height(entry)
+
+@ entry (FCNoteEntry)
+
+: (number) the EVPU height
+]]
 function note_entry.get_evpu_notehead_height(entry)
     local highest_note = entry:CalcHighestNote(nil)
     local lowest_note = entry:CalcLowestNote(nil)
@@ -42,7 +56,12 @@ function note_entry.get_evpu_notehead_height(entry)
     return evpu_height
 end
 
--- entry_metrics is an optional parameter
+--[[
+% get_top_note_position(entry, entry_metrics)
+
+@ entry (FCNoteEntry)
+@ [entry_metrics] (FCEntryMetrics)
+]]
 function note_entry.get_top_note_position(entry, entry_metrics)
     local retval = -math.huge
     local loaded_here = false
@@ -67,7 +86,12 @@ function note_entry.get_top_note_position(entry, entry_metrics)
     return retval
 end
 
--- entry_metrics is an optional parameter
+--[[
+% get_bottom_note_position(entry, entry_metrics)
+
+@ entry (FCNoteEntry)
+@ [entry_metrics] (FCEntryMetrics)
+]]
 function note_entry.get_bottom_note_position(entry, entry_metrics)
     local retval = math.huge
     local loaded_here = false
@@ -93,6 +117,15 @@ function note_entry.get_bottom_note_position(entry, entry_metrics)
 end
 
 -- return widest left-side notehead width and widest right-side notehead width
+
+--[[
+% calc_widths(entry)
+
+Get the widest left-side notehead width and widest right-side notehead width.
+
+@ entry (FCNoteEntry)
+: (number, number) widest left-side notehead width and widest right-side notehead width
+]]
 function note_entry.calc_widths(entry)
     local left_width = 0
     local right_width = 0
@@ -162,10 +195,16 @@ function note_entry.calc_right_of_all_noteheads(entry)
     return right
 end
 
--- this function assumes for note in each(note_entry) always iterates in the same direction
--- (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
--- currently the PDK Framework does not seem to offer a better option
--- note_index is zero-based
+--[[
+% calc_note_at_index(entry, note_index)
+
+this function assumes for note in each(note_entry) always iterates in the same direction
+(Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
+currently the PDK Framework does not seem to offer a better option
+
+@ entry (FCNoteEntry)
+@ note_index (number) the zero-based index
+]]
 function note_entry.calc_note_at_index(entry, note_index)
     local x = 0
     for note in each(entry) do
@@ -177,9 +216,15 @@ function note_entry.calc_note_at_index(entry, note_index)
     return nil
 end
 
--- returns 1 if upstem, -1 otherwise
--- this is useful for many x,y positioning fields in Finale that mirror +/-
--- based on stem direction
+--[[
+% stem_sign(entry)
+
+This is useful for many x,y positioning fields in Finale that mirror +/-
+based on stem direction.
+
+@ entry (FCNoteEntry)
+: (number) 1 if upstem, -1 otherwise
+]]
 function note_entry.stem_sign(entry)
     if entry:CalcStemUp() then
         return 1
@@ -187,7 +232,12 @@ function note_entry.stem_sign(entry)
     return -1
 end
 
--- returns reference to added FCNote or nil if not success
+--[[
+% duplicate_note(note)
+
+@ note (FCNote)
+: (FCNote | nil) reference to added FCNote or nil if not success
+]]
 function note_entry.duplicate_note(note)
     local new_note = note.Entry:AddNewNote()
     if nil ~= new_note then
@@ -200,10 +250,12 @@ function note_entry.duplicate_note(note)
 end
 
 --[[
-    NoteEntry: note_entry.calc_spans_number_of_octaves(entry)
-    Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals)
-    @ entry (FCNoteEntry) the entry to calculate from
-    : number of octaves spanned
+% calc_spans_number_of_octaves(entry)
+
+Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals)
+
+@ entry (FCNoteEntry) the entry to calculate from
+: number of octaves spanned
 ]]
 function note_entry.calc_spans_number_of_octaves(entry)
     local top_note = entry:CalcHighestNote(nil)

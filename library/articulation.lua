@@ -1,5 +1,6 @@
--- A collection of helpful JW Lua articulation scripts
--- Simply import this file to another Lua script to use any of these scripts
+--[[
+$module articulation
+]]
 local articulation = {}
 
 local note_entry = require("library.note_entry")
