@@ -13,11 +13,11 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: nick-mazuk/lua-docs-generator@v1.0.4
+      - uses: nick-mazuk/lua-docs-generator@v1.0.5
         with:
           input: './library'
           output: './docs/library'
       - name: Commit & Push docs
-        uses: actions-js/push@master
+        uses: actions-js/push@v1.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
