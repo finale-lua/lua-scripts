@@ -255,7 +255,7 @@ end
 Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals)
 
 @ entry (FCNoteEntry) the entry to calculate from
-: number of octaves spanned
+: (number) of octaves spanned
 ]]
 function note_entry.calc_spans_number_of_octaves(entry)
     local top_note = entry:CalcHighestNote(nil)
