@@ -120,7 +120,7 @@ note_entry.duplicate_note(note)
 
 | Output type | Description |
 | --- | --- |
-| `FCNote | nil` | reference to added FCNote or nil if not success |
+| `FCNote \| nil` | reference to added FCNote or nil if not success |
 
 ## calc_spans_number_of_octaves
 
