@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
       - uses: nick-mazuk/lua-docs-generator@v1.0.4
         with:
           input: './library'
           output: './docs/library'
-      - name: Push updated docs
-        run: |
-          git config user.name CI
-          git config user.email "<>"
-          git add .
-          git diff --quiet HEAD || git commit -m "$GITHUB_SHA"
-          git push
+      - name: Commit & Push docs
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
