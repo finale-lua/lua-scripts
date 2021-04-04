@@ -1,14 +1,15 @@
--- A library of helpful JW Lua scripts for enigma strings
--- Ideally these would be available in the PDK Framework
--- Simply import this file to another Lua script to use any of these scripts
+--[[
+$module Enigma String
+
+This implements a hypothetical FCString::TrimFirstEnigmaFontTags() function that would
+preferably be in the PDK Framework. Trimming only first allows us to preserve
+style changes within the rest of the string, such as changes from plain to
+italic. Ultimately this seems more useful than trimming out all font tags.
+If the PDK Framework is ever changed, it might be even better to create replace font
+functions that can replace only font, only size, only style, or all three together.
+]]
 local enigma_string = {}
 
---This implements a hypothetical FCString::TrimFirstEnigmaFontTags() function that would
---preferably be in the PDK Framework. Trimming only first allows us to preserve
---style changes within the rest of the string, such as changes from plain to
---italic. Ultimately this seems more useful than trimming out all font tags.
---If the PDK Framework is ever changed, it might be even better to create replace font
---functions that can replace only font, only size, only style, or all three together.
 
 local starts_with_font_command = function(string)
     local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
@@ -20,7 +21,12 @@ local starts_with_font_command = function(string)
     return false
 end
 
---returns the first font info that was stripped or nil if none
+--[[
+% trim_first_enigma_font_tags(string)
+
+@ string (string)
+: (string | nill) the first font info that was stripped or nil if none
+]]
 function enigma_string.trim_first_enigma_font_tags(string)
     local font_info = finale.FCFontInfo()
     local found_tag = false

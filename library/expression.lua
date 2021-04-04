@@ -1,5 +1,6 @@
--- A collection of helpful JW Lua articulation scripts
--- Simply import this file to another Lua script to use any of these scripts
+--[[
+$module Expression
+]]
 local expression = {}
 
 local library = require("library.general_library")
@@ -63,7 +64,12 @@ function expression.calc_handle_offset_for_smart_shape(exp_assign)
     return (manual_horizontal + def_horizontal + alignment_offset)
 end
 
--- expand_tags is optional (default false) (currently only supports ^value())
+--[[
+% calc_text_width(expression_def, expand_tags)
+
+@ expression_def (FCExpessionDef)
+@ [expand_tags] (boolean) defaults to false, currently only suppoerts `^value()`
+]]
 function expression.calc_text_width(expression_def, expand_tags)
     expand_tags = expand_tags or false
     local fcstring = expression_def:CreateTextString()
@@ -74,7 +80,12 @@ function expression.calc_text_width(expression_def, expand_tags)
     return retval
 end
 
--- current_part is optional
+--[[
+% is_for_current_part(exp_assign, current_part)
+
+@ exp_assign (unknown)
+@ [current_part] (unknown)
+]]
 function expression.is_for_current_part(exp_assign, current_part)
     current_part = current_part or library.get_current_part()
     if current_part:IsScore() and exp_assign.ScoreAssignment then
