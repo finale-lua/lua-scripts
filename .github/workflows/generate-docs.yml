@@ -9,15 +9,36 @@ jobs:
   test-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout this repository
+        uses: actions/checkout@v2
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: nick-mazuk/lua-docs-generator@v1.0.6
+          path: './lua'
+      - name: Checkout docs website repository
+        uses: actions/checkout@v2
         with:
-          input: './library'
-          output: './docs/library'
-      - name: Commit & Push docs
+          persist-credentials: false
+          fetch-depth: 0
+          repository: Nick-Mazuk/jw-lua-scripts-docs
+          path: './website'
+          token: ${{ secrets.NICK_PERSONAL_TOKEN }}
+      - name: Generate the docs
+        uses: nick-mazuk/lua-docs-generator@v1.0.6
+        with:
+          input: './lua/library'
+          output: './lua/docs/library'
+      - run: 'rm -rf website/docs'
+      - run: 'cp -R lua/docs website/docs'
+      - name: Commit & Push docs to website
         uses: actions-js/push@v1.2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
+          directory: website
+          branch: main
+          repository: Nick-Mazuk/jw-lua-scripts-docs
+      - name: Commit & Push docs to this repo
+        uses: actions-js/push@v1.2
+        with:
+          github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
+          directory: lua
