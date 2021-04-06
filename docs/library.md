@@ -17,3 +17,46 @@ library.function_name()
 ```
 
 Subsequent pages detail the exact details of the library. If you wish to contribute to the standard library, create a pull request.
+
+## Documenting library functions
+
+The docs for the individual functions are automatically created from the multiline comments you use in your code. For instance…
+
+```lua
+--[[
+% stem_sign(entry)
+
+This is useful for many x,y positioning fields in Finale that mirror +/-
+based on stem direction.
+
+@ entry (FCNoteEntry)
+: (number) 1 if upstem, -1 otherwise
+]]
+```
+
+…Produces the following documentation…
+
+---
+
+### stem_sign
+
+```lua
+note_entry.stem_sign(entry)
+```
+
+This is useful for many x,y positioning fields in Finale that mirror +/-
+based on stem direction.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `entry` | `FCNoteEntry` |  |
+
+| Output type | Description |
+| --- | --- |
+| `number` | 1 if upstem, -1 otherwise |
+
+---
+
+As you can see, the comments are very easy to write and produce readable, searchable documentation. Clearly documenting any functions you write is almost as valuable as the code itself.
+
+You can find a complete list of syntax you can use for documentation here: [https://github.com/Nick-Mazuk/lua-docs-generator/blob/main/documentation.md](https://github.com/Nick-Mazuk/lua-docs-generator/blob/main/documentation.md)
