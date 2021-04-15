@@ -1,6 +1,3 @@
---[[
-$module articulation
-]]
 local articulation = {}
 
 local note_entry = require("library.note_entry")
