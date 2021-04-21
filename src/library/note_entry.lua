@@ -3,7 +3,7 @@ $module Note Entry
 ]]
 local note_entry = {}
 
--- This function may not be used, though it has been tested and works.
+-- This function may not have been used anywhere, though it has been tested and works.
 -- If you use this function, remove this comment.
 -- If you remove this function, be sure to check that it still isn't used.
 --[[
@@ -24,8 +24,6 @@ function note_entry.get_music_region(entry)
     return exp_region
 end
 
---For some reason the headRect is not included in the PDK Framework, so we have to laboriously
---reconstruct it here
 --entry_metrics can be omitted, in which case they are constructed and released here
 --return entry_metrics, loaded_here
 local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
@@ -39,7 +37,7 @@ local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
     return nil, false
 end
 
--- This function may not be used, though it has been tested and works.
+-- This function may not have been used anywhere, though it has been tested and works.
 -- If you use this function, remove this comment.
 -- If you remove this function, be sure to check that it still isn't used.
 --[[
@@ -59,8 +57,11 @@ end
 --[[
 % get_top_note_position(entry, entry_metrics)
 
+Returns the vertical page coordinate of the top of the notehead rectangle, not including the stem.
+
 @ entry (FCNoteEntry)
-@ [entry_metrics] (FCEntryMetrics)
+@ [entry_metrics] (FCEntryMetrics) entry metrics may be supplied by the caller if they are already available
+: (number)
 ]]
 function note_entry.get_top_note_position(entry, entry_metrics)
     local retval = -math.huge
@@ -89,8 +90,11 @@ end
 --[[
 % get_bottom_note_position(entry, entry_metrics)
 
+Returns the vertical page coordinate of the bottom of the notehead rectangle, not including the stem.
+
 @ entry (FCNoteEntry)
-@ [entry_metrics] (FCEntryMetrics)
+@ [entry_metrics] (FCEntryMetrics) entry metrics may be supplied by the caller if they are already available
+: (number)
 ]]
 function note_entry.get_bottom_note_position(entry, entry_metrics)
     local retval = math.huge
@@ -115,8 +119,6 @@ function note_entry.get_bottom_note_position(entry, entry_metrics)
     end
     return retval
 end
-
--- return widest left-side notehead width and widest right-side notehead width
 
 --[[
 % calc_widths(entry)
@@ -150,6 +152,14 @@ end
 -- Expression handles are vertical when they are left-aligned
 -- with the primary notehead rectangle.
 
+--[[
+% calc_left_of_all_noteheads(entry)
+
+Calculates the handle offset for an expression with "Left of All Noteheads" horizontal positioning.
+
+@ entry (FCNoteEntry) the entry to calculate from
+: (number) offset from left side of primary notehead rectangle
+]]
 function note_entry.calc_left_of_all_noteheads(entry)
     if entry:CalcStemUp() then
         return 0
@@ -158,10 +168,26 @@ function note_entry.calc_left_of_all_noteheads(entry)
     return -left
 end
 
+--[[
+% calc_left_of_primary_notehead(entry)
+
+Calculates the handle offset for an expression with "Left of Primary Notehead" horizontal positioning.
+
+@ entry (FCNoteEntry) the entry to calculate from
+: (number) offset from left side of primary notehead rectangle
+]]
 function note_entry.calc_left_of_primary_notehead(entry)
     return 0
 end
 
+--[[
+% calc_center_of_all_noteheads(entry)
+
+Calculates the handle offset for an expression with "Center of All Noteheads" horizontal positioning.
+
+@ entry (FCNoteEntry) the entry to calculate from
+: (number) offset from left side of primary notehead rectangle
+]]
 function note_entry.calc_center_of_all_noteheads(entry)
     local left, right = note_entry.calc_widths(entry)
     local width_centered = (left + right) / 2
@@ -171,6 +197,14 @@ function note_entry.calc_center_of_all_noteheads(entry)
     return width_centered
 end
 
+--[[
+% calc_center_of_primary_notehead(entry)
+
+Calculates the handle offset for an expression with "Center of Primary Notehead" horizontal positioning.
+
+@ entry (FCNoteEntry) the entry to calculate from
+: (number) offset from left side of primary notehead rectangle
+]]
 function note_entry.calc_center_of_primary_notehead(entry)
     local left, right = note_entry.calc_widths(entry)
     if entry:CalcStemUp() then
@@ -179,6 +213,14 @@ function note_entry.calc_center_of_primary_notehead(entry)
     return right / 2
 end
 
+--[[
+% calc_stem_offset(entry)
+
+Calculates the offset of the stem from the left edge of the notehead rectangle. Eventually the PDK Framework may be able to provide this instead.
+
+@ entry (FCNoteEntry) the entry to calculate from
+: (number) offset of stem from the left edge of the notehead rectangle.
+]]
 function note_entry.calc_stem_offset(entry)
     if not entry:CalcStemUp() then
         return 0
@@ -187,6 +229,14 @@ function note_entry.calc_stem_offset(entry)
     return left
 end
 
+--[[
+% calc_right_of_all_noteheads(entry)
+
+Calculates the handle offset for an expression with "Right of All Noteheads" horizontal positioning.
+
+@ entry (FCNoteEntry) the entry to calculate from
+: (number) offset from left side of primary notehead rectangle
+]]
 function note_entry.calc_right_of_all_noteheads(entry)
     local left, right = note_entry.calc_widths(entry)
     if entry:CalcStemUp() then
@@ -198,9 +248,9 @@ end
 --[[
 % calc_note_at_index(entry, note_index)
 
-this function assumes for note in each(note_entry) always iterates in the same direction
+This function assumes for note in each(note_entry) always iterates in the same direction.
 (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
-currently the PDK Framework does not seem to offer a better option
+Currently the PDK Framework does not seem to offer a better option.
 
 @ entry (FCNoteEntry)
 @ note_index (number) the zero-based index
@@ -252,7 +302,7 @@ end
 --[[
 % calc_spans_number_of_octaves(entry)
 
-Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals)
+Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).
 
 @ entry (FCNoteEntry) the entry to calculate from
 : (number) of octaves spanned
@@ -263,6 +313,41 @@ function note_entry.calc_spans_number_of_octaves(entry)
     local displacement_diff = top_note.Displacement - bottom_note.Displacement
     local num_octaves = math.ceil(displacement_diff / 7)
     return num_octaves
+end
+
+--[[
+% add_augmentation_dot(entry)
+
+Adds an augentation dot to the entry. This works even if the entry already has one or more augmentation dots.
+
+@ entry (FCNoteEntry) the entry to which to add the augmentation dot
+]]
+function note_entry.add_augmentation_dot(entry)
+    entry.Duration = bit32.bor(entry.Duration, bit32.rshift(entry.Duration, 1))
+end
+
+--[[
+% get_next_same_v(entry)
+
+Returns the next entry in the same V1 or V2 as the input entry. If the input entry is V2, only the current V2 launch is searched.
+
+@ entry (FCNoteEntry) the entry to process
+: (FCNoteEntry) the next entry or nil
+]]
+function note_entry.get_next_same_v(entry)
+    local next_entry = entry:Next()
+    if entry.Voice2 then
+        if (nil ~= next_entry) and next_entry.Voice2 then
+            return next_entry
+        end
+        return nil
+    end
+    if entry.Voice2Launch then
+        while (nil ~= next_entry) and next_entry.Voice2 do
+            next_entry = next_entry:Next()
+        end
+    end
+    return next_entry
 end
 
 return note_entry

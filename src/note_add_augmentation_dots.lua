@@ -12,11 +12,11 @@ end
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
-local library = require("library.general_library")
+local note_entry = require("library.note_entry")
 
 function note_add_augmentation_dots()
     for entry in eachentrysaved(finenv.Region()) do
-        library.add_augmentation_dot(entry)
+        note_entry.add_augmentation_dot(entry)
     end
     finenv.Region():RebeamMusic()
 end

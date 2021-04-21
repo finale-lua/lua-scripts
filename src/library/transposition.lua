@@ -1,13 +1,16 @@
+--[[
+$module Transposition
+]]
+
 -- A collection of helpful JW Lua transposition scripts
--- Simply import this file to another Lua script to use any of these scripts
--- 
--- THIS MODULE IS INCOMPLETE
 -- 
 -- Structure
 -- 1. Helper functions
--- 2. Diatonic Transpositions (listed by interval - ascending)
--- 3. Chromatic Transpositions (listed by interval - ascending)
+-- 2. Diatonic Transposition
+-- 3. Enharmonic Tranposition
+-- 3. Chromatic Transposition
 -- 
+
 local transposition = {}
 
 local configuration = require("library.configuration")
@@ -50,6 +53,9 @@ local get_key = function(note)
     local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
     return cell:GetKeySignature()
 end
+
+-- These local functions that take FCKeySignature (key) as their first argument should
+-- perhaps move to a key_signature library someday.
 
 -- return number of steps, diatonic steps map, and number of steps in fifth
 local get_key_info = function(key)
@@ -126,20 +132,45 @@ end
 -- DIATONIC transposition (affect only Displacement)
 -- 
 
+--[[
+% diatonic_transpose(note, interval)
+
+Transpose the note diatonically by the given interval displacement.
+
+@ note (FCNote) input and modified output
+@ interval (number) 0 = unison, 1 = up a diatonic second, -2 = down a diatonic third, etc.
+]]
 function transposition.diatonic_transpose(note, interval)
     note.Displacement = note.Displacement + interval
 end
 
-function transposition.change_octave(note, n)
-    transposition.diatonic_transpose(note, 7*n)
+--[[
+% change_octave(note, number_of_octaves)
+
+Transpose the note by the given number of octaves.
+
+@ note (FCNote) input and modified output
+@ number_of_octaves (number) 0 = no change, 1 = up an octave, -2 = down 2 octaves, etc.
+]]
+function transposition.change_octave(note, number_of_octaves)
+    transposition.diatonic_transpose(note, 7*number_of_octaves)
 end
 
 --
--- ENHARMONIC transposition (different than dim 2nd transposition in microtone systmes)
+-- ENHARMONIC transposition
 --
 
--- direction is positive or negative
--- ignore error is optional (false)
+--[[
+% enharmonic_transpose(note, direction, ignore_error)
+
+Transpose the note enharmonically in the given direction. In some microtone systems this yields a different result than transposing by a diminished 2nd.
+Failure occurs if the note's RaiseLower value exceeds an absolute value of 7. This is a hard-coded limit in Finale.
+
+@ note (FCNote) input and modified output
+@ direction (number) positive = up, negative = down (normally 1 or -1, but any positive or negative numbers work)
+@ [ignore_error] (boolean) default false. If true, always return success. External callers should omit this parameter.
+: (boolean) success or failure
+]]
 function transposition.enharmonic_transpose(note, direction, ignore_error)
     ignore_error = ignore_error or false
     local curr_disp = note.Displacement
@@ -163,8 +194,22 @@ end
 -- CHROMATIC transposition (affect Displacement and RaiseLower)
 -- 
 
--- simplify is an optional parameter
--- return value is false if the note could not be represented (quite possible, especially in 96 EDO microtone systems)
+--[[
+% chromatic_transpose(note, interval, alteration, simplify)
+
+Transposes a note chromatically by the input chromatic interval. Supports custom key signatures
+and mictrotone systems by means of a custom_key_sig.config.txt file. In Finale, chromatic intervals
+are defined by a diatonic displacement (0 = unison, 1 = second, 2 = third, etc.) and a chromatic alteration.
+Major and perfect intervals have a chromatic alteration of 0. So for example, {2, -1} is up a minor third, {3, 0}
+is up a perfect fourth, {5, 1} is up an augmented sixth, etc. Reversing the signs of both values in the pair
+allows for downwards transposition.
+
+@ note (FCNote) the note to transpose
+@ interval (number) the diatonic displacement (negative for transposing down)
+@ alteration (number) the chromatic alteration that defines the chromatic interval (reverse sign for transposing down)
+@ [simplify] (boolean) if present and true causes the spelling of the transposed note to be simplified
+: (boolean) success or failure (see `enharmonic_transpose` for what causes failure)
+--]]
 function transposition.chromatic_transpose(note, interval, alteration, simplify)
     simplify = simplify or false
     local curr_disp = note.Displacement
@@ -192,6 +237,17 @@ function transposition.chromatic_transpose(note, interval, alteration, simplify)
     return success
 end
 
+--[[
+% transposition.stepwise_transpose(note, number_of_steps)
+
+Transpose the note by the input number of steps and simplify the spelling.
+For predefined key signatures, each step is a half-step.
+For microtone systems defined with custom key signatures, each step is the smallest division of the octave defined by the custom key signature.
+
+@ note (FCNote) input and modified output
+@ number_of_steps (number) positive = up, negative = down
+: (boolean) success or failure (see `enharmonic_transpose` for what causes failure)
+]]
 function transposition.stepwise_transpose(note, number_of_steps)
     local curr_disp = note.Displacement
     local curr_alt = note.RaiseLower
@@ -204,14 +260,35 @@ function transposition.stepwise_transpose(note, number_of_steps)
     return success
 end
 
+--[[
+% chromatic_major_third_down(note)
+
+Transpose the note down by a major third.
+
+@ note (FCNote) input and modified output
+]]
 function transposition.chromatic_major_third_down(note)
     transposition.chromatic_transpose(note, -2, -0)
 end 
 
+--[[
+% chromatic_perfect_fourth_up(note)
+
+Transpose the note up by a perfect fourth.
+
+@ note (FCNote) input and modified output
+]]
 function transposition.chromatic_perfect_fourth_up(note)
     transposition.chromatic_transpose(note, 3, 0)
 end
 
+--[[
+% chromatic_perfect_fifth_down(note)
+
+Transpose the note down by a perfect fifth.
+
+@ note (FCNote) input and modified output
+]]
 function transposition.chromatic_perfect_fifth_down(note)
     transposition.chromatic_transpose(note, -4, -0)
 end
