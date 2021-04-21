@@ -13,15 +13,15 @@ end
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
-local library = require("library.general_library")
+local note_entry = require("library.note_entry")
 
 function unbeam_selected_region()
-    for note_entry in eachentrysaved(finenv.Region()) do
-        local isV2 = note_entry:GetVoice2()
-        if note_entry:GetDuration() < 1024 then -- less than quarter note duration
-            note_entry:SetBeamBeat(true)
+    for entry in eachentrysaved(finenv.Region()) do
+        local isV2 = entry:GetVoice2()
+        if entry:GetDuration() < 1024 then -- less than quarter note duration
+            entry:SetBeamBeat(true)
         end
-        local next_entry = library.get_next_same_v(note_entry)
+        local next_entry = note_entry.get_next_same_v(entry)
         if (nil ~= next_entry) and (next_entry:GetDuration() < 1024) and
             not finenv.Region():IsEntryPosWithin(next_entry) then
             next_entry:SetBeamBeat(true)

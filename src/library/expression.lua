@@ -7,6 +7,14 @@ local library = require("library.general_library")
 local note_entry = require("library.note_entry")
 local enigma_string = require("library.enigma_string")
 
+--[[
+% get_music_region(exp_assign)
+
+Returns a music region corresponding to the input expression assignment.
+
+@ exp_assign (FCExpression)
+: (FCMusicRegion)
+]]
 function expression.get_music_region(exp_assign)
     if not exp_assign:IsSingleStaffAssigned() then
         return nil
@@ -22,6 +30,14 @@ function expression.get_music_region(exp_assign)
     return exp_region
 end
 
+--[[
+% get_music_region(exp_assign)
+
+Returns the note entry associated with the input expression assignment, if any.
+
+@ exp_assign (FCExpression)
+: (FCNoteEntry) associated entry or nil if none
+]]
 function expression.get_associated_entry(exp_assign)
     local exp_region = expression.get_music_region(exp_assign)
     if nil == exp_region then
@@ -37,6 +53,14 @@ function expression.get_associated_entry(exp_assign)
     return nil
 end
 
+--[[
+% calc_handle_offset_for_smart_shape(exp_assign)
+
+Returns the horizontal EVPU offset for a smart shape endpoint to align exactly with the handle of the input expression, given that they both have the same EDU position.
+
+@ exp_assign (FCExpression)
+: (number)
+]]
 function expression.calc_handle_offset_for_smart_shape(exp_assign)
     local manual_horizontal = exp_assign.HorizontalPos
     local def_horizontal = 0 
@@ -67,8 +91,11 @@ end
 --[[
 % calc_text_width(expression_def, expand_tags)
 
-@ expression_def (FCExpessionDef)
-@ [expand_tags] (boolean) defaults to false, currently only suppoerts `^value()`
+Returns the text advance width of the input expression definition.
+
+@ expression_def (FCTextExpessionDef)
+@ [expand_tags] (boolean) defaults to false, currently only supports `^value()`
+: (number)
 ]]
 function expression.calc_text_width(expression_def, expand_tags)
     expand_tags = expand_tags or false
@@ -83,8 +110,11 @@ end
 --[[
 % is_for_current_part(exp_assign, current_part)
 
-@ exp_assign (unknown)
-@ [current_part] (unknown)
+Returns true if the expression assignment is assigned to the current part or score.
+
+@ exp_assign (FCExpression)
+@ [current_part] (FCPart) defaults to current part, but it can be supplied if the caller has already calculated it.
+: (boolean)
 ]]
 function expression.is_for_current_part(exp_assign, current_part)
     current_part = current_part or library.get_current_part()
