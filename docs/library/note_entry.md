@@ -5,10 +5,18 @@
 - [get_top_note_position](#get_top_note_position)
 - [get_bottom_note_position](#get_bottom_note_position)
 - [calc_widths](#calc_widths)
+- [calc_left_of_all_noteheads](#calc_left_of_all_noteheads)
+- [calc_left_of_primary_notehead](#calc_left_of_primary_notehead)
+- [calc_center_of_all_noteheads](#calc_center_of_all_noteheads)
+- [calc_center_of_primary_notehead](#calc_center_of_primary_notehead)
+- [calc_stem_offset](#calc_stem_offset)
+- [calc_right_of_all_noteheads](#calc_right_of_all_noteheads)
 - [calc_note_at_index](#calc_note_at_index)
 - [stem_sign](#stem_sign)
 - [duplicate_note](#duplicate_note)
 - [calc_spans_number_of_octaves](#calc_spans_number_of_octaves)
+- [add_augmentation_dot](#add_augmentation_dot)
+- [get_next_same_v](#get_next_same_v)
 
 ## get_music_region
 
@@ -44,10 +52,16 @@ note_entry.get_evpu_notehead_height(entry)
 note_entry.get_top_note_position(entry, entry_metrics)
 ```
 
+Returns the vertical page coordinate of the top of the notehead rectangle, not including the stem.
+
 | Input | Type | Description |
 | --- | --- | --- |
 | `entry` | `FCNoteEntry` |  |
-| `entry_metrics` (optional) | `FCEntryMetrics` |  |
+| `entry_metrics` (optional) | `FCEntryMetrics` | entry metrics may be supplied by the caller if they are already available |
+
+| Output type | Description |
+| --- | --- |
+| `number` |  |
 
 ## get_bottom_note_position
 
@@ -55,10 +69,16 @@ note_entry.get_top_note_position(entry, entry_metrics)
 note_entry.get_bottom_note_position(entry, entry_metrics)
 ```
 
+Returns the vertical page coordinate of the bottom of the notehead rectangle, not including the stem.
+
 | Input | Type | Description |
 | --- | --- | --- |
 | `entry` | `FCNoteEntry` |  |
-| `entry_metrics` (optional) | `FCEntryMetrics` |  |
+| `entry_metrics` (optional) | `FCEntryMetrics` | entry metrics may be supplied by the caller if they are already available |
+
+| Output type | Description |
+| --- | --- |
+| `number` |  |
 
 ## calc_widths
 
@@ -76,15 +96,111 @@ Get the widest left-side notehead width and widest right-side notehead width.
 | --- | --- |
 | `number, number` | widest left-side notehead width and widest right-side notehead width |
 
+## calc_left_of_all_noteheads
+
+```lua
+note_entry.calc_left_of_all_noteheads(entry)
+```
+
+Calculates the handle offset for an expression with "Left of All Noteheads" horizontal positioning.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `entry` | `FCNoteEntry` | the entry to calculate from |
+
+| Output type | Description |
+| --- | --- |
+| `number` | offset from left side of primary notehead rectangle |
+
+## calc_left_of_primary_notehead
+
+```lua
+note_entry.calc_left_of_primary_notehead(entry)
+```
+
+Calculates the handle offset for an expression with "Left of Primary Notehead" horizontal positioning.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `entry` | `FCNoteEntry` | the entry to calculate from |
+
+| Output type | Description |
+| --- | --- |
+| `number` | offset from left side of primary notehead rectangle |
+
+## calc_center_of_all_noteheads
+
+```lua
+note_entry.calc_center_of_all_noteheads(entry)
+```
+
+Calculates the handle offset for an expression with "Center of All Noteheads" horizontal positioning.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `entry` | `FCNoteEntry` | the entry to calculate from |
+
+| Output type | Description |
+| --- | --- |
+| `number` | offset from left side of primary notehead rectangle |
+
+## calc_center_of_primary_notehead
+
+```lua
+note_entry.calc_center_of_primary_notehead(entry)
+```
+
+Calculates the handle offset for an expression with "Center of Primary Notehead" horizontal positioning.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `entry` | `FCNoteEntry` | the entry to calculate from |
+
+| Output type | Description |
+| --- | --- |
+| `number` | offset from left side of primary notehead rectangle |
+
+## calc_stem_offset
+
+```lua
+note_entry.calc_stem_offset(entry)
+```
+
+Calculates the offset of the stem from the left edge of the notehead rectangle. Eventually the PDK Framework may be able to provide this instead.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `entry` | `FCNoteEntry` | the entry to calculate from |
+
+| Output type | Description |
+| --- | --- |
+| `number` | offset of stem from the left edge of the notehead rectangle. |
+
+## calc_right_of_all_noteheads
+
+```lua
+note_entry.calc_right_of_all_noteheads(entry)
+```
+
+Calculates the handle offset for an expression with "Right of All Noteheads" horizontal positioning.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `entry` | `FCNoteEntry` | the entry to calculate from |
+
+| Output type | Description |
+| --- | --- |
+| `number` | offset from left side of primary notehead rectangle |
+
 ## calc_note_at_index
 
 ```lua
 note_entry.calc_note_at_index(entry, note_index)
 ```
 
-this function assumes for note in each(note_entry) always iterates in the same direction
+This function assumes for note in each(note_entry) always iterates in the same direction.
 (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
-currently the PDK Framework does not seem to offer a better option
+Currently the PDK Framework does not seem to offer a better option.
 
 | Input | Type | Description |
 | --- | --- | --- |
@@ -128,7 +244,7 @@ note_entry.duplicate_note(note)
 note_entry.calc_spans_number_of_octaves(entry)
 ```
 
-Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals)
+Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).
 
 | Input | Type | Description |
 | --- | --- | --- |
@@ -137,3 +253,31 @@ Calculates the numer of octaves spanned by a chord (considering only staff posit
 | Output type | Description |
 | --- | --- |
 | `number` | of octaves spanned |
+
+## add_augmentation_dot
+
+```lua
+note_entry.add_augmentation_dot(entry)
+```
+
+Adds an augentation dot to the entry. This works even if the entry already has one or more augmentation dots.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `entry` | `FCNoteEntry` | the entry to which to add the augmentation dot |
+
+## get_next_same_v
+
+```lua
+note_entry.get_next_same_v(entry)
+```
+
+Returns the next entry in the same V1 or V2 as the input entry. If the input entry is V2, only the current V2 launch is searched.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `entry` | `FCNoteEntry` | the entry to process |
+
+| Output type | Description |
+| --- | --- |
+| `FCNoteEntry` | the next entry or nil |
