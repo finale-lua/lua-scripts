@@ -1,25 +1,32 @@
 # Configuration
 
-Author: Robert Patterson
-Date: March 5, 2021
+This library implements a UTF-8 text file scheme for configuration as follows:
 
-This library implements a text file scheme as follows:
-Comments start with "--"
-Leading, trailing, and extra whitespace is ignored
-Each parameter is named and delimited as follows:
-
-<parameter-name> = <parameter-value>
+- Comments start with `--`
+- Leading, trailing, and extra whitespace is ignored
+- Each parameter is named and delimited as follows:
+`<parameter-name> = <parameter-value>`
 
 Parameter values may be:
 
 - Strings delimited with either single- or double-quotes
-- Tables delimited with {} that may contain strings, booleans, or numbers
-- Booleans (true or false)
+- Tables delimited with `{}` that may contain strings, booleans, or numbers
+- Booleans (`true` or `false`)
 - Numbers
 
 Currently the following are not supported:
-    Tables embedded within tables
-    Tables containing strings that contain commas
+
+- Tables embedded within tables
+- Tables containing strings that contain commas
+
+A sample configuration file might be:
+
+```lua
+-- Configuration File for "Hairpin and Dynamic Adjustments" script
+--
+left_dynamic_cushion 		= 12		--evpus
+right_dynamic_cushion		= -6		--evpus
+```
 
 - [get_parameters](#get_parameters)
 

@@ -198,7 +198,7 @@ Calculates the handle offset for an expression with "Right of All Noteheads" hor
 note_entry.calc_note_at_index(entry, note_index)
 ```
 
-This function assumes for note in each(note_entry) always iterates in the same direction.
+This function assumes `for note in each(note_entry)` always iterates in the same direction.
 (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
 Currently the PDK Framework does not seem to offer a better option.
 
@@ -236,7 +236,7 @@ note_entry.duplicate_note(note)
 
 | Output type | Description |
 | --- | --- |
-| `FCNote \| nil` | reference to added FCNote or nil if not success |
+| `FCNote \| nil` | reference to added FCNote or `nil` if not success |
 
 ## calc_spans_number_of_octaves
 
@@ -272,7 +272,9 @@ Adds an augentation dot to the entry. This works even if the entry already has o
 note_entry.get_next_same_v(entry)
 ```
 
-Returns the next entry in the same V1 or V2 as the input entry. If the input entry is V2, only the current V2 launch is searched.
+Returns the next entry in the same V1 or V2 as the input entry.
+If the input entry is V2, only the current V2 launch is searched.
+If the input entry is V1, only the current measure and layer is searched.
 
 | Input | Type | Description |
 | --- | --- | --- |
@@ -280,4 +282,4 @@ Returns the next entry in the same V1 or V2 as the input entry. If the input ent
 
 | Output type | Description |
 | --- | --- |
-| `FCNoteEntry` | the next entry or nil |
+| `FCNoteEntry` | the next entry or `nil` in none |

@@ -6,7 +6,7 @@
 - [change_string_font](#change_string_font)
 - [change_text_block_font](#change_text_block_font)
 - [remove_inserts](#remove_inserts)
-- [enigma_string](#enigma_string)
+- [expand_value_tag](#expand_value_tag)
 - [calc_text_advance_width](#calc_text_advance_width)
 
 The following implements a hypothetical FCString.TrimFirstEnigmaFontTags() function
@@ -30,7 +30,7 @@ Trims the first font tags and returns the result as an instance of FCFontInfo.
 
 | Output type | Description |
 | --- | --- |
-| `FCFontInfo \| nil` | the first font info that was stripped or nil if none |
+| `FCFontInfo \| nil` | the first font info that was stripped or `nil` if none |
 
 ## change_first_string_font
 
@@ -105,10 +105,10 @@ Removes text inserts other than font commands and replaces them with
 | `fcstring` | `FCString` | this is both the input and the modified output result |
 | `replace_with_generic` | `boolean` | if true, replace the insert with the text of the enigma command |
 
-## enigma_string
+## expand_value_tag
 
 ```lua
-enigma_string.enigma_string.expand_value_tag(fcstring, value_num)
+enigma_string.expand_value_tag(fcstring, value_num)
 ```
 
 Expands the value tag to the input value_num.
