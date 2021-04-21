@@ -24,8 +24,6 @@ function note_entry.get_music_region(entry)
     return exp_region
 end
 
---For some reason the headRect is not included in the PDK Framework, so we have to laboriously
---reconstruct it here
 --entry_metrics can be omitted, in which case they are constructed and released here
 --return entry_metrics, loaded_here
 local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
@@ -59,8 +57,11 @@ end
 --[[
 % get_top_note_position(entry, entry_metrics)
 
+Returns the vertical page coordinate of the top of the notehead rectangle, not including the stem.
+
 @ entry (FCNoteEntry)
-@ [entry_metrics] (FCEntryMetrics)
+@ [entry_metrics] (FCEntryMetrics) entry metrics may be supplied by the caller if they are already available
+: (number)
 ]]
 function note_entry.get_top_note_position(entry, entry_metrics)
     local retval = -math.huge
@@ -89,8 +90,11 @@ end
 --[[
 % get_bottom_note_position(entry, entry_metrics)
 
+Returns the vertical page coordinate of the bottom of the notehead rectangle, not including the stem.
+
 @ entry (FCNoteEntry)
-@ [entry_metrics] (FCEntryMetrics)
+@ [entry_metrics] (FCEntryMetrics) entry metrics may be supplied by the caller if they are already available
+: (number)
 ]]
 function note_entry.get_bottom_note_position(entry, entry_metrics)
     local retval = math.huge
@@ -314,7 +318,7 @@ end
 --[[
 % add_augmentation_dot(entry)
 
-Adds an augentation dot to the entry. This works even if the entry already has an augmentation dot.
+Adds an augentation dot to the entry. This works even if the entry already has one or more augmentation dots.
 
 @ entry (FCNoteEntry) the entry to which to add the augmentation dot
 ]]
