@@ -1,15 +1,7 @@
 --[[
 $module Enigma String
-
-This implements a hypothetical FCString::TrimFirstEnigmaFontTags() function that would
-preferably be in the PDK Framework. Trimming only first allows us to preserve
-style changes within the rest of the string, such as changes from plain to
-italic. Ultimately this seems more useful than trimming out all font tags.
-If the PDK Framework is ever changed, it might be even better to create replace font
-functions that can replace only font, only size, only style, or all three together.
 ]]
 local enigma_string = {}
-
 
 local starts_with_font_command = function(string)
     local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
@@ -22,10 +14,21 @@ local starts_with_font_command = function(string)
 end
 
 --[[
+The following implements a hypothetical FCString.TrimFirstEnigmaFontTags() function
+that would preferably be in the PDK Framework. Trimming only first allows us to
+preserve style changes within the rest of the string, such as changes from plain to
+italic. Ultimately this seems more useful than trimming out all font tags.
+If the PDK Framework is ever changed, it might be even better to create replace font
+functions that can replace only font, only size, only style, or all three together.
+]]
+
+--[[
 % trim_first_enigma_font_tags(string)
 
-@ string (string)
-: (string | nill) the first font info that was stripped or nil if none
+Trims the first font tags and returns the result as an instance of FCFontInfo.
+
+@ string (FCString) this is both the input and the trimmed output result
+: (FCFontInfo | nil) the first font info that was stripped or nil if none
 ]]
 function enigma_string.trim_first_enigma_font_tags(string)
     local font_info = finale.FCFontInfo()
@@ -51,6 +54,15 @@ function enigma_string.trim_first_enigma_font_tags(string)
     return nil
 end
 
+--[[
+% change_first_string_font (string, font_info)
+
+Replaces the first enigma font tags of the input enigma string.
+
+@ string (FCString) this is both the input and the modified output result
+@ font_info (FCFontInfo) replacement font info
+: (boolean) true if success
+]]
 function enigma_string.change_first_string_font (string, font_info)
     local final_text = font_info:CreateEnigmaString(nil)
     local current_font_info = enigma_string.trim_first_enigma_font_tags(string)
@@ -62,6 +74,15 @@ function enigma_string.change_first_string_font (string, font_info)
     return false
 end
 
+--[[
+% change_first_text_block_font (text_block, font_info)
+
+Replaces the first enigma font tags of input text block.
+
+@ text_block (FCTextBlock) this is both the input and the modified output result
+@ font_info (FCFontInfo) replacement font info
+: (boolean) true if success
+]]
 function enigma_string.change_first_text_block_font (text_block, font_info)
     local new_text = text_block:CreateRawTextString()
     if enigma_string.change_first_string_font(new_text, font_info) then
@@ -74,6 +95,14 @@ end
 --These implement a complete font replacement using the PDK Framework's
 --built-in TrimEnigmaFontTags() function.
  
+--[[
+% change_string_font (string, font_info)
+
+Changes the entire enigma string to have the input font info.
+
+@ string (FCString) this is both the input and the modified output result
+@ font_info (FCFontInfo) replacement font info
+]]
 function enigma_string.change_string_font (string, font_info)
     local final_text = font_info:CreateEnigmaString(nil)
     string:TrimEnigmaFontTags()
@@ -81,12 +110,28 @@ function enigma_string.change_string_font (string, font_info)
     string:SetString (final_text)
 end
 
+--[[
+% change_text_block_font (text_block, font_info)
+
+Changes the entire text block to have the input font info.
+
+@ text_block (FCTextBlock) this is both the input and the modified output result
+@ font_info (FCFontInfo) replacement font info
+]]
 function enigma_string.change_text_block_font (text_block, font_info)
     local new_text = text_block:CreateRawTextString()
     enigma_string.change_string_font(new_text, font_info)
     text_block:SaveRawTextString(new_text)
 end
 
+--[[
+% remove_inserts (fcstring, replace_with_generic)
+
+Removes text inserts other than font commands and replaces them with 
+
+@ fcstring (FCString) this is both the input and the modified output result
+@ replace_with_generic (boolean) if true, replace the insert with the text of the enigma command
+]]
 function enigma_string.remove_inserts (fcstring, replace_with_generic)
     -- so far this just supports page-level inserts. if this ever needs to work with expressions, we'll need to
     -- add the last three items in the (Finale 26) text insert menu, which are playback inserts not available to page text
@@ -114,11 +159,27 @@ function enigma_string.remove_inserts (fcstring, replace_with_generic)
     fcstring.LuaString = lua_string
 end
 
+--[[
+% enigma_string.expand_value_tag(fcstring, value_num)
+
+Expands the value tag to the input value_num.
+
+@ fcstring (FCString) this is both the input and the modified output result
+@ value_num (number) the value number to replace the tag with
+]]
 function enigma_string.expand_value_tag(fcstring, value_num)
-    value_num = math.floor(value_num +0.5)
-    fcstring.LuaString = fcstring.LuaString:gsub("%^value%(%)", tostring(value_num)) -- in case value_num is not an integer
+    value_num = math.floor(value_num +0.5) -- in case value_num is not an integer
+    fcstring.LuaString = fcstring.LuaString:gsub("%^value%(%)", tostring(value_num))
 end
 
+--[[
+% calc_text_advance_width(inp_string)
+
+Calculates the advance width of the input string taking into account all font and style changes within the string.
+
+@ inp_string (FCString) this is an input-only value and is not modified
+: (number) the width of the string
+]]
 function enigma_string.calc_text_advance_width(inp_string)
     local accumulated_string = ""
     local accumulated_width = 0
