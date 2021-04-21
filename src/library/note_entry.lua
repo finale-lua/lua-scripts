@@ -248,7 +248,7 @@ end
 --[[
 % calc_note_at_index(entry, note_index)
 
-This function assumes for note in each(note_entry) always iterates in the same direction.
+This function assumes `for note in each(note_entry)` always iterates in the same direction.
 (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
 Currently the PDK Framework does not seem to offer a better option.
 
@@ -286,7 +286,7 @@ end
 % duplicate_note(note)
 
 @ note (FCNote)
-: (FCNote | nil) reference to added FCNote or nil if not success
+: (FCNote | nil) reference to added FCNote or `nil` if not success
 ]]
 function note_entry.duplicate_note(note)
     local new_note = note.Entry:AddNewNote()
@@ -329,10 +329,12 @@ end
 --[[
 % get_next_same_v(entry)
 
-Returns the next entry in the same V1 or V2 as the input entry. If the input entry is V2, only the current V2 launch is searched.
+Returns the next entry in the same V1 or V2 as the input entry.
+If the input entry is V2, only the current V2 launch is searched.
+If the input entry is V1, only the current measure and layer is searched.
 
 @ entry (FCNoteEntry) the entry to process
-: (FCNoteEntry) the next entry or nil
+: (FCNoteEntry) the next entry or `nil` in none
 ]]
 function note_entry.get_next_same_v(entry)
     local next_entry = entry:Next()
