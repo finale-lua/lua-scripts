@@ -1,7 +1,19 @@
+--[[
+$module Articulation
+]]
+
 local articulation = {}
 
 local note_entry = require("library.note_entry")
 
+--[[
+% delete_from_entry_by_char_num(entry, char_num)
+
+Removes any articulation assignment that has the specified character as its above-character.
+
+@ entry (FCNoteEntry)
+@ char_num (number) UTF-32 code of character (which is the same as ASCII for ASCII characters)
+]]
 function articulation.delete_from_entry_by_char_num(entry, char_num)
     local artics = entry:CreateArticulations()
     for a in eachbackwards(artics) do
@@ -12,7 +24,15 @@ function articulation.delete_from_entry_by_char_num(entry, char_num)
     end
 end
 
--- curr_pos is optional
+--[[
+% is_note_side(artic, curr_pos)
+
+Uses metrics to determine if the input articulation is on the note-side.
+
+@ artic (FCArticulation)
+@ [curr_pos] (FCPoint) will be calculated if not supplied
+: (boolean) true if on note-side, otherwise false
+]]
 function articulation.is_note_side(artic, curr_pos)
     if nil == curr_pos then
         curr_pos = finale.FCPoint(0, 0)
