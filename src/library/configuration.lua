@@ -23,7 +23,7 @@ Currently the following are not supported:
 - Tables embedded within tables
 - Tables containing strings that contain commas
 
-A sample configurarion file might be:
+A sample configuration file might be:
 
 ```lua
 -- Configuration File for "Hairpin and Dynamic Adjustments" script
