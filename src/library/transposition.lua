@@ -164,7 +164,7 @@ end
 % enharmonic_transpose(note, direction, ignore_error)
 
 Transpose the note enharmonically in the given direction. In some microtone systems this yields a different result than transposing by a diminished 2nd.
-Failure occurs if the note's RaiseLower value exceeds an absolute value of 7. This is a hard-coded limit in Finale.
+Failure occurs if the note's `RaiseLower` value exceeds an absolute value of 7. This is a hard-coded limit in Finale.
 
 @ note (FCNote) input and modified output
 @ direction (number) positive = up, negative = down (normally 1 or -1, but any positive or negative numbers work)
@@ -198,10 +198,10 @@ end
 % chromatic_transpose(note, interval, alteration, simplify)
 
 Transposes a note chromatically by the input chromatic interval. Supports custom key signatures
-and mictrotone systems by means of a custom_key_sig.config.txt file. In Finale, chromatic intervals
+and mictrotone systems by means of a `custom_key_sig.config.txt` file. In Finale, chromatic intervals
 are defined by a diatonic displacement (0 = unison, 1 = second, 2 = third, etc.) and a chromatic alteration.
-Major and perfect intervals have a chromatic alteration of 0. So for example, {2, -1} is up a minor third, {3, 0}
-is up a perfect fourth, {5, 1} is up an augmented sixth, etc. Reversing the signs of both values in the pair
+Major and perfect intervals have a chromatic alteration of 0. So for example, `{2, -1}` is up a minor third, `{3, 0}`
+is up a perfect fourth, `{5, 1}` is up an augmented sixth, etc. Reversing the signs of both values in the pair
 allows for downwards transposition.
 
 @ note (FCNote) the note to transpose
@@ -238,11 +238,12 @@ function transposition.chromatic_transpose(note, interval, alteration, simplify)
 end
 
 --[[
-% transposition.stepwise_transpose(note, number_of_steps)
+% stepwise_transpose(note, number_of_steps)
 
-Transpose the note by the input number of steps and simplify the spelling.
+Transposes the note by the input number of steps and simplifies the spelling.
 For predefined key signatures, each step is a half-step.
-For microtone systems defined with custom key signatures, each step is the smallest division of the octave defined by the custom key signature.
+For microtone systems defined with custom key signatures and matching options in the `custom_key_sig.config.txt` file,
+each step is the smallest division of the octave defined by the custom key signature.
 
 @ note (FCNote) input and modified output
 @ number_of_steps (number) positive = up, negative = down

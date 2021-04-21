@@ -28,7 +28,7 @@ functions that can replace only font, only size, only style, or all three togeth
 Trims the first font tags and returns the result as an instance of FCFontInfo.
 
 @ string (FCString) this is both the input and the trimmed output result
-: (FCFontInfo | nil) the first font info that was stripped or nil if none
+: (FCFontInfo | nil) the first font info that was stripped or `nil` if none
 ]]
 function enigma_string.trim_first_enigma_font_tags(string)
     local font_info = finale.FCFontInfo()
@@ -160,7 +160,7 @@ function enigma_string.remove_inserts (fcstring, replace_with_generic)
 end
 
 --[[
-% enigma_string.expand_value_tag(fcstring, value_num)
+% expand_value_tag(fcstring, value_num)
 
 Expands the value tag to the input value_num.
 

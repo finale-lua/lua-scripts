@@ -19,8 +19,8 @@ Parameter values may be:
 - Numbers
 
 Currently the following are not supported:
-    Tables embedded within tables
-    Tables containing strings that contain commas
+- Tables embedded within tables
+- Tables containing strings that contain commas
 ]]
 
 local configuration = {}
