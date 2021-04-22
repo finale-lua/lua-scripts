@@ -27,10 +27,10 @@ end
 --[[
 % is_note_side(artic, curr_pos)
 
-Uses metrics to determine if the input articulation is on the note-side.
+Uses `FCArticulation.CalcMetricPos` to determine if the input articulation is on the note-side.
 
 @ artic (FCArticulation)
-@ [curr_pos] (FCPoint) will be calculated if not supplied
+@ [curr_pos] (FCPoint) current position of articulation that will be calculated if not supplied
 : (boolean) true if on note-side, otherwise false
 ]]
 function articulation.is_note_side(artic, curr_pos)

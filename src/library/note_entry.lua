@@ -9,6 +9,8 @@ local note_entry = {}
 --[[
 % get_music_region(entry)
 
+Returns an intance of `FCMusicRegion` that corresponds to the metric location of the input note entry.
+
 @ entry (FCNoteEntry)
 : (FCMusicRegion)
 ]]
@@ -42,6 +44,8 @@ end
 -- If you remove this function, be sure to check that it still isn't used.
 --[[
 % get_evpu_notehead_height(entry)
+
+Returns the calculated height of the notehead rectangle.
 
 @ entry (FCNoteEntry)
 
