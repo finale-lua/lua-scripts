@@ -22,12 +22,12 @@ Removes any articulation assignment that has the specified character as its abov
 articulation.is_note_side(artic, curr_pos)
 ```
 
-Uses metrics to determine if the input articulation is on the note-side.
+Uses `FCArticulation.CalcMetricPos` to determine if the input articulation is on the note-side.
 
 | Input | Type | Description |
 | --- | --- | --- |
 | `artic` | `FCArticulation` |  |
-| `curr_pos` (optional) | `FCPoint` | will be calculated if not supplied |
+| `curr_pos` (optional) | `FCPoint` | current position of articulation that will be calculated if not supplied |
 
 | Output type | Description |
 | --- | --- |

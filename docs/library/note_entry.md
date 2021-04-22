@@ -24,6 +24,8 @@
 note_entry.get_music_region(entry)
 ```
 
+Returns an intance of `FCMusicRegion` that corresponds to the metric location of the input note entry.
+
 | Input | Type | Description |
 | --- | --- | --- |
 | `entry` | `FCNoteEntry` |  |
@@ -37,6 +39,8 @@ note_entry.get_music_region(entry)
 ```lua
 note_entry.get_evpu_notehead_height(entry)
 ```
+
+Returns the calculated height of the notehead rectangle.
 
 | Input | Type | Description |
 | --- | --- | --- |
