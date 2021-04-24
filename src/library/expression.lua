@@ -31,7 +31,7 @@ function expression.get_music_region(exp_assign)
 end
 
 --[[
-% get_music_region(exp_assign)
+% get_associated_entry(exp_assign)
 
 Returns the note entry associated with the input expression assignment, if any.
 
