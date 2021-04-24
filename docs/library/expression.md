@@ -1,7 +1,7 @@
 # Expression
 
 - [get_music_region](#get_music_region)
-- [get_music_region](#get_music_region)
+- [get_associated_entry](#get_associated_entry)
 - [calc_handle_offset_for_smart_shape](#calc_handle_offset_for_smart_shape)
 - [calc_text_width](#calc_text_width)
 - [is_for_current_part](#is_for_current_part)
@@ -22,10 +22,10 @@ Returns a music region corresponding to the input expression assignment.
 | --- | --- |
 | `FCMusicRegion` |  |
 
-## get_music_region
+## get_associated_entry
 
 ```lua
-expression.get_music_region(exp_assign)
+expression.get_associated_entry(exp_assign)
 ```
 
 Returns the note entry associated with the input expression assignment, if any.
