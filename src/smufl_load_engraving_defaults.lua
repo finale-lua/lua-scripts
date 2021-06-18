@@ -53,12 +53,20 @@ function smufl_load_engraving_defaults()
     local tuplet_prefs = finale.FCTupletPrefs()
     tuplet_prefs:Load(1)
 
+    -- Beam spacing has to be calculated in terms of beam thickness, because the json spec
+    -- calls for inner distance whereas Finale is top edge to top edge. So hold the value
+    local beamSpacingFound = 0
+    local beamWidthFound = math.floor(size_prefs.BeamThickness/efixPerEvpu + 0.5)
+
     -- define actions for each of the fields of font_info.engravingDefaults
     local action = {
         staffLineThickness = function(v) size_prefs.StaffLineThickness = math.floor(efixPerSpace*v + 0.5) end,
         stemThickness = function(v) size_prefs.StemLineThickness = math.floor(efixPerSpace*v + 0.5) end,
-        beamThickness = function(v) size_prefs.BeamThickness = math.floor(efixPerSpace*v + 0.5) end,
-        beamSpacing = function(v) distance_prefs.SecondaryBeamSpace = math.floor(evpuPerSpace*v + 0.5) end,
+        beamThickness = function(v)
+            size_prefs.BeamThickness = math.floor(efixPerSpace*v + 0.5)
+            beamWidthFound = math.floor(evpuPerSpace*v + 0.5)
+        end,
+        beamSpacing = function(v) beamSpacingFound = math.floor(evpuPerSpace*v + 0.5) end,
         legerLineThickness = function(v) size_prefs.LedgerLineThickness = math.floor(efixPerSpace*v + 0.5) end,
         legerLineExtension = function(v)
                 size_prefs.LedgerLeftHalf = math.floor(evpuPerSpace*v + 0.5)
@@ -170,6 +178,20 @@ function smufl_load_engraving_defaults()
         local action_function = action[k]
         if nil ~= action_function then
             action_function(tonumber(v))
+        end
+    end
+
+    if 0 ~= beamSpacingFound then
+        distance_prefs.SecondaryBeamSpace = beamSpacingFound + beamWidthFound
+
+        -- Currently, the json files for Finale measure beam separation from top edge to top edge
+        -- whereas the spec specifies that it be only the distance between the inner edges. This will
+        -- probably be corrected at some point, but for now hard-code around it. Hopefully this code will
+        -- get a Finale version check at some point.
+
+        local finale_prefix = "Finale "
+        if finale_prefix == font_info.Name:sub(1, #finale_prefix) then
+            distance_prefs.SecondaryBeamSpace = beamSpacingFound
         end
     end
 
