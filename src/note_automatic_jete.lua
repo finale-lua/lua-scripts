@@ -18,6 +18,7 @@ package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local note_entry = require("library.note_entry")
 local articulation = require("library.articulation")
 local configuration = require("library.configuration")
+local library = require("library.general_library")
 
 local max_layers = 4            -- this should be in the PDK, but for some reason isn't
 
@@ -25,6 +26,10 @@ local config = {
     dot_character = 46,         -- ascii code for "."
     hide_last_note = false
 }
+
+if library.is_font_smufl_font() then
+    config.dot_character = 0xe4a2 -- SMuFL staccato dot above, which must be the "Main Character" in the Articulation Definition
+end
 
 configuration.get_parameters("note_automatic_jete.config.txt", config)
 
