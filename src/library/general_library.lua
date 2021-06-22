@@ -229,4 +229,54 @@ function library.get_page_format_prefs()
     return page_format_prefs, success
 end
 
+--[[
+% get_smufl_metadata_file(font_info)
+
+@ [font_info] (FCFontInfo) if non-nil, the font to search for; if nil, search for the Default Music Font
+: (file handle|nil)
+]]
+function library.get_smufl_metadata_file(font_info)
+    if nil == font_info then
+        font_info = finale.FCFontInfo()
+        font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
+    end
+
+    local try_prefix = function(prefix, font_info)
+        local file_path = prefix .. "/SMuFL/Fonts/" .. font_info.Name .. "/" .. font_info.Name .. ".json"
+        return io.open(file_path, "r")
+    end
+
+    local smufl_json_system_prefix = "/Library/Application Support"
+    if finenv.UI():IsOnWindows() then
+        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
+    end
+    local system_file = try_prefix(smufl_json_system_prefix, font_info)
+    if nil ~= system_file then
+        return system_file
+    end
+
+    local smufl_json_user_prefix = ""
+    if finenv.UI():IsOnWindows() then
+        smufl_json_user_prefix = os.getenv("LOCALAPPDATA")
+    else
+        smufl_json_user_prefix = os.getenv("HOME") .. "/Library/Application Support"
+    end
+    return try_prefix(smufl_json_user_prefix, font_info)
+end
+
+--[[
+% is_font_smufl_font(font_info)
+
+@ [font_info] (FCFontInfo) if non-nil, the font to check; if nil, check the Default Music Font
+: (boolean)
+]]
+function library.is_font_smufl_font(font_info)
+    local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
+    if nil ~= smufl_metadata_file then
+        io.close(smufl_metadata_file)
+        return true
+    end
+    return false
+end
+
 return library

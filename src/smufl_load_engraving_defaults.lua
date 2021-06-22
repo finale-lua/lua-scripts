@@ -10,19 +10,14 @@ end
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
-local luna = require("lunajson.lunajson")
 
-local smufl_json_path = "/Library/Application Support/SMuFL/Fonts/"
-if finenv.UI():IsOnWindows() then
-    local common_programs_path = os.getenv("COMMONPROGRAMFILES") 
-    smufl_json_path = common_programs_path .. "/SMuFL/Fonts/"
-end
+local luna = require("lunajson.lunajson")
+local library = require("library.general_library")
 
 function smufl_load_engraving_defaults()
     local font_info = finale.FCFontInfo()
     font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
-    local font_json_path = smufl_json_path .. font_info.Name .. "/" .. font_info.Name .. ".json"
-    local font_json_file = io.open(font_json_path, "r")
+    local font_json_file = library.get_smufl_metadata_file(font_info)
     if nil == font_json_file then
         finenv.UI():AlertError("The current Default Music Font (" .. font_info.Name .. ") is not a SMuFL font, or else the json file with its engraving defaults is not installed.", "Default Music Font is not SMuFL")
         return
