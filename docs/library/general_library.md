@@ -11,6 +11,8 @@
 - [update_layout](#update_layout)
 - [get_current_part](#get_current_part)
 - [get_page_format_prefs](#get_page_format_prefs)
+- [get_smufl_metadata_file](#get_smufl_metadata_file)
+- [is_font_smufl_font](#is_font_smufl_font)
 
 ## group_overlaps_region
 
@@ -172,3 +174,31 @@ Returns the default page format prefs for score or parts based on which is curre
 | Output type | Description |
 | --- | --- |
 | `FCPageFormatPrefs` |  |
+
+## get_smufl_metadata_file
+
+```lua
+library.get_smufl_metadata_file(font_info)
+```
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `font_info` (optional) | `FCFontInfo` | if non-nil, the font to search for; if nil, search for the Default Music Font |
+
+| Output type | Description |
+| --- | --- |
+| `file handle\|nil` |  |
+
+## is_font_smufl_font
+
+```lua
+library.is_font_smufl_font(font_info)
+```
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `font_info` (optional) | `FCFontInfo` | if non-nil, the font to check; if nil, check the Default Music Font |
+
+| Output type | Description |
+| --- | --- |
+| `boolean` |  |
