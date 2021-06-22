@@ -3,6 +3,7 @@
 local notehead = {}
 
 local configuration = require("library.configuration")
+local library = require("library.general_library")
 
 local config = {
     diamond_open                = 79,
@@ -11,6 +12,12 @@ local config = {
     diamond_whole_offset        = 5,
     diamond_breve_offset        = 14
 }
+
+-- Default to SMuFL characters for SMuFL font (without needing a config file)
+if library.is_font_smufl_font() then
+    config.diamond_open = 0xe0e1
+    config.diamond_closed = 0xe0e1  -- (in config) override to 0xe0e2 for closest matching closed diamond if you want to disregard Elain Gould and use a closed notehead
+end
 
 configuration.get_parameters("notehead.config.txt", config)
 
