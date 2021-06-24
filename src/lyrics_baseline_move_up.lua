@@ -31,9 +31,9 @@ local baseline_types = {
 
 function find_valid_lyric_nums()
     local valid_lyric_nums = {}
-    for i = 1, 32767, 1 do
-        for baseline_type, lyrics_text_class_constructor in pairs(baseline_types) do
-            local lyrics_text_class = lyrics_text_class_constructor()
+    for baseline_type, lyrics_text_class_constructor in pairs(baseline_types) do
+        local lyrics_text_class = lyrics_text_class_constructor()
+        for i = 1, 32767, 1 do
             if lyrics_text_class:Load(i) then
                 local str = finale.FCString()
                 lyrics_text_class:GetText(str)
