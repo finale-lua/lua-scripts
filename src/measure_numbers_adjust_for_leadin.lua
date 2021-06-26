@@ -25,6 +25,9 @@ local barline_thickness = math.floor(size_prefs.ThinBarlineThickness/64.0 + 0.5)
 local additional_offset = 0 -- here you can add more evpu to taste (positive values move the number to the right)
 
 local is_mid_system_default_number_visible_and_left_aligned = function (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+    if meas_num_region.UseScoreInfoForParts then
+        current_is_part = false
+    end
     if cell.Measure == system.FirstMeasure then
         return false
     end
