@@ -15,6 +15,20 @@ path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library.general_library")
 
+function set_draw_barline_mode(new_group, source_group)
+    -- This function works around a bug in JW Lua (as of v0.54) where assigning 0 to FCGroup.DrawBarlineMode
+    -- causes 1 to be assigned and assigning 1 causes 0 to be assigned.
+    new_group.DrawBarlineMode = source_group.DrawBarlineMode
+    -- Only do something if this version of JW Lua has the bug.
+    if new_group.DrawBarlineMode ~= source_group.DrawBarlineMode then
+        if source_group.DrawBarlineMode == finale.GROUPBARLINESTYLE_ONLYON then
+            new_group.DrawBarlineMode = finale.GROUPBARLINESTYLE_ONLYBETWEEN
+        elseif source_group.DrawBarlineMode == finale.GROUPBARLINESTYLE_ONLYBETWEEN then
+            new_group.DrawBarlineMode  = finale.GROUPBARLINESTYLE_ONLYON
+        end
+    end
+end
+
 function staff_groups_copy_score_to_part()
 
     local parts = finale.FCParts()
@@ -61,7 +75,8 @@ function staff_groups_copy_score_to_part()
                 new_group.BracketStyle = staff_group.BracketStyle
                 new_group.BracketVerticalBottomPos = staff_group.BracketVerticalBottomPos
                 new_group.BracketVerticalTopPos = staff_group.BracketVerticalTopPos
-                new_group.DrawBarlineMode = staff_group.DrawBarlineMode
+                set_draw_barline_mode(new_group, staff_group) -- use workaround function for JW Lua bug (see comments in function)
+                finenv.UI():AlertInfo("new mode: " .. tostring(new_group.DrawBarlineMode) .. " org mode: " .. tostring(staff_group.DrawBarlineMode), "info")
                 new_group.EmptyStaffHide = staff_group.EmptyStaffHide
                 new_group.FullNameAlign = staff_group.FullNameAlign
                 new_group.FullNameExpandSingle = staff_group.FullNameExpandSingle
