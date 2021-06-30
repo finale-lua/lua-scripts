@@ -76,7 +76,6 @@ function staff_groups_copy_score_to_part()
                 new_group.BracketVerticalBottomPos = staff_group.BracketVerticalBottomPos
                 new_group.BracketVerticalTopPos = staff_group.BracketVerticalTopPos
                 set_draw_barline_mode(new_group, staff_group) -- use workaround function for JW Lua bug (see comments in function)
-                finenv.UI():AlertInfo("new mode: " .. tostring(new_group.DrawBarlineMode) .. " org mode: " .. tostring(staff_group.DrawBarlineMode), "info")
                 new_group.EmptyStaffHide = staff_group.EmptyStaffHide
                 new_group.FullNameAlign = staff_group.FullNameAlign
                 new_group.FullNameExpandSingle = staff_group.FullNameExpandSingle
