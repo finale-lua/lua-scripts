@@ -57,8 +57,8 @@ function lyrics_baseline_move_up()
     local lastSys = systems:FindMeasureNumber(end_measure)
     local system_number = system:GetItemNo()
     local lastSys_number = lastSys:GetItemNo()
-    local start_staff = region:GetStartStaff()
-    local end_staff = region:GetEndStaff()
+    local start_slot = region:GetStartSlot()
+    local end_slot = region:GetEndSlot()
 
     local valid_lyric_nums = find_valid_lyric_nums()
 
@@ -67,8 +67,8 @@ function lyrics_baseline_move_up()
         for lyric_info, _ in pairs(valid_lyric_nums) do
             local baseline_type, lyric_number = table.unpack(lyric_info)
             baselines:LoadAllForSystem(baseline_type, i)
-            for j = start_staff, end_staff, 1 do
-                bl = baselines:AssureSavedLyricNumber(baseline_type, i, j, lyric_number)
+            for j = start_slot, end_slot do
+                bl = baselines:AssureSavedLyricNumber(baseline_type, i, region:CalcStaffNumber(j), lyric_number)
                 bl.VerticalOffset = bl.VerticalOffset + config.nudge_up_evpus
                 bl:Save()
             end
