@@ -6,7 +6,7 @@ function plugindef()
     finaleplugin.Date = "July 7, 2021"
     finaleplugin.CategoryTags = "Expression"
     finaleplugin.AuthorURL = "http://robertgpatterson.com"
-    return "Move Expression Below Baseline Down", "Move Expression Below Baseline Down",
+    return "Move Expression Baseline Below Down", "Move Expression Baseline Below Down",
            "Moves the selected expression above baseline down one space"
 end
 
