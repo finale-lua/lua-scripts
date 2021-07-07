@@ -1,21 +1,16 @@
 function plugindef()
     finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Nick Mazuk"
-    finaleplugin.Version = "1.0.2"
+    finaleplugin.Author = "Robert Patterson"
+    finaleplugin.Version = "1.0"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Date = "June 12, 2020"
+    finaleplugin.Date = "July 7, 2021"
     finaleplugin.CategoryTags = "Expression"
-    finaleplugin.AuthorURL = "https://nickmazuk.com"
-    return "Move Expression Baseline Down", "Move Expression Baseline Down",
-           "Moves the selected expression above baseline down one space"
+    finaleplugin.AuthorURL = "http://robertgpatterson.com"
+    return "Reset Expression Baseline", "Reset Expression Baseline",
+           "Resets the selected expression above baselines"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
-local measurement = require("library.measurement")
-
-function expression_baseline_move_down()
+function expression_baseline_reset()
     local region = finenv.Region()
     local systems = finale.FCStaffSystems()
     systems:LoadAll()
@@ -32,12 +27,13 @@ function expression_baseline_move_down()
     for i = system_number, lastSys_number, 1 do
         local baselines = finale.FCBaselines()
         baselines:LoadAllForSystem(finale.BASELINEMODE_EXPRESSIONABOVE, i)
-        for j = start_slot, end_slot do
-            bl = baselines:AssureSavedStaff(finale.BASELINEMODE_EXPRESSIONABOVE, i, region:CalcStaffNumber(j))
-            bl.VerticalOffset = bl.VerticalOffset - measurement.convert_to_EVPUs("1s")
-            bl:Save()
+        for baseline in each(baselines) do
+            local baseline_slot = region:CalcSlotNumber(baseline.Staff)
+            if (start_slot <= baseline_slot) and (baseline_slot <= end_slot) then
+                baseline:DeleteData()
+            end
         end
-    end
+end
 end
 
-expression_baseline_move_down()
+expression_baseline_reset()
