@@ -14,7 +14,7 @@ path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local measurement = require("library.measurement")
 
-function system_move_up()
+function system_move_down()
     local region = finenv.Region()
     local systems = finale.FCStaffSystems()
     systems:LoadAll()
@@ -33,5 +33,5 @@ function system_move_up()
     end
 end
 
-system_move_up()
+system_move_down()
 
