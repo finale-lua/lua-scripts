@@ -181,6 +181,44 @@ function library.is_default_measure_number_visible_on_cell (meas_num_region, cel
 end
 
 --[[
+% is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+
+Returns true if measure number for the input cell is visible and left-aligned.
+
+@ meas_num_region (FCMeasureNumberRegion)
+@ cell (FCCell)
+@ system (FCStaffSystem)
+@ current_is_part (boolean) true if the current view is a linked part, otherwise false
+@ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
+: (boolean)
+]]
+function library.is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+    if meas_num_region.UseScoreInfoForParts then
+        current_is_part = false
+    end
+    if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultiMeasureAlignment(current_is_part)) then
+            return false
+        end
+    elseif (cell.Measure == system.FirstMeasure) then
+        if not meas_num_region:GetShowOnSystemStart() then
+            return false
+        end
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetStartAlignment(current_is_part)) then
+            return false
+        end
+    else
+        if not meas_num_region:GetShowMultiples(current_is_part) then
+            return false
+        end
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultipleAlignment(current_is_part)) then
+            return false
+        end
+    end
+    return library.is_default_measure_number_visible_on_cell (meas_num_region, cell, system, current_is_part)
+end
+
+--[[
 % update_layout(from_page, unfreeze_measures)
 
 Updates the page layout.

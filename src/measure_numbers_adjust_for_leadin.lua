@@ -22,33 +22,7 @@ local barline_thickness = math.floor(size_prefs.ThinBarlineThickness/64.0 + 0.5)
 
 -- additional_offset allows you to tweak the result. it is only applied if the measure number is being moved
 
-local additional_offset = 0 -- here you can add more evpu to taste (positive values move the number to the right)
-
-local is_default_number_visible_and_left_aligned = function (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
-    if meas_num_region.UseScoreInfoForParts then
-        current_is_part = false
-    end
-    if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
-        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultiMeasureAlignment(current_is_part)) then
-            return false
-        end
-    elseif (cell.Measure == system.FirstMeasure) then
-        if not meas_num_region:GetShowOnSystemStart() then
-            return false
-        end
-        if (finale.MNALIGN_LEFT ~= meas_num_region:GetStartAlignment(current_is_part)) then
-            return false
-        end
-    else
-        if not meas_num_region:GetShowMultiples(current_is_part) then
-            return false
-        end
-        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultipleAlignment(current_is_part)) then
-            return false
-        end
-    end
-    return library.is_default_measure_number_visible_on_cell (meas_num_region, cell, system, current_is_part)
-end
+local additional_offset = 0 -- here you can add more evpu to taste (positive values move the number to the right)s
 
 function measure_numbers_adjust_for_leadin()
     local systems = finale.FCStaffSystems()
@@ -80,7 +54,7 @@ function measure_numbers_adjust_for_leadin()
                             local staff = system_region:CalcStaffNumber(slot)
                             if sel_region:IsStaffIncluded(staff) then
                                 local cell = finale.FCCell(meas_num, staff)
-                                if is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest) then
+                                if library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest) then
                                     local lead_in = 0
                                     if cell.Measure ~= system.FirstMeasure then
                                         local cell_metrics = finale.FCCellMetrics()
