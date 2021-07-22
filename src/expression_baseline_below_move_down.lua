@@ -1,12 +1,12 @@
 function plugindef()
     finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Nick Mazuk"
-    finaleplugin.Version = "1.0.2"
+    finaleplugin.Author = "Robert Patterson"
+    finaleplugin.Version = "1.0"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Date = "June 12, 2020"
+    finaleplugin.Date = "July 7, 2021"
     finaleplugin.CategoryTags = "Expression"
-    finaleplugin.AuthorURL = "https://nickmazuk.com"
-    return "Move Expression Baseline Down", "Move Expression Baseline Down",
+    finaleplugin.AuthorURL = "http://robertgpatterson.com"
+    return "Move Expression Baseline Below Down", "Move Expression Baseline Below Down",
            "Moves the selected expression above baseline down one space"
 end
 
@@ -15,7 +15,7 @@ path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local measurement = require("library.measurement")
 
-function expression_baseline_move_down()
+function expression_baseline_below_move_down()
     local region = finenv.Region()
     local systems = finale.FCStaffSystems()
     systems:LoadAll()
@@ -31,13 +31,13 @@ function expression_baseline_move_down()
 
     for i = system_number, lastSys_number, 1 do
         local baselines = finale.FCBaselines()
-        baselines:LoadAllForSystem(finale.BASELINEMODE_EXPRESSIONABOVE, i)
+        baselines:LoadAllForSystem(finale.BASELINEMODE_EXPRESSIONBELOW, i)
         for j = start_slot, end_slot do
-            bl = baselines:AssureSavedStaff(finale.BASELINEMODE_EXPRESSIONABOVE, i, region:CalcStaffNumber(j))
+            bl = baselines:AssureSavedStaff(finale.BASELINEMODE_EXPRESSIONBELOW, i, region:CalcStaffNumber(j))
             bl.VerticalOffset = bl.VerticalOffset - measurement.convert_to_EVPUs("1s")
             bl:Save()
         end
     end
 end
 
-expression_baseline_move_down()
+expression_baseline_below_move_down()

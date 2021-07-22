@@ -2,9 +2,9 @@ function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0"
-    finaleplugin.Date = "June 21, 2020"
+    finaleplugin.Date = "July 7, 2021"
     finaleplugin.CategoryTags = "Measure"
-    return "Measure Numbers Move Up", "Measure Numbers Move Up", "Moves selected measure numbers up by one staff space."
+    return "Measure Numbers Reset Vertical", "Measure Numbers Reset Vertical", "Reset vertical position to default for selected measure numbers."
 end
 
 local path = finale.FCString()
@@ -12,9 +12,7 @@ path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library.general_library")
 
-local move_amount = 24 -- evpus
-
-function measure_numbers_move_up()
+function measure_numbers_reset_vertical()
     local systems = finale.FCStaffSystems()
     systems:LoadAll()
     local meas_num_regions = finale.FCMeasureNumberRegions()
@@ -36,20 +34,8 @@ function measure_numbers_move_up()
                 sep_nums:LoadAllInCell(cell)
                 if (sep_nums.Count > 0) then
                     for sep_num in each(sep_nums) do
-                        sep_num.VerticalPosition = sep_num.VerticalPosition + move_amount
+                        sep_num.VerticalPosition = 0
                         sep_num:Save()
-                    end
-                else
-                    local sep_num = finale.FCSeparateMeasureNumber()
-                    sep_num:ConnectCell(cell)
-                    sep_num:AssignMeasureNumberRegion(meas_num_region)
-                    sep_num.VerticalPosition = sep_num.VerticalPosition + move_amount
-                    --sep_num:SetShowOverride(true) -- enable this line if you want to force show the number. otherwise it will show or hide based on the measure number region
-                    if sep_num:SaveNew() then
-                        local measure = finale.FCMeasure()
-                        measure:Load(cell.Measure)
-                        measure:SetContainsManualMeasureNumbers(true)
-                        measure:Save()
                     end
                 end
             end
@@ -57,4 +43,4 @@ function measure_numbers_move_up()
     end
 end
 
-measure_numbers_move_up()
+measure_numbers_reset_vertical()

@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "June 21, 2020"
     finaleplugin.CategoryTags = "Measure"
-    return "Measure Numbers Move Down", "Measure Numbers Move Down", "Moves all measure numbers down by one staff space."
+    return "Measure Numbers Move Down", "Measure Numbers Move Down", "Moves selected measure numbers down by one staff space."
 end
 
 local path = finale.FCString()
@@ -39,7 +39,7 @@ function measure_numbers_move_up()
                         sep_num.VerticalPosition = sep_num.VerticalPosition + move_amount
                         sep_num:Save()
                     end
-                elseif (0 ~= lead_in) then
+                else
                     local sep_num = finale.FCSeparateMeasureNumber()
                     sep_num:ConnectCell(cell)
                     sep_num:AssignMeasureNumberRegion(meas_num_region)
