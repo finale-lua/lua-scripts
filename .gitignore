@@ -18,4 +18,4 @@ jwlua64.fxtco
 script_settings
 
 node_modules
-actions/**/coverage
+coverage
