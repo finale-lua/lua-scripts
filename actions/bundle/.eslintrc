@@ -1,0 +1,5 @@
+{
+    "extends": [
+        "@nick-mazuk/eslint-config/cli"
+    ]
+}

@@ -1,0 +1,45 @@
+{
+    "name": "bundle",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "eslint": "eslint '**/*.{js,ts,tsx}' --quiet --fix",
+        "check-types": "tsc --noemit",
+        "lint": "npm run eslint && npm run check-types",
+        "test": "jest",
+        "test:watch": "npm run test -- --watch"
+    },
+    "jest": {
+        "collectCoverage": true,
+        "testPathIgnorePatterns": [
+            "/node_modules/",
+            "/js/",
+            "/build/"
+        ],
+        "transform": {
+            "^.+\\.tsx?$": "esbuild-jest"
+        }
+    },
+    "keywords": [],
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "@nick-mazuk/eslint-config": "^0.8.13",
+        "@types/fs-extra": "^9.0.12",
+        "@types/jest": "^26.0.24",
+        "@types/n-readlines": "^1.0.2",
+        "@types/node": "^16.4.3",
+        "esbuild": "^0.12.15",
+        "esbuild-jest": "^0.5.0",
+        "eslint": "^7.31.0",
+        "jest": "^27.0.6",
+        "prettier": "^2.3.2",
+        "typescript": "^4.3.5"
+    },
+    "dependencies": {
+        "@actions/core": "^1.4.0",
+        "fs-extra": "^10.0.0",
+        "n-readlines": "^1.0.1"
+    }
+}
