@@ -1,11 +1,24 @@
-export const getImport = (line: string): { file: string; isImport: boolean } => {
-    const matches = line.match(/require\(["']library\.([A-Z_a-z]+)["']\)/u)
-    if (!matches) return { file: '', isImport: false }
-    return { file: matches[1], isImport: true }
+import { getImport, getVariableName } from './helpers'
+
+export type Library = {
+    [name: string]: {
+        contents: string
+    }
 }
 
-export const getVariableName = (line: string): string => {
-    const matches = line.match(/^(local )?([a-zA-Z_]+)/u)
-    if (!matches) return ''
-    return matches[2]
+export const bundleFile = (file: string, library: Library): string => {
+    const lines = file.split('\n')
+    const output: string[] = []
+    lines.forEach((line) => {
+        const { importedFile, isImport } = getImport(line)
+        if (!isImport && !(importedFile in library)) {
+            output.push(line)
+            return
+        }
+        const variableName = getVariableName(line)
+        output.push(
+            library[importedFile].contents.replace(/BUNDLED_LIBRARY_VARIABLE_NAME/gu, variableName)
+        )
+    })
+    return output.join('\n')
 }

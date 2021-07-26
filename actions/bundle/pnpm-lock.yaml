@@ -7,6 +7,7 @@ specifiers:
   '@types/jest': ^26.0.24
   '@types/n-readlines': ^1.0.2
   '@types/node': ^16.4.3
+  '@vercel/ncc': ^0.29.0
   esbuild: ^0.12.15
   esbuild-jest: ^0.5.0
   eslint: ^7.31.0
@@ -27,6 +28,7 @@ devDependencies:
   '@types/jest': 26.0.24
   '@types/n-readlines': 1.0.2
   '@types/node': 16.4.3
+  '@vercel/ncc': 0.29.0
   esbuild: 0.12.15
   esbuild-jest: 0.5.0_esbuild@0.12.15
   eslint: 7.31.0
@@ -1045,6 +1047,11 @@ packages:
     dependencies:
       '@typescript-eslint/types': 4.28.4
       eslint-visitor-keys: 2.1.0
+    dev: true
+
+  /@vercel/ncc/0.29.0:
+    resolution: {integrity: sha512-p+sB835wOSDdgm2mgFgSOcXJF84AqZ+vBEnnGS0sm8veA92Hia7sqH0qEnqeFilPl+cXtxbdh2er+WdlfbVCZA==}
+    hasBin: true
     dev: true
 
   /abab/2.0.5:

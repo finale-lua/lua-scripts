@@ -1,38 +1,72 @@
-import { getImport, getVariableName } from './bundle'
+import type { Library } from './bundle'
+import { bundleFile } from './bundle'
 
-describe('detects valid imports', () => {
-    const lines: [string, string][] = [
-        ['local library = require("library.file_name")', 'file_name'],
-        ['local library = require("library.articulation")', 'articulation'],
-        ['local library = require("library.articulation") -- no path, no ".lua"', 'articulation'],
-        ['library = require("library.articulation")', 'articulation'],
-        ['articulation = require("library.articulation")', 'articulation'],
-        ['articulation   =    require("library.file_name")', 'file_name'],
-        ["articulation   =    require('library.file_name')", 'file_name'],
-        ['local library = require("not_library.file_name")', ''],
-        ['local library = import("library.file_name")', ''],
-        ['local library = require("library.")', ''],
-        ['local library = require("file_name")', ''],
-    ]
+const library: Library = {
+    articulation: {
+        contents: `--[[
+$module Articulation
+]]
 
-    it.each(lines)('line "%s" imports "%s"', (line, importFile) => {
-        const { file, isImport } = getImport(line)
-        expect(file).toEqual(importFile)
-        expect(isImport).toEqual(importFile !== '')
-    })
+local BUNDLED_LIBRARY_VARIABLE_NAME = {}
+
+function BUNDLED_LIBRARY_VARIABLE_NAME.method()
+end`,
+    },
+    expression: {
+        contents: `--[[
+$module Articulation
+]]
+
+local BUNDLED_LIBRARY_VARIABLE_NAME = {}
+
+function BUNDLED_LIBRARY_VARIABLE_NAME.method()
+  -- does something
+end`,
+    },
+}
+
+it('bundles library if library exists', () => {
+    const file = `
+local library = require("library.articulation")
+`
+
+    const output = `
+--[[
+$module Articulation
+]]
+
+local library = {}
+
+function library.method()
+end
+`
+    expect(bundleFile(file, library)).toEqual(output)
 })
 
-describe('gets the defined variable name', () => {
-    const lines: [string, string][] = [
-        ['local library = require("library.file_name")', 'library'],
-        ['local library = require("library.articulation") -- no path, no ".lua"', 'library'],
-        ['library = require("library.articulation")', 'library'],
-        ['articulation = require("library.articulation")', 'articulation'],
-        ['articulation   =    require("library.file_name")', 'articulation'],
-        ["articulation   =    require('library.file_name')", 'articulation'],
-    ]
+it('works with multiple imports', () => {
+    const file = `
+local articulation = require("library.articulation")
+local expression = require("library.expression")
+`
 
-    it.each(lines)('line "%s" imports "%s"', (line, variableName) => {
-        expect(getVariableName(line)).toEqual(variableName)
-    })
+    const output = `
+--[[
+$module Articulation
+]]
+
+local articulation = {}
+
+function articulation.method()
+end
+--[[
+$module Articulation
+]]
+
+local expression = {}
+
+function expression.method()
+  -- does something
+end
+`
+    expect(bundleFile(file, library)).toEqual(output)
 })

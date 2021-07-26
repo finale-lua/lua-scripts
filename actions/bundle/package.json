@@ -2,13 +2,15 @@
     "name": "bundle",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "dist/index.js",
     "scripts": {
         "eslint": "eslint '**/*.{js,ts,tsx}' --quiet --fix",
         "check-types": "tsc --noemit",
         "lint": "npm run eslint && npm run check-types",
         "test": "jest",
-        "test:watch": "npm run test -- --watch"
+        "test:watch": "npm run test -- --watch",
+        "build": "ncc build src/index.ts -o dist --target=es2015",
+        "dev": "npm run build && node dist/index.js"
     },
     "jest": {
         "collectCoverage": true,
@@ -30,6 +32,7 @@
         "@types/jest": "^26.0.24",
         "@types/n-readlines": "^1.0.2",
         "@types/node": "^16.4.3",
+        "@vercel/ncc": "^0.29.0",
         "esbuild": "^0.12.15",
         "esbuild-jest": "^0.5.0",
         "eslint": "^7.31.0",
