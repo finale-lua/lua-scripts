@@ -1,0 +1,20 @@
+{
+    "name": "Force Full Names",
+    "undoText": "Force Full Names",
+    "shortDescription": "Force first selected measure to show full staff names.",
+    "requireSelection": true,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "Robert Patterson",
+        "website": "",
+        "email": ""
+    },
+    "copyright": "CC0 https://creativecommons.org/publicdomain/zero/1.0/",
+    "version": "1.0",
+    "categories": ["Measure"],
+    "date": "2020-06-10",
+    "notes": "",
+    "revisionNotes": [],
+    "id": ""
+}

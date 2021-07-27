@@ -1,0 +1,20 @@
+{
+    "name": "Remove Duplicate Articulations",
+    "undoText": "Remove Duplicate Articulations",
+    "shortDescription": "Remove Duplicate Articulations",
+    "requireSelection": true,
+    "requireScore": true,
+    "noStore": true,
+    "author": {
+        "name": "Jane Doe",
+        "website": "https://example.com",
+        "email": "jane.doe@example.com"
+    },
+    "copyright": "Copyright statement",
+    "version": "1.0.1",
+    "categories": ["Articulation", "Note", "Chord"],
+    "date": "2021-07-27",
+    "notes": "",
+    "revisionNotes": [],
+    "id": "abc123"
+}

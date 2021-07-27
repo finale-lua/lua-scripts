@@ -1,0 +1,20 @@
+{
+    "name": "Switch To Selected Part",
+    "undoText": "Switch To Selected Part",
+    "shortDescription": "Switches to the first part of the top staff in a selected region in a score. Switches back to the score if viewing a part.",
+    "requireSelection": false,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "CJ Garcia",
+        "website": "",
+        "email": ""
+    },
+    "copyright": "© 2020 CJ Garcia Music",
+    "version": "1.2",
+    "categories": ["UI"],
+    "date": "2020-06-12",
+    "notes": "",
+    "revisionNotes": [],
+    "id": ""
+}
