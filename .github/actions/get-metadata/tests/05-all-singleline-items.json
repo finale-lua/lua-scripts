@@ -1,4 +1,5 @@
 {
+    "fileName": "05-all-singleline-items.lua",
     "name": "Remove Duplicate Articulations",
     "undoText": "Remove Duplicate Articulations",
     "shortDescription": "Remove Duplicate Articulations",

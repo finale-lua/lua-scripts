@@ -11,6 +11,7 @@ export type Author = {
 }
 export type Metadata = {
     name: string
+    fileName: string
     undoText: string
     shortDescription: string
     requireSelection: boolean
@@ -28,6 +29,7 @@ export type Metadata = {
 
 const defaultMetadata: Metadata = {
     name: 'This is the default name that hopefully no one will ever use',
+    fileName: '',
     undoText: '',
     shortDescription: '',
     requireSelection: false,
@@ -105,8 +107,9 @@ const getBooleanData = (line: string, luaName: string): boolean => {
     return false
 }
 
-export const parseFile = (file: string): Metadata => {
+export const parseFile = (file: string, fileName: string): Metadata => {
     let metadata = deepClone(defaultMetadata)
+    metadata.fileName = fileName
     const lines = file.split('\n').map((line) => line.trim())
     let isInReturn = false
     let isInPluginDef = false

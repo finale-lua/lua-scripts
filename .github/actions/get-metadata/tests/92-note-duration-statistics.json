@@ -1,4 +1,5 @@
 {
+    "fileName": "92-note-duration-statistics.lua",
     "name": "Note Duration Statistics",
     "undoText": "Note Duration Statistics",
     "shortDescription": "Counts the number of each note value in a given region",

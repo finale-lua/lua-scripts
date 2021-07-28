@@ -10,5 +10,5 @@ const testFiles = fs
 it.each(testFiles)('test "%s" is parsed correctly', (fileName) => {
     const file = fs.readFileSync(`tests/${fileName}.lua`, 'utf8').toString()
     const metadata = JSON.parse(fs.readFileSync(`tests/${fileName}.json`, 'utf8').toString())
-    expect(parseFile(file)).toStrictEqual(metadata)
+    expect(parseFile(file, fileName + '.lua')).toStrictEqual(metadata)
 })

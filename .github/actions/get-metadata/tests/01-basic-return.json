@@ -1,4 +1,5 @@
 {
+    "fileName": "01-basic-return.lua",
     "name": "Remove Duplicate Articulations",
     "undoText": "Remove Duplicate Articulations",
     "shortDescription": "Remove Duplicate Articulations",

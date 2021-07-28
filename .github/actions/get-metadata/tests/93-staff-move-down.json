@@ -1,4 +1,5 @@
 {
+    "fileName": "93-staff-move-down.lua",
     "name": "Move Staff Down",
     "undoText": "Move Staff Down",
     "shortDescription": "Moves the selected staves down by 1 space",

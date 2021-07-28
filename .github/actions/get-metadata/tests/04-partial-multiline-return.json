@@ -1,4 +1,5 @@
 {
+    "fileName": "04-partial-multiline-return.lua",
     "name": "Remove Duplicate Articulations",
     "undoText": "Remove Duplicate Articulations",
     "shortDescription": "",

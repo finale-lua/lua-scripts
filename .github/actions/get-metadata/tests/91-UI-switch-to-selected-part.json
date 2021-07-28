@@ -1,4 +1,5 @@
 {
+    "fileName": "91-UI-switch-to-selected-part.lua",
     "name": "Switch To Selected Part",
     "undoText": "Switch To Selected Part",
     "shortDescription": "Switches to the first part of the top staff in a selected region in a score. Switches back to the score if viewing a part.",

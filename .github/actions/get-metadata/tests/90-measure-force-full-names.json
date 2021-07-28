@@ -1,4 +1,5 @@
 {
+    "fileName": "90-measure-force-full-names.lua",
     "name": "Force Full Names",
     "undoText": "Force Full Names",
     "shortDescription": "Force first selected measure to show full staff names.",
