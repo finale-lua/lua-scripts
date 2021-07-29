@@ -32,7 +32,7 @@ jobs:
         uses: ./lua/.github/actions/get-metadata
         with:
           source: ./lua/src
-          output: ./website/src/lib/script-data.json
+          output: ./website/src/lib/lib/script-data.json
       - name: Generate the docs
         uses: nick-mazuk/lua-docs-generator@v1.0.6
         with:
