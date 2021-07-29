@@ -24,12 +24,12 @@ jobs:
           path: './website'
           token: ${{ secrets.NICK_PERSONAL_TOKEN }}
       - name: build scripts
-        uses: ./.github/actions/bundle
+        uses: ./lua/.github/actions/bundle
         with:
           source: ./lua/src
           output: ./lua/dist
       - name: build scripts
-        uses: ./.github/actions/bundle
+        uses: ./lua/.github/actions/get-metadata
         with:
           source: ./lua/src
           output: ./website/src/lib/script-data.json
