@@ -28,7 +28,7 @@ jobs:
         with:
           source: ./lua/src
           output: ./lua/dist
-      - name: build scripts
+      - name: parse scripts
         uses: ./lua/.github/actions/get-metadata
         with:
           source: ./lua/src
