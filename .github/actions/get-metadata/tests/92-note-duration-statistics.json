@@ -1,0 +1,21 @@
+{
+    "fileName": "92-note-duration-statistics.lua",
+    "name": "Note Duration Statistics",
+    "undoText": "Note Duration Statistics",
+    "shortDescription": "Counts the number of each note value in a given region",
+    "requireSelection": false,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "Jari Williamsson",
+        "website": "",
+        "email": ""
+    },
+    "copyright": "CC0 https://creativecommons.org/publicdomain/zero/1.0/",
+    "version": "1.0.1",
+    "categories": ["Note"],
+    "date": "2020-06-26",
+    "notes": "",
+    "revisionNotes": ["Edited by Nick Mazuk to give more detailed duration statistics"],
+    "id": ""
+}

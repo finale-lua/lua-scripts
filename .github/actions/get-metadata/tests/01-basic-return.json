@@ -1,0 +1,21 @@
+{
+    "fileName": "01-basic-return.lua",
+    "name": "Remove Duplicate Articulations",
+    "undoText": "Remove Duplicate Articulations",
+    "shortDescription": "Remove Duplicate Articulations",
+    "requireSelection": false,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "",
+        "website": "",
+        "email": ""
+    },
+    "copyright": "",
+    "version": "",
+    "categories": [],
+    "date": "",
+    "notes": "",
+    "revisionNotes": [],
+    "id": ""
+}

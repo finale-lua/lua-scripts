@@ -1,0 +1,11 @@
+name: 'Get metadata'
+inputs:
+  source:
+    description: 'The directory of the source files'
+    required: true
+  output:
+    description: 'The location for the json file'
+    required: true
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
