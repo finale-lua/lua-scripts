@@ -1,0 +1,27 @@
+{
+    "strict": true,
+    "alwaysStrict": true,
+    "compilerOptions": {
+        "target": "es2015",
+        "allowJs": true,
+        "lib": ["DOM"],
+        "skipLibCheck": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "esModuleInterop": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "declaration": false
+    },
+    "include": [
+        "**/*.ts",
+        "*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "js**/*"
+    ]
+}

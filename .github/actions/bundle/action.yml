@@ -1,0 +1,12 @@
+name: 'Bundle scripts'
+description: 'Greet someone and record the time'
+inputs:
+  source:
+    description: 'The directory of the source files'
+    required: true
+  output:
+    description: 'The directory of the outputted bundled files'
+    required: true
+runs:
+  using: 'node12'
+  main: 'dist/index.js'

@@ -1,0 +1,21 @@
+{
+    "fileName": "04-partial-multiline-return.lua",
+    "name": "Remove Duplicate Articulations",
+    "undoText": "Remove Duplicate Articulations",
+    "shortDescription": "",
+    "requireSelection": false,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "",
+        "website": "",
+        "email": ""
+    },
+    "copyright": "",
+    "version": "",
+    "categories": [],
+    "date": "",
+    "notes": "",
+    "revisionNotes": [],
+    "id": ""
+}

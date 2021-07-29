@@ -1,4 +1,4 @@
-name: Generate docs
+name: Build and deploy scripts/docs
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - "master"
 
 jobs:
-  test-push:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout this repository
@@ -23,6 +23,16 @@ jobs:
           repository: Nick-Mazuk/jw-lua-scripts-docs
           path: './website'
           token: ${{ secrets.NICK_PERSONAL_TOKEN }}
+      - name: build scripts
+        uses: ./.github/actions/bundle
+        with:
+          source: ./lua/src
+          output: ./lua/dist
+      - name: build scripts
+        uses: ./.github/actions/bundle
+        with:
+          source: ./lua/src
+          output: ./website/src/lib/script-data.json
       - name: Generate the docs
         uses: nick-mazuk/lua-docs-generator@v1.0.6
         with:

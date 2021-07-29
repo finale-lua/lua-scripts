@@ -1,0 +1,21 @@
+{
+    "fileName": "07-revision-notes.lua",
+    "name": "Script",
+    "undoText": "Script",
+    "shortDescription": "Script",
+    "requireSelection": false,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "",
+        "website": "",
+        "email": ""
+    },
+    "copyright": "",
+    "version": "",
+    "categories": [],
+    "date": "",
+    "notes": "",
+    "revisionNotes": ["July 26, 2013: Version 1.00", "July 28, 2013: Version 1.01"],
+    "id": ""
+}

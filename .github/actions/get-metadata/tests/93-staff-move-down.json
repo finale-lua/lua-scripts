@@ -1,0 +1,21 @@
+{
+    "fileName": "93-staff-move-down.lua",
+    "name": "Move Staff Down",
+    "undoText": "Move Staff Down",
+    "shortDescription": "Moves the selected staves down by 1 space",
+    "requireSelection": true,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "Nick Mazuk",
+        "website": "https://nickmazuk.com",
+        "email": ""
+    },
+    "copyright": "CC0 https://creativecommons.org/publicdomain/zero/1.0/",
+    "version": "1.0.1",
+    "categories": ["Staff"],
+    "date": "2020-06-20",
+    "notes": "",
+    "revisionNotes": [],
+    "id": ""
+}

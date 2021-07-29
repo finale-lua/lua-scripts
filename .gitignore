@@ -16,3 +16,6 @@ jwlua64.fxtco
 # script_settings folder is for settting user-specific parameters
 # and should not be tracked in this repo
 script_settings
+
+node_modules
+coverage

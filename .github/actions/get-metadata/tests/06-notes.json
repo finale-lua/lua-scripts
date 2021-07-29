@@ -1,0 +1,21 @@
+{
+    "fileName": "06-notes.lua",
+    "name": "Script",
+    "undoText": "Script",
+    "shortDescription": "Script",
+    "requireSelection": false,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "",
+        "website": "",
+        "email": ""
+    },
+    "copyright": "",
+    "version": "",
+    "categories": [],
+    "date": "",
+    "notes": "This is a test note.\nThis is a second line.\nAnd this is a third line.",
+    "revisionNotes": [],
+    "id": ""
+}
