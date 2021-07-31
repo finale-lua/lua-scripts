@@ -17,7 +17,6 @@ stem_thickness = stem_thickness / 64 -- This converts EFIX to EVPU
 
 function cluster_indeterminate()
     for note_entry in eachentrysaved(finenv.Region()) do
-        -- if noteentry:IsRest() == true then goto continue end
         if note_entry:IsNote() and note_entry.Count > 1 then
             local max = note_entry.Count
             local n = 1
@@ -38,14 +37,12 @@ function cluster_indeterminate()
                 end
                 if i == 2 then
                     low_span = note:CalcStaffPosition() - lowest_note_pos
-                end -- end "if i == 2..."
+                end
                 i = i + 1
-            end -- end "for note..."
+            end
             -- Process the notes
             for note in each(note_entry) do
-                -- Calculate stem direction
                 local stem_direction = note_entry:CalcStemUp()
-                -- Setup notehead variable, including fonts
                 local notehead = finale.FCNoteheadMod()
                 notehead:EraseAt(note)
                 notehead:SetUseCustomFont(true)
@@ -65,7 +62,7 @@ function cluster_indeterminate()
                     if stem_direction == false and rightside == false then
                         notehead.HorizontalPos = notehead_offset
                     end
-                end -- end of notes less than half notes
+                end
 
                 if (note_entry.Duration >= 2048) and (note_entry.Duration < 4096) then -- for half notes
                     if n == 1 then
@@ -83,7 +80,7 @@ function cluster_indeterminate()
                     if stem_direction == false and rightside == false then
                         notehead.HorizontalPos = notehead_offset
                     end
-                end -- end of half notes
+                end
 
                 if (note_entry.Duration >= 4096) then -- for whole notes
                     if n == 1 then
@@ -101,11 +98,11 @@ function cluster_indeterminate()
                     if stem_direction == false and rightside == false then
                         notehead.HorizontalPos = notehead_offset
                     end
-                end -- end of whole notes
+                end
 
                 if n > 1 and n < max then -- for all inner notes, set ties to off
                     note.Tie = false
-                end -- end of for all inner notes
+                end
 
                 --
                 if note_entry:IsDotted() then
@@ -116,30 +113,25 @@ function cluster_indeterminate()
                     if n == 1 and low_span <= 1 and low_space == 1 then
                         dot.VerticalPos = 24
                     elseif n > 1 and n < max then
-                        -- local vert_offset = ((lowest_note_pos - note:CalcStaffPosition()) * 12 ) -- + dot:GetVerticalPos()/4
-                        -- dot.VerticalPos = vert_offset
-                        -- I believe 10000 is enough to move the dots off any page I can conceive of...
+                        -- 10000 is enough to move the dots off any page
                         dot.VerticalPos = 10000
                         dot.HorizontalPos = 10000
                     else
                         dot.VerticalPos = 0
-                    end -- end of "if..."
+                    end
                     dot.HorizontalPos = horizontal
                     dot:SaveAt(note)
-                end -- end if noteentry:IsDotted
+                end
 
                 note.AccidentalFreeze = true
                 note.Accidental = false
                 notehead:SaveAt(note)
 
-                -- print (n.." of "..max) -- Checking note order...
                 n = n + 1
-            end -- end "for note..."
+            end
             note_entry.LedgerLines = false
-        end -- end "if noteentry:IsNote..."
-        -- ::continue::
-    end -- end "for noteentry..."
+        end
+    end
 end
 
--- Activate!!!
 cluster_indeterminate()

@@ -9,11 +9,10 @@ function plugindef()
 end
 
 local region = finenv.Region()
--- Setup arrays
 
 local layer_one_note = {}
 local layer_two_note = {}
--- local staff = 0
+
 local measure = {}
 
 local horizontal_offset = -20
@@ -25,15 +24,14 @@ local function process_notes(music_region)
     for entry in eachentrysaved(region) do
         entry.FreezeStem = false
         table.insert(stem_dir, entry:CalcStemUp())
-        -- entry.FreezeStem = true
-    end -- end for entry
-    --
+    end
+
     copy_layer(1, 2)
     copy_layer(1, 3)
-    --
+
     local i = 1 -- To iterate stem direction table for Layer 1
     local j = 1 -- To iterate stem direction table for Layer 2
-    --
+
     for note_entry in eachentrysaved(music_region) do
         local span = note_entry:CalcDisplacementRange(nil)
         local stem_direction = stem_dir[i]
@@ -52,7 +50,7 @@ local function process_notes(music_region)
             end
             if stem_direction == false and span > 2 then
                 hide_stems(note_entry, stem_direction)
-            end -- end "if stemDir == false" for layer 1
+            end
             i = i + 1
         elseif note_entry.LayerNumber == 2 then
             stem_direction = stem_dir[j]
@@ -65,7 +63,7 @@ local function process_notes(music_region)
             end
             if stem_direction == true then
                 hide_stems(note_entry, stem_direction)
-            end -- end "if stemDir == true" for layer 2
+            end
             j = j + 1
         elseif note_entry.LayerNumber == 3 then
             if note_entry:IsNote() then
@@ -81,17 +79,17 @@ local function process_notes(music_region)
                 note_entry:SetRestDisplacement(2)
             end
             note_entry.Visible = false
-        end -- end "if layernumber == x"
+        end
         note_entry.CheckAccidentals = true
         if note_entry:IsNote() then
             n = 1
             for note in each(note_entry) do
                 note.NoteID = n
                 n = n + 1
-            end -- end "for note..."
-        end -- end "if IsNote..."
-    end -- end for noteentry in eachentrysaved...
-end -- EndFunc
+            end
+        end
+    end
+end
 
 -- Function 2: Hide Stems (from JW's Harp Gliss script, modified)
 function hide_stems(entry, stem_direction)
@@ -120,6 +118,7 @@ function copy_layer(source, destination) -- source and destination layer numbers
     local stop = region.EndMeasure
     local system_staves = finale.FCSystemStaves()
     system_staves:LoadAllForRegion(region)
+
     -- Set variables for 0-based layers
     source = source - 1
     destination = destination - 1
@@ -131,34 +130,32 @@ function copy_layer(source, destination) -- source and destination layer numbers
         noteentrylayerDest:Save()
         noteentrylayerDest:CloneTuplets(note_entry_layer_source)
         noteentrylayerDest:Save()
-    end -- end "for sysstaff"
-end -- end CopyLayer()
+    end
+end
 
 -- Function 4 - Delete the bottom notes, leaving only the top
 function delete_bottom_notes(entry)
     while entry.Count > 1 do
         local lowest_note = entry:CalcLowestNote(nil)
         entry:DeleteNote(lowest_note)
-    end -- end while
-end -- end func
+    end
+end
 
 -- Function 5 - Delete the top notes, leaving only the bottom
 function delete_top_notes(entry)
     while entry.Count > 1 do
         local highest_note = entry:CalcHighestNote(nil)
         entry:DeleteNote(highest_note)
-    end -- end while
-end -- end func
+    end
+end
 
 -- Function 6 - Delete the Top and Bottom Notes
 function delete_top_bottom_notes(entry)
-    --    for entry in eachentrysaved(region) do
     local highest_note = entry:CalcHighestNote(nil)
     entry:DeleteNote(highest_note)
     local lowest_note = entry:CalcLowestNote(nil)
     entry:DeleteNote(lowest_note)
-    --   end -- "for entry..."
-end -- end Delete...Notes
+end
 
 -- Function 6.1 - Delete the middle notes
 function delete_middle_notes(entry)
@@ -167,14 +164,14 @@ function delete_middle_notes(entry)
         for note in each(entry) do
             note.NoteID = n
             n = n + 1
-        end -- end "for note..."
+        end
         for note in each(entry) do
             if note.NoteID == 2 then
                 entry:DeleteNote(note)
             end
-        end -- end for note...
-    end -- end while
-end -- end "Delete middle notes"
+        end
+    end
+end
 
 -- Function 7: Create the custom line to use (or choose it if it already exists)
 local function create_cluster_line()
@@ -190,10 +187,11 @@ local function create_cluster_line()
                 if csld.Horizontal == false then
                     my_line = csld.ItemNo
                     line_exists = true
-                end -- end 3rd if
-            end -- end 2nd if
-        end -- end 1st if
-    end -- end "for" loop looking at custom smart lines
+                end
+            end
+        end
+    end
+
     -- if the line does not exist, create it and get the line ID
     if line_exists == false then
         local csld = finale.FCCustomSmartLineDef()
@@ -222,10 +220,11 @@ local function create_short_cluster_line()
                 if csld.Horizontal == false then
                     my_line = csld.ItemNo
                     line_exists = true
-                end -- end 3rd if
-            end -- end 2nd if
-        end -- end 1st if
-    end -- end "for" loop looking at custom smart lines
+                end
+            end
+        end
+    end
+
     -- if the line does not exist, create it and get the line ID
     if line_exists == false then
         local csld = finale.FCCustomSmartLineDef()
@@ -247,10 +246,10 @@ function add_cluster_line(left_note, right_note, line_id)
         local layer_one_highest = left_note:CalcHighestNote(nil)
         local note_width = layer_one_highest:CalcNoteheadWidth()
         local layer_one_note_y = layer_one_highest:CalcStaffPosition()
-        --
+
         local layer_two_highest = right_note:CalcHighestNote(nil)
         local layer_two_note_y = layer_two_highest:CalcStaffPosition()
-        --
+
         local top_pad = 0
         local bottom_pad = 0
         if left_note.Duration >= 2048 and left_note.Duration < 4096 then -- for half notes...
@@ -259,10 +258,10 @@ function add_cluster_line(left_note, right_note, line_id)
         elseif left_note.Duration >= 4096 then -- for whole notes and greater...
             top_pad = 10
             bottom_pad = 11.5
-        end -- end if
+        end
         layer_one_note_y = (layer_one_note_y * 12) - top_pad
         layer_two_note_y = (layer_two_note_y * 12) + bottom_pad
-        --
+
         smartshape.ShapeType = finale.SMARTSHAPE_CUSTOM
         smartshape.EntryBased = false
         smartshape.MakeHorizontal = false
@@ -270,24 +269,24 @@ function add_cluster_line(left_note, right_note, line_id)
         smartshape.PresetShape = true
         smartshape.Visible = true
         smartshape.LineID = line_id
-        --
+
         local left_segment = smartshape:GetTerminateSegmentLeft()
         left_segment:SetMeasure(left_note.Measure)
         left_segment:SetStaff(left_note.Staff)
         left_segment:SetMeasurePos(left_note.MeasurePos)
         left_segment:SetEndpointOffsetX(note_width / 2)
         left_segment:SetEndpointOffsetY(layer_one_note_y)
-        --
+
         local right_segment = smartshape:GetTerminateSegmentRight()
         right_segment:SetMeasure(right_note.Measure)
         right_segment:SetStaff(right_note.Staff)
         right_segment:SetMeasurePos(right_note.MeasurePos)
         right_segment:SetEndpointOffsetX(note_width / 2)
         right_segment:SetEndpointOffsetY(layer_two_note_y)
-        --
+
         smartshape:SaveNewEverything(NULL, NULL)
-    end -- end "if leftnote..."
-end -- end function
+    end
+end
 
 -- Function 8.1: Attach the short cluster line to the score
 function add_short_cluster_line(entry, short_lineID)
@@ -295,10 +294,10 @@ function add_short_cluster_line(entry, short_lineID)
         local smartshape = finale.FCSmartShape()
         local left_note = entry:CalcHighestNote(nil)
         local left_note_y = left_note:CalcStaffPosition() * 12 + 12
-        --
+
         local right_note = entry:CalcLowestNote(nil)
         local right_note_y = right_note:CalcStaffPosition() * 12 - 12
-        --
+
         smartshape.ShapeType = finale.SMARTSHAPE_CUSTOM
         smartshape.EntryBased = false
         smartshape.MakeHorizontal = false
@@ -306,44 +305,31 @@ function add_short_cluster_line(entry, short_lineID)
         smartshape.Visible = true
         smartshape.BeatAttached = true
         smartshape.LineID = short_lineID
-        --
+
         local left_segment = smartshape:GetTerminateSegmentLeft()
         left_segment:SetMeasure(entry.Measure)
         left_segment:SetStaff(entry.Staff)
         left_segment:SetMeasurePos(entry.MeasurePos)
         left_segment:SetEndpointOffsetX(horizontal_offset)
         left_segment:SetEndpointOffsetY(left_note_y)
-        --
+
         local right_segment = smartshape:GetTerminateSegmentRight()
         right_segment:SetMeasure(entry.Measure)
         right_segment:SetStaff(entry.Staff)
         right_segment:SetMeasurePos(entry.MeasurePos)
         right_segment:SetEndpointOffsetX(horizontal_offset)
         right_segment:SetEndpointOffsetY(right_note_y)
-        --
-        smartshape:SaveNewEverything(NULL, NULL)
-        --[[
-        -- move accidentals...
-        for note in each(entry) do
-            if note.Accidental == true then
-                local accidental = finale.FCAccidentalMod()
-                accidental:SetNoteEntry(entry)
-                accidental:SetHorizontalPos(horz_off)
-                accidental:SaveAt(note)
-            end -- end "if entry.Accidental..."
-         end -- end "for note..."
-    --]] --
-    end -- end "if entry:IsNote..."
-end -- end function
 
--- Do the functions...
+        smartshape:SaveNewEverything(NULL, NULL)
+    end
+end
 
 local line_id = create_cluster_line()
 local short_lineID = create_short_cluster_line()
 
 for add_staff = region:GetStartStaff(), region:GetEndStaff() do
     local count = 0
-    --
+
     for k in pairs(layer_one_note) do
         layer_one_note[k] = nil
     end
@@ -353,13 +339,13 @@ for add_staff = region:GetStartStaff(), region:GetEndStaff() do
     for k in pairs(measure) do
         measure[k] = nil
     end
-    --
+
     region:SetStartStaff(add_staff)
     region:SetEndStaff(add_staff)
     local measures = finale.FCMeasures()
     measures:LoadRegion(region)
-    process_notes(region) -- Call Function 1
-    --
+    process_notes(region)
+
     for entry in eachentrysaved(region) do
         if entry.LayerNumber == 1 then
             table.insert(layer_one_note, entry)
@@ -368,13 +354,13 @@ for add_staff = region:GetStartStaff(), region:GetEndStaff() do
             count = count + 1
         elseif entry.LayerNumber == 2 then
             table.insert(layer_two_note, entry)
-        end -- end if
-    end -- end for
-    --
+        end
+    end
+
     for i = 1, count do
         add_short_cluster_line(layer_one_note[i], short_lineID)
         add_cluster_line(layer_one_note[i], layer_two_note[i], line_id)
-    end -- end for
+    end
 end
 
 -- separate move accidentals function for short clusters that encompass a 3rd
