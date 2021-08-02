@@ -24,15 +24,15 @@ jobs:
           path: './website'
           token: ${{ secrets.NICK_PERSONAL_TOKEN }}
       - name: build scripts
-        uses: ./.github/actions/bundle
+        uses: ./lua/.github/actions/bundle
         with:
           source: ./lua/src
           output: ./lua/dist
-      - name: build scripts
-        uses: ./.github/actions/bundle
+      - name: parse scripts
+        uses: ./lua/.github/actions/get-metadata
         with:
           source: ./lua/src
-          output: ./website/src/lib/script-data.json
+          output: ./website/src/lib/lib/script-data.json
       - name: Generate the docs
         uses: nick-mazuk/lua-docs-generator@v1.0.6
         with:
