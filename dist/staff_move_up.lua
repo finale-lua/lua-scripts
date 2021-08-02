@@ -27,7 +27,7 @@ end
 
 local single_space_evpus =  measurement.convert_to_EVPUs(tostring("1s"))
 
-function staff_move_down()
+function staff_move_up()
     local region = finenv.Region()
     local systems = finale.FCStaffSystems()
     systems:LoadAll()
@@ -55,4 +55,4 @@ function staff_move_down()
     end
 end
 
-staff_move_down()
+staff_move_up()

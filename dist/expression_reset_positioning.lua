@@ -193,6 +193,44 @@ function library.is_default_measure_number_visible_on_cell (meas_num_region, cel
 end
 
 --[[
+% is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+
+Returns true if measure number for the input cell is visible and left-aligned.
+
+@ meas_num_region (FCMeasureNumberRegion)
+@ cell (FCCell)
+@ system (FCStaffSystem)
+@ current_is_part (boolean) true if the current view is a linked part, otherwise false
+@ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
+: (boolean)
+]]
+function library.is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+    if meas_num_region.UseScoreInfoForParts then
+        current_is_part = false
+    end
+    if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultiMeasureAlignment(current_is_part)) then
+            return false
+        end
+    elseif (cell.Measure == system.FirstMeasure) then
+        if not meas_num_region:GetShowOnSystemStart() then
+            return false
+        end
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetStartAlignment(current_is_part)) then
+            return false
+        end
+    else
+        if not meas_num_region:GetShowMultiples(current_is_part) then
+            return false
+        end
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultipleAlignment(current_is_part)) then
+            return false
+        end
+    end
+    return library.is_default_measure_number_visible_on_cell (meas_num_region, cell, system, current_is_part)
+end
+
+--[[
 % update_layout(from_page, unfreeze_measures)
 
 Updates the page layout.
@@ -258,22 +296,22 @@ function library.get_smufl_metadata_file(font_info)
         return io.open(file_path, "r")
     end
 
-    local smufl_json_system_prefix = "/Library/Application Support"
-    if finenv.UI():IsOnWindows() then
-        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
-    end
-    local system_file = try_prefix(smufl_json_system_prefix, font_info)
-    if nil ~= system_file then
-        return system_file
-    end
-
     local smufl_json_user_prefix = ""
     if finenv.UI():IsOnWindows() then
         smufl_json_user_prefix = os.getenv("LOCALAPPDATA")
     else
         smufl_json_user_prefix = os.getenv("HOME") .. "/Library/Application Support"
     end
-    return try_prefix(smufl_json_user_prefix, font_info)
+    local user_file = try_prefix(smufl_json_user_prefix, font_info)
+    if nil ~= user_file then
+        return user_file
+    end
+
+    local smufl_json_system_prefix = "/Library/Application Support"
+    if finenv.UI():IsOnWindows() then
+        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
+    end
+    return try_prefix(smufl_json_system_prefix, font_info)
 end
 
 --[[
@@ -481,6 +519,44 @@ function library.is_default_measure_number_visible_on_cell (meas_num_region, cel
 end
 
 --[[
+% is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+
+Returns true if measure number for the input cell is visible and left-aligned.
+
+@ meas_num_region (FCMeasureNumberRegion)
+@ cell (FCCell)
+@ system (FCStaffSystem)
+@ current_is_part (boolean) true if the current view is a linked part, otherwise false
+@ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
+: (boolean)
+]]
+function library.is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+    if meas_num_region.UseScoreInfoForParts then
+        current_is_part = false
+    end
+    if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultiMeasureAlignment(current_is_part)) then
+            return false
+        end
+    elseif (cell.Measure == system.FirstMeasure) then
+        if not meas_num_region:GetShowOnSystemStart() then
+            return false
+        end
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetStartAlignment(current_is_part)) then
+            return false
+        end
+    else
+        if not meas_num_region:GetShowMultiples(current_is_part) then
+            return false
+        end
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultipleAlignment(current_is_part)) then
+            return false
+        end
+    end
+    return library.is_default_measure_number_visible_on_cell (meas_num_region, cell, system, current_is_part)
+end
+
+--[[
 % update_layout(from_page, unfreeze_measures)
 
 Updates the page layout.
@@ -546,22 +622,22 @@ function library.get_smufl_metadata_file(font_info)
         return io.open(file_path, "r")
     end
 
-    local smufl_json_system_prefix = "/Library/Application Support"
-    if finenv.UI():IsOnWindows() then
-        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
-    end
-    local system_file = try_prefix(smufl_json_system_prefix, font_info)
-    if nil ~= system_file then
-        return system_file
-    end
-
     local smufl_json_user_prefix = ""
     if finenv.UI():IsOnWindows() then
         smufl_json_user_prefix = os.getenv("LOCALAPPDATA")
     else
         smufl_json_user_prefix = os.getenv("HOME") .. "/Library/Application Support"
     end
-    return try_prefix(smufl_json_user_prefix, font_info)
+    local user_file = try_prefix(smufl_json_user_prefix, font_info)
+    if nil ~= user_file then
+        return user_file
+    end
+
+    local smufl_json_system_prefix = "/Library/Application Support"
+    if finenv.UI():IsOnWindows() then
+        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
+    end
+    return try_prefix(smufl_json_system_prefix, font_info)
 end
 
 --[[

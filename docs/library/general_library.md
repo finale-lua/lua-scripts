@@ -8,6 +8,7 @@
 - [get_top_left_visible_cell](#get_top_left_visible_cell)
 - [get_top_left_selected_or_visible_cell](#get_top_left_selected_or_visible_cell)
 - [is_default_measure_number_visible_on_cell](#is_default_measure_number_visible_on_cell)
+- [is_default_number_visible_and_left_aligned](#is_default_number_visible_and_left_aligned)
 - [update_layout](#update_layout)
 - [get_current_part](#get_current_part)
 - [get_page_format_prefs](#get_page_format_prefs)
@@ -133,6 +134,26 @@ Returns true if measure numbers for the input region are visible on the input ce
 | `cell` | `FCCell` |  |
 | `staff_system` | `FCStaffSystem` |  |
 | `current_is_part` | `boolean` | true if the current view is a linked part, otherwise false |
+
+| Output type | Description |
+| --- | --- |
+| `boolean` |  |
+
+## is_default_number_visible_and_left_aligned
+
+```lua
+library.is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+```
+
+Returns true if measure number for the input cell is visible and left-aligned.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `meas_num_region` | `FCMeasureNumberRegion` |  |
+| `cell` | `FCCell` |  |
+| `system` | `FCStaffSystem` |  |
+| `current_is_part` | `boolean` | true if the current view is a linked part, otherwise false |
+| `is_for_multimeasure_rest` | `boolean` | true if the current cell starts a multimeasure rest |
 
 | Output type | Description |
 | --- | --- |

@@ -196,6 +196,44 @@ function library.is_default_measure_number_visible_on_cell (meas_num_region, cel
 end
 
 --[[
+% is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+
+Returns true if measure number for the input cell is visible and left-aligned.
+
+@ meas_num_region (FCMeasureNumberRegion)
+@ cell (FCCell)
+@ system (FCStaffSystem)
+@ current_is_part (boolean) true if the current view is a linked part, otherwise false
+@ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
+: (boolean)
+]]
+function library.is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+    if meas_num_region.UseScoreInfoForParts then
+        current_is_part = false
+    end
+    if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultiMeasureAlignment(current_is_part)) then
+            return false
+        end
+    elseif (cell.Measure == system.FirstMeasure) then
+        if not meas_num_region:GetShowOnSystemStart() then
+            return false
+        end
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetStartAlignment(current_is_part)) then
+            return false
+        end
+    else
+        if not meas_num_region:GetShowMultiples(current_is_part) then
+            return false
+        end
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultipleAlignment(current_is_part)) then
+            return false
+        end
+    end
+    return library.is_default_measure_number_visible_on_cell (meas_num_region, cell, system, current_is_part)
+end
+
+--[[
 % update_layout(from_page, unfreeze_measures)
 
 Updates the page layout.
@@ -261,22 +299,22 @@ function library.get_smufl_metadata_file(font_info)
         return io.open(file_path, "r")
     end
 
-    local smufl_json_system_prefix = "/Library/Application Support"
-    if finenv.UI():IsOnWindows() then
-        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
-    end
-    local system_file = try_prefix(smufl_json_system_prefix, font_info)
-    if nil ~= system_file then
-        return system_file
-    end
-
     local smufl_json_user_prefix = ""
     if finenv.UI():IsOnWindows() then
         smufl_json_user_prefix = os.getenv("LOCALAPPDATA")
     else
         smufl_json_user_prefix = os.getenv("HOME") .. "/Library/Application Support"
     end
-    return try_prefix(smufl_json_user_prefix, font_info)
+    local user_file = try_prefix(smufl_json_user_prefix, font_info)
+    if nil ~= user_file then
+        return user_file
+    end
+
+    local smufl_json_system_prefix = "/Library/Application Support"
+    if finenv.UI():IsOnWindows() then
+        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
+    end
+    return try_prefix(smufl_json_system_prefix, font_info)
 end
 
 --[[
@@ -296,6 +334,20 @@ end
 
 
 
+
+function set_draw_barline_mode(new_group, source_group)
+    -- This function works around a bug in JW Lua (as of v0.54) where assigning 0 to FCGroup.DrawBarlineMode
+    -- causes 1 to be assigned and assigning 1 causes 0 to be assigned.
+    new_group.DrawBarlineMode = source_group.DrawBarlineMode
+    -- Only do something if this version of JW Lua has the bug.
+    if new_group.DrawBarlineMode ~= source_group.DrawBarlineMode then
+        if source_group.DrawBarlineMode == finale.GROUPBARLINESTYLE_ONLYON then
+            new_group.DrawBarlineMode = finale.GROUPBARLINESTYLE_ONLYBETWEEN
+        elseif source_group.DrawBarlineMode == finale.GROUPBARLINESTYLE_ONLYBETWEEN then
+            new_group.DrawBarlineMode  = finale.GROUPBARLINESTYLE_ONLYON
+        end
+    end
+end
 
 function staff_groups_copy_score_to_part()
 
@@ -343,7 +395,7 @@ function staff_groups_copy_score_to_part()
                 new_group.BracketStyle = staff_group.BracketStyle
                 new_group.BracketVerticalBottomPos = staff_group.BracketVerticalBottomPos
                 new_group.BracketVerticalTopPos = staff_group.BracketVerticalTopPos
-                new_group.DrawBarlineMode = staff_group.DrawBarlineMode
+                set_draw_barline_mode(new_group, staff_group) -- use workaround function for JW Lua bug (see comments in function)
                 new_group.EmptyStaffHide = staff_group.EmptyStaffHide
                 new_group.FullNameAlign = staff_group.FullNameAlign
                 new_group.FullNameExpandSingle = staff_group.FullNameExpandSingle
