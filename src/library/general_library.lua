@@ -284,22 +284,22 @@ function library.get_smufl_metadata_file(font_info)
         return io.open(file_path, "r")
     end
 
-    local smufl_json_system_prefix = "/Library/Application Support"
-    if finenv.UI():IsOnWindows() then
-        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
-    end
-    local system_file = try_prefix(smufl_json_system_prefix, font_info)
-    if nil ~= system_file then
-        return system_file
-    end
-
     local smufl_json_user_prefix = ""
     if finenv.UI():IsOnWindows() then
         smufl_json_user_prefix = os.getenv("LOCALAPPDATA")
     else
         smufl_json_user_prefix = os.getenv("HOME") .. "/Library/Application Support"
     end
-    return try_prefix(smufl_json_user_prefix, font_info)
+    local user_file = try_prefix(smufl_json_user_prefix, font_info)
+    if nil ~= user_file then
+        return user_file
+    end
+
+    local smufl_json_system_prefix = "/Library/Application Support"
+    if finenv.UI():IsOnWindows() then
+        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
+    end
+    return try_prefix(smufl_json_system_prefix, font_info)
 end
 
 --[[
