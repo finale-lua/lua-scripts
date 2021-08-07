@@ -1,3 +1,5 @@
+# Resources
+
 If you are new to JW Lua, visit the [JW Lua start page](http://jwmusic.nu/jwplugins/wiki/doku.php?id=jw_lua). Of particular interest is the [Script Programming in JW Lua](http://jwmusic.nu/jwplugins/wiki/doku.php?id=jwlua:development) page, which describes built-in namespaces and variables that connect Lua to the [Finale PDK Framework](http://www.finaletips.nu/frameworkref/).
 
 An early version of the C++ source code of the PDK Framework is available for [download here](http://finaletips.nu/index.php/download/category/21-plug-in-development). Unfortunately Makemusic has ceased permitting new developers to access the PDK, so building the PDK Framework does not serve much purpose without it. However, the source code may be useful as a reference for understanding how to use the Framework. (Much of the current source code is viewable in the PDK Framework documentation.)
