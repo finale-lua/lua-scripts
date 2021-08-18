@@ -6,7 +6,7 @@ function plugindef()
     finaleplugin.AuthorURL = "www.michaelmcclennan.com"
     finaleplugin.AuthorEmail = "info@michaelmcclennan.com"
     finaleplugin.CategoryTags = "Chord"
-    return "Chord Accidental - Move Down", "Adjust Chord Accidental Down", "Adjust the accidental of chord symbol down"
+    return "Chord Accidental - Move Up", "Adjust Chord Accidental Up", "Adjust the accidental of chord symbol up"
 end
 
 local path = finale.FCString()
