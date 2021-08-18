@@ -45,10 +45,11 @@ jobs:
               with:
                   github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
                   directory: website
-                  branch: master
+                  branch: main
                   repository: Nick-Mazuk/jw-lua-scripts-docs
             - name: Commit & Push docs to this repo
               uses: actions-js/push@v1.3
               with:
                   github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
                   directory: lua
+                  branch: master
