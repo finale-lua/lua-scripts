@@ -8,6 +8,11 @@ function plugindef()
     return "Delete Duplicate Noteheads", "Delete Duplicate Noteheads", "Removes duplicate noteheads from chords and adjusts ties as needed."
 end
 
+local path = finale.FCString()
+path:SetRunningLuaFolderPath()
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local note_entry = require("library.note_entry")
+
 -- This script was a request from the Facebook Finale Powerusers group.
 -- I believe it is mainly useful for cleaning up after a MIDI file import.
 
@@ -32,7 +37,7 @@ function notehead_delete_duplicates()
                         note_list[pitch].AccidentalParentheses = true
                     end
                 end
-                entry:DeleteNote(note)
+                note_entry.delete_note(note)
             end
         end
     end    

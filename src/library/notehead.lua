@@ -1,3 +1,7 @@
+--[[
+$module Notehead
+]]
+
 -- A collection of helpful JW Lua notehead scripts
 -- Simply import this file to another Lua script to use any of these scripts
 local notehead = {}
@@ -21,6 +25,16 @@ end
 
 configuration.get_parameters("notehead.config.txt", config)
 
+--[[
+% change_shape(note, shape)
+
+Changes the given notehead to a specified notehead descriptor string. Currently only supports "diamond".
+
+@ note (FCNote)
+@ shape (lua string)
+
+: (FCNoteheadMod) the new notehead mod record created
+]]
 function notehead.change_shape(note, shape)
     local notehead = finale.FCNoteheadMod()
     notehead:EraseAt(newnote)
