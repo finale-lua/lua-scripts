@@ -15,3 +15,5 @@ To contribute, you'll need a GitHub account. We use GitHub to collaborate on the
 If you've never used Git or GitHub before, that's ok. These docs will walk you through most of the process of using them with this repository. However, there are some great resources for learning [Git](https://youtu.be/USjZcfj8yxE) and [GitHub](https://youtu.be/nhNq2kIvi9s) out there.
 
 Next, learn how to [add scripts to this repository](/docs/getting-started/adding-scripts).
+
+> Note: All scripts added to the repo will have a CC0 license. See [LICENSE](https://github.com/Nick-Mazuk/jw-lua-scripts/blob/master/LICENSE) for specific terms. This is to encourage widespread use and encourage other JW Lua coders to build off your scripts.

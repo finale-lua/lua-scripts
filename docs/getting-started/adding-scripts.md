@@ -4,7 +4,7 @@
 
 Once you've written your script, you'll be able to add it to the repository.
 
-This guide assumes that you're not familiar with Git or GitHub (which is totally ok). However, if you are familiar with them, feel free to skip down to this section.
+This guide assumes that you're not familiar with Git or GitHub (which is totally ok). However, if you are familiar with them, feel free to skip down to [Adding your script](#adding-your-script).
 
 ## Background on Git and GitHub
 
