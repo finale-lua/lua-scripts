@@ -1,54 +1,55 @@
 name: Build and deploy scripts/docs
 
 on:
-  push:
-    branches:
-      - "master"
+    push:
+        branches:
+            - 'master'
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout this repository
-        uses: actions/checkout@v2.3.4
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-          path: './lua'
-      - name: Checkout docs website repository
-        uses: actions/checkout@v2.3.4
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-          repository: Nick-Mazuk/jw-lua-scripts-docs
-          path: './website'
-          token: ${{ secrets.NICK_PERSONAL_TOKEN }}
-      - name: build scripts
-        uses: ./lua/.github/actions/bundle
-        with:
-          source: ./lua/src
-          output: ./lua/dist
-      - name: parse scripts
-        uses: ./lua/.github/actions/get-metadata
-        with:
-          source: ./lua/src
-          output: ./website/src/lib/lib/script-data.json
-      - name: Generate the docs
-        uses: nick-mazuk/lua-docs-generator@v1.0.6
-        with:
-          input: './lua/src/library'
-          output: './lua/docs/library'
-      - run: 'rm -rf website/docs'
-      - run: 'cp -R lua/docs website/docs'
-      - name: Commit & Push docs to website
-        uses: actions-js/push@v1.3
-        with:
-          github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
-          directory: website
-          branch: main
-          repository: Nick-Mazuk/jw-lua-scripts-docs
-      - name: Commit & Push docs to this repo
-        uses: actions-js/push@v1.3
-        with:
-          github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
-          directory: lua
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout this repository
+              uses: actions/checkout@v2.3.4
+              with:
+                  persist-credentials: false
+                  fetch-depth: 0
+                  path: './lua'
+            - name: Checkout docs website repository
+              uses: actions/checkout@v2.3.4
+              with:
+                  persist-credentials: false
+                  fetch-depth: 0
+                  repository: Nick-Mazuk/jw-lua-scripts-docs
+                  path: './website'
+                  token: ${{ secrets.NICK_PERSONAL_TOKEN }}
+            - name: build scripts
+              uses: ./lua/.github/actions/bundle
+              with:
+                  source: ./lua/src
+                  output: ./lua/dist
+            - name: parse scripts
+              uses: ./lua/.github/actions/get-metadata
+              with:
+                  source: ./lua/src
+                  output: ./website/src/lib/lib/script-data.json
+            - name: Generate the docs
+              uses: nick-mazuk/lua-docs-generator@v1.0.6
+              with:
+                  input: './lua/src/library'
+                  output: './lua/docs/library'
+            - run: 'rm -rf website/docs'
+            - run: 'cp -R lua/docs website/docs'
+            - name: Commit & Push docs to website
+              uses: actions-js/push@v1.3
+              with:
+                  github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
+                  directory: website
+                  branch: main
+                  repository: Nick-Mazuk/jw-lua-scripts-docs
+            - name: Commit & Push docs to this repo
+              uses: actions-js/push@v1.3
+              with:
+                  github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
+                  directory: lua
+                  branch: master
