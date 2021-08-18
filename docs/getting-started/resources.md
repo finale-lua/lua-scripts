@@ -17,7 +17,7 @@ The plugin's normal use case is to create a small file that illustrates what you
 
 You can [download it here](http://robertgpatterson.com/-fininfo/-downloads/download-free.html). Also available on the page is a free plugin to reorganize the script menu for JW Lua. See the page for more details. The sample file linked there arranges the scripts in this GitHub repository into a series of submenus.
 
-## Leaning Git and GitHub
+## Learning Git and GitHub
 
 - YouTube videos that introduce [Git](https://youtu.be/USjZcfj8yxE) and [GitHub](https://youtu.be/nhNq2kIvi9s)
 - [Free, interactive course on using GitHub, created by GitHub](https://lab.github.com/githubtraining/introduction-to-github)
