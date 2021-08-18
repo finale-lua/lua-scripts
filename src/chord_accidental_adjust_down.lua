@@ -16,7 +16,7 @@ package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local configuration = require("library.configuration")
 local config = {vertical_increment = 5}
 
-configuration.get_parameters("note_automatic_jete.config.txt", config)
+configuration.get_parameters("chord_accidental_adjust.config.txt", config)
 
 function chord_accidental_adjust_down()
     local chordprefs = finale.FCChordPrefs()
