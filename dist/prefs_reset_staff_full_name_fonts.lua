@@ -530,7 +530,7 @@ function enigma_string.calc_text_advance_width(inp_string)
             fcstring.LuaString = str.LuaString
             fcstring:TrimEnigmaTags()
             text_met:LoadString(fcstring, font_info, 100)
-            accumulated_width = accumulated_width + text_met:CalcWidthEVPUs()
+            accumulated_width = accumulated_width + text_met:GetAdvanceWidthEVPUs()
         end
     end
     return accumulated_width

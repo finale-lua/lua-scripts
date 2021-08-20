@@ -744,6 +744,32 @@ function note_entry.duplicate_note(note)
 end
 
 --[[
+% delete_note(note)
+
+Removes the specified FCNote from its associated FCNoteEntry.
+
+@ note (FCNote)
+: (boolean) true if success
+]]
+function note_entry.delete_note(note)
+    local entry = note.Entry
+    if nil == entry then
+        return false
+    end
+
+    -- attempt to delete all associated entry-detail mods, but ignore any failures
+    finale.FCAccidentalMod():EraseAt(note)
+    finale.FCCrossStaffMod():EraseAt(note)
+    finale.FCDotMod():EraseAt(note)
+    finale.FCNoteheadMod():EraseAt(note)
+    finale.FCPercussionNoteMod():EraseAt(note)
+    finale.FCTablatureNoteMod():EraseAt(note)
+    --finale.FCTieMod():EraseAt(note)  -- FCTieMod is not currently lua supported, but leave this here in case it ever is
+
+    return entry:DeleteNote(note)
+end
+
+--[[
 % calc_spans_number_of_octaves(entry)
 
 Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).

@@ -14,6 +14,7 @@
 - [calc_note_at_index](#calc_note_at_index)
 - [stem_sign](#stem_sign)
 - [duplicate_note](#duplicate_note)
+- [delete_note](#delete_note)
 - [calc_spans_number_of_octaves](#calc_spans_number_of_octaves)
 - [add_augmentation_dot](#add_augmentation_dot)
 - [get_next_same_v](#get_next_same_v)
@@ -241,6 +242,22 @@ note_entry.duplicate_note(note)
 | Output type | Description |
 | --- | --- |
 | `FCNote \| nil` | reference to added FCNote or `nil` if not success |
+
+## delete_note
+
+```lua
+note_entry.delete_note(note)
+```
+
+Removes the specified FCNote from its associated FCNoteEntry.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `note` | `FCNote` |  |
+
+| Output type | Description |
+| --- | --- |
+| `boolean` | true if success |
 
 ## calc_spans_number_of_octaves
 
