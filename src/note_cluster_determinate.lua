@@ -8,6 +8,11 @@ function plugindef()
     return "Cluster - Determinate", "Cluster - Determinate", "Creates a determinate cluster."
 end
 
+local path = finale.FCString()
+path:SetRunningLuaFolderPath()
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local note_entry = require("library.note_entry")
+
 local region = finenv.Region()
 
 local layer_one_note = {}
@@ -137,7 +142,7 @@ end
 function delete_bottom_notes(entry)
     while entry.Count > 1 do
         local lowest_note = entry:CalcLowestNote(nil)
-        entry:DeleteNote(lowest_note)
+        note_entry.delete_note(lowest_note)
     end
 end
 
@@ -145,16 +150,16 @@ end
 function delete_top_notes(entry)
     while entry.Count > 1 do
         local highest_note = entry:CalcHighestNote(nil)
-        entry:DeleteNote(highest_note)
+        note_entry.delete_note(highest_note)
     end
 end
 
 -- Function 6 - Delete the Top and Bottom Notes
 function delete_top_bottom_notes(entry)
     local highest_note = entry:CalcHighestNote(nil)
-    entry:DeleteNote(highest_note)
+    note_entry.delete_note(highest_note)
     local lowest_note = entry:CalcLowestNote(nil)
-    entry:DeleteNote(lowest_note)
+    note_entry.delete_note(lowest_note)
 end
 
 -- Function 6.1 - Delete the middle notes
@@ -167,7 +172,7 @@ function delete_middle_notes(entry)
         end
         for note in each(entry) do
             if note.NoteID == 2 then
-                entry:DeleteNote(note)
+                note_entry.delete_note(note)
             end
         end
     end

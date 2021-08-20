@@ -10,11 +10,16 @@ function plugindef()
            "Keeps the top note of every chord and deletes the rest"
 end
 
+local path = finale.FCString()
+path:SetRunningLuaFolderPath()
+package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+local note_entry = require("library.note_entry")
+
 function pitch_entry_keep_top_note()
     for entry in eachentrysaved(finenv.Region()) do
         while (entry.Count >= 2) do
             local bottom_note = entry:CalcLowestNote(nil)
-            entry:DeleteNote(bottom_note)
+            note_entry.delete_note(bottom_note)
         end
     end
 end
