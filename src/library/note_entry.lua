@@ -306,6 +306,8 @@ end
 --[[
 % delete_note(note)
 
+Removes the specified FCNote from its associated FCNoteEntry.
+
 @ note (FCNote)
 : (boolean) true if success
 ]]
