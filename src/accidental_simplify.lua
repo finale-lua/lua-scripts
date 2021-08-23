@@ -35,6 +35,7 @@ function accidentals_simplify()
 
             -- checking for 'bb' and '##' will also match triple sharps and flats
             if string.match(note_string, "bb") or string.match(note_string, "##") then
+                transposition.enharmonic_transpose(note, note.RaiseLower)
                 transposition.chromatic_transpose(note, 0, 0, true)
             end
         end
