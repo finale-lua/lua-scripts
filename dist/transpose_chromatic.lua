@@ -65,17 +65,15 @@ path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Transposition
-]]
 
--- A collection of helpful JW Lua transposition scripts
--- 
+A collection of helpful JW Lua transposition scripts
+]] -- 
 -- Structure
 -- 1. Helper functions
 -- 2. Diatonic Transposition
--- 3. Enharmonic Tranposition
+-- 3. Enharmonic Transposition
 -- 3. Chromatic Transposition
 -- 
-
 local transposition = {}
 
 --  Author: Robert Patterson
@@ -208,19 +206,19 @@ end
 
 
 
-local standard_key_number_of_steps          = 12
-local standard_key_major_diatonic_steps     = { 0, 2, 4, 5, 7, 9, 11 }
-local standard_key_minor_diatonic_steps     = { 0, 2, 3, 5, 7, 8, 10 }
+local standard_key_number_of_steps = 12
+local standard_key_major_diatonic_steps = {0, 2, 4, 5, 7, 9, 11}
+local standard_key_minor_diatonic_steps = {0, 2, 3, 5, 7, 8, 10}
 
-local max_allowed_abs_alteration            = 7 -- Finale cannot represent an alteration outside +/- 7
+local max_allowed_abs_alteration = 7 -- Finale cannot represent an alteration outside +/- 7
 
---first number is plus_fifths
---second number is minus_octaves
-local diatonic_interval_adjustments         = { {0,0}, {2,-1}, {4,-2}, {-1,1}, {1,0}, {3,-1}, {5,-2}, {0,1} }
+-- first number is plus_fifths
+-- second number is minus_octaves
+local diatonic_interval_adjustments = {{0, 0}, {2, -1}, {4, -2}, {-1, 1}, {1, 0}, {3, -1}, {5, -2}, {0, 1}}
 
 local custom_key_sig_config = {
-    number_of_steps                         = standard_key_number_of_steps,
-    diatonic_steps                          = standard_key_major_diatonic_steps
+    number_of_steps = standard_key_number_of_steps,
+    diatonic_steps = standard_key_major_diatonic_steps,
 }
 
 configuration.get_parameters("custom_key_sig.config.txt", custom_key_sig_config)
@@ -236,7 +234,7 @@ local sign = function(n)
     return 1
 end
 
--- this is necessary becuase the % operator in lua appears always to return a positive value,
+-- this is necessary because the % operator in lua appears always to return a positive value,
 -- unlike the % operator in c++
 local signed_modulus = function(n, d)
     return sign(n) * (math.abs(n) % d)
@@ -263,7 +261,7 @@ local get_key_info = function(key)
     -- 0.5849625 is log(3/2)/log(2), which is how to calculate the 5th per Ere Lievonen.
     -- For basically any practical key sig this calculation comes out to the 5th scale degree,
     -- which is 7 steps for standard keys
-    local fifth_steps = math.floor((number_of_steps*0.5849625) + 0.5)
+    local fifth_steps = math.floor((number_of_steps * 0.5849625) + 0.5)
     return number_of_steps, diatonic_steps, fifth_steps
 end
 
@@ -279,7 +277,8 @@ local calc_steps_between_scale_degrees = function(key, first_disp, second_disp)
     local number_of_steps_in_key, diatonic_steps = get_key_info(key)
     local first_scale_degree = calc_scale_degree(first_disp, #diatonic_steps)
     local second_scale_degree = calc_scale_degree(second_disp, #diatonic_steps)
-    local number_of_steps = sign(second_disp - first_disp) * (diatonic_steps[second_scale_degree+1] - diatonic_steps[first_scale_degree+1])
+    local number_of_steps = sign(second_disp - first_disp) *
+                                (diatonic_steps[second_scale_degree + 1] - diatonic_steps[first_scale_degree + 1])
     if number_of_steps < 0 then
         number_of_steps = number_of_steps + number_of_steps_in_key
     end
@@ -290,19 +289,20 @@ local calc_steps_in_alteration = function(key, interval, alteration)
     local number_of_steps_in_key, _, fifth_steps = get_key_info(key)
     local plus_fifths = sign(interval) * alteration * 7 -- number of fifths to add for alteration
     local minus_octaves = sign(interval) * alteration * -4 -- number of octaves to subtract for alteration
-    local new_alteration = sign(interval) * ((plus_fifths*fifth_steps) + (minus_octaves*number_of_steps_in_key)) -- new alteration for chromatic interval
+    local new_alteration = sign(interval) * ((plus_fifths * fifth_steps) + (minus_octaves * number_of_steps_in_key)) -- new alteration for chromatic interval
     return new_alteration
 end
 
 local calc_steps_in_normalized_interval = function(key, interval_normalized)
     local number_of_steps_in_key, _, fifth_steps = get_key_info(key)
-    local plus_fifths = diatonic_interval_adjustments[math.abs(interval_normalized)+1][1] -- number of fifths to add for interval
-    local minus_octaves = diatonic_interval_adjustments[math.abs(interval_normalized)+1][2] -- number of octaves to subtract for alteration
-    local number_of_steps_in_interval = sign(interval_normalized) * ((plus_fifths*fifth_steps) + (minus_octaves*number_of_steps_in_key))
+    local plus_fifths = diatonic_interval_adjustments[math.abs(interval_normalized) + 1][1] -- number of fifths to add for interval
+    local minus_octaves = diatonic_interval_adjustments[math.abs(interval_normalized) + 1][2] -- number of octaves to subtract for alteration
+    local number_of_steps_in_interval = sign(interval_normalized) *
+                                            ((plus_fifths * fifth_steps) + (minus_octaves * number_of_steps_in_key))
     return number_of_steps_in_interval
 end
 
-local simplify_spelling = function (note, min_abs_alteration)
+local simplify_spelling = function(note, min_abs_alteration)
     while math.abs(note.RaiseLower) > min_abs_alteration do
         local curr_sign = sign(note.RaiseLower)
         local curr_abs_disp = math.abs(note.RaiseLower)
@@ -312,7 +312,7 @@ local simplify_spelling = function (note, min_abs_alteration)
             return false
         end
         if math.abs(note.RaiseLower) >= curr_abs_disp then
-            return transposition.enharmonic_transpose(note, -1*direction)
+            return transposition.enharmonic_transpose(note, -1 * direction)
         end
         if curr_sign ~= sign(note.RaiseLower) then
             break
@@ -346,7 +346,7 @@ Transpose the note by the given number of octaves.
 @ number_of_octaves (number) 0 = no change, 1 = up an octave, -2 = down 2 octaves, etc.
 ]]
 function transposition.change_octave(note, number_of_octaves)
-    transposition.diatonic_transpose(note, 7*number_of_octaves)
+    transposition.diatonic_transpose(note, 7 * number_of_octaves)
 end
 
 --
@@ -369,9 +369,10 @@ function transposition.enharmonic_transpose(note, direction, ignore_error)
     local curr_disp = note.Displacement
     local curr_alt = note.RaiseLower
     local key = get_key(note)
-    local key_step_enharmonic = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + sign(direction))
+    local key_step_enharmonic = calc_steps_between_scale_degrees(
+                                    key, note.Displacement, note.Displacement + sign(direction))
     transposition.diatonic_transpose(note, sign(direction))
-    note.RaiseLower = note.RaiseLower - sign(direction)*key_step_enharmonic
+    note.RaiseLower = note.RaiseLower - sign(direction) * key_step_enharmonic
     if ignore_error then
         return true
     end
@@ -391,7 +392,7 @@ end
 % chromatic_transpose(note, interval, alteration, simplify)
 
 Transposes a note chromatically by the input chromatic interval. Supports custom key signatures
-and mictrotone systems by means of a `custom_key_sig.config.txt` file. In Finale, chromatic intervals
+and microtone systems by means of a `custom_key_sig.config.txt` file. In Finale, chromatic intervals
 are defined by a diatonic displacement (0 = unison, 1 = second, 2 = third, etc.) and a chromatic alteration.
 Major and perfect intervals have a chromatic alteration of 0. So for example, `{2, -1}` is up a minor third, `{3, 0}`
 is up a perfect fourth, `{5, 1}` is up an augmented sixth, etc. Reversing the signs of both values in the pair
@@ -413,8 +414,9 @@ function transposition.chromatic_transpose(note, interval, alteration, simplify)
     local interval_normalized = signed_modulus(interval, #diatonic_steps)
     local steps_in_alteration = calc_steps_in_alteration(key, interval, alteration)
     local steps_in_interval = calc_steps_in_normalized_interval(key, interval_normalized)
-    local steps_in_diatonic_interval = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + interval_normalized)
-    local effective_alteration = steps_in_alteration + steps_in_interval - sign(interval)*steps_in_diatonic_interval
+    local steps_in_diatonic_interval = calc_steps_between_scale_degrees(
+                                           key, note.Displacement, note.Displacement + interval_normalized)
+    local effective_alteration = steps_in_alteration + steps_in_interval - sign(interval) * steps_in_diatonic_interval
     transposition.diatonic_transpose(note, interval)
     note.RaiseLower = note.RaiseLower + effective_alteration
 
@@ -463,7 +465,7 @@ Transpose the note down by a major third.
 ]]
 function transposition.chromatic_major_third_down(note)
     transposition.chromatic_transpose(note, -2, -0)
-end 
+end
 
 --[[
 % chromatic_perfect_fourth_up(note)
