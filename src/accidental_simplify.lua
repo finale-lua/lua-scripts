@@ -16,12 +16,18 @@ local transposition = require("library.transposition")
 
 function accidentals_simplify()
     for entry in eachentrysaved(finenv.Region()) do
+        if not entry:IsNote() then
+            goto continue_entry_loop
+        end
         local measure_number = entry.Measure
         local staff_number = entry.Staff
         local cell = finale.FCCell(measure_number, staff_number)
         local key_signature = cell:GetKeySignature()
 
         for note in each(entry) do
+            if note.RaiseLower == 0 then
+                goto continue_note_loop
+            end
 
             -- Use note_string rather than note.RaiseLower because
             -- with key signatures, note.RaiseLower returns the alteration
@@ -38,7 +44,9 @@ function accidentals_simplify()
                 transposition.enharmonic_transpose(note, note.RaiseLower)
                 transposition.chromatic_transpose(note, 0, 0, true)
             end
+            ::continue_note_loop::
         end
+        ::continue_entry_loop::
     end
 end
 
