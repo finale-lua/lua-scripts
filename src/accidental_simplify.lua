@@ -17,9 +17,9 @@ local transposition = require("library.transposition")
 function accidentals_simplify()
     for entry in eachentrysaved(finenv.Region()) do
         local measure_number = entry.Measure
-        local measure = finale.FCMeasure()
-        measure:Load(measure_number)
-        local key_signature = measure:GetKeySignature()
+        local staff_number = entry.Staff
+        local cell = finale.FCCell(measure_number, staff_number)
+        local key_signature = cell:GetKeySignature()
 
         for note in each(entry) do
 
