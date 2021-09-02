@@ -13,7 +13,19 @@ configuration.get_parameters("score.config.txt", config)
 
 local score = {}
 
-local CLEF_MAP = {treble = 0, alto = 1, tenor = 2, bass = 3}
+local CLEF_MAP = {treble = 0, alto = 1, tenor = 2, bass = 3, percussion = 12}
+local BRACE_MAP = {
+    none = finale.GRBRAC_NONE,
+    plain = finale.GRBRAC_PLAIN,
+    chorus = finale.GRBRAC_CHORUS,
+    piano = finale.GRBRAC_PIANO,
+    reverse_chorus = finale.GRBRAC_REVERSECHORUS,
+    reverse_piano = finale.GRBRAC_REVERSEPIANO,
+    curved_chorus = finale.GRBRAC_CURVEDCHORUS,
+    reverse_curved_chorus = finale.GRBRAC_REVERSECURVEDCHORUS,
+    desk = finale.GRBRAC_DESK,
+    reverse_desk = finale.GRBRAC_REVERSEDESK,
+}
 
 --[[
 % delete_all_staves()
@@ -29,6 +41,16 @@ function score.delete_all_staves()
     staves:SaveAll()
 end
 
+--[[
+% set_show_staff_time_signature(staff_id, show_time_signature)
+
+Sets whether or not to show the time signature on the staff.
+
+@ staff_id (number) the staff_id for the staff
+@ [show_time_signature] (boolean) whether or not to show the time signature, true if not specified
+
+: (number) the staff_id for the staff
+]]
 function score.set_show_staff_time_signature(staff_id, show_time_signature)
     local staff = finale.FCStaff()
     staff:Load(staff_id)
@@ -41,6 +63,18 @@ function score.set_show_staff_time_signature(staff_id, show_time_signature)
     return staff_id
 end
 
+--[[
+% set_staff_transposition(staff_id, key, interval, clef)
+
+Sets the transposition for a staff. Used for instruments that are not concert pitch (e.g., Bb Clarinet or F Horn)
+
+@ staff_id (number) the staff_id for the staff
+@ key (number) the key signature to set following the circle of fifths (C is 0, F is -1, G is 1)
+@ interval (number) the interval number of steps to transpose the notes by
+@ [clef] (string) the clef to set, "treble", "alto", "tenor", or "bass"
+
+: (number) the staff_id for the staff
+]]
 function score.set_staff_transposition(staff_id, key, interval, clef)
     local staff = finale.FCStaff()
     staff:Load(staff_id)
@@ -54,6 +88,16 @@ function score.set_staff_transposition(staff_id, key, interval, clef)
     return staff_id
 end
 
+--[[
+% set_staff_allow_hiding(staff_id, allow_hiding)
+
+Sets whether the staff is allowed to hide when it is empty.
+
+@ staff_id (number) the staff_id for the staff
+@ [allow_hiding] (boolean) whether or not to allow the staff to hide, true if not specified
+
+: (number) the staff_id for the staff
+]]
 function score.set_staff_allow_hiding(staff_id, allow_hiding)
     local staff = finale.FCStaff()
     staff:Load(staff_id)
@@ -62,14 +106,33 @@ function score.set_staff_allow_hiding(staff_id, allow_hiding)
     return staff_id
 end
 
-function score.set_staff_keyless(staff_id, allow_keyless)
+--[[
+% set_staff_keyless(staff_id, is_keyless)
+
+Sets whether or not the staff is keyless.
+
+@ staff_id (number) the staff_id for the staff
+@ [is_keyless] (boolean) whether the staff is keyless, true if not specified
+
+: (number) the staff_id for the staff
+]]
+function score.set_staff_keyless(staff_id, is_keyless)
     local staff = finale.FCStaff()
     staff:Load(staff_id)
-    staff.NoKeySigShowAccidentals = allow_keyless or true
+    staff.NoKeySigShowAccidentals = is_keyless or true
     staff:Save()
     return staff_id
 end
 
+--[[
+% add_space_above_staff(staff_id)
+
+This is the equivalent of "Add Vertical Space" in the Setup Wizard. It adds space above the staff as well as adds the staff to Staff List 1, which allows it to show tempo markings.
+
+@ staff_id (number) the staff_id for the staff
+
+: (number) the staff_id for the staff
+]]
 function score.add_space_above_staff(staff_id)
     local lists = finale.FCStaffLists()
     lists:SetMode(finale.SLMODE_CATEGORY_SCORE)
@@ -89,6 +152,17 @@ function score.add_space_above_staff(staff_id)
     end
 end
 
+--[[
+% set_staff_full_name(staff, full_name, double)
+
+Sets the full name for the staff.
+
+If two instruments are on the same staff, this will also add the related numbers. For instance, if horn one and 2 are on the same staff, this will show Horn 1/2. `double` sets the first number. In this example, `double` should be `1` to show Horn 1/2. If the staff is for horn three and four, `double` should be `3`.
+
+@ staff (FCStaff) the staff
+@ full_name (string) the full name to set
+@ [double] (number) the number of the first instrument if two instruments share the staff
+]]
 function score.set_staff_full_name(staff, full_name, double)
     local str = finale.FCString()
     if config.use_uppercase_staff_names then
@@ -103,6 +177,17 @@ function score.set_staff_full_name(staff, full_name, double)
     staff:SaveNewFullNameString(str)
 end
 
+--[[
+% set_staff_short_name(staff, short_name, double)
+
+Sets the abbreviated name for the staff.
+
+If two instruments are on the same staff, this will also add the related numbers. For instance, if horn one and 2 are on the same staff, this will show Horn 1/2. `double` sets the first number. In this example, `double` should be `1` to show Horn 1/2. If the staff is for horn three and four, `double` should be `3`.
+
+@ staff (FCStaff) the staff
+@ short_name (string) the abbreviated name to set
+@ [double] (number) the number of the first instrument if two instruments share the staff
+]]
 function score.set_staff_short_name(staff, short_name, double)
     local str = finale.FCString()
     if config.use_uppercase_staff_names then
@@ -117,6 +202,19 @@ function score.set_staff_short_name(staff, short_name, double)
     staff:SaveNewAbbreviatedNameString(str)
 end
 
+--[[
+% create_staff(full_name, short_name, type, clef, double)
+
+Creates a staff at the end of the score.
+
+@ full_name (string) the abbreviated name
+@ short_name (string) the abbreviated name
+@ type (string) the `__FCStaffBase` type (e.g., finale.FFUUID_TRUMPETC)
+@ clef (string) the clef for the staff (e.g., "treble", "bass", "tenor")
+@ [double] (number) the number of the first instrument if two instruments share the staff
+
+: (number) the staff_id for the new staff
+]]
 function score.create_staff(full_name, short_name, type, clef, double)
     local staff_id = finale.FCStaves.Append()
     if staff_id then
@@ -141,14 +239,37 @@ function score.create_staff(full_name, short_name, type, clef, double)
     return -1
 end
 
+--[[
+% create_staff_spaced(full_name, short_name, type, clef, double)
+
+Creates a staff at the end of the score with a space above it. This is equivalent to using `score.create_staff` then `score.add_space_above_staff`.
+
+@ full_name (string) the abbreviated name
+@ short_name (string) the abbreviated name
+@ type (string) the `__FCStaffBase` type (e.g., finale.FFUUID_TRUMPETC)
+@ clef (string) the clef for the staff (e.g., "treble", "bass", "tenor")
+@ [double] (number) the number of the first instrument if two instruments share the staff
+
+: (number) the staff_id for the new staff
+]]
 function score.create_staff_spaced(full_name, short_name, type, clef)
     local staff_id = score.create_staff(full_name, short_name, type, clef)
     score.add_space_above_staff(staff_id)
     return staff_id
 end
 
-function score.create_staff_percussion(full_name, short_name, type, clef)
-    local staff_id = score.create_staff(full_name, short_name, type, clef)
+--[[
+% create_staff_percussion(full_name, short_name, type, clef)
+
+Creates a percussion staff at the end of the score.
+
+@ full_name (string) the abbreviated name
+@ short_name (string) the abbreviated name
+
+: (number) the staff_id for the new staff
+]]
+function score.create_staff_percussion(full_name, short_name)
+    local staff_id = score.create_staff(full_name, short_name, finale.FFUUID_PERCUSSIONGENERAL, "percussion")
     local staff = finale.FCStaff()
     staff:Load(staff_id)
     staff:SetNotationStyle(finale.STAFFNOTATION_PERCUSSION)
@@ -156,19 +277,20 @@ function score.create_staff_percussion(full_name, short_name, type, clef)
     return staff_id
 end
 
+--[[
+% create_group(start_staff, end_staff, brace_name, has_barline, level, full_name, short_name)
+
+Creates a percussion staff at the end of the score.
+
+@ start_staff (number) the staff_id for the first staff
+@ end_staff (number) the staff_id for the last staff
+@ brace_name (string) the name for the brace (e.g., "none", "plain", "piano")
+@ has_barline (boolean) whether or not barlines should continue through all staves in the group
+@ level (number) the indentation level for the group bracket
+@ [full_name] (string) the full name for the group
+@ [short_name] (string) the abbreviated name for the group
+]]
 function score.create_group(start_staff, end_staff, brace_name, has_barline, level, full_name, short_name)
-    local BRACE_MAP = {
-        none = finale.GRBRAC_NONE,
-        plain = finale.GRBRAC_PLAIN,
-        chorus = finale.GRBRAC_CHORUS,
-        piano = finale.GRBRAC_PIANO,
-        reverse_chorus = finale.GRBRAC_REVERSECHORUS,
-        reverse_piano = finale.GRBRAC_REVERSEPIANO,
-        curved_chorus = finale.GRBRAC_CURVEDCHORUS,
-        reverse_curved_chorus = finale.GRBRAC_REVERSECURVEDCHORUS,
-        desk = finale.GRBRAC_DESK,
-        reverse_desk = finale.GRBRAC_REVERSEDESK,
-    }
     local sg_cmper = {}
     local sg = finale.FCGroup()
     local staff_groups = finale.FCGroups()
@@ -213,14 +335,41 @@ function score.create_group(start_staff, end_staff, brace_name, has_barline, lev
     end
 end
 
-function score.create_group_primary(start, last, fullName, shortName)
-    score.create_group(start, last, "curved_chorus", true, 1, fullName, shortName)
+--[[
+% create_group_primary(start_staff, end_staff, full_name, short_name)
+
+Creates a primary group with the "curved_chorus" bracket.
+
+@ start_staff (number) the staff_id for the first staff
+@ end_staff (number) the staff_id for the last staff
+@ [full_name] (string) the full name for the group
+@ [short_name] (string) the abbreviated name for the group
+]]
+function score.create_group_primary(start_staff, end_staff, full_name, short_name)
+    score.create_group(start_staff, end_staff, "curved_chorus", true, 1, full_name, short_name)
 end
 
-function score.create_group_secondary(start, last, fullName, shortName)
-    score.create_group(start, last, "desk", false, 2, fullName, shortName)
+--[[
+% create_group_secondary(start_staff, end_staff, full_name, short_name)
+
+Creates a primary group with the "desk" bracket.
+
+@ start_staff (number) the staff_id for the first staff
+@ end_staff (number) the staff_id for the last staff
+@ [full_name] (string) the full name for the group
+@ [short_name] (string) the abbreviated name for the group
+]]
+function score.create_group_secondary(start_staff, end_staff, full_name, short_name)
+    score.create_group(start_staff, end_staff, "desk", false, 2, full_name, short_name)
 end
 
+--[[
+% set_global_system_scaling(scaling)
+
+Sets the system scaling for every system in the score.
+
+@ scaling (number) the scaling factor
+]]
 function score.set_global_system_scaling(scaling)
     local format = finale.FCPageFormatPrefs()
     format:LoadScore()
@@ -235,6 +384,14 @@ function score.set_global_system_scaling(scaling)
     finale.FCStaffSystems.UpdateFullLayout()
 end
 
+--[[
+% set_global_system_scaling(scaling)
+
+Sets the system scaling for a specific system in the score.
+
+@ system_number (number) the system number to set the scaling for
+@ scaling (number) the scaling factor
+]]
 function score.set_single_system_scaling(system_number, scaling)
     local staff_systems = finale.FCStaffSystems()
     staff_systems:LoadAll()
@@ -245,6 +402,11 @@ function score.set_single_system_scaling(system_number, scaling)
     end
 end
 
+--[[
+% use_large_time_signatures()
+
+Creates large time signatures in the score.
+]]
 function score.use_large_time_signatures()
     local font_preferences = finale.FCFontPrefs()
     font_preferences:Load(finale.FONTPREF_TIMESIG)
@@ -259,6 +421,13 @@ function score.use_large_time_signatures()
     distance_preferences:Save()
 end
 
+--[[
+% use_large_measure_numbers(distance)
+
+Adds large measure numbers below every measure in the score.
+
+@ distance (string) the distance between the bottom staff and the measure numbers (e.g., "12s" for 12 spaces)
+]]
 function score.use_large_measure_numbers(distance)
     local systems = finale.FCStaffSystem()
     systems:Load(1)
@@ -285,6 +454,13 @@ function score.use_large_measure_numbers(distance)
     end
 end
 
+--[[
+% set_minimum_measure_width(width)
+
+Sets the minimum measure width.
+
+@ width (string) the minimum measure width (e.g., "24s" for 24 spaces)
+]]
 function score.set_minimum_measure_width(width)
     local music_spacing_preferences = finale.FCMusicSpacingPrefs()
     music_spacing_preferences:Load(1)
