@@ -123,7 +123,7 @@ function do_dialog_box()
     -- OK/Cxl
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    if 1 == dialog:ExecuteModal(nil) then
+    if finale.EXECMODAL_OK == dialog:ExecuteModal(nil) then
         local direction = 1 -- up
         if direction_choice:GetSelectedItem() > 0 then
             direction = -1 -- down
