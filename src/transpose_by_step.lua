@@ -49,7 +49,7 @@ function do_dialog_box()
     local current_y = 0
     local x_increment = 105
     -- number of steps
-    local static = dialog:CreateStatic(0, current_y)
+    local static = dialog:CreateStatic(0, current_y+2)
     str.LuaString = "Number Of Steps:"
     static:SetText(str)
     local edit_x = x_increment
