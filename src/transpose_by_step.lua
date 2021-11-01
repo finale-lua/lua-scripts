@@ -41,15 +41,34 @@ function do_transpose_by_step(number_of_steps)
     return success
 end
 
+function do_dialog_box()
+    local str = finale.FCString()
+    local dialog = finale.FCCustomWindow()
+    str.LuaString = "Transpose By Steps"
+    dialog:SetTitle(str)
+    local current_y = 0
+    local x_increment = 105
+    -- number of steps
+    local static = dialog:CreateStatic(0, current_y+2)
+    str.LuaString = "Number Of Steps:"
+    static:SetText(str)
+    local edit_x = x_increment
+    if finenv.UI():IsOnMac() then
+        edit_x = edit_x + 4
+    end
+    local number_of_steps = dialog:CreateEdit(edit_x, current_y)
+    -- ok/cancel
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    if finale.EXECMODAL_OK == dialog:ExecuteModal(nil) then
+        return true, number_of_steps:GetInteger()
+    end
+    return false
+end
+
 function transpose_by_step()
-    local dialog = finenv.UserValueInput()
-    dialog.Title = "Transpose By Step"
-    dialog:SetTypes("Number")
-    dialog:SetDescriptions("Number Of Steps")
-    dialog:SetInitValues(0)
-    local returnvalues = dialog:Execute()
-    if nil ~= returnvalues then
-        local number_of_steps = math.floor(returnvalues[1] + 0.5) -- in case user entered a decimal
+    local success, number_of_steps = do_dialog_box()
+    if success then
         if not do_transpose_by_step(number_of_steps) then
             finenv.UI():AlertError("Finale is unable to represent some of the transposed pitches. These pitches were left at their original value.", "Transposition Error")
         end
