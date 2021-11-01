@@ -846,6 +846,7 @@ Adds an augentation dot to the entry. This works even if the entry already has o
 @ entry (FCNoteEntry) the entry to which to add the augmentation dot
 ]]
 function note_entry.add_augmentation_dot(entry)
+    -- entry.Duration = entry.Duration | (entry.Duration >> 1) -- For Lua 5.3 and higher
     entry.Duration = bit32.bor(entry.Duration, bit32.rshift(entry.Duration, 1))
 end
 
@@ -935,7 +936,7 @@ function do_dialog_box()
     -- OK/Cxl
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    if 1 == dialog:ExecuteModal(nil) then
+    if finale.EXECMODAL_OK == dialog:ExecuteModal(nil) then
         local direction = 1 -- up
         if direction_choice:GetSelectedItem() > 0 then
             direction = -1 -- down

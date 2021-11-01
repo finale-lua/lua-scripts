@@ -796,6 +796,7 @@ Adds an augentation dot to the entry. This works even if the entry already has o
 @ entry (FCNoteEntry) the entry to which to add the augmentation dot
 ]]
 function note_entry.add_augmentation_dot(entry)
+    -- entry.Duration = entry.Duration | (entry.Duration >> 1) -- For Lua 5.3 and higher
     entry.Duration = bit32.bor(entry.Duration, bit32.rshift(entry.Duration, 1))
 end
 
