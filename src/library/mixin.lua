@@ -126,7 +126,7 @@ Register a mixin for a Finale class that will be applied globally. Note that met
 
 @ class (string|array) The class (or an array of classes) to apply the mixin to.
 @ prop (string|table) Either the property name, or a table with pairs of (string) = (mixed)
-@ value (mixed) OPTIONAL: Method or property value. Will be ignored if prop is a table.
+@ value [mixed] OPTIONAL: Method or property value. Will be ignored if prop is a table.
 ]]
 function mixin.register_default(class, prop, value)
     class = type(class) ~= 'table' and {class} or class
@@ -134,7 +134,10 @@ function mixin.register_default(class, prop, value)
 
     for _, c in ipairs(class) do
         for p, v in pairs(prop) do
-            if type(p) == 'string' and p:sub(-1) ~= '_' then default_mixins[c][p] = copy_table(v) end
+            if type(p) == 'string' and p:sub(-1) ~= '_' then
+                default_mixins[c] = default_mixins[c] or {}
+                default_mixins[c][p] = copy_table(v)
+            end
         end
     end
 end
@@ -147,7 +150,7 @@ Register a named mixin which can then be applied by calling apply_named. If a na
 @ class (string|array) The class (or an array of classes) to apply the mixin to.
 @ mixin_name (string|array) Mixin name, or an array of names.
 @ prop (string|table) Either the property name, or a table with pairs of (string) = (mixed)
-@ value (mixed) OPTIONAL: Method or property value. Will be ignored if prop is a table.
+@ value [mixed] OPTIONAL: Method or property value. Will be ignored if prop is a table.
 ]]
 function mixin.register_named(class, mixin_name, method, func)
     mixin_name = type(mixin_name) ~= 'table' and {mixin_name} or mixin_name
