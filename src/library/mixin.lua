@@ -67,20 +67,33 @@ local function copy_table(t)
     end
 end
 
--- Catches an error and rethrows it at the specified level
-local function catch_and_rethrow(func, func_name, levels, ...)
-    local success, result = pcall(function(...) return {func(...)} end, ...)
+-- Catches an error and throws it at the specified level (relative to where this function was called)
+-- First argument is called tryfunczzz for uniqueness
+local function catch_and_rethrow(tryfunczzz, func_name, levels, ...)
+    -- If the line above moves from line #74, update this comment and the if statement below
+    local success, result = pcall(function(...) return {tryfunczzz(...)} end, ...)
 
     if not success then
-        -- Strip the original line number
-        _, _, result = result:match('([^:]+):([^:]+): (.+)')
+        file, line, msg = result:match('([a-zA-Z]-:?[^:]+):([0-9]+): (.+)')
+        msg = msg or result
 
-        -- Replace the method name with the correct one
-        if func_name then
-            result = result:gsub('\'func\'', '\'' .. func_name .. '\'')
+        -- Conditions for rethrowing at a higher level:
+        -- Ignore errors thrown with no level info (ie. level = 0), as we can't make any assumptions
+        -- Both the file and line number indicate that it was thrown at this level
+        if file and line and file:sub(-9) == 'mixin.lua' and line == '74' then
+
+            -- Replace the method name with the correct one, for bad argument errors etc
+            if func_name then
+                msg = msg:gsub('\'tryfunczzz\'', '\'' .. func_name .. '\'')
+            end
+
+            error(msg, levels + 1)
+
+        -- Otherwise, it's either an internal function error or we couldn't be certain that it isn't
+        -- So, rethrow with original file and line number to be 'safe'
+        else
+            error(result, 0)
         end
-
-        error(result, levels + 1)
     end
 
     return unpack(result)
