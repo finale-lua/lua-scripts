@@ -1,34 +1,64 @@
 # Fluid Mixins
 
-- [register_default](#register_default)
-- [register_named](#register_named)
-- [get_default](#get_default)
-- [get_named](#get_named)
-- [apply_named](#apply_named)
-- [apply_table](#apply_table)
+- [has_mixin](#has_mixin)
+- [has_mixin](#has_mixin)
+- [register_global_mixin](#register_global_mixin)
+- [register_mixin](#register_mixin)
+- [get_global_mixin](#get_global_mixin)
+- [get_mixin](#get_mixin)
 
-## register_default
+## has_mixin
 
 ```lua
-fluid_mixins.register_default(class, prop[, value])
+fluid_mixins.has_mixin(name)
 ```
 
-Register a mixin for a Finale class that will be applied globally. Note that methods are applied retroactively but properties will only be applied to new instances.
+Object Method: Checks if the object it is called on has a mixin applied.
 
 
 | Input | Type | Description |
 | --- | --- | --- |
-| `class` | `string\|array` | The class (or an array of classes) to apply the mixin to. |
+| `name` | `string` | Mixin name. |
+
+| Output type | Description |
+| --- | --- |
+| `boolean` |  |
+
+## has_mixin
+
+```lua
+fluid_mixins.has_mixin(name)
+```
+
+Object Method: Applies a mixin to the object it is called on.
+
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Mixin name. |
+
+## register_global_mixin
+
+```lua
+fluid_mixins.register_global_mixin(class, prop[, value])
+```
+
+Library Method: Register a mixin for a finale class that will be applied globally (ie to all instances of the specified classes, including existing instances). Properties and methods cannot end in an underscore.
+
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `class` | `string\|array` | The target class (or an array of classes). |
 | `prop` | `string\|table` | Either the property name, or a table with pairs of (string) = (mixed) |
 @ value [mixed] OPTIONAL: Method or property value. Will be ignored if prop is a table.
 
-## register_named
+## register_mixin
 
 ```lua
-fluid_mixins.register_named(class, mixin_name, prop[, value])
+fluid_mixins.register_mixin(class, mixin_name, prop[, value])
 ```
 
-Register a named mixin which can then be applied by calling apply_named. If a named mixin requires setup, include a method called `init` that accepts zero arguments. It will be called when the mixin is applied.
+Library Method: Register a named mixin which can then be applied by calling the target object's apply_mixin method. If a named mixin requires a 'constructor', include a method called 'init' that accepts zero arguments. It will be called when the mixin is applied. Properties and methods cannot end in an underscore.
 
 
 | Input | Type | Description |
@@ -38,31 +68,30 @@ Register a named mixin which can then be applied by calling apply_named. If a na
 | `prop` | `string\|table` | Either the property name, or a table with pairs of (string) = (mixed) |
 @ value [mixed] OPTIONAL: Method or property value. Will be ignored if prop is a table.
 
-## get_default
+## get_global_mixin
 
 ```lua
-fluid_mixins.get_default(class, prop)
+fluid_mixins.get_global_mixin(class, prop)
 ```
 
-Retrieves the value of a default mixin.
+Library Method: Returns a copy of all methods and properties of a global mixin.
 
 
 | Input | Type | Description |
 | --- | --- | --- |
-| `class` | `string` | The Finale class name. |
-| `prop` | `string` | The name of the property or method. |
+| `class` | `string` | The finale class name. |
 
 | Output type | Description |
 | --- | --- |
-| `mixed\|nil` | If the value is a table, a copy will be returned. |
+| `table\|nil` |  |
 
-## get_named
+## get_mixin
 
 ```lua
-fluid_mixins.get_named(class, mixin_name)
+fluid_mixins.get_mixin(class, mixin_name)
 ```
 
-Retrieves all the methods / properties of a named mixin.
+Library Method: Retrieves a copy of all the methods and properties of mixin.
 
 
 | Input | Type | Description |
@@ -73,39 +102,3 @@ Retrieves all the methods / properties of a named mixin.
 | Output type | Description |
 | --- | --- |
 | `table\|nil` |  |
-
-## apply_named
-
-```lua
-fluid_mixins.apply_named(object, mixin_name)
-```
-
-Applies a named mixin to an object. See apply_table for more details.
-
-
-| Input | Type | Description |
-| --- | --- | --- |
-| `object` | `__FCBase` | The object to apply the mixin to. |
-| `mixin_name` | `string` | The name of the mixin to apply. |
-
-| Output type | Description |
-| --- | --- |
-| `__FCBase` | The object that was passed. |
-
-## apply_table
-
-```lua
-fluid_mixins.apply_table(object, table)
-```
-
-Takes all pairs in the table and copies them over to the target object. If there is an `init` method, it will be called and then removed. This method does not check for conflicts sonit may result in another mixin's method / property being overwritten.
-
-
-| Input | Type | Description |
-| --- | --- | --- |
-| `object` | `__FCBase` | The target object. |
-| `mixin_table` | `table` | Table of properties to apply_table |
-
-| Output type | Description |
-| --- | --- |
-| `__FCBase` | The object that was passed. |
