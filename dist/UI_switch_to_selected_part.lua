@@ -1,4 +1,5 @@
 function plugindef()
+    finaleplugin.NoStore = true
     finaleplugin.Author = "CJ Garcia"
     finaleplugin.Copyright = "© 2020 CJ Garcia Music"
     finaleplugin.Version = "1.2"
@@ -377,8 +378,6 @@ function ui_switch_to_selected_part()
         ui:MoveToMeasure(top_cell.Measure, top_cell.Staff)
     end
 
-    -- JW Lua sometimes adds to the Undo stack here, so suppress that behavior since we haven't changed anything
-    finenv.StartNewUndoBlock("Switch To Selected Part", false)
 end
 
 ui_switch_to_selected_part()
