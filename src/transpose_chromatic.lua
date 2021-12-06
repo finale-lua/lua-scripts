@@ -10,10 +10,6 @@ function plugindef()
            "Chromatic transposition of selected region (supports microtone systems)."
 end
 
-if finenv.IsRGPLua then
-    --require("mobdebug").start()
-end
-
 --[[
 For this script to function correctly with custom key signatures, you must create a custom_key_sig.config.txt file in the
 the script_settings folder with the following two options for the custom key signature you are using. Unfortunately,
