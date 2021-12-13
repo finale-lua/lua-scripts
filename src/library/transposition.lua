@@ -66,9 +66,9 @@ end
 local get_key_info = function(key)
     local number_of_steps = standard_key_number_of_steps
     local diatonic_steps = standard_key_major_diatonic_steps
-    if finenv.IsRGPLua and key.CalcChromaticSteps then -- if this version of RGP Lua supports custom key sigs
-        number_of_steps = key:CalcChromaticSteps()
-        diatonic_steps = key:CalcDiatonicSteps()
+    if finenv.IsRGPLua and key.CalcTotalChromaticSteps then -- if this version of RGP Lua supports custom key sigs
+        number_of_steps = key:CalcTotalChromaticSteps()
+        diatonic_steps = key:CalcDiatonicStepsMap()
     else
         if not key:IsPredefined() then
             number_of_steps = custom_key_sig_config.number_of_steps
@@ -79,7 +79,7 @@ local get_key_info = function(key)
     end
     -- 0.5849625 is log(3/2)/log(2), which is how to calculate the 5th per Ere Lievonen.
     -- For basically any practical key sig this calculation comes out to the 5th scale degree,
-    -- which is 7 steps for standard keys
+    -- which is 7 chromatic steps for standard keys
     local fifth_steps = math.floor((number_of_steps * 0.5849625) + 0.5)
     return number_of_steps, diatonic_steps, fifth_steps
 end
