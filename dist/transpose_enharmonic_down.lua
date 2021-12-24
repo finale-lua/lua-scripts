@@ -32,7 +32,14 @@ package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Transposition
 
-A collection of helpful JW Lua transposition scripts
+A collection of helpful JW Lua transposition scripts.
+
+This library allows configuration of custom key signatures by means
+of a configuration file called "custom_key_sig.config.txt" in the
+"script_settings" subdirectory. However, RGP Lua (starting with version 0.58)
+can read the correct custom key signature information directly from
+Finale. Therefore, when you run this script with RGP Lua 0.58+, the configuration file
+is ignored.
 ]] -- 
 -- Structure
 -- 1. Helper functions
@@ -218,15 +225,20 @@ end
 local get_key_info = function(key)
     local number_of_steps = standard_key_number_of_steps
     local diatonic_steps = standard_key_major_diatonic_steps
-    if not key:IsPredefined() then
-        number_of_steps = custom_key_sig_config.number_of_steps
-        diatonic_steps = custom_key_sig_config.diatonic_steps
-    elseif key:IsMinor() then
-        diatonic_steps = standard_key_minor_diatonic_steps
+    if finenv.IsRGPLua and key.CalcTotalChromaticSteps then -- if this version of RGP Lua supports custom key sigs
+        number_of_steps = key:CalcTotalChromaticSteps()
+        diatonic_steps = key:CalcDiatonicStepsMap()
+    else
+        if not key:IsPredefined() then
+            number_of_steps = custom_key_sig_config.number_of_steps
+            diatonic_steps = custom_key_sig_config.diatonic_steps
+        elseif key:IsMinor() then
+            diatonic_steps = standard_key_minor_diatonic_steps
+        end
     end
     -- 0.5849625 is log(3/2)/log(2), which is how to calculate the 5th per Ere Lievonen.
     -- For basically any practical key sig this calculation comes out to the 5th scale degree,
-    -- which is 7 steps for standard keys
+    -- which is 7 chromatic steps for standard keys
     local fifth_steps = math.floor((number_of_steps * 0.5849625) + 0.5)
     return number_of_steps, diatonic_steps, fifth_steps
 end

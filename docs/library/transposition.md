@@ -1,6 +1,13 @@
 # Transposition
 
-A collection of helpful JW Lua transposition scripts
+A collection of helpful JW Lua transposition scripts.
+
+This library allows configuration of custom key signatures by means
+of a configuration file called "custom_key_sig.config.txt" in the
+"script_settings" subdirectory. However, RGP Lua (starting with version 0.58)
+can read the correct custom key signature information directly from
+Finale. Therefore, when you run this script with RGP Lua 0.58+, the configuration file
+is ignored.
 
 - [diatonic_transpose](#diatonic_transpose)
 - [change_octave](#change_octave)
