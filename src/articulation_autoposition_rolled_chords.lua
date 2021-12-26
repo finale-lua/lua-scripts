@@ -9,10 +9,13 @@ function plugindef()
     return "Autoposition Rolled Chord Articulations", "Autoposition Rolled Chord Articulations", "Autoposition Rolled Chord Articulations"
 end
 
+require('mobdebug').start()
+
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local note_entry = require("library.note_entry")
+local articulation = require("library.articulation")
 
 local config = {
     extend_across_staves = true
@@ -30,11 +33,13 @@ function calc_top_bot_page_pos(search_region)
         local em = finale.FCEntryMetrics()
         if em:Load(entry) then
             success = true
-            if em.TopPosition > top_page_pos then
-                top_page_pos = em.TopPosition
+            local this_top = note_entry.get_top_note_position(entry,em)
+            if this_top > top_page_pos then
+                top_page_pos = this_top
             end
-            if em.BottomPosition < bot_page_pos then
-                bot_page_pos = em.BottomPosition
+            local this_bottom = note_entry.get_bottom_note_position(entry,em)
+            if this_bottom < bot_page_pos then
+                bot_page_pos = this_bottom
             end
             if em.FirstAccidentalPosition < left_page_pos then
                 left_page_pos = em.FirstAccidentalPosition
@@ -52,14 +57,25 @@ function articulation_autoposition_rolled_chords()
             if artic.Visible then
                 local artic_def = artic:CreateArticulationDef()
                 if artic_def.CopyMainSymbol and not artic_def.CopyMainSymbolHorizontally then
+                    local save_it = false
                     local search_region = note_entry.get_music_region(entry)
                     if config.extend_across_staves then
-                        search_region.EndStaff = finenv.Region().EndStaff
+                        if search_region.StartStaff ~= finenv.Region().StartStaff then
+                            artic.Visible = false
+                            save_it = true
+                        else
+                            search_region.EndStaff = finenv.Region().EndStaff
+                        end
                     end
-                    local success, top_page_pos, bot_page_pos, left_page_pos = calc_top_bot_page_pos(search_region)
-                    if success then
-
-    --                    finenv.UI():AlertInfo("t: " .. tostring(top_page_pos) .. " b: " .. tostring(bot_page_pos) .. " l: " .. tostring(left_page_pos), "articulation_autoposition_rolled_chords")
+                    if artic.Visible then
+                        local success, top_page_pos, bot_page_pos, left_page_pos = calc_top_bot_page_pos(search_region)
+                        local char_width, char_height = articulation.calc_main_character_dimensions(artic_def)
+                        if success then
+        --                    finenv.UI():AlertInfo("t: " .. tostring(top_page_pos) .. " b: " .. tostring(bot_page_pos) .. " l: " .. tostring(left_page_pos), "articulation_autoposition_rolled_chords")
+                        end
+                    end
+                    if save_it then
+                        artic:Save()
                     end
                 end
             end
