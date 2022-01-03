@@ -6,7 +6,8 @@ function plugindef()
     finaleplugin.Date = "December 26, 2021"
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.MinJWLuaVersion = 0.59
-    return "Autoposition Rolled Chord Articulations", "Autoposition Rolled Chord Articulations", "Autoposition Rolled Chord Articulations"
+    return "Autoposition Rolled Chord Articulations", "Autoposition Rolled Chord Articulations",
+            "Creates rolled chords across multiple staves unless shift or option(alt) key is pressed when selecting menu item."
 end
 
 -- This script requires the VerticalCopyToPos property on FCArticulation, which was added in v0.59 of RGP Lua
@@ -29,6 +30,10 @@ local config = {
     --    from looking at illustrations
      horizontal_padding = 18         -- 3/4 space
 }
+
+if finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT) then
+    config.extend_across_staves = false
+end
 
 function calc_top_bot_page_pos(search_region)
     local success = false
