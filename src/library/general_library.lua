@@ -309,6 +309,17 @@ end
 : (boolean)
 ]]
 function library.is_font_smufl_font(font_info)
+    if nil == font_info then
+        font_info = finale.FCFontInfo()
+        font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
+    end
+    
+    if finenv.RawFinaleVersion >= 0x1b010000 then -- Finale 27.1+, 0x1b == 27
+        if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
+            return font_info.IsSMuFLFont
+        end
+    end
+    
     local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
     if nil ~= smufl_metadata_file then
         io.close(smufl_metadata_file)
