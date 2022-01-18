@@ -16,9 +16,6 @@ $module Note Entry
 ]]
 local note_entry = {}
 
--- This function may not have been used anywhere, though it has been tested and works.
--- If you use this function, remove this comment.
--- If you remove this function, be sure to check that it still isn't used.
 --[[
 % get_music_region(entry)
 
@@ -52,9 +49,6 @@ local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
     return nil, false
 end
 
--- This function may not have been used anywhere, though it has been tested and works.
--- If you use this function, remove this comment.
--- If you remove this function, be sure to check that it still isn't used.
 --[[
 % get_evpu_notehead_height(entry)
 

@@ -19,6 +19,25 @@ $module Library
 local library = {}
 
 --[[
+% finale_version(major, minor, build)
+
+Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
+this is the internal major Finale version, not the year.
+
+@ major (number) Major Finale version
+@ minor (number) Minor Finale version
+@ [build] (number) zero if omitted
+: (number)
+]]
+function library.finale_version(major, minor, build)
+    local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 16))
+    if build then
+        retval = bit32.bor(retval, math.floor(build))
+    end
+    return retval
+end
+
+--[[
 % group_overlaps_region(staff_group, region)
 
 Returns true if the input staff group overlaps with the input music region, otherwise false.
@@ -324,6 +343,17 @@ end
 : (boolean)
 ]]
 function library.is_font_smufl_font(font_info)
+    if nil == font_info then
+        font_info = finale.FCFontInfo()
+        font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
+    end
+    
+    if finenv.RawFinaleVersion >= library.finale_version(27, 1) then
+        if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
+            return font_info.IsSMuFLFont
+        end
+    end
+    
     local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
     if nil ~= smufl_metadata_file then
         io.close(smufl_metadata_file)

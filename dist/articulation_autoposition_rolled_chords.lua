@@ -3,14 +3,17 @@ function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0"
-    finaleplugin.Date = "March 14, 2020"
-    finaleplugin.CategoryTags = "Note"
-    return "Automatic Jeté", "Automatic Jete", -- JW Lua has trouble with non-ascii chars in the Undo string, so eliminate the accent on "é" for Undo
-           "Add gliss. marks, hide noteheads, and adjust staccato marks as needed for jeté bowing."
+    finaleplugin.Date = "December 26, 2021"
+    finaleplugin.CategoryTags = "Articulation"
+    finaleplugin.MinJWLuaVersion = 0.59
+    return "Autoposition Rolled Chord Articulations", "Autoposition Rolled Chord Articulations",
+            "Creates rolled chords across multiple staves unless shift or option(alt) key is pressed when selecting menu item."
 end
 
--- The goal of this script is to automate jeté bowing notation as given in Gould, Elaine, "Behind Bars", p. 404
--- For the best results with staccato dots, use an articulation with "Avoid Staff Lines" unchecked.
+-- This script requires the VerticalCopyToPos property on FCArticulation, which was added in v0.59 of RGP Lua
+-- Therefore, it is marked not to load in any earlier version.
+
+--require('mobdebug').start()
 
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
@@ -854,658 +857,88 @@ end
 
 
 
---  Author: Robert Patterson
---  Date: March 5, 2021
-
---[[
-$module Configuration
-
-This library implements a UTF-8 text file scheme for configuration as follows:
-
-- Comments start with `--`
-- Leading, trailing, and extra whitespace is ignored
-- Each parameter is named and delimited as follows:
-`<parameter-name> = <parameter-value>`
-
-Parameter values may be:
-
-- Strings delimited with either single- or double-quotes
-- Tables delimited with `{}` that may contain strings, booleans, or numbers
-- Booleans (`true` or `false`)
-- Numbers
-
-Currently the following are not supported:
-
-- Tables embedded within tables
-- Tables containing strings that contain commas
-
-A sample configuration file might be:
-
-```lua
--- Configuration File for "Hairpin and Dynamic Adjustments" script
---
-left_dynamic_cushion 		= 12		--evpus
-right_dynamic_cushion		= -6		--evpus
-```
-]]
-
-local configuration = {}
-
-local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
-local comment_marker = "--"
-local parameter_delimiter = "="
-local path_delimiter = "/"
-
-local file_exists = function(file_path)
-    local f = io.open(file_path,"r")
-    if nil ~= f then
-        io.close(f)
-        return true
-    end
-    return false
-end
-
-local strip_leading_trailing_whitespace = function (str)
-    return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
-end
-
-local parse_parameter -- forward function declaration
-
-local parse_table = function(val_string)
-    local ret_table = {}
-    for element in val_string:gmatch('[^,%s]+') do  -- lua pattern magic taken from the Internet
-        local parsed_element = parse_parameter(element)
-        table.insert(ret_table, parsed_element)
-    end
-    return ret_table
-end
-
-parse_parameter = function(val_string)
-    if '"' == val_string:sub(1,1) and '"' == val_string:sub(#val_string,#val_string) then -- double-quote string
-        return string.gsub(val_string, '"(.+)"', "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
-    elseif "'" == val_string:sub(1,1) and "'" == val_string:sub(#val_string,#val_string) then -- single-quote string
-        return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
-    elseif "{" == val_string:sub(1,1) and "}" == val_string:sub(#val_string,#val_string) then
-        return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
-    elseif "true" == val_string then
-        return true
-    elseif "false" == val_string then
-        return false
-    end
-    return tonumber(val_string)
-end
-
-local get_parameters_from_file = function(file_name)
-    local parameters = {}
-
-    local path = finale.FCString()
-    path:SetRunningLuaFolderPath()
-    local file_path = path.LuaString .. path_delimiter .. file_name
-    if not file_exists(file_path) then
-        return parameters
-    end
-
-    for line in io.lines(file_path) do
-        local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
-        if nil ~= comment_at then
-            line = string.sub(line, 1, comment_at-1)
-        end
-        local delimiter_at = string.find(line, parameter_delimiter, 1, true)
-        if nil ~= delimiter_at then
-            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at-1))
-            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at+1))
-            parameters[name] = parse_parameter(val_string)
-        end
-    end
-    
-    return parameters
-end
-
---[[
-% get_parameters(file_name, parameter_list)
-
-Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list` with any that are found in the config file.
-
-@ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
-@ parameter_list (table) a table with the parameter name as key and the default value as value
-]]
-function configuration.get_parameters(file_name, parameter_list)
-    local file_parameters = get_parameters_from_file(script_settings_dir .. path_delimiter .. file_name)
-    if nil ~= file_parameters then
-        for param_name, def_val in pairs(parameter_list) do
-            local param_val = file_parameters[param_name]
-            if nil ~= param_val then
-                parameter_list[param_name] = param_val
-            end
-        end
-    end
-end
-
-
-
---[[
-$module Library
-]]
-local library = {}
-
---[[
-% finale_version(major, minor, build)
-
-Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
-this is the internal major Finale version, not the year.
-
-@ major (number) Major Finale version
-@ minor (number) Minor Finale version
-@ [build] (number) zero if omitted
-: (number)
-]]
-function library.finale_version(major, minor, build)
-    local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 16))
-    if build then
-        retval = bit32.bor(retval, math.floor(build))
-    end
-    return retval
-end
-
---[[
-% group_overlaps_region(staff_group, region)
-
-Returns true if the input staff group overlaps with the input music region, otherwise false.
-
-@ staff_group (FCGroup)
-@ region (FCMusicRegion)
-: (boolean)
-]]
-function library.group_overlaps_region(staff_group, region)
-    if region:IsFullDocumentSpan() then
-        return true
-    end
-    local staff_exists = false
-    local sys_staves = finale.FCSystemStaves()
-    sys_staves:LoadAllForRegion(region)
-    for sys_staff in each(sys_staves) do
-        if staff_group:ContainsStaff(sys_staff:GetStaff()) then
-            staff_exists = true
-            break
-        end
-    end
-    if not staff_exists then
-        return false
-    end
-    if (staff_group.StartMeasure > region.EndMeasure) or (staff_group.EndMeasure < region.StartMeasure) then
-        return false
-    end
-    return true
-end
-
---[[
-% group_is_contained_in_region(staff_group, region)
-
-Returns true if the entire input staff group is contained within the input music region.
-If the start or end staff are not visible in the region, it returns false.
-
-@ staff_group (FCGroup)
-@ region (FCMusicRegion)
-: (boolean)
-]]
-function library.group_is_contained_in_region(staff_group, region)
-    if not region:IsStaffIncluded(staff_group.StartStaff) then
-        return false
-    end
-    if not region:IsStaffIncluded(staff_group.EndStaff) then
-        return false
-    end
-    return true
-end
-
---[[
-% staff_group_is_multistaff_instrument(staff_group)
-
-Returns true if the entire input staff group is a multistaff instrument.
-
-@ staff_group (FCGroup)
-: (boolean)
-]]
-function library.staff_group_is_multistaff_instrument(staff_group)
-    local multistaff_instruments = finale.FCMultiStaffInstruments()
-    multistaff_instruments:LoadAll()
-    for inst in each(multistaff_instruments) do
-        if inst:ContainsStaff(staff_group.StartStaff) and (inst.GroupID == staff_group:GetItemID()) then
-            return true
-        end
-    end
-    return false
-end
-
---[[
-% get_selected_region_or_whole_doc()
-
-Returns a region that contains the selected region if there is a selection or the whole document if there isn't.
-SIDE-EFFECT WARNING: If there is no selected region, this function also changes finenv.Region() to the whole document.
-
-: (FCMusicRegion)
-]]
-function library.get_selected_region_or_whole_doc()
-    local sel_region = finenv.Region()
-    if sel_region:IsEmpty() then
-        sel_region:SetFullDocument()
-    end
-    return sel_region
-end
-
---[[
-% get_first_cell_on_or_after_page(page_num)
-
-Returns the first FCCell at the top of the input page. If the page is blank, it returns the first cell after the input page.
-
-@ page_num (number)
-: (FCCell)
-]]
-function library.get_first_cell_on_or_after_page(page_num)
-    local curr_page_num = page_num
-    local curr_page = finale.FCPage()
-    local got1 = false
-    --skip over any blank pages
-    while curr_page:Load(curr_page_num) do
-        if curr_page:GetFirstSystem() > 0 then
-            got1 = true
-            break
-        end
-        curr_page_num = curr_page_num + 1
-    end
-    if got1 then
-        local staff_sys = finale.FCStaffSystem()
-        staff_sys:Load(curr_page:GetFirstSystem())
-        return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
-    end
-    --if we got here there were nothing but blank pages left at the end
-    local end_region = finale.FCMusicRegion()
-    end_region:SetFullDocument()
-    return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
-end
-
---[[
-% get_top_left_visible_cell()
-
-Returns the topmost, leftmost visible FCCell on the screen, or the closest possible estimate of it.
-
-: (FCCell)
-]]
-function library.get_top_left_visible_cell()
-    if not finenv.UI():IsPageView() then
-        local all_region = finale.FCMusicRegion()
-        all_region:SetFullDocument()
-        return finale.FCCell(finenv.UI():GetCurrentMeasure(), all_region.StartStaff)
-    end
-    return library.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())
-end
-
---[[
-% get_top_left_selected_or_visible_cell()
-
-If there is a selection, returns the topmost, leftmost cell in the selected region.
-Otherwise returns the best estimate for the topmost, leftmost currently visible cell.
-
-: (FCCell)
-]]
-function library.get_top_left_selected_or_visible_cell()
-    local sel_region = finenv.Region()
-    if not sel_region:IsEmpty() then
-        return finale.FCCell(sel_region.StartMeasure, sel_region.StartStaff)
-    end
-    return library.get_top_left_visible_cell()
-end
-
---[[
-% is_default_measure_number_visible_on_cell (meas_num_region, cell, staff_system, current_is_part)
-
-Returns true if measure numbers for the input region are visible on the input cell for the staff system.
-
-@ meas_num_region (FCMeasureNumberRegion)
-@ cell (FCCell)
-@ staff_system (FCStaffSystem)
-@ current_is_part (boolean) true if the current view is a linked part, otherwise false
-: (boolean)
-]]
-function library.is_default_measure_number_visible_on_cell (meas_num_region, cell, staff_system, current_is_part)
-    local staff = finale.FCCurrentStaffSpec()
-    if not staff:LoadForCell(cell, 0) then
-        return false
-    end
-    if meas_num_region:GetShowOnTopStaff() and (cell.Staff == staff_system.TopStaff) then
-        return true
-    end
-    if meas_num_region:GetShowOnBottomStaff() and (cell.Staff == staff_system:CalcBottomStaff()) then
-        return true
-    end
-    if staff.ShowMeasureNumbers then
-        return not meas_num_region:GetExcludeOtherStaves(current_is_part)
-    end
-    return false
-end
-
---[[
-% is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
-
-Returns true if measure number for the input cell is visible and left-aligned.
-
-@ meas_num_region (FCMeasureNumberRegion)
-@ cell (FCCell)
-@ system (FCStaffSystem)
-@ current_is_part (boolean) true if the current view is a linked part, otherwise false
-@ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
-: (boolean)
-]]
-function library.is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
-    if meas_num_region.UseScoreInfoForParts then
-        current_is_part = false
-    end
-    if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
-        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultiMeasureAlignment(current_is_part)) then
-            return false
-        end
-    elseif (cell.Measure == system.FirstMeasure) then
-        if not meas_num_region:GetShowOnSystemStart() then
-            return false
-        end
-        if (finale.MNALIGN_LEFT ~= meas_num_region:GetStartAlignment(current_is_part)) then
-            return false
-        end
-    else
-        if not meas_num_region:GetShowMultiples(current_is_part) then
-            return false
-        end
-        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultipleAlignment(current_is_part)) then
-            return false
-        end
-    end
-    return library.is_default_measure_number_visible_on_cell (meas_num_region, cell, system, current_is_part)
-end
-
---[[
-% update_layout(from_page, unfreeze_measures)
-
-Updates the page layout.
-
-@ [from_page] (number) page to update from, defaults to 1
-@ [unfreeze_measures] (boolean) defaults to false
-]]
-function library.update_layout(from_page, unfreeze_measures)
-    from_page = from_page or 1
-    unfreeze_measures = unfreeze_measures or false
-    local page = finale.FCPage()
-    if page:Load(from_page) then
-        page:UpdateLayout(unfreeze_measures)
-    end
-end
-
---[[
-% get_current_part()
-
-Returns the currently selected part or score.
-
-: (FCPart)
-]]
-function library.get_current_part()
-    local parts = finale.FCParts()
-    parts:LoadAll()
-    return parts:GetCurrent()
-end
-
---[[
-% get_page_format_prefs()
-
-Returns the default page format prefs for score or parts based on which is currently selected.
-
-: (FCPageFormatPrefs)
-]]
-function library.get_page_format_prefs()
-    local current_part = library.get_current_part()
-    local page_format_prefs = finale.FCPageFormatPrefs()
-    local success = false
-    if current_part:IsScore() then
-        success = page_format_prefs:LoadScore()
-    else
-        success = page_format_prefs:LoadParts()
-    end
-    return page_format_prefs, success
-end
-
---[[
-% get_smufl_metadata_file(font_info)
-
-@ [font_info] (FCFontInfo) if non-nil, the font to search for; if nil, search for the Default Music Font
-: (file handle|nil)
-]]
-function library.get_smufl_metadata_file(font_info)
-    if nil == font_info then
-        font_info = finale.FCFontInfo()
-        font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
-    end
-
-    local try_prefix = function(prefix, font_info)
-        local file_path = prefix .. "/SMuFL/Fonts/" .. font_info.Name .. "/" .. font_info.Name .. ".json"
-        return io.open(file_path, "r")
-    end
-
-    local smufl_json_user_prefix = ""
-    if finenv.UI():IsOnWindows() then
-        smufl_json_user_prefix = os.getenv("LOCALAPPDATA")
-    else
-        smufl_json_user_prefix = os.getenv("HOME") .. "/Library/Application Support"
-    end
-    local user_file = try_prefix(smufl_json_user_prefix, font_info)
-    if nil ~= user_file then
-        return user_file
-    end
-
-    local smufl_json_system_prefix = "/Library/Application Support"
-    if finenv.UI():IsOnWindows() then
-        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
-    end
-    return try_prefix(smufl_json_system_prefix, font_info)
-end
-
---[[
-% is_font_smufl_font(font_info)
-
-@ [font_info] (FCFontInfo) if non-nil, the font to check; if nil, check the Default Music Font
-: (boolean)
-]]
-function library.is_font_smufl_font(font_info)
-    if nil == font_info then
-        font_info = finale.FCFontInfo()
-        font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
-    end
-    
-    if finenv.RawFinaleVersion >= library.finale_version(27, 1) then
-        if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
-            return font_info.IsSMuFLFont
-        end
-    end
-    
-    local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
-    if nil ~= smufl_metadata_file then
-        io.close(smufl_metadata_file)
-        return true
-    end
-    return false
-end
-
-
-
-
-local max_layers = 4            -- this should be in the PDK, but for some reason isn't
 
 local config = {
-    dot_character = 46,         -- ascii code for "."
-    hide_last_note = false
+    extend_across_staves = true,
+    -- per Ted Ross p. 198-9, the vertical extent is "approximately 1 space above and below" (counted from the staff position),
+    --    which means a half space from the note tips. But Gould has them closer, so we'll compromise here.
+     vertical_padding = 6,           -- 1/4 space
+    -- per Ted Ross p. 198-9, the rolled chord mark precedes the chord by 3/4 space, and Gould (p. 131ff.) seems to agree
+    --    from looking at illustrations
+     horizontal_padding = 18         -- 3/4 space
 }
 
-if library.is_font_smufl_font() then
-    config.dot_character = 0xe4a2 -- SMuFL staccato dot above, which must be the "Main Character" in the Articulation Definition
+if finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT) then
+    config.extend_across_staves = false
 end
 
-configuration.get_parameters("note_automatic_jete.config.txt", config)
-
-function add_gliss_line_if_needed(start_note, end_note)
-    -- search for existing
-    local smartshapeentrymarks = finale.FCSmartShapeEntryMarks(start_note.Entry)
-    smartshapeentrymarks:LoadAll()
-    for ssem in each(smartshapeentrymarks) do
-        if ssem:CalcLeftMark() then
-            local ss = finale.FCSmartShape()
-            if ss:Load(ssem.ShapeNumber) then
-                if ss:IsTabSlide() then
-                    local rightseg = ss:GetTerminateSegmentRight()
-                    if (rightseg.EntryNumber == end_note.Entry.EntryNumber) and (rightseg.NoteID == end_note.NoteID) then
-                        return ss -- return the found smart shape, in case caller needs it
-                    end
-                end
+function calc_top_bot_page_pos(search_region)
+    local success = false
+    local top_page_pos = -math.huge
+    local bot_page_pos = math.huge
+    local left_page_pos = math.huge
+    for entry in eachentry(search_region) do
+        if entry:IsRest() then
+            break
+        end
+        local em = finale.FCEntryMetrics()
+        if em:Load(entry) then
+            success = true
+            local this_top = note_entry.get_top_note_position(entry,em)
+            if this_top > top_page_pos then
+                top_page_pos = this_top
             end
+            local this_bottom = note_entry.get_bottom_note_position(entry,em)
+            if this_bottom < bot_page_pos then
+                bot_page_pos = this_bottom
+            end
+            if em.FirstAccidentalPosition < left_page_pos then
+                left_page_pos = em.FirstAccidentalPosition
+            end
+            em:FreeMetrics()
         end
     end
-    -- not found, so create new
-    local smartshape = finale.FCSmartShape()
-    smartshape.ShapeType = finale.SMARTSHAPE_TABSLIDE
-    smartshape.EntryBased = true
-    smartshape.BeatAttached= false
-    smartshape.MakeHorizontal = false
-    smartshape.PresetShape = true
-    smartshape.Visible = true
-    smartshape:SetSlurFlags(false)
-    smartshape:SetEntryAttachedFlags(true)
-    local leftseg = smartshape:GetTerminateSegmentLeft()
-    leftseg.Measure = start_note.Entry.Measure
-    leftseg.Staff = start_note.Entry.Staff
-    leftseg:SetEntry(start_note.Entry)
-    leftseg:SetNoteID(start_note.NoteID)
-    local rightseg = smartshape:GetTerminateSegmentRight()
-    rightseg.Measure = end_note.Entry.Measure
-    rightseg.Staff = end_note.Entry.Staff
-    rightseg:SetEntry(end_note.Entry)
-    rightseg:SetNoteID(end_note.NoteID)
-    if smartshape:SaveNewEverything(start_note.Entry, end_note.Entry) then
-        return smartshape
-    end
-    return nil
+    return success, top_page_pos, bot_page_pos, left_page_pos
 end
 
--- return found articulation and point position
--- if we are finding by the character, it must be note-side
-function find_staccato_articulation(entry, find_by_def_id)
-    find_by_def_id = find_by_def_id or 0
-    local artics = entry:CreateArticulations()
-    for artic in each(artics) do
-        local fcpoint = finale.FCPoint(0, 0)
-        if artic:CalcMetricPos(fcpoint) then
-            if find_by_def_id == artic.ID then
-                return artic, fcpoint
-            elseif 0 == find_by_def_id then
+function articulation_autoposition_rolled_chords()
+    for entry in eachentry(finenv.Region()) do
+        local artics = entry:CreateArticulations()
+        for artic in each(artics) do
+            if artic.Visible then
                 local artic_def = artic:CreateArticulationDef()
-                if nil ~= artic_def then
-                    if config.dot_character == artic_def.MainSymbolChar then
-                        if articulation.is_note_side(artic, fcpoint) then
-                            return artic, fcpoint
+                if artic_def.CopyMainSymbol and not artic_def.CopyMainSymbolHorizontally then
+                    local save_it = false
+                    local search_region = note_entry.get_music_region(entry)
+                    if config.extend_across_staves then
+                        if search_region.StartStaff ~= finenv.Region().StartStaff then
+                            artic.Visible = false
+                            save_it = true
+                        else
+                            search_region.EndStaff = finenv.Region().EndStaff
                         end
                     end
-                end
-            end
-        end
-    end
-    return nil, nil
-end
-
-function note_automatic_jete()
-    local sel_region = finenv.Region() -- total selected region
-    for slot = sel_region.StartSlot, sel_region.EndSlot do
-        -- get selected region for this staff
-        local staff_region = finale.FCMusicRegion()
-        staff_region:SetCurrentSelection()
-        staff_region.StartSlot = slot
-        staff_region.EndSlot = slot
-        for layer = 1, max_layers do
-            -- find first and last entries
-            local first_entry_num = nil
-            local last_entry_num = nil
-            local entries = {}
-            local last_meas = nil
-            for entry in eachentry(staff_region) do
-                if entry.LayerNumber == layer then
-                    -- break if we skipped a measure
-                    if last_meas and (last_meas < (entry.Measure - 1)) then
-                        break
+                    local metric_pos = finale.FCPoint(0, 0)
+                    local mm = finale.FCCellMetrics()
+                    if artic.Visible and artic:CalcMetricPos(metric_pos) and mm:LoadAtEntry(entry) then
+                        local success, top_page_pos, bottom_page_pos, left_page_pos = calc_top_bot_page_pos(search_region)
+                        local this_bottom = note_entry.get_bottom_note_position(entry)
+                        staff_scale = mm.StaffScaling / 10000
+                        top_page_pos = top_page_pos / staff_scale
+                        bottom_page_pos = bottom_page_pos / staff_scale
+                        left_page_pos = left_page_pos / staff_scale
+                        this_bottom = this_bottom / staff_scale
+                        local char_width, char_height = articulation.calc_main_character_dimensions(artic_def)
+                        local half_char_height = char_height/2
+                        local horz_diff = left_page_pos - metric_pos.X
+                        local vert_diff = top_page_pos - metric_pos.Y
+                        artic.HorizontalPos = artic.HorizontalPos + math.floor(horz_diff - char_width - config.horizontal_padding + 0.5)
+                        artic.VerticalPos = artic.VerticalPos + math.floor(vert_diff - char_height + 2*config.vertical_padding + 0.5)
+                        artic.VerticalCopyToPos = math.floor(bottom_page_pos - this_bottom - config.vertical_padding - half_char_height + 0.5)
+                        save_it = true
                     end
-                    last_meas = entry.Measure
-                    local is_rest = entry:IsRest()
-                    -- break on rests, but only if we've found a non-rest
-                    if is_rest and (nil ~= first_entry_num) then
-                        break
-                    end
-                    if not is_rest then
-                        if nil == first_entry_num then
-                            first_entry_num = entry.EntryNumber
-                        end
-                        last_entry_num = entry.EntryNumber
-                        entries[entry.EntryNumber] = entry
-                    end
-                end
-            end
-            if first_entry_num ~= last_entry_num then
-                local lpoint = nil
-                local rpoint = nil
-                local dot_artic_def = 0
-                for entry in eachentrysaved(staff_region) do    -- don't use pairs(entries) because we need to save the entries on this pass
-                    if nil ~= entries[entry.EntryNumber] then
-                        if entry.EntryNumber == first_entry_num then
-                            local last_entry = entries[last_entry_num]
-                            if nil ~= last_entry then
-                                local x = 0
-                                for note in each(entry) do
-                                    local last_note = note_entry.calc_note_at_index(last_entry, x)
-                                    if nil ~= note then
-                                        add_gliss_line_if_needed(note, last_note)
-                                    end
-                                    x = x + 1
-                                end
-                                -- get first and last points for artic defs
-                                local lartic = nil
-                                lartic, lpoint = find_staccato_articulation(entry)
-                                if nil ~= lartic then
-                                    dot_artic_def = lartic.ID
-                                    _, rpoint = find_staccato_articulation(last_entry, dot_artic_def)
-                                end
-                            end
-                        elseif (entry.EntryNumber ~= last_entry_num) or config.hide_last_note then
-                            entry.LedgerLines = false
-                            entry:SetAccidentals(false)
-                            for note in each(entry) do
-                                note.Accidental = false
-                                note.AccidentalFreeze = true
-                                local nm = finale.FCNoteheadMod()
-                                nm:SetNoteEntry(entry)
-                                nm:LoadAt(note)
-                                nm.CustomChar = string.byte(" ")
-                                nm:SaveAt(note)
-                            end
-                        end
-                    end
-                end
-                -- shift dot articulations, if any
-                if lpoint and rpoint and (lpoint.X ~= rpoint.X) then -- prevent divide-by-zero, but it should not happen if we're here
-                    local linear_multplier = (rpoint.Y - lpoint.Y) / (rpoint.X - lpoint.X)
-                    local linear_constant = (rpoint.X*lpoint.Y - lpoint.X*rpoint.Y) / (rpoint.X - lpoint.X)
-                    finale.FCNoteEntry.MarkEntryMetricsForUpdate()
-                    for key, entry in pairs(entries) do
-                        if (entry.EntryNumber ~= first_entry_num) and (entry.EntryNumber ~= last_entry_num) then
-                            local artic, arg_point = find_staccato_articulation(entry, dot_artic_def)
-                            if nil ~= artic then
-                                local new_y = linear_multplier*arg_point.X + linear_constant -- apply linear equation
-                                local old_vpos = artic.VerticalPos
-                                artic.VerticalPos = artic.VerticalPos - (note_entry.stem_sign(entry) * (math.floor(new_y + 0.5) - arg_point.Y))
-                                artic:Save()
-                            end
-                        end
+                    if save_it then
+                        artic:Save()
                     end
                 end
             end
@@ -1513,4 +946,4 @@ function note_automatic_jete()
     end
 end
 
-note_automatic_jete()
+articulation_autoposition_rolled_chords()
