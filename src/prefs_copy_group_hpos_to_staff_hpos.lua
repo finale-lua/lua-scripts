@@ -13,6 +13,8 @@ end
 --in Finale 2014.5 where using plugins on a linked part would randomly modify the default staff name positions.
 --Therefore this script is probably of limited use in Finale 26.2 anyway.
 
+--If this script is running in RGP Lua 0.58 or higher, it should work in any version of Finale 25+.
+
 function copy_horizontal_settings_to_staff(group_prefs, staff_prefs)
     staff_prefs.HorizontalPos = group_prefs.HorizontalPos
     staff_prefs.Justification = group_prefs.Justification

@@ -57,4 +57,21 @@ function articulation.is_note_side(artic, curr_pos)
     return false
 end
 
+
+--[[
+% calc_main_character_dimensions(artic)
+
+Uses `FCTextMetrics:LoadArticulation` to determine the dimensions of the main character
+
+@ artic_def (FCArticulationDef)
+: (number, number) the width and height of the main articulation character in (possibly fractional) evpus, or 0, 0 if it failed to load metrics
+]]
+function articulation.calc_main_character_dimensions(artic_def)
+    local text_mets = finale.FCTextMetrics()
+    if not text_mets:LoadArticulation(artic_def, false, 100) then
+        return 0, 0
+    end
+    return text_mets:CalcWidthEVPUs(), text_mets:CalcHeightEVPUs()
+end
+
 return articulation

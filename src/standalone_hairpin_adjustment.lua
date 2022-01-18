@@ -30,6 +30,18 @@ local config = {
 
 configuration.get_parameters("standalone_hairpin_adjustment.config.txt", config)
 
+-- In RGP Lua, flip vertical_adjustment_type based on alt/option key when invoked
+
+if finenv.IsRGPLua and finenv.QueryInvokedModifierKeys then
+    if finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) then
+        if config.vertical_adjustment_type == "far" then
+            config.vertical_adjustment_type = "near"
+        elseif config.vertical_adjustment_type == "near" then
+            config.vertical_adjustment_type = "far"
+        end
+    end
+end
+
 -- end of parameters
 
 function calc_cell_relative_vertical_position(fccell, page_offset)

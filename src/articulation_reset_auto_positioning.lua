@@ -4,6 +4,14 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "February 28, 2020"
     finaleplugin.CategoryTags = "Articulation"
+    finaleplugin.MinFinaleVersionRaw = 0x1a000000
+    finaleplugin.MinJWLuaVersion = 0.58
+    finaleplugin.Notes = [[
+This script resets all selected articulations to their default positions but only if they are not manually positioned.
+Due to complications arising from how Finale stored articulation positions before Finale 26, it requires Finale 26 or higher.
+Due to issues around maintaining the context for automatic stacking, it must be run under RGP Lua. JW Lua does not have the necessary
+logic to manage the stacking context.
+    ]]
     return "Reset Automatic Articulation Positions", "Reset Automatic Articulation Positions", "Resets the position of automatically positioned articulations while ignoring those with manual positioning."
 end
 
@@ -13,13 +21,6 @@ end
 -- articulations positions in earlier versions would require reverse-engineering all the automatic positioning
 -- options. But resetting articulations to default in Finale 26 and higher is a simple matter of zeroing out
 -- the horizontal and/or vertical offsets.
-
-local finale_26_base_version = 0x1A000000
-
-if finenv.RawFinaleVersion < finale_26_base_version then
-    finenv.UI():AlertError("This script is not compatible with versions of Finale before Finale 26.", "Finale Version Error")
-    return
-end
 
 function articulation_reset_auto_positioning()
     for note_entry in eachentry(finenv.Region()) do
@@ -33,7 +34,9 @@ function articulation_reset_auto_positioning()
                     do_save = true
                 end
                 if finale.ARTPOS_MANUAL_POSITIONING ~= articulation_def.AutoPosSide then
-                    articulation.VerticalPos = 0
+                    local save_horzpos = articulation.HorizontalPos
+                    articulation:ResetPos(articulation_def) -- use ResetPos to fix up Finale's internal stacking flags
+                    articulation.HorizontalPos = save_horzpos
                     do_save = true
                 end
                 if do_save then
