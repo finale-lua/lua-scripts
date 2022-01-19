@@ -108,6 +108,12 @@ function on_close()
 end
 
 function transpose_by_step()
+    if nil ~= global_number_of_steps then
+        if finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT) then
+            do_transpose_by_step(global_number_of_steps)
+            return
+        end
+    end
     global_dialog = create_dialog_box()
     if nil ~= global_pos_x and nil ~= global_pos_y then
         global_dialog:StorePosition()
