@@ -26,14 +26,20 @@ diatonic_steps = {0, 5, 10, 13, 18, 23, 28}
 ]]
 
 global_dialog = nil
-number_of_steps = nil
+global_number_of_steps_edit = nil
+
+if not finenv.RetainLuaState then
+    global_number_of_steps = nil
+    global_pos_x = nil
+    global_pos_y = nil
+end
 
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()
 package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local transposition = require("library.transposition")
 
-function do_transpose_by_step(number_of_steps)
+function do_transpose_by_step(global_number_of_steps_edit)
     local undostr = "Transpose By Steps " .. tostring(finenv.Region().StartMeasure)
     if finenv.Region().StartMeasure ~= finenv.Region().EndMeasure then
         undostr = undostr .. " - " .. tostring(finenv.Region().EndMeasure)
@@ -42,7 +48,7 @@ function do_transpose_by_step(number_of_steps)
     finenv.StartNewUndoBlock(undostr, false) -- this works on both JW Lua and RGP Lua
     for entry in eachentrysaved(finenv.Region()) do
         for note in each(entry) do
-            if not transposition.stepwise_transpose(note, number_of_steps) then
+            if not transposition.stepwise_transpose(note, global_number_of_steps_edit) then
                 success = false
                 break
             end
@@ -74,7 +80,7 @@ function create_dialog_box()
     if finenv.UI():IsOnMac() then
         edit_x = edit_x + 4
     end
-    number_of_steps = dialog:CreateEdit(edit_x, current_y)
+    global_number_of_steps_edit = dialog:CreateEdit(edit_x, current_y)
     -- ok/cancel
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
@@ -85,16 +91,43 @@ function create_dialog_box()
 end
     
 function on_ok()
-    if not do_transpose_by_step(number_of_steps:GetInteger()) then
+    if not do_transpose_by_step(global_number_of_steps_edit:GetInteger()) then
         finenv.UI():AlertError("Finale is unable to represent some of the transposed pitches. These pitches were left at their original value.", "Transposition Error")
+    end
+end
+
+function on_close()
+    if global_dialog:QueryLastCommandModifierKeys(finale.CMDMODKEY_ALT) or global_dialog:QueryLastCommandModifierKeys(finale.CMDMODKEY_SHIFT) then
+        finenv.RetainLuaState = false
+    else
+        global_number_of_steps = global_number_of_steps_edit:GetInteger()
+        global_dialog:StorePosition()
+        global_pos_x = global_dialog.StoredX
+        global_pos_y = global_dialog.StoredY
     end
 end
 
 function transpose_by_step()
     global_dialog = create_dialog_box()
+    if nil ~= global_pos_x and nil ~= global_pos_y then
+        global_dialog:StorePosition()
+        global_dialog:SetRestorePositionOnlyData(global_pos_x, global_pos_y)
+        global_dialog:RestorePosition()
+    end
     global_dialog:RegisterHandleOkButtonPressed(on_ok)
+    if global_dialog.RegisterCloseWindow then
+        global_dialog:RegisterCloseWindow(on_close)
+    end
     if finenv.IsRGPLua then
+        if nil ~= finenv.RetainLuaState then
+            finenv.RetainLuaState = true
+        end
         finenv.RegisterModelessDialog(global_dialog)
+        if nil ~= global_number_of_steps then
+            local str = finale.FCString()
+            str:AppendInteger(global_number_of_steps)
+            global_number_of_steps_edit:SetText(str)
+        end
         global_dialog:ShowModeless()
     else
         if finenv.Region():IsEmpty() then
