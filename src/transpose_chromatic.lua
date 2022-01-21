@@ -95,11 +95,13 @@ global_dialog = nil
 
 local modifier_keys_on_invoke = false
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
-local transposition = require("library.transposition")
-local note_entry = require("Library.note_entry")
+if not finenv.RetainLuaState then
+    local path = finale.FCString()
+    path:SetRunningLuaFolderPath()
+    package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+    transposition = require("library.transposition")
+    note_entry = require("Library.note_entry")
+end
 
 function add_strings_to_control(control, strings)
     local str = finale.FCString()

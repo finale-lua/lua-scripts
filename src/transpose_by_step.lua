@@ -46,10 +46,12 @@ if not finenv.RetainLuaState then
     }
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
-local transposition = require("library.transposition")
+if not finenv.RetainLuaState then
+    local path = finale.FCString()
+    path:SetRunningLuaFolderPath()
+    package.path = package.path .. ";" .. path.LuaString .. "?.lua"
+    transposition = require("library.transposition")
+end
 
 function do_transpose_by_step(global_number_of_steps_edit)
     if finenv.Region():IsEmpty() then
