@@ -10,13 +10,13 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout this repository
-              uses: actions/checkout@v2.3.4
+              uses: actions/checkout@v2.4.0
               with:
                   persist-credentials: false
                   fetch-depth: 0
                   path: './lua'
             - name: Checkout docs website repository
-              uses: actions/checkout@v2.3.4
+              uses: actions/checkout@v2.4.0
               with:
                   persist-credentials: false
                   fetch-depth: 0
