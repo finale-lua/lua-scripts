@@ -14,11 +14,11 @@ function plugindef()
         3. Run the script.
 
         The script searches for any articulations with the "Copy Main Symbol Vertically" option checked.
-        It automatically positions them to the right of any accidentals and changes their length so that they align
+        It automatically positions them to the left of any accidentals and changes their length so that they align
         with the top and bottom of the chord with a slight extension. (Approximately 1/4 space on either end.
         It may be longer depending on the length of the character defined for the articulation.)
 
-        If you are working with keyboard or other multi-staff instrument, the script automatically extends the top
+        If you are working with a keyboard or other multi-staff instrument, the script automatically extends the top
         articulation across any staff or staves below, provided the lower staves also have the same articulation mark.
         It then hides the lower mark(s). This behavior is limited to staves that are selected. To suppress this behavior
         and restrict positioning to single staves, hold down Shift, Option (macOS), or Alt (Windows) key when invoking
