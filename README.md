@@ -42,4 +42,4 @@ Note: not all requests to become a collaborator will be accepted. You may always
 
 ## License
 
-This project is [CC0](https://github.com/Nick-Mazuk/jw-lua-scripts/blob/master/LICENSE) licensed. Basically, do whatever you want.
+This project is [CC0](https://github.com/finale-lua/lua-scripts/blob/master/LICENSE) licensed. Basically, do whatever you want.
