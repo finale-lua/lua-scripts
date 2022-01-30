@@ -3,7 +3,7 @@
 This repository includes several pre-made Lua functions that you can use in your code. That way, you can write better scripts, faster.
 
 ```lua
--- use once at top of script file, tells JW Lua where the library modules are saved
+-- use once at top of script file, tells RGP/JW Lua where the library modules are saved
 -- These first few lines will eventually be phased out
 local path = finale.FCString()
 path:SetRunningLuaFolderPath()

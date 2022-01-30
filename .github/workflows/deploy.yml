@@ -10,17 +10,17 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout this repository
-              uses: actions/checkout@v2.3.4
+              uses: actions/checkout@v2.4.0
               with:
                   persist-credentials: false
                   fetch-depth: 0
                   path: './lua'
             - name: Checkout docs website repository
-              uses: actions/checkout@v2.3.4
+              uses: actions/checkout@v2.4.0
               with:
                   persist-credentials: false
                   fetch-depth: 0
-                  repository: Nick-Mazuk/jw-lua-scripts-docs
+                  repository: finale-lua/jw-lua-scripts-docs
                   path: './website'
                   token: ${{ secrets.NICK_PERSONAL_TOKEN }}
             - name: build scripts
@@ -46,7 +46,7 @@ jobs:
                   github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
                   directory: website
                   branch: main
-                  repository: Nick-Mazuk/jw-lua-scripts-docs
+                  repository: finale-lua/jw-lua-scripts-docs
             - name: Commit & Push docs to this repo
               uses: actions-js/push@v1.3
               with:
