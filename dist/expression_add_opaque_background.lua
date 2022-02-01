@@ -1434,20 +1434,26 @@ end
 -- find an existing enclosure to copy. Hopefully we can dispense with this hack at some point,
 -- hence it is not in the main routine.
 
-local enclosure = nil
-local text_expression_defs = finale.FCTextExpressionDefs()
-text_expression_defs:LoadAll()
-for text_expression_def in each(text_expression_defs) do
-    if text_expression_def.UseEnclosure then
-        enclosure = text_expression_def:CreateEnclosure()
-        if (nil ~= enclosure) then
-            break
+-- RGP Lua v0.60 added the ability to create FCEnclosure instances.
+
+local can_create_enclosures = finenv.MajorVersion > 0 or finenv.MinorVersion >= 60
+
+local found_enclosure = nil
+if not can_create_enclosures then
+    local text_expression_defs = finale.FCTextExpressionDefs()
+    text_expression_defs:LoadAll()
+    for text_expression_def in each(text_expression_defs) do
+        if text_expression_def.UseEnclosure then
+            found_enclosure = text_expression_def:CreateEnclosure()
+            if (nil ~= found_enclosure) then
+                break
+            end
         end
     end
-end
-if (nil == enclosure) then
-    finenv.UI():AlertNeutral("Please create or modify any text expression to have an enclosure, and then rerun this script.", "Create Enclosure Needed")
-    return
+    if (nil == found_enclosure) then
+        finenv.UI():AlertNeutral("Please create or modify any text expression to have an enclosure, and then rerun this script.", "Create Enclosure Needed")
+        return
+    end
 end
 
 function expression_add_opaque_background()
@@ -1460,6 +1466,10 @@ function expression_add_opaque_background()
                 local expression_def = finale.FCTextExpressionDef()
                 if expression_def:Load(expression_assignment.ID) then
                     if not expression_def.UseEnclosure then -- this prevents us from modifying existing enclosures
+                        local enclosure = found_enclosure
+                        if can_create_enclosures then
+                            enclosure = finale.FCEnclosure()
+                        end
                         enclosure.FixedSize = false
                         enclosure.HorizontalMargin = 0
                         enclosure.HorizontalOffset = 0
@@ -1471,8 +1481,9 @@ function expression_add_opaque_background()
                         enclosure.Shape = finale.ENCLOSURE_RECTANGLE
                         enclosure.VerticalMargin = 0
                         enclosure.VerticalOffset = 0
-                        enclosure:SaveAs(expression_def.ItemNo)
-                        expression_def:SetUseEnclosure(true)
+                        if enclosure:SaveAs(expression_def.ItemNo) then
+                            expression_def:SetUseEnclosure(true)
+                        end
                     else
                         local my_enclosure = expression_def:CreateEnclosure()
                         if (nil ~= my_enclosure) then
