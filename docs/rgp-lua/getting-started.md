@@ -79,7 +79,7 @@ The `finenv` namespace has been created to provide “programming shortcuts” t
 |finenv.IsRGPLua\*|A read-only property that always returns `true` in _RGP Lua_. In _JW Lua_ it returns `nil`, which is the syntactically the equivalent to `false` in nearly every situation.|
 |finenv.RetainLuaState\*|A read-write property that starts out as `false` in _RGP Lua_. If a script sets the value to `true` before exiting, the next time it is invoked it receives the same Lua state as before, including all global variables, require statements, etc. If there is an error, the Lua state is not retained, regardless of the setting. A script can change the value back to `false` at any time if it needs a fresh Lua state on the next invocation.|
 
-\*Items with an asterisk are available in _RGP Lua_ but not _JW Lua_.  
+\*Items with an asterisk are available in _RGP Lua_ but not _JW Lua_.
 
 
 Dialog Boxes
@@ -145,9 +145,9 @@ Please note that _JW Lua_ can handle everything in the `plugindef()` function au
 
 The `plugindef()` function is an optional function that **only** should do a _maximum_ of 2 things:
 
-* Return the _plug-in name_, _undo string_ and _brief description_ to be used in the _Finale_ plug-in menu and for automatic undo blocks.    
+* Return the _plug-in name_, _undo string_ and _brief description_ to be used in the _Finale_ plug-in menu and for automatic undo blocks.
 * Define the `finaleplugin` namespace environment to further describe the plug-in (see below).
-    
+
 
 A simple `plugindef()` implementation might look like this:
 
@@ -166,11 +166,11 @@ All aspects of the `plugindef()` are optional, but for a plug-in script that is 
 The `plugindef()` function can return a maximum of 3 return values (all of them should be strings):
 
 * The **first** return value is the _name_ of the plug-in. On Windows, the `&` character may be used before a letter to specify that letter as a mnemonic character keystroke when the script appears in Finale's plug-in menu. _(Example: “My &Plug-in” would make `p` the shortcut mnemonic key.)_
-    
+
 * The **second** return value is the _undo text_ for the plug-in. _JW Lua_ will append “ \[JW Lua\]” to the undo text when it sends the undo record to Finale. (Note: _RGP Lua_ does not do this.)
-    
+
 * The **third** return value is a _brief description text_ (for the status/message bar in _Finale_ and the _JW Lua_ user interface).
-    
+
 
 Again, all these return values are optional.
 
@@ -189,7 +189,7 @@ print() Redirection
 
 _JW Lua_ redirects the output of the standard Lua `print` function to the _JW Lua_ window, so all output from the `print` function shows up there:
 
-![JW Lua Window](imgs/jwlua_beta0_01-print.png "JW Lua Window")
+![JW Lua Window](assets/jwlua_beta0_01-print.png "JW Lua Window")
 
 _RGP Lua_ has no output window, but there are a number of ways to see output from the `print` function.
 
