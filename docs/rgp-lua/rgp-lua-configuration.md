@@ -5,7 +5,7 @@ When you select “RGP Lua...” from Finale's plugin menu, the following config
 
 ![RGP Lua Configuration](assets/rgpluaconfig.jpg "RGP Lua Configuration")
 
-**List.** A list of all scripts and Auto Folders currently configured. _RGP Lua_ adds every Lua script in each Auto Folder to Finale's plugin menu except [`mobdebug.lua`](devenv), if it happens to exist.
+**List.** A list of all scripts and Auto Folders currently configured. _RGP Lua_ adds every Lua script in each Auto Folder to Finale's plugin menu except [`mobdebug.lua`](/docs/rgp-lua/development-environment), if it happens to exist.
 
 **Add.** Opens the Add/Edit Item dialog and adds an item to the list.
 

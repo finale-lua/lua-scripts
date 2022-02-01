@@ -1,3 +1,10 @@
+RGP Lua
+=======
+
+_RGP Lua_ is an environment to run scripts written in the [Lua Programming Language](https://www.lua.org/) as plugins in the [Finale Music Notation](https://www.finalemusic.com/) program. _RGP Lua_ is free and compatible with all 64-bit versions of Finale. It is the successor to the very successful [JW Lua plugin](https://www.finaletips.nu/index.php/download/category/28-beta-version), which unfortunately ceased being updated in 2017.
+
+Writing scripts for _RGP Lua_ is as simple as setting up a [development environment](/docs/rgp-lua/development-environment) to create a script file (which is a `.lua` text file) and then configuring that file in the [RGP Lua Configuration Window](/docs/rgp-lua/rgp-lua-configuration). The rest of this page describes how to get started and applies to scripts written either for _RGP Lua_ or _JW Lua_ or both (with minor differences noted).
+
 Your First Script
 -----------------
 
@@ -5,6 +12,16 @@ Every programming reference seems to require a “Hello, world!” example, so h
 
 ```lua
 print ("Hello, world!")
+```
+
+If you want a “Hello, world!” example that shows up as a menu option in Finale's Plug-in menu, here is a slightly more complex version:
+
+```lua
+function plugindef()
+    return "Hello World", "Hello World", 'Displays a message box saying, "Hello, World!"'
+end
+
+finenv.UI():AlertInfo("Hello World, "")
 ```
 
 A Quick Start
@@ -24,7 +41,7 @@ The methods names (and as a result, the Lua properties) in the PDK Framework are
 The Lua Language
 ----------------
 
-_RGP Lua_ and _JW Lua_ are based on Lua 5.2. More information about the Lua computer language (and books about Lua) is available at the [Lua](http://www.lua.org/) home page, including [the Lua 5.2 Reference Manual](http://www.lua.org/manual/5.2/manual.html) and the [On-line version of "Programming in Lua", First Edition](http://www.lua.org/pil/) (this book covers Lua 5.0, but for Finale Lua programming purposes, it should cover what you need.)
+_RGP Lua_ and _JW Lua_ are based on Lua 5.2. More information about the Lua computer language (and books about Lua) is available at the [Lua](http://www.lua.org/) home page, including [the Lua 5.2 Reference Manual](http://www.lua.org/manual/5.2/manual.html) and the online version of ["Programming in Lua", First Edition](http://www.lua.org/pil/) (this book covers Lua 5.0, but for Finale Lua programming purposes, it should cover what you need.)
 
 Lua is case sensitive. The basic Lua syntax is very similar to other computer languages and Lua is an easy language to learn. To be able to write plug-in scripts there are just a few concepts in Lua you need to be aware of, such as:
 
@@ -37,7 +54,7 @@ Lua is case sensitive. The basic Lua syntax is very similar to other computer la
 
 However, to really take advantage of the full power of Lua, there are other very powerful tools (such as iterators, closures and coroutines) to explore.
 
-Both _RGP Lua_ and _JW Lua_ include all the standard Lua modules (`string`, `math`, `file`, etc). Additionally, _RGP Lua_ embeds [`luasocket`](https://aiq0.github.io/luasocket/index.html) if you select the **Enable Debugging** option when you configure it (or in the `plugindef` function). These modules can be used in any Finale Lua script, such as :
+Both _RGP Lua_ and _JW Lua_ include all the standard Lua modules (`string`, `math`, `file`, etc). Additionally, _RGP Lua_ embeds [`luasocket`](https://aiq0.github.io/luasocket/index.html) if you select the **Enable Debugging** option when you [configure](/docs/rgp-lua//docs/rgp-lua/rgp-lua-configuration) it (or with the `finaleplugin.LoadLuaSocket` option). These modules can be used in any Finale Lua script, such as :
 
 ```lua
 print (math.random(1, 10))
@@ -63,7 +80,7 @@ The `finenv` namespace has been created to provide “programming shortcuts” t
 |----------|---------------|
 |finenv.Region()|Returns an object with the currently selected region (in the document/part currently in editing scope), without the need for any other method calls. When running a modeless dialog in _RGP Lua_, this value is reinitialized to the current selected region every time you call the function. This could have side-effects if you have assigned it to a Lua variable, because the assigned variable will change as well.|
 |finenv.UI()|Returns the global “user interface” object (of the [`FCUI`](https://pdk.finalelua.com/class_f_c_u_i.html) class). The `FCUI` class contains Finale and system-global tasks, such as displaying alert boxes, sounding a system beep, or getting the width of the screen, etc.|
-|finenv.UserValueInput()|Not supported in _RGP Lua_. Instead, it displays an error message box and returns `nil`.|
+|finenv.UserValueInput()|**Not supported** in _RGP Lua_. Instead, it displays an error message box and returns `nil`. See comments below for how it works in _JW Lua_.|
 |finenv.StartNewUndoBlock(string, bool)|Ends the currently active Undo/Redo block in Finale (if any) and starts a new one with a new undo text. The first parameter (a Lua string) is the name of the new Undo/Redo block. The second parameter (optional, default is true) is a boolean, indicating if the edits in the previous Undo/Redo block should be stored (=true) or canceled (=false). Finale will only store Undo/Redo blocks that contain edit changes to the documents. These calls cannot be nested. If your script has set `finaleplugin.NoStore = true`, then this function has no effect and any changes to the document are rolled back.|
 |finenv.EndUndoBlock(bool)*|Ends the currently active Undo/Redo block in Finale (if any). The parameter indicates if the edits in the previous Undo/Redo block should be stored (=true) or canceled (=false). Finale will only store Undo/Redo blocks that contain edit changes to the documents. These calls cannot be nested. If your script will make further changes to the document after this call, it should call `StartNewUndoBlock()` again before making them. Otherwise, Finale's Undo stack could become corrupted.|
 |finenv.RunningLuaFilePath()\*|A function that returns a Lua string containing the full path and filename of the current running script.|
@@ -85,7 +102,7 @@ The `finenv` namespace has been created to provide “programming shortcuts” t
 Dialog Boxes
 ------------
 
-_JW Lua_ supports dialog boxes to the user through the `finenv.UserValueInput()` call. Programming of the dialog boxes is explained in full detail on [this page](http://jwmusic.nu//jwplugins/wiki/doku.php?id=jwlua:uservalueinput "jwlua:uservalueinput"). However, _RGP Lua_ does not support `UserValueInput`, and it should be considered as deprecated. Use [`FCCustomWindow`](https://pdk.finalelua.com/class_f_c_custom_window.html) or [`FCCustomLuaWindow`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html) instead.
+_JW Lua_ supports dialog boxes to the user through the `finenv.UserValueInput()` call. Programming of these dialog boxes is explained in full detail on [this page](http://jwmusic.nu//jwplugins/wiki/doku.php?id=jwlua:uservalueinput "jwlua:uservalueinput"). However, _RGP Lua_ does not support `UserValueInput`, and it should be considered as deprecated. Use [`FCCustomWindow`](https://pdk.finalelua.com/class_f_c_custom_window.html) or [`FCCustomLuaWindow`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html) instead. These work in _JW Lua_ as well.
 
 Finale Concepts
 ---------------
@@ -134,12 +151,12 @@ Collections are not compatible with Lua tables, but they can be converted to Lua
 
 A **cell** in PDK Framework termonology is a reference to a single measure on a single specific staff. The concept is used with the [`FCCell`](https://pdk.finalelua.com/class_f_c_cell.html) and [`FCNoteEntryCell`](https://pdk.finalelua.com/class_f_c_note_entry_cell.html) classes, but it affects many other classes as well. The coordinate system for cells (at object creation, for example) always is _x, y_, which in the cell concept means _measure\_number, staff\_number_.
 
-Connect to Finale/JW Lua
-------------------------
+Connect to Finale/Lua
+---------------------
 
 To fully integrate a plug-in script with _Finale_ (and _RGP Lua_ or _JW Lua_)—so it behaves like an independent plug-in—the script can describe the script through the `plugindef()` function.
 
-Please note that _JW Lua_ can handle everything in the `plugindef()` function automatically, by using the _Plug-in Def_ dialog box. With _RGP Lua_ you will need to use a text editor.
+Please note that _JW Lua_ can handle many of the items in the `plugindef()` function automatically, by using _JW Lua’s_ “Plug-in Def” dialog box. With _RGP Lua_ you will need to use a text editor or IDE.
 
 ### The 'plugindef()' function
 
@@ -178,29 +195,29 @@ Again, all these return values are optional.
 
 The `finaleplugin` namespace is a reserved and defined namespace for the `plugindef()` execution. It can both contain properties that affect how the script will run and properties that further describes the script to the outside world.
 
-Please note that since the execution of `plugindef()` is completely silent (no errors are displayed on failure), make absolute sure that all spellings are correct (including correct upper/lower case).
+Please note that since the execution of `plugindef()` is completely silent (no errors are displayed on failure), make absolutely certain that all spellings are correct (including correct upper/lower case).
 
 The `finaleplugin` properties should **only** be set in the `plugindef()` function.
 
-The properties are discussed in details on the [finaleplugin properties](finaleplugin_properties) page.
+The properties are discussed in details on the [finaleplugin properties](/docs/rgp-lua/finaleplugin-properties) page.
 
 print() Redirection
 -------------------
 
 _JW Lua_ redirects the output of the standard Lua `print` function to the _JW Lua_ window, so all output from the `print` function shows up there:
 
-![JW Lua Window](assets/jwlua_beta0_01-print.png "JW Lua Window")
+![JW Lua Window](rgp-lua/assets/jwlua_beta0_01-print.png "JW Lua Window")
 
 _RGP Lua_ has no output window, but there are a number of ways to see output from the `print` function.
 
-* Redirect it to an external debugger. See instructions for setting up a [Development Environment](devenv) for more details. (This works on both `macOS` and `Windows` and is the recommended approach with _RGP Lua_.)
+* Redirect it to an external debugger. See instructions for setting up a [Development Environment](/docs/rgp-lua/development-environment) for more details. (This works on both `macOS` and `Windows` and is the recommended approach with _RGP Lua_.)
 * Debug Finale under XCode on `macOS`. The `print` output appears in XCode's “Output” window.
 * Run Finale from a `macOS` Terminal prompt. The `print` output appears in the Terminal window.
 
-Additional JW Lua Functions
----------------------------
+Additional Finale Lua Functions
+-------------------------------
 
-_JW Lua_ adds some some functions to the global namespace that are specially designed for plug-in script programming. They are listed below:
+_RGP Lua_ and _JW Lua_ add some some functions to the global namespace that are specially designed for plug-in script programming. They are listed below:
 
 ### coll2table()
 
