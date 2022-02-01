@@ -7,6 +7,16 @@ Every programming reference seems to require a “Hello, world!” example, so h
 print ("Hello, world!")
 ```
 
+If you want a “Hello, world!” example that shows up as a menu option in Finale's Plug-in menu, here is a slightly more complex version:
+
+```lua
+function plugindef()
+    return "Hello World", "Hello World", 'Displays a message box saying, "Hello, World!"'
+end
+
+finenv.UI():AlertInfo("Hello World, "")
+```
+
 A Quick Start
 -------------
 
@@ -24,7 +34,7 @@ The methods names (and as a result, the Lua properties) in the PDK Framework are
 The Lua Language
 ----------------
 
-_RGP Lua_ and _JW Lua_ are based on Lua 5.2. More information about the Lua computer language (and books about Lua) is available at the [Lua](http://www.lua.org/) home page, including [the Lua 5.2 Reference Manual](http://www.lua.org/manual/5.2/manual.html) and the [On-line version of "Programming in Lua", First Edition](http://www.lua.org/pil/) (this book covers Lua 5.0, but for Finale Lua programming purposes, it should cover what you need.)
+_RGP Lua_ and _JW Lua_ are based on Lua 5.2. More information about the Lua computer language (and books about Lua) is available at the [Lua](http://www.lua.org/) home page, including [the Lua 5.2 Reference Manual](http://www.lua.org/manual/5.2/manual.html) and the online version of ["Programming in Lua", First Edition](http://www.lua.org/pil/) (this book covers Lua 5.0, but for Finale Lua programming purposes, it should cover what you need.)
 
 Lua is case sensitive. The basic Lua syntax is very similar to other computer languages and Lua is an easy language to learn. To be able to write plug-in scripts there are just a few concepts in Lua you need to be aware of, such as:
 
@@ -37,7 +47,7 @@ Lua is case sensitive. The basic Lua syntax is very similar to other computer la
 
 However, to really take advantage of the full power of Lua, there are other very powerful tools (such as iterators, closures and coroutines) to explore.
 
-Both _RGP Lua_ and _JW Lua_ include all the standard Lua modules (`string`, `math`, `file`, etc). Additionally, _RGP Lua_ embeds [`luasocket`](https://aiq0.github.io/luasocket/index.html) if you select the **Enable Debugging** option when you configure it (or in the `plugindef` function). These modules can be used in any Finale Lua script, such as :
+Both _RGP Lua_ and _JW Lua_ include all the standard Lua modules (`string`, `math`, `file`, etc). Additionally, _RGP Lua_ embeds [`luasocket`](https://aiq0.github.io/luasocket/index.html) if you select the **Enable Debugging** option when you [configure](/docs/rgp-lua/rgp-lua-configuration) it (or with the `finaleplugin.LoadLuaSocket` option). These modules can be used in any Finale Lua script, such as :
 
 ```lua
 print (math.random(1, 10))
@@ -182,7 +192,7 @@ Please note that since the execution of `plugindef()` is completely silent (no e
 
 The `finaleplugin` properties should **only** be set in the `plugindef()` function.
 
-The properties are discussed in details on the [finaleplugin properties](finaleplugin_properties) page.
+The properties are discussed in details on the [finaleplugin properties](/docs/rgp-lua/finaleplugin_properties) page.
 
 print() Redirection
 -------------------
@@ -193,14 +203,14 @@ _JW Lua_ redirects the output of the standard Lua `print` function to the _JW Lu
 
 _RGP Lua_ has no output window, but there are a number of ways to see output from the `print` function.
 
-* Redirect it to an external debugger. See instructions for setting up a [Development Environment](devenv) for more details. (This works on both `macOS` and `Windows` and is the recommended approach with _RGP Lua_.)
+* Redirect it to an external debugger. See instructions for setting up a [Development Environment](/docs/rgp-lua/development_environment) for more details. (This works on both `macOS` and `Windows` and is the recommended approach with _RGP Lua_.)
 * Debug Finale under XCode on `macOS`. The `print` output appears in XCode's “Output” window.
 * Run Finale from a `macOS` Terminal prompt. The `print` output appears in the Terminal window.
 
-Additional JW Lua Functions
----------------------------
+Additional Finale Lua Functions
+-------------------------------
 
-_JW Lua_ adds some some functions to the global namespace that are specially designed for plug-in script programming. They are listed below:
+_RGP Lua_ and _JW Lua_ add some some functions to the global namespace that are specially designed for plug-in script programming. They are listed below:
 
 ### coll2table()
 
