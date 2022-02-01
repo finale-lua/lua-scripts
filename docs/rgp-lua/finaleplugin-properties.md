@@ -53,7 +53,7 @@ Default is `false`.
 
 #### LoadAsString\* (boolean)
 
-Setting this value to `true` tells _RGP Lua_ to load the script into an internal string and then send it to Lua. One reason to do this might be if the script file contains an embedded `NULL` character. This option would cause the Lua interpreter to stop at the `NULL`. It overrides the **Load As String** setting in the [configuration dialog](rgpluaconfig).
+Setting this value to `true` tells _RGP Lua_ to load the script into an internal string and then send it to Lua. One reason to do this might be if the script file contains an embedded `NULL` character. This option would cause the Lua interpreter to stop at the `NULL`. It overrides the **Load As String** setting in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration).
 
 ```lua
 finaleplugin.LoadAsString = true
@@ -62,7 +62,7 @@ Default is the script's “Load As String” setting in the _RGP Lua_ configurat
 
 #### LoadLuaSocket\* (boolean)
 
-Setting this value to `true` tells _RGP Lua_ to load `luasocket` into global variable `socket`, even if **Enable Debugging** is not selected in the [configuration dialog](rgpluaconfig). If debugging *is* enabled, this value is ignored and `luasocket` is loaded. Example:
+Setting this value to `true` tells _RGP Lua_ to load `luasocket` into global variable `socket`, even if **Enable Debugging** is not selected in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration). If debugging *is* enabled, this value is ignored and `luasocket` is loaded. Example:
 
 ```lua
 finaleplugin.LoadLuaSocket = true

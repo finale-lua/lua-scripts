@@ -47,7 +47,7 @@ Lua is case sensitive. The basic Lua syntax is very similar to other computer la
 
 However, to really take advantage of the full power of Lua, there are other very powerful tools (such as iterators, closures and coroutines) to explore.
 
-Both _RGP Lua_ and _JW Lua_ include all the standard Lua modules (`string`, `math`, `file`, etc). Additionally, _RGP Lua_ embeds [`luasocket`](https://aiq0.github.io/luasocket/index.html) if you select the **Enable Debugging** option when you [configure](/docs/rgp-lua/rgp-lua-configuration) it (or with the `finaleplugin.LoadLuaSocket` option). These modules can be used in any Finale Lua script, such as :
+Both _RGP Lua_ and _JW Lua_ include all the standard Lua modules (`string`, `math`, `file`, etc). Additionally, _RGP Lua_ embeds [`luasocket`](https://aiq0.github.io/luasocket/index.html) if you select the **Enable Debugging** option when you [configure](/docs/rgp-lua//docs/rgp-lua/rgp-lua-configuration) it (or with the `finaleplugin.LoadLuaSocket` option). These modules can be used in any Finale Lua script, such as :
 
 ```lua
 print (math.random(1, 10))
@@ -192,7 +192,7 @@ Please note that since the execution of `plugindef()` is completely silent (no e
 
 The `finaleplugin` properties should **only** be set in the `plugindef()` function.
 
-The properties are discussed in details on the [finaleplugin properties](/docs/rgp-lua/finaleplugin_properties) page.
+The properties are discussed in details on the [finaleplugin properties](/docs/rgp-lua/finaleplugin-properties) page.
 
 print() Redirection
 -------------------
@@ -203,7 +203,7 @@ _JW Lua_ redirects the output of the standard Lua `print` function to the _JW Lu
 
 _RGP Lua_ has no output window, but there are a number of ways to see output from the `print` function.
 
-* Redirect it to an external debugger. See instructions for setting up a [Development Environment](/docs/rgp-lua/development_environment) for more details. (This works on both `macOS` and `Windows` and is the recommended approach with _RGP Lua_.)
+* Redirect it to an external debugger. See instructions for setting up a [Development Environment](/docs/rgp-lua/development-environment) for more details. (This works on both `macOS` and `Windows` and is the recommended approach with _RGP Lua_.)
 * Debug Finale under XCode on `macOS`. The `print` output appears in XCode's “Output” window.
 * Run Finale from a `macOS` Terminal prompt. The `print` output appears in the Terminal window.
 

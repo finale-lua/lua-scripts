@@ -1,7 +1,7 @@
 RGP Lua Development Environment
 ===============================
 
-_RGP Lua_ is compatible with any external text editor or IDE. The only requirement is that the script you are developing has to have been configured in the [RGP Lua Configuration Window](rgpluaconfig) and be visible in Finale's plugin window. This can be done before you have actually added any code to the script.
+_RGP Lua_ is compatible with any external text editor or IDE. The only requirement is that the script you are developing has to have been configured in the [RGP Lua Configuration Window](/docs/rgp-lua/rgp-lua-configuration) and be visible in Finale's plugin window. This can be done before you have actually added any code to the script.
 
 Two common development environments for Lua are [Visual Studio Code](https://code.visualstudio.com/) and [ZeroBrane Studio](https://studio.zerobrane.com/). Both have their advantages and drawbacks, and both were useful in the development of _RGP Lua_. Each have extensive documentation pages that need not be replicated here. These instructions focus on setting up debugging in ZeroBrane Studio because it is very easy to set up and use.
 
