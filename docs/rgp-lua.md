@@ -18,10 +18,10 @@ If you want a “Hello, world!” example that shows up as a menu option in Fina
 
 ```lua
 function plugindef()
-    return "Hello World", "Hello World", 'Displays a message box saying, "Hello, World!"'
+    return "Hello World", "Hello World", 'Displays a message box saying, "Hello, world!"'
 end
 
-finenv.UI():AlertInfo("Hello World, "")
+finenv.UI():AlertInfo("Hello, world!", "")
 ```
 
 A Quick Start
