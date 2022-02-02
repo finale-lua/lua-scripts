@@ -7,15 +7,29 @@ When you select “RGP Lua...” from Finale's plugin menu, the following config
 
 **List.** A list of all scripts and Auto Folders currently configured. _RGP Lua_ adds every Lua script in each Auto Folder to Finale's plugin menu except [`mobdebug.lua`](/docs/rgp-lua/development-environment), if it happens to exist.
 
-**Add.** Opens the Add/Edit Item dialog and adds an item to the list.
+**Add.** Opens the [Add/Edit Item Dialog](#AddEditDialog) and adds an item to the list.
 
-**Edit.** Opens the Add/Edit Item dialog to edit the currently selected item in the list.
+**Edit.** Opens the [Add/Edit Item Dialog](#AddEditDialog) to edit the currently selected item in the list.
 
 **Delete.** Deletes the currently selected item.
 
+**System Prefix.** Opens the [System Prefix Dialog](#SystemPrefix).
+
+**Download Scripts.** Opens the [Finale Lua](https://www.finalelua.com/) website which allows you to download scripts that can then be added to the configuration list.
+
 List items are stored in an xml file called `com.robertgpatterson.RGPPluginSettings.xml` in the user's preferences folder. This is `~/Library/Preferences` (macOS) or `C:\Users\<username>\AppData\Roaming` (Windows).
 
-**Add/Edit Dialog**
+<a id="SystemPrefix"></a>System Prefix Dialog
+---------------------------------------------
+
+![System Prefix Dialog](assets/system_prefix.jpg "System Prefix Dialog")
+
+This is a multi-line text field that allows you to enter Lua code to be executed before any script or script prefix. One common use case might be to change `package.path` to include a directory for common libraries. There is no error checking, so be certain this code compiles correctly.
+
+Note that _RGP Lua_ automatically adds the current running script path to both `package.path` and `package.cpath`. That is not necessary here.
+
+<a id="AddEditDialog"></a>Add/Edit Dialog
+----------------------------------------
 
 ![Add/Edit Item Dialog](assets/additem.jpg "Add/Edit Item Dialog")
 
