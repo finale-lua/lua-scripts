@@ -6,18 +6,33 @@ function plugindef()
     finaleplugin.Date = "December 26, 2021"
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.MinJWLuaVersion = 0.59
+    finaleplugin.Notes = [[
+        How to use this script:
+
+        1. Manually apply rolled-chord articulations to the chords that need them (without worrying about how they look).
+        2. Select the region you want to change.
+        3. Run the script.
+
+        The script searches for any articulations with the "Copy Main Symbol Vertically" option checked.
+        It automatically positions them to the left of any accidentals and changes their length so that they align
+        with the top and bottom of the chord with a slight extension. (Approximately 1/4 space on either end.
+        It may be longer depending on the length of the character defined for the articulation.)
+
+        If you are working with a keyboard or other multi-staff instrument, the script automatically extends the top
+        articulation across any staff or staves below, provided the lower staves also have the same articulation mark.
+        It then hides the lower mark(s). This behavior is limited to staves that are selected. To suppress this behavior
+        and restrict positioning to single staves, hold down Shift, Option (macOS), or Alt (Windows) key when invoking
+        the script.
+
+        This script requires RGP Lua 0.59 or later.
+    ]]
     return "Autoposition Rolled Chord Articulations", "Autoposition Rolled Chord Articulations",
-            "Creates rolled chords across multiple staves unless shift or option(alt) key is pressed when selecting menu item."
+            'Automatically positions rolled chords and other articulations with "Copy Main Symbol Vertically" set.'
 end
 
--- This script requires the VerticalCopyToPos property on FCArticulation, which was added in v0.59 of RGP Lua
+-- This script requires the VerticalCopyToPos property on FCArticulation, which was added in v0.59 of RGP Lua.
 -- Therefore, it is marked not to load in any earlier version.
 
---require('mobdebug').start()
-
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Note Entry
 ]]
@@ -872,30 +887,39 @@ if finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedM
     config.extend_across_staves = false
 end
 
-function calc_top_bot_page_pos(search_region)
+function calc_top_bot_page_pos(search_region, artic_id)
     local success = false
     local top_page_pos = -math.huge
     local bot_page_pos = math.huge
     local left_page_pos = math.huge
     for entry in eachentry(search_region) do
-        if entry:IsRest() then
-            break
-        end
-        local em = finale.FCEntryMetrics()
-        if em:Load(entry) then
-            success = true
-            local this_top = note_entry.get_top_note_position(entry,em)
-            if this_top > top_page_pos then
-                top_page_pos = this_top
+        if not entry:IsRest() then
+            local artics = entry:CreateArticulations()
+            local got1 = false
+            for artic in each(artics) do
+                if artic.ID == artic_id then
+                    got1 = true
+                    break
+                end
             end
-            local this_bottom = note_entry.get_bottom_note_position(entry,em)
-            if this_bottom < bot_page_pos then
-                bot_page_pos = this_bottom
+            if got1 then
+                local em = finale.FCEntryMetrics()
+                if em:Load(entry) then
+                    success = true
+                    local this_top = note_entry.get_top_note_position(entry,em)
+                    if this_top > top_page_pos then
+                        top_page_pos = this_top
+                    end
+                    local this_bottom = note_entry.get_bottom_note_position(entry,em)
+                    if this_bottom < bot_page_pos then
+                        bot_page_pos = this_bottom
+                    end
+                    if em.FirstAccidentalPosition < left_page_pos then
+                        left_page_pos = em.FirstAccidentalPosition
+                    end
+                    em:FreeMetrics()
+                end
             end
-            if em.FirstAccidentalPosition < left_page_pos then
-                left_page_pos = em.FirstAccidentalPosition
-            end
-            em:FreeMetrics()
         end
     end
     return success, top_page_pos, bot_page_pos, left_page_pos
@@ -921,7 +945,7 @@ function articulation_autoposition_rolled_chords()
                     local metric_pos = finale.FCPoint(0, 0)
                     local mm = finale.FCCellMetrics()
                     if artic.Visible and artic:CalcMetricPos(metric_pos) and mm:LoadAtEntry(entry) then
-                        local success, top_page_pos, bottom_page_pos, left_page_pos = calc_top_bot_page_pos(search_region)
+                        local success, top_page_pos, bottom_page_pos, left_page_pos = calc_top_bot_page_pos(search_region, artic.ID)
                         local this_bottom = note_entry.get_bottom_note_position(entry)
                         staff_scale = mm.StaffScaling / 10000
                         top_page_pos = top_page_pos / staff_scale
