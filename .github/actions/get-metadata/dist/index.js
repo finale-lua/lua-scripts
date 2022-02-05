@@ -25831,12 +25831,14 @@ const getBooleanData = (line, luaName) => {
 const parseFile = (file, fileName) => {
     let metadata = deepClone(defaultMetadata);
     metadata.fileName = fileName;
-    const lines = file.split('\n').map((line) => line.trim());
+    const lines = file.split('\n').map((line) => line.trimStart());
     let isInReturn = false;
     let isInPluginDef = false;
     let currentMultilineItem = undefined;
     let currentMultilineContents = [];
-    for (const line of lines) {
+    for (let line of lines) {
+        if (currentMultilineItem !== 'notes')
+            line = line.trimEnd();
         if (!isInPluginDef) {
             if (line.startsWith('function plugindef()'))
                 isInPluginDef = true;
