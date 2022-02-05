@@ -110,12 +110,13 @@ const getBooleanData = (line: string, luaName: string): boolean => {
 export const parseFile = (file: string, fileName: string): Metadata => {
     let metadata = deepClone(defaultMetadata)
     metadata.fileName = fileName
-    const lines = file.split('\n').map((line) => line.trim())
+    const lines = file.split('\n').map((line) => line.trimStart())
     let isInReturn = false
     let isInPluginDef = false
     let currentMultilineItem: (keyof Metadata) | undefined = undefined
     let currentMultilineContents: string[] = []
-    for (const line of lines) {
+    for (let line of lines) {
+        if (currentMultilineItem !== 'notes') line = line.trimEnd()
         if (!isInPluginDef) {
             if (line.startsWith('function plugindef()')) isInPluginDef = true
         } else if (typeof currentMultilineItem !== 'undefined') {
@@ -162,4 +163,4 @@ export const parseFile = (file: string, fileName: string): Metadata => {
     }
     return metadata
 }
-import { format } from 'date-fns';
+import { format } from 'date-fns'

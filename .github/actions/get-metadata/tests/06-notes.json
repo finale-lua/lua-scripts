@@ -15,7 +15,7 @@
     "version": "",
     "categories": [],
     "date": "",
-    "notes": "This is a test note.\nThis is a second line.\nAnd this is a third line.",
+    "notes": "This is a test note.\nThis is a second line.\nAnd this is a third line.\n\nNew paragraph.\n\nParagraph with a  \nline break in the middle. Note the two spaces before the line break.",
     "revisionNotes": [],
     "id": ""
 }
