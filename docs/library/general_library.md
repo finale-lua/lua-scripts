@@ -15,6 +15,7 @@
 - [get_page_format_prefs](#get_page_format_prefs)
 - [get_smufl_metadata_file](#get_smufl_metadata_file)
 - [is_font_smufl_font](#is_font_smufl_font)
+- [simple_input](#simple_input)
 
 ## finale_version
 
@@ -243,3 +244,17 @@ library.is_font_smufl_font(font_info)
 | Output type | Description |
 | --- | --- |
 | `boolean` |  |
+
+## simple_input
+
+```lua
+library.simple_input(title, text)
+```
+
+Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `title` (optional) | `string` | the title of the input dialog box |
+| `text` (optional) | `string` | descriptive text above the edit field |
+: string
