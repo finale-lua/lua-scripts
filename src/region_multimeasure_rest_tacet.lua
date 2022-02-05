@@ -9,15 +9,17 @@ function plugindef()
    finaleplugin.Notes = [[
    This script takes a region and creates a multimeasure rest with the text 'TACET'
    above as an expression. The font settings for the expression are taken from the 'Tempo' category.
-   If the region includes the last measure of the file but NOT the first measure, it will instead 
+   If the region includes the last measure of the file but NOT the first measure, it will instead
    create an expression that says 'tacet al fine'.
-   
-   If you are using RGP Lua 0.6 or above, you can override the default text settings by including 
-   appropriate values for 'tacet_text' and/or 'al_fine_text' in the optional field in the RGP Lua 
+
+   If you are using RGP Lua 0.6 or above, you can override the default text settings by including
+   appropriate values for `tacet_text` and/or `al_fine_text` in the optional field in the RGP Lua
    configuration dialog. The default values are:
-   
+
+   ```
    tacet_text = "TACET"
    al_fine_text = "tacet al fine"
+   ```
    ]]
    return "TACET", "Create Tacet", "Creates a mm-rest and TACET expression"
 end
@@ -66,15 +68,15 @@ function tacet_mm()
 
     -- Delete all old mm rests from the region
     -- (In this case, it's safe to delete from the start, since no relocation of data records takes place.)
-    
+
     local mm_rests = finale.FCMultiMeasureRests()
     mm_rests:LoadAll()
     for mm in each (mm_rests) do
-        if region:IsMeasureIncluded(mm.StartMeasure) or region:IsMeasureIncluded(mm.EndMeasure) then        
+        if region:IsMeasureIncluded(mm.StartMeasure) or region:IsMeasureIncluded(mm.EndMeasure) then
             mm:DeleteData()
         end -- if
     end -- for
- 
+
     local mm = finale.FCMultiMeasureRest()
     mm.StartMeasure = region.StartMeasure
     mm.EndMeasure = region.EndMeasure
@@ -116,7 +118,7 @@ function tacet_expr(al_fine_check)
             tacet_cat = cat
         end -- if
     end -- for cat
-    
+
     local text_expression_definitions = finale.FCTextExpressionDefs()
     text_expression_definitions:LoadAll()
     local tacet_ted = 0
@@ -168,7 +170,7 @@ function tacet_expr(al_fine_check)
 
         ex_ted:SaveNew()
         tacet_ted = ex_ted.ItemNo
-        print ("New TACET created at",tacet_ted) 
+        print ("New TACET created at",tacet_ted)
     end -- if tacet_ted == 0
 
 -- Test to see if mark is there already...
@@ -194,7 +196,7 @@ function tacet_expr(al_fine_check)
                region:SetStartStaff(sys.Staff)
                 first_staff = 0
             end -- end "if first_staff == 1"
-        end -- end "for sys..." 
+        end -- end "for sys..."
 --
         local system_staff = finale.FCSystemStaff()
         local measure_num = region.StartMeasure
@@ -207,7 +209,7 @@ function tacet_expr(al_fine_check)
         local and_cell = finale.FCCell(measure_num, staff_num)
         add_expression:SaveNewToCell(and_cell)
     end -- if tacet_assigned...
-end -- end function tacet_expr() 
+end -- end function tacet_expr()
 
 ----
 tacet_mm()
