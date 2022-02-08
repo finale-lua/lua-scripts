@@ -394,7 +394,7 @@ Tips
 
 ```lua
 function print_property(obj, property_name)
-    print(tostring(obj[property_name])
+    print(tostring(obj[property_name]))
 end
 
 print_property(mymeasure, "Width")
