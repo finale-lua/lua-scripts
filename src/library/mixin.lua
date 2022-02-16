@@ -2,6 +2,8 @@
 $module Fluid Mixins
 ]]
 
+local utils = require("library.utils")
+
 -- For compatibility with Lua <= 5.1
 local unpack = unpack or table.unpack
 
@@ -19,10 +21,6 @@ Object Method: Checks if the object it is called on has a mixin applied.
 : (boolean)
 ]]
     has_mixin = function(t, mixin_list, _, name)
-        if name == 'global' then
-            return global_mixins[mixin.get_class_name(t)] and true or false
-        end
-
         return mixin_list[name] and true or false
     end,
 
@@ -53,24 +51,27 @@ Object Method: Applies a mixin to the object it is called on.
     end,
 }
 
--- Recursively copies a table, or just returns the value if not a table
-local function copy_table(t)
-    if type(t) == 'table' then
-        local new = {}
-        for k, v in pairs(t) do
-            new[copy_table(k)] = copy_table(v)
+-- Loads a global mixin, if it hasn't been loaded yet
+local function load_global_mixin(class_name)
+    if type(global_mixins[class_name]) ~= 'nil' then return end
+
+    success, result = pcall(function(c) return require(c) end, 'mixins.global.' .. class_name)
+
+    if not success then
+        -- If the reason it failed to load was anything other than module not found, display the error
+        if not result:match("module '[^']-' not found") then
+            error(result, 0)
         end
-        setmetatable(new, copy_table(getmetatable(t)))
-        return new
-    else
-        return t
+
+        -- Keep track of failed attempts to prevent calling require more than once per class
+        global_mixins[class_name] = false
     end
 end
 
 -- Catches an error and throws it at the specified level (relative to where this function was called)
 -- First argument is called tryfunczzz for uniqueness
 local function catch_and_rethrow(tryfunczzz, func_name, levels, ...)
-    -- If the line above moves from line #74, update this comment and the if statement below
+    -- IMPORTANT: If the line above moves from line #73, update this comment and the if statement below
     local success, result = pcall(function(...) return {tryfunczzz(...)} end, ...)
 
     if not success then
@@ -80,7 +81,7 @@ local function catch_and_rethrow(tryfunczzz, func_name, levels, ...)
         -- Conditions for rethrowing at a higher level:
         -- Ignore errors thrown with no level info (ie. level = 0), as we can't make any assumptions
         -- Both the file and line number indicate that it was thrown at this level
-        if file and line and file:sub(-9) == 'mixin.lua' and line == '74' then
+        if file and line and file:sub(-9) == 'mixin.lua' and line == '73' then
 
             -- Replace the method name with the correct one, for bad argument errors etc
             if func_name then
@@ -97,6 +98,33 @@ local function catch_and_rethrow(tryfunczzz, func_name, levels, ...)
     end
 
     return unpack(result)
+end
+
+-- Returns the name of the parent class
+-- This function should only be called for classnames that start with "FC" or "__FC"
+local get_parent_class = function(classname)
+    local class = _G.finale[classname]
+    if type(class) ~= "table" then return nil end
+    if not finenv.IsRGPLua then -- old jw lua
+        classt = class.__class
+        if classt and classname ~= "__FCBase" then
+            classtp = classt.__parent -- this line crashes Finale (in jw lua 0.54) if "__parent" doesn't exist, so we excluded "__FCBase" above, the only class without a parent
+            if classtp and type(classtp) == "table" then
+                for k, v in pairs(_G.finale) do
+                    if type(v) == "table" then
+                        if v.__class and v.__class == classtp then
+                            return tostring(k)
+                        end
+                    end
+                end
+            end
+        end
+    else
+        for k, _ in pairs(class.__parent) do
+            return tostring(k)  -- in RGP Lua the v is just a dummy value, and the key is the classname of the parent
+        end
+    end
+    return nil
 end
 
 -- Gets the real class name of a Finale object
@@ -152,28 +180,51 @@ function mixin.apply_mixin_foundation(object)
         local prop
         local real_k = k
 
-        if base_mixins[k] then
+        -- First, check if it's one of the base mixin methods (these can't be overridden)
+        if base_mixins[k] ~= nil then
             if type(base_mixins[k]) == 'function' then
                 -- This will couple the method to the current instance but this shouldn't be an issue
                 -- because calls to foo.has_mixin(bar, 'baz_mix') instead of bar:has_mixin('baz_mix') shouldn't be happening...
                 prop = function(_, ...) return base_mixins[k](t, mixin_list, mixin_props, ...) end
             else
-                prop = copy_table(base_mixins[k])
+                prop = utils.copy_table(base_mixins[k])
             end
-        elseif mixin_props[k] then
-            prop = mixin_props[k]
-        elseif global_mixins[class_name] and global_mixins[class_name][k] then
-            -- Only copy over properties, not methods.
-            if type(global_mixins[k]) == 'function' then
-                prop = global_mixins[class_name][k]
-            else
-                mixin_props[k] = copy_table(global_mixins[class_name][k])
-                prop = mixin_props[k]
-            end
-        else
-            -- Strip trailing underscore if there is one
-            if type(k) == 'string' and k:sub(-1) == '_' then real_k = k:sub(1, -2) end
+
+        -- If there's a trailing underscore in the key, then return the original property, whether it exists or not
+        elseif type(k) == 'string' and k:sub(-1) == '_' then
+            -- Strip trailing underscore
+            real_k = k:sub(1, -2)
             prop = original_index(t, real_k)
+
+        -- Check if it's a mixin that's been directly applied
+        elseif mixin_props[k] ~= nil then
+            prop = mixin_props[k]
+
+        -- Otherwise, assume we're looking for a global mixin
+        else
+            -- Try and find the mixin somewhere in the inheritance tree
+            local parent = class_name
+            while parent do
+                load_global_mixin(parent)
+                if global_mixins[parent] and global_mixins[parent][k] ~= nil then
+                    -- Only copy over tables, in order to make them writable.
+                    if type(global_mixins[parent][k]) == 'table' then
+                        mixin_props[k] = utils.copy_table(global_mixins[parent][k])
+                        prop = mixin_props[k]
+                    else
+                        prop = global_mixins[parent][k]
+                    end
+
+                    break
+                end
+
+                parent = get_parent_class(parent)
+            end
+
+            -- As a last resort, use original property, whether it exists or not
+            if not parent then
+                prop = original_index(t, real_k)
+            end
         end
 
        if type(prop) == 'function' then
@@ -244,7 +295,7 @@ function mixin.register_global_mixin(class, prop, value)
         for p, v in pairs(prop) do
             if type(p) == 'string' and p:sub(-1) ~= '_' then
                 global_mixins[c] = global_mixins[c] or {}
-                global_mixins[c][p] = copy_table(v)
+                global_mixins[c][p] = utils.copy_table(v)
             end
         end
     end
@@ -267,7 +318,7 @@ function mixin.register_mixin(class, mixin_name, prop, value)
 
     for _, n in ipairs(mixin_name) do
         if n == 'global' then
-            error('A mixin cannot be named \'global\'.',  2)
+            error('A mixin cannot be named \'global\'.', 2)
         end
 
         for _, c in ipairs(class) do
@@ -280,7 +331,7 @@ function mixin.register_mixin(class, mixin_name, prop, value)
             end
 
             for p, v in pairs(prop) do
-                if type(p) == 'string' and p:sub(-1) ~= '_' then named_mixins[c][n][p] = copy_table(v) end
+                if type(p) == 'string' and p:sub(-1) ~= '_' then named_mixins[c][n][p] = utils.copy_table(v) end
             end
         end
     end
@@ -295,7 +346,9 @@ Library Method: Returns a copy of all methods and properties of a global mixin.
 : (table|nil)
 ]]
 function mixin.get_global_mixin(class)
-    return global_mixins[class] and copy_table(global_mixins[class]) or nil
+    load_global_mixin(class)
+
+    return global_mixins[class] and utils.copy_table(global_mixins[class]) or nil
 end
 
 --[[
@@ -308,27 +361,27 @@ Library Method: Retrieves a copy of all the methods and properties of mixin.
 : (table|nil)
 ]]
 function mixin.get_mixin(class, mixin_name)
-    return named_mixins[class] and named_mixins[class][mixin_name] and copy_table(named_mixins[class][mixin_name]) or nil
+    return named_mixins[class] and named_mixins[class][mixin_name] and utils.copy_table(named_mixins[class][mixin_name]) or nil
 end
 
--- Keep a copy of the original finale namespace
-local original_finale = finale
+-- Keep a copy of the original finale namespace. Available globally, if needed for performance reasons.
+finale_ = finale
 
 -- Turn the finale namespace into a proxy
 finale = setmetatable({}, {
     __newindex = function(t, k, v) end,
     __index = function(t, k)
         if (type(k) == 'string' and k:sub(-1) == '_') then
-            return original_finale[k:sub(1, -2)]
+            return finale_[k:sub(1, -2)]
         end
 
-        local val = original_finale[k]
+        local val = finale_[k]
 
         if type(val) == 'table' then
             return setmetatable({}, {
-                __index = function(t, k) return original_finale[k] end,
+                __index = function(t, k) return finale_[k] end,
                 __call = function(...)
-                    return mixin.apply_mixin_foundation(original_finale[k](...))
+                    return mixin.apply_mixin_foundation(finale_[k](...))
                 end
             })
         end
