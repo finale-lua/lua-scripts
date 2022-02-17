@@ -10,9 +10,6 @@ function plugindef()
            "Takes a sounding pitch, then creates the artificial harmonic that would produce that pitch"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Articulation
 ]]

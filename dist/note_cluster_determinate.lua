@@ -8,9 +8,6 @@ function plugindef()
     return "Cluster - Determinate", "Cluster - Determinate", "Creates a determinate cluster."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Note Entry
 ]]

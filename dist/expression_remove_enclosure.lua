@@ -10,9 +10,6 @@ function plugindef()
     return "Expression Remove Enclosure", "Expression Remove Enclosure", "Removes any enclosure on any single-staff text expression in the currently selected region."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Library
 ]]

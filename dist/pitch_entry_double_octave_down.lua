@@ -9,9 +9,6 @@ function plugindef()
     return "Octave Doubling Down", "Octave Doubling Down", "Doubles the current note an octave lower"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Transposition
 

@@ -7,9 +7,6 @@ function plugindef()
     return "Measure Numbers Move Up", "Measure Numbers Move Up", "Moves selected measure numbers up by one staff space."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Library
 ]]

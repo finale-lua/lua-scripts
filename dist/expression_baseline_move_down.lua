@@ -10,9 +10,6 @@ function plugindef()
            "Moves the selected expression above baseline down one space"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 -- A measurement of helpful JW Lua scripts
 -- Simply import this file to another Lua script to use any of these scripts
 local measurement = {}

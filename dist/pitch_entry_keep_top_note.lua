@@ -10,9 +10,6 @@ function plugindef()
            "Keeps the top note of every chord and deletes the rest"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Note Entry
 ]]

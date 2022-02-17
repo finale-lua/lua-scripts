@@ -14,9 +14,6 @@ end
 -- non-first systems. This script gets those values out of Page Format For Score or Page Format For Parts,
 -- depending on whether we are currently viewing score or part.
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Library
 ]]

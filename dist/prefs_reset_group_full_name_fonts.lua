@@ -10,9 +10,6 @@ function plugindef()
            "Reset all full group names to document's default font settings."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Library
 ]]

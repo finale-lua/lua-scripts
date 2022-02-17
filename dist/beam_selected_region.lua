@@ -10,9 +10,6 @@ function plugindef()
     return "Beam Selected Region", "Beam Selected Region", "Beam Selected Region"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Note Entry
 ]]

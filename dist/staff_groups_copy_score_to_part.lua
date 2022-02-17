@@ -10,9 +10,6 @@ function plugindef()
            "Copies any applicable groups from the score to the current part in view."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Library
 ]]
