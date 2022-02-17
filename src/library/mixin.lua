@@ -75,6 +75,8 @@ There are other ways in which this could be used including:
 - Where possible, allow methods to accept Lua types (e.g., `string` instead of `FCString`, array of strings instead of `FCStrings`, etc.)
 - Add additional high level functionality. (I have written some of these for dialogs, which was especially useful in reducing boilerplating.)
 - In the absence of the ability to inherit from `FC*` objects, named mixins can be used to create subclasses.
+
+Functions available in the mixin library are:
 ]]
 
 local utils = require("library.utils")
