@@ -10,9 +10,6 @@ function plugindef()
     return "Expression Set To Parts Only", "Expression Set To Parts Only", "Set any single-staff text expression in the currenly selected region to Parts Only assignment."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library.general_library")
 local expression = require("library.expression")
 

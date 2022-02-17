@@ -9,9 +9,6 @@ function plugindef()
     return "Reset Lyrics Fonts", "Reset Lyrics Fonts", "Reset lyrics to document\'s default font settings."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local enigma_string = require("library.enigma_string")
 
 -- lyrics_block: pass in one of finale.FCVerseLyricsText(), finale.FCChorusLyricsText(), finale.FCSectionLyricsText()

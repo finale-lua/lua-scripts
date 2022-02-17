@@ -7,9 +7,6 @@ function plugindef()
     return "Measure Numbers Reset Vertical", "Measure Numbers Reset Vertical", "Reset vertical position to default for selected measure numbers."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library.general_library")
 
 function measure_numbers_reset_vertical()

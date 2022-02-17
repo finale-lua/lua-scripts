@@ -7,9 +7,6 @@ function plugindef()
     return "Hairpin and Dynamic Adjustments", "Hairpin and Dynamic Adjustments", "Adjusts hairpins to remove collisions with dynamics and aligns hairpins with dynamics."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local expression = require("library.expression")
 local note_entry = require("library.note_entry")
 local configuration = require("library.configuration")
@@ -67,7 +64,7 @@ end
 function smartshape_calc_relative_vertical_position(fcsmartshape)
     local arg_point = finale.FCPoint(0, 0)
     -- due to a limitation in Finale, CalcRightCellMetricPos is not reliable, so only check CalcLeftCellMetricPos
-    if not fcsmartshape:CalcLeftCellMetricPos(arg_point) then 
+    if not fcsmartshape:CalcLeftCellMetricPos(arg_point) then
         return false, 0
     end
     local ss_seg = fcsmartshape:GetTerminateSegmentLeft()
@@ -105,14 +102,14 @@ function vertical_dynamic_adjustment(region, direction)
         if smart_shape:IsHairpin() then
             has_hairpins = true
             local success, staff_offset = smartshape_calc_relative_vertical_position(smart_shape)
-            if success then 
+            if success then
                 table.insert(lowest_item, staff_offset - config.vertical_displacement_for_hairpins)
             end
         end
     end
 
     table.sort(lowest_item)
- 
+
     if has_dynamics then
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(region)
@@ -170,7 +167,7 @@ function vertical_dynamic_adjustment(region, direction)
             local smart_shape = mark:CreateSmartShape()
             if smart_shape:IsHairpin() then
                 local success, staff_offset = smartshape_calc_relative_vertical_position(smart_shape)
-                if success then 
+                if success then
                     local left_seg = smart_shape:GetTerminateSegmentLeft()
                     local right_seg = smart_shape:GetTerminateSegmentRight()
                     local current_pos = left_seg:GetEndpointOffsetY()
@@ -299,7 +296,7 @@ function hairpin_adjustments(range_settings)
     end
 
     function has_dynamic(region)
-        
+
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(region)
         local expression_list = {}
@@ -401,19 +398,19 @@ function set_first_last_note_in_range(staff)
     end
 
     if #notes_in_region > 0 then
-        
+
         local start_pos = notes_in_region[1]:GetMeasurePos()
-        
-        local end_pos = notes_in_region[#notes_in_region]:GetMeasurePos() 
+
+        local end_pos = notes_in_region[#notes_in_region]:GetMeasurePos()
 
         local start_measure = notes_in_region[1]:GetMeasure()
 
         local end_measure = notes_in_region[#notes_in_region]:GetMeasure()
-        
+
         if notes_in_region[#notes_in_region]:GetDuration() >= 2048 then
-            end_pos = end_pos + notes_in_region[#notes_in_region]:GetDuration() 
+            end_pos = end_pos + notes_in_region[#notes_in_region]:GetDuration()
         end
-        
+
         return {staff, start_measure, end_measure, start_pos, end_pos}
     end
     return nil

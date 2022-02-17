@@ -9,9 +9,6 @@ function plugindef()
            "Add an augmentation dot to all notes and rests in selected region."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local note_entry = require("library.note_entry")
 
 function note_add_augmentation_dots()

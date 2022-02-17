@@ -10,9 +10,6 @@ function plugindef()
     return "Unbeam Selected Region", "Unbeam Selected Region", "Unbeam Selected Region"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local note_entry = require("library.note_entry")
 
 function unbeam_selected_region()

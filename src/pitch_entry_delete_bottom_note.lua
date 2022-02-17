@@ -10,9 +10,6 @@ function plugindef()
            "Deletes the bottom note of every chord"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local note_entry = require("library.note_entry")
 
 function pitch_entry_delete_bottom_note()

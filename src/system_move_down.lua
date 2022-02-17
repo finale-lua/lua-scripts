@@ -9,9 +9,6 @@ function plugindef()
     return "Move System Down", "Move System Down", "Moves the selected system down one space"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local measurement = require("library.measurement")
 
 function system_move_down()
