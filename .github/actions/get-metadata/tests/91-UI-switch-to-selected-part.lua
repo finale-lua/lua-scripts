@@ -8,9 +8,6 @@ function plugindef()
            "Switches to the first part of the top staff in a selected region in a score. Switches back to the score if viewing a part."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library.general_library")
 
 function ui_switch_to_selected_part()

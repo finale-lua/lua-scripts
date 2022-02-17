@@ -9,9 +9,6 @@ function plugindef()
     return "Octave Doubling Up", "Octave Doubling Up", "Doubles the current note an octave higher"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local transposition = require("library.transposition")
 local note_entry = require("Library.note_entry")
 

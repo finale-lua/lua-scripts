@@ -10,9 +10,6 @@ function plugindef()
            "Rotates the chord upwards, taking the bottom note and moving it above the rest of the chord"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local transposition = require("library.transposition")
 local note_entry = require("library.note_entry")
 

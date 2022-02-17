@@ -8,9 +8,6 @@ function plugindef()
     return "Delete Duplicate Noteheads", "Delete Duplicate Noteheads", "Removes duplicate noteheads from chords and adjusts ties as needed."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local note_entry = require("library.note_entry")
 
 -- This script was a request from the Facebook Finale Powerusers group.
@@ -40,7 +37,7 @@ function notehead_delete_duplicates()
                 note_entry.delete_note(note)
             end
         end
-    end    
+    end
 end
 
 notehead_delete_duplicates()

@@ -10,9 +10,6 @@ function plugindef()
            "Copies any applicable groups from the score to the current part in view."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library.general_library")
 
 function set_draw_barline_mode(new_group, source_group)

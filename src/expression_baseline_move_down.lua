@@ -10,9 +10,6 @@ function plugindef()
            "Moves the selected expression above baseline down one space"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local measurement = require("library.measurement")
 
 function expression_baseline_move_down()
