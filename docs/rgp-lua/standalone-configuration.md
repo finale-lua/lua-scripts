@@ -25,7 +25,7 @@ Here is an example of a `macOS` configuration file that installs a script called
     </RGPLua>
 </RGPPluginSettings>
 ```
-The file can have multiple `Script` elements. These can be directories (`IsDirectory="true"`) or individual files. The scripts do not have to reside in the same directory with _RGP Lua_ and your custom coniguration file, but it makes for a clean installation if they do.
+The file can have multiple `Script` elements. These can be directories (`IsDirectory="true"`) or individual files. The scripts do not have to reside in the same directory with _RGP Lua_ and your custom configuration file, but it makes for a clean installation if they do.
 
 Everything about your custom configuration is separate from the main configuration. If you want a System Prefix for your custom configuration, it must be included in the custom configuration file. The scripts can overlap with scripts configured in the main configuration, but they run independently.
 
