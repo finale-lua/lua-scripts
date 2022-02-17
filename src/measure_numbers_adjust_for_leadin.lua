@@ -7,9 +7,6 @@ function plugindef()
     return "Measure Numbers Adjust for Key, Time, Repeat", "Measure Numbers Adjust for Key, Time, Repeat", "Adjusts all measure numbers left where there is a key signature, time signature, or start repeat."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library.general_library")
 
 -- Before v0.59, the PDK Framework did not provide access to the true barline thickness per measure from the PDK metrics.

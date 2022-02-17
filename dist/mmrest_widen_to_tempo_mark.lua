@@ -10,9 +10,6 @@ function plugindef()
     return "Widen Multimeasure Rests to Tempo Mark", "Widen Multimeasure Rests to Tempo Mark", "Widens any multimeasure rest with a tempo mark to be wide enough for the mark."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Library
 ]]

@@ -7,9 +7,6 @@ function plugindef()
     return "Reset Expression Positions", "Reset Expression Positions", "Resets the assignment position of all selected single-staff expressions."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library.general_library")
 local expression = require("library.expression")
 

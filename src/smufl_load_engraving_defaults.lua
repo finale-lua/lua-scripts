@@ -7,9 +7,6 @@ function plugindef()
     return "Load SMuFL Engraving Defaults", "Load SMuFL Engraving Defaults", "Loads engraving defaults for the current SMuFL Default Music Font."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 
 local luna = require("lunajson.lunajson")
 local library = require("library.general_library")

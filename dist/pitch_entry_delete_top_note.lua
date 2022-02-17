@@ -9,9 +9,6 @@ function plugindef()
     return "Chord Line - Delete Top Note", "Chord Line - Delete Top Note", "Deletes the top note of every chord"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Note Entry
 ]]

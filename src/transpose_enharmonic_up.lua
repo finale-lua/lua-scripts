@@ -26,9 +26,6 @@ number_of_steps = 31
 diatonic_steps = {0, 5, 10, 13, 18, 23, 28}
 ]]
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local transposition = require("library.transposition")
 
 function transpose_enharmonic_up()

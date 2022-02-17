@@ -10,9 +10,6 @@ function plugindef()
            "Takes a sounding pitch, then creates the artificial harmonic that would produce that pitch"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Articulation
 ]]
@@ -1899,7 +1896,7 @@ function pitch_transform_harmonics_major_third()
             articulation.delete_from_entry_by_char_num(entry, 111)
             local note = entry:CalcLowestNote(nil)
             transposition.change_octave(note, -2)
-            local new_note = note_entry.duplicate_note(note)            
+            local new_note = note_entry.duplicate_note(note)
             transposition.chromatic_major_third_down(new_note)
         end
     end

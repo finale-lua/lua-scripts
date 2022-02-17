@@ -9,9 +9,6 @@ function plugindef()
     return "Simplify accidentals", "Simplify accidentals", "Removes all double sharps and flats by respelling them"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Transposition
 

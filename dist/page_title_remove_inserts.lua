@@ -10,9 +10,6 @@ function plugindef()
            "Removes text inserts from selected Page Text."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Enigma String
 ]]
@@ -250,7 +247,7 @@ function do_dialog_box(clean_texts)
     -- OK/Cxl
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    
+
     if finale.EXECMODAL_OK == dialog:ExecuteModal(nil) then
         return true, 1+page_text:GetSelectedItem(), (0 ~= do_replace:GetCheck())
     end

@@ -9,9 +9,6 @@ function plugindef()
     return "Move Staff Down", "Move Staff Down", "Moves the selected staves down by 1 space"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local measurement = require("library.measurement")
 
 local single_space_evpus =  measurement.convert_to_EVPUs(tostring("1s"))

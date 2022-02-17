@@ -9,9 +9,6 @@ function plugindef()
     return "Reset Lyrics Fonts", "Reset Lyrics Fonts", "Reset lyrics to document\'s default font settings."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Enigma String
 ]]

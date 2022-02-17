@@ -10,9 +10,6 @@ function plugindef()
     return "Expression Add Opaque Background", "Expression Add Opaque Background", "Add an opaque background to any single-staff text expression in the currenly selected region."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Library
 ]]

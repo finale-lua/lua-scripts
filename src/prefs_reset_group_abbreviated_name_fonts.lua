@@ -10,9 +10,6 @@ function plugindef()
            "Reset all abbreviated group names to document's default font settings."
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local library = require("library.general_library")
 local enigma_string = require("library.enigma_string")
 

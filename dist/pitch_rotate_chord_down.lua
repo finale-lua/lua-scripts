@@ -10,9 +10,6 @@ function plugindef()
            "Rotates the chord upwards, taking the top note and moving it below the rest of the chord"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Transposition
 

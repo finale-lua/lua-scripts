@@ -9,9 +9,6 @@ function plugindef()
     return "Chord Accidental - Move Down", "Adjust Chord Accidental Down", "Adjust the accidental of chord symbol down"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 
 --  Author: Robert Patterson
 --  Date: March 5, 2021

@@ -9,9 +9,6 @@ function plugindef()
     return "Chord Accidental - Move Up", "Adjust Chord Accidental Up", "Adjust the accidental of chord symbol up"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 
 local configuration = require("library.configuration")
 local config = {vertical_increment = 5}

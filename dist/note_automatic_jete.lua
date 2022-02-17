@@ -12,9 +12,6 @@ end
 -- The goal of this script is to automate jeté bowing notation as given in Gould, Elaine, "Behind Bars", p. 404
 -- For the best results with staccato dots, use an articulation with "Avoid Staff Lines" unchecked.
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 --[[
 $module Note Entry
 ]]
