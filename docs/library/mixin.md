@@ -75,6 +75,8 @@ There are other ways in which this could be used including:
 - Add additional high level functionality. (I have written some of these for dialogs, which was especially useful in reducing boilerplating.)
 - In the absence of the ability to inherit from `FC*` objects, named mixins can be used to create subclasses.
 
+Functions available in the mixin library are:
+
 - [has_mixin](#has_mixin)
 - [has_mixin](#has_mixin)
 - [register_global_mixin](#register_global_mixin)

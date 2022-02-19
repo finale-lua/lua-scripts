@@ -28,6 +28,10 @@ left_dynamic_cushion 		= 12		--evpus
 right_dynamic_cushion		= -6		--evpus
 ```
 
+Configuration files must be placed in a subfolder called `script_settings` within
+the folder of the calling script. Each script that has a configuration file
+defines its own configuration file name.
+
 - [get_parameters](#get_parameters)
 
 ## get_parameters
