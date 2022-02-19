@@ -43,16 +43,16 @@ A simple way to create this file is to configure the main instance of _RGP Lua_ 
 C:\Users\<user>\AppData\Roaming
 ```
 
-Of particular interest are the following attributes. Neither of these can be set to `true` by the _RGP Lua_ plugin itself. You must edit them in a text editor.
+Of particular interest are the following attributes. Neither can be modified by the _RGP Lua_ plugin itself. You must edit them in a text editor.
 
 ```
 IncludeUI (RGPLua tag)
 ```
- Setting it to `false` suppresses the menu option to open RGP Lua’s configuration dialog. _RGP Lua_ ignores the attribute if it reads its configuration from the default location in the user’s preferences folder.
+A setting of `false` suppresses the menu option to open RGP Lua’s configuration dialog. _RGP Lua_ ignores the attribute if it reads its configuration from the default location in the user’s preferences folder.
 
 ```
 FromRGPLuaDirectory (Script tag)
 ```
-Setting it to `true` causes _RGP Lua_ to prepend its running folder to the file path specified by the `Path` tag. It allows you to create a stand-alone configuration that is not dependent on any particular user's setup. If *any* `Script` elements set this value to `true`, it is highly recommended also to set `IncludeUI` to `false`.
+A setting of `true` causes _RGP Lua_ to prepend its running folder to the file path specified by the `Path` tag. It allows you to create a stand-alone configuration that is not dependent on any particular user's setup. If any `Script` element sets this value to `true`, it is advisable also to set `IncludeUI` to `false`.
 
-To keep the user experience as simple as possible, it is **strongly recommended** to suppress _RGP Lua’s_  configuration option for these kinds of installations. The goal should be that users only see configuration options for instances they have installed themselves.
+To keep the user experience as simple as possible, it is **strongly recommended** to suppress _RGP Lua’s_  configuration option for these kinds of installations. The goal should be that users only see configuration options for instances of the plugin that they have installed themselves.
