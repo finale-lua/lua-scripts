@@ -158,6 +158,8 @@ To fully integrate a plug-in script with _Finale_ (and _RGP Lua_ or _JW Lua_)—
 
 Please note that _JW Lua_ can handle many of the items in the `plugindef()` function automatically, by using _JW Lua’s_ “Plug-in Def” dialog box. With _RGP Lua_ you will need to use a text editor or IDE.
 
+_RGP Lua_ can be further integrated by configuring a [stand-alone](/docs/rgp-lua/standalone-configuration) instance. Stand-alone configuration includes the option to hide _RGP Lua’s_ configuration dialog box so that your scripts appear in Finale’s Plug-ins menu as independent, self-contained plugins. (See the [link](/docs/rgp-lua/standalone-configuration) for more information.) The main target of stand-alone configuration is large-scale FinaleLua projects such as [Perfect Layout](https://elbsound.studio/) and [JetStream Finale Controller](https://jetstreamfinale.com/) that have their own installers that otherwise might interfere with a user’s separate script configuration.
+
 ### The 'plugindef()' function
 
 The `plugindef()` function is an optional function that **only** should do a _maximum_ of 2 things:
