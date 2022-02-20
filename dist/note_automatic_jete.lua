@@ -884,6 +884,10 @@ A sample configuration file might be:
 left_dynamic_cushion 		= 12		--evpus
 right_dynamic_cushion		= -6		--evpus
 ```
+
+Configuration files must be placed in a subfolder called `script_settings` within
+the folder of the calling script. Each script that has a configuration file
+defines its own configuration file name.
 ]]
 
 local configuration = {}
@@ -997,7 +1001,7 @@ this is the internal major Finale version, not the year.
 : (number)
 ]]
 function library.finale_version(major, minor, build)
-    local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 16))
+    local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
     if build then
         retval = bit32.bor(retval, math.floor(build))
     end
