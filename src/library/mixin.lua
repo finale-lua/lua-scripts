@@ -1,42 +1,137 @@
+--  Author: Edward Koltun
+--  Date: November 3, 2021
+
 --[[
 $module Fluid Mixins
 
-Fluid mixins simplify the process of writing plugins and improve code maintainability.
+The Fluid Mixins library simplifies the process of writing plugins and improves code maintainability.
 
 This library does 2 things:
 - Allows mixins to be added to any `FC*` objects
-- Adds a fluid interface for any methods that don't return anything.
+- Adds a fluid interface for any methods that return zero values.
 
-By default, it is not possible to override or extend any of the FC* objects in Finale Lua
-because objects that are tied to their underlying C++ implementation are not tables.
-So through a little bit of magic with proxying, this PR enables new methods and properties to be added.
-If needed, the original functionality can always be accessed.
 
-In short:
-- Existing methods can be overridden
-- New methods can be added
-- New properties can be added
-- Existing properties follow original behaviour (eg whether read-only or writable)
-- Original method is always accessible by appending a trailing underscore to the method name, e.g. `SetText_(foo)`
+By default, it is not possible to override or extend any of the `FC*` objects in Finale Lua because objects that are tied to their underlying C++ implementation are userdata, not tables.
+So through a little bit of magic with proxying, this library enables new methods and properties to be added, while maintaining access to the original methods and properties.
 
-The fluid interface strives to reduce the necessity of duplicate code when writing plugins.
-It works by returning the `this` value from any method that would otherwise return nothing.
-Methods that return nil or false are not affected by this. Only methods that return no values
-have the fluid interface applied.
 
-Here's an example of creating a window with some static text the standard way:
+**Adding New Methods and Properties**
+Including the mixin library instantly enables the addition of new methods and properties. The example below demonstrates adding a new property and a new method which accesses that property.
 ```
-local window = finale.FCCustomLuaWindow()
+local mixin = require('library.mixin')
+local dialog = finale.FCCustomLuaWindow()
 
-local str = finale.FCString()
-str.LuaString = 'this is some text'
-window:CreateStatic(10, 10):SetText(str)
+dialog.my_custom_property = 'foo'
 
-window:ExecuteModal(nil)
+dialog.my_custom_method = function(t) print(t.my_custom_property) end
+```
+*Note: methods and properties cannot end in an underscore. For more info, see 'Accessing Original Methods'*
+
+
+**Overriding Existing Method and Properties**
+In the same way, it is also possible to override existing methods of `FC*` objects.
+```
+local mixin = require('library.mixin')
+local dialog = finale.FCCustomLuaWindow()
+
+dialog.ExecuteModal = function(t, ...)
+    print('Showing modal dialog window')
+    return t.ExecuteModal_(...)
+end
+```
+*Note: Only one copy of a mixin method is stored at a time. This means that overriding either an already overridden method or a new method will result in the first method being replaced, rendering it inaccessible.*
+
+
+To minimise conflicts, existing properties continue to follow their original behaviour and this behaviour cannot be modified. This essentially means that existing methods cannot be overridden.
+In other words:
+- Existing read-only properties will remain read-only
+- Existing writable properties remain writable
+
+```
+local mixin = require('mixin')
+
+local cell = finale.FCCell(m, s)
+cell.Measure = 2 -- Fails with an error as it is still a read-only property
 ```
 
-Now, if we include the Fluid Mixin library, immediately we have some improvements:
+
+**Accessing Original Methods**
+For various reasons, it may be desirable to access the original method once overridden. This can be done by appending a trailing underscore to the method name.
+
 ```
+local mixin = require('library.mixin')
+local dialog = finale.FCCustomLuaWindow()
+
+dialog.ExecuteModal = function(t, ...)
+    print('Showing modal dialog window')
+    return t.ExecuteModal_(...) -- This references the original method.
+end
+```
+For this reason, mixin methods and properties cannot have a trailing underscore and attempting to do so will result in an error being thrown.
+
+If needed, (eg for performance reasons), the original `finale` global object can also be accessed by appending a trailing underscore.
+```
+local mixin = require('library.mixin')
+
+-- Refers to the original finale object, without mixins.
+local dialog = finale_.FCCustomLuaWindow()
+```
+
+
+**Global Mixins**
+In addition to being able to add methods and properties on the fly, there are also two ways of defining mixins. The first of these are global mixins. Global mixins are applied at the class level and can be defined at any level in the class heirarchy. Once registered, global mixins are applied retroactively to every instance of the class. Global mixins are primarily intended to be used for fixing bugs or for introducing convenience functions and should retain compatibility with the original method signature to avoid conflicts.
+
+```
+local mixin = require('library.mixin')
+
+-- A table of methods and/or properties
+local props = {
+    my_custom_property = 'foo',
+    my_custom_method = function(t) print(t.my_custom_property) end
+} 
+
+mixin.register_global_mixin('FCCustomLuaWindow', props)
+```
+
+Global mixins can be registered automatically. To take advantage of this, they should be defined in the `mixin.global` namespace in a file with the same name as the class name. E.g. the snippet above would be located in src/mixin/global/FCCustomLuaWindow.lua`.
+
+
+**Named Mixins**
+The other type of defined mixin is a named mixin. Named mixins are intended for defining more customised functionality and are only applied on request to an instance. These should be stored in the `mixin.named` namespace and need to be included in order to be available for use.
+
+`src/mixin/named/my_custom_window.lua`
+```
+local mixin = require('library.mixin')
+
+-- A table of methods and/or properties
+local props = {
+    my_custom_property = 'foo',
+    my_custom_method = function(t) print(t.my_custom_property) end
+} 
+
+mixin.register_named_mixin('FCCustomLuaWindow', 'my_custom_window', props)
+```
+
+Plugin:
+```
+local mixin = require('library.mixin')
+require('mixin.named.my_custom_window')
+
+local dialog = finale.FCCustomLuaWindow()
+dialog.apply_mixin('my_custom_window')
+
+print(dialog.has_mixin('my_custom_window')) -- true
+```
+
+You can check if an object has a named mixin applied by calling `has_mixin`. Named mixins can only be applied once per object. Applying a named mixin multiple times on the same instance will result in an error being thrown.
+
+
+
+**Fluid Interface**
+As an additional convenience, this library also makes available a fluid interface for all `FC*` object methods that return zero values. Methods that return `nil` are not affected by this since that is technically a value.
+
+```
+local mixin = require('library.mixin')
 local window = finale.FCCustomLuaWindow()
 
 window:CreateStatic(10, 10):SetText(finale.FCString():SetLuaString('this is some text'))
@@ -44,37 +139,6 @@ window:CreateStatic(10, 10):SetText(finale.FCString():SetLuaString('this is some
 window:ExecuteModal(nil)
 ```
 
-If we were to then override the `SetText` method so that it accepts plain strings like so:
-```
-mixin.register_default('FCCtrlStatic', 'SetText', function(this, str)
-	if type(str) == 'string' then
-		local temp = str
-		str = finale.FCString():SetLuaString(temp) -- This works because of the fluid interface
-	end
-
-	-- Trailing underscore is used to refer to the original method
-	this:SetText_(str)
-
-	-- By not returning a value (copying the behaviour of the original method), the fluid interface is maintained
-end)
-```
-
-The code could be reduced even further to this:
-```
-local window = finale.FCCustomLuaWindow()
-
-window:CreateStatic(10, 10):SetText('this is some text')
-
-window:ExecuteModal(nil)
-```
-In the example above, the same mixin could also be applied on mass by passing an array of classes and or method names.
-
-
-There are other ways in which this could be used including:
-- Fix methods that have bugs.
-- Where possible, allow methods to accept Lua types (e.g., `string` instead of `FCString`, array of strings instead of `FCStrings`, etc.)
-- Add additional high level functionality. (I have written some of these for dialogs, which was especially useful in reducing boilerplating.)
-- In the absence of the ability to inherit from `FC*` objects, named mixins can be used to create subclasses.
 
 Functions available in the mixin library are:
 ]]
@@ -94,11 +158,20 @@ local base_mixins = {
 
 Object Method: Checks if the object it is called on has a mixin applied.
 
+Example:
+```
+print(dialog.has_mixin('my_custom_dialog')) -- false
+
+dialog.apply_mixin('my_custom_dialog');
+
+print(dialog.has_mixin('my_custom_dialog')) -- true
+```
+
 @ name (string) Mixin name.
 : (boolean)
 ]]
     has_mixin = function(t, mixin_list, _, name)
-        return mixin_list[name] and true or false
+        return mixin_list[t][name] and true or false
     end,
 
 --[[
@@ -106,10 +179,19 @@ Object Method: Checks if the object it is called on has a mixin applied.
 
 Object Method: Applies a mixin to the object it is called on.
 
+Example:
+```
+local mixin = require('library.mixin')
+require('mixin.named.my_custom_dialog')
+
+local dialog = finale.FCCustomLuaWindow()
+dialog.apply_mixin('my_custom_dialog');
+```
+
 @ name (string) Mixin name.
 ]]
     apply_mixin = function(t, mixin_list, mixin_props, name)
-        if mixin_list[name] then
+        if mixin_list[t][name] then
             error('Mixin \'' .. name .. '\' has already been applied to this object.');
         end
 
@@ -121,10 +203,10 @@ Object Method: Applies a mixin to the object it is called on.
 
         if m.init then
             t:init()
-            mixin_props.init = nil
+            mixin_props[t].init = nil
         end
 
-        mixin_list[name] = true
+        mixin_list[t][name] = true
     end,
 }
 
@@ -132,7 +214,7 @@ Object Method: Applies a mixin to the object it is called on.
 local function load_global_mixin(class_name)
     if type(global_mixins[class_name]) ~= 'nil' then return end
 
-    success, result = pcall(function(c) return require(c) end, 'mixins.global.' .. class_name)
+    success, result = pcall(function(c) return require(c) end, 'mixin.global.' .. class_name)
 
     if not success then
         -- If the reason it failed to load was anything other than module not found, display the error
@@ -147,8 +229,8 @@ end
 
 -- Catches an error and throws it at the specified level (relative to where this function was called)
 -- First argument is called tryfunczzz for uniqueness
+local pcall_line = debug.getinfo(1, "l").currentline + 2 -- This MUST refer to the pcall 2 lines below
 local function catch_and_rethrow(tryfunczzz, func_name, levels, ...)
-    -- IMPORTANT: If the line above moves from line #73, update this comment and the if statement below
     local success, result = pcall(function(...) return {tryfunczzz(...)} end, ...)
 
     if not success then
@@ -158,7 +240,7 @@ local function catch_and_rethrow(tryfunczzz, func_name, levels, ...)
         -- Conditions for rethrowing at a higher level:
         -- Ignore errors thrown with no level info (ie. level = 0), as we can't make any assumptions
         -- Both the file and line number indicate that it was thrown at this level
-        if file and line and file:sub(-9) == 'mixin.lua' and line == '73' then
+        if file and line and file:sub(-9) == 'mixin.lua' and tonumber(line) == pcall_line then
 
             -- Replace the method name with the correct one, for bad argument errors etc
             if func_name then
@@ -180,14 +262,14 @@ end
 -- Returns the name of the parent class
 -- This function should only be called for classnames that start with "FC" or "__FC"
 local get_parent_class = function(classname)
-    local class = _G.finale[classname]
+    local class = finale_[classname]
     if type(class) ~= "table" then return nil end
     if not finenv.IsRGPLua then -- old jw lua
         classt = class.__class
         if classt and classname ~= "__FCBase" then
             classtp = classt.__parent -- this line crashes Finale (in jw lua 0.54) if "__parent" doesn't exist, so we excluded "__FCBase" above, the only class without a parent
             if classtp and type(classtp) == "table" then
-                for k, v in pairs(_G.finale) do
+                for k, v in pairs(finale_) do
                     if type(v) == "table" then
                         if v.__class and v.__class == classtp then
                             return tostring(k)
@@ -242,11 +324,20 @@ function mixin.create_fluid_proxy(t, func, func_name)
     end
 end
 
--- Modifies an existing instance of an FC* object to allow adding mixins and adds primary mixins.
+-- Modifies an FC* class to allow adding mixins to any instance of that class.
 function mixin.apply_mixin_foundation(object)
-    if not object or not is_finale_object(object) or object.is_mixin then return end
+    if not object or not is_finale_object(object) then return end
+    if object.is_mixin then return object end
+
     local class_name = mixin.get_class_name(object)
+
+    -- Storage for mixin methods and properties
     local mixin_props, mixin_list = {}, {}
+
+    -- Use weak keys to enable garbage collection and prevent memory leaks
+    setmetatable(mixin_props, {__mode = 'k'})
+    setmetatable(mixin_list, {__mode = 'k'})
+
     local meta = getmetatable(object)
 
     -- We need to retain a reference to the originals for later
@@ -256,13 +347,12 @@ function mixin.apply_mixin_foundation(object)
     meta.__index = function(t, k)
         local prop
         local real_k = k
+        mixin_props[t] = mixin_props[t] or {}
 
         -- First, check if it's one of the base mixin methods (these can't be overridden)
         if base_mixins[k] ~= nil then
             if type(base_mixins[k]) == 'function' then
-                -- This will couple the method to the current instance but this shouldn't be an issue
-                -- because calls to foo.has_mixin(bar, 'baz_mix') instead of bar:has_mixin('baz_mix') shouldn't be happening...
-                prop = function(_, ...) return base_mixins[k](t, mixin_list, mixin_props, ...) end
+                prop = function(tt, ...) return base_mixins[k](tt, mixin_list, mixin_props, ...) end
             else
                 prop = utils.copy_table(base_mixins[k])
             end
@@ -274,8 +364,8 @@ function mixin.apply_mixin_foundation(object)
             prop = original_index(t, real_k)
 
         -- Check if it's a mixin that's been directly applied
-        elseif mixin_props[k] ~= nil then
-            prop = mixin_props[k]
+        elseif mixin_props[t][k] ~= nil then
+            prop = mixin_props[t][k]
 
         -- Otherwise, assume we're looking for a global mixin
         else
@@ -286,8 +376,8 @@ function mixin.apply_mixin_foundation(object)
                 if global_mixins[parent] and global_mixins[parent][k] ~= nil then
                     -- Only copy over tables, in order to make them writable.
                     if type(global_mixins[parent][k]) == 'table' then
-                        mixin_props[k] = utils.copy_table(global_mixins[parent][k])
-                        prop = mixin_props[k]
+                        mixin_props[t][k] = utils.copy_table(global_mixins[parent][k])
+                        prop = mixin_props[t][k]
                     else
                         prop = global_mixins[parent][k]
                     end
@@ -320,10 +410,11 @@ function mixin.apply_mixin_foundation(object)
         end
 
         local type_v_original = type(original_index(t, k))
+        mixin_props[t] = mixin_props[t] or {}
 
         -- If it's a method, or a property that doesn't exist on the original object, store it
         if type_v_original == 'nil' then
-            local type_v_mixin = type(mixin_props[k])
+            local type_v_mixin = type(mixin_props[t][k])
             local type_v = type(v)
 
             -- Technically, a property could still be erased by setting it to nil and then replacing it with a method afterwards
@@ -336,7 +427,7 @@ function mixin.apply_mixin_foundation(object)
                 end
             end
 
-            mixin_props[k] = v
+            mixin_props[t][k] = v
 
         -- If it's a method, we can override it but only with another method
         elseif type_v_original == 'function' then
@@ -344,7 +435,7 @@ function mixin.apply_mixin_foundation(object)
                 error('A mixin method cannot be overridden with a property.', 2)
             end
 
-            mixin_props[k] = v
+            mixin_props[t][k] = v
 
         -- Otherwise, try and store it on the original property. If it's read-only, it will fail and we show the error
         else
@@ -379,7 +470,7 @@ function mixin.register_global_mixin(class, prop, value)
 end
 
 --[[
-% register_mixin(class, mixin_name, prop[, value])
+% register_named_mixin(class, mixin_name, prop[, value])
 
 Library Method: Register a named mixin which can then be applied by calling the target object's apply_mixin method. If a named mixin requires a 'constructor', include a method called 'init' that accepts zero arguments. It will be called when the mixin is applied. Properties and methods cannot end in an underscore.
 
@@ -388,7 +479,7 @@ Library Method: Register a named mixin which can then be applied by calling the 
 @ prop (string|table) Either the property name, or a table with pairs of (string) = (mixed)
 @ value [mixed] OPTIONAL: Method or property value. Will be ignored if prop is a table.
 ]]
-function mixin.register_mixin(class, mixin_name, prop, value)
+function mixin.register_named_mixin(class, mixin_name, prop, value)
     mixin_name = type(mixin_name) == 'table' and mixin_name or {mixin_name}
     class = type(class) == 'table' and class or {class}
     prop = type(prop) == 'table' and prop or {[prop] = value}
@@ -429,15 +520,15 @@ function mixin.get_global_mixin(class)
 end
 
 --[[
-% get_mixin(class, mixin_name)
+% get_named_mixin(class, mixin_name)
 
-Library Method: Retrieves a copy of all the methods and properties of mixin.
+Library Method: Retrieves a copy of all the methods and properties of a named mixin.
 
 @ class (string) Finale class.
 @ mixin_name (string) Name of mixin.
 : (table|nil)
 ]]
-function mixin.get_mixin(class, mixin_name)
+function mixin.get_named_mixin(class, mixin_name)
     return named_mixins[class] and named_mixins[class][mixin_name] and utils.copy_table(named_mixins[class][mixin_name]) or nil
 end
 
@@ -469,7 +560,7 @@ finale = setmetatable({}, {
 
 return {
     register_global_mixin = mixin.register_global_mixin,
-    register_mixin = mixin.register_mixin,
+    register_named_mixin = mixin.register_named_mixin,
     get_global_mixin = mixin.get_global_mixin,
-    get_mixin = mixin.get_mixin,
+    get_named_mixin = mixin.get_named_mixin,
 }
