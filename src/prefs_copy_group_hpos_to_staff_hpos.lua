@@ -4,6 +4,11 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "June 9, 2020"
     finaleplugin.CategoryTags = "Staff"
+    finaleplugin.Notes = [[
+        This script mitigates a bug that existed in Finale 2012 but was fixed as of Finale 2014.5. Editing a linked part
+        with a plugin frequently caused the horizontal position of staves to be randomly modified in the score. This
+        script restores the staff horizontal position by setting it to match the default horizontal group name position.
+    ]]
     return "Copy Default Group Name Horizontal Position To Staff", "Copy Default Group Name Horizontal Position To Staff", "Copies default horizontal group name positions to default staff name positions. (Reverses Finale bug that was fixed as of Finale 2014.5.)"
 end
 

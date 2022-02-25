@@ -6,6 +6,11 @@ function plugindef()
     finaleplugin.Version = "1.0.2"
     finaleplugin.Date = "June 12, 2020"
     finaleplugin.CategoryTags = "Staff"
+    finaleplugin.Notes = [[
+        This script only affects selected staves.
+        If you select the entire document before running this script, it modifies any
+        full staff names found in staff styles as well.
+    ]]
     return "Reset Full Staff Name Fonts", "Reset Full Staff Name Fonts",
            "Reset all full staff names to document's default font settings."
 end
