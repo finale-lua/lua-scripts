@@ -22,10 +22,12 @@ function plugindef()
         
         (This example is for 31-EDO.)
         
-        number_of_steps = 31  
+        ```
+        number_of_steps = 31
         diatonic_steps = {0, 5, 10, 13, 18, 23, 28}
-
-        Later versions of RGP Lua (0.58 or higher) ignore this config file (if it exists) and read the correct
+        ```
+        
+        Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
     return "Transpose By Steps...", "Transpose By Steps",

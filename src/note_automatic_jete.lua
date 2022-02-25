@@ -15,13 +15,13 @@ function plugindef()
         configuration file. (See below.)
 
         To use the script, you enter the notes you want to display, and it removes the noteheads in between the first
-        and last notehead, adjusts any staccato dots, and adds a gliss mark (tab slide)  between the first and last notes,
+        and last notehead, adjusts any staccato dots, and adds a gliss mark (tab slide) between the first and last notes,
         unless there is one already there. If you want a slur as well, add it manually before or after running the script.
         
         The steps to use this script are:
 
         1. Add the notes you want to display, with or without accidentals. Normally you choose notes with noteheads
-        that follow a straight-line path as much as possible. They can be reduced size or grace notes. 
+        that follow a straight-line path as closely as possible. They can be reduced size or grace notes. 
         2. Add staccato dots if you want them.
         3. Add a slur if you want it.
         4. Run the script on the pattern you just entered.
@@ -66,7 +66,7 @@ local library = require("library.general_library")
 local max_layers = 4            -- this should be in the PDK, but for some reason isn't
 
 local config = {
-    dot_character = 46,         -- ascii code for "."
+    dot_character = 46,         -- ascii code for '.'
     hide_last_note = false
 }
 
