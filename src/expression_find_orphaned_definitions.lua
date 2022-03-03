@@ -6,13 +6,16 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "June 27, 2020"
     finaleplugin.CategoryTags = "Expression"
+    finaleplugin.Notes = [[
+        The Expression Selection Dialog expects expression definitions to be stored sequentially and stops looking for definitions
+        once the next value is not found. However, Finale can leave orphaned expression definitions with higher values. These
+        are inaccessible unless you add in dummy expressions to fill in the gaps. This script builds a report of any such
+        expression definitions.
+    ]]
     return "Expression Find Orphans", "Expression Find Orphans",
            "Reports any orphaned expression definitions not visible in the Expression Selection Dialog."
 end
 
--- The Expression Selection Dialog expects expression definitions to be stored sequentially and stops looking for definitions
--- once the next value is not found. However, Finale can leave orphaned expression definitions with higher values. These
--- are inaccessible unless you add in dummy expressions to fill in the gaps.
 
 local new_line_string = "\n"
 

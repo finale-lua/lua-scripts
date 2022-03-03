@@ -6,6 +6,13 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "February 21, 2021"
     finaleplugin.CategoryTags = "Page"
+    finaleplugin.Notes = [[
+        Finale makes it surprisingly difficult to remove text inserts from an existing Page Text.
+        It requires extremely precise positioning of the cursor, and even then it frequently modifies
+        the insert instead of the Page Text. This is especially true if the Page Text contains *only* 
+        one or more inserts. This script allows you to select a Page Text and remove
+        the inserts with no fuss.
+    ]]
     return "Remove Inserts From Page Text...", "Remove Inserts From Page Text",
            "Removes text inserts from selected Page Text."
 end
