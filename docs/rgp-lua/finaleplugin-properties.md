@@ -81,7 +81,7 @@ or
 ```lua
 finaleplugin.MinFinaleVersion = 10026 -- Finale 26 (recognized by RGP Lua but not JW Lua)
 ```
-Note that _JW Lua_ sees all versions of Finale starting with Finale 25 as being version 9999. Therefore the above example of 10026 for `MinFinaleVersion` will prevent _JW Lua_ from running the script at all. It will produce a somewhat confusing error message, however, so it is recommended to use `MinFinaleVersionRaw` along with `MinJWLuaVersion` to prevent _JW Lua_ from running a script that requires Finale 26. (Or handle it yourself in the script.) This produces a better error message in _JW Lua_.
+Note that _JW Lua_ sees all versions of Finale starting with Finale 26 as being version 9999. Therefore the above example of 10026 for `MinFinaleVersion` will prevent _JW Lua_ from running the script at all. It will produce a somewhat confusing error message, however, so it is recommended to use `MinFinaleVersionRaw` along with `MinJWLuaVersion` to prevent _JW Lua_ from running a script that requires Finale 26. (Or handle it yourself in the script.) This produces a better error message in _JW Lua_.
 
 #### MaxFinaleVersion (number)
 
@@ -96,19 +96,21 @@ or
 finaleplugin.MaxFinaleVersion = 10025 -- Finale 25 (recognized by RGP Lua but not JW Lua)
 ```
 
+(_JW Lua_ sees Finale 25 as `2025` whereas _RGP Lua_ sees it as `10025`.)
+
 #### MinFinaleVersionRaw\* (number)
 
 The minimum raw version of Finale that can run the script. Example:
 
 ```lua
-finaleplugin.MinFinaleVersionRaw = 0x1a020000 -- Finale 26.2
+finaleplugin.MinFinaleVersionRaw = 0x1a200000 -- Finale 26.2: 0x1a == 26 in hexadecimal
 ```
 #### MaxFinaleVersionRaw\* (number)
 
 The maximum raw version of Finale that can run the script. Example:
 
 ```lua
-finaleplugin.MaxFinaleVersionRaw = 0x1b010000 -- Finale 27.1
+finaleplugin.MaxFinaleVersionRaw = 0x1b100000 -- Finale 27.1: 0x1b == 27 in hexadecimal
 ```
 #### MinJWLuaVersion (number)
 

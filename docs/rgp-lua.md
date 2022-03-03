@@ -93,7 +93,9 @@ The `finenv` namespace has been created to provide “programming shortcuts” t
 |finenv.MinorVersion|A read-only property with the minor version number of _RGP/JW Lua_. A version 1.07 would give 7, etc.|
 |finenv.StringVersion|A read-only property that returns the full _RGP/JW Lua_ version. This string can potentially contain non-numeric characters, but normally it is just `<major>.<minor>`, i.e., "1.07".|
 |finenv.ConsoleIsAvailable|A read-only property that will return true if there is a console available for `print()` statements. Scripts that run from the Finale menu do not have a console. _RGP Lua_ always returns this value as `false`.|
+|finenv.DebugEnabled\*|A read-only property that returns the setting of “Enable Debugging” in _RGP Lua’s_ configuration dialog. You could use this to add debug-only code to your script.|
 |finenv.IsRGPLua\*|A read-only property that always returns `true` in _RGP Lua_. In _JW Lua_ it returns `nil`, which is the syntactically the equivalent to `false` in nearly every situation.|
+|finenv.LoadedAsString\*|A read-only property that returns the setting of “Load As String”, either from _RGP Lua’s_ sconfiguration dialog or from the `plugindef()` function, whichever is in effect.
 |finenv.RetainLuaState\*|A read-write property that starts out as `false` in _RGP Lua_. If a script sets the value to `true` before exiting, the next time it is invoked it receives the same Lua state as before, including all global variables, require statements, etc. If there is an error, the Lua state is not retained, regardless of the setting. A script can change the value back to `false` at any time if it needs a fresh Lua state on the next invocation.|
 
 \*Items with an asterisk are available in _RGP Lua_ but not _JW Lua_.
@@ -158,6 +160,8 @@ To fully integrate a plug-in script with _Finale_ (and _RGP Lua_ or _JW Lua_)—
 
 Please note that _JW Lua_ can handle many of the items in the `plugindef()` function automatically, by using _JW Lua’s_ “Plug-in Def” dialog box. With _RGP Lua_ you will need to use a text editor or IDE.
 
+_RGP Lua_ can be further integrated by configuring a [stand-alone](/docs/rgp-lua/standalone-configuration) instance. Stand-alone configuration includes the option to hide _RGP Lua’s_ configuration dialog box so that your scripts appear in Finale’s Plug-ins menu as independent, self-contained plugins. (See the [link](/docs/rgp-lua/standalone-configuration) for more information.) The main target of stand-alone configuration is large-scale FinaleLua projects such as [Perfect Layout](https://elbsound.studio/) and [JetStream Finale Controller](https://jetstreamfinale.com/) that have their own installers that otherwise might interfere with a user’s separate script configuration.
+
 ### The 'plugindef()' function
 
 The `plugindef()` function is an optional function that **only** should do a _maximum_ of 2 things:
@@ -197,7 +201,7 @@ The `finaleplugin` namespace is a reserved and defined namespace for the `plugin
 
 Please note that since the execution of `plugindef()` is completely silent (no errors are displayed on failure), make absolutely certain that all spellings are correct (including correct upper/lower case).
 
-The `finaleplugin` properties should **only** be set in the `plugindef()` function.
+The `finaleplugin` properties should **only** be set in the `plugindef()` function. Both _JW Lua_ and _RGP Lua_ call `plugindef()` immediately before executing the script. Any explicitly configured properties of the `finaleplugin` namespace are therefore available to the script when it starts executing. (Omitted properties are not available and return `nil`.)
 
 The properties are discussed in details on the [finaleplugin properties](/docs/rgp-lua/finaleplugin-properties) page.
 
