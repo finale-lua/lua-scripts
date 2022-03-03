@@ -6,6 +6,18 @@ function plugindef()
     finaleplugin.Version = "1.0.2"
     finaleplugin.Date = "June 12, 2020"
     finaleplugin.CategoryTags = "Staff"
+    finaleplugin.Notes = [[
+        This script only affects selected staves.
+        If you select the entire document before running this script, it modifies any
+        abbreviated staff names found in staff styles as well.
+
+        This script may be especially useful with the New Document Setup Wizard. The Wizard
+        sets up all the staves in the new document with font settings for abbreviations that
+        match the font settings for full staff names. It apparently ignores the default font setttings
+        for abbreviated names specified in the Document Style. The result is that none these font
+        settings in the new document match the Document Options. This script allows you quickly
+        to rectify this unfortunate behavior.
+    ]]
     return "Reset Abbreviated Staff Name Fonts", "Reset Abbreviated Staff Name Fonts",
            "Reset all abbreviated staff names to document's default font settings."
 end

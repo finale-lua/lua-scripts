@@ -5,6 +5,52 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "March 14, 2020"
     finaleplugin.CategoryTags = "Note"
+    finaleplugin.Notes = [[
+        This script automatically creates a “jeté”-style bowing effect. These mimic examples shown on p. 404 of “Behind Bars"
+        by Elaine Gould. For the best results with staccato dots, use an articulation with “Avoid Staff Lines” unchecked.
+
+        By default, the script searches for articulations using the '.' character (ASCII code 46) for non-SMuFL fonts and
+        the SMuFL dot character (UTF code 0xe4a2) for SMuFL fonts. This character must be the Main Character in Finale's
+        articulation definition dialog. You can override this to search for a different character code using a
+        configuration file. (See below.)
+
+        To use the script, you enter the notes you want to display, and it removes the noteheads in between the first
+        and last notehead, adjusts any staccato dots, and adds a gliss mark (tab slide) between the first and last notes,
+        unless there is one already there. If you want a slur as well, add it manually before or after running the script.
+        
+        The steps to use this script are:
+
+        1. Add the notes you want to display, with or without accidentals. Normally you choose notes with noteheads
+        that follow a straight-line path as closely as possible. They can be reduced size or grace notes. 
+        2. Add staccato dots if you want them.
+        3. Add a slur if you want it.
+        4. Run the script on the pattern you just entered.
+
+        The script takes the following actions:
+
+        1. Searches for a selected pattern, skipping rests at the beginning and stopping at the first rest it encounters.
+        2. Hides the noteheads on all but the first and (optionally) last entry.
+        3. Hides accidentals on any noteheads that were hidden.
+        4. Aligns the staccato dots in a straight line path. (The path may not be exactly straight
+            if the articulation is set to avoid staff lines.)
+        5. Adds a gliss mark (tab slide) between the first and last notes, if one does not already exist.
+            If you have entered parallel chords, it adds a gliss mark for each note in the chord.
+        
+        By default, the script does not hide the last selected note (or any accidentals it may have). You can override
+        this behavior with a configuration file or if you are using RGP Lua 0.59 or higher, you can cause the script
+        to hide the last note by holding down Shift, Option (Mac), or Alt (Win) when you invoke it.
+
+        To use a configuration file:
+
+        1. If it does not exist, create a subfolder called `script_settings` in the folder where this script resides.
+        2. Create a text file in the `script_settings` folder called `note_automatic_jete.config.txt`.
+        3. Add either or both of the following lines to it.
+
+        ```
+        dot_character = 46           -- This may be any character code you wish to search use, including a SMuFL character code.
+        hide_last_note = true        -- This value will be reversed if you hold down a modifier key when invoking the script. (See above.)
+        ```
+    ]]
     return "Automatic Jeté", "Automatic Jete", -- JW Lua has trouble with non-ascii chars in the Undo string, so eliminate the accent on "é" for Undo
            "Add gliss. marks, hide noteheads, and adjust staccato marks as needed for jeté bowing."
 end
@@ -1393,7 +1439,7 @@ end -- function simple_input
 local max_layers = 4            -- this should be in the PDK, but for some reason isn't
 
 local config = {
-    dot_character = 46,         -- ascii code for "."
+    dot_character = 46,         -- ascii code for '.'
     hide_last_note = false
 }
 
@@ -1402,6 +1448,12 @@ if library.is_font_smufl_font() then
 end
 
 configuration.get_parameters("note_automatic_jete.config.txt", config)
+
+if finenv.QueryInvokedModifierKeys then
+    if finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT) then
+        config.hide_last_note = not config.hide_last_note
+    end
+end
 
 function add_gliss_line_if_needed(start_note, end_note)
     -- search for existing

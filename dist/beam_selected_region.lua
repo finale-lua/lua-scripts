@@ -7,6 +7,18 @@ function plugindef()
     finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "June 12, 2020"
     finaleplugin.CategoryTags = "Note"
+    finaleplugin.Notes = [[
+        This script beams together any notes or rests in the selected region that can
+        be beamed together and breaks beams that cross into or out of the selected
+        region at the boundaries of the selected region. The beam options in Finale’s
+        Document Settings determine whether rests can be included at the start or end of a beam.
+        If you select multiple staves vertically, you can create the same beaming pattern
+        across all the staves with a single invocation of the script.
+
+        It does *not* create beams over barlines.
+
+        This script could be particularly useful if you assign it a keystroke using a keyboard macro utility.
+    ]]
     return "Beam Selected Region", "Beam Selected Region", "Beam Selected Region"
 end
 
