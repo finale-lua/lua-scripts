@@ -397,6 +397,18 @@ function library.simple_input(title, text)
   end
 end -- function simple_input
 
+--[[
+% is_finale_object(object)
+
+Attempts to determine if an object is a Finale object through ducktyping
+
+@ object (__FCBase)
+: (bool)
+]]
+function library.is_finale_object(object)
+    -- All finale objects implement __FCBase, so just check for the existence of __FCBase methods
+    return object and type(object) == 'userdata' and object.ClassName and object.GetClassID and true or false
+end
 
 
 

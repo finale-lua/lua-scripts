@@ -27,5 +27,15 @@ function utils.copy_table(t)
     end
 end
 
+--[[
+% unpack(t)
+
+Unpacks a table into separate values (for compatibility with Lua <= 5.1).
+
+@ t (table)
+: (mixed)
+]]
+utils.unpack = unpack or table.unpack
+
 
 return utils
