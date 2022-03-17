@@ -16,6 +16,7 @@
 - [get_smufl_metadata_file](#get_smufl_metadata_file)
 - [is_font_smufl_font](#is_font_smufl_font)
 - [simple_input](#simple_input)
+- [is_finale_object](#is_finale_object)
 
 ## finale_version
 
@@ -258,3 +259,19 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 | `title` (optional) | `string` | the title of the input dialog box |
 | `text` (optional) | `string` | descriptive text above the edit field |
 : string
+
+## is_finale_object
+
+```lua
+library.is_finale_object(object)
+```
+
+Attempts to determine if an object is a Finale object through ducktyping
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `object` | `__FCBase` |  |
+
+| Output type | Description |
+| --- | --- |
+| `bool` |  |
