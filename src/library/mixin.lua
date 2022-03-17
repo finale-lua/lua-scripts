@@ -4,217 +4,284 @@
 --[[
 $module Fluid Mixins
 
-The Fluid Mixins library simplifies the process of writing plugins and improves code maintainability.
-
-This library does 2 things:
-- Allows mixins to be added to any `FC*` objects
-- Adds a fluid interface for any methods that return zero values.
-
-
-By default, it is not possible to override or extend any of the `FC*` objects in Finale Lua because objects that are tied to their underlying C++ implementation are userdata, not tables.
-So through a little bit of magic with proxying, this library enables new methods and properties to be added, while maintaining access to the original methods and properties.
+The Fluid Mixins library does the following:
+- Modifies Finale objects to allow methods to be overridden and new methods or properties to be added. In other words, the modified Finale objects function more like regular Lua tables.
+- Mixins can be used to address bugs, to introduce time-savers, or to provide custom functionality.
+- Introduces a new namespace for accessing the mixin-enabled Finale objects.
+- Also introduces two types of formally defined mixin: `FCM` and `FCX` classes
+- As an added convenience, all methods that return zero values have a fluid interface enabled (aka method chaining)
 
 
-**Adding New Methods and Properties**
-Including the mixin library instantly enables the addition of new methods and properties. The example below demonstrates adding a new property and a new method which accesses that property.
-```
-local mixin = require('library.mixin')
-local dialog = finale.FCCustomLuaWindow()
-
-dialog.my_custom_property = 'foo'
-
-dialog.my_custom_method = function(t) print(t.my_custom_property) end
-```
-*Note: methods and properties cannot end in an underscore. For more info, see 'Accessing Original Methods'*
-
-
-**Overriding Existing Method and Properties**
-In the same way, it is also possible to override existing methods of `FC*` objects.
-```
-local mixin = require('library.mixin')
-local dialog = finale.FCCustomLuaWindow()
-
-dialog.ExecuteModal = function(t, ...)
-    print('Showing modal dialog window')
-    return t.ExecuteModal_(...)
-end
-```
-*Note: Only one copy of a mixin method is stored at a time. This means that overriding either an already overridden method or a new method will result in the first method being replaced, rendering it inaccessible.*
-
-
-To minimise conflicts, existing properties continue to follow their original behaviour and this behaviour cannot be modified. This essentially means that existing methods cannot be overridden.
-In other words:
-- Existing read-only properties will remain read-only
-- Existing writable properties remain writable
-
-```
-local mixin = require('mixin')
-
-local cell = finale.FCCell(m, s)
-cell.Measure = 2 -- Fails with an error as it is still a read-only property
+## finalemix Namespace
+To utilise the new namespace, simply include the library, which also gives access to he helper functions:
+```lua
+local finalemix = require('library.mixin')
 ```
 
+All defined mixins can be accessed through the `finalemix` namespace in the same way as the `finale` namespace. All constructors have the same signature as their `FC` originals.
 
-**Accessing Original Methods**
-For various reasons, it may be desirable to access the original method once overridden. This can be done by appending a trailing underscore to the method name.
+```lua
+local fcstr = finale.FCString()
 
+-- Base mixin-enabled FCString object
+local fcmstr = finalemix.FCMString()
+
+-- Customised mixin that extends FCMString
+local fcxstr = finalemix.FCXString()
+
+-- Customised mixin that extends FCXString. Still has the same constructor signature as FCString
+local fcxcstr = finalemix.FCXMyCustomString()
 ```
-local mixin = require('library.mixin')
-local dialog = finale.FCCustomLuaWindow()
+For more information about naming conventions and the different types of mixins, see the 'FCM Mixins' and 'FCX Mixins' sections.
 
-dialog.ExecuteModal = function(t, ...)
-    print('Showing modal dialog window')
-    return t.ExecuteModal_(...) -- This references the original method.
-end
+
+Static copies of `FCM` and `FCX` methods and properties can also be accessed through the namespace like so:
+```lua
+local func = finalemix.FCXMyMixin.MyMethod
 ```
-For this reason, mixin methods and properties cannot have a trailing underscore and attempting to do so will result in an error being thrown.
+Note that static access includes inherited methods and properties.
 
-If needed, (eg for performance reasons), the original `finale` global object can also be accessed by appending a trailing underscore.
+
+## Rules of the Game
+- New methods can be added or existing methods can be overridden.
+- New properties can be added but existing properties retain their original behaviour (ie if they are writable or read-only, and what types they can be)
+- The original method can always be accessed by appending a trailing underscore to the method name
+- In keeping with the above, method and property names cannot end in an underscore. Setting a method or property ending with an underscore will result in an error.
+- Returned `FC` objects from all mixin methods are automatically upgraded to a mixin-enabled `FCM` object.
+- All methods that return no values (returning `nil` counts as returning a value) will instead return `self`, enabling a fluid interface
+
+There are also some additional global mixin properties and methods that have special meaning:
+| Name | Description | FCM Accessible | FCM Definable | FCX Accessible | FCX Definable |
+| :--- | :---------- | :------------- | :------------ | :------------- | :------------ |
+| string `MixinClassName` | The class name (FCM or FCX) of the mixin. | Yes | No | Yes | No |
+| string|nil `MixinParent` | The name of the mixin parent | Yes | No | Yes | Yes (required) |
+| string|nil `MixinBase` | The class name of the FCM base of an FCX class | No | No | Yes | No |
+| function `Init(self`) | An initialising function. This is not a constructor as it will be called after the object has been constructed. | Yes | Yes (optional) | Yes | Yes (optional) |
+
+
+## FCM Mixins
+
+`FCM` classes are the base mixin-enabled Finale objects. These are modified Finale classes which, by default (that is, without any additional modifications), retain full backward compatibility with their original counterparts.
+
+The name of an `FCM` class corresponds to its underlying 'FC' class, with the addition of an 'M' after the 'FC'.
+For example, the following will create a mixin-enabled `FCCustomLuaWindow` object:
+```lua
+local finalemix = require('library.mixin')
+
+local dialog = finalemix.FCMCustomLuaWindow()
 ```
-local mixin = require('library.mixin')
 
--- Refers to the original finale object, without mixins.
-local dialog = finale_.FCCustomLuaWindow()
-```
+In addition to creating a mixin-enabled finale object, `FCM` objects also automatically load any `FCM` mixins that apply to the class or its parents. These may contain additional methods or overrides for existing methods (eg allowing a method that expects an `FCString` object to accept a regular Lua string as an alternative). The usual principles of inheritance apply (children override parents, etc).
+
+To see if any additional methods are available, or which methods have been modified, look for a file named after the class (eg `FCMCtrlStatic.lua`) in the `mixin` directory. Also check for parent classes, as `FCM` mixins are inherited and can be set at any level in the class hierarchy.
 
 
-**Global Mixins**
-In addition to being able to add methods and properties on the fly, there are also two ways of defining mixins. The first of these are global mixins. Global mixins are applied at the class level and can be defined at any level in the class heirarchy. Once registered, global mixins are applied retroactively to every instance of the class. Global mixins are primarily intended to be used for fixing bugs or for introducing convenience functions and should retain compatibility with the original method signature to avoid conflicts.
+## Defining an FCM Mixin
+The following is an example of how to define an `FCM` mixin for `FCMControl`.
+`src/mixin/FCMControl.lua`
+```lua
+-- Include the mixin namespace and helper functions
+local library = require('library.general_library')
+local finalemix = require('library.mixin')
 
-```
-local mixin = require('library.mixin')
-
--- A table of methods and/or properties
 local props = {
-    my_custom_property = 'foo',
-    my_custom_method = function(t) print(t.my_custom_property) end
-} 
 
-mixin.register_global_mixin('FCCustomLuaWindow', props)
-```
-
-Global mixins can be registered automatically. To take advantage of this, they should be defined in the `mixin.global` namespace in a file with the same name as the class name. E.g. the snippet above would be located in src/mixin/global/FCCustomLuaWindow.lua`.
-
-
-**Named Mixins**
-The other type of defined mixin is a named mixin. Named mixins are intended for defining more customised functionality and are only applied on request to an instance. These should be stored in the `mixin.named` namespace and need to be included in order to be available for use.
-
-`src/mixin/named/my_custom_window.lua`
-```
-local mixin = require('library.mixin')
-
--- A table of methods and/or properties
-local props = {
-    my_custom_property = 'foo',
-    my_custom_method = function(t) print(t.my_custom_property) end
-} 
-
-mixin.register_named_mixin('FCCustomLuaWindow', 'my_custom_window', props)
-```
-
-Plugin:
-```
-local mixin = require('library.mixin')
-require('mixin.named.my_custom_window')
-
-local dialog = finale.FCCustomLuaWindow()
-dialog.apply_mixin('my_custom_window')
-
-print(dialog.has_mixin('my_custom_window')) -- true
-```
-
-You can check if an object has a named mixin applied by calling `has_mixin`. Named mixins can only be applied once per object. Applying a named mixin multiple times on the same instance will result in an error being thrown.
-
-
-
-**Fluid Interface**
-As an additional convenience, this library also makes available a fluid interface for all `FC*` object methods that return zero values. Methods that return `nil` are not affected by this since that is technically a value.
-
-```
-local mixin = require('library.mixin')
-local window = finale.FCCustomLuaWindow()
-
-window:CreateStatic(10, 10):SetText(finale.FCString():SetLuaString('this is some text'))
-
-window:ExecuteModal(nil)
-```
-
-
-Functions available in the mixin library are:
-]]
-
-local utils = require("library.utils")
-
--- For compatibility with Lua <= 5.1
-local unpack = unpack or table.unpack
-
-local mixin, global_mixins, named_mixins = {}, {}, {}
-
-local base_mixins = {
-    is_mixin = true,
-
---[[
-% has_mixin(name)
-
-Object Method: Checks if the object it is called on has a mixin applied.
-
-Example:
-```
-print(dialog.has_mixin('my_custom_dialog')) -- false
-
-dialog.apply_mixin('my_custom_dialog');
-
-print(dialog.has_mixin('my_custom_dialog')) -- true
-```
-
-@ name (string) Mixin name.
-: (boolean)
-]]
-    has_mixin = function(t, mixin_list, _, name)
-        return mixin_list[t][name] and true or false
+    -- An optional initialising method
+    Init = function(self)
+        print('Initialising...')
     end,
 
---[[
-% has_mixin(name)
+    -- This method is an override for the SetText method 
+    -- It allows the method to accept a regular Lua string, which means that plugin authors don't need to worry anout creating an FCString objectq
+    SetText = function(self, str)
 
-Object Method: Applies a mixin to the object it is called on.
+        -- Check if the argument is a finale object. If not, turn it into an FCString
+        if not library.is_finale_object(str)
+            local tmp = str
 
-Example:
-```
-local mixin = require('library.mixin')
-require('mixin.named.my_custom_dialog')
-
-local dialog = finale.FCCustomLuaWindow()
-dialog.apply_mixin('my_custom_dialog');
-```
-
-@ name (string) Mixin name.
-]]
-    apply_mixin = function(t, mixin_list, mixin_props, name)
-        if mixin_list[t][name] then
-            error('Mixin \'' .. name .. '\' has already been applied to this object.');
+            -- Use a mixin object so that we can take advantage of the fluid interface
+            str = finalemix.FCMString():SetLuaString(tostring(str))
         end
 
-        local m = mixin.get_mixin(mixin.get_class_name(t), name)
-        for p, v in pairs(m) do
-            -- Take advantage of error checking
-            t[p] = v
-        end
+        -- Use a trailing underscore to reference the original method from FCControl
+        -- Wrapping the call in catch_and_rethrow means that any errors will show at the place where this method was called, rather than at the line below, which can be useful since this is just a decorator.
+        finalemix.catch_and_rethrow(self.SetText_, 'SetText', self, str)
 
-        if m.init then
-            t:init()
-            mixin_props[t].init = nil
-        end
-
-        mixin_list[t][name] = true
-    end,
+        -- By maintaining the original method's behaviour and not returning anything, the fluid interface can be applied.
+    end
 }
 
--- Loads a global mixin, if it hasn't been loaded yet
-local function load_global_mixin(class_name)
-    if type(global_mixins[class_name]) ~= 'nil' then return end
+return props
+```
+Since the underlying class `FCControl` has a number of child classes, the `FCMControl` mixin will also be inherited by all child classes, unless overridden.
 
-    success, result = pcall(function(c) return require(c) end, 'mixin.global.' .. class_name)
+
+An example of utilizing the above mixin:
+```lua
+local finalemix = require('library.mixin')
+
+local dialog = finalemix.FCMCustomLuaWindow()
+
+-- Fluid interface means that self is returned from SetText instead of nothing
+local label = dialog:CreateStatic(10, 10):SetText('Hello World')
+
+dialog:ExecuteModal(nil)
+```
+
+
+
+## FCX Mixins
+`FCX` mixins are extensions of `FCM` mixins. They are intended for defining extended functionality with no requirement for backwards compatability with the underlying `FC` object.
+
+While `FCM` class names are directly tied to their underlying `FC` object, their is no such requirement for an `FCX` mixin. As long as it the class name is prefixed with `FCX` and is immediately followed with another uppercase letter, they can be named anything. If an `FCX` mixin is not defined, the namespace will return `nil`.
+
+When constructing an `FCX` mixin (eg `local dialog = finalemix.FCXMyDialog()`, the library first creates the underlying `FCM` object and then adds each parent (if any) `FCX` mixin until arriving at the requested class.
+
+
+Here is an example `FCX` mixin definition:
+
+`src/mixin/FCXMyStaticCounter.lua`
+```lua
+-- Include the mixin namespace and helper functions
+local finalemix = require('library.mixin')
+
+-- Since mixins can't have private properties, we can store them in a table
+local private = {}
+setmetatable(private, {__mode = 'k'}) -- Use weak keys so that properties are automatically garbage collected along with the objects they are tied to
+
+local props = {
+
+    -- All FCX mixins must declare their parent. It can be an FCM class or another FCX class
+    MixinParent = 'FCMCtrlStatic',
+
+    -- Initialiser
+    Init = function(self)
+        -- Set up private storage for the counter value
+        if not private[self] then
+            private[self] = 0
+            finalemix.FCMControl.SetText(self, tostring(private[self]))
+        end
+    end,
+
+    -- This custom control doesn't allow manual setting of text, so we override it with an empty function
+    SetText = function()
+    end,
+
+    -- Incrementing counter method
+    Increment = function(self)
+        private[self] = private[self] + 1
+
+        -- We need the SetText method, but we've already overridden it! Fortunately we can take a static copy from the finalemix namespace
+        finalemix.FCMControl.SetText(self, tostring(private[self]))
+    end
+}
+
+return props
+```
+
+`src/mixin/FCXMyCustomDialog.lua`
+```lua
+-- Include the mixin namespace and helper functions
+local finalemix = require('library.mixin')
+
+local props = {
+    MixinParent = 'FCMCustomLuaWindow',
+
+    CreateStaticCounter = function(self, x, y)
+        -- Create an FCMCtrlStatic and then use the subclass function to apply the FCX mixin
+        return finalemix.subclass(self:CreateStatic(x, y), 'FCXMyStaticCounter')
+    end
+}
+
+return props
+```
+
+
+Example usage:
+```lua
+local finalemix = require('library.mixin')
+
+local dialog = finalemix.FCXMyCustomDialog()
+
+local counter = dialog:CreateStaticCounter(10, 10)
+
+counter:Increment():Increment()
+
+-- Counter should display 2
+dialog:ExecuteModal(nil)
+```
+]]
+
+local utils = require('library.utils')
+local library = require('library.general_library')
+
+local mixin, mixin_props, mixin_classes = {}, {}, {}
+
+-- Weak table for mixin properties / methods
+setmetatable(mixin_props, {__mode = 'k'})
+
+-- Reserved properties (cannot be set on an object)
+-- 0 = cannot be set in the mixin definition
+-- 1 = can be set in the mixin definition
+local reserved_props = {
+    IsMixinReady = 0,
+    MixinClassName = 0,
+    MixinParent = 1,
+    MixinBase = 0,
+    Init = 1,
+}
+
+
+local function is_fcm_class_name(class_name)
+    return type(class_name) == 'string' and (class_name:match('^FCM%u') or class_name:match('^__FCM%u')) and true or false
+end
+
+local function is_fcx_class_name(class_name)
+    return type(class_name) == 'string' and class_name:match('^FCX%u') and true or false
+end
+
+local function fcm_to_fc_class_name(class_name)
+    return string.gsub(class_name, 'FCM', 'FC', 1)
+end
+
+local function fc_to_fcm_class_name(class_name)
+    return string.gsub(class_name, 'FC', 'FCM', 1)
+end
+
+-- Returns the name of the parent class
+-- This function should only be called for classnames that start with "FC" or "__FC"
+local get_parent_class = function(classname)
+    local class = _G.finale[classname]
+    if type(class) ~= "table" then return nil end
+    if not finenv.IsRGPLua then -- old jw lua
+        classt = class.__class
+        if classt and classname ~= "__FCBase" then
+            classtp = classt.__parent -- this line crashes Finale (in jw lua 0.54) if "__parent" doesn't exist, so we excluded "__FCBase" above, the only class without a parent
+            if classtp and type(classtp) == "table" then
+                for k, v in pairs(_G.finale) do
+                    if type(v) == "table" then
+                        if v.__class and v.__class == classtp then
+                            return tostring(k)
+                        end
+                    end
+                end
+            end
+        end
+    else
+        for k, _ in pairs(class.__parent) do
+            return tostring(k)  -- in RGP Lua the v is just a dummy value, and the key is the classname of the parent
+        end
+    end
+    return nil
+end
+
+function mixin.load_mixin_class(class_name)
+    if mixin_classes[class_name] then return end
+
+    local is_fcm = is_fcm_class_name(class_name)
+    local is_fcx = is_fcx_class_name(class_name)
+
+    success, result = pcall(function(c) return require(c) end, 'mixin.' .. class_name)
 
     if not success then
         -- If the reason it failed to load was anything other than module not found, display the error
@@ -222,9 +289,90 @@ local function load_global_mixin(class_name)
             error(result, 0)
         end
 
-        -- Keep track of failed attempts to prevent calling require more than once per class
-        global_mixins[class_name] = false
+        -- FCM classes are optional, so if it's valid and not found, start with a blank slate
+        if is_fcm and finale[fcm_to_fc_class_name(class_name)] then
+            result = {}
+        else
+            return
+        end
     end
+
+    -- Mixins must be a table
+    if type(result) ~= 'table' then
+        error('Mixin \'' .. class_name .. '\' is not a table.', 0)
+    end
+
+    local class = {props = result}
+
+    -- Check for trailing underscores
+    for k, _ in pairs(class.props) do
+        if type(k) == 'string' and k:sub(-1) == '_' then
+            error('Mixin methods and properties cannot end in an underscore (' .. class_name .. '.' .. k .. ')', 0)
+        end
+    end
+
+    -- Check for reserved properties
+    for k, v in pairs(reserved_props) do
+        if v == 0 and type(class.props[k]) ~= 'nil' then
+            error('Mixin \'' .. class_name .. '\' contains reserved property \'' .. k .. '\'.', 0)
+        end
+    end
+
+    -- Ensure that init is a function
+    if class.props.Init and type(class.props.Init) ~= 'function' then
+        error('Mixin \'' .. class_name .. '\' method \'Init\' must be a function.', 0)
+    end
+
+    -- FCM specific
+    if is_fcm then
+        class.props.MixinParent = get_parent_class(fcm_to_fc_class_name(class_name))
+
+        if class.props.MixinParent then
+            class.props.MixinParent = fc_to_fcm_class_name(class.props.MixinParent)
+
+            mixin.load_mixin_class(class.props.MixinParent)
+
+            -- Collect init functions
+            if mixin_classes[class.props.MixinParent].init then
+                class.init = utils.copy_table(mixin_classes[class.props.MixinParent].init)
+            end
+
+            if class.props.Init then
+                class.init = class.init or {}
+                table.insert(class.init, class.props.Init)
+            end
+
+            -- Collect parent methods/properties if not overridden
+            -- This prevents having to traverse the whole tree every time a method or property is accessed
+            for k, v in pairs(mixin_classes[class.props.MixinParent].props) do
+                if type(class.props[k]) == 'nil' then
+                    class.props[k] = utils.copy_table(v)
+                end
+            end
+        end
+
+    -- FCX specific
+    else
+        -- FCX classes must specify a parent
+        if not class.props.MixinParent then
+            error('Mixin \'' .. class_name .. '\' does not have a \'MixinParent\' property defined.', 0)
+        end
+
+        mixin.load_mixin_class(class.props.MixinParent)
+
+        -- Check if FCX parent is missing
+        if not mixin_classes[class.props.MixinParent] then
+            error('Unable to load mixin \'' .. class.props.MixinParent .. '\' as parent of \'' .. class_name .. '\'.', 0)
+        end
+
+        -- Get the base FCM class (all FCX classes must eventually arrive at an FCM parent)
+        class.props.MixinBase = is_fcm_class_name(class.props.MixinParent) and class.props.MixinParent or mixin_classes[class.props.MixinParent].props.MixinBase
+    end
+
+    -- Add class info to properties
+    class.props.MixinClassName = class_name
+
+    mixin_classes[class_name] = class
 end
 
 -- Catches an error and throws it at the specified level (relative to where this function was called)
@@ -256,34 +404,7 @@ local function catch_and_rethrow(tryfunczzz, func_name, levels, ...)
         end
     end
 
-    return unpack(result)
-end
-
--- Returns the name of the parent class
--- This function should only be called for classnames that start with "FC" or "__FC"
-local get_parent_class = function(classname)
-    local class = finale_[classname]
-    if type(class) ~= "table" then return nil end
-    if not finenv.IsRGPLua then -- old jw lua
-        classt = class.__class
-        if classt and classname ~= "__FCBase" then
-            classtp = classt.__parent -- this line crashes Finale (in jw lua 0.54) if "__parent" doesn't exist, so we excluded "__FCBase" above, the only class without a parent
-            if classtp and type(classtp) == "table" then
-                for k, v in pairs(finale_) do
-                    if type(v) == "table" then
-                        if v.__class and v.__class == classtp then
-                            return tostring(k)
-                        end
-                    end
-                end
-            end
-        end
-    else
-        for k, _ in pairs(class.__parent) do
-            return tostring(k)  -- in RGP Lua the v is just a dummy value, and the key is the classname of the parent
-        end
-    end
-    return nil
+    return utils.unpack(result)
 end
 
 -- Gets the real class name of a Finale object
@@ -297,105 +418,98 @@ function mixin.get_class_name(object)
     return object:ClassName()
 end
 
--- Attempts to determine if an object is a Finale object through ducktyping
-local function is_finale_object(object)
-    -- All finale objects implement __FCBase, so just check for the existence of __FCBase methods
-    return object and type(object) == 'userdata' and object.ClassName and object.GetClassID and true or false
+local function proxy(t, ...)
+    local n = select('#', ...)
+    -- If no return values, then apply the fluid interface
+    if n == 0 then
+        return t
+    end
+
+    -- Apply mixin foundation to all returned finale objects
+    for i = 1, n do
+        mixin.enable_mixin(select(i, ...))
+    end
+    return ...
 end
 
 -- Returns a function that handles the fluid interface
-function mixin.create_fluid_proxy(t, func, func_name)
-    local function proxy(...)
-        local n = select('#', ...)
-        -- If no return values, then apply the fluid interface
-        if n == 0 then
-            return t
-        end
-
-        -- Apply mixin foundation to all returned finale objects
-        for i = 1, n do
-            mixin.apply_mixin_foundation(select(i, ...))
-        end
-        return ...
-    end
-
-    return function(...)
-        return proxy(catch_and_rethrow(func, func_name, 2, ...))
+function mixin.create_fluid_proxy(func, func_name)
+    return function(t, ...)
+        return proxy(t, catch_and_rethrow(func, func_name, 2, t, ...))
     end
 end
 
--- Modifies an FC* class to allow adding mixins to any instance of that class.
+-- Takes an FC object and enables the mixin
+function mixin.enable_mixin(object, fcm_class_name)
+    if not library.is_finale_object(object) or mixin_props[object] then return object end
+
+    mixin.apply_mixin_foundation(object)
+    fcm_class_name = fcm_class_name or fc_to_fcm_class_name(mixin.get_class_name(object))
+    mixin_props[object] = {}
+
+    mixin.load_mixin_class(fcm_class_name)
+
+    if mixin_classes[fcm_class_name].init then
+        for _, v in pairs(mixin_classes[fcm_class_name].init) do
+            v(object)
+        end
+    end
+
+    return object
+end
+
+-- Modifies an FC class to allow adding mixins to any instance of that class.
+-- Needs an instance in order to gain access to the metatable
 function mixin.apply_mixin_foundation(object)
-    if not object or not is_finale_object(object) then return end
-    if object.is_mixin then return object end
+    if not object or not library.is_finale_object(object) or object.IsMixinReady then return end
 
-    local class_name = mixin.get_class_name(object)
-
-    -- Storage for mixin methods and properties
-    local mixin_props, mixin_list = {}, {}
-
-    -- Use weak keys to enable garbage collection and prevent memory leaks
-    setmetatable(mixin_props, {__mode = 'k'})
-    setmetatable(mixin_list, {__mode = 'k'})
-
+    -- Metatables are shared across all instances, so this only needs to be done once per class
     local meta = getmetatable(object)
 
     -- We need to retain a reference to the originals for later
     local original_index = meta.__index 
     local original_newindex = meta.__newindex
 
+    local fcm_class_name = fc_to_fcm_class_name(mixin.get_class_name(object))
+
     meta.__index = function(t, k)
+        -- Return a flag that this class has been modified
+        -- Adding a property to the metatable would be preferable, but that would entail going down the rabbit hole of modifying metatables of metatables
+        if k == 'IsMixinReady' then return true end
+
+        -- If the object doesn't have an associated mixin (ie from finale namespace), let's pretend that nothing has changed and return early
+        if not mixin_props[t] then return original_index(t, k) end
+
         local prop
         local real_k = k
-        mixin_props[t] = mixin_props[t] or {}
-
-        -- First, check if it's one of the base mixin methods (these can't be overridden)
-        if base_mixins[k] ~= nil then
-            if type(base_mixins[k]) == 'function' then
-                prop = function(tt, ...) return base_mixins[k](tt, mixin_list, mixin_props, ...) end
-            else
-                prop = utils.copy_table(base_mixins[k])
-            end
 
         -- If there's a trailing underscore in the key, then return the original property, whether it exists or not
-        elseif type(k) == 'string' and k:sub(-1) == '_' then
+        if type(k) == 'string' and k:sub(-1) == '_' then
             -- Strip trailing underscore
             real_k = k:sub(1, -2)
             prop = original_index(t, real_k)
 
-        -- Check if it's a mixin that's been directly applied
-        elseif mixin_props[t][k] ~= nil then
+        -- Check if it's a custom or FCX property/method
+        elseif type(mixin_props[t][k]) ~= 'nil' then
             prop = mixin_props[t][k]
+        
+        -- Check if it's an FCM property/method
+        elseif type(mixin_classes[fcm_class_name].props[k]) ~= 'nil' then
+            prop = mixin_classes[fcm_class_name].props[k]
 
-        -- Otherwise, assume we're looking for a global mixin
+            -- If it's a table, copy it to allow instance-level editing
+            if type(prop) == 'table' then
+                mixin_props[t][k] = utils.copy_table(prop)
+                prop = mixin[t][k]
+            end
+
+        -- Otherwise, use the underlying object
         else
-            -- Try and find the mixin somewhere in the inheritance tree
-            local parent = class_name
-            while parent do
-                load_global_mixin(parent)
-                if global_mixins[parent] and global_mixins[parent][k] ~= nil then
-                    -- Only copy over tables, in order to make them writable.
-                    if type(global_mixins[parent][k]) == 'table' then
-                        mixin_props[t][k] = utils.copy_table(global_mixins[parent][k])
-                        prop = mixin_props[t][k]
-                    else
-                        prop = global_mixins[parent][k]
-                    end
-
-                    break
-                end
-
-                parent = get_parent_class(parent)
-            end
-
-            -- As a last resort, use original property, whether it exists or not
-            if not parent then
-                prop = original_index(t, real_k)
-            end
+            prop = original_index(t, real_k)
         end
 
        if type(prop) == 'function' then
-            return mixin.create_fluid_proxy(t, prop, real_k)
+            return mixin.create_fluid_proxy(prop, real_k)
         else
             return prop
         end
@@ -404,13 +518,20 @@ function mixin.apply_mixin_foundation(object)
     -- This will cause certain things (eg misspelling a property) to fail silently as the misspelled property will be stored on the mixin instead of triggering an error
     -- Using methods instead of properties will avoid this
     meta.__newindex = function(t, k, v)
+        -- Return early if this is not mixin-enabled
+        if not mixin_props[t] then return catch_and_rethrow(original_newindex, nil, 2, t, k, v) end
+
         -- Trailing underscores are reserved for accessing original methods
-        if (type(k) == 'string' and k:sub(-1) == '_') then
+        if type(k) == 'string' and k:sub(-1) == '_' then
             error('Mixin methods and properties cannot end in an underscore.', 2)
         end
 
+        -- Setting a reserved property is not allowed
+        if reserved_props[k] then
+            error('Cannot set reserved property \'' .. k .. '\'.', 2)
+        end
+
         local type_v_original = type(original_index(t, k))
-        mixin_props[t] = mixin_props[t] or {}
 
         -- If it's a method, or a property that doesn't exist on the original object, store it
         if type_v_original == 'nil' then
@@ -442,125 +563,144 @@ function mixin.apply_mixin_foundation(object)
             catch_and_rethrow(original_newindex, nil, 2, t, k, v)
         end
     end
+end
+
+--[[
+% subclass(object, class_name)
+
+Takes a mixin-enabled finale object and migrates it to an `FCX` subclass. Any conflicting property or method names will be overwritten.
+
+If the object is not mixin-enabled or the current `MixinClassName` is not a parent of `class_name`, then an error will be thrown.
+If the current `MixinClassName` is the same as `class_name`, this function will do nothing.
+
+@ object (__FCMBase)
+@ class_name (string) FCX class name.
+: (__FCMBase|nil) The object that was passed with mixin applied.
+]]
+function mixin.subclass(object, class_name)
+    local success, result = pcall(mixin.subclass_helper, object, class_name)
+
+    if not success then
+        error(result, 2)
+    end
+
+    if not result then
+        error(class_name .. 'is not a subclass of ' .. object.MixinClassName, 2)
+    end
 
     return object
 end
 
---[[
-% register_global_mixin(class, prop[, value])
-
-Library Method: Register a mixin for a finale class that will be applied globally (ie to all instances of the specified classes, including existing instances). Properties and methods cannot end in an underscore.
-
-@ class (string|array) The target class (or an array of classes).
-@ prop (string|table) Either the property name, or a table with pairs of (string) = (mixed)
-@ value [mixed] OPTIONAL: Method or property value. Will be ignored if prop is a table.
-]]
-function mixin.register_global_mixin(class, prop, value)
-    class = type(class) == 'table' and class or {class}
-    prop = type(prop) == 'table' and prop or {[prop] = value}
-
-    for _, c in ipairs(class) do
-        for p, v in pairs(prop) do
-            if type(p) == 'string' and p:sub(-1) ~= '_' then
-                global_mixins[c] = global_mixins[c] or {}
-                global_mixins[c][p] = utils.copy_table(v)
-            end
-        end
+-- Returns true on success, false if class_name is not a subclass of the object, and throws errors for everything else
+-- Returns false because we only want the originally requested class name for the error message, which is then handled by mixin.subclass
+function mixin.subclass_helper(object, class_name)
+    if not object.MixinClassName then
+        error('Object is not mixin-enabled.', 0)
     end
-end
 
---[[
-% register_named_mixin(class, mixin_name, prop[, value])
-
-Library Method: Register a named mixin which can then be applied by calling the target object's apply_mixin method. If a named mixin requires a 'constructor', include a method called 'init' that accepts zero arguments. It will be called when the mixin is applied. Properties and methods cannot end in an underscore.
-
-@ class (string|array) The class (or an array of classes) to apply the mixin to.
-@ mixin_name (string|array) Mixin name, or an array of names.
-@ prop (string|table) Either the property name, or a table with pairs of (string) = (mixed)
-@ value [mixed] OPTIONAL: Method or property value. Will be ignored if prop is a table.
-]]
-function mixin.register_named_mixin(class, mixin_name, prop, value)
-    mixin_name = type(mixin_name) == 'table' and mixin_name or {mixin_name}
-    class = type(class) == 'table' and class or {class}
-    prop = type(prop) == 'table' and prop or {[prop] = value}
-
-    for _, n in ipairs(mixin_name) do
-        if n == 'global' then
-            error('A mixin cannot be named \'global\'.', 2)
-        end
-
-        for _, c in ipairs(class) do
-            named_mixins[c] = named_mixins[c] or {}
-
-            if named_mixins[c][n] then
-                error('Named mixins can only be registered once per class.', 2)
-            else
-                named_mixins[c][n] = {}
-            end
-
-            for p, v in pairs(prop) do
-                if type(p) == 'string' and p:sub(-1) ~= '_' then named_mixins[c][n][p] = utils.copy_table(v) end
-            end
-        end
+    if not is_fcx_class_name(class_name) then
+        error('Mixins can only be subclassed with an FCX class.', 0)
     end
+
+    if object.MixinClassName == class_name then return true end
+
+    mixin.load_mixin_class(class_name)
+
+    if not mixin_classes[class_name] then
+        error('Mixin \'' .. class_name .. '\' not found.', 0)
+    end
+
+    -- If we've reached the top of the FCX inheritance tree and the class names don't match, then class_name is not a subclass
+    if is_fcm_class_name(mixin_classes[class_name].props.MixinParent) and mixin_classes[class_name].props.MixinParent ~= object.MixinClassName then
+        return false
+    end
+
+    -- If loading the parent of class_name fails, then it's not a subclass of the object
+    if mixin_classes[class_name].props.MixinParent ~= object.MixinClassName and not mixin.subclass_helper(object, mixin_classes[class_name].props.MixinParent) then
+        return false
+    end
+
+    -- Copy the methods and properties over
+    local props = mixin_props[object]
+    for k, v in pairs(mixin_classes[class_name].props) do
+        props[k] = utils.copy_table(v)
+    end
+
+    -- Run initialiser, if there is one
+    if mixin_classes[class_name].props.Init then
+        props.Init(object)
+    end
+
+    return true
 end
+
+-- Silently returns nil on failure
+function mixin.create_fcm(class_name, ...)
+    mixin.load_mixin_class(class_name)
+    if not mixin_classes[class_name] then return nil end
+
+    return mixin.enable_mixin(finale[fcm_to_fc_class_name(class_name)](...))
+end
+
+-- Silently returns nil on failure
+function mixin.create_fcx(class_name, ...)
+    mixin.load_mixin_class(class_name)
+    if not mixin_classes[class_name] then return nil end
+
+    local object = mixin.create_fcm(mixin_classes[class_name].props.MixinBase, ...)
+
+    if not object then return nil end
+
+    local success, result = pcall(mixin.subclass_helper, object, class_name)
+
+    if not success or not result then return nil end
+
+    return object
+end
+
+
+local mixin_public = {subclass = mixin.subclass}
 
 --[[
-% get_global_mixin(class, prop)
+% catch_and_rethrow(func, name, ...)
 
-Library Method: Returns a copy of all methods and properties of a global mixin.
+Catches an error and rethrows it one level higher from where this function is called.
 
-@ class (string) The finale class name.
-: (table|nil)
+@ func (function) The function to call.
+@ name (string) The function name that will appear in the error message.
+@ ... (mixed) Any arguments for the function call.
+: (mixed) Any return values from the function.
 ]]
-function mixin.get_global_mixin(class)
-    load_global_mixin(class)
-
-    return global_mixins[class] and utils.copy_table(global_mixins[class]) or nil
+function mixin_public.catch_and_rethrow(func, name, ...)
+    return catch_and_rethrow(func, name, 4, ...)
 end
 
---[[
-% get_named_mixin(class, mixin_name)
 
-Library Method: Retrieves a copy of all the methods and properties of a named mixin.
-
-@ class (string) Finale class.
-@ mixin_name (string) Name of mixin.
-: (table|nil)
-]]
-function mixin.get_named_mixin(class, mixin_name)
-    return named_mixins[class] and named_mixins[class][mixin_name] and utils.copy_table(named_mixins[class][mixin_name]) or nil
-end
-
--- Keep a copy of the original finale namespace. Available globally, if needed for performance reasons.
-finale_ = finale
-
--- Turn the finale namespace into a proxy
-finale = setmetatable({}, {
+-- Create a new namespace for mixins
+return setmetatable({}, {
     __newindex = function(t, k, v) end,
     __index = function(t, k)
-        if (type(k) == 'string' and k:sub(-1) == '_') then
-            return finale_[k:sub(1, -2)]
-        end
+        if mixin_public[k] then return mixin_public[k] end
 
-        local val = finale_[k]
+        mixin.load_mixin_class(k)
+        if not mixin_classes[k] then return nil end
 
-        if type(val) == 'table' then
-            return setmetatable({}, {
-                __index = function(t, k) return finale_[k] end,
-                __call = function(...)
-                    return mixin.apply_mixin_foundation(finale_[k](...))
+        return setmetatable({}, {
+            __newindex = function(tt, kk, vv) end,
+            __index = function(tt, kk)
+                local val = utils.copy_table(mixin_classes[k].props[kk])
+                if type(val) == 'function' then
+                    val = mixin.create_fluid_proxy(val, kk)
                 end
-            })
-        end
-
-        return val
+                return val
+            end,
+            __call = function(...)
+                if is_fcm_class_name(k) then
+                    return mixin.create_fcm(k, ...)
+                else
+                    return mixin.create_fcx(k, ...)
+                end
+            end
+        })
     end
 })
-
-return {
-    register_global_mixin = mixin.register_global_mixin,
-    register_named_mixin = mixin.register_named_mixin,
-    get_global_mixin = mixin.get_global_mixin,
-    get_named_mixin = mixin.get_named_mixin,
-}
