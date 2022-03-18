@@ -5,13 +5,11 @@ function plugindef()
   finaleplugin.Author = "Jacob Winkler"
   finaleplugin.Copyright = "2022"
   finaleplugin.Version = "1.0"
-  finaleplugin.Date = "2/13/2022"
-  return "Bariolage", "Bariolage", "Bariolage: Creates alternating layer pattern from layer 1. Doesn't play nicely with odd numbered groups!"
-end
---[[
-% note_bariolage()
-
-This function creates bariolage-style notation where layers 1 and 2 interlock. It works well for material that has even-numbered beam groups like 4x 16th notes or 6x 16th notes (in compound meters). 32nd notes also work. Odd numbers of notes produce undesirable results.
+  finaleplugin.Date = "3/18/2022"
+  finaleplugin.Notes = [[
+  USING THE 'BARIOLAGE' SCRIPT
+  
+This script creates bariolage-style notation where layers 1 and 2 interlock. It works well for material that has even-numbered beam groups like 4x 16th notes or 6x 16th notes (in compound meters). 32nd notes also work. Odd numbers of notes produce undesirable results.
 
 To use, create a suitable musical passage in layer 1, then run the script. The script does the following:
 - Duplicates layer 1 to layer 2.
@@ -21,6 +19,9 @@ To use, create a suitable musical passage in layer 1, then run the script. The s
 - Iterates through the notes in layer 2 and changes the stems of the odd-numbered notes.
 - Any note in layer 2 that is the beginning of a beamed group is hidden.
 ]]
+  return "Bariolage", "Bariolage", "Bariolage: Creates alternating layer pattern from layer 1. Doesn't play nicely with odd numbered groups!"
+end
+
 function layer_copy(src, dest)
     local region = finenv.Region()
     local start=region.StartMeasure

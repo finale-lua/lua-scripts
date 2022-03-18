@@ -4,12 +4,9 @@ function plugindef()
   finaleplugin.Author = "Jacob Winkler"
   finaleplugin.Copyright = "2022"
   finaleplugin.Version = "1.0"
-  finaleplugin.Date = "2/13/2022"
-  return "Rename Staves", "Rename Staves", "Renames selected staves"
-end
-
---[[
-% staff_rename()
+  finaleplugin.Date = "3/18/2022"
+  finaleplugin.Notes = [[
+USING THE 'STAFF RENAME' SCRIPT
 
 This script creates a dialog containing the full and abbreviated names of all selected instruments, including multi-staff instruments such as organ or piano. This allows for quick renaming of staves, with far less mouse clicking than trying to rename them from the Score Manager.
 
@@ -23,6 +20,10 @@ Speaking of the Bb Clarinet... Accidentals are displayed with square brackets, s
 
 Note that this script is not currently able to address Finale's auto-numbering. When this feature is added to future versions of RGP Lua I will update the script to allow for some quick processing of these as well, such as being able to switch numbering systems for all instruments at once, or hard-coding the player number into the full/abbreviated names and removing auto-numbering.
 ]]
+  return "Rename Staves", "Rename Staves", "Renames selected staves"
+end
+
+
 
 function staff_rename()
   local multi_inst = finale.FCMultiStaffInstruments()
