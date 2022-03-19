@@ -90,6 +90,7 @@ local props = {
     -- This method is an override for the SetText method 
     -- It allows the method to accept a regular Lua string, which means that plugin authors don't need to worry anout creating an FCString objectq
     SetText = function(self, str)
+        finalemix.assert_argument(str, {'string', 'number', 'FCString'}, 2)
 
         -- Check if the argument is a finale object. If not, turn it into an FCString
         if not library.is_finale_object(str)
@@ -100,8 +101,7 @@ local props = {
         end
 
         -- Use a trailing underscore to reference the original method from FCControl
-        -- Wrapping the call in catch_and_rethrow means that any errors will show at the place where this method was called, rather than at the line below, which can be useful since this is just a decorator.
-        finalemix.catch_and_rethrow(self.SetText_, 'SetText', self, str)
+        self:SetText_(str)
 
         -- By maintaining the original method's behaviour and not returning anything, the fluid interface can be applied.
     end
@@ -208,7 +208,7 @@ dialog:ExecuteModal(nil)
 ```
 
 - [subclass](#subclass)
-- [catch_and_rethrow](#catch_and_rethrow)
+- [assert_argument](#assert_argument)
 
 ## subclass
 
@@ -231,21 +231,24 @@ If the current `MixinClassName` is the same as `class_name`, this function will 
 | --- | --- |
 | `__FCMBase\|nil` | The object that was passed with mixin applied. |
 
-## catch_and_rethrow
+## assert_argument
 
 ```lua
-fluid_mixins.catch_and_rethrow(func, name, ...)
+fluid_mixins.assert_argument(value, expected_type, argument_number)
 ```
 
-Catches an error and rethrows it one level higher from where this function is called.
+Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
+
+If not a valid type, will throw a bad argument error at the level above where this function is called.
+Types can be Lua types (eg `string`, `number`, `bool`, etc), finale class (eg `FCString`, `FCMeasure`, etc), or mixin class (eg `FCMString`, `FCMMeasure`, etc)
+Parent classes cannot be specified as this function does not examine the class hierarchy.
+
+Note that mixin classes may satisfy the condition for the underlying `FC` class.
+For example, if the expected type is `FCString`, an `FCMString` object will pass the test, but an `FCXString` object will not. 
 
 
 | Input | Type | Description |
 | --- | --- | --- |
-| `func` | `function` | The function to call. |
-| `name` | `string` | The function name that will appear in the error message. |
-@ ... (mixed) Any arguments for the function call.
-
-| Output type | Description |
-| --- | --- |
-| `mixed` | Any return values from the function. |
+| `value` | `mixed` | The value to test. |
+| `expected_type` | `string\|table` | If there are multiple valid types, pass a table of strings. |
+| `argument_number` | `number` | The REAL argument number for the error message (self counts as #1). |
