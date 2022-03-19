@@ -94,6 +94,7 @@ local props = {
     -- This method is an override for the SetText method 
     -- It allows the method to accept a regular Lua string, which means that plugin authors don't need to worry anout creating an FCString objectq
     SetText = function(self, str)
+        finalemix.assert_argument(str, {'string', 'number', 'FCString'}, 2)
 
         -- Check if the argument is a finale object. If not, turn it into an FCString
         if not library.is_finale_object(str)
@@ -104,8 +105,7 @@ local props = {
         end
 
         -- Use a trailing underscore to reference the original method from FCControl
-        -- Wrapping the call in catch_and_rethrow means that any errors will show at the place where this method was called, rather than at the line below, which can be useful since this is just a decorator.
-        finalemix.catch_and_rethrow(self.SetText_, 'SetText', self, str)
+        self:SetText_(str)
 
         -- By maintaining the original method's behaviour and not returning anything, the fluid interface can be applied.
     end
@@ -375,10 +375,11 @@ function mixin.load_mixin_class(class_name)
     mixin_classes[class_name] = class
 end
 
+
 -- Catches an error and throws it at the specified level (relative to where this function was called)
 -- First argument is called tryfunczzz for uniqueness
-local pcall_line = debug.getinfo(1, "l").currentline + 2 -- This MUST refer to the pcall 2 lines below
-local function catch_and_rethrow(tryfunczzz, func_name, levels, ...)
+local pcall_line = debug.getinfo(1, 'l').currentline + 2 -- This MUST refer to the pcall 2 lines below
+local function catch_and_rethrow(tryfunczzz, levels, ...)
     local success, result = pcall(function(...) return {tryfunczzz(...)} end, ...)
 
     if not success then
@@ -389,10 +390,18 @@ local function catch_and_rethrow(tryfunczzz, func_name, levels, ...)
         -- Ignore errors thrown with no level info (ie. level = 0), as we can't make any assumptions
         -- Both the file and line number indicate that it was thrown at this level
         if file and line and file:sub(-9) == 'mixin.lua' and tonumber(line) == pcall_line then
+            local d = debug.getinfo(2, 'n')
 
             -- Replace the method name with the correct one, for bad argument errors etc
-            if func_name then
-                msg = msg:gsub('\'tryfunczzz\'', '\'' .. func_name .. '\'')
+            msg = msg:gsub('\'tryfunczzz\'', '\'' .. d.name .. '\'')
+
+            -- Shift argument numbers down by one for colon function calls
+            if d.namewhat == 'method' then
+                local arg = msg:match('^bad argument #(%d+)')
+
+                if arg then
+                    msg = msg:gsub('#' .. arg, '#' .. tostring(tonumber(arg) - 1), 1)
+                end
             end
 
             error(msg, levels + 1)
@@ -404,18 +413,20 @@ local function catch_and_rethrow(tryfunczzz, func_name, levels, ...)
         end
     end
 
-    return utils.unpack(result)
+    return table.unpack(result)
 end
 
 -- Gets the real class name of a Finale object
 -- Some classes have incorrect class names, so this function attempts to resolve them with ducktyping
+-- Does not check if the object is a Finale object
 function mixin.get_class_name(object)
-    if not object or not object.ClassName then return end
-    if object:ClassName() == '__FCCollection' and object.ExecuteModal then
+    local class_name = object:ClassName()
+
+    if class_name == '__FCCollection' and object.ExecuteModal then
         return object.RegisterHandleCommand and 'FCCustomLuaWindow' or 'FCCustomWindow'
     end
 
-    return object:ClassName()
+    return class_name
 end
 
 local function proxy(t, ...)
@@ -435,7 +446,7 @@ end
 -- Returns a function that handles the fluid interface
 function mixin.create_fluid_proxy(func, func_name)
     return function(t, ...)
-        return proxy(t, catch_and_rethrow(func, func_name, 2, t, ...))
+        return proxy(t, catch_and_rethrow(func, 2, t, ...))
     end
 end
 
@@ -481,13 +492,11 @@ function mixin.apply_mixin_foundation(object)
         if not mixin_props[t] then return original_index(t, k) end
 
         local prop
-        local real_k = k
 
         -- If there's a trailing underscore in the key, then return the original property, whether it exists or not
         if type(k) == 'string' and k:sub(-1) == '_' then
             -- Strip trailing underscore
-            real_k = k:sub(1, -2)
-            prop = original_index(t, real_k)
+            prop = original_index(t, k:sub(1, -2))
 
         -- Check if it's a custom or FCX property/method
         elseif type(mixin_props[t][k]) ~= 'nil' then
@@ -505,11 +514,11 @@ function mixin.apply_mixin_foundation(object)
 
         -- Otherwise, use the underlying object
         else
-            prop = original_index(t, real_k)
+            prop = original_index(t, k)
         end
 
        if type(prop) == 'function' then
-            return mixin.create_fluid_proxy(prop, real_k)
+            return mixin.create_fluid_proxy(prop, k)
         else
             return prop
         end
@@ -519,7 +528,7 @@ function mixin.apply_mixin_foundation(object)
     -- Using methods instead of properties will avoid this
     meta.__newindex = function(t, k, v)
         -- Return early if this is not mixin-enabled
-        if not mixin_props[t] then return catch_and_rethrow(original_newindex, nil, 2, t, k, v) end
+        if not mixin_props[t] then return catch_and_rethrow(original_newindex, 2, t, k, v) end
 
         -- Trailing underscores are reserved for accessing original methods
         if type(k) == 'string' and k:sub(-1) == '_' then
@@ -560,7 +569,7 @@ function mixin.apply_mixin_foundation(object)
 
         -- Otherwise, try and store it on the original property. If it's read-only, it will fail and we show the error
         else
-            catch_and_rethrow(original_newindex, nil, 2, t, k, v)
+            catch_and_rethrow(original_newindex, 2, t, k, v)
         end
     end
 end
@@ -662,19 +671,47 @@ end
 local mixin_public = {subclass = mixin.subclass}
 
 --[[
-% catch_and_rethrow(func, name, ...)
+% assert_argument(value, expected_type, argument_number)
 
-Catches an error and rethrows it one level higher from where this function is called.
+Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
 
-@ func (function) The function to call.
-@ name (string) The function name that will appear in the error message.
-@ ... (mixed) Any arguments for the function call.
-: (mixed) Any return values from the function.
+If not a valid type, will throw a bad argument error at the level above where this function is called.
+Types can be Lua types (eg `string`, `number`, `bool`, etc), finale class (eg `FCString`, `FCMeasure`, etc), or mixin class (eg `FCMString`, `FCMMeasure`, etc)
+Parent classes cannot be specified as this function does not examine the class hierarchy.
+
+Note that mixin classes may satisfy the condition for the underlying `FC` class.
+For example, if the expected type is `FCString`, an `FCMString` object will pass the test, but an `FCXString` object will not. 
+
+@ value (mixed) The value to test.
+@ expected_type (string|table) If there are multiple valid types, pass a table of strings.
+@ argument_number (number) The REAL argument number for the error message (self counts as #1).
 ]]
-function mixin_public.catch_and_rethrow(func, name, ...)
-    return catch_and_rethrow(func, name, 4, ...)
-end
+function mixin_public.assert_argument(value, expected_type, argument_number)
+    local t, tt
 
+    if library.is_finale_object(value) then
+        t = value.MixinClassName
+        tt = is_fcx_class_name(t) and t or get_class_name(value)
+    else
+        t = type(value)
+    end
+
+    if type(expected_type) == 'table' then
+        for _, v in ipairs(expected_type) do
+            if t == v or tt == v then
+                return
+            end
+        end
+
+        expected_type = table.concat(expected_type, ' or ')
+    else
+        if t == expected_type or tt == expected_type then
+            return
+        end
+    end
+
+    error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. expected_type .. " expected, got " .. (t or tt) .. ")", 3)
+end
 
 -- Create a new namespace for mixins
 return setmetatable({}, {
