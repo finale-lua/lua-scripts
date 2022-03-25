@@ -22,41 +22,12 @@ To use, create a suitable musical passage in layer 1, then run the script. The s
   return "Bariolage", "Bariolage", "Bariolage: Creates alternating layer pattern from layer 1. Doesn't play nicely with odd numbered groups!"
 end
 
-function layer_copy(src, dest)
-    local region = finenv.Region()
-    local start=region.StartMeasure
-    local stop=region.EndMeasure
-    local sysstaves = finale.FCSystemStaves()
-    sysstaves:LoadAllForRegion(region)
-    src = src - 1
-    dest = dest - 1
-    for sysstaff in each(sysstaves) do
-        staffNum = sysstaff.Staff
-        local noteentrylayerSrc = finale.FCNoteEntryLayer(src,staffNum,start,stop)
-        noteentrylayerSrc:Load()     
-        local noteentrylayerDest = noteentrylayerSrc:CreateCloneEntries(dest,staffNum,start)
-        noteentrylayerDest:Save()
-        noteentrylayerDest:CloneTuplets(noteentrylayerSrc)
-        noteentrylayerDest:Save()
-    end
-end -- function layer_copy
-
-function stems_hide(entry)
-    local stem = finale.FCCustomStemMod()        
-    stem:SetNoteEntry(entry)
-    stem:UseUpStemData(entry:CalcStemUp())
-    if stem:LoadFirst() then
-        stem.ShapeID = 0    
-        stem:Save()
-    else
-        stem.ShapeID = 0
-        stem:SaveNew()
-    end   
-end -- function stems_hide
+local layer = require("library.layer")
+local note_entry = require("library.note_entry")
 ---
-
 function bariolage()
-    layer_copy(1, 2)
+    local region = finenv.Region()
+    layer.copy(region, 1, 2)
     local layer1_ct = 1
     local layer2_ct = 1
     for entry in eachentrysaved(finenv.Region()) do
@@ -67,7 +38,7 @@ function bariolage()
                 end
                 if layer1_ct % 2 == 0 then
                     print()
-                    stems_hide(entry)
+                    note_entry.hide_stem(entry)
                 end
                 layer1_ct = layer1_ct + 1
             elseif entry.LayerNumber == 2 then
@@ -76,7 +47,7 @@ function bariolage()
                 end
                 if layer2_ct % 2 == 1 then
                     print()
-                    stems_hide(entry)
+                    note_entry.hide_stem(entry)
                 end
                 entry:SetPlayback(false)
                 layer2_ct = layer2_ct + 1
