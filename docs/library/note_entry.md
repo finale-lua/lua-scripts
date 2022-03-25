@@ -18,6 +18,7 @@
 - [calc_spans_number_of_octaves](#calc_spans_number_of_octaves)
 - [add_augmentation_dot](#add_augmentation_dot)
 - [get_next_same_v](#get_next_same_v)
+- [hide_stem](#hide_stem)
 
 ## get_music_region
 
@@ -304,3 +305,15 @@ If the input entry is V1, only the current measure and layer is searched.
 | Output type | Description |
 | --- | --- |
 | `FCNoteEntry` | the next entry or `nil` in none |
+
+## hide_stem
+
+```lua
+note_entry.hide_stem(entry)
+```
+
+Hides the stem of the entry by replacing it with Shape 0.
+
+| Input | Type | Description |
+| --- | --- | --- |
+| `entry` | `FCNoteEntry` | the entry to process |

@@ -833,6 +833,26 @@ function note_entry.get_next_same_v(entry)
     return next_entry
 end
 
+--[[
+% hide_stem(entry)
+
+Hides the stem of the entry by replacing it with Shape 0.
+
+@ entry (FCNoteEntry) the entry to process
+]]
+function note_entry.hide_stem(entry)
+    local stem = finale.FCCustomStemMod()        
+    stem:SetNoteEntry(entry)
+    stem:UseUpStemData(entry:CalcStemUp())
+    if stem:LoadFirst() then
+        stem.ShapeID = 0    
+        stem:Save()
+    else
+        stem.ShapeID = 0
+        stem:SaveNew()
+    end   
+end
+
 
 
 
