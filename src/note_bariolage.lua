@@ -26,7 +26,8 @@ local layer = require("library.layer")
 local note_entry = require("library.note_entry")
 ---
 function bariolage()
-    layer.copy(1, 2)
+    local region = finenv.Region()
+    layer.copy(region, 1, 2)
     local layer1_ct = 1
     local layer2_ct = 1
     for entry in eachentrysaved(finenv.Region()) do
