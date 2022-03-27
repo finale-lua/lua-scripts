@@ -18,14 +18,14 @@ function plugindef()
         a custom_key_sig.config.txt file in a folder called `script_settings` within the same folder as the script.
         It should contains the following two lines that define the custom key signature you are using. Unfortunately,
         the JW Lua and early versions of RGP Lua do not allow scripts to read this information from the Finale document.
-        
+
         (This example is for 31-EDO.)
-        
+
         ```
         number_of_steps = 31
         diatonic_steps = {0, 5, 10, 13, 18, 23, 28}
         ```
-        
+
         Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
@@ -104,7 +104,7 @@ if not finenv.IsRGPLua then
 end
 
 local transposition = require("library.transposition")
-local note_entry = require("Library.note_entry")
+local note_entry = require("library.note_entry")
 
 function add_strings_to_control(control, strings)
     local str = finale.FCString()

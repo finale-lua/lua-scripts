@@ -76,12 +76,12 @@ function staff_rename()
 
     table.insert(multi_fullnames, str.LuaString)
     local font_enigma = finale.FCString()
-    font_enigma = font:CreateEnigmaString(NULL)
+    font_enigma = font:CreateEnigmaString(nil)
     table.insert(multi_full_fonts, font_enigma.LuaString)
     --
     str = grp:CreateAbbreviatedNameString()
     font = str:CreateLastFontInfo()
-    font_enigma = font:CreateEnigmaString(NULL)
+    font_enigma = font:CreateEnigmaString(nil)
     enigma_to_accidental(str)
     table.insert(multi_abbnames, str.LuaString)
     table.insert(multi_abb_fonts, font_enigma.LuaString)
@@ -140,13 +140,13 @@ function staff_rename()
     enigma_to_accidental(str)
     table.insert(fullnames, str.LuaString)
     local font_enigma = finale.FCString()
-    font_enigma = font:CreateEnigmaString(NULL)
+    font_enigma = font:CreateEnigmaString(nil)
     table.insert(full_fonts, font_enigma.LuaString)
     str = staff:CreateAbbreviatedNameString()
     font = str:CreateLastFontInfo()
     enigma_to_accidental(str)
     table.insert(abbnames, str.LuaString)
-    font_enigma = font:CreateEnigmaString(NULL)
+    font_enigma = font:CreateEnigmaString(nil)
     table.insert(abb_fonts, font_enigma.LuaString)
     table.insert(staves, sysstaff.Staff)
     ::done::
@@ -220,7 +220,7 @@ function staff_rename()
     for i,j in pairs(forms) do
       str.LuaString = forms[i]
       form_select:AddString(str)
-    end   
+    end
     --
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
@@ -248,7 +248,7 @@ function staff_rename()
           edit_fullname[i]:GetText(str)
           for k,l in pairs(search) do
             str.LuaString = string.gsub(str.LuaString, search[k], replace[k])
-          end                    
+          end
           edit_fullname[i]:SetText(str)
         end
       end
@@ -266,7 +266,7 @@ function staff_rename()
     if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
       local str = finale.FCString()
       for i, j in pairs(staves) do
-        for k, l in pairs(multi_staves) do 
+        for k, l in pairs(multi_staves) do
           for m, n in pairs(multi_staves[k]) do
             if staves[i] == multi_staves[k][m] then
               local grp = finale.FCGroup()

@@ -1,58 +1,48 @@
 function plugindef()
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.0"
+    finaleplugin.Version = "1.1.0"
     finaleplugin.Date = "September 2, 2021"
-    finaleplugin.CategoryTags = "Staff"
+    finaleplugin.CategoryTags = "Score"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
-    return "Create Trombone Choir Ensemble", "Create Trombone Choir Ensemble",
+    finaleplugin.Notes = [[
+        This script sets up a score for trombone octet - 6 tenors, 2 basses.
+
+        To use it, first open your default document or document styles. Then, run the script.
+        All existing staffs will be deleted. And in their place, the trombone octet will be created.
+
+        This script uses the standard ensemble creation configuration options.
+    ]]
+    return "Create trombone choir score", "Create trombone choir score",
            "Creates the score setup correctly for trombone choir"
 end
 
-local path = finale.FCString()
-path:SetRunningLuaFolderPath()
-package.path = package.path .. ";" .. path.LuaString .. "?.lua"
 local score = require("library.score")
 local configuration = require("library.configuration")
 
-local config = {use_large_time_signatures = false, use_large_measure_numbers = false}
-
+local config = score.create_default_config()
+config.systems_per_page = 2
+config.large_measure_number_space = "24s"
 configuration.get_parameters("score_create_trombone_choir_score.config.txt", config)
 
 local function score_create_trombone_choir_score()
-    score.delete_all_staves()
-    local trombone_staves = {}
-    for i = 1, 6, 1 do
-        trombone_staves[i] = score.set_show_staff_time_signature(
-                                 score.create_staff(
-                                     "Trombone " .. i, "Tbn. " .. i, finale.FFUUID_TROMBONE,
-                                     (i < 3) and "tenor" or "bass"),
-                                 (not config.use_large_time_signatures) or i == 1 or i == 5)
-    end
+    score.reset_and_clear_score()
 
-    local bass_trombone_staves = {}
-    for i = 1, 2, 1 do
-        bass_trombone_staves[i] = score.set_show_staff_time_signature(
-                                      score.create_staff(
-                                          "Bass Trombone " .. i, "B. Tbn. " .. i, finale.FFUUID_BASSTROMBONE, "bass"),
-                                      not config.use_large_time_signatures)
-    end
+    local staves = {}
+    staves.trombone_1 = score.create_staff("Trombone 1", "Tbn. 1", finale.FFUUID_TROMBONE, "tenor")
+    staves.trombone_2 = score.create_staff("Trombone 2", "Tbn. 2", finale.FFUUID_TROMBONE, "tenor")
+    staves.trombone_3 = score.create_staff("Trombone 3", "Tbn. 3", finale.FFUUID_TROMBONE, "tenor")
+    staves.trombone_4 = score.create_staff("Trombone 4", "Tbn. 4", finale.FFUUID_TROMBONE, "bass")
+    staves.trombone_5 = score.create_staff("Trombone 5", "Tbn. 5", finale.FFUUID_TROMBONE, "bass")
+    staves.trombone_6 = score.create_staff("Trombone 6", "Tbn. 6", finale.FFUUID_TROMBONE, "bass")
+    staves.bass_trombone_1 = score.create_staff("Bass Trombone 1", "B. Tbn. 1", finale.FFUUID_BASSTROMBONE, "bass")
+    staves.bass_trombone_2 = score.create_staff("Bass Trombone 2", "B. Tbn. 2", finale.FFUUID_BASSTROMBONE, "bass")
 
-    score.create_group_primary(trombone_staves[1], bass_trombone_staves[#bass_trombone_staves])
-    score.create_group_secondary(trombone_staves[1], trombone_staves[#trombone_staves])
-    score.create_group_secondary(bass_trombone_staves[1], bass_trombone_staves[#bass_trombone_staves])
+    score.create_group_primary(staves.trombone_1, staves.bass_trombone_2)
+    score.create_group_secondary(staves.trombone_1, staves.trombone_6)
+    score.create_group_secondary(staves.bass_trombone_1, staves.bass_trombone_2)
 
-    score.set_global_system_scaling(63)
-    score.set_single_system_scaling(0, 56)
-    score.set_single_system_scaling(1, 56)
-
-    if config.use_large_time_signatures then
-        score.use_large_time_signatures()
-    end
-    if config.use_large_measure_numbers then
-        score.use_large_measure_numbers("14s")
-    end
-    score.set_minimum_measure_width("25s")
+    score.apply_config(config, {force_staves_show_time_signatures = {staves.trombone_1, staves.trombone_5}})
 end
 
 score_create_trombone_choir_score()

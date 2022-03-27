@@ -6,13 +6,13 @@ function plugindef()
     finaleplugin.Date = "March 31, 2021"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
-    return "Octave Doubling Up", "Octave Doubling Up", "Doubles the current note an octave higher"
+    return "Double third up", "Double third up", "Doubles the current note a diatonic third higher"
 end
 
 local transposition = require("library.transposition")
 local note_entry = require("library.note_entry")
 
-function pitch_entry_double_octave_up()
+function pitch_entry_double_third_up()
     for entry in eachentrysaved(finenv.Region()) do
         local note_count = entry.Count
         local note_index = 0
@@ -23,10 +23,10 @@ function pitch_entry_double_octave_up()
             end
             local new_note = note_entry.duplicate_note(note)
             if nil ~= new_note then
-                transposition.change_octave(new_note, 1)
+                transposition.diatonic_transpose(new_note, 2)
             end
         end
     end
 end
 
-pitch_entry_double_octave_up()
+pitch_entry_double_third_up()
