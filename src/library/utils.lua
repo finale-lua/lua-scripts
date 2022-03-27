@@ -2,12 +2,11 @@
 $module Utility Functions
 
 A library of general Lua utility functions.
-]]
-
+]] --
 local utils = {}
 
 --[[
-% copy_table(t)
+% copy_table
 
 If a table is passed, returns a copy, otherwise returns the passed value.
 
@@ -15,7 +14,7 @@ If a table is passed, returns a copy, otherwise returns the passed value.
 : (mixed)
 ]]
 function utils.copy_table(t)
-    if type(t) == 'table' then
+    if type(t) == "table" then
         local new = {}
         for k, v in pairs(t) do
             new[utils.copy_table(k)] = utils.copy_table(v)
@@ -26,6 +25,5 @@ function utils.copy_table(t)
         return t
     end
 end
-
 
 return utils

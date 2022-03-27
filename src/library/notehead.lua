@@ -1,8 +1,6 @@
 --[[
 $module Notehead
 ]] --
--- A collection of helpful JW Lua notehead scripts
--- Simply import this file to another Lua script to use any of these scripts
 local notehead = {}
 
 local configuration = require("library.configuration")
@@ -25,7 +23,7 @@ end
 configuration.get_parameters("notehead.config.txt", config)
 
 --[[
-% change_shape(note, shape)
+% change_shape
 
 Changes the given notehead to a specified notehead descriptor string. Currently only supports "diamond".
 

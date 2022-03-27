@@ -1,13 +1,12 @@
 --[[
 $module Articulation
-]]
-
+]] --
 local articulation = {}
 
 local note_entry = require("library.note_entry")
 
 --[[
-% delete_from_entry_by_char_num(entry, char_num)
+% delete_from_entry_by_char_num
 
 Removes any articulation assignment that has the specified character as its above-character.
 
@@ -25,7 +24,7 @@ function articulation.delete_from_entry_by_char_num(entry, char_num)
 end
 
 --[[
-% is_note_side(artic, curr_pos)
+% is_note_side
 
 Uses `FCArticulation.CalcMetricPos` to determine if the input articulation is on the note-side.
 
@@ -47,19 +46,18 @@ function articulation.is_note_side(artic, curr_pos)
     end
     if entry:CalcStemUp() then
         local bot_pos = note_entry.get_bottom_note_position(entry)
-        bot_pos = math.floor(((10000*bot_pos)/cell_metrics.StaffScaling) + 0.5)
+        bot_pos = math.floor(((10000 * bot_pos) / cell_metrics.StaffScaling) + 0.5)
         return curr_pos.Y <= bot_pos
     else
         local top_pos = note_entry.get_top_note_position(entry)
-        top_pos = math.floor(((10000*top_pos)/cell_metrics.StaffScaling) + 0.5)
+        top_pos = math.floor(((10000 * top_pos) / cell_metrics.StaffScaling) + 0.5)
         return curr_pos.Y >= top_pos
     end
     return false
 end
 
-
 --[[
-% calc_main_character_dimensions(artic)
+% calc_main_character_dimensions
 
 Uses `FCTextMetrics:LoadArticulation` to determine the dimensions of the main character
 
