@@ -13,7 +13,7 @@ end
 local articulation = require("library.articulation")
 local transposition = require("library.transposition")
 local notehead = require("library.notehead")
-local note_entry = require("Library.note_entry")
+local note_entry = require("library.note_entry")
 
 function pitch_transform_harmonics_fourth()
     for entry in eachentrysaved(finenv.Region()) do
