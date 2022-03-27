@@ -1091,7 +1091,7 @@ Returns the horizontal EVPU offset for a smart shape endpoint to align exactly w
 ]]
 function expression.calc_handle_offset_for_smart_shape(exp_assign)
     local manual_horizontal = exp_assign.HorizontalPos
-    local def_horizontal = 0 
+    local def_horizontal = 0
     local alignment_offset = 0
     local exp_def = exp_assign:CreateTextExpressionDef()
     if nil ~= exp_def then

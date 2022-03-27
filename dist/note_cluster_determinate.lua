@@ -428,8 +428,8 @@ local function process_notes(music_region)
         table.insert(stem_dir, entry:CalcStemUp())
     end
 
-    copy_layer(1, 2)
-    copy_layer(1, 3)
+    layer.copy(1, 2)
+    layer.copy(1, 3)
 
     local i = 1 -- To iterate stem direction table for Layer 1
     local j = 1 -- To iterate stem direction table for Layer 2
@@ -514,7 +514,7 @@ function hide_stems(entry, stem_direction)
 end
 
 -- Function 3 - Copy Layer "src" to Layer "dest"
-function copy_layer(source, destination) -- source and destination layer numbers, 1 based
+function layer.copy(source, destination) -- source and destination layer numbers, 1 based
     local region = finenv.Region()
     local start = region.StartMeasure
     local stop = region.EndMeasure
@@ -686,7 +686,7 @@ function add_cluster_line(left_note, right_note, line_id)
         right_segment:SetEndpointOffsetX(note_width / 2)
         right_segment:SetEndpointOffsetY(layer_two_note_y)
 
-        smartshape:SaveNewEverything(NULL, NULL)
+        smartshape:SaveNewEverything(nil, nil)
     end
 end
 
@@ -722,7 +722,7 @@ function add_short_cluster_line(entry, short_lineID)
         right_segment:SetEndpointOffsetX(horizontal_offset)
         right_segment:SetEndpointOffsetY(right_note_y)
 
-        smartshape:SaveNewEverything(NULL, NULL)
+        smartshape:SaveNewEverything(nil, nil)
     end
 end
 

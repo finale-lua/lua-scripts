@@ -1,32 +1,29 @@
-
 function plugindef()
-  -- This function and the 'finaleplugin' namespace
-  -- are both reserved for the plug-in definition.
-  finaleplugin.Author = "Jacob Winkler"
-  finaleplugin.Copyright = "2022"
-  finaleplugin.Version = "1.0"
-  finaleplugin.Date = "3/18/2022"
-  finaleplugin.Notes = [[
-  USING THE 'BARIOLAGE' SCRIPT
-  
-This script creates bariolage-style notation where layers 1 and 2 interlock. It works well for material that has even-numbered beam groups like 4x 16th notes or 6x 16th notes (in compound meters). 32nd notes also work. Odd numbers of notes produce undesirable results.
+    finaleplugin.Author = "Jacob Winkler"
+    finaleplugin.Copyright = "2022"
+    finaleplugin.Version = "1.0"
+    finaleplugin.Date = "3/18/2022"
+    finaleplugin.Notes = [[
+        USING THE 'BARIOLAGE' SCRIPT
 
-To use, create a suitable musical passage in layer 1, then run the script. The script does the following:
-- Duplicates layer 1 to layer 2.
-- Mutes playback of layer 2.
-- Iterates through the notes in layer 1. For even-numbered notes (i.e. the 2nd and 4th 16ths in a group of 4) it replaces the stem with a blank shape, effectively hiding it.
-- Any note in layer 1 that is the last note of a beamed group is hidden.
-- Iterates through the notes in layer 2 and changes the stems of the odd-numbered notes.
-- Any note in layer 2 that is the beginning of a beamed group is hidden.
-]]
-  return "Bariolage", "Bariolage", "Bariolage: Creates alternating layer pattern from layer 1. Doesn't play nicely with odd numbered groups!"
+        This script creates bariolage-style notation where layers 1 and 2 interlock. It works well for material that has even-numbered beam groups like 4x 16th notes or 6x 16th notes (in compound meters). 32nd notes also work. Odd numbers of notes produce undesirable results.
+
+        To use, create a suitable musical passage in layer 1, then run the script. The script does the following:
+        - Duplicates layer 1 to layer 2.
+        - Mutes playback of layer 2.
+        - Iterates through the notes in layer 1. For even-numbered notes (i.e. the 2nd and 4th 16ths in a group of 4) it replaces the stem with a blank shape, effectively hiding it.
+        - Any note in layer 1 that is the last note of a beamed group is hidden.
+        - Iterates through the notes in layer 2 and changes the stems of the odd-numbered notes.
+        - Any note in layer 2 that is the beginning of a beamed group is hidden.
+    ]]
+    return "Bariolage", "Bariolage",
+           "Bariolage: Creates alternating layer pattern from layer 1. Doesn't play nicely with odd numbered groups!"
 end
 
 --[[
 $module Layer
-]]
-
-layer = {}
+]] --
+local layer = {}
 
 --[[
 % copy(source_layer, destination_layer)
@@ -38,17 +35,18 @@ Duplicates the notes from the source layer to the destination. The source layer 
 @ destination_layer number the number (1-4) of the layer to be copied to
 ]]
 function layer.copy(region, source_layer, destination_layer)
-    local start=region.StartMeasure
-    local stop=region.EndMeasure
+    local start = region.StartMeasure
+    local stop = region.EndMeasure
     local sysstaves = finale.FCSystemStaves()
     sysstaves:LoadAllForRegion(region)
     source_layer = source_layer - 1
     destination_layer = destination_layer - 1
     for sysstaff in each(sysstaves) do
         staffNum = sysstaff.Staff
-        local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer,staffNum,start,stop)
-        noteentry_source_layer:Load()     
-        local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(destination_layer,staffNum,start)
+        local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
+        noteentry_source_layer:Load()
+        local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
+                                                destination_layer, staffNum, start)
         noteentry_destination_layer:Save()
         noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
         noteentry_destination_layer:Save()
@@ -65,13 +63,13 @@ Clears all entries from a given layer.
 ]]
 function layer.clear(region, layer_to_clear)
     layer_to_clear = layer_to_clear - 1 -- Turn 1 based layer to 0 based layer
-    local start=region.StartMeasure
-    local stop=region.EndMeasure
+    local start = region.StartMeasure
+    local stop = region.EndMeasure
     local sysstaves = finale.FCSystemStaves()
     sysstaves:LoadAllForRegion(region)
     for sysstaff in each(sysstaves) do
         staffNum = sysstaff.Staff
-        local noteentrylayer = finale.FCNoteEntryLayer(layer_to_clear,staffNum,start,stop)
+        local noteentrylayer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
         noteentrylayer:Load()
         noteentrylayer:ClearAllEntries()
     end
@@ -87,8 +85,8 @@ Swaps the entries from two different layers (e.g. 1-->2 and 2-->1).
 @ swap_b number the number (1-4) of the second layer to be swapped
 ]]
 function layer.swap(region, swap_a, swap_b)
-    local start=region.StartMeasure
-    local stop=region.EndMeasure
+    local start = region.StartMeasure
+    local stop = region.EndMeasure
     local sysstaves = finale.FCSystemStaves()
     sysstaves:LoadAllForRegion(region)
     -- Set layers for 0 based
@@ -96,17 +94,18 @@ function layer.swap(region, swap_a, swap_b)
     swap_b = swap_b - 1
     for sysstaff in each(sysstaves) do
         staffNum = sysstaff.Staff
-        local noteentrylayer_1 = finale.FCNoteEntryLayer(swap_a,staffNum,start,stop)
+        local noteentrylayer_1 = finale.FCNoteEntryLayer(swap_a, staffNum, start, stop)
         noteentrylayer_1:Load()
-        noteentrylayer_1.LayerIndex=swap_b
+        noteentrylayer_1.LayerIndex = swap_b
         --
-        local noteentrylayer_2 = finale.FCNoteEntryLayer(swap_b,staffNum,start,stop)
+        local noteentrylayer_2 = finale.FCNoteEntryLayer(swap_b, staffNum, start, stop)
         noteentrylayer_2:Load()
-        noteentrylayer_2.LayerIndex=swap_a
+        noteentrylayer_2.LayerIndex = swap_a
         noteentrylayer_1:Save()
         noteentrylayer_2:Save()
     end
 end
+
 
 
 --[[

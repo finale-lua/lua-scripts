@@ -17,11 +17,11 @@ function plugindef()
         To use the script, you enter the notes you want to display, and it removes the noteheads in between the first
         and last notehead, adjusts any staccato dots, and adds a gliss mark (tab slide) between the first and last notes,
         unless there is one already there. If you want a slur as well, add it manually before or after running the script.
-        
+
         The steps to use this script are:
 
         1. Add the notes you want to display, with or without accidentals. Normally you choose notes with noteheads
-        that follow a straight-line path as closely as possible. They can be reduced size or grace notes. 
+        that follow a straight-line path as closely as possible. They can be reduced size or grace notes.
         2. Add staccato dots if you want them.
         3. Add a slur if you want it.
         4. Run the script on the pattern you just entered.
@@ -35,7 +35,7 @@ function plugindef()
             if the articulation is set to avoid staff lines.)
         5. Adds a gliss mark (tab slide) between the first and last notes, if one does not already exist.
             If you have entered parallel chords, it adds a gliss mark for each note in the chord.
-        
+
         By default, the script does not hide the last selected note (or any accidentals it may have). You can override
         this behavior with a configuration file or if you are using RGP Lua 0.59 or higher, you can cause the script
         to hide the last note by holding down Shift, Option (Mac), or Alt (Win) when you invoke it.
@@ -1488,11 +1488,11 @@ end
 
 
 
-local max_layers = 4            -- this should be in the PDK, but for some reason isn't
+local max_layers = 4 -- this should be in the PDK Framework, but for some reason isn't
 
 local config = {
-    dot_character = 46,         -- ascii code for '.'
-    hide_last_note = false
+    dot_character = 46, -- ascii code for '.'
+    hide_last_note = false,
 }
 
 if library.is_font_smufl_font() then
@@ -1528,7 +1528,7 @@ function add_gliss_line_if_needed(start_note, end_note)
     local smartshape = finale.FCSmartShape()
     smartshape.ShapeType = finale.SMARTSHAPE_TABSLIDE
     smartshape.EntryBased = true
-    smartshape.BeatAttached= false
+    smartshape.BeatAttached = false
     smartshape.MakeHorizontal = false
     smartshape.PresetShape = true
     smartshape.Visible = true
@@ -1614,7 +1614,7 @@ function note_automatic_jete()
                 local lpoint = nil
                 local rpoint = nil
                 local dot_artic_def = 0
-                for entry in eachentrysaved(staff_region) do    -- don't use pairs(entries) because we need to save the entries on this pass
+                for entry in eachentrysaved(staff_region) do -- don't use pairs(entries) because we need to save the entries on this pass
                     if nil ~= entries[entry.EntryNumber] then
                         if entry.EntryNumber == first_entry_num then
                             local last_entry = entries[last_entry_num]
@@ -1653,15 +1653,17 @@ function note_automatic_jete()
                 -- shift dot articulations, if any
                 if lpoint and rpoint and (lpoint.X ~= rpoint.X) then -- prevent divide-by-zero, but it should not happen if we're here
                     local linear_multplier = (rpoint.Y - lpoint.Y) / (rpoint.X - lpoint.X)
-                    local linear_constant = (rpoint.X*lpoint.Y - lpoint.X*rpoint.Y) / (rpoint.X - lpoint.X)
+                    local linear_constant = (rpoint.X * lpoint.Y - lpoint.X * rpoint.Y) / (rpoint.X - lpoint.X)
                     finale.FCNoteEntry.MarkEntryMetricsForUpdate()
                     for key, entry in pairs(entries) do
                         if (entry.EntryNumber ~= first_entry_num) and (entry.EntryNumber ~= last_entry_num) then
                             local artic, arg_point = find_staccato_articulation(entry, dot_artic_def)
                             if nil ~= artic then
-                                local new_y = linear_multplier*arg_point.X + linear_constant -- apply linear equation
+                                local new_y = linear_multplier * arg_point.X + linear_constant -- apply linear equation
                                 local old_vpos = artic.VerticalPos
-                                artic.VerticalPos = artic.VerticalPos - (note_entry.stem_sign(entry) * (math.floor(new_y + 0.5) - arg_point.Y))
+                                artic.VerticalPos = artic.VerticalPos -
+                                                        (note_entry.stem_sign(entry) *
+                                                            (math.floor(new_y + 0.5) - arg_point.Y))
                                 artic:Save()
                             end
                         end

@@ -216,6 +216,7 @@ dialog:ExecuteModal(nil)
 fluid_mixins.subclass(object, class_name)
 ```
 
+
 Takes a mixin-enabled finale object and migrates it to an `FCX` subclass. Any conflicting property or method names will be overwritten.
 
 If the object is not mixin-enabled or the current `MixinClassName` is not a parent of `class_name`, then an error will be thrown.
@@ -223,19 +224,20 @@ If the current `MixinClassName` is the same as `class_name`, this function will 
 
 
 | Input | Type | Description |
-| --- | --- | --- |
+| ----- | ---- | ----------- |
 | `object` | `__FCMBase` |  |
 | `class_name` | `string` | FCX class name. |
 
-| Output type | Description |
-| --- | --- |
-| `__FCMBase\|nil` | The object that was passed with mixin applied. |
+| Return type | Description |
+| ----------- | ----------- |
+| `__FCMBase\\|nil` | The object that was passed with mixin applied. |
 
 ## assert_argument
 
 ```lua
 fluid_mixins.assert_argument(value, expected_type, argument_number)
 ```
+
 
 Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
 
@@ -248,7 +250,7 @@ For example, if the expected type is `FCString`, an `FCMString` object will pass
 
 
 | Input | Type | Description |
-| --- | --- | --- |
+| ----- | ---- | ----------- |
 | `value` | `mixed` | The value to test. |
 | `expected_type` | `string\|table` | If there are multiple valid types, pass a table of strings. |
 | `argument_number` | `number` | The REAL argument number for the error message (self counts as #1). |
