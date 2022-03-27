@@ -18,7 +18,7 @@ The docs for the individual functions are automatically created from the multili
 
 ```lua
 --[[
-% stem_sign(entry)
+% stem_sign
 
 This is useful for many x,y positioning fields in Finale that mirror +/-
 based on stem direction.
