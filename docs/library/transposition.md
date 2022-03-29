@@ -27,7 +27,7 @@ transposition.diatonic_transpose(note, interval)
 Transpose the note diatonically by the given interval displacement.
 
 | Input | Type | Description |
-| --- | --- | --- |
+| ----- | ---- | ----------- |
 | `note` | `FCNote` | input and modified output |
 | `interval` | `number` | 0 = unison, 1 = up a diatonic second, -2 = down a diatonic third, etc. |
 
@@ -40,7 +40,7 @@ transposition.change_octave(note, number_of_octaves)
 Transpose the note by the given number of octaves.
 
 | Input | Type | Description |
-| --- | --- | --- |
+| ----- | ---- | ----------- |
 | `note` | `FCNote` | input and modified output |
 | `number_of_octaves` | `number` | 0 = no change, 1 = up an octave, -2 = down 2 octaves, etc. |
 
@@ -54,13 +54,13 @@ Transpose the note enharmonically in the given direction. In some microtone syst
 Failure occurs if the note's `RaiseLower` value exceeds an absolute value of 7. This is a hard-coded limit in Finale.
 
 | Input | Type | Description |
-| --- | --- | --- |
+| ----- | ---- | ----------- |
 | `note` | `FCNote` | input and modified output |
 | `direction` | `number` | positive = up, negative = down (normally 1 or -1, but any positive or negative numbers work) |
 | `ignore_error` (optional) | `boolean` | default false. If true, always return success. External callers should omit this parameter. |
 
-| Output type | Description |
-| --- | --- |
+| Return type | Description |
+| ----------- | ----------- |
 | `boolean` | success or failure |
 
 ## chromatic_transpose
@@ -77,14 +77,14 @@ is up a perfect fourth, `{5, 1}` is up an augmented sixth, etc. Reversing the si
 allows for downwards transposition.
 
 | Input | Type | Description |
-| --- | --- | --- |
+| ----- | ---- | ----------- |
 | `note` | `FCNote` | the note to transpose |
 | `interval` | `number` | the diatonic displacement (negative for transposing down) |
 | `alteration` | `number` | the chromatic alteration that defines the chromatic interval (reverse sign for transposing down) |
 | `simplify` (optional) | `boolean` | if present and true causes the spelling of the transposed note to be simplified |
 
-| Output type | Description |
-| --- | --- |
+| Return type | Description |
+| ----------- | ----------- |
 | `boolean` | success or failure (see `enharmonic_transpose` for what causes failure) |
 
 ## stepwise_transpose
@@ -99,12 +99,12 @@ For microtone systems defined with custom key signatures and matching options in
 each step is the smallest division of the octave defined by the custom key signature.
 
 | Input | Type | Description |
-| --- | --- | --- |
+| ----- | ---- | ----------- |
 | `note` | `FCNote` | input and modified output |
 | `number_of_steps` | `number` | positive = up, negative = down |
 
-| Output type | Description |
-| --- | --- |
+| Return type | Description |
+| ----------- | ----------- |
 | `boolean` | success or failure (see `enharmonic_transpose` for what causes failure) |
 
 ## chromatic_major_third_down
@@ -116,7 +116,7 @@ transposition.chromatic_major_third_down(note)
 Transpose the note down by a major third.
 
 | Input | Type | Description |
-| --- | --- | --- |
+| ----- | ---- | ----------- |
 | `note` | `FCNote` | input and modified output |
 
 ## chromatic_perfect_fourth_up
@@ -128,7 +128,7 @@ transposition.chromatic_perfect_fourth_up(note)
 Transpose the note up by a perfect fourth.
 
 | Input | Type | Description |
-| --- | --- | --- |
+| ----- | ---- | ----------- |
 | `note` | `FCNote` | input and modified output |
 
 ## chromatic_perfect_fifth_down
@@ -140,5 +140,5 @@ transposition.chromatic_perfect_fifth_down(note)
 Transpose the note down by a perfect fifth.
 
 | Input | Type | Description |
-| --- | --- | --- |
+| ----- | ---- | ----------- |
 | `note` | `FCNote` | input and modified output |

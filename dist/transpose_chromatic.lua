@@ -18,14 +18,14 @@ function plugindef()
         a custom_key_sig.config.txt file in a folder called `script_settings` within the same folder as the script.
         It should contains the following two lines that define the custom key signature you are using. Unfortunately,
         the JW Lua and early versions of RGP Lua do not allow scripts to read this information from the Finale document.
-        
+
         (This example is for 31-EDO.)
-        
+
         ```
         number_of_steps = 31
         diatonic_steps = {0, 5, 10, 13, 18, 23, 28}
         ```
-        
+
         Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
@@ -924,6 +924,26 @@ function note_entry.get_next_same_v(entry)
         end
     end
     return next_entry
+end
+
+--[[
+% hide_stem(entry)
+
+Hides the stem of the entry by replacing it with Shape 0.
+
+@ entry (FCNoteEntry) the entry to process
+]]
+function note_entry.hide_stem(entry)
+    local stem = finale.FCCustomStemMod()        
+    stem:SetNoteEntry(entry)
+    stem:UseUpStemData(entry:CalcStemUp())
+    if stem:LoadFirst() then
+        stem.ShapeID = 0    
+        stem:Save()
+    else
+        stem.ShapeID = 0
+        stem:SaveNew()
+    end   
 end
 
 

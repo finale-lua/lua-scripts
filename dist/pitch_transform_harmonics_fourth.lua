@@ -395,6 +395,26 @@ function note_entry.get_next_same_v(entry)
     return next_entry
 end
 
+--[[
+% hide_stem(entry)
+
+Hides the stem of the entry by replacing it with Shape 0.
+
+@ entry (FCNoteEntry) the entry to process
+]]
+function note_entry.hide_stem(entry)
+    local stem = finale.FCCustomStemMod()        
+    stem:SetNoteEntry(entry)
+    stem:UseUpStemData(entry:CalcStemUp())
+    if stem:LoadFirst() then
+        stem.ShapeID = 0    
+        stem:Save()
+    else
+        stem.ShapeID = 0
+        stem:SaveNew()
+    end   
+end
+
 
 
 
@@ -914,8 +934,7 @@ end
 
 --[[
 $module Notehead
-]]
-
+]] --
 -- A collection of helpful JW Lua notehead scripts
 -- Simply import this file to another Lua script to use any of these scripts
 local notehead = {}
@@ -1472,17 +1491,17 @@ end
 
 
 local config = {
-    diamond_open                = 79,
-    diamond_closed              = 79,   -- per Elaine Gould, use open diamond even on closed regular notes, but allow it to be overridden
-    diamond_resize              = 110,
-    diamond_whole_offset        = 5,
-    diamond_breve_offset        = 14
+    diamond_open = 79,
+    diamond_closed = 79, -- per Elaine Gould, use open diamond even on closed regular notes, but allow it to be overridden
+    diamond_resize = 110,
+    diamond_whole_offset = 5,
+    diamond_breve_offset = 14,
 }
 
 -- Default to SMuFL characters for SMuFL font (without needing a config file)
 if library.is_font_smufl_font() then
     config.diamond_open = 0xe0e1
-    config.diamond_closed = 0xe0e1  -- (in config) override to 0xe0e2 for closest matching closed diamond if you want to disregard Elain Gould and use a closed notehead
+    config.diamond_closed = 0xe0e1 -- (in config) override to 0xe0e2 for closest matching closed diamond if you want to disregard Elain Gould and use a closed notehead
 end
 
 configuration.get_parameters("notehead.config.txt", config)
@@ -1514,7 +1533,7 @@ function notehead.change_shape(note, shape)
         end
         if (0 ~= offset) then
             if entry:CalcStemUp() then
-                notehead.HorizontalPos = -1*offset
+                notehead.HorizontalPos = -1 * offset
             else
                 notehead.HorizontalPos = offset
             end
@@ -1905,6 +1924,26 @@ function note_entry.get_next_same_v(entry)
         end
     end
     return next_entry
+end
+
+--[[
+% hide_stem(entry)
+
+Hides the stem of the entry by replacing it with Shape 0.
+
+@ entry (FCNoteEntry) the entry to process
+]]
+function note_entry.hide_stem(entry)
+    local stem = finale.FCCustomStemMod()        
+    stem:SetNoteEntry(entry)
+    stem:UseUpStemData(entry:CalcStemUp())
+    if stem:LoadFirst() then
+        stem.ShapeID = 0    
+        stem:Save()
+    else
+        stem.ShapeID = 0
+        stem:SaveNew()
+    end   
 end
 
 

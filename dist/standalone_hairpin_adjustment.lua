@@ -808,6 +808,26 @@ function note_entry.get_next_same_v(entry)
     return next_entry
 end
 
+--[[
+% hide_stem(entry)
+
+Hides the stem of the entry by replacing it with Shape 0.
+
+@ entry (FCNoteEntry) the entry to process
+]]
+function note_entry.hide_stem(entry)
+    local stem = finale.FCCustomStemMod()        
+    stem:SetNoteEntry(entry)
+    stem:UseUpStemData(entry:CalcStemUp())
+    if stem:LoadFirst() then
+        stem.ShapeID = 0    
+        stem:Save()
+    else
+        stem.ShapeID = 0
+        stem:SaveNew()
+    end   
+end
+
 
 
 --[[
@@ -1071,7 +1091,7 @@ Returns the horizontal EVPU offset for a smart shape endpoint to align exactly w
 ]]
 function expression.calc_handle_offset_for_smart_shape(exp_assign)
     local manual_horizontal = exp_assign.HorizontalPos
-    local def_horizontal = 0 
+    local def_horizontal = 0
     local alignment_offset = 0
     local exp_def = exp_assign:CreateTextExpressionDef()
     if nil ~= exp_def then
@@ -1513,6 +1533,26 @@ function note_entry.get_next_same_v(entry)
         end
     end
     return next_entry
+end
+
+--[[
+% hide_stem(entry)
+
+Hides the stem of the entry by replacing it with Shape 0.
+
+@ entry (FCNoteEntry) the entry to process
+]]
+function note_entry.hide_stem(entry)
+    local stem = finale.FCCustomStemMod()        
+    stem:SetNoteEntry(entry)
+    stem:UseUpStemData(entry:CalcStemUp())
+    if stem:LoadFirst() then
+        stem.ShapeID = 0    
+        stem:Save()
+    else
+        stem.ShapeID = 0
+        stem:SaveNew()
+    end   
 end
 
 

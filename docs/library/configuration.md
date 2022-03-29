@@ -43,6 +43,6 @@ configuration.get_parameters(file_name, parameter_list)
 Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list` with any that are found in the config file.
 
 | Input | Type | Description |
-| --- | --- | --- |
+| ----- | ---- | ----------- |
 | `file_name` | `string` | the file name of the config file (which will be prepended with the `script_settings` directory) |
 | `parameter_list` | `table` | a table with the parameter name as key and the default value as value |

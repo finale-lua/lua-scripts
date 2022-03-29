@@ -10,7 +10,7 @@ function plugindef()
 end
 
 local transposition = require("library.transposition")
-local note_entry = require("Library.note_entry")
+local note_entry = require("library.note_entry")
 
 function pitch_entry_double_octave_down()
     for entry in eachentrysaved(finenv.Region()) do

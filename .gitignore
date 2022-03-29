@@ -20,3 +20,5 @@ script_settings
 node_modules
 coverage
 mobdebug.lua
+
+src/personal*
