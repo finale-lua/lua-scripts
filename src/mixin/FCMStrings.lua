@@ -1,8 +1,16 @@
+--  Author: Edward Koltun
+--  Date: March 3, 2022
+
 --[[
 $module FCMStrings
+
+Summary of modifications:
+- Methods that accept `FCString` now also accept Lua `string` and `number` (except for folder loading methods which do not accept `number`).
+- Setters that accept `FCStrings` now also accept multiple arguments of `FCString`, Lua `string`, or `number`.
 ]]
 
 local mixin = require("library.mixin")
+local library = require("library.general_library")
 
 local props = {}
 
@@ -28,6 +36,75 @@ function props:AddCopy(str)
     end
 
     return self:AddCopy_(str)
+end
+
+--[[
+% AddCopies
+
+**[Override]**
+Same as `AddCopy`, but accepts multiple arguments so that multiple strings can be added at a time.
+
+@ self (FCMStrings)
+@ ... (FCStrings|FCString|string|number) `number`s will be cast to `string`
+: (boolean) `true` if successful
+]]
+function props:AddCopies(...)
+    for i = 1, select("#", ...) do
+        local v = select(i, ...)
+        mixin.assert_argument(v, {"FCStrings", "FCString", "string", "number"}, i + 1)
+        if type(v) == "userdata" and v:ClassName() == "FCStrings" then
+            for str in each(v) do
+                v:AddCopy_(str)
+            end
+        else
+            mixin.FCStrings.AddCopy(self, v)
+        end
+    end
+
+    return true
+end
+
+--[[
+% CopyFrom
+
+**[Override]**
+Accepts multiple arguments.
+
+@ self (FCMStrings)
+@ ... (FCStrings|FCString|string|number) `number`s will be cast to `string`
+: (boolean) `true` if successful
+]]
+function props:CopyFrom(...)
+    local num_args = select("#", ...)
+    local first = select(1, ...)
+    mixin.assert_argument(first, {"FCStrings", "FCString", "string", "number"}, 2)
+
+    if library.is_finale_object(first) and first:ClassName() == "FCStrings" then
+        self:CopyFrom_(first)
+    else
+        self:ClearAll_()
+        mixin.FCMStrings.AddCopy(self, first)
+    end
+
+    for i = 2, num_args do
+        local v = select(i, ...)
+        mixin.assert_argument(v, {"FCStrings", "FCString", "string", "number"}, i + 1)
+
+        if type(v) == "userdata" then
+            if v:ClassName() == "FCString" then
+                self:AddCopy_(v)
+            elseif v:ClassName() == "FCStrings" then
+                for str in each(v) do
+                    v:AddCopy_(str)
+                end
+            end
+        else
+            temp_str.LuaString = tostring(v)
+            self:AddCopy_(temp_str)
+        end
+    end
+
+    return true
 end
 
 --[[
@@ -117,7 +194,7 @@ end
 --[[
 % InsertStringAt
 
-**[Fluid] [Override]**
+**[>= v0.59] [Fluid] [Override]**
 Accepts Lua `string` and `number` in addition to `FCString`.
 
 @ self (FCMStrings)

@@ -1,14 +1,14 @@
 --  Author: Edward Koltun
---  Date: March 3, 2022
+--  Date: April 4, 2022
 
 --[[
-$module FCMCtrlPopup
+$module FCMCtrlListBox
 
 Summary of modifications:
 - Setters that accept `FCString` now also accept Lua `string` and `number`.
 - In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
 - Setters that accept `FCStrings` now also accept multiple arguments of `FCString`, Lua `string`, or `number`.
-- Numerous additional methods for accessing and modifying popup items.
+- Numerous additional methods for accessing and modifying listbox items.
 - Added `SelectionChange` custom control event.
 ]]
 
@@ -30,7 +30,7 @@ local temp_str = finale.FCString()
 
 **[Internal]**
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 ]]
 function props:Init()
     private[self] = private[self] or {}
@@ -41,7 +41,7 @@ end
 
 **[Fluid] [Override]**
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 ]]
 function props:Clear()
     self:Clear_()
@@ -53,7 +53,6 @@ function props:Clear()
         end
     end
 
-    -- Clearing doesn't trigger a Command event (which in turn triggers SelectionChange), so we need to trigger it manually
     trigger_selection_change(self)
 end
 
@@ -61,9 +60,9 @@ end
 % SetSelectedItem
 
 **[Fluid] [Override]**
-Ensures that SelectionChange is triggered.
+Ensures that `SelectionChange` is triggered.
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ index (number)
 ]]
 function props:SetSelectedItem(index)
@@ -75,13 +74,27 @@ function props:SetSelectedItem(index)
 end
 
 --[[
+% SetSelectedLast
+
+**[Override]**
+Ensures that `SelectionChange` is triggered.
+
+@ self (FCMCtrlListBox)
+: (boolean) `true` if a selection was possible.
+]]
+function props:SetSelectedLast()
+    trigger_selection_change(self)
+    return self:SetSelectedLast_()
+end
+
+--[[
 % AddString
 
 **[Fluid] [Override]**
 
 Accepts Lua `string` and `number` in addition to `FCString`.
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ str (FCString|string|number)
 ]]
 function props:AddString(str)
@@ -102,9 +115,9 @@ end
 % AddStrings
 
 **[Fluid]**
-Adds multiple strings to the popup.
+Adds multiple strings to the list box.
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ ... (FCStrings|FCString|string|number)
 ]]
 function props:AddStrings(...)
@@ -114,10 +127,10 @@ function props:AddStrings(...)
 
         if type(v) == "userdata" and v:ClassName() == "FCStrings" then
             for str in each(v) do
-                mixin.FCMCtrlPopup.AddString(self, str)
+                mixin.FCMCtrlListBox.AddString(self, str)
             end
         else
-            mixin.FCMCtrlPopup.AddString(self, v)
+            mixin.FCMCtrlListBox.AddString(self, v)
         end
     end
 end
@@ -125,9 +138,9 @@ end
 --[[
 % GetStrings
 
-Returns a copy of all strings in the popup.
+Returns a copy of all strings in the list box.
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ [strs] (FCStrings) An optional `FCStrings` object to populate with strings.
 : (table) A table of strings (1-indexed - beware if accessing keys!).
 ]]
@@ -151,7 +164,7 @@ end
 **[Fluid] [Override]**
 Accepts multiple arguments.
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ ... (FCStrings|FCString|string|number) `number`s will be automatically cast to `string`
 ]]
 function props:SetStrings(...)
@@ -181,9 +194,10 @@ end
 --[[
 % GetItemText
 
-Returns the text for an item in the popup.
+Returns the text for an item in the list box.
+This method works in all JW/RGP Lua versions and irrespective of whether `InitWindow` has been called.
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ index (number) 0-based index of item.
 @ [str] (FCString) Optional `FCString` object to populate with text.
 : (string)
@@ -209,7 +223,7 @@ end
 **[Fluid] [PDK Port]**
 Sets the text for an item.
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ index (number) 0-based index of item.
 @ str (FCString|string|number)
 ]]
@@ -223,15 +237,23 @@ function props:SetItemText(index, str)
 
     private[self][index + 1] = type(str) == "userdata" and str.LuaString or tostring(str)
 
-    local strs = finale.FCStrings()
-    for _, v in ipairs(private[self]) do
-        temp_str.LuaString = v
-        strs:AddCopy(temp_str)
-    end
+    -- SetItemText was added to RGPLua in v0.56 and only works once the window has been created
+    if self:GetParent():WindowExists_() and self.SetItemText_ then
+        temp_str.LuaString = private[self][index + 1]
+        self:SetItemText_(index, temp_str)
 
-    local curr_item = self:GetSelectedItem_()
-    self:SetStrings_(strs)
-    self:SetSelectedItem_(curr_item)
+    -- Otherwise, use a polyfill
+    else
+        local strs = finale.FCStrings()
+        for _, v in ipairs(private[self]) do
+            temp_str.LuaString = v
+            strs:AddCopy(temp_str)
+        end
+
+        local curr_item = self:GetSelectedItem_()
+        self:SetStrings_(strs)
+        self:SetSelectedItem_(curr_item)
+    end
 end
 
 --[[
@@ -239,7 +261,7 @@ end
 
 Returns the text for the item that is currently selected.
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ [str] (FCString) Optional `FCString` object to populate with text. If no item is currently selected, it will be populated with an empty string.
 : (string|nil) `nil` if no item is currently selected.
 ]]
@@ -271,7 +293,7 @@ Sets the currently selected item to the first item with a matching text value.
 
 If no match is found, the current selected item will remain selected.
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ str (FCString|string|number)
 ]]
 function props:SetSelectedString(str)
@@ -289,18 +311,18 @@ function props:SetSelectedString(str)
 end
 
 --[[
-% InsertString
+% InsertItem
 
 **[Fluid] [PDKPort]**
 Inserts a string at the specified index.
 If index is <= 0, will insert at the start.
 If index is >= Count, will insert at the end.
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ index (number) 0-based index to insert new item.
 @ str (FCString|string|number) The value to insert.
 ]]
-function props:InsertString(index, str)
+function props:InsertItem(index, str)
     mixin.assert_argument(index, "number", 2)
     mixin.assert_argument(str, {"string", "number", "FCString"}, 3)
 
@@ -339,10 +361,10 @@ end
 % DeleteItem
 
 **[Fluid] [PDK Port]**
-Deletes an item from the popup.
+Deletes an item from the list box.
 If the currently selected item is deleted, items will be deselected (ie set to -1)
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ index (number) 0-based index of item to delete.
 ]]
 function props:DeleteItem(index)
@@ -390,7 +412,7 @@ end
 
 **[Callback Template]**
 
-@ control (FCMCtrlPopup)
+@ control (FCMCtrlListBox)
 @ last_item (number) The 0-based index of the previously selected item. If no item was selected, the value will be `-1`.
 @ last_item_text (string) The text value of the previously selected item.
 @ is_deleted (boolean) `true` if the previously selected item is no longer in the control.
@@ -410,7 +432,7 @@ The event will fire in the following cases:
 - Deleting the currently selected item
 - Clearing the control (including calling `Clear` and `SetStrings`)
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ callback (function) See `HandleSelectionChange` for callback signature.
 ]]
 
@@ -420,14 +442,13 @@ The event will fire in the following cases:
 **[Fluid]**
 Removes a handler added with `AddHandleSelectionChange`.
 
-@ self (FCMCtrlPopup)
+@ self (FCMCtrlListBox)
 @ callback (function) Handler to remove.
 ]]
 props.AddHandleSelectionChange, props.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change = mixin_helper.create_custom_control_change_event(
     {name = 'last_item', get = "GetSelectedItem_", initial = -1},
-    {name = 'last_item_text', get = function(ctrl) return mixin.FCMCtrlPopup.GetSelectedString(ctrl) or "" end, initial = ""},
+    {name = 'last_item_text', get = function(ctrl) return mixin.FCMCtrlListBox.GetSelectedString(ctrl) or "" end, initial = ""},
     {name = 'is_deleted', get = function() return false end, initial = false}
 )
-
 
 return props

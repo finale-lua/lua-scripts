@@ -1,5 +1,13 @@
+--  Author: Edward Koltun
+--  Date: March 3, 2022
+
 --[[
 $module FCMCustomWindow
+
+Summary of modifications:
+- `Create*` methods have an additional optional parameter for specifying a control name. Named controls can be retrieved via `GetControl`.
+- Cache original control objects to preserve mixin data and override control getters to return the original objects.
+- Added `Each` method for iterating over controls by class name.
 ]]
 
 local mixin = require("library.mixin")
@@ -317,6 +325,44 @@ function props:GetControl(control_name)
     return private[self].NamedControls[control_name]
 end
 
+--[[
+% Each
+
+An iterator for controls that can filter by class.
+
+@ self (FCMCustomWindow)
+@ [class_filter] (string) A class name, can be a parent class. See documentation `mixin.is_instance_of` for details on class filtering.
+: (function) An iterator function.
+]]
+function props:Each(class_filter)
+    local i = -1
+    local v
+    local iterator = function()
+        repeat
+            i = i + 1
+            v = mixin.FCMCustomWindow.GetItemAt(self, i)
+        until not v or not class_filter or mixin.is_instance_of(v, class_filter)
+
+        return v
+    end
+
+    return iterator 
+end
+
+--[[
+% GetItemAt
+
+**[Override]**
+Ensures that the original control object is returned.
+
+@ self (FCMCustomWindow)
+@ index (number)
+: (FCMControl)
+]]
+function props:GetItemAt(index)
+    local item = self:GetItemAt_(index)
+    return item and private[self].Controls[item:GetControlID()] or item
+end
 
 --[[
 % CreateCloseButton

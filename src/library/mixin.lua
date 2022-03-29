@@ -252,10 +252,24 @@ end
 -- Some classes have incorrect class names, so this function attempts to resolve them with ducktyping
 -- Does not check if the object is a Finale object
 local function get_class_name(object)
-    local class_name = object:ClassName()
+    -- If we're dealing with mixin objects, methods may have been added, so we need the originals
+    local suffix = object.MixinClass and "_" or ""
+    local class_name = object["ClassName" .. suffix](object)
 
-    if class_name == "__FCCollection" and object.ExecuteModal then
-        return object.RegisterHandleCommand and "FCCustomLuaWindow" or "FCCustomWindow"
+    if class_name == "__FCCollection" and object["ExecuteModal" ..suffix] then
+        return object["RegisterHandleCommand" .. suffix] and "FCCustomLuaWindow" or "FCCustomWindow"
+    elseif class_name == "FCControl" then
+        if object["GetCheck" .. suffix] then
+            return "FCCtrlCheckbox"
+        elseif object["GetThumbPosition" .. suffix] then
+            return "FCCtrlSlider"
+        elseif object["AddPage" .. suffix] then
+            return "FCCtrlSwitcher"
+        else
+            return "FCCtrlButton"
+        end
+    elseif class_name == "FCCtrlButton" and object["GetThumbPosition" .. suffix] then
+        return "FCCtrlSlider"
     end
 
     return class_name
@@ -672,6 +686,72 @@ end
 local mixin_public = {subclass = mixin.subclass}
 
 --[[
+% is_instance_of
+
+Checks if an object is an instance of a class.
+Conditions:
+- Parent cannot be instance of child.
+- `FC` object cannot be an instance of an `FCM` or `FCX` class
+- `FCM` object cannot be an instance of an `FCX` class
+- `FCX` object cannot be an instance of an `FC` class
+
+@ object (__FCBase) Any finale object, including mixin enabled objects.
+@ class_name (string) An `FC`, `FCM`, or `FCX` class name. Can be the name of a parent class.
+: (boolean)
+]]
+function mixin_public.is_instance_of(object, class_name)
+    if not library.is_finale_object(object) then
+        return false
+    end
+
+    -- 0 = FC
+    -- 1 = FCM
+    -- 2 = FCX
+    local object_type = (is_fcx_class_name(object.MixinClass) and 2) or (is_fcm_class_name(object.MixinClass) and 1) or 0
+    local class_type = (is_fcx_class_name(class_name) and 2) or (is_fcm_class_name(class_name) and 1) or 0
+
+    -- See doc block for explanation of conditions
+    if (object_type == 0 and class_type == 1) or (object_type == 0 and class_type == 2) or (object_type == 1 and class_type == 2) or (object_type == 2 and class_type == 0) then
+        return false
+    end
+
+    local parent = object_type == 0 and get_class_name(object) or object.MixinClass
+
+    -- Traverse FCX hierarchy until we get to an FCM base
+    if object_type == 2 then
+        repeat
+            if parent == class_name then
+                return true
+            end
+
+            -- We can assume that since we have an object, all parent classes have been loaded
+            parent = mixin_classes[parent].props.MixinParent
+        until is_fcm_class(parent)
+    end
+
+    -- Since FCM classes follow the same hierarchy as FC classes, convert to FC
+    if object_type > 0 then
+        parent = fcm_to_fc_class_name(parent)
+    end
+
+    if class_type > 0 then
+        class_name = fcm_to_fc_class_name(class_name)
+    end
+
+    -- Traverse FC hierarchy
+    repeat
+        if parent == class_name then
+            return true
+        end
+
+        parent = get_parent_class(parent)
+    until not parent
+
+    -- Nothing found
+    return false
+end
+
+--[[
 % assert_argument
 
 Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
@@ -683,7 +763,8 @@ Types can be Lua types (eg `string`, `number`, `bool`, etc), finale class (eg `F
 Parent classes cannot be specified as this function does not examine the class hierarchy.
 
 Note that mixin classes may satisfy the condition for the underlying `FC` class.
-For example, if the expected type is `FCString`, an `FCMString` object will pass the test, but an `FCXString` object will not. 
+For example, if the expected type is `FCString`, an `FCMString` object will pass the test, but an `FCXString` object will not.
+If the expected type is `FCMString`, an `FCXString` object will pass the test but an `FCString` object will not.
 
 @ value (mixed) The value to test.
 @ expected_type (string|table) If there are multiple valid types, pass a table of strings.
@@ -694,7 +775,7 @@ function mixin_public.assert_argument(value, expected_type, argument_number)
 
     if library.is_finale_object(value) then
         t = value.MixinClass
-        tt = is_fcx_class_name(t) and t or get_class_name(value)
+        tt = is_fcx_class_name(t) and value.MixinBase or get_class_name(value)
     else
         t = type(value)
     end
@@ -713,7 +794,7 @@ function mixin_public.assert_argument(value, expected_type, argument_number)
         end
     end
 
-    error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. expected_type .. " expected, got " .. (t or tt) .. ")", 4)
+    error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. expected_type .. " expected, got " .. (t or tt) .. ")", 3)
 end
 
 --[[
@@ -771,7 +852,8 @@ return setmetatable({}, {
         mixin.load_mixin_class(k)
         if not mixin_classes[k] then return nil end
 
-        return setmetatable({}, {
+        -- Cache the class tables
+        mixin_public[k] = setmetatable({}, {
             __newindex = function(tt, kk, vv) end,
             __index = function(tt, kk)
                 local val = utils.copy_table(mixin_classes[k].props[kk])
@@ -788,5 +870,7 @@ return setmetatable({}, {
                 end
             end
         })
+
+        return mixin_public[k]
     end
 })
