@@ -48,7 +48,7 @@ KEY_MAP.cb = 7 -- Cb, just lowercase
 KEY_MAP.fb = 8 -- Fb, just lowercase
 
 --[[
-% create_default_config()
+% create_default_config
 
 Many of the "create ensemble" plugins use the same configuration. This function
 creates that configuration object.
@@ -74,7 +74,7 @@ function score.create_default_config()
 end
 
 --[[
-% delete_all_staves()
+% delete_all_staves
 
 Deletes all staves in the current document.
 ]]
@@ -88,7 +88,7 @@ function score.delete_all_staves()
 end
 
 --[[
-% reset_and_clear_score()
+% reset_and_clear_score
 
 Resets and clears the score to begin creating a new ensemble
 ]]
@@ -97,7 +97,7 @@ function score.reset_and_clear_score()
 end
 
 --[[
-% set_show_staff_time_signature(staff_id, show_time_signature)
+% set_show_staff_time_signature
 
 Sets whether or not to show the time signature on the staff.
 
@@ -119,7 +119,7 @@ function score.set_show_staff_time_signature(staff_id, show_time_signature)
 end
 
 --[[
-% set_show_all_staves_time_signature(show_time_signature)
+% set_show_all_staves_time_signature
 
 Sets whether or not to show the time signature on the staff.
 
@@ -134,7 +134,7 @@ function score.set_show_all_staves_time_signature(show_time_signature)
 end
 
 --[[
-% set_staff_transposition(staff_id, key, interval, clef)
+% set_staff_transposition
 
 Sets the transposition for a staff. Used for instruments that are not concert pitch (e.g., Bb Clarinet or F Horn)
 
@@ -159,7 +159,7 @@ function score.set_staff_transposition(staff_id, key, interval, clef)
 end
 
 --[[
-% set_staff_allow_hiding(staff_id, allow_hiding)
+% set_staff_allow_hiding
 
 Sets whether the staff is allowed to hide when it is empty.
 
@@ -177,7 +177,7 @@ function score.set_staff_allow_hiding(staff_id, allow_hiding)
 end
 
 --[[
-% set_staff_keyless(staff_id, is_keyless)
+% set_staff_keyless
 
 Sets whether or not the staff is keyless.
 
@@ -195,7 +195,7 @@ function score.set_staff_keyless(staff_id, is_keyless)
 end
 
 --[[
-% set_staff_keyless(is_keyless)
+% set_staff_keyless
 
 Sets whether or not all staves are keyless.
 
@@ -210,7 +210,7 @@ function score.set_all_staves_keyless(is_keyless)
 end
 
 --[[
-% set_staff_show_default_whole_rests(staff_id, show_whole_rests)
+% set_staff_show_default_whole_rests
 
 Sets whether to show default whole rests on a particular staff.
 
@@ -228,7 +228,7 @@ function score.set_staff_show_default_whole_rests(staff_id, show_whole_rests)
 end
 
 --[[
-% set_all_staves_show_default_whole_rests(show_whole_rests)
+% set_all_staves_show_default_whole_rests
 
 Sets whether or not all staves show default whole rests.
 
@@ -243,7 +243,7 @@ function score.set_all_staves_show_default_whole_rests(show_whole_rests)
 end
 
 --[[
-% add_space_above_staff(staff_id)
+% add_space_above_staff
 
 This is the equivalent of "Add Vertical Space" in the Setup Wizard. It adds space above the staff as well as adds the staff to Staff List 1, which allows it to show tempo markings.
 
@@ -271,7 +271,7 @@ function score.add_space_above_staff(staff_id)
 end
 
 --[[
-% set_staff_full_name(staff, full_name, double)
+% set_staff_full_name
 
 Sets the full name for the staff.
 
@@ -296,7 +296,7 @@ function score.set_staff_full_name(staff, full_name, double)
 end
 
 --[[
-% set_staff_short_name(staff, short_name, double)
+% set_staff_short_name
 
 Sets the abbreviated name for the staff.
 
@@ -321,7 +321,7 @@ function score.set_staff_short_name(staff, short_name, double)
 end
 
 --[[
-% create_staff(full_name, short_name, type, clef, double)
+% create_staff
 
 Creates a staff at the end of the score.
 
@@ -358,7 +358,7 @@ function score.create_staff(full_name, short_name, type, clef, double)
 end
 
 --[[
-% create_staff_spaced(full_name, short_name, type, clef, double)
+% create_staff_spaced
 
 Creates a staff at the end of the score with a space above it. This is equivalent to using `score.create_staff` then `score.add_space_above_staff`.
 
@@ -377,7 +377,7 @@ function score.create_staff_spaced(full_name, short_name, type, clef)
 end
 
 --[[
-% create_staff_percussion(full_name, short_name, type, clef)
+% create_staff_percussion
 
 Creates a percussion staff at the end of the score.
 
@@ -396,7 +396,7 @@ function score.create_staff_percussion(full_name, short_name)
 end
 
 --[[
-% create_group(start_staff, end_staff, brace_name, has_barline, level, full_name, short_name)
+% create_group
 
 Creates a percussion staff at the end of the score.
 
@@ -459,7 +459,7 @@ function score.create_group(start_staff, end_staff, brace_name, has_barline, lev
 end
 
 --[[
-% create_group_primary(start_staff, end_staff, full_name, short_name)
+% create_group_primary
 
 Creates a primary group with the "curved_chorus" bracket.
 
@@ -473,7 +473,7 @@ function score.create_group_primary(start_staff, end_staff, full_name, short_nam
 end
 
 --[[
-% create_group_secondary(start_staff, end_staff, full_name, short_name)
+% create_group_secondary
 
 Creates a primary group with the "desk" bracket.
 
@@ -487,9 +487,14 @@ function score.create_group_secondary(start_staff, end_staff, full_name, short_n
 end
 
 --[[
-% calc_system_scalings(systems_per_page)
+% calc_system_scalings
+
+_EXPERIMENTAL_
 
 Calculates the system scaling to fit the desired number of systems on each page.
+
+Currently produces the incorrect values. Should not be used in any production-ready
+scripts.
 
 @ systems_per_page (number) the number of systems that should fit on each page
 
@@ -527,7 +532,7 @@ function score.calc_system_scalings(systems_per_page)
 end
 
 --[[
-% set_global_system_scaling(scaling)
+% set_global_system_scaling
 
 Sets the system scaling for every system in the score.
 
@@ -548,7 +553,7 @@ function score.set_global_system_scaling(scaling)
 end
 
 --[[
-% set_global_system_scaling(scaling)
+% set_global_system_scaling
 
 Sets the system scaling for a specific system in the score.
 
@@ -566,7 +571,7 @@ function score.set_single_system_scaling(system_number, scaling)
 end
 
 --[[
-% set_large_time_signatures_settings()
+% set_large_time_signatures_settings
 
 Updates the document settings for large time signatures.
 ]]
@@ -585,7 +590,7 @@ function score.set_large_time_signatures_settings()
 end
 
 --[[
-% use_large_time_signatures(uses_large_time_signatures, staves_with_time_signatures)
+% use_large_time_signatures
 
 Sets the system scaling for a specific system in the score.
 
@@ -604,7 +609,7 @@ function score.use_large_time_signatures(uses_large_time_signatures, staves_with
 end
 
 --[[
-% use_large_measure_numbers(distance)
+% use_large_measure_numbers
 
 Adds large measure numbers below every measure in the score.
 
@@ -657,7 +662,7 @@ function score.use_large_measure_numbers(distance)
 end
 
 --[[
-% set_max_measures_per_system(width)
+% set_max_measures_per_system
 
 Sets the maximum number of measures per system.
 
@@ -687,7 +692,7 @@ function score.set_max_measures_per_system(max_measures_per_system)
 end
 
 --[[
-% set_score_page_size(width, height)
+% set_score_page_size
 
 Sets the score page size.
 
@@ -711,7 +716,7 @@ function score.set_score_page_size(width, height)
 end
 
 --[[
-% set_all_parts_page_size(width, height)
+% set_all_parts_page_size
 
 Sets the page size for all parts.
 
@@ -742,7 +747,7 @@ function score.set_all_parts_page_size(width, height)
 end
 
 --[[
-% apply_config(width, options)
+% apply_config
 
 When creating an ensemble, this function is used to apply the configuration.
 
