@@ -342,7 +342,12 @@ Creates a primary group with the "desk" bracket.
 score.calc_system_scalings(systems_per_page)
 ```
 
+_EXPERIMENTAL_
+
 Calculates the system scaling to fit the desired number of systems on each page.
+
+Currently produces the incorrect values. Should not be used in any production-ready
+scripts.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |

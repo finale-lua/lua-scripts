@@ -12,11 +12,11 @@ end
 
 --[[
 $module Library
-]]
+]] --
 local library = {}
 
 --[[
-% finale_version(major, minor, build)
+% finale_version
 
 Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
 this is the internal major Finale version, not the year.
@@ -35,7 +35,7 @@ function library.finale_version(major, minor, build)
 end
 
 --[[
-% group_overlaps_region(staff_group, region)
+% group_overlaps_region
 
 Returns true if the input staff group overlaps with the input music region, otherwise false.
 
@@ -66,7 +66,7 @@ function library.group_overlaps_region(staff_group, region)
 end
 
 --[[
-% group_is_contained_in_region(staff_group, region)
+% group_is_contained_in_region
 
 Returns true if the entire input staff group is contained within the input music region.
 If the start or end staff are not visible in the region, it returns false.
@@ -86,7 +86,7 @@ function library.group_is_contained_in_region(staff_group, region)
 end
 
 --[[
-% staff_group_is_multistaff_instrument(staff_group)
+% staff_group_is_multistaff_instrument
 
 Returns true if the entire input staff group is a multistaff instrument.
 
@@ -105,7 +105,7 @@ function library.staff_group_is_multistaff_instrument(staff_group)
 end
 
 --[[
-% get_selected_region_or_whole_doc()
+% get_selected_region_or_whole_doc
 
 Returns a region that contains the selected region if there is a selection or the whole document if there isn't.
 SIDE-EFFECT WARNING: If there is no selected region, this function also changes finenv.Region() to the whole document.
@@ -121,7 +121,7 @@ function library.get_selected_region_or_whole_doc()
 end
 
 --[[
-% get_first_cell_on_or_after_page(page_num)
+% get_first_cell_on_or_after_page
 
 Returns the first FCCell at the top of the input page. If the page is blank, it returns the first cell after the input page.
 
@@ -132,7 +132,7 @@ function library.get_first_cell_on_or_after_page(page_num)
     local curr_page_num = page_num
     local curr_page = finale.FCPage()
     local got1 = false
-    --skip over any blank pages
+    -- skip over any blank pages
     while curr_page:Load(curr_page_num) do
         if curr_page:GetFirstSystem() > 0 then
             got1 = true
@@ -145,14 +145,14 @@ function library.get_first_cell_on_or_after_page(page_num)
         staff_sys:Load(curr_page:GetFirstSystem())
         return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
     end
-    --if we got here there were nothing but blank pages left at the end
+    -- if we got here there were nothing but blank pages left at the end
     local end_region = finale.FCMusicRegion()
     end_region:SetFullDocument()
     return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
 end
 
 --[[
-% get_top_left_visible_cell()
+% get_top_left_visible_cell
 
 Returns the topmost, leftmost visible FCCell on the screen, or the closest possible estimate of it.
 
@@ -168,7 +168,7 @@ function library.get_top_left_visible_cell()
 end
 
 --[[
-% get_top_left_selected_or_visible_cell()
+% get_top_left_selected_or_visible_cell
 
 If there is a selection, returns the topmost, leftmost cell in the selected region.
 Otherwise returns the best estimate for the topmost, leftmost currently visible cell.
@@ -184,7 +184,7 @@ function library.get_top_left_selected_or_visible_cell()
 end
 
 --[[
-% is_default_measure_number_visible_on_cell (meas_num_region, cell, staff_system, current_is_part)
+% is_default_measure_number_visible_on_cell
 
 Returns true if measure numbers for the input region are visible on the input cell for the staff system.
 
@@ -194,7 +194,7 @@ Returns true if measure numbers for the input region are visible on the input ce
 @ current_is_part (boolean) true if the current view is a linked part, otherwise false
 : (boolean)
 ]]
-function library.is_default_measure_number_visible_on_cell (meas_num_region, cell, staff_system, current_is_part)
+function library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
     local staff = finale.FCCurrentStaffSpec()
     if not staff:LoadForCell(cell, 0) then
         return false
@@ -212,7 +212,7 @@ function library.is_default_measure_number_visible_on_cell (meas_num_region, cel
 end
 
 --[[
-% is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+% is_default_number_visible_and_left_aligned
 
 Returns true if measure number for the input cell is visible and left-aligned.
 
@@ -223,7 +223,8 @@ Returns true if measure number for the input cell is visible and left-aligned.
 @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
 : (boolean)
 ]]
-function library.is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part,
+                                                            is_for_multimeasure_rest)
     if meas_num_region.UseScoreInfoForParts then
         current_is_part = false
     end
@@ -246,11 +247,11 @@ function library.is_default_number_visible_and_left_aligned (meas_num_region, ce
             return false
         end
     end
-    return library.is_default_measure_number_visible_on_cell (meas_num_region, cell, system, current_is_part)
+    return library.is_default_measure_number_visible_on_cell(meas_num_region, cell, system, current_is_part)
 end
 
 --[[
-% update_layout(from_page, unfreeze_measures)
+% update_layout
 
 Updates the page layout.
 
@@ -267,7 +268,7 @@ function library.update_layout(from_page, unfreeze_measures)
 end
 
 --[[
-% get_current_part()
+% get_current_part
 
 Returns the currently selected part or score.
 
@@ -280,7 +281,7 @@ function library.get_current_part()
 end
 
 --[[
-% get_page_format_prefs()
+% get_page_format_prefs
 
 Returns the default page format prefs for score or parts based on which is currently selected.
 
@@ -299,7 +300,7 @@ function library.get_page_format_prefs()
 end
 
 --[[
-% get_smufl_metadata_file(font_info)
+% get_smufl_metadata_file
 
 @ [font_info] (FCFontInfo) if non-nil, the font to search for; if nil, search for the Default Music Font
 : (file handle|nil)
@@ -328,13 +329,13 @@ function library.get_smufl_metadata_file(font_info)
 
     local smufl_json_system_prefix = "/Library/Application Support"
     if finenv.UI():IsOnWindows() then
-        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
+        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES")
     end
     return try_prefix(smufl_json_system_prefix, font_info)
 end
 
 --[[
-% is_font_smufl_font(font_info)
+% is_font_smufl_font
 
 @ [font_info] (FCFontInfo) if non-nil, the font to check; if nil, check the Default Music Font
 : (boolean)
@@ -344,13 +345,13 @@ function library.is_font_smufl_font(font_info)
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
-    
+
     if finenv.RawFinaleVersion >= library.finale_version(27, 1) then
         if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
             return font_info.IsSMuFLFont
         end
     end
-    
+
     local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
     if nil ~= smufl_metadata_file then
         io.close(smufl_metadata_file)
@@ -360,7 +361,7 @@ function library.is_font_smufl_font(font_info)
 end
 
 --[[
-% simple_input(title, text)
+% simple_input
 
 Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
 
@@ -369,48 +370,52 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 : string
 ]]
 function library.simple_input(title, text)
-  local return_value = finale.FCString()
-  return_value.LuaString = ""
-  local str = finale.FCString()
-  local min_width = 160
-  --
-  function format_ctrl(ctrl, h, w, st)
-      ctrl:SetHeight(h)
-      ctrl:SetWidth(w)
-      str.LuaString = st
-      ctrl:SetText(str)
-  end -- function format_ctrl
-  --
-  title_width = string.len(title) * 6 + 54
-  if title_width > min_width then min_width = title_width end
-  text_width = string.len(text) * 6
-  if text_width > min_width then min_width = text_width end
-  --
-  str.LuaString = title
-  local dialog = finale.FCCustomLuaWindow()
-  dialog:SetTitle(str)
-  local descr = dialog:CreateStatic(0, 0)
-  format_ctrl(descr, 16, min_width, text)
-  local input = dialog:CreateEdit(0, 20)
-  format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
-  dialog:CreateOkButton()
-  dialog:CreateCancelButton()
-  --
-  function callback(ctrl)
-  end -- callback
-  --
-  dialog:RegisterHandleCommand(callback)
-  --
-  if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
-    return_value.LuaString = input:GetText(return_value)
-    --print(return_value.LuaString)
-    return return_value.LuaString
-  -- OK button was pressed
-  end
+    local return_value = finale.FCString()
+    return_value.LuaString = ""
+    local str = finale.FCString()
+    local min_width = 160
+    --
+    function format_ctrl(ctrl, h, w, st)
+        ctrl:SetHeight(h)
+        ctrl:SetWidth(w)
+        str.LuaString = st
+        ctrl:SetText(str)
+    end -- function format_ctrl
+    --
+    title_width = string.len(title) * 6 + 54
+    if title_width > min_width then
+        min_width = title_width
+    end
+    text_width = string.len(text) * 6
+    if text_width > min_width then
+        min_width = text_width
+    end
+    --
+    str.LuaString = title
+    local dialog = finale.FCCustomLuaWindow()
+    dialog:SetTitle(str)
+    local descr = dialog:CreateStatic(0, 0)
+    format_ctrl(descr, 16, min_width, text)
+    local input = dialog:CreateEdit(0, 20)
+    format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    --
+    function callback(ctrl)
+    end -- callback
+    --
+    dialog:RegisterHandleCommand(callback)
+    --
+    if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
+        return_value.LuaString = input:GetText(return_value)
+        -- print(return_value.LuaString)
+        return return_value.LuaString
+        -- OK button was pressed
+    end
 end -- function simple_input
 
 --[[
-% is_finale_object(object)
+% is_finale_object
 
 Attempts to determine if an object is a Finale object through ducktyping
 
@@ -419,19 +424,15 @@ Attempts to determine if an object is a Finale object through ducktyping
 ]]
 function library.is_finale_object(object)
     -- All finale objects implement __FCBase, so just check for the existence of __FCBase methods
-    return object and type(object) == 'userdata' and object.ClassName and object.GetClassID and true or false
+    return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
 end
-
-
-
 
 
 
 --[[
 $module Enigma String
-]]
+]] --
 local enigma_string = {}
-
 local starts_with_font_command = function(string)
     local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
     for i, text_cmd in ipairs(text_cmds) do
@@ -452,7 +453,7 @@ functions that can replace only font, only size, only style, or all three togeth
 ]]
 
 --[[
-% trim_first_enigma_font_tags(string)
+% trim_first_enigma_font_tags
 
 Trims the first font tags and returns the result as an instance of FCFontInfo.
 
@@ -474,7 +475,7 @@ function enigma_string.trim_first_enigma_font_tags(string)
         if string:SplitAt(end_of_tag, font_tag, nil, true) then
             font_info:ParseEnigmaCommand(font_tag)
         end
-        string:DeleteCharactersAt(0, end_of_tag+1)
+        string:DeleteCharactersAt(0, end_of_tag + 1)
         found_tag = true
     end
     if found_tag then
@@ -484,7 +485,7 @@ function enigma_string.trim_first_enigma_font_tags(string)
 end
 
 --[[
-% change_first_string_font (string, font_info)
+% change_first_string_font
 
 Replaces the first enigma font tags of the input enigma string.
 
@@ -492,19 +493,19 @@ Replaces the first enigma font tags of the input enigma string.
 @ font_info (FCFontInfo) replacement font info
 : (boolean) true if success
 ]]
-function enigma_string.change_first_string_font (string, font_info)
+function enigma_string.change_first_string_font(string, font_info)
     local final_text = font_info:CreateEnigmaString(nil)
     local current_font_info = enigma_string.trim_first_enigma_font_tags(string)
     if (current_font_info == nil) or not font_info:IsIdenticalTo(current_font_info) then
         final_text:AppendString(string)
-        string:SetString (final_text)
+        string:SetString(final_text)
         return true
     end
     return false
 end
 
 --[[
-% change_first_text_block_font (text_block, font_info)
+% change_first_text_block_font
 
 Replaces the first enigma font tags of input text block.
 
@@ -512,7 +513,7 @@ Replaces the first enigma font tags of input text block.
 @ font_info (FCFontInfo) replacement font info
 : (boolean) true if success
 ]]
-function enigma_string.change_first_text_block_font (text_block, font_info)
+function enigma_string.change_first_text_block_font(text_block, font_info)
     local new_text = text_block:CreateRawTextString()
     if enigma_string.change_first_string_font(new_text, font_info) then
         text_block:SaveRawTextString(new_text)
@@ -521,51 +522,53 @@ function enigma_string.change_first_text_block_font (text_block, font_info)
     return false
 end
 
---These implement a complete font replacement using the PDK Framework's
---built-in TrimEnigmaFontTags() function.
- 
+-- These implement a complete font replacement using the PDK Framework's
+-- built-in TrimEnigmaFontTags() function.
+
 --[[
-% change_string_font (string, font_info)
+% change_string_font
 
 Changes the entire enigma string to have the input font info.
 
 @ string (FCString) this is both the input and the modified output result
 @ font_info (FCFontInfo) replacement font info
 ]]
-function enigma_string.change_string_font (string, font_info)
+function enigma_string.change_string_font(string, font_info)
     local final_text = font_info:CreateEnigmaString(nil)
     string:TrimEnigmaFontTags()
     final_text:AppendString(string)
-    string:SetString (final_text)
+    string:SetString(final_text)
 end
 
 --[[
-% change_text_block_font (text_block, font_info)
+% change_text_block_font
 
 Changes the entire text block to have the input font info.
 
 @ text_block (FCTextBlock) this is both the input and the modified output result
 @ font_info (FCFontInfo) replacement font info
 ]]
-function enigma_string.change_text_block_font (text_block, font_info)
+function enigma_string.change_text_block_font(text_block, font_info)
     local new_text = text_block:CreateRawTextString()
     enigma_string.change_string_font(new_text, font_info)
     text_block:SaveRawTextString(new_text)
 end
 
 --[[
-% remove_inserts (fcstring, replace_with_generic)
+% remove_inserts
 
-Removes text inserts other than font commands and replaces them with 
+Removes text inserts other than font commands and replaces them with
 
 @ fcstring (FCString) this is both the input and the modified output result
 @ replace_with_generic (boolean) if true, replace the insert with the text of the enigma command
 ]]
-function enigma_string.remove_inserts (fcstring, replace_with_generic)
+function enigma_string.remove_inserts(fcstring, replace_with_generic)
     -- so far this just supports page-level inserts. if this ever needs to work with expressions, we'll need to
     -- add the last three items in the (Finale 26) text insert menu, which are playback inserts not available to page text
-    local text_cmds = {"^arranger", "^composer", "^copyright", "^date", "^description", "^fdate", "^filename",
-                        "^lyricist", "^page", "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages"}
+    local text_cmds = {
+        "^arranger", "^composer", "^copyright", "^date", "^description", "^fdate", "^filename", "^lyricist", "^page",
+        "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages",
+    }
     local lua_string = fcstring.LuaString
     for i, text_cmd in ipairs(text_cmds) do
         local starts_at = string.find(lua_string, text_cmd, 1, true) -- true: do a plain search
@@ -574,14 +577,14 @@ function enigma_string.remove_inserts (fcstring, replace_with_generic)
             if replace_with_generic then
                 replace_with = string.sub(text_cmd, 2)
             end
-            local after_text_at = starts_at+string.len(text_cmd)
+            local after_text_at = starts_at + string.len(text_cmd)
             local next_at = string.find(lua_string, ")", after_text_at, true)
             if nil ~= next_at then
                 next_at = next_at + 1
             else
                 next_at = starts_at
             end
-            lua_string = string.sub(lua_string, 1, starts_at-1) .. replace_with .. string.sub(lua_string, next_at)
+            lua_string = string.sub(lua_string, 1, starts_at - 1) .. replace_with .. string.sub(lua_string, next_at)
             starts_at = string.find(lua_string, text_cmd, 1, true)
         end
     end
@@ -589,7 +592,7 @@ function enigma_string.remove_inserts (fcstring, replace_with_generic)
 end
 
 --[[
-% expand_value_tag(fcstring, value_num)
+% expand_value_tag
 
 Expands the value tag to the input value_num.
 
@@ -597,12 +600,12 @@ Expands the value tag to the input value_num.
 @ value_num (number) the value number to replace the tag with
 ]]
 function enigma_string.expand_value_tag(fcstring, value_num)
-    value_num = math.floor(value_num +0.5) -- in case value_num is not an integer
+    value_num = math.floor(value_num + 0.5) -- in case value_num is not an integer
     fcstring.LuaString = fcstring.LuaString:gsub("%^value%(%)", tostring(value_num))
 end
 
 --[[
-% calc_text_advance_width(inp_string)
+% calc_text_advance_width
 
 Calculates the advance width of the input string taking into account all font and style changes within the string.
 
