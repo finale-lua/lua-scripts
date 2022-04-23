@@ -429,6 +429,33 @@ function library.is_finale_object(object)
     return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
 end
 
+--[[
+% system_indent_set_to_prefs
+
+Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
+The page preferences may be provided optionally to avoid loading them for each call.
+
+@ system (FCStaffSystem)
+@ [page_format_prefs] (FCPageFormatPrefs) page format preferences to use, if supplied.
+: (boolean) `true` if the system was successfully updated.
+]]
+function library.system_indent_set_to_prefs(system, page_format_prefs)
+    page_format_prefs = page_format_prefs or library.get_page_format_prefs()
+    local first_meas = finale.FCMeasure()
+    local is_first_system = (system.FirstMeasure == 1)
+    if (not is_first_system) and first_meas:Load(system.FirstMeasure) then
+        if first_meas.ShowFullNames then
+            is_first_system = true
+        end
+    end
+    if is_first_system and page_format_prefs.UseFirstSystemMargins then
+        system.LeftMargin = page_format_prefs.FirstSystemLeft
+    else
+        system.LeftMargin = page_format_prefs.SystemLeft
+    end
+    return system:Save()
+end
+
 
 
 --[[

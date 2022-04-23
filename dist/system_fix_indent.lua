@@ -1,18 +1,19 @@
 function plugindef()
     finaleplugin.RequireSelection = false
-    finaleplugin.Author = "Robert Patteson"
+    finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "March 21, 2021"
+    finaleplugin.Version = "1.1"
+    finaleplugin.Date = "April 23, 2022"
     finaleplugin.CategoryTags = "System"
     finaleplugin.AuthorURL = "https://robertgpatterson.com"
-    return "Fix Indent From Doc. Settings", "Fix Indent From Doc. Settings", "Using the Page Format For options, adjusts indentation of selected systems."
+    finaleplugin.Notes = [[
+        This script replaces the Fix Indent function of the JW New Piece plugin. It behaves slightly differently, however.
+        The JW New Piece plugin uses the indentation of System 1 for the other first systems, and it assumes 0 for
+        non-first systems. This script gets those values out of Page Format For Score or Page Format For Parts,
+        depending on whether we are currently viewing score or part.
+    ]]
+    return "Fix Indent From Doc. Settings", "Fix Indent From Doc. Settings", "Resets the left-side indentation of selected systems using the Page Format For options."
 end
-
--- This script recreates the Fix Indent function of the JW New Piece plugin. The reason for the script is
--- that JW New Piece uses the indentation of System 1 for the other first systems, and it assumes 0 for
--- non-first systems. This script gets those values out of Page Format For Score or Page Format For Parts,
--- depending on whether we are currently viewing score or part.
 
 --[[
 $module Library
@@ -431,6 +432,33 @@ function library.is_finale_object(object)
     return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
 end
 
+--[[
+% system_indent_set_to_prefs
+
+Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
+The page preferences may be provided optionally to avoid loading them for each call.
+
+@ system (FCStaffSystem)
+@ [page_format_prefs] (FCPageFormatPrefs) page format preferences to use, if supplied.
+: (boolean) `true` if the system was successfully updated.
+]]
+function library.system_indent_set_to_prefs(system, page_format_prefs)
+    page_format_prefs = page_format_prefs or library.get_page_format_prefs()
+    local first_meas = finale.FCMeasure()
+    local is_first_system = (system.FirstMeasure == 1)
+    if (not is_first_system) and first_meas:Load(system.FirstMeasure) then
+        if first_meas.ShowFullNames then
+            is_first_system = true
+        end
+    end
+    if is_first_system and page_format_prefs.UseFirstSystemMargins then
+        system.LeftMargin = page_format_prefs.FirstSystemLeft
+    else
+        system.LeftMargin = page_format_prefs.SystemLeft
+    end
+    return system:Save()
+end
+
 
 
 
@@ -445,19 +473,7 @@ function system_fix_indent()
 
     for i = first_system_number, last_system_number do
         local system = systems:GetItemAt(i - 1)
-        local first_meas = finale.FCMeasure()
-        local is_first_system = (system.FirstMeasure == 1)
-        if (not is_first_system) and first_meas:Load(system.FirstMeasure) then
-            if first_meas.ShowFullNames then
-                is_first_system = true
-            end
-        end
-        if is_first_system and page_format_prefs.UseFirstSystemMargins then
-            system.LeftMargin = page_format_prefs.FirstSystemLeft
-        else
-            system.LeftMargin = page_format_prefs.SystemLeft
-        end
-        system:Save()
+        library.system_indent_set_to_prefs(system, page_format_prefs)
     end
 
     library.update_layout()
