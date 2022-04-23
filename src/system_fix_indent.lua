@@ -1,6 +1,6 @@
 function plugindef()
     finaleplugin.RequireSelection = false
-    finaleplugin.Author = "Robert Patteson"
+    finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.1"
     finaleplugin.Date = "April 23, 2022"
