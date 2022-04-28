@@ -11,7 +11,7 @@ local config = {
     diamond_closed = 79, -- per Elaine Gould, use open diamond even on closed regular notes, but allow it to be overridden
     diamond_resize = 110,
     diamond_whole_offset = 5,
-    diamond_breve_offset = 14,
+    diamond_breve_offset = 14
 }
 
 -- Default to SMuFL characters for SMuFL font (without needing a config file)
@@ -34,7 +34,7 @@ Changes the given notehead to a specified notehead descriptor string. Currently 
 ]]
 function notehead.change_shape(note, shape)
     local notehead = finale.FCNoteheadMod()
-    notehead:EraseAt(newnote)
+    notehead:EraseAt(note)
 
     if shape == "diamond" then
         local entry = note:GetEntry()

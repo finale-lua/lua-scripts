@@ -12,6 +12,7 @@ local note_entry = require("library.note_entry")
 
 local region = finenv.Region()
 
+local layer = {}
 local layer_one_note = {}
 local layer_two_note = {}
 

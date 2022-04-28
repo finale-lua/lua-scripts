@@ -294,7 +294,7 @@ end
 : (file handle|nil)
 ]]
 function library.get_smufl_metadata_file(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
@@ -329,7 +329,7 @@ end
 : (boolean)
 ]]
 function library.is_font_smufl_font(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
