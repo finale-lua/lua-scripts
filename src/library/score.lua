@@ -498,7 +498,7 @@ scripts.
 
 @ systems_per_page (number) the number of systems that should fit on each page
 
-: (number, number) the desired scaling factors
+: (number, number) the desired scaling factors—first_page_scaling, global_scaling
 ]]
 function score.calc_system_scalings(systems_per_page)
     local score_page_format_prefs = finale.FCPageFormatPrefs()
@@ -774,7 +774,7 @@ function score.apply_config(config, options)
         score.use_large_measure_numbers(config.large_measure_number_space)
     end
 
-    local first_page_scaling, global_scaling = score.calc_system_scalings(2)
+    local first_page_scaling, global_scaling = score.calc_system_scalings(config.systems_per_page)
     score.set_global_system_scaling(global_scaling)
     for i = 0, config.systems_per_page - 1, 1 do
         score.set_single_system_scaling(i, first_page_scaling)
