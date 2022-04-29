@@ -69,11 +69,11 @@ local function score_create_trombone_choir_score()
     staves.percussion_2 = score.create_staff_percussion("Percussion 2", "Prc. 2")
     staves.percussion_3 = score.create_staff_percussion("Percussion 3", "Prc. 3")
 
-    staves.violin_1 = score.create_staff("Violin I", "Vln. I", finale.FFUUID_VIOLINSECTION, "treble")
+    staves.violin_1 = score.create_staff_spaced("Violin I", "Vln. I", finale.FFUUID_VIOLINSECTION, "treble")
     staves.violin_2 = score.create_staff("Violin II", "Vln. II", finale.FFUUID_VIOLINSECTION, "treble")
     staves.viola = score.create_staff("Viola", "Vla.", finale.FFUUID_VIOLASECTION, "alto")
     staves.cello = score.create_staff("Cello", "Vc.", finale.FFUUID_CELLOSECTION, "bass")
-    staves.double_bass = score.create_staff("Double Bass", "D.B.", finale.FFUUID_DOUBLE_BASSSECTION, "bass")
+    staves.double_bass = score.create_staff("Double Bass", "D.B.", finale.FFUUID_DOUBLEBASSSECTION, "bass")
 
     score.create_group_primary(staves.flutes_1_2, staves.bassoons_1_2)
     score.create_group_primary(staves.horns_1_2, staves.tuba)
