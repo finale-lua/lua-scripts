@@ -1139,7 +1139,7 @@ scripts.
 
 @ systems_per_page (number) the number of systems that should fit on each page
 
-: (number, number) the desired scaling factors
+: (number, number) the desired scaling factors—first_page_scaling, global_scaling
 ]]
 function score.calc_system_scalings(systems_per_page)
     local score_page_format_prefs = finale.FCPageFormatPrefs()
@@ -1415,7 +1415,7 @@ function score.apply_config(config, options)
         score.use_large_measure_numbers(config.large_measure_number_space)
     end
 
-    local first_page_scaling, global_scaling = score.calc_system_scalings(2)
+    local first_page_scaling, global_scaling = score.calc_system_scalings(config.systems_per_page)
     score.set_global_system_scaling(global_scaling)
     for i = 0, config.systems_per_page - 1, 1 do
         score.set_single_system_scaling(i, first_page_scaling)
@@ -1591,11 +1591,11 @@ local function score_create_trombone_choir_score()
     staves.percussion_2 = score.create_staff_percussion("Percussion 2", "Prc. 2")
     staves.percussion_3 = score.create_staff_percussion("Percussion 3", "Prc. 3")
 
-    staves.violin_1 = score.create_staff("Violin I", "Vln. I", finale.FFUUID_VIOLINSECTION, "treble")
+    staves.violin_1 = score.create_staff_spaced("Violin I", "Vln. I", finale.FFUUID_VIOLINSECTION, "treble")
     staves.violin_2 = score.create_staff("Violin II", "Vln. II", finale.FFUUID_VIOLINSECTION, "treble")
     staves.viola = score.create_staff("Viola", "Vla.", finale.FFUUID_VIOLASECTION, "alto")
     staves.cello = score.create_staff("Cello", "Vc.", finale.FFUUID_CELLOSECTION, "bass")
-    staves.double_bass = score.create_staff("Double Bass", "D.B.", finale.FFUUID_DOUBLE_BASSSECTION, "bass")
+    staves.double_bass = score.create_staff("Double Bass", "D.B.", finale.FFUUID_DOUBLEBASSSECTION, "bass")
 
     score.create_group_primary(staves.flutes_1_2, staves.bassoons_1_2)
     score.create_group_primary(staves.horns_1_2, staves.tuba)

@@ -355,7 +355,7 @@ scripts.
 
 | Return type | Description |
 | ----------- | ----------- |
-| `number, number` | the desired scaling factors |
+| `number, number` | the desired scaling factors—first_page_scaling, global_scaling |
 
 ## set_global_system_scaling
 
