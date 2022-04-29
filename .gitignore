@@ -7,7 +7,6 @@ jwlua.fxt
 jwluatagfile.xml
 SciLexer.dll
 jwlua64.fxtco
-.vscode
 
 # ignore Finale files (used for testing)
 *.mus
@@ -22,3 +21,6 @@ coverage
 mobdebug.lua
 
 src/personal*
+
+.vscode/settings.json
+*/**/.vscode
