@@ -353,7 +353,6 @@ for add_staff = region:GetStartStaff(), region:GetEndStaff() do
         if entry.LayerNumber == 1 then
             table.insert(layer_one_note, entry)
             table.insert(measure, entry.Measure)
-            staff = entry.Staff
             count = count + 1
         elseif entry.LayerNumber == 2 then
             table.insert(layer_two_note, entry)
