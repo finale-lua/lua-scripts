@@ -36,7 +36,7 @@ end
 -- entry_metrics can be omitted, in which case they are constructed and released here
 -- return entry_metrics, loaded_here
 local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
-    if nil ~= entry_metrics then
+    if entry_metrics then
         return entry_metrics, false
     end
     entry_metrics = finale.FCEntryMetrics()
@@ -412,6 +412,7 @@ end
 
 local region = finenv.Region()
 
+local layer = {}
 local layer_one_note = {}
 local layer_two_note = {}
 

@@ -306,7 +306,7 @@ end
 : (file handle|nil)
 ]]
 function library.get_smufl_metadata_file(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
@@ -341,7 +341,7 @@ end
 : (boolean)
 ]]
 function library.is_font_smufl_font(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
@@ -1093,7 +1093,7 @@ end
 : (file handle|nil)
 ]]
 function library.get_smufl_metadata_file(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
@@ -1128,7 +1128,7 @@ end
 : (boolean)
 ]]
 function library.is_font_smufl_font(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
@@ -1271,7 +1271,7 @@ end
 -- entry_metrics can be omitted, in which case they are constructed and released here
 -- return entry_metrics, loaded_here
 local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
-    if nil ~= entry_metrics then
+    if entry_metrics then
         return entry_metrics, false
     end
     entry_metrics = finale.FCEntryMetrics()
