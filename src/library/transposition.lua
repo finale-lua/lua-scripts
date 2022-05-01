@@ -9,13 +9,13 @@ of a configuration file called "custom_key_sig.config.txt" in the
 can read the correct custom key signature information directly from
 Finale. Therefore, when you run this script with RGP Lua 0.58+, the configuration file
 is ignored.
-]] -- 
+]] --
 -- Structure
 -- 1. Helper functions
 -- 2. Diatonic Transposition
 -- 3. Enharmonic Transposition
 -- 3. Chromatic Transposition
--- 
+--
 local transposition = {}
 
 local configuration = require("library.configuration")
@@ -37,9 +37,9 @@ local custom_key_sig_config = {
 
 configuration.get_parameters("custom_key_sig.config.txt", custom_key_sig_config)
 
--- 
+--
 -- HELPER functions
--- 
+--
 
 local sign = function(n)
     if n < 0 then
@@ -140,12 +140,12 @@ local simplify_spelling = function(note, min_abs_alteration)
     return true
 end
 
--- 
+--
 -- DIATONIC transposition (affect only Displacement)
--- 
+--
 
 --[[
-% diatonic_transpose(note, interval)
+% diatonic_transpose
 
 Transpose the note diatonically by the given interval displacement.
 
@@ -157,7 +157,7 @@ function transposition.diatonic_transpose(note, interval)
 end
 
 --[[
-% change_octave(note, number_of_octaves)
+% change_octave
 
 Transpose the note by the given number of octaves.
 
@@ -173,7 +173,7 @@ end
 --
 
 --[[
-% enharmonic_transpose(note, direction, ignore_error)
+% enharmonic_transpose
 
 Transpose the note enharmonically in the given direction. In some microtone systems this yields a different result than transposing by a diminished 2nd.
 Failure occurs if the note's `RaiseLower` value exceeds an absolute value of 7. This is a hard-coded limit in Finale.
@@ -203,12 +203,12 @@ function transposition.enharmonic_transpose(note, direction, ignore_error)
     return true
 end
 
--- 
+--
 -- CHROMATIC transposition (affect Displacement and RaiseLower)
--- 
+--
 
 --[[
-% chromatic_transpose(note, interval, alteration, simplify)
+% chromatic_transpose
 
 Transposes a note chromatically by the input chromatic interval. Supports custom key signatures
 and microtone systems by means of a `custom_key_sig.config.txt` file. In Finale, chromatic intervals
@@ -252,7 +252,7 @@ function transposition.chromatic_transpose(note, interval, alteration, simplify)
 end
 
 --[[
-% stepwise_transpose(note, number_of_steps)
+% stepwise_transpose
 
 Transposes the note by the input number of steps and simplifies the spelling.
 For predefined key signatures, each step is a half-step.
@@ -276,7 +276,7 @@ function transposition.stepwise_transpose(note, number_of_steps)
 end
 
 --[[
-% chromatic_major_third_down(note)
+% chromatic_major_third_down
 
 Transpose the note down by a major third.
 
@@ -287,7 +287,7 @@ function transposition.chromatic_major_third_down(note)
 end
 
 --[[
-% chromatic_perfect_fourth_up(note)
+% chromatic_perfect_fourth_up
 
 Transpose the note up by a perfect fourth.
 
@@ -298,7 +298,7 @@ function transposition.chromatic_perfect_fourth_up(note)
 end
 
 --[[
-% chromatic_perfect_fifth_down(note)
+% chromatic_perfect_fifth_down
 
 Transpose the note down by a perfect fifth.
 

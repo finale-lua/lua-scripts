@@ -1,8 +1,6 @@
 --[[
 $module Notehead
 ]] --
--- A collection of helpful JW Lua notehead scripts
--- Simply import this file to another Lua script to use any of these scripts
 local notehead = {}
 
 local configuration = require("library.configuration")
@@ -13,7 +11,7 @@ local config = {
     diamond_closed = 79, -- per Elaine Gould, use open diamond even on closed regular notes, but allow it to be overridden
     diamond_resize = 110,
     diamond_whole_offset = 5,
-    diamond_breve_offset = 14,
+    diamond_breve_offset = 14
 }
 
 -- Default to SMuFL characters for SMuFL font (without needing a config file)
@@ -25,7 +23,7 @@ end
 configuration.get_parameters("notehead.config.txt", config)
 
 --[[
-% change_shape(note, shape)
+% change_shape
 
 Changes the given notehead to a specified notehead descriptor string. Currently only supports "diamond".
 
@@ -36,7 +34,7 @@ Changes the given notehead to a specified notehead descriptor string. Currently 
 ]]
 function notehead.change_shape(note, shape)
     local notehead = finale.FCNoteheadMod()
-    notehead:EraseAt(newnote)
+    notehead:EraseAt(note)
 
     if shape == "diamond" then
         local entry = note:GetEntry()

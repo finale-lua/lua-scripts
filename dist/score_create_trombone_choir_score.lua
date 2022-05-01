@@ -22,11 +22,11 @@ $module Score
 ]] --
 --[[
 $module Library
-]]
+]] --
 local library = {}
 
 --[[
-% finale_version(major, minor, build)
+% finale_version
 
 Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
 this is the internal major Finale version, not the year.
@@ -45,7 +45,7 @@ function library.finale_version(major, minor, build)
 end
 
 --[[
-% group_overlaps_region(staff_group, region)
+% group_overlaps_region
 
 Returns true if the input staff group overlaps with the input music region, otherwise false.
 
@@ -76,7 +76,7 @@ function library.group_overlaps_region(staff_group, region)
 end
 
 --[[
-% group_is_contained_in_region(staff_group, region)
+% group_is_contained_in_region
 
 Returns true if the entire input staff group is contained within the input music region.
 If the start or end staff are not visible in the region, it returns false.
@@ -96,7 +96,7 @@ function library.group_is_contained_in_region(staff_group, region)
 end
 
 --[[
-% staff_group_is_multistaff_instrument(staff_group)
+% staff_group_is_multistaff_instrument
 
 Returns true if the entire input staff group is a multistaff instrument.
 
@@ -115,7 +115,7 @@ function library.staff_group_is_multistaff_instrument(staff_group)
 end
 
 --[[
-% get_selected_region_or_whole_doc()
+% get_selected_region_or_whole_doc
 
 Returns a region that contains the selected region if there is a selection or the whole document if there isn't.
 SIDE-EFFECT WARNING: If there is no selected region, this function also changes finenv.Region() to the whole document.
@@ -131,7 +131,7 @@ function library.get_selected_region_or_whole_doc()
 end
 
 --[[
-% get_first_cell_on_or_after_page(page_num)
+% get_first_cell_on_or_after_page
 
 Returns the first FCCell at the top of the input page. If the page is blank, it returns the first cell after the input page.
 
@@ -142,7 +142,7 @@ function library.get_first_cell_on_or_after_page(page_num)
     local curr_page_num = page_num
     local curr_page = finale.FCPage()
     local got1 = false
-    --skip over any blank pages
+    -- skip over any blank pages
     while curr_page:Load(curr_page_num) do
         if curr_page:GetFirstSystem() > 0 then
             got1 = true
@@ -155,14 +155,14 @@ function library.get_first_cell_on_or_after_page(page_num)
         staff_sys:Load(curr_page:GetFirstSystem())
         return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
     end
-    --if we got here there were nothing but blank pages left at the end
+    -- if we got here there were nothing but blank pages left at the end
     local end_region = finale.FCMusicRegion()
     end_region:SetFullDocument()
     return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
 end
 
 --[[
-% get_top_left_visible_cell()
+% get_top_left_visible_cell
 
 Returns the topmost, leftmost visible FCCell on the screen, or the closest possible estimate of it.
 
@@ -178,7 +178,7 @@ function library.get_top_left_visible_cell()
 end
 
 --[[
-% get_top_left_selected_or_visible_cell()
+% get_top_left_selected_or_visible_cell
 
 If there is a selection, returns the topmost, leftmost cell in the selected region.
 Otherwise returns the best estimate for the topmost, leftmost currently visible cell.
@@ -194,7 +194,7 @@ function library.get_top_left_selected_or_visible_cell()
 end
 
 --[[
-% is_default_measure_number_visible_on_cell (meas_num_region, cell, staff_system, current_is_part)
+% is_default_measure_number_visible_on_cell
 
 Returns true if measure numbers for the input region are visible on the input cell for the staff system.
 
@@ -204,7 +204,7 @@ Returns true if measure numbers for the input region are visible on the input ce
 @ current_is_part (boolean) true if the current view is a linked part, otherwise false
 : (boolean)
 ]]
-function library.is_default_measure_number_visible_on_cell (meas_num_region, cell, staff_system, current_is_part)
+function library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
     local staff = finale.FCCurrentStaffSpec()
     if not staff:LoadForCell(cell, 0) then
         return false
@@ -222,7 +222,7 @@ function library.is_default_measure_number_visible_on_cell (meas_num_region, cel
 end
 
 --[[
-% is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+% is_default_number_visible_and_left_aligned
 
 Returns true if measure number for the input cell is visible and left-aligned.
 
@@ -233,7 +233,8 @@ Returns true if measure number for the input cell is visible and left-aligned.
 @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
 : (boolean)
 ]]
-function library.is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part,
+                                                            is_for_multimeasure_rest)
     if meas_num_region.UseScoreInfoForParts then
         current_is_part = false
     end
@@ -256,11 +257,11 @@ function library.is_default_number_visible_and_left_aligned (meas_num_region, ce
             return false
         end
     end
-    return library.is_default_measure_number_visible_on_cell (meas_num_region, cell, system, current_is_part)
+    return library.is_default_measure_number_visible_on_cell(meas_num_region, cell, system, current_is_part)
 end
 
 --[[
-% update_layout(from_page, unfreeze_measures)
+% update_layout
 
 Updates the page layout.
 
@@ -277,7 +278,7 @@ function library.update_layout(from_page, unfreeze_measures)
 end
 
 --[[
-% get_current_part()
+% get_current_part
 
 Returns the currently selected part or score.
 
@@ -290,7 +291,7 @@ function library.get_current_part()
 end
 
 --[[
-% get_page_format_prefs()
+% get_page_format_prefs
 
 Returns the default page format prefs for score or parts based on which is currently selected.
 
@@ -309,13 +310,13 @@ function library.get_page_format_prefs()
 end
 
 --[[
-% get_smufl_metadata_file(font_info)
+% get_smufl_metadata_file
 
 @ [font_info] (FCFontInfo) if non-nil, the font to search for; if nil, search for the Default Music Font
 : (file handle|nil)
 ]]
 function library.get_smufl_metadata_file(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
@@ -338,29 +339,29 @@ function library.get_smufl_metadata_file(font_info)
 
     local smufl_json_system_prefix = "/Library/Application Support"
     if finenv.UI():IsOnWindows() then
-        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
+        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES")
     end
     return try_prefix(smufl_json_system_prefix, font_info)
 end
 
 --[[
-% is_font_smufl_font(font_info)
+% is_font_smufl_font
 
 @ [font_info] (FCFontInfo) if non-nil, the font to check; if nil, check the Default Music Font
 : (boolean)
 ]]
 function library.is_font_smufl_font(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
-    
+
     if finenv.RawFinaleVersion >= library.finale_version(27, 1) then
         if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
             return font_info.IsSMuFLFont
         end
     end
-    
+
     local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
     if nil ~= smufl_metadata_file then
         io.close(smufl_metadata_file)
@@ -370,7 +371,7 @@ function library.is_font_smufl_font(font_info)
 end
 
 --[[
-% simple_input(title, text)
+% simple_input
 
 Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
 
@@ -379,48 +380,52 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 : string
 ]]
 function library.simple_input(title, text)
-  local return_value = finale.FCString()
-  return_value.LuaString = ""
-  local str = finale.FCString()
-  local min_width = 160
-  --
-  function format_ctrl(ctrl, h, w, st)
-      ctrl:SetHeight(h)
-      ctrl:SetWidth(w)
-      str.LuaString = st
-      ctrl:SetText(str)
-  end -- function format_ctrl
-  --
-  title_width = string.len(title) * 6 + 54
-  if title_width > min_width then min_width = title_width end
-  text_width = string.len(text) * 6
-  if text_width > min_width then min_width = text_width end
-  --
-  str.LuaString = title
-  local dialog = finale.FCCustomLuaWindow()
-  dialog:SetTitle(str)
-  local descr = dialog:CreateStatic(0, 0)
-  format_ctrl(descr, 16, min_width, text)
-  local input = dialog:CreateEdit(0, 20)
-  format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
-  dialog:CreateOkButton()
-  dialog:CreateCancelButton()
-  --
-  function callback(ctrl)
-  end -- callback
-  --
-  dialog:RegisterHandleCommand(callback)
-  --
-  if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
-    return_value.LuaString = input:GetText(return_value)
-    --print(return_value.LuaString)
-    return return_value.LuaString
-  -- OK button was pressed
-  end
+    local return_value = finale.FCString()
+    return_value.LuaString = ""
+    local str = finale.FCString()
+    local min_width = 160
+    --
+    function format_ctrl(ctrl, h, w, st)
+        ctrl:SetHeight(h)
+        ctrl:SetWidth(w)
+        str.LuaString = st
+        ctrl:SetText(str)
+    end -- function format_ctrl
+    --
+    title_width = string.len(title) * 6 + 54
+    if title_width > min_width then
+        min_width = title_width
+    end
+    text_width = string.len(text) * 6
+    if text_width > min_width then
+        min_width = text_width
+    end
+    --
+    str.LuaString = title
+    local dialog = finale.FCCustomLuaWindow()
+    dialog:SetTitle(str)
+    local descr = dialog:CreateStatic(0, 0)
+    format_ctrl(descr, 16, min_width, text)
+    local input = dialog:CreateEdit(0, 20)
+    format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    --
+    function callback(ctrl)
+    end -- callback
+    --
+    dialog:RegisterHandleCommand(callback)
+    --
+    if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
+        return_value.LuaString = input:GetText(return_value)
+        -- print(return_value.LuaString)
+        return return_value.LuaString
+        -- OK button was pressed
+    end
 end -- function simple_input
 
 --[[
-% is_finale_object(object)
+% is_finale_object
 
 Attempts to determine if an object is a Finale object through ducktyping
 
@@ -429,17 +434,40 @@ Attempts to determine if an object is a Finale object through ducktyping
 ]]
 function library.is_finale_object(object)
     -- All finale objects implement __FCBase, so just check for the existence of __FCBase methods
-    return object and type(object) == 'userdata' and object.ClassName and object.GetClassID and true or false
+    return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
 end
 
+--[[
+% system_indent_set_to_prefs
 
+Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
+The page preferences may be provided optionally to avoid loading them for each call.
 
+@ system (FCStaffSystem)
+@ [page_format_prefs] (FCPageFormatPrefs) page format preferences to use, if supplied.
+: (boolean) `true` if the system was successfully updated.
+]]
+function library.system_indent_set_to_prefs(system, page_format_prefs)
+    page_format_prefs = page_format_prefs or library.get_page_format_prefs()
+    local first_meas = finale.FCMeasure()
+    local is_first_system = (system.FirstMeasure == 1)
+    if (not is_first_system) and first_meas:Load(system.FirstMeasure) then
+        if first_meas.ShowFullNames then
+            is_first_system = true
+        end
+    end
+    if is_first_system and page_format_prefs.UseFirstSystemMargins then
+        system.LeftMargin = page_format_prefs.FirstSystemLeft
+    else
+        system.LeftMargin = page_format_prefs.SystemLeft
+    end
+    return system:Save()
+end
 
 
 
 --  Author: Robert Patterson
 --  Date: March 5, 2021
-
 --[[
 $module Configuration
 
@@ -474,8 +502,7 @@ right_dynamic_cushion		= -6		--evpus
 Configuration files must be placed in a subfolder called `script_settings` within
 the folder of the calling script. Each script that has a configuration file
 defines its own configuration file name.
-]]
-
+]] --
 local configuration = {}
 
 local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
@@ -484,7 +511,7 @@ local parameter_delimiter = "="
 local path_delimiter = "/"
 
 local file_exists = function(file_path)
-    local f = io.open(file_path,"r")
+    local f = io.open(file_path, "r")
     if nil ~= f then
         io.close(f)
         return true
@@ -492,7 +519,7 @@ local file_exists = function(file_path)
     return false
 end
 
-local strip_leading_trailing_whitespace = function (str)
+local strip_leading_trailing_whitespace = function(str)
     return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
 end
 
@@ -500,7 +527,7 @@ local parse_parameter -- forward function declaration
 
 local parse_table = function(val_string)
     local ret_table = {}
-    for element in val_string:gmatch('[^,%s]+') do  -- lua pattern magic taken from the Internet
+    for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
         local parsed_element = parse_parameter(element)
         table.insert(ret_table, parsed_element)
     end
@@ -508,11 +535,11 @@ local parse_table = function(val_string)
 end
 
 parse_parameter = function(val_string)
-    if '"' == val_string:sub(1,1) and '"' == val_string:sub(#val_string,#val_string) then -- double-quote string
-        return string.gsub(val_string, '"(.+)"', "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
-    elseif "'" == val_string:sub(1,1) and "'" == val_string:sub(#val_string,#val_string) then -- single-quote string
+    if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
+        return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
+    elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
         return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
-    elseif "{" == val_string:sub(1,1) and "}" == val_string:sub(#val_string,#val_string) then
+    elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
         return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
     elseif "true" == val_string then
         return true
@@ -535,21 +562,21 @@ local get_parameters_from_file = function(file_name)
     for line in io.lines(file_path) do
         local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
         if nil ~= comment_at then
-            line = string.sub(line, 1, comment_at-1)
+            line = string.sub(line, 1, comment_at - 1)
         end
         local delimiter_at = string.find(line, parameter_delimiter, 1, true)
         if nil ~= delimiter_at then
-            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at-1))
-            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at+1))
+            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
+            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
             parameters[name] = parse_parameter(val_string)
         end
     end
-    
+
     return parameters
 end
 
 --[[
-% get_parameters(file_name, parameter_list)
+% get_parameters
 
 Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list` with any that are found in the config file.
 
@@ -570,10 +597,30 @@ end
 
 
 
--- A measurement of helpful JW Lua scripts
--- Simply import this file to another Lua script to use any of these scripts
+--[[
+$module measurement
+]] --
 local measurement = {}
 
+--[[
+% convert_to_EVPUs
+
+Converts the specified string into EVPUs. Like text boxes in Finale, this supports
+the usage of units at the end of the string. The following are a few examples:
+
+- `12s` => 288 (12 spaces is 288 EVPUs)
+- `8.5i` => 2448 (8.5 inches is 2448 EVPUs)
+- `10cm` => 1133 (10 centimeters is 1133 EVPUs)
+- `10mm` => 113 (10 millimeters is 113 EVPUs)
+- `1pt` => 4 (1 point is 4 EVPUs)
+- `2.5p` => 120 (2.5 picas is 120 EVPUs)
+
+Read the [Finale User Manual](https://usermanuals.finalemusic.com/FinaleMac/Content/Finale/def-equivalents.htm#overriding-global-measurement-units)
+for more details about measurement units in Finale.
+
+@ text (string) the string to convert
+: (number) the converted number of EVPUs
+]]
 function measurement.convert_to_EVPUs(text)
     local str = finale.FCString()
     str.LuaString = text
@@ -626,7 +673,7 @@ KEY_MAP.cb = 7 -- Cb, just lowercase
 KEY_MAP.fb = 8 -- Fb, just lowercase
 
 --[[
-% create_default_config()
+% create_default_config
 
 Many of the "create ensemble" plugins use the same configuration. This function
 creates that configuration object.
@@ -652,7 +699,7 @@ function score.create_default_config()
 end
 
 --[[
-% delete_all_staves()
+% delete_all_staves
 
 Deletes all staves in the current document.
 ]]
@@ -666,7 +713,7 @@ function score.delete_all_staves()
 end
 
 --[[
-% reset_and_clear_score()
+% reset_and_clear_score
 
 Resets and clears the score to begin creating a new ensemble
 ]]
@@ -675,7 +722,7 @@ function score.reset_and_clear_score()
 end
 
 --[[
-% set_show_staff_time_signature(staff_id, show_time_signature)
+% set_show_staff_time_signature
 
 Sets whether or not to show the time signature on the staff.
 
@@ -697,7 +744,7 @@ function score.set_show_staff_time_signature(staff_id, show_time_signature)
 end
 
 --[[
-% set_show_all_staves_time_signature(show_time_signature)
+% set_show_all_staves_time_signature
 
 Sets whether or not to show the time signature on the staff.
 
@@ -712,7 +759,7 @@ function score.set_show_all_staves_time_signature(show_time_signature)
 end
 
 --[[
-% set_staff_transposition(staff_id, key, interval, clef)
+% set_staff_transposition
 
 Sets the transposition for a staff. Used for instruments that are not concert pitch (e.g., Bb Clarinet or F Horn)
 
@@ -737,7 +784,7 @@ function score.set_staff_transposition(staff_id, key, interval, clef)
 end
 
 --[[
-% set_staff_allow_hiding(staff_id, allow_hiding)
+% set_staff_allow_hiding
 
 Sets whether the staff is allowed to hide when it is empty.
 
@@ -755,7 +802,7 @@ function score.set_staff_allow_hiding(staff_id, allow_hiding)
 end
 
 --[[
-% set_staff_keyless(staff_id, is_keyless)
+% set_staff_keyless
 
 Sets whether or not the staff is keyless.
 
@@ -773,7 +820,7 @@ function score.set_staff_keyless(staff_id, is_keyless)
 end
 
 --[[
-% set_staff_keyless(is_keyless)
+% set_staff_keyless
 
 Sets whether or not all staves are keyless.
 
@@ -788,7 +835,7 @@ function score.set_all_staves_keyless(is_keyless)
 end
 
 --[[
-% set_staff_show_default_whole_rests(staff_id, show_whole_rests)
+% set_staff_show_default_whole_rests
 
 Sets whether to show default whole rests on a particular staff.
 
@@ -806,7 +853,7 @@ function score.set_staff_show_default_whole_rests(staff_id, show_whole_rests)
 end
 
 --[[
-% set_all_staves_show_default_whole_rests(show_whole_rests)
+% set_all_staves_show_default_whole_rests
 
 Sets whether or not all staves show default whole rests.
 
@@ -821,7 +868,7 @@ function score.set_all_staves_show_default_whole_rests(show_whole_rests)
 end
 
 --[[
-% add_space_above_staff(staff_id)
+% add_space_above_staff
 
 This is the equivalent of "Add Vertical Space" in the Setup Wizard. It adds space above the staff as well as adds the staff to Staff List 1, which allows it to show tempo markings.
 
@@ -849,7 +896,7 @@ function score.add_space_above_staff(staff_id)
 end
 
 --[[
-% set_staff_full_name(staff, full_name, double)
+% set_staff_full_name
 
 Sets the full name for the staff.
 
@@ -874,7 +921,7 @@ function score.set_staff_full_name(staff, full_name, double)
 end
 
 --[[
-% set_staff_short_name(staff, short_name, double)
+% set_staff_short_name
 
 Sets the abbreviated name for the staff.
 
@@ -899,7 +946,7 @@ function score.set_staff_short_name(staff, short_name, double)
 end
 
 --[[
-% create_staff(full_name, short_name, type, clef, double)
+% create_staff
 
 Creates a staff at the end of the score.
 
@@ -936,7 +983,7 @@ function score.create_staff(full_name, short_name, type, clef, double)
 end
 
 --[[
-% create_staff_spaced(full_name, short_name, type, clef, double)
+% create_staff_spaced
 
 Creates a staff at the end of the score with a space above it. This is equivalent to using `score.create_staff` then `score.add_space_above_staff`.
 
@@ -955,7 +1002,7 @@ function score.create_staff_spaced(full_name, short_name, type, clef)
 end
 
 --[[
-% create_staff_percussion(full_name, short_name, type, clef)
+% create_staff_percussion
 
 Creates a percussion staff at the end of the score.
 
@@ -974,7 +1021,7 @@ function score.create_staff_percussion(full_name, short_name)
 end
 
 --[[
-% create_group(start_staff, end_staff, brace_name, has_barline, level, full_name, short_name)
+% create_group
 
 Creates a percussion staff at the end of the score.
 
@@ -1037,7 +1084,7 @@ function score.create_group(start_staff, end_staff, brace_name, has_barline, lev
 end
 
 --[[
-% create_group_primary(start_staff, end_staff, full_name, short_name)
+% create_group_primary
 
 Creates a primary group with the "curved_chorus" bracket.
 
@@ -1051,7 +1098,7 @@ function score.create_group_primary(start_staff, end_staff, full_name, short_nam
 end
 
 --[[
-% create_group_secondary(start_staff, end_staff, full_name, short_name)
+% create_group_secondary
 
 Creates a primary group with the "desk" bracket.
 
@@ -1065,13 +1112,18 @@ function score.create_group_secondary(start_staff, end_staff, full_name, short_n
 end
 
 --[[
-% calc_system_scalings(systems_per_page)
+% calc_system_scalings
+
+_EXPERIMENTAL_
 
 Calculates the system scaling to fit the desired number of systems on each page.
 
+Currently produces the incorrect values. Should not be used in any production-ready
+scripts.
+
 @ systems_per_page (number) the number of systems that should fit on each page
 
-: (number, number) the desired scaling factors
+: (number, number) the desired scaling factors—first_page_scaling, global_scaling
 ]]
 function score.calc_system_scalings(systems_per_page)
     local score_page_format_prefs = finale.FCPageFormatPrefs()
@@ -1105,7 +1157,7 @@ function score.calc_system_scalings(systems_per_page)
 end
 
 --[[
-% set_global_system_scaling(scaling)
+% set_global_system_scaling
 
 Sets the system scaling for every system in the score.
 
@@ -1126,7 +1178,7 @@ function score.set_global_system_scaling(scaling)
 end
 
 --[[
-% set_global_system_scaling(scaling)
+% set_global_system_scaling
 
 Sets the system scaling for a specific system in the score.
 
@@ -1144,7 +1196,7 @@ function score.set_single_system_scaling(system_number, scaling)
 end
 
 --[[
-% set_large_time_signatures_settings()
+% set_large_time_signatures_settings
 
 Updates the document settings for large time signatures.
 ]]
@@ -1163,7 +1215,7 @@ function score.set_large_time_signatures_settings()
 end
 
 --[[
-% use_large_time_signatures(uses_large_time_signatures, staves_with_time_signatures)
+% use_large_time_signatures
 
 Sets the system scaling for a specific system in the score.
 
@@ -1182,7 +1234,7 @@ function score.use_large_time_signatures(uses_large_time_signatures, staves_with
 end
 
 --[[
-% use_large_measure_numbers(distance)
+% use_large_measure_numbers
 
 Adds large measure numbers below every measure in the score.
 
@@ -1235,7 +1287,7 @@ function score.use_large_measure_numbers(distance)
 end
 
 --[[
-% set_max_measures_per_system(width)
+% set_max_measures_per_system
 
 Sets the maximum number of measures per system.
 
@@ -1265,7 +1317,7 @@ function score.set_max_measures_per_system(max_measures_per_system)
 end
 
 --[[
-% set_score_page_size(width, height)
+% set_score_page_size
 
 Sets the score page size.
 
@@ -1289,7 +1341,7 @@ function score.set_score_page_size(width, height)
 end
 
 --[[
-% set_all_parts_page_size(width, height)
+% set_all_parts_page_size
 
 Sets the page size for all parts.
 
@@ -1320,7 +1372,7 @@ function score.set_all_parts_page_size(width, height)
 end
 
 --[[
-% apply_config(width, options)
+% apply_config
 
 When creating an ensemble, this function is used to apply the configuration.
 
@@ -1347,7 +1399,7 @@ function score.apply_config(config, options)
         score.use_large_measure_numbers(config.large_measure_number_space)
     end
 
-    local first_page_scaling, global_scaling = score.calc_system_scalings(2)
+    local first_page_scaling, global_scaling = score.calc_system_scalings(config.systems_per_page)
     score.set_global_system_scaling(global_scaling)
     for i = 0, config.systems_per_page - 1, 1 do
         score.set_single_system_scaling(i, first_page_scaling)
@@ -1360,7 +1412,6 @@ end
 
 --  Author: Robert Patterson
 --  Date: March 5, 2021
-
 --[[
 $module Configuration
 
@@ -1395,8 +1446,7 @@ right_dynamic_cushion		= -6		--evpus
 Configuration files must be placed in a subfolder called `script_settings` within
 the folder of the calling script. Each script that has a configuration file
 defines its own configuration file name.
-]]
-
+]] --
 local configuration = {}
 
 local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
@@ -1405,7 +1455,7 @@ local parameter_delimiter = "="
 local path_delimiter = "/"
 
 local file_exists = function(file_path)
-    local f = io.open(file_path,"r")
+    local f = io.open(file_path, "r")
     if nil ~= f then
         io.close(f)
         return true
@@ -1413,7 +1463,7 @@ local file_exists = function(file_path)
     return false
 end
 
-local strip_leading_trailing_whitespace = function (str)
+local strip_leading_trailing_whitespace = function(str)
     return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
 end
 
@@ -1421,7 +1471,7 @@ local parse_parameter -- forward function declaration
 
 local parse_table = function(val_string)
     local ret_table = {}
-    for element in val_string:gmatch('[^,%s]+') do  -- lua pattern magic taken from the Internet
+    for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
         local parsed_element = parse_parameter(element)
         table.insert(ret_table, parsed_element)
     end
@@ -1429,11 +1479,11 @@ local parse_table = function(val_string)
 end
 
 parse_parameter = function(val_string)
-    if '"' == val_string:sub(1,1) and '"' == val_string:sub(#val_string,#val_string) then -- double-quote string
-        return string.gsub(val_string, '"(.+)"', "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
-    elseif "'" == val_string:sub(1,1) and "'" == val_string:sub(#val_string,#val_string) then -- single-quote string
+    if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
+        return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
+    elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
         return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
-    elseif "{" == val_string:sub(1,1) and "}" == val_string:sub(#val_string,#val_string) then
+    elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
         return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
     elseif "true" == val_string then
         return true
@@ -1456,21 +1506,21 @@ local get_parameters_from_file = function(file_name)
     for line in io.lines(file_path) do
         local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
         if nil ~= comment_at then
-            line = string.sub(line, 1, comment_at-1)
+            line = string.sub(line, 1, comment_at - 1)
         end
         local delimiter_at = string.find(line, parameter_delimiter, 1, true)
         if nil ~= delimiter_at then
-            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at-1))
-            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at+1))
+            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
+            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
             parameters[name] = parse_parameter(val_string)
         end
     end
-    
+
     return parameters
 end
 
 --[[
-% get_parameters(file_name, parameter_list)
+% get_parameters
 
 Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list` with any that are found in the config file.
 

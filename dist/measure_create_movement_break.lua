@@ -1,25 +1,16 @@
 function plugindef()
-    -- This function and the 'finaleplugin' namespace
-    -- are both reserved for the plug-in definition.
+    finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.2"
-    finaleplugin.Date = "June 12, 2020"
-    finaleplugin.CategoryTags = "Staff"
+    finaleplugin.Version = "1.0"
+    finaleplugin.Date = "April 23, 2022"
+    finaleplugin.CategoryTags = "Measure"
+    finaleplugin.AuthorURL = "https://robertgpatterson.com"
     finaleplugin.Notes = [[
-        This script only affects selected staves.
-        If you select the entire document before running this script, it modifies any
-        abbreviated staff names found in staff styles as well.
-
-        This script may be especially useful with the New Document Setup Wizard. The Wizard
-        sets up all the staves in the new document with font settings for abbreviations that
-        match the font settings for full staff names. It apparently ignores the default font setttings
-        for abbreviated names specified in the Document Style. The result is that none these font
-        settings in the new document match the Document Options. This script allows you quickly
-        to rectify this unfortunate behavior.
+        This script replaces the JW New Piece plugin, which is no longer available on Macs running M1 code.
+        It creates a movement break starting with the first selected measure.
     ]]
-    return "Reset Abbreviated Staff Name Fonts", "Reset Abbreviated Staff Name Fonts",
-           "Reset all abbreviated staff names to document's default font settings."
+    return "Create Movement Break", "Create Movement Break", "Creates a movement break at the first selected measure."
 end
 
 --[[
@@ -468,246 +459,67 @@ end
 
 
 
---[[
-$module Enigma String
-]] --
-local enigma_string = {}
-local starts_with_font_command = function(string)
-    local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
-    for i, text_cmd in ipairs(text_cmds) do
-        if string:StartsWith(text_cmd) then
-            return true
+
+function measure_create_movement_break()
+    local measure_number = finenv.Region().StartMeasure
+    if measure_number > 1 then
+        local measure = finale.FCMeasure()
+        measure:Load(measure_number)
+        measure.BreakWordExtension = true
+        measure.ShowFullNames = true
+        measure.SystemBreak = true
+        if measure.ShowKeySignature ~= finale.SHOWSTATE_HIDE then
+            measure.ShowKeySignature = finale.SHOWSTATE_SHOW
         end
-    end
-    return false
-end
-
---[[
-The following implements a hypothetical FCString.TrimFirstEnigmaFontTags() function
-that would preferably be in the PDK Framework. Trimming only first allows us to
-preserve style changes within the rest of the string, such as changes from plain to
-italic. Ultimately this seems more useful than trimming out all font tags.
-If the PDK Framework is ever changed, it might be even better to create replace font
-functions that can replace only font, only size, only style, or all three together.
-]]
-
---[[
-% trim_first_enigma_font_tags
-
-Trims the first font tags and returns the result as an instance of FCFontInfo.
-
-@ string (FCString) this is both the input and the trimmed output result
-: (FCFontInfo | nil) the first font info that was stripped or `nil` if none
-]]
-function enigma_string.trim_first_enigma_font_tags(string)
-    local font_info = finale.FCFontInfo()
-    local found_tag = false
-    while true do
-        if not starts_with_font_command(string) then
-            break
+        if measure.ShowTimeSignature ~= finale.SHOWSTATE_HIDE then
+            measure.ShowTimeSignature = finale.SHOWSTATE_SHOW
         end
-        local end_of_tag = string:FindFirst(")")
-        if end_of_tag < 0 then
-            break
-        end
-        local font_tag = finale.FCString()
-        if string:SplitAt(end_of_tag, font_tag, nil, true) then
-            font_info:ParseEnigmaCommand(font_tag)
-        end
-        string:DeleteCharactersAt(0, end_of_tag + 1)
-        found_tag = true
-    end
-    if found_tag then
-        return font_info
-    end
-    return nil
-end
-
---[[
-% change_first_string_font
-
-Replaces the first enigma font tags of the input enigma string.
-
-@ string (FCString) this is both the input and the modified output result
-@ font_info (FCFontInfo) replacement font info
-: (boolean) true if success
-]]
-function enigma_string.change_first_string_font(string, font_info)
-    local final_text = font_info:CreateEnigmaString(nil)
-    local current_font_info = enigma_string.trim_first_enigma_font_tags(string)
-    if (current_font_info == nil) or not font_info:IsIdenticalTo(current_font_info) then
-        final_text:AppendString(string)
-        string:SetString(final_text)
-        return true
-    end
-    return false
-end
-
---[[
-% change_first_text_block_font
-
-Replaces the first enigma font tags of input text block.
-
-@ text_block (FCTextBlock) this is both the input and the modified output result
-@ font_info (FCFontInfo) replacement font info
-: (boolean) true if success
-]]
-function enigma_string.change_first_text_block_font(text_block, font_info)
-    local new_text = text_block:CreateRawTextString()
-    if enigma_string.change_first_string_font(new_text, font_info) then
-        text_block:SaveRawTextString(new_text)
-        return true
-    end
-    return false
-end
-
--- These implement a complete font replacement using the PDK Framework's
--- built-in TrimEnigmaFontTags() function.
-
---[[
-% change_string_font
-
-Changes the entire enigma string to have the input font info.
-
-@ string (FCString) this is both the input and the modified output result
-@ font_info (FCFontInfo) replacement font info
-]]
-function enigma_string.change_string_font(string, font_info)
-    local final_text = font_info:CreateEnigmaString(nil)
-    string:TrimEnigmaFontTags()
-    final_text:AppendString(string)
-    string:SetString(final_text)
-end
-
---[[
-% change_text_block_font
-
-Changes the entire text block to have the input font info.
-
-@ text_block (FCTextBlock) this is both the input and the modified output result
-@ font_info (FCFontInfo) replacement font info
-]]
-function enigma_string.change_text_block_font(text_block, font_info)
-    local new_text = text_block:CreateRawTextString()
-    enigma_string.change_string_font(new_text, font_info)
-    text_block:SaveRawTextString(new_text)
-end
-
---[[
-% remove_inserts
-
-Removes text inserts other than font commands and replaces them with
-
-@ fcstring (FCString) this is both the input and the modified output result
-@ replace_with_generic (boolean) if true, replace the insert with the text of the enigma command
-]]
-function enigma_string.remove_inserts(fcstring, replace_with_generic)
-    -- so far this just supports page-level inserts. if this ever needs to work with expressions, we'll need to
-    -- add the last three items in the (Finale 26) text insert menu, which are playback inserts not available to page text
-    local text_cmds = {
-        "^arranger", "^composer", "^copyright", "^date", "^description", "^fdate", "^filename", "^lyricist", "^page",
-        "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages",
-    }
-    local lua_string = fcstring.LuaString
-    for i, text_cmd in ipairs(text_cmds) do
-        local starts_at = string.find(lua_string, text_cmd, 1, true) -- true: do a plain search
-        while nil ~= starts_at do
-            local replace_with = ""
-            if replace_with_generic then
-                replace_with = string.sub(text_cmd, 2)
-            end
-            local after_text_at = starts_at + string.len(text_cmd)
-            local next_at = string.find(lua_string, ")", after_text_at, true)
-            if nil ~= next_at then
-                next_at = next_at + 1
-            else
-                next_at = starts_at
-            end
-            lua_string = string.sub(lua_string, 1, starts_at - 1) .. replace_with .. string.sub(lua_string, next_at)
-            starts_at = string.find(lua_string, text_cmd, 1, true)
-        end
-    end
-    fcstring.LuaString = lua_string
-end
-
---[[
-% expand_value_tag
-
-Expands the value tag to the input value_num.
-
-@ fcstring (FCString) this is both the input and the modified output result
-@ value_num (number) the value number to replace the tag with
-]]
-function enigma_string.expand_value_tag(fcstring, value_num)
-    value_num = math.floor(value_num + 0.5) -- in case value_num is not an integer
-    fcstring.LuaString = fcstring.LuaString:gsub("%^value%(%)", tostring(value_num))
-end
-
---[[
-% calc_text_advance_width
-
-Calculates the advance width of the input string taking into account all font and style changes within the string.
-
-@ inp_string (FCString) this is an input-only value and is not modified
-: (number) the width of the string
-]]
-function enigma_string.calc_text_advance_width(inp_string)
-    local accumulated_string = ""
-    local accumulated_width = 0
-    local enigma_strings = inp_string:CreateEnigmaStrings(true) -- true: include non-commands
-    for str in each(enigma_strings) do
-        accumulated_string = accumulated_string .. str.LuaString
-        if string.sub(str.LuaString, 1, 1) ~= "^" then -- if this string segment is not a command, calculate its width
-            local fcstring = finale.FCString()
-            local text_met = finale.FCTextMetrics()
-            fcstring.LuaString = accumulated_string
-            local font_info = fcstring:CreateLastFontInfo()
-            fcstring.LuaString = str.LuaString
-            fcstring:TrimEnigmaTags()
-            text_met:LoadString(fcstring, font_info, 100)
-            accumulated_width = accumulated_width + text_met:GetAdvanceWidthEVPUs()
-        end
-    end
-    return accumulated_width
-end
-
-
-
-
-function prefs_reset_staff_abbreviated_name_fonts()
-    local sel_region = library.get_selected_region_or_whole_doc()
-    local font_info = finale.FCFontInfo()
-    font_info:LoadFontPrefs(finale.FONTPREF_ABRVSTAFFNAME)
-    local sys_staves = finale.FCSystemStaves()
-    sys_staves:LoadAllForRegion(sel_region)
-    for sys_staff in each(sys_staves) do
-        local staff = finale.FCStaff()
-        staff:Load(sys_staff:GetStaff())
-        local staff_name_id = staff:GetAbbreviatedNameID()
-        if 0 ~= staff_name_id then
-            text_block = finale.FCTextBlock()
-            if text_block:Load(staff_name_id) then
-                if enigma_string.change_first_text_block_font(text_block, font_info) then
-                    text_block:Save()
-                end
+        measure:Save()
+        local prev_measure = finale.FCMeasure()
+        prev_measure:Load(measure_number - 1)
+        prev_measure.BreakMMRest = true
+        prev_measure.Barline = finale.BARLINE_FINAL
+        prev_measure.HideCautionary = true
+        prev_measure:Save()
+        local meas_num_regions = finale.FCMeasureNumberRegions()
+        meas_num_regions:LoadAll()
+        for meas_num_region in each(meas_num_regions) do
+            if meas_num_region:IsMeasureIncluded(measure_number) and meas_num_region:IsMeasureIncluded(measure_number - 1) then
+                local curr_last_meas = meas_num_region.EndMeasure
+                meas_num_region.EndMeasure = measure_number - 1
+                meas_num_region:Save()
+                meas_num_region.StartMeasure = measure_number
+                meas_num_region.EndMeasure = curr_last_meas
+                meas_num_region.StartNumber = 1
+                meas_num_region:SaveNew()
             end
         end
     end
-    -- duplicate patterson plugin functionality which updates staff styles if the entire document is selected
-    if sel_region:IsFullDocumentSpan() then
-        local staff_styles = finale.FCStaffStyleDefs()
-        staff_styles:LoadAll()
-        for staff_style in each(staff_styles) do
-            if staff_style.UseAbbreviatedName then
-                text_block = finale.FCTextBlock()
-                if text_block:Load(staff_style:GetAbbreviatedNameID()) then
-                    if enigma_string.change_first_text_block_font(text_block, font_info) then
-                        text_block:Save()
-                    end
-                end
+
+    local parts = finale.FCParts()
+    parts:LoadAll()
+    for part in each(parts) do
+        part:SwitchTo()
+        local multimeasure_rests = finale.FCMultiMeasureRests()
+        multimeasure_rests:LoadAll()
+        for multimeasure_rest in each(multimeasure_rests) do
+            if multimeasure_rest:IsMeasureIncluded(measure_number) and multimeasure_rest:IsMeasureIncluded(measure_number - 1) then
+                local curr_last_meas = multimeasure_rest.EndMeasure
+                multimeasure_rest.EndMeasure = measure_number - 1
+                multimeasure_rest:Save()
+                multimeasure_rest.StartMeasure = measure_number
+                multimeasure_rest.EndMeasure = curr_last_meas
+                multimeasure_rest:Save()
             end
         end
+        library.update_layout()
+        local systems = finale.FCStaffSystems()
+        systems:LoadAll()
+        local system = systems:FindMeasureNumber(measure_number)
+        library.system_indent_set_to_prefs(system)
+        library.update_layout()
+        part:SwitchBack()
     end
 end
 
-prefs_reset_staff_abbreviated_name_fonts()
+measure_create_movement_break()

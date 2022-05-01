@@ -11,11 +11,11 @@ end
 
 --[[
 $module Library
-]]
+]] --
 local library = {}
 
 --[[
-% finale_version(major, minor, build)
+% finale_version
 
 Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
 this is the internal major Finale version, not the year.
@@ -34,7 +34,7 @@ function library.finale_version(major, minor, build)
 end
 
 --[[
-% group_overlaps_region(staff_group, region)
+% group_overlaps_region
 
 Returns true if the input staff group overlaps with the input music region, otherwise false.
 
@@ -65,7 +65,7 @@ function library.group_overlaps_region(staff_group, region)
 end
 
 --[[
-% group_is_contained_in_region(staff_group, region)
+% group_is_contained_in_region
 
 Returns true if the entire input staff group is contained within the input music region.
 If the start or end staff are not visible in the region, it returns false.
@@ -85,7 +85,7 @@ function library.group_is_contained_in_region(staff_group, region)
 end
 
 --[[
-% staff_group_is_multistaff_instrument(staff_group)
+% staff_group_is_multistaff_instrument
 
 Returns true if the entire input staff group is a multistaff instrument.
 
@@ -104,7 +104,7 @@ function library.staff_group_is_multistaff_instrument(staff_group)
 end
 
 --[[
-% get_selected_region_or_whole_doc()
+% get_selected_region_or_whole_doc
 
 Returns a region that contains the selected region if there is a selection or the whole document if there isn't.
 SIDE-EFFECT WARNING: If there is no selected region, this function also changes finenv.Region() to the whole document.
@@ -120,7 +120,7 @@ function library.get_selected_region_or_whole_doc()
 end
 
 --[[
-% get_first_cell_on_or_after_page(page_num)
+% get_first_cell_on_or_after_page
 
 Returns the first FCCell at the top of the input page. If the page is blank, it returns the first cell after the input page.
 
@@ -131,7 +131,7 @@ function library.get_first_cell_on_or_after_page(page_num)
     local curr_page_num = page_num
     local curr_page = finale.FCPage()
     local got1 = false
-    --skip over any blank pages
+    -- skip over any blank pages
     while curr_page:Load(curr_page_num) do
         if curr_page:GetFirstSystem() > 0 then
             got1 = true
@@ -144,14 +144,14 @@ function library.get_first_cell_on_or_after_page(page_num)
         staff_sys:Load(curr_page:GetFirstSystem())
         return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
     end
-    --if we got here there were nothing but blank pages left at the end
+    -- if we got here there were nothing but blank pages left at the end
     local end_region = finale.FCMusicRegion()
     end_region:SetFullDocument()
     return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
 end
 
 --[[
-% get_top_left_visible_cell()
+% get_top_left_visible_cell
 
 Returns the topmost, leftmost visible FCCell on the screen, or the closest possible estimate of it.
 
@@ -167,7 +167,7 @@ function library.get_top_left_visible_cell()
 end
 
 --[[
-% get_top_left_selected_or_visible_cell()
+% get_top_left_selected_or_visible_cell
 
 If there is a selection, returns the topmost, leftmost cell in the selected region.
 Otherwise returns the best estimate for the topmost, leftmost currently visible cell.
@@ -183,7 +183,7 @@ function library.get_top_left_selected_or_visible_cell()
 end
 
 --[[
-% is_default_measure_number_visible_on_cell (meas_num_region, cell, staff_system, current_is_part)
+% is_default_measure_number_visible_on_cell
 
 Returns true if measure numbers for the input region are visible on the input cell for the staff system.
 
@@ -193,7 +193,7 @@ Returns true if measure numbers for the input region are visible on the input ce
 @ current_is_part (boolean) true if the current view is a linked part, otherwise false
 : (boolean)
 ]]
-function library.is_default_measure_number_visible_on_cell (meas_num_region, cell, staff_system, current_is_part)
+function library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
     local staff = finale.FCCurrentStaffSpec()
     if not staff:LoadForCell(cell, 0) then
         return false
@@ -211,7 +211,7 @@ function library.is_default_measure_number_visible_on_cell (meas_num_region, cel
 end
 
 --[[
-% is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+% is_default_number_visible_and_left_aligned
 
 Returns true if measure number for the input cell is visible and left-aligned.
 
@@ -222,7 +222,8 @@ Returns true if measure number for the input cell is visible and left-aligned.
 @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
 : (boolean)
 ]]
-function library.is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part,
+                                                            is_for_multimeasure_rest)
     if meas_num_region.UseScoreInfoForParts then
         current_is_part = false
     end
@@ -245,11 +246,11 @@ function library.is_default_number_visible_and_left_aligned (meas_num_region, ce
             return false
         end
     end
-    return library.is_default_measure_number_visible_on_cell (meas_num_region, cell, system, current_is_part)
+    return library.is_default_measure_number_visible_on_cell(meas_num_region, cell, system, current_is_part)
 end
 
 --[[
-% update_layout(from_page, unfreeze_measures)
+% update_layout
 
 Updates the page layout.
 
@@ -266,7 +267,7 @@ function library.update_layout(from_page, unfreeze_measures)
 end
 
 --[[
-% get_current_part()
+% get_current_part
 
 Returns the currently selected part or score.
 
@@ -279,7 +280,7 @@ function library.get_current_part()
 end
 
 --[[
-% get_page_format_prefs()
+% get_page_format_prefs
 
 Returns the default page format prefs for score or parts based on which is currently selected.
 
@@ -298,13 +299,13 @@ function library.get_page_format_prefs()
 end
 
 --[[
-% get_smufl_metadata_file(font_info)
+% get_smufl_metadata_file
 
 @ [font_info] (FCFontInfo) if non-nil, the font to search for; if nil, search for the Default Music Font
 : (file handle|nil)
 ]]
 function library.get_smufl_metadata_file(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
@@ -327,29 +328,29 @@ function library.get_smufl_metadata_file(font_info)
 
     local smufl_json_system_prefix = "/Library/Application Support"
     if finenv.UI():IsOnWindows() then
-        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
+        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES")
     end
     return try_prefix(smufl_json_system_prefix, font_info)
 end
 
 --[[
-% is_font_smufl_font(font_info)
+% is_font_smufl_font
 
 @ [font_info] (FCFontInfo) if non-nil, the font to check; if nil, check the Default Music Font
 : (boolean)
 ]]
 function library.is_font_smufl_font(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
-    
+
     if finenv.RawFinaleVersion >= library.finale_version(27, 1) then
         if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
             return font_info.IsSMuFLFont
         end
     end
-    
+
     local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
     if nil ~= smufl_metadata_file then
         io.close(smufl_metadata_file)
@@ -359,7 +360,7 @@ function library.is_font_smufl_font(font_info)
 end
 
 --[[
-% simple_input(title, text)
+% simple_input
 
 Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
 
@@ -368,48 +369,52 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 : string
 ]]
 function library.simple_input(title, text)
-  local return_value = finale.FCString()
-  return_value.LuaString = ""
-  local str = finale.FCString()
-  local min_width = 160
-  --
-  function format_ctrl(ctrl, h, w, st)
-      ctrl:SetHeight(h)
-      ctrl:SetWidth(w)
-      str.LuaString = st
-      ctrl:SetText(str)
-  end -- function format_ctrl
-  --
-  title_width = string.len(title) * 6 + 54
-  if title_width > min_width then min_width = title_width end
-  text_width = string.len(text) * 6
-  if text_width > min_width then min_width = text_width end
-  --
-  str.LuaString = title
-  local dialog = finale.FCCustomLuaWindow()
-  dialog:SetTitle(str)
-  local descr = dialog:CreateStatic(0, 0)
-  format_ctrl(descr, 16, min_width, text)
-  local input = dialog:CreateEdit(0, 20)
-  format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
-  dialog:CreateOkButton()
-  dialog:CreateCancelButton()
-  --
-  function callback(ctrl)
-  end -- callback
-  --
-  dialog:RegisterHandleCommand(callback)
-  --
-  if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
-    return_value.LuaString = input:GetText(return_value)
-    --print(return_value.LuaString)
-    return return_value.LuaString
-  -- OK button was pressed
-  end
+    local return_value = finale.FCString()
+    return_value.LuaString = ""
+    local str = finale.FCString()
+    local min_width = 160
+    --
+    function format_ctrl(ctrl, h, w, st)
+        ctrl:SetHeight(h)
+        ctrl:SetWidth(w)
+        str.LuaString = st
+        ctrl:SetText(str)
+    end -- function format_ctrl
+    --
+    title_width = string.len(title) * 6 + 54
+    if title_width > min_width then
+        min_width = title_width
+    end
+    text_width = string.len(text) * 6
+    if text_width > min_width then
+        min_width = text_width
+    end
+    --
+    str.LuaString = title
+    local dialog = finale.FCCustomLuaWindow()
+    dialog:SetTitle(str)
+    local descr = dialog:CreateStatic(0, 0)
+    format_ctrl(descr, 16, min_width, text)
+    local input = dialog:CreateEdit(0, 20)
+    format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    --
+    function callback(ctrl)
+    end -- callback
+    --
+    dialog:RegisterHandleCommand(callback)
+    --
+    if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
+        return_value.LuaString = input:GetText(return_value)
+        -- print(return_value.LuaString)
+        return return_value.LuaString
+        -- OK button was pressed
+    end
 end -- function simple_input
 
 --[[
-% is_finale_object(object)
+% is_finale_object
 
 Attempts to determine if an object is a Finale object through ducktyping
 
@@ -418,11 +423,35 @@ Attempts to determine if an object is a Finale object through ducktyping
 ]]
 function library.is_finale_object(object)
     -- All finale objects implement __FCBase, so just check for the existence of __FCBase methods
-    return object and type(object) == 'userdata' and object.ClassName and object.GetClassID and true or false
+    return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
 end
 
+--[[
+% system_indent_set_to_prefs
 
+Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
+The page preferences may be provided optionally to avoid loading them for each call.
 
+@ system (FCStaffSystem)
+@ [page_format_prefs] (FCPageFormatPrefs) page format preferences to use, if supplied.
+: (boolean) `true` if the system was successfully updated.
+]]
+function library.system_indent_set_to_prefs(system, page_format_prefs)
+    page_format_prefs = page_format_prefs or library.get_page_format_prefs()
+    local first_meas = finale.FCMeasure()
+    local is_first_system = (system.FirstMeasure == 1)
+    if (not is_first_system) and first_meas:Load(system.FirstMeasure) then
+        if first_meas.ShowFullNames then
+            is_first_system = true
+        end
+    end
+    if is_first_system and page_format_prefs.UseFirstSystemMargins then
+        system.LeftMargin = page_format_prefs.FirstSystemLeft
+    else
+        system.LeftMargin = page_format_prefs.SystemLeft
+    end
+    return system:Save()
+end
 
 
 

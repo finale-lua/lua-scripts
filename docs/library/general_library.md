@@ -17,6 +17,7 @@
 - [is_font_smufl_font](#is_font_smufl_font)
 - [simple_input](#simple_input)
 - [is_finale_object](#is_finale_object)
+- [system_indent_set_to_prefs](#system_indent_set_to_prefs)
 
 ## finale_version
 
@@ -276,3 +277,21 @@ Attempts to determine if an object is a Finale object through ducktyping
 | Return type | Description |
 | ----------- | ----------- |
 | `bool` |  |
+
+## system_indent_set_to_prefs
+
+```lua
+library.system_indent_set_to_prefs(system, page_format_prefs)
+```
+
+Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
+The page preferences may be provided optionally to avoid loading them for each call.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `system` | `FCStaffSystem` |  |
+| `page_format_prefs` (optional) | `FCPageFormatPrefs` | page format preferences to use, if supplied. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` | `true` if the system was successfully updated. |

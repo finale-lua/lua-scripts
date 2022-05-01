@@ -91,7 +91,7 @@ Changes the entire text block to have the input font info.
 enigma_string.remove_inserts(fcstring, replace_with_generic)
 ```
 
-Removes text inserts other than font commands and replaces them with 
+Removes text inserts other than font commands and replaces them with
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |

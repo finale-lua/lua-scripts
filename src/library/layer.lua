@@ -4,13 +4,13 @@ $module Layer
 local layer = {}
 
 --[[
-% copy(source_layer, destination_layer)
+% copy
 
 Duplicates the notes from the source layer to the destination. The source layer remains untouched.
 
 @ region (FCMusicRegion) the region to be copied
-@ source_layer number the number (1-4) of the layer to duplicate
-@ destination_layer number the number (1-4) of the layer to be copied to
+@ source_layer (number) the number (1-4) of the layer to duplicate
+@ destination_layer (number) the number (1-4) of the layer to be copied to
 ]]
 function layer.copy(region, source_layer, destination_layer)
     local start = region.StartMeasure
@@ -32,12 +32,12 @@ function layer.copy(region, source_layer, destination_layer)
 end -- function layer_copy
 
 --[[
-% clear(layer_to_clear)
+% clear
 
 Clears all entries from a given layer.
 
 @ region (FCMusicRegion) the region to be cleared
-@ layer_to_clear number the number (1-4) of the layer to clear
+@ layer_to_clear (number) the number (1-4) of the layer to clear
 ]]
 function layer.clear(region, layer_to_clear)
     layer_to_clear = layer_to_clear - 1 -- Turn 1 based layer to 0 based layer
@@ -54,13 +54,13 @@ function layer.clear(region, layer_to_clear)
 end
 
 --[[
-% swap(swap_a, swap_b)
+% swap
 
 Swaps the entries from two different layers (e.g. 1-->2 and 2-->1).
 
 @ region (FCMusicRegion) the region to be swapped
-@ swap_a number the number (1-4) of the first layer to be swapped
-@ swap_b number the number (1-4) of the second layer to be swapped
+@ swap_a (number) the number (1-4) of the first layer to be swapped
+@ swap_b (number) the number (1-4) of the second layer to be swapped
 ]]
 function layer.swap(region, swap_a, swap_b)
     local start = region.StartMeasure

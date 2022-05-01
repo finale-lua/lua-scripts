@@ -1,10 +1,12 @@
---[[
-$module measurement
-]] --
-local measurement = {}
+# measurement
 
---[[
-% convert_to_EVPUs
+- [convert_to_EVPUs](#convert_to_EVPUs)
+
+## convert_to_EVPUs
+
+```lua
+measurement.convert_to_EVPUs(text)
+```
 
 Converts the specified string into EVPUs. Like text boxes in Finale, this supports
 the usage of units at the end of the string. The following are a few examples:
@@ -19,13 +21,10 @@ the usage of units at the end of the string. The following are a few examples:
 Read the [Finale User Manual](https://usermanuals.finalemusic.com/FinaleMac/Content/Finale/def-equivalents.htm#overriding-global-measurement-units)
 for more details about measurement units in Finale.
 
-@ text (string) the string to convert
-: (number) the converted number of EVPUs
-]]
-function measurement.convert_to_EVPUs(text)
-    local str = finale.FCString()
-    str.LuaString = text
-    return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
-end
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `text` | `string` | the string to convert |
 
-return measurement
+| Return type | Description |
+| ----------- | ----------- |
+| `number` | the converted number of EVPUs |

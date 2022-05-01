@@ -20,18 +20,17 @@ of a configuration file called "custom_key_sig.config.txt" in the
 can read the correct custom key signature information directly from
 Finale. Therefore, when you run this script with RGP Lua 0.58+, the configuration file
 is ignored.
-]] -- 
+]] --
 -- Structure
 -- 1. Helper functions
 -- 2. Diatonic Transposition
 -- 3. Enharmonic Transposition
 -- 3. Chromatic Transposition
--- 
+--
 local transposition = {}
 
 --  Author: Robert Patterson
 --  Date: March 5, 2021
-
 --[[
 $module Configuration
 
@@ -66,8 +65,7 @@ right_dynamic_cushion		= -6		--evpus
 Configuration files must be placed in a subfolder called `script_settings` within
 the folder of the calling script. Each script that has a configuration file
 defines its own configuration file name.
-]]
-
+]] --
 local configuration = {}
 
 local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
@@ -76,7 +74,7 @@ local parameter_delimiter = "="
 local path_delimiter = "/"
 
 local file_exists = function(file_path)
-    local f = io.open(file_path,"r")
+    local f = io.open(file_path, "r")
     if nil ~= f then
         io.close(f)
         return true
@@ -84,7 +82,7 @@ local file_exists = function(file_path)
     return false
 end
 
-local strip_leading_trailing_whitespace = function (str)
+local strip_leading_trailing_whitespace = function(str)
     return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
 end
 
@@ -92,7 +90,7 @@ local parse_parameter -- forward function declaration
 
 local parse_table = function(val_string)
     local ret_table = {}
-    for element in val_string:gmatch('[^,%s]+') do  -- lua pattern magic taken from the Internet
+    for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
         local parsed_element = parse_parameter(element)
         table.insert(ret_table, parsed_element)
     end
@@ -100,11 +98,11 @@ local parse_table = function(val_string)
 end
 
 parse_parameter = function(val_string)
-    if '"' == val_string:sub(1,1) and '"' == val_string:sub(#val_string,#val_string) then -- double-quote string
-        return string.gsub(val_string, '"(.+)"', "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
-    elseif "'" == val_string:sub(1,1) and "'" == val_string:sub(#val_string,#val_string) then -- single-quote string
+    if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
+        return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
+    elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
         return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
-    elseif "{" == val_string:sub(1,1) and "}" == val_string:sub(#val_string,#val_string) then
+    elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
         return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
     elseif "true" == val_string then
         return true
@@ -127,21 +125,21 @@ local get_parameters_from_file = function(file_name)
     for line in io.lines(file_path) do
         local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
         if nil ~= comment_at then
-            line = string.sub(line, 1, comment_at-1)
+            line = string.sub(line, 1, comment_at - 1)
         end
         local delimiter_at = string.find(line, parameter_delimiter, 1, true)
         if nil ~= delimiter_at then
-            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at-1))
-            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at+1))
+            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
+            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
             parameters[name] = parse_parameter(val_string)
         end
     end
-    
+
     return parameters
 end
 
 --[[
-% get_parameters(file_name, parameter_list)
+% get_parameters
 
 Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list` with any that are found in the config file.
 
@@ -180,9 +178,9 @@ local custom_key_sig_config = {
 
 configuration.get_parameters("custom_key_sig.config.txt", custom_key_sig_config)
 
--- 
+--
 -- HELPER functions
--- 
+--
 
 local sign = function(n)
     if n < 0 then
@@ -283,12 +281,12 @@ local simplify_spelling = function(note, min_abs_alteration)
     return true
 end
 
--- 
+--
 -- DIATONIC transposition (affect only Displacement)
--- 
+--
 
 --[[
-% diatonic_transpose(note, interval)
+% diatonic_transpose
 
 Transpose the note diatonically by the given interval displacement.
 
@@ -300,7 +298,7 @@ function transposition.diatonic_transpose(note, interval)
 end
 
 --[[
-% change_octave(note, number_of_octaves)
+% change_octave
 
 Transpose the note by the given number of octaves.
 
@@ -316,7 +314,7 @@ end
 --
 
 --[[
-% enharmonic_transpose(note, direction, ignore_error)
+% enharmonic_transpose
 
 Transpose the note enharmonically in the given direction. In some microtone systems this yields a different result than transposing by a diminished 2nd.
 Failure occurs if the note's `RaiseLower` value exceeds an absolute value of 7. This is a hard-coded limit in Finale.
@@ -346,12 +344,12 @@ function transposition.enharmonic_transpose(note, direction, ignore_error)
     return true
 end
 
--- 
+--
 -- CHROMATIC transposition (affect Displacement and RaiseLower)
--- 
+--
 
 --[[
-% chromatic_transpose(note, interval, alteration, simplify)
+% chromatic_transpose
 
 Transposes a note chromatically by the input chromatic interval. Supports custom key signatures
 and microtone systems by means of a `custom_key_sig.config.txt` file. In Finale, chromatic intervals
@@ -395,7 +393,7 @@ function transposition.chromatic_transpose(note, interval, alteration, simplify)
 end
 
 --[[
-% stepwise_transpose(note, number_of_steps)
+% stepwise_transpose
 
 Transposes the note by the input number of steps and simplifies the spelling.
 For predefined key signatures, each step is a half-step.
@@ -419,7 +417,7 @@ function transposition.stepwise_transpose(note, number_of_steps)
 end
 
 --[[
-% chromatic_major_third_down(note)
+% chromatic_major_third_down
 
 Transpose the note down by a major third.
 
@@ -430,7 +428,7 @@ function transposition.chromatic_major_third_down(note)
 end
 
 --[[
-% chromatic_perfect_fourth_up(note)
+% chromatic_perfect_fourth_up
 
 Transpose the note up by a perfect fourth.
 
@@ -441,7 +439,7 @@ function transposition.chromatic_perfect_fourth_up(note)
 end
 
 --[[
-% chromatic_perfect_fifth_down(note)
+% chromatic_perfect_fifth_down
 
 Transpose the note down by a perfect fifth.
 

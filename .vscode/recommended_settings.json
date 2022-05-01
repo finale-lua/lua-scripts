@@ -1,0 +1,21 @@
+{
+    "Lua.diagnostics.globals": [
+        "finale",
+        "finenv",
+        "finaleplugin",
+        "each",
+        "eachentrysaved",
+        "eachbackwards",
+        "eachentry",
+        "pairsbykeys",
+        "loadall",
+        "bit32"
+    ],
+    "editor.formatOnSave": true,
+    "Lua.diagnostics.disable": ["lowercase-global", "luadoc-miss-cate-name"],
+    "vscode-lua-format.configPath": "./luaconfig.config",
+    "[lua]": {
+        "editor.defaultFormatter": "Koihik.vscode-lua-format"
+    },
+    "Lua.runtime.version": "Lua 5.2"
+}
