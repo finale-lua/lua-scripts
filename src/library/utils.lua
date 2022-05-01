@@ -26,4 +26,22 @@ function utils.copy_table(t)
     end
 end
 
+--[[
+% table_remove_first
+
+Removes the first occurrence of a value from an array table.
+
+@ t (table)
+@ value (mixed)
+]]
+function utils.table_remove_first(t, value)
+    for k = 1, #t do
+        if t[k] == value then
+            table.remove(t, k)
+            return
+        end
+    end
+end
+
+
 return utils
