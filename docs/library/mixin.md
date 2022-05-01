@@ -11,7 +11,7 @@ The Fluid Mixins library does the following:
 ## finalemix Namespace
 To utilise the new namespace, simply include the library, which also gives access to he helper functions:
 ```lua
-local finalemix = require('library.mixin')
+local finalemix = require("library.mixin")
 ```
 
 All defined mixins can be accessed through the `finalemix` namespace in the same way as the `finale` namespace. All constructors have the same signature as their `FC` originals.
@@ -49,7 +49,7 @@ Note that static access includes inherited methods and properties.
 There are also some additional global mixin properties and methods that have special meaning:
 | Name | Description | FCM Accessible | FCM Definable | FCX Accessible | FCX Definable |
 | :--- | :---------- | :------------- | :------------ | :------------- | :------------ |
-| string `MixinClassName` | The class name (FCM or FCX) of the mixin. | Yes | No | Yes | No |
+| string `MixinClass` | The class name (FCM or FCX) of the mixin. | Yes | No | Yes | No |
 | string|nil `MixinParent` | The name of the mixin parent | Yes | No | Yes | Yes (required) |
 | string|nil `MixinBase` | The class name of the FCM base of an FCX class | No | No | Yes | No |
 | function `Init(self`) | An initialising function. This is not a constructor as it will be called after the object has been constructed. | Yes | Yes (optional) | Yes | Yes (optional) |
@@ -62,7 +62,7 @@ There are also some additional global mixin properties and methods that have spe
 The name of an `FCM` class corresponds to its underlying 'FC' class, with the addition of an 'M' after the 'FC'.
 For example, the following will create a mixin-enabled `FCCustomLuaWindow` object:
 ```lua
-local finalemix = require('library.mixin')
+local finalemix = require("library.mixin")
 
 local dialog = finalemix.FCMCustomLuaWindow()
 ```
@@ -77,20 +77,20 @@ The following is an example of how to define an `FCM` mixin for `FCMControl`.
 `src/mixin/FCMControl.lua`
 ```lua
 -- Include the mixin namespace and helper functions
-local library = require('library.general_library')
-local finalemix = require('library.mixin')
+local library = require("library.general_library")
+local finalemix = require("library.mixin")
 
 local props = {
 
     -- An optional initialising method
     Init = function(self)
-        print('Initialising...')
+        print("Initialising...")
     end,
 
     -- This method is an override for the SetText method 
     -- It allows the method to accept a regular Lua string, which means that plugin authors don't need to worry anout creating an FCString objectq
     SetText = function(self, str)
-        finalemix.assert_argument(str, {'string', 'number', 'FCString'}, 2)
+        finalemix.assert_argument(str, {"string", "number", "FCString"}, 2)
 
         -- Check if the argument is a finale object. If not, turn it into an FCString
         if not library.is_finale_object(str)
@@ -114,12 +114,12 @@ Since the underlying class `FCControl` has a number of child classes, the `FCMCo
 
 An example of utilizing the above mixin:
 ```lua
-local finalemix = require('library.mixin')
+local finalemix = require("library.mixin")
 
 local dialog = finalemix.FCMCustomLuaWindow()
 
 -- Fluid interface means that self is returned from SetText instead of nothing
-local label = dialog:CreateStatic(10, 10):SetText('Hello World')
+local label = dialog:CreateStatic(10, 10):SetText("Hello World")
 
 dialog:ExecuteModal(nil)
 ```
@@ -139,16 +139,16 @@ Here is an example `FCX` mixin definition:
 `src/mixin/FCXMyStaticCounter.lua`
 ```lua
 -- Include the mixin namespace and helper functions
-local finalemix = require('library.mixin')
+local finalemix = require("library.mixin")
 
 -- Since mixins can't have private properties, we can store them in a table
 local private = {}
-setmetatable(private, {__mode = 'k'}) -- Use weak keys so that properties are automatically garbage collected along with the objects they are tied to
+setmetatable(private, {__mode = "k"}) -- Use weak keys so that properties are automatically garbage collected along with the objects they are tied to
 
 local props = {
 
     -- All FCX mixins must declare their parent. It can be an FCM class or another FCX class
-    MixinParent = 'FCMCtrlStatic',
+    MixinParent = "FCMCtrlStatic",
 
     -- Initialiser
     Init = function(self)
@@ -178,14 +178,14 @@ return props
 `src/mixin/FCXMyCustomDialog.lua`
 ```lua
 -- Include the mixin namespace and helper functions
-local finalemix = require('library.mixin')
+local finalemix = require("library.mixin")
 
 local props = {
-    MixinParent = 'FCMCustomLuaWindow',
+    MixinParent = "FCMCustomLuaWindow",
 
     CreateStaticCounter = function(self, x, y)
         -- Create an FCMCtrlStatic and then use the subclass function to apply the FCX mixin
-        return finalemix.subclass(self:CreateStatic(x, y), 'FCXMyStaticCounter')
+        return finalemix.subclass(self:CreateStatic(x, y), "FCXMyStaticCounter")
     end
 }
 
@@ -195,7 +195,7 @@ return props
 
 Example usage:
 ```lua
-local finalemix = require('library.mixin')
+local finalemix = require("library.mixin")
 
 local dialog = finalemix.FCXMyCustomDialog()
 
@@ -208,7 +208,11 @@ dialog:ExecuteModal(nil)
 ```
 
 - [subclass](#subclass)
+- [is_instance_of](#is_instance_of)
 - [assert_argument](#assert_argument)
+- [force_assert_argument](#force_assert_argument)
+- [assert](#assert)
+- [force_assert](#force_assert)
 
 ## subclass
 
@@ -219,8 +223,8 @@ fluid_mixins.subclass(object, class_name)
 
 Takes a mixin-enabled finale object and migrates it to an `FCX` subclass. Any conflicting property or method names will be overwritten.
 
-If the object is not mixin-enabled or the current `MixinClassName` is not a parent of `class_name`, then an error will be thrown.
-If the current `MixinClassName` is the same as `class_name`, this function will do nothing.
+If the object is not mixin-enabled or the current `MixinClass` is not a parent of `class_name`, then an error will be thrown.
+If the current `MixinClass` is the same as `class_name`, this function will do nothing.
 
 
 | Input | Type | Description |
@@ -232,6 +236,30 @@ If the current `MixinClassName` is the same as `class_name`, this function will 
 | ----------- | ----------- |
 | `__FCMBase\\|nil` | The object that was passed with mixin applied. |
 
+## is_instance_of
+
+```lua
+fluid_mixins.is_instance_of(object, class_name)
+```
+
+
+Checks if an object is an instance of a class.
+Conditions:
+- Parent cannot be instance of child.
+- `FC` object cannot be an instance of an `FCM` or `FCX` class
+- `FCM` object cannot be an instance of an `FCX` class
+- `FCX` object cannot be an instance of an `FC` class
+
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `object` | `__FCBase` | Any finale object, including mixin enabled objects. |
+| `class_name` | `string` | An `FC`, `FCM`, or `FCX` class name. Can be the name of a parent class. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` |  |
+
 ## assert_argument
 
 ```lua
@@ -241,12 +269,15 @@ fluid_mixins.assert_argument(value, expected_type, argument_number)
 
 Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
 
+NOTE: For performance reasons, this function will only assert if in debug mode (ie `finenv.DebugEnabled == true`). If assertions are always required, use `force_assert_argument` instead.
+
 If not a valid type, will throw a bad argument error at the level above where this function is called.
 Types can be Lua types (eg `string`, `number`, `bool`, etc), finale class (eg `FCString`, `FCMeasure`, etc), or mixin class (eg `FCMString`, `FCMMeasure`, etc)
 Parent classes cannot be specified as this function does not examine the class hierarchy.
 
 Note that mixin classes may satisfy the condition for the underlying `FC` class.
-For example, if the expected type is `FCString`, an `FCMString` object will pass the test, but an `FCXString` object will not. 
+For example, if the expected type is `FCString`, an `FCMString` object will pass the test, but an `FCXString` object will not.
+If the expected type is `FCMString`, an `FCXString` object will pass the test but an `FCString` object will not.
 
 
 | Input | Type | Description |
@@ -254,3 +285,52 @@ For example, if the expected type is `FCString`, an `FCMString` object will pass
 | `value` | `mixed` | The value to test. |
 | `expected_type` | `string\|table` | If there are multiple valid types, pass a table of strings. |
 | `argument_number` | `number` | The REAL argument number for the error message (self counts as #1). |
+
+## force_assert_argument
+
+```lua
+fluid_mixins.force_assert_argument(value, expected_type, argument_number)
+```
+
+
+The same as `assert_argument` except this function always asserts, regardless of whether debug mode is enabled.
+
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `value` | `mixed` | The value to test. |
+| `expected_type` | `string\|table` | If there are multiple valid types, pass a table of strings. |
+| `argument_number` | `number` | The REAL argument number for the error message (self counts as #1). |
+
+## assert
+
+```lua
+fluid_mixins.assert(condition, message, no_level)
+```
+
+
+Asserts a condition in a mixin method. If the condition is false, an error is thrown one level above where this function is called.
+Only asserts when in debug mode. If assertion is required on all executions, use `force_assert` instead
+
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `condition` | `any` | Can be any value or expression. |
+| `message` | `string` | The error message. |
+| `no_level` (optional) | `boolean` | If true, error will be thrown with no level (ie level 0) |
+
+## force_assert
+
+```lua
+fluid_mixins.force_assert(condition, message, no_level)
+```
+
+
+The same as `assert` except this function always asserts, regardless of whether debug mode is enabled.
+
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `condition` | `any` | Can be any value or expression. |
+| `message` | `string` | The error message. |
+| `no_level` (optional) | `boolean` | If true, error will be thrown with no level (ie level 0) |
