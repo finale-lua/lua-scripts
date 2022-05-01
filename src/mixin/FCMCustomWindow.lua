@@ -1,6 +1,5 @@
 --  Author: Edward Koltun
 --  Date: March 3, 2022
-
 --[[
 $module FCMCustomWindow
 
@@ -8,13 +7,11 @@ Summary of modifications:
 - `Create*` methods have an additional optional parameter for specifying a control name. Named controls can be retrieved via `GetControl`.
 - Cache original control objects to preserve mixin data and override control getters to return the original objects.
 - Added `Each` method for iterating over controls by class name.
-]]
-
+]] --
 local mixin = require("library.mixin")
 
 local private = setmetatable({}, {__mode = "k"})
 local props = {}
-
 
 --[[
 % Init
@@ -26,7 +23,6 @@ local props = {}
 function props:Init()
     private[self] = private[self] or {Controls = {}, NamedControls = {}}
 end
-
 
 --[[
 % CreateCancelButton
@@ -73,7 +69,6 @@ for _, f in ipairs({"CancelButton", "OkButton"}) do
         return control
     end
 end
-
 
 --[[
 % CreateButton
@@ -218,7 +213,10 @@ Add optional `control_name` parameter.
 : (FCMCtrlUpDown)
 ]]
 
-for _, f in ipairs({"Button", "Checkbox", "DataList", "Edit", "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown"}) do
+for _, f in ipairs(
+                {
+        "Button", "Checkbox", "DataList", "Edit", "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
+    }) do
     props["Create" .. f] = function(self, x, y, control_name)
         mixin.assert_argument(x, "number", 2)
         mixin.assert_argument(y, "number", 3)
@@ -346,7 +344,7 @@ function props:Each(class_filter)
         return v
     end
 
-    return iterator 
+    return iterator
 end
 
 --[[
@@ -376,7 +374,6 @@ Add optional `control_name` parameter.
 @ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlButton)
 ]]
-
 if finenv.MajorVersion > 0 or finenv.MinorVersion >= 56 then
     function props.CreateCloseButton(self, x, y, control_name)
         mixin.assert_argument(x, "number", 2)
@@ -401,5 +398,34 @@ if finenv.MajorVersion > 0 or finenv.MinorVersion >= 56 then
     end
 end
 
+--[[
+% GetParent
+
+**[PDK Port]**
+Returns the parent window. The parent will only be available while the window is showing.
+
+@ self (FCMCustomWindow)
+: (FCMCustomWindow|nil) `nil` if no parent
+]]
+function props:GetParent()
+    return private[self].Parent
+end
+
+--[[
+% ExecuteModal
+
+**[Override]**
+Stores the parent window to make it available via `GetParent`.
+
+@ self (FCMCustomWindow)
+@ parent (FCCustomWindow|FCMCustomWindow|nil)
+: (number)
+]]
+function props:ExecuteModal(parent)
+    private[self].Parent = parent
+    local ret = self:ExecuteModal_(parent)
+    private[self].Parent = nil
+    return ret
+end
 
 return props

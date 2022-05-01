@@ -1,6 +1,5 @@
 --  Author: Edward Koltun
 --  Date: March 3, 2022
-
 --[[
 $module FCMCtrlPopup
 
@@ -10,8 +9,7 @@ Summary of modifications:
 - Setters that accept `FCStrings` now also accept multiple arguments of `FCString`, Lua `string`, or `number`.
 - Numerous additional methods for accessing and modifying popup items.
 - Added `SelectionChange` custom control event.
-]]
-
+]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local library = require("library.general_library")
@@ -23,7 +21,6 @@ local props = {}
 local trigger_selection_change
 local each_last_selection_change
 local temp_str = finale.FCString()
-
 
 --[[
 % Init
@@ -72,6 +69,47 @@ function props:SetSelectedItem(index)
     self:SetSelectedItem_(index)
 
     trigger_selection_change(self)
+end
+
+--[[
+% SetSelectedLast
+
+**[Fluid]**
+Selects the last item in the popup.
+
+@ self (FCMCtrlPopup)
+]]
+function props:SetSelectedLast()
+    if self:GetCount() ~= 0 then
+        self:SetSelectedItem(self:GetCount() - 1)
+    end
+end
+
+--[[
+% IsItemSelected
+
+Checks if the popup has a selection. If the parent window does not exist (ie `WindowExists() == false`), this result is theoretical.
+
+@ self (FCMCtrlPopup)
+: (boolean) `true` if something is selected, `false` if no selection.
+]]
+function props:IsItemSelected()
+    return self:GetSelectedItem_() >= 0
+end
+
+--[[
+% ItemExists
+
+Checks if there is an item at the specified index.
+
+@ self (FCMCtrlPopup)
+@ index (number)
+: (boolean) `true` if the item exists, `false` if it does not exist.
+]]
+function props:ItemExists(index)
+    mixin.assert_argument(index, "number", 2)
+
+    return index <= self:GetCount_() - 1
 end
 
 --[[
@@ -186,7 +224,7 @@ Returns the text for an item in the popup.
 @ self (FCMCtrlPopup)
 @ index (number) 0-based index of item.
 @ [str] (FCString) Optional `FCString` object to populate with text.
-: (string)
+: (string|nil) `nil` if the item doesn't exist
 ]]
 function props:GetItemText(index, str)
     mixin.assert_argument(index, "number", 2)
@@ -219,6 +257,13 @@ function props:SetItemText(index, str)
 
     if not private[self][index + 1] then
         error("No item at index " .. tostring(index), 2)
+    end
+
+    str = type(str) == "userdata" and str.LuaString or tostring(str)
+
+    -- If the text is the same, then there is nothing to do
+    if private[self][index + 1] == str then
+        return
     end
 
     private[self][index + 1] = type(str) == "userdata" and str.LuaString or tostring(str)
@@ -330,7 +375,7 @@ function props:InsertString(index, str)
 
     for v in each_last_selection_change(self) do
         if v.last_item >= index then
-            v.last_item = v.last_item+ 1
+            v.last_item = v.last_item + 1
         end
     end
 end
@@ -423,11 +468,20 @@ Removes a handler added with `AddHandleSelectionChange`.
 @ self (FCMCtrlPopup)
 @ callback (function) Handler to remove.
 ]]
-props.AddHandleSelectionChange, props.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change = mixin_helper.create_custom_control_change_event(
-    {name = 'last_item', get = "GetSelectedItem_", initial = -1},
-    {name = 'last_item_text', get = function(ctrl) return mixin.FCMCtrlPopup.GetSelectedString(ctrl) or "" end, initial = ""},
-    {name = 'is_deleted', get = function() return false end, initial = false}
-)
-
+props.AddHandleSelectionChange, props.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change =
+    mixin_helper.create_custom_control_change_event(
+        {name = "last_item", get = "GetSelectedItem_", initial = -1}, {
+            name = "last_item_text",
+            get = function(ctrl)
+                return mixin.FCMCtrlPopup.GetSelectedString(ctrl) or ""
+            end,
+            initial = "",
+        }, {
+            name = "is_deleted",
+            get = function()
+                return false
+            end,
+            initial = false,
+        })
 
 return props

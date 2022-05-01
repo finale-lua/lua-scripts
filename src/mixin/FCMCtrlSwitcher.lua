@@ -1,6 +1,5 @@
 --  Author: Edward Koltun
 --  Date: March 3, 2022
-
 --[[
 $module FCMCtrlSwitcher
 
@@ -8,7 +7,7 @@ Summary of modifications:
 - Setters that accept `FCString` now also accept Lua `string` and `number`.
 - Additional methods for accessing and adding pages and page titles.
 - Added `PageChange` custom control event.
-]]
+]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local library = require("library.general_library")
@@ -19,7 +18,6 @@ local props = {}
 local trigger_page_change
 local each_last_page_change
 local temp_str = finale.FCString()
-
 
 --[[
 % Init
@@ -93,7 +91,7 @@ function props:AttachControlByTitle(control, title)
         end
     end
 
-    mixin.force_assert(index ~= -1, "No page titled '" .. title .."'")
+    mixin.force_assert(index ~= -1, "No page titled '" .. title .. "'")
 
     return self:AttachControl_(control, index)
 end
@@ -135,7 +133,7 @@ function props:SetSelectedPageByTitle(title)
         end
     end
 
-    error("No page titled '" .. title  .. "'", 2)
+    error("No page titled '" .. title .. "'", 2)
 end
 
 --[[
@@ -192,7 +190,6 @@ function props:GetPageTitle(index, str)
     return text
 end
 
-
 --[[
 % HandlePageChange
 
@@ -226,10 +223,15 @@ Removes a handler added with `AddHandlePageChange`.
 @ self (FCMCtrlSwitcher)
 @ callback (function)
 ]]
-props.AddHandlePageChange, props.RemoveHandlePageChange, trigger_page_change, each_last_page_change = mixin_helper.create_custom_control_change_event(
-    {name = 'last_page', get = "GetSelectedPage_", initial = -1},
-    {name = 'last_page_title', get = function(ctrl) return mixin.FCMCtrlSwitcher.GetSelectedPageTitle(ctrl) end, initial = ""} -- Wrap get in function to prevent infinite recursion
-)
-
+props.AddHandlePageChange, props.RemoveHandlePageChange, trigger_page_change, each_last_page_change =
+    mixin_helper.create_custom_control_change_event(
+        {name = "last_page", get = "GetSelectedPage_", initial = -1}, {
+            name = "last_page_title",
+            get = function(ctrl)
+                return mixin.FCMCtrlSwitcher.GetSelectedPageTitle(ctrl)
+            end,
+            initial = "",
+        } -- Wrap get in function to prevent infinite recursion
+    )
 
 return props

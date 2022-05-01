@@ -1,20 +1,17 @@
 --  Author: Edward Koltun
 --  Date: March 3, 2022
-
 --[[
 $module FCMCtrlUpDown
 
 Summary of modifications:
 - `GetConnectedEdit` returns the original control object.
 - Handlers for the `UpDownPressed` event can now be set on a control.
-]]
-
+]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
 local private = setmetatable({}, {__mode = "k"})
 local props = {}
-
 
 --[[
 % Init
@@ -109,7 +106,6 @@ Removes a handler added with `AddHandlePress`.
 @ self (FCMCtrlUpDown)
 @ callback (function)
 ]]
-props.AddHandlePress, props.RemoveHandlePress = mixin_helper.create_standard_control_event('HandleUpDownPressed')
-
+props.AddHandlePress, props.RemoveHandlePress = mixin_helper.create_standard_control_event("HandleUpDownPressed")
 
 return props
