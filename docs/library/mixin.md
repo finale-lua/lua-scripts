@@ -213,6 +213,7 @@ dialog:ExecuteModal(nil)
 - [force_assert_argument](#force_assert_argument)
 - [assert](#assert)
 - [force_assert](#force_assert)
+- [UI](#UI)
 
 ## subclass
 
@@ -334,3 +335,17 @@ The same as `assert` except this function always asserts, regardless of whether 
 | `condition` | `any` | Can be any value or expression. |
 | `message` | `string` | The error message. |
 | `no_level` (optional) | `boolean` | If true, error will be thrown with no level (ie level 0) |
+
+## UI
+
+```lua
+fluid_mixins.UI()
+```
+
+
+Returns a mixin enabled UI object from `finenv.UI`
+
+
+| Return type | Description |
+| ----------- | ----------- |
+| `FCMUI` |  |
