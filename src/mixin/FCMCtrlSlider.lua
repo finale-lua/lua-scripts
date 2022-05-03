@@ -1,6 +1,5 @@
 --  Author: Edward Koltun
 --  Date: April 3, 2022
-
 --[[
 $module FCMCtrlSlider
 
@@ -11,8 +10,7 @@ Summary of modifications:
 Command events do not fire for `FCCtrlSlider` controls, so a workaround is used to make the `ThumbPositionChange` events work.
 If using JW/RGPLua version 0.55 or lower, then the event dispatcher will run with the next Command event for a different control. In these versions the event is unreliable as the user will need to interact with another control for the change in thumb position to be registered.
 If using version 0.56 or later, then the dispatcher will run every 1 second. This is more reliable than in earlier versions but it still will not fire immediately.
-]]
-
+]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
@@ -29,7 +27,7 @@ local function bootstrap_command()
     trigger_thumb_position_change(true)
 end
 
-local function bootstrap_timer()
+local function bootstrap_timer(timerid, window)
     -- We're in the root of an event handler, so it is safe to trigger immediately
     trigger_thumb_position_change(true, true)
 end
@@ -44,7 +42,6 @@ bootstrap_timer_first = function(timerid, window)
 
     bootstrap_timer(timerid, window)
 end
-
 
 --[[
 % RegisterParent
@@ -153,9 +150,8 @@ Removes a handler added with `AddHandleThumbPositionChange`.
 @ self (FCMCtrlSlider)
 @ callback (function)
 ]]
-props.AddHandleThumbPositionChange, props.RemoveHandleThumbPositionChange, trigger_thumb_position_change, each_last_thumb_position_change = mixin_helper.create_custom_control_change_event(
-    {name = 'last_position', get = "GetThumbPosition_", initial = -1}
-)
-
+props.AddHandleThumbPositionChange, props.RemoveHandleThumbPositionChange, trigger_thumb_position_change, each_last_thumb_position_change =
+    mixin_helper.create_custom_control_change_event(
+        {name = "last_position", get = "GetThumbPosition_", initial = -1})
 
 return props

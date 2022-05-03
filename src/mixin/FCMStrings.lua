@@ -1,21 +1,18 @@
 --  Author: Edward Koltun
 --  Date: March 3, 2022
-
 --[[
 $module FCMStrings
 
 Summary of modifications:
 - Methods that accept `FCString` now also accept Lua `string` and `number` (except for folder loading methods which do not accept `number`).
 - Setters that accept `FCStrings` now also accept multiple arguments of `FCString`, Lua `string`, or `number`.
-]]
-
+]] --
 local mixin = require("library.mixin")
 local library = require("library.general_library")
 
 local props = {}
 
 local temp_str = finale.FCString()
-
 
 --[[
 % AddCopy
@@ -162,7 +159,7 @@ Accepts Lua `string` in addition to `FCString`.
 function props:LoadFolderFiles(folderstring)
     mixin.assert_argument(folderstring, {"string", "FCString"}, 2)
 
-    if type(str) ~= "userdata" then
+    if type(folderstring) ~= "userdata" then
         temp_str.LuaString = tostring(folderstring)
         folderstring = temp_str
     end
@@ -183,7 +180,7 @@ Accepts Lua `string` in addition to `FCString`.
 function props:LoadSubfolders(folderstring)
     mixin.assert_argument(folderstring, {"string", "FCString"}, 2)
 
-    if type(str) ~= "userdata" then
+    if type(folderstring) ~= "userdata" then
         temp_str.LuaString = tostring(folderstring)
         folderstring = temp_str
     end
@@ -214,6 +211,5 @@ if finenv.MajorVersion > 0 or finenv.MinorVersion >= 59 then
         self:InsertStringAt_(str, index)
     end
 end
-
 
 return props
