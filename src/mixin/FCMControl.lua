@@ -1,6 +1,5 @@
 --  Author: Edward Koltun
 --  Date: March 3, 2022
-
 --[[
 $module FCMControl
 
@@ -9,8 +8,7 @@ Summary of modifications:
 - In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
 - Ported `GetParent` from PDK to allow the parent window to be accessed from a control.
 - Handlers for the `Command` event can now be set on a control.
-]]
-
+]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
@@ -19,7 +17,6 @@ local parent = setmetatable({}, {__mode = "kv"})
 local props = {}
 
 local temp_str = finale.FCString()
-
 
 --[[
 % GetParent
@@ -116,7 +113,6 @@ Removes a handler added with `AddHandleCommand`.
 @ self (FCMControl)
 @ callback (function)
 ]]
-props.AddHandleCommand, props.RemoveHandleCommand = mixin_helper.create_standard_control_event('HandleCommand')
-
+props.AddHandleCommand, props.RemoveHandleCommand = mixin_helper.create_standard_control_event("HandleCommand")
 
 return props

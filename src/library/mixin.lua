@@ -302,20 +302,30 @@ local function get_parent_class(classname)
     return nil
 end
 
+local function try_load_module(name)
+    local success, result = pcall(function(c) return require(c) end, name)
+
+    -- If the reason it failed to load was anything other than module not found, display the error
+    if not success and not result:match("module '[^']-' not found") then
+        error(result, 0)
+    end
+
+    return success, result
+end
+
 function mixin.load_mixin_class(class_name)
     if mixin_classes[class_name] then return end
 
     local is_fcm = is_fcm_class_name(class_name)
     local is_fcx = is_fcx_class_name(class_name)
 
-    success, result = pcall(function(c) return require(c) end, "mixin." .. class_name)
+    local success, result = try_load_module("mixin." .. class_name)
 
     if not success then
-        -- If the reason it failed to load was anything other than module not found, display the error
-        if not result:match("module '[^']-' not found") then
-            error(result, 0)
-        end
+        success, result = try_load_module("personal_mixin." .. class_name)
+    end
 
+    if not success then
         -- FCM classes are optional, so if it's valid and not found, start with a blank slate
         if is_fcm and finale[fcm_to_fc_class_name(class_name)] then
             result = {}
@@ -345,7 +355,7 @@ function mixin.load_mixin_class(class_name)
         end
     end
 
-    -- Ensure that init is a function
+    -- Ensure that Init is a function
     if class.props.Init and type(class.props.Init) ~= "function" then
         error("Mixin '" .. class_name .. "' method 'Init' must be a function.", 0)
     end
@@ -360,12 +370,9 @@ function mixin.load_mixin_class(class_name)
             mixin.load_mixin_class(class.props.MixinParent)
 
             -- Collect init functions
-            if mixin_classes[class.props.MixinParent].init then
-                class.init = utils.copy_table(mixin_classes[class.props.MixinParent].init)
-            end
+            class.init = mixin_classes[class.props.MixinParent].init and utils.copy_table(mixin_classes[class.props.MixinParent].init) or {}
 
             if class.props.Init then
-                class.init = class.init or {}
                 table.insert(class.init, class.props.Init)
             end
 
@@ -418,10 +425,10 @@ function mixin.pcall_wrapper(levels, success, result, ...)
         -- Ignore errors thrown with no level info (ie. level = 0), as we can't make any assumptions
         -- Both the file and line number indicate that it was thrown at this level
         if file and line and file:sub(-9) == "mixin.lua" and tonumber(line) == pcall_line then
-            local d = debug.getinfo(2, "n")
+            local d = debug.getinfo(levels, "n")
 
             -- Replace the method name with the correct one, for bad argument errors etc
-            msg = msg:gsub("'tryfunczzz'", "'" .. d.name .. "'")
+            msg = msg:gsub("'tryfunczzz'", "'" .. (d.name or "") .. "'")
 
             -- Shift argument numbers down by one for colon function calls
             if d.namewhat == "method" then
@@ -602,6 +609,10 @@ If the current `MixinClass` is the same as `class_name`, this function will do n
 : (__FCMBase|nil) The object that was passed with mixin applied.
 ]]
 function mixin.subclass(object, class_name)
+    if not library.is_finale_object(object) then
+        error("Object is not a finale object.", 2)
+    end
+
     local success, result = pcall(mixin.subclass_helper, object, class_name)
 
     if not success then
@@ -609,7 +620,7 @@ function mixin.subclass(object, class_name)
     end
 
     if not result then
-        error(class_name .. "is not a subclass of " .. object.MixinClass, 2)
+        error(class_name .. " is not a subclass of " .. object.MixinClass, 2)
     end
 
     return object
@@ -663,7 +674,7 @@ function mixin.create_fcm(class_name, ...)
     mixin.load_mixin_class(class_name)
     if not mixin_classes[class_name] then return nil end
 
-    return mixin.enable_mixin(finale[fcm_to_fc_class_name(class_name)](...))
+    return mixin.enable_mixin(catch_and_rethrow(finale[fcm_to_fc_class_name(class_name)], 2, ...))
 end
 
 -- Silently returns nil on failure
@@ -726,7 +737,7 @@ function mixin_public.is_instance_of(object, class_name)
 
             -- We can assume that since we have an object, all parent classes have been loaded
             parent = mixin_classes[parent].props.MixinParent
-        until is_fcm_class(parent)
+        until is_fcm_class_name(parent)
     end
 
     -- Since FCM classes follow the same hierarchy as FC classes, convert to FC
@@ -842,6 +853,16 @@ if finenv.IsRGPLua and not finenv.DebugEnabled then
     mixin_public.assert = mixin_public.assert_argument
 end
 
+--[[
+% UI
+
+Returns a mixin enabled UI object from `finenv.UI`
+
+: (FCMUI)
+]]
+function mixin_public.UI()
+    return mixin.enable_mixin(finenv.UI(), "FCMUI")
+end
 
 -- Create a new namespace for mixins
 return setmetatable({}, {
@@ -862,7 +883,7 @@ return setmetatable({}, {
                 end
                 return val
             end,
-            __call = function(...)
+            __call = function(_, ...)
                 if is_fcm_class_name(k) then
                     return mixin.create_fcm(k, ...)
                 else

@@ -1,22 +1,18 @@
 --  Author: Edward Koltun
 --  Date: March 3, 2022
-
 --[[
 $module FCMCtrlDataList
 
 Summary of modifications:
 - Setters that accept `FCString` now also accept Lua `string` and `number`.
 - Handlers for the `DataListCheck` and `DataListSelect` events can now be set on a control.
-]]
-
+]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
 local props = {}
 
 local temp_str = finale.FCString()
-
-
 
 --[[
 % AddColumn
@@ -32,7 +28,7 @@ function props:AddColumn(title, columnwidth)
     mixin.assert_argument(title, {"string", "number", "FCString"}, 2)
     mixin.assert_argument(columnwidth, "number", 3)
 
-    if type(str) ~= "userdata" then
+    if type(title) ~= "userdata" then
         temp_str.LuaString = tostring(title)
         title = temp_str
     end
@@ -54,7 +50,7 @@ function props:SetColumnTitle(columnindex, title)
     mixin.assert_argument(columnindex, "number", 2)
     mixin.assert_argument(title, {"string", "number", "FCString"}, 3)
 
-    if type(str) ~= "userdata" then
+    if type(title) ~= "userdata" then
         temp_str.LuaString = tostring(title)
         title = temp_str
     end
@@ -81,7 +77,7 @@ Removes a handler added with `AddHandleCheck`.
 @ self (FCMCtrlDataList)
 @ callback (function)
 ]]
-props.AddHandleCheck, props.RemoveHandleCheck = mixin_helper.create_standard_control_event('HandleDataListCheck')
+props.AddHandleCheck, props.RemoveHandleCheck = mixin_helper.create_standard_control_event("HandleDataListCheck")
 
 --[[
 % AddHandleSelect
@@ -102,7 +98,6 @@ Removes a handler added with `AddHandleSelect`.
 @ self (FCMControl)
 @ callback (function)
 ]]
-props.AddHandleSelect, props.RemoveHandleSelect = mixin_helper.create_standard_control_event('HandleDataListSelect')
-
+props.AddHandleSelect, props.RemoveHandleSelect = mixin_helper.create_standard_control_event("HandleDataListSelect")
 
 return props

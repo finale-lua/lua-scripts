@@ -1,20 +1,17 @@
 --  Author: Edward Koltun
 --  Date: March 3, 2022
-
 --[[
 $module __FCMUserWindow
 
 Summary of modifications:
 - Setters that accept `FCString` now also accept Lua `string` and `number`.
 - In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
-]]
-
+]] --
 local mixin = require("library.mixin")
 
 local props = {}
 
 local temp_str = finale.FCString()
-
 
 --[[
 % GetTitle
@@ -50,13 +47,12 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 function props:SetTitle(title)
     mixin.assert_argument(title, {"string", "number", "FCString"}, 2)
 
-    if type(str) ~= "userdata" then
+    if type(title) ~= "userdata" then
         temp_str.LuaString = tostring(title)
         title = temp_str
     end
 
     self:SetTitle_(title)
 end
-
 
 return props

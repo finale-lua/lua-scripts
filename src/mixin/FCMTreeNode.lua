@@ -1,19 +1,17 @@
 --  Author: Edward Koltun
 --  Date: April 6, 2022
-
 --[[
 $module FCMTreeNode
 
 Summary of modifications:
 - Setters that accept `FCString` now also accept Lua `string` and `number`.
 - In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
-]]
+]] --
 local mixin = require("library.mixin")
 
 local props = {}
 
 local temp_str = finale.FCString()
-
 
 --[[
 % GetText
@@ -56,6 +54,5 @@ function props:SetText(str)
 
     self:SetText_(str)
 end
-
 
 return props

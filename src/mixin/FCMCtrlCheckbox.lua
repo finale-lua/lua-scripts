@@ -1,13 +1,11 @@
 --  Author: Edward Koltun
 --  Date: April 2, 2022
-
 --[[
 $module FCMCtrlCheckbox
 
 Summary of modifications:
 - Added `CheckChange` custom control event.
-]]
-
+]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
@@ -15,7 +13,6 @@ local props = {}
 
 local trigger_check_change
 local each_last_check_change
-
 
 --[[
 % SetCheck
@@ -66,11 +63,10 @@ Removes a handler added with `AddHandleCheckChange`.
 @ self (FCMCtrlCheckbox)
 @ callback (function)
 ]]
-props.AddHandleCheckChange, props.RemoveHandleCheckChange, trigger_check_change, each_last_check_change = mixin_helper.create_custom_control_change_event(
-    -- initial could be set to -1 to force the event to fire on InitWindow, but unlike other controls, -1 is not a valid checkstate.
-    -- If it becomes necessary to force this event to fire when the window is created, change to -1
-    {name = 'last_check', get = "GetCheck_", initial = 0}
-)
-
+props.AddHandleCheckChange, props.RemoveHandleCheckChange, trigger_check_change, each_last_check_change =
+    mixin_helper.create_custom_control_change_event(
+        -- initial could be set to -1 to force the event to fire on InitWindow, but unlike other controls, -1 is not a valid checkstate.
+        -- If it becomes necessary to force this event to fire when the window is created, change to -1
+        {name = "last_check", get = "GetCheck_", initial = 0})
 
 return props

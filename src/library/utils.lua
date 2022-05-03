@@ -43,5 +43,33 @@ function utils.table_remove_first(t, value)
     end
 end
 
+--[[
+% iterate_keys
+
+Returns an unordered iterator for the keys in a table.
+
+@ t (table)
+: (function)
+]]
+function utils.iterate_keys(t)
+    local a, b, c = pairs(t)
+
+    return function()
+        c = a(b, c)
+        return c
+    end
+end
+
+--[[
+% round
+
+Rounds a number to the nearest whole integer.
+
+@ num (number)
+: (number)
+]]
+function utils.round(num)
+    return math.floor(num + 0.5)
+end
 
 return utils

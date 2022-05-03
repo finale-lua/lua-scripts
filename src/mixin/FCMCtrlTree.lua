@@ -1,19 +1,16 @@
 --  Author: Edward Koltun
 --  Date: April 6, 2022
-
 --[[
 $module FCMCtrlTree
 
 Summary of modifications:
 - Methods that accept `FCString` now also accept Lua `string` and `number`.
-]]
-
+]] --
 local mixin = require("library.mixin")
 
 local props = {}
 
 local temp_str = finale.FCString()
-
 
 --[[
 % AddNode
@@ -39,6 +36,5 @@ function props:AddNode(parentnode, iscontainer, text)
 
     return self:AddNode_(parentnode, iscontainer, text)
 end
-
 
 return props

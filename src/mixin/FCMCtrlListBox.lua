@@ -1,6 +1,5 @@
 --  Author: Edward Koltun
 --  Date: April 4, 2022
-
 --[[
 $module FCMCtrlListBox
 
@@ -10,8 +9,7 @@ Summary of modifications:
 - Setters that accept `FCStrings` now also accept multiple arguments of `FCString`, Lua `string`, or `number`.
 - Numerous additional methods for accessing and modifying listbox items.
 - Added `SelectionChange` custom control event.
-]]
-
+]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local library = require("library.general_library")
@@ -23,7 +21,6 @@ local props = {}
 local trigger_selection_change
 local each_last_selection_change
 local temp_str = finale.FCString()
-
 
 --[[
 % Init
@@ -242,7 +239,7 @@ function props:SetItemText(index, str)
         temp_str.LuaString = private[self][index + 1]
         self:SetItemText_(index, temp_str)
 
-    -- Otherwise, use a polyfill
+        -- Otherwise, use a polyfill
     else
         local strs = finale.FCStrings()
         for _, v in ipairs(private[self]) do
@@ -352,7 +349,7 @@ function props:InsertItem(index, str)
 
     for v in each_last_selection_change(self) do
         if v.last_item >= index then
-            v.last_item = v.last_item+ 1
+            v.last_item = v.last_item + 1
         end
     end
 end
@@ -445,10 +442,20 @@ Removes a handler added with `AddHandleSelectionChange`.
 @ self (FCMCtrlListBox)
 @ callback (function) Handler to remove.
 ]]
-props.AddHandleSelectionChange, props.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change = mixin_helper.create_custom_control_change_event(
-    {name = 'last_item', get = "GetSelectedItem_", initial = -1},
-    {name = 'last_item_text', get = function(ctrl) return mixin.FCMCtrlListBox.GetSelectedString(ctrl) or "" end, initial = ""},
-    {name = 'is_deleted', get = function() return false end, initial = false}
-)
+props.AddHandleSelectionChange, props.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change =
+    mixin_helper.create_custom_control_change_event(
+        {name = "last_item", get = "GetSelectedItem_", initial = -1}, {
+            name = "last_item_text",
+            get = function(ctrl)
+                return mixin.FCMCtrlListBox.GetSelectedString(ctrl) or ""
+            end,
+            initial = "",
+        }, {
+            name = "is_deleted",
+            get = function()
+                return false
+            end,
+            initial = false,
+        })
 
 return props

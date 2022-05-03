@@ -1,6 +1,5 @@
 --  Author: Edward Koltun
 --  Date: March 3, 2022
-
 --[[
 $module FCMCustomLuaWindow
 
@@ -9,8 +8,7 @@ Summary of modifications:
 - Handlers for non-control events can receive the window object as an optional additional parameter.
 - Control handlers are passed original object to preserve mixin data.
 - Added custom callback queue which can be used by custom events to add dispatchers that will run with the next control event.
-]]
-
+]] --
 local mixin = require("library.mixin")
 local utils = require("library.utils")
 
@@ -19,20 +17,6 @@ local props = {}
 
 local control_handlers = {"HandleCommand", "HandleDataListCheck", "HandleDataListSelect", "HandleUpDownPressed"}
 local other_handlers = {"CancelButtonPressed", "OkButtonPressed", "InitWindow", "CloseWindow"}
-
-local function execute_handlers(window, event, control, ...)
-    local handlers = private[window][event]
-
-    -- Call registered handler
-    if handlers.Registered then
-        handlers.Registered(control, ...)
-    end
-
-    -- Call added handlers
-    for _, v in ipairs(handlers.Added) do
-        v(control, ...)
-    end
-end
 
 local function flush_custom_queue(self)
     local queue = private[self].HandleCustomQueue
@@ -57,39 +41,47 @@ function props:Init()
     for _, f in ipairs(control_handlers) do
         private[self][f] = {Added = {}}
 
+        -- Handlers sometimes run twice, the second while the first is still running, so this flag prevents race conditions and concurrency issues.
+        local is_running = false
         if self["Register" .. f .. "_"] then
-            self["Register" .. f .. "_"](self, function(control, ...)
-                local handlers = private[self][f]
+            self["Register" .. f .. "_"](
+                self, function(control, ...)
+                    if is_running then
+                        return
+                    end
 
-                -- Flush custom queue once
-                flush_custom_queue(self)
+                    is_running = true
+                    local handlers = private[self][f]
 
-                -- Execute handlers for main control
-                local temp = self:FindControl(control:GetControlID())
-
-                if not temp then
-                    error("Control with ID #" .. tostring(control:GetControlID()) .. " not found in '" .. f .. "'")
-                end
-
-                control = temp
-
-                local handlers = private[self][f]
-
-                -- Call registered handler
-                if handlers.Registered then
-                    handlers.Registered(control, ...)
-                end
-
-                -- Call added handlers
-                for _, cb in ipairs(handlers.Added) do
-                    cb(control, ...)
-                end
-
-                -- Flush custom queue until empty
-                while #private[self].HandleCustomQueue > 0 do
+                    -- Flush custom queue once
                     flush_custom_queue(self)
-                end
-            end)
+
+                    -- Execute handlers for main control
+                    local temp = self:FindControl(control:GetControlID())
+
+                    if not temp then
+                        error("Control with ID #" .. tostring(control:GetControlID()) .. " not found in '" .. f .. "'")
+                    end
+
+                    control = temp
+
+                    -- Call registered handler
+                    if handlers.Registered then
+                        handlers.Registered(control, ...)
+                    end
+
+                    -- Call added handlers
+                    for _, cb in ipairs(handlers.Added) do
+                        cb(control, ...)
+                    end
+
+                    -- Flush custom queue until empty
+                    while #private[self].HandleCustomQueue > 0 do
+                        flush_custom_queue(self)
+                    end
+
+                    is_running = false
+                end)
         end
     end
 
@@ -98,39 +90,40 @@ function props:Init()
         private[self][f] = {Added = {}}
 
         if self["Register" .. f .. "_"] then
-            self["Register" .. f .. "_"](self, function()
-                local handlers = private[self][f]
-                if handlers.Registered then
-                    handlers.Registered()
-                end
+            self["Register" .. f .. "_"](
+                self, function()
+                    local handlers = private[self][f]
+                    if handlers.Registered then
+                        handlers.Registered()
+                    end
 
-                for _, v in ipairs(handlers.Added) do
-                    v(self)
-                end
-            end)
+                    for _, v in ipairs(handlers.Added) do
+                        v(self)
+                    end
+                end)
         end
     end
 
     -- Register proxy for HandlerTimer if it's available in this RGPLua version.
     if self.RegisterHandleTimer_ then
-        self:RegisterHandleTimer_(function(timerid)
-            -- Call registered handler if there is one
-            if private[self].HandleTimer.Registered then
-                -- Pass window as additional parameter
-                private[self].HandleTimer.Registered(timerid, self)
-            end
-
-            -- Call any added handlers for this timer
-            if private[self].HandleTimer[timerid] then
-                for _, cb in ipairs(private[self].HandleTimer[timerid]) do
+        self:RegisterHandleTimer_(
+            function(timerid)
+                -- Call registered handler if there is one
+                if private[self].HandleTimer.Registered then
                     -- Pass window as additional parameter
-                    cb(timerid, self)
+                    private[self].HandleTimer.Registered(timerid, self)
                 end
-            end
-        end)
+
+                -- Call any added handlers for this timer
+                if private[self].HandleTimer[timerid] then
+                    for _, cb in ipairs(private[self].HandleTimer[timerid]) do
+                        -- Pass window as additional parameter
+                        cb(timerid, self)
+                    end
+                end
+            end)
     end
 end
-
 
 --[[
 % RegisterHandleCommand
@@ -183,7 +176,6 @@ for _, f in ipairs(control_handlers) do
         return true
     end
 end
-
 
 --[[
 % CancelButtonPressed
@@ -269,7 +261,6 @@ for _, f in ipairs(other_handlers) do
     end
 end
 
-
 --[[
 % AddHandleCommand
 
@@ -316,11 +307,10 @@ Added handlers are called in the order they are added after the registered handl
 for _, f in ipairs(control_handlers) do
     props["Add" .. f] = function(self, callback)
         mixin.assert_argument(callback, "function", 2)
-        
+
         table.insert(private[self][f].Added, callback)
     end
 end
-
 
 --[[
 % AddCancelButtonPressed
@@ -368,11 +358,10 @@ Added handlers are called in the order they are added after the registered handl
 for _, f in ipairs(other_handlers) do
     props["Add" .. f] = function(self, callback)
         mixin.assert_argument(callback, "function", 2)
-        
+
         table.insert(private[self][f].Added, callback)
     end
 end
-
 
 --[[
 % RemoveHandleCommand
@@ -468,7 +457,6 @@ for _, f in ipairs(other_handlers) do
     end
 end
 
-
 --[[
 % QueueHandleCustom
 
@@ -486,10 +474,9 @@ function props:QueueHandleCustom(callback)
     table.insert(private[self].HandleCustomQueue, callback)
 end
 
-
 if finenv.MajorVersion > 0 or finenv.MinorVersion >= 56 then
 
---[[
+    --[[
 % RegisterHandleControlEvent
 
 **[>= v0.56] [Override]**
@@ -503,12 +490,13 @@ Ensures that the handler is passed the original control object.
     function props:RegisterHandleControlEvent(control, callback)
         mixin.assert_argument(callback, "function", 3)
 
-        return self:RegisterHandleControlEvent_(ctrl, function(ctrl)
-            callback(self.FindControl(control:GetControlID()))
-        end)
+        return self:RegisterHandleControlEvent_(
+                   control, function(ctrl)
+                callback(self.FindControl(ctrl:GetControlID()))
+            end)
     end
 
---[[
+    --[[
 % SetTimer
 
 **[>= v0.56] [Fluid] [Override]**
@@ -526,7 +514,7 @@ Ensures that the handler is passed the original control object.
         private[self].HandleTimer[timerid] = private[self].HandleTimer[timerid] or {}
     end
 
---[[
+    --[[
 % GetNextTimerID
 
 **[>= v0.56]**
@@ -543,7 +531,7 @@ Returns the next available timer ID.
         return private[self].NextTimerID
     end
 
---[[
+    --[[
 % SetNextTimer
 
 **[>= v0.56]**
@@ -562,7 +550,7 @@ Sets a timer using the next available ID (according to `GetNextTimerID`) and ret
         return timerid
     end
 
---[[
+    --[[
 % HandleTimer
 
 **[Callback Template] [Override]**
@@ -572,8 +560,7 @@ Can optionally receive the window object.
 @ [window] (FCMCustomLuaWindow)
 ]]
 
-
---[[
+    --[[
 % RegisterHandleTimer
 
 **[>= v0.56] [Override]**
@@ -589,7 +576,7 @@ Can optionally receive the window object.
         return true
     end
 
---[[
+    --[[
 % AddHandleTimer
 
 **[>= v0.56] [Fluid]**
@@ -609,7 +596,7 @@ If a handler is added for a timer that hasn't been set, the timer ID will be no 
         table.insert(private[self].HandleTimer[timerid], callback)
     end
 
---[[
+    --[[
 % RemoveHandleTimer
 
 **[>= v0.56] [Fluid]**
@@ -630,6 +617,5 @@ Removes a handler added with `AddHandleTimer`.
         utils.table_remove_first(private[self].HandleTimer[timerid], callback)
     end
 end
-
 
 return props
