@@ -15,8 +15,12 @@ The following inherited methods have been disabled:
 - `SetStrings`
 - `GetSelectedItem`
 - `SetSelectedItem`
+- `SetSelectedLast`
+- `ItemExists`
 - `InsertString`
 - `DeleteItem`
+- `GetItemText`
+- `SetItemText`
 - `AddHandleSelectionChange`
 - `RemoveHandleSelectionChange`
 
@@ -39,8 +43,9 @@ end
 
 -- Disabled methods
 mixin_helper.disable_methods(
-    props, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetItemText",
-    "InsertString", "DeleteItem", "SetItemText", "AddHandleSelectionChange", "RemoveHandleSelectionChange")
+    props, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
+    "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange",
+    "RemoveHandleSelectionChange")
 
 --[[
 % Init
@@ -67,9 +72,9 @@ function props:Init()
 end
 
 --[[
-% UpdateSelection
+% UpdateMeasurementUnit
 
-**[Fluid]**
+**[Fluid] [Internal]**
 Checks the parent window's measurement unit and updates the selection if necessary.
 
 @ self (FCXCtrlMeasurementUnitPopup)
