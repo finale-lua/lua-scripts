@@ -154,6 +154,26 @@ function props:CreateMeasurementUnitPopup(x, y, control_name)
 end
 
 --[[
+% CreatePageSizePopup
+
+Creates a popup which allows the user to select a page size.
+
+@ self (FCXCustomLuaWindow)
+@ x (number)
+@ y (number)
+@ [control_name] (string)
+: (FCXCtrlPageSizePopup)
+]]
+function props:CreatePageSizePopup(x, y, control_name)
+    mixin.assert_argument(x, "number", 2)
+    mixin.assert_argument(y, "number", 3)
+    mixin.assert_argument(control_name, {"string", "nil"}, 4)
+
+    local popup = mixin.FCMCustomWindow.CreatePopup(self, x, y, control_name)
+    return mixin.subclass(popup, "FCXCtrlPageSizePopup")
+end
+
+--[[
 % CreateStatic
 
 **[Override]**
