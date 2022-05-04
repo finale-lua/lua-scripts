@@ -269,8 +269,6 @@ Parameters (Deprecated)
 
 #### ParameterTypes (multiline string)
 
-**NOTE:** Parameters are not well supported on _JW Lua_ and not supported at all on _RGP Lua_. For _RGP Lua_ you can get a similar type of funcitonality with a _prefix_. The parameter properties described here are **deprecated**..
-
 The types to the script parameters. The syntax is similar to the `SetTypes()` method when using [UserInputValue dialog input](http://jwmusic.nu/jwplugins/wiki/doku.php?id=jwlua:uservalueinput "jwlua:uservalueinput"). Use one line for each parameter. Don't use quotation marks around the types. The number of types must be identical to the number of descriptions.
 
 Valid types are `Number`, `String`, `Boolean` and `NumberedList`. Example:
