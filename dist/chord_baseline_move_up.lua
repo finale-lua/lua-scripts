@@ -39,7 +39,7 @@ local unit_abbreviations = {
     [finale.MEASUREMENTUNIT_INCHES] = "in",
     [finale.MEASUREMENTUNIT_CENTIMETERS] = "cm",
     [finale.MEASUREMENTUNIT_POINTS] = "pt",
-    [finale.MEASUREMENTUNIT_PICAS] = "",
+    [finale.MEASUREMENTUNIT_PICAS] = "pc",
     [finale.MEASUREMENTUNIT_SPACES] = "sp",
 }
 
