@@ -11,6 +11,11 @@ end
 
 local transposition = require("library.transposition")
 
+local json = require "dkjson"
+local debuggee = require "vscode-debuggee"
+local startResult, breakerType = debuggee.start(json)
+print("debuggee start ->", startResult, breakerType)
+
 function accidentals_simplify()
     for entry in eachentrysaved(finenv.Region()) do
         if not entry:IsNote() then

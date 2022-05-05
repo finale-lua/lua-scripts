@@ -5,7 +5,12 @@ function plugindef()
     finaleplugin.Version = "1.0.2"
     finaleplugin.Date = "March 31, 2021"
     finaleplugin.CategoryTags = "Pitch"
+    finaleplugin.MaxJWLuaVersion = 0.61
     finaleplugin.AuthorURL = "https://nickmazuk.com"
+    finaleplugin.Notes = [[
+        This script is deprecated as of RGP Lua 0.62 and no longer loads in v0.62.
+        It has been replaced by pitch_entry_double_at_interval.lua.
+    ]]
     return "Octave Doubling Down", "Octave Doubling Down", "Doubles the current note an octave lower"
 end
 
