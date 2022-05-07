@@ -6,6 +6,7 @@ function plugindef()
     finaleplugin.Date = "May 5, 2022"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
+    finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.AdditionalMenuOptions = [[
         Octave Doubling Down
         Double third up
@@ -23,10 +24,20 @@ function plugindef()
     ]]
     finaleplugin.Notes = [[
         This script doubles selected entries at a specified diatonic interval above or below.
-        By default (including on JW Lua), it creates a menu option in Finale to double an octave higher.
-        On RGP Lua version 0.62  and higher, it also loads menu options to double and octave down and
-        to double a third up and down. RGP Lua allows you to create additional menu items by adding instances
-        in RGP Lua's configuration dialog with different menu options and/or prefixes.
+        By default, it creates menu options to double an octave up and down as well as options
+        to double a third up and down. RGP Lua allows you to add further menu options by creating
+        additional instances of the script file and setting Optional Menu Text and Optional Prefix.
+        To avoid confusion, you should also set the Optional Description. If you omit Optional Undo Text,
+        the undo text will be the same as the menu option.
+
+        Here is an example that creates a "Double Fifth Up" menu option.
+
+        - Optional Menu Text: `Double Fifth Up`
+        - Optional Description: `Doubles the current note a diatonic fifth higher`
+        - Optional Prefix: `input_interval = 4`
+
+        Intervals are defined as 0=unison, 1=second, 2=third, etc. Positive values transpose up and
+        negative values transpose down. See the "AdditionalPrefixes" above for examples.
     ]]
     return "Octave Doubling Up", "Octave Doubling Up", "Doubles the current note an octave higher"
 end
@@ -44,7 +55,7 @@ function pitch_entry_double_at_interval(interval)
                 break
             end
             local new_note = note_entry.duplicate_note(note)
-            if nil ~= new_note then
+            if new_note then
                 transposition.diatonic_transpose(new_note, interval)
             end
         end
