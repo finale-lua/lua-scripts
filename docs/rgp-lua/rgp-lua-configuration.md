@@ -39,6 +39,8 @@ Add/Edit Dialog
 
 **Select Folder.** Selects a folder containing `.lua` and/or `.luac` files as an Auto Folder. _RGP Lua_ inserts every `.lua` or `.luac` file in an Auto Folder into Finale's plugin menu except `mobdebug.lua`, if it happens to exist.
 
+**Active.** If this option is unchecked, _RGP Lua_ skips this item when Finale loads. It allows you keep items in the list even if you do not wish them to appear in Finale. You can activate them later if you wish them to appear in Finale again.
+
 **Enable Debugging.** Selecting this option enables RGP Lua debugging features. These include:
 
 * Embedding the [`luasocket`](https://aiq0.github.io/luasocket/index.html) library into the Lua machine as global `socket` before executing the script. This allows communication with an external debugger, but it also gives affected scripts access to your network and potentially the Internet, so only use it with scripts from trusted sources.
