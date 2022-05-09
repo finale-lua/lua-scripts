@@ -319,8 +319,8 @@ function note_entry.delete_note(note)
     finale.FCPercussionNoteMod():EraseAt(note)
     finale.FCTablatureNoteMod():EraseAt(note)
     if finale.FCTieMod then -- added in RGP Lua 0.62
-        finale.FCTieMod(true):EraseAt(note)
-        finale.FCTieMod(false):EraseAt(note)
+        finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+        finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
     end
 
     return entry:DeleteNote(note)
