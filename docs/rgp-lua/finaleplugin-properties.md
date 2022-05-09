@@ -265,9 +265,11 @@ finaleplugin.Id = "742d0ea0-c109-4b81-87ae-d059f27cb028"
 Additional Menu Options
 =======================
 
-Frequently you may wish to have shortcuts to functions that differ from each other by only one or a few variables. For example, you might wish to have a script that transposes a selected music region up an octave. If you then wanted another script to transpose a region *down* an octave you would duplicate the up-octave script and change a single value in it. The only way to reuse the first script would be to parameterize the interval variable to allow for separate configurations in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration). But this still would require end-users to set up the configurations for themselves, and they would have to be somewhat knowledgable of Lua syntax to do it.
+Frequently you may wish to have shortcuts to functions that differ from each other by only one or a few variables. For example, you might wish to have a script that transposes a selected music region up an octave. If you then wanted another script to transpose a region *down* an octave, you might duplicate the up-octave script and change a single value in it. You could instead reuse the first script by defining the interval value in a variable. This would allow for separate configurations of the script in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration), but it still would require end-users to set up the configurations for themselves. And they would have to be somewhat knowledgable of Lua syntax to do it.
 
-_RGP Lua_ version 0.62 introduces the concept of **Additional Menu Options**. These allow the script itself to configure multiple versions of itself to appear in Finale's Plug-ins menu. The setup of Additional Menu Options is similar to the setup of the deprecated [Parameters](parameters-deprecated) fields in _JW Lua_. Each of the necessary fields (menu option text, undo text, description, and prefix) appear in parallel lists delimited by line breaks. Each list is a multiline string value in the `finaleplugin` namespace.
+_RGP Lua_ version 0.62 introduces the concept of **Additional Menu Options**. These allow a script to configure multiple versions of itself to appear in Finale's Plug-ins menu. The setup of Additional Menu Options is similar to the setup of the deprecated [Parameters](parameters-deprecated) fields in _JW Lua_. Each of the necessary fields (menu option text, undo text, description, and prefix) appear in parallel lists delimited by line breaks. Each list is a multiline string value in the `finaleplugin` namespace.
+
+_JW Lua_ does not support Additional Menu Options. It loads only the base menu option of the script, even if Additional Menu Options are supplied.
 
 #### AdditionalMenuOptions (multiline string)
 
@@ -286,7 +288,7 @@ finaleplugin.AdditionalMenuOptions = [[
 The undo text corresponding to each of the additional menu options defined in the `AdditionalMenuOptions` field. This field may be omitted, and _RGP Lua_ then uses each menu item text for its corresponding undo text.
 
 ```lua
-finaleplugin. AdditionalUndoText = [[
+finaleplugin.AdditionalUndoText = [[
     Transpose Octave Down
     Transpose Third Up
     Transpose Third Down
@@ -298,11 +300,11 @@ finaleplugin. AdditionalUndoText = [[
 The description text corresponding to each of the additional menu options defined in the `AdditionalMenuOptions` field. If you omit these fields, _RGP Lua_ uses the default description returned by the `plugindef()` function. It is highly recommended to supply separate description text for each additional menu option, but if your base description is generic enough to cover all the different menu options, then it is not necessary.
 
 ```lua
-    finaleplugin.AdditionalDescriptions = [[
-        Transposes the selected region an octave lower
-        Transposes the selected region a third higher
-        Transposes the selected region a third lower
-    ]]
+finaleplugin.AdditionalDescriptions = [[
+    Transposes the selected region an octave lower
+    Transposes the selected region a third higher
+    Transposes the selected region a third lower
+]]
 ```
 
 #### AdditionalPrefixes (multiline string)
@@ -318,17 +320,17 @@ Since each prefix can be any Lua code you wish, the sky is pretty much the limit
 Each additional prefix executes *in addition to* and *after* any prefix defined in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration). (Note, however, that _RGP Lua_ ignores the `AdditionalMenuOptions` fields if the configuration includes Optional Menu Text.) Each additional prefix also executes after any System Prefix, if defined.
 
 ```lua
-    finaleplugin.AdditionalPrefixes = [[
-        input_interval = -7
-        input_interval = 2
-        input_interval = -2
-    ]]
+finaleplugin.AdditionalPrefixes = [[
+    input_interval = -7
+    input_interval = 2
+    input_interval = -2
+]]
 ```
 
 Parameters (Deprecated)
 =======================
 
-**NOTE:** Parameters are not well supported by _JW Lua_ and not supported at all by _RGP Lua_. For _RGP Lua_ you can have a similar type of flexibility with a **prefix**. The parameter properties described here are **deprecated** and ignored by _RGP Lua_.
+**NOTE:** Parameters are not well supported by _JW Lua_ and not supported at all by _RGP Lua_. For _RGP Lua_ you can have a similar type of flexibility with a **prefix** and/or [Additional Menu Options](additional-menu-options). The parameter properties described here are **deprecated** and ignored by _RGP Lua_.
 
 #### ParameterTypes (multiline string)
 
