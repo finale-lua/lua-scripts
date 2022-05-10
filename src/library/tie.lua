@@ -323,4 +323,27 @@ function tie.calc_direction(note, tie_mod, tie_prefs)
     return tie.calc_default_direction(note, not tie_mod:IsStartTie(), tie_prefs)
 end -- function tie.calc_direction
 
+--[[
+% calc_placement_code
+
+Calculates the correct placement (connection) code for activating a Tie Placement Start Point or End Point
+in FCTieMod.
+
+@ note (FCNote) the note for which to return the code
+@ for_endpoint (boolean) if true, calculate the end point code, otherwise the start point code
+@ for_tieend (boolean) if true, calculate the code for a tie end
+@ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
+: (number) Returns one of TIEMOD_CONNECTION_CODES. If the input note has no applicable tie, it returns TIEMODCNCT_NONE.
+]]
+function tie.calc_placement_code(note, for_endpoint, for_tieend, tie_prefs)
+    if not tie_prefs then
+        tie_prefs = finale.FCTiePrefs()
+        tie_prefs:Load(0)
+    end
+    if not for_endpoint and for_tieend then
+        return finale.TIEMODCNCT_SYSTEMSTART
+    end
+    -- if for_endpoint and 
+end
+
 return tie
