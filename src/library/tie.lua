@@ -11,13 +11,13 @@ local equal_note = function(entry, target_note, for_tieend)
     if entry:IsRest() then
         return nil
     end
-    -- By using CalcStaffLine we can support a key change in the middle of a tie. But it is at the cost
+    -- By using CalcStaffPosition we can support a key change in the middle of a tie. But it is at the cost
     -- of not supporting a clef change in the middle of the tie. A calculation comparing normalized concert
     -- pitch is *much* more complicated code, and clef changes in the middle of ties seem like a very limited
     -- use case.
-    local target_staffline = target_note:CalcStaffLine()
+    local target_staffline = target_note:CalcStaffPosition()
     for note in each(entry) do
-        local this_staffline = note:CalcStaffLine()
+        local this_staffline = note:CalcStaffPosition()
         if this_staffline == target_staffline then
             if for_tieend then
                 if note.TieBackwards then
@@ -104,16 +104,18 @@ local tie_span = function(note, for_tieend)
 end
 
 --[[
-% default_direction
+% calc_default_direction
 
-Returns either TIEMODDIR_UNDER or TIEMODDIR_OVER. If the input note has no applicable tie,
-it returns 0.
+Calculates the default direction of a tie based on context and FCTiePrefs but ignoring multi-voice
+and multi-layer overrides. It also does not take into account the direction being overridden in
+FCTieMods. Use tie.calc_direction to calculate the actual current tie direction.
 
 @ note (FCNote) the note for which to return the tie direction.
 @ for_tieend (boolean) specifies that this request is for a tie_end.
 @ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
+: (number) Either TIEMODDIR_UNDER or TIEMODDIR_OVER. If the input note has no applicable tie, it returns 0.
 ]]
-function tie.default_direction(note, for_tieend, tie_prefs)
+function tie.calc_default_direction(note, for_tieend, tie_prefs)
     if for_tieend then
         if not note.TieBackwards then
             return 0
@@ -129,6 +131,48 @@ function tie.default_direction(note, for_tieend, tie_prefs)
     end
     local stemdir = note.Entry.StemUp and 1 or -1
     if note.Entry.Count > 1 then
+        -- This code depends on observed Finale behavior that the notes are always sorted
+        -- from lowest-to-highest inside the entry. If Finale's behavior ever changes, this
+        -- code is screwed.
+
+        -- If note is outer, tie-direction is unaffected by tie_prefs
+        if note.NoteIndex == 0 then
+            return finale.TIEMODDIR_UNDER
+        end
+        if note.NoteIndex == note.Entry.Count - 1 then
+            return finale.TIEMODDIR_OVER
+        end
+
+        local inner_default = 0
+
+        if tie_prefs.ChordDirectionType ~= finale.TIECHORDDIR_STEMREVERSAL then
+            if note.NoteIndex < math.floor(note.Entry.Count / 2) then
+                inner_default = finale.TIEMODDIR_UNDER
+            end
+            if note.NoteIndex >= math.floor((note.Entry.Count + 1) / 2) then
+                inner_default = finale.TIEMODDIR_OVER
+            end
+            if tie_prefs.ChordDirectionType == finale.TIECHORDDIR_OUTSIDEINSIDE then
+                inner_default = (stemdir > 0) and finale.TIEMODDIR_UNDER or finale.TIEMODDIR_OVER
+            end
+        end
+        if inner_default == 0 or tie_prefs.ChordDirectionType == finale.TIECHORDDIR_STEMREVERSAL then
+            local staff_position = note:CalcStaffPosition()
+            local curr_staff = finale.FCCurrentStaffSpec()
+            curr_staff:LoadForEntry(note.Entry)
+            inner_default = staff_position < curr_staff.StemReversalPosition and finale.TIEMODDIR_UNDER or finale.TIEMODDIR_OVER
+        end
+        if inner_default ~= 0 then
+            if tie_prefs.ChordDirectionOpposingSeconds then
+                if inner_default == finale.TIEMODDIR_OVER and not note:IsUpper2nd() and note:IsLower2nd() then
+                    return finale.TIEMODDIR_UNDER
+                end
+                if inner_default == finale.TIEMODDIR_UNDER and note:IsUpper2nd() and not note:IsLower2nd() then
+                    return finale.TIEMODDIR_OVER
+                end
+            end
+            return inner_default
+        end
     else
         local adjacent_stemdir = 0
         local note_entry_layer, start_note, end_note = tie_span(note, for_tieend)
