@@ -223,14 +223,52 @@ function tie.calc_default_direction(note, for_tieend, tie_prefs)
 
 end -- function tie.default_direction
 
+local calc_layer_is_visible = function(staff, layer_number)
+    local altnotation_layer = staff.AltNotationLayer
+    if layer_number ~= altnotation_layer then
+        return staff.AltShowOtherNotes
+    end
+
+    local hider_altnotation_types = {finale.ALTSTAFF_BLANKNOTATION, finale.ALTSTAFF_SLASHBEATS, finale.ALTSTAFF_ONEBARREPEAT, finale.ALTSTAFF_TWOBARREPEAT, finale.ALTSTAFF_BLANKNOTATIONRESTS}
+    local altnotation_type = staff.AltNotationStyle
+    for _, v in pairs(hider_altnotation_types) do
+        if v == altnotation_type then
+            return false
+        end
+    end
+
+    return true
+end
+
+local calc_other_layers_visible = function(entry)
+    local staff = finale.FCCurrentStaffSpec()
+    staff:LoadForEntry(entry)
+    for layer = 1, finale.FCLayerPrefs.GetMaxLayers() do
+        if layer ~= entry.LayerNumber and calc_layer_is_visible(staff, layer) then
+            local layer_prefs = finale.FCLayerPrefs()
+            if layer_prefs:Load(layer - 1) and not layer_prefs.HideWhenInactive then
+                local layer_entries = finale.FCNoteEntryLayer(layer - 1, entry.Staff, entry.Measure, entry.Measure)
+                if layer_entries:Load() then
+                    for layer_entry in each(layer_entries) do
+                        if layer_entry.Visible then
+                            return true
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
 local layer_stem_direction = function(layer_prefs, entry)
     if layer_prefs.UseFreezeStemsTies then
         if layer_prefs.UseRestOffsetInMultiple then -- UseRestOffsetInMultiple controls a lot more than just rests
             if not entry:CalcMultiLayeredCell() then
                 return 0
             end
-            if layer_prefs.IgnoreHiddenNotes then
-                -- ToDo: look for non-hidden other layers and return 0 if none found
+            if layer_prefs.IgnoreHiddenNotes and not calc_other_layers_visible(entry) then
+                return 0
             end
         end
         return layer_prefs.FreezeStemsUp and 1 or -1
