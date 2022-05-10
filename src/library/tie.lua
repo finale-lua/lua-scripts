@@ -113,7 +113,7 @@ FCTieMods. Use tie.calc_direction to calculate the actual current tie direction.
 @ note (FCNote) the note for which to return the tie direction.
 @ for_tieend (boolean) specifies that this request is for a tie_end.
 @ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
-: (number) Either TIEMODDIR_UNDER or TIEMODDIR_OVER. If the input note has no applicable tie, it returns 0.
+: (number) Returns either TIEMODDIR_UNDER or TIEMODDIR_OVER. If the input note has no applicable tie, it returns 0.
 ]]
 function tie.calc_default_direction(note, for_tieend, tie_prefs)
     if for_tieend then
@@ -222,5 +222,67 @@ function tie.calc_default_direction(note, for_tieend, tie_prefs)
     return (stemdir > 0) and finale.TIEMODDIR_UNDER or finale.TIEMODDIR_OVER
 
 end -- function tie.default_direction
+
+local layer_stem_direction = function(layer_prefs, entry)
+    if layer_prefs.UseFreezeStemsTies then
+        if layer_prefs.UseRestOffsetInMultiple then -- UseRestOffsetInMultiple controls a lot more than just rests
+            if not entry:CalcMultiLayeredCell() then
+                return 0
+            end
+            if layer_prefs.IgnoreHiddenNotes then
+                -- ToDo: look for non-hidden other layers and return 0 if none found
+            end
+        end
+        return layer_prefs.FreezeStemsUp and 1 or -1
+    end
+    return 0
+end
+
+local layer_tie_direction = function(entry)
+    local layer_prefs = finale.FCLayerPrefs()
+    if not layer_prefs:Load(entry.LayerNumber - 1) then
+        return 0
+    end
+    local layer_stemdir = layer_stem_direction(layer_prefs, entry)
+    if layer_stemdir ~= 0 and layer_prefs.FreezeTiesSameDirection then
+        return layer_stemdir > 0 and finale.TIEMODDIR_OVER or finale.TIEMODDIR_UNDER
+    end
+    return 0
+end
+
+--[[
+% calc_default_direction
+
+Calculates the current direction of a tie based on context and FCTiePrefs, taking into account multi-voice
+and multi-layer overrides. It also takes into account if the direction has been overridden in
+FCTieMods.
+
+@ note (FCNote) the note for which to return the tie direction.
+@ tie_mod (FCTieMod) the tie mods for the note, if any.
+@ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
+: (number) Returns either TIEMODDIR_UNDER or TIEMODDIR_OVER. If the input note has no applicable tie, it returns 0.
+]]
+function tie.calc_direction(note, tie_mod, tie_prefs)
+    -- much of this code works even if the note doesn't (yet) have a tie, so
+    -- skip the check to see if we actually have a tie.
+    if tie_mod.TieDirection ~= finale.TIEMODDIR_AUTOMATIC then
+        return tie_mod.TieDirection
+    end
+    if note.Entry.SplitStem then
+        return note.UpstemSplit and finale.TIEMODDIR_OVER or finale.TIEMODDIR_UNDER
+    end
+    local layer_tiedir = layer_tie_direction(note.Entry)
+    if layer_tiedir ~= 0 then
+        return layer_tiedir
+    end
+    if note.Entry.Voice2Launch or note.Entry.Voice2 then
+        return note.Entry.StemUp and finale.TIEMODDIR_OVER or finale.TIEMODDIR_UNDER
+    end
+    if note.Entry.FlipTie then
+        return note.Entry.StemUp and finale.TIEMODDIR_OVER or finale.TIEMODDIR_UNDER
+    end
+
+    return tie.calc_default_direction(note, not tie_mod:IsStartTie(), tie_prefs)
+end -- function tie.calc_direction
 
 return tie
