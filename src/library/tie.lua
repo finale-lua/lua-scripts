@@ -576,13 +576,14 @@ end
 local activate_endpoint = function(note, tie_mod, placement, direction, for_endpoint, for_pageview, tie_prefs, tie_placement_prefs)
     local active_check_func = for_endpoint and tie_mod.IsEndPointActive or tie_mod.IsStartPointActive
     if active_check_func(tie_mod) then
-        return
+        return false
     end
     local for_tieend = not tie_mod:IsStartTie()
     local connect = tie.calc_connection_code(note, placement, direction, for_endpoint, for_tieend, for_pageview, tie_prefs)
     local xoffset, yoffset = calc_prefs_offset_for_endpoint(note, tie_prefs, tie_placement_prefs, placement, for_endpoint, for_tieend, for_pageview)
     local activation_func = for_endpoint and tie_mod.ActivateEndPoint or tie_mod.ActivateStartPoint
     activation_func(tie_mod, direction == finale.TIEMODDIR_OVER, connect, xoffset, yoffset)
+    return true
 end
 
 --[[
@@ -604,8 +605,11 @@ function tie.activate_endpoints(note, tie_mod, for_pageview, tie_prefs)
     local tie_placement_prefs = tie_prefs:CreateTiePlacementPrefs()
     local direction = tie.calc_direction(note, tie_mod, tie_prefs)
     local lplacement, rplacement = tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
-    activate_endpoint(note, tie_mod, lplacement, direction, false, for_pageview, tie_prefs, tie_placement_prefs)
-    activate_endpoint(note, tie_mod, rplacement, direction, true, for_pageview, tie_prefs, tie_placement_prefs)
+    local lactivated = activate_endpoint(note, tie_mod, lplacement, direction, false, for_pageview, tie_prefs, tie_placement_prefs)
+    local ractivated = activate_endpoint(note, tie_mod, rplacement, direction, true, for_pageview, tie_prefs, tie_placement_prefs)
+    if lactivated and ractivated then
+        tie_mod:LocalizeFromPreferences()
+    end
 end
 
 return tie
