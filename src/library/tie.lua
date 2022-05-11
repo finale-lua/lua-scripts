@@ -559,4 +559,53 @@ function tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
     return start_placement, end_placement
 end
 
+local calc_prefs_offset_for_endpoint = function(note, tie_prefs, tie_placement_prefs, placement, for_endpoint, for_tieend, for_pageview)
+    local tie_
+    if for_endpoint then
+        if calc_is_end_of_system(note, for_pageview) then
+            return tie_prefs.SystemRightHorizontalOffset, tie_placement_prefs:GetVerticalEnd(placement)
+        end
+        return tie_placement_prefs:GetHorizontalEnd(placement), tie_placement_prefs:GetVerticalEnd(placement)
+    end
+    if for_tieend then
+        return tie_prefs.SystemLeftHorizontalOffset, tie_placement_prefs:GetVerticalStart(placement)
+    end
+    return tie_placement_prefs:GetHorizontalStart(placement), tie_placement_prefs:GetVerticalStart(placement)
+end
+
+local activate_endpoint = function(note, tie_mod, placement, direction, for_endpoint, for_pageview, tie_prefs, tie_placement_prefs)
+    local active_check_func = for_endpoint and tie_mod.IsEndPointActive or tie_mod.IsStartPointActive
+    if active_check_func(tie_mod) then
+        return
+    end
+    local for_tieend = not tie_mod:IsStartTie()
+    local connect = tie.calc_connection_code(note, placement, direction, for_endpoint, for_tieend, for_pageview, tie_prefs)
+    local xoffset, yoffset = calc_prefs_offset_for_endpoint(note, tie_prefs, tie_placement_prefs, placement, for_endpoint, for_tieend, for_pageview)
+    local activation_func = for_endpoint and tie_mod.ActivateEndPoint or tie_mod.ActivateStartPoint
+    activation_func(tie_mod, direction == finale.TIEMODDIR_OVER, connect, xoffset, yoffset)
+end
+
+--[[
+% activate_endpoints
+
+Activates the placement endpoints of the input tie_mod and initializes them with their
+default values. If an endpoint is already activated, that endpoint is not touched.
+
+@ note (FCNote) the note for which to return the tie direction.
+@ tie_mod (FCTieMod) the tie mods for the note, if any.
+@ for_pageview (bool) true if calculating for Page View, false for Scroll/Studio View
+@ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
+]]
+function tie.activate_endpoints(note, tie_mod, for_pageview, tie_prefs)
+    if not tie_prefs then
+        tie_prefs = finale.FCTiePrefs()
+        tie_prefs:Load(0)
+    end
+    local tie_placement_prefs = tie_prefs:CreateTiePlacementPrefs()
+    local direction = tie.calc_direction(note, tie_mod, tie_prefs)
+    local lplacement, rplacement = tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
+    activate_endpoint(note, tie_mod, lplacement, direction, false, for_pageview, tie_prefs, tie_placement_prefs)
+    activate_endpoint(note, tie_mod, rplacement, direction, true, for_pageview, tie_prefs, tie_placement_prefs)
+end
+
 return tie
