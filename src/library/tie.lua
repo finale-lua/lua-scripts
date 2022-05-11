@@ -129,7 +129,7 @@ function tie.calc_default_direction(note, for_tieend, tie_prefs)
         tie_prefs = finale.FCTiePrefs()
         tie_prefs:Load(0)
     end
-    local stemdir = note.Entry.StemUp and 1 or -1
+    local stemdir = note.Entry:CalcStemUp() and 1 or -1
     if note.Entry.Count > 1 then
         -- This code depends on observed Finale behavior that the notes are always sorted
         -- from lowest-to-highest inside the entry. If Finale's behavior ever changes, this
@@ -184,12 +184,12 @@ function tie.calc_default_direction(note, for_tieend, tie_prefs)
             if end_note then
                 local start_entry = end_note.Entry:Previous()
                 if start_entry then
-                    adjacent_stemdir = start_entry.StemUp and 1 or -1
+                    adjacent_stemdir = start_entry:CalcStemUp() and 1 or -1
                 end
             end
         else
             if end_note then
-                adjacent_stemdir = end_note.Entry.StemUp and 1 or -1
+                adjacent_stemdir = end_note.Entry:CalcStemUp() and 1 or -1
             end
             if adjacent_stemdir == 0 and start_note then
                 -- Finale (as of v2K) has the following Mickey Mouse behavior. When no Tie-To note exists,
@@ -200,11 +200,11 @@ function tie.calc_default_direction(note, for_tieend, tie_prefs)
                 --				the V2 has a stem in the opposite direction, use it.
                 local next_entry = start_note.Entry:Next()
                 if next_entry and not next_entry:IsRest() then
-                    adjacent_stemdir = next_entry.StemUp and 1 or -1
+                    adjacent_stemdir = next_entry:CalcStemUp() and 1 or -1
                     if not next_entry.FreezeStem and next_entry.Voice2Launch and adjacent_stemdir == stemdir then
                         next_entry = next_entry:Next()
                         if next_entry then
-                            adjacent_stemdir = next_entry.StemUp and 1 or -1
+                            adjacent_stemdir = next_entry:CalcStemUp() and 1 or -1
                         end
                     end
                 end
@@ -289,7 +289,7 @@ local layer_tie_direction = function(entry)
 end
 
 --[[
-% calc_default_direction
+% calc_direction
 
 Calculates the current direction of a tie based on context and FCTiePrefs, taking into account multi-voice
 and multi-layer overrides. It also takes into account if the direction has been overridden in
@@ -314,28 +314,65 @@ function tie.calc_direction(note, tie_mod, tie_prefs)
         return layer_tiedir
     end
     if note.Entry.Voice2Launch or note.Entry.Voice2 then
-        return note.Entry.StemUp and finale.TIEMODDIR_OVER or finale.TIEMODDIR_UNDER
+        return note.Entry:CalcStemUp() and finale.TIEMODDIR_OVER or finale.TIEMODDIR_UNDER
     end
     if note.Entry.FlipTie then
-        return note.Entry.StemUp and finale.TIEMODDIR_OVER or finale.TIEMODDIR_UNDER
+        return note.Entry:CalcStemUp() and finale.TIEMODDIR_OVER or finale.TIEMODDIR_UNDER
     end
 
     return tie.calc_default_direction(note, not tie_mod:IsStartTie(), tie_prefs)
 end -- function tie.calc_direction
 
---[[
-% calc_placement_code
+local calc_is_end_of_system = function(note, for_pageview)
+    if not note.Entry:Next() then
+        local region = finale.FCMusicRegion()
+        region:SetFullDocument()
+        if note.Entry.Measure == region.EndMeasure then
+            return true
+        end
+    end
+    if for_pageview then
+        local note_entry_layer, start_note, end_note = tie_span(note, false)
+        if start_note and end_note then
+            local systems = finale.FCStaffSystems()
+            systems:LoadAll()
+            local start_system = systems:FindMeasureNumber(start_note.Entry.Measure)
+            local end_system = systems:FindMeasureNumber(end_note.Entry.Measure)
+            return start_system.ItemNo ~= end_system.ItemNo
+        end
+    end
+    return false
+end
 
-Calculates the correct placement (connection) code for activating a Tie Placement Start Point or End Point
+local has_nonaligned_2nd = function(entry)
+    for note in each(entry) do
+        if note:IsNonAligned2nd() then
+            return true
+        end
+    end
+    return false
+end
+
+--[[
+% calc_connection_code
+
+Calculates the correct connection code for activating a Tie Placement Start Point or End Point
 in FCTieMod.
 
 @ note (FCNote) the note for which to return the code
+@ placement (number) one of the TIEPLACEMENT_INDEXES values
+@ direction (number) one of the TIEMOD_DIRECTION values
 @ for_endpoint (boolean) if true, calculate the end point code, otherwise the start point code
 @ for_tieend (boolean) if true, calculate the code for a tie end
+@ for_pageview (boolean) if true, calculate the code for page view, otherwise for scroll/studio view
 @ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
 : (number) Returns one of TIEMOD_CONNECTION_CODES. If the input note has no applicable tie, it returns TIEMODCNCT_NONE.
 ]]
-function tie.calc_placement_code(note, for_endpoint, for_tieend, tie_prefs)
+function tie.calc_connection_code(note, placement, direction, for_endpoint, for_tieend, for_pageview, tie_prefs)
+    -- As of now, I haven't found any use for the connection codes:
+    --      TIEMODCNCT_ENTRYCENTER_NOTEBOTTOM
+    --      TIEMODCNCT_ENTRYCENTER_NOTETOP
+    -- The other 15 are accounted for here. RGP 5/11/2022
     if not tie_prefs then
         tie_prefs = finale.FCTiePrefs()
         tie_prefs:Load(0)
@@ -343,7 +380,183 @@ function tie.calc_placement_code(note, for_endpoint, for_tieend, tie_prefs)
     if not for_endpoint and for_tieend then
         return finale.TIEMODCNCT_SYSTEMSTART
     end
-    -- if for_endpoint and 
+    if for_endpoint and not for_tieend and calc_is_end_of_system(note, for_pageview) then
+        return finale.TIEMODCNCT_SYSTEMEND
+    end
+    if placement == finale.TIEPLACE_OVERINNER or placement == finale.TIEPLACE_UNDERINNER then
+        local stemdir = note.Entry:CalcStemUp() and 1 or -1
+        if for_endpoint then
+            if tie_prefs.BeforeSingleAccidental and note.Entry.Count == 1 and note:CalcAccidental() then
+                return finale.TIEMODCNCT_ACCILEFT_NOTECENTER
+            end
+            if has_nonaligned_2nd(note.Entry) then
+                if (stemdir > 0 and direction ~= finale.TIEMODDIR_UNDER and note:IsNonAligned2nd()) or (stemdir < 0 and not note:IsNonAligned2nd()) then
+                    return finale.TIEMODCNCT_NOTELEFT_NOTECENTER
+                end
+            end
+            return finale.TIEMODCNCT_ENTRYLEFT_NOTECENTER
+        else
+            local num_dots = note.Entry:CalcDots()
+            if (tie_prefs.AfterSingleDot and num_dots == 1) or (tie_prefs.AfterMultipleDots and num_dots > 1) then
+                return finale.TIEMODCNCT_DOTRIGHT_NOTECENTER
+            end
+            if has_nonaligned_2nd(note.Entry) then
+                if (stemdir > 0 and not note:IsNonAligned2nd()) or (stemdir < 0 and direction ~= finale.TIEMODDIR_OVER and note:IsNonAligned2nd()) then
+                    return finale.TIEMODCNCT_NOTERIGHT_NOTECENTER
+                end
+            end
+            return finale.TIEMODCNCT_ENTRYRIGHT_NOTECENTER
+        end
+    elseif placement == finale.TIEPLACE_OVEROUTERNOTE then
+        return finale.TIEMODCNCT_NOTECENTER_NOTETOP
+    elseif placement == finale.TIEPLACE_UNDEROUTERNOTE then
+        return finale.TIEMODCNCT_NOTECENTER_NOTEBOTTOM
+    elseif placement == finale.TIEPLACE_OVEROUTERSTEM then
+        return for_endpoint and finale.TIEMODCNCT_NOTELEFT_NOTETOP or finale.TIEMODCNCT_NOTERIGHT_NOTETOP
+    elseif placement == finale.TIEPLACE_UNDEROUTERSTEM then
+        return for_endpoint and finale.TIEMODCNCT_NOTELEFT_NOTEBOTTOM or finale.TIEMODCNCT_NOTERIGHT_NOTEBOTTOM
+    end
+    return finale.TIEMODCNCT_NONE
+end
+
+local calc_placement_for_endpoint = function(note, tie_mod, tie_prefs, direction, stemdir, for_endpoint, end_note_slot, end_num_notes, end_upstem2nd, end_downstem2nd)
+    local note_slot = end_note_slot and end_note_slot or note.NoteIndex
+    local num_notes = end_num_notes and end_num_notes or note.Entry.Count
+    local upstem2nd = end_upstem2nd ~= nil and end_upstem2nd or note.Upstem2nd
+    local downstem2nd = end_downstem2nd ~= nil and end_downstem2nd or note.Downstem2nd
+    if (note_slot == 0 and direction == finale.TIEMODDIR_UNDER) or (note_slot == num_notes - 1 and direction == finale.TIEMODDIR_OVER) then
+        local use_outer = false
+        local manual_override = false
+        if tie_mod.OuterPlacement ~= finale.TIEMODSEL_DEFAULT then
+            manual_override = true
+            if tie_mod.OuterPlacement == finale.TIEMODSEL_ON then
+                use_outer = true
+            end
+        end
+        if not manual_override and tie_prefs.UseOuterPlacement then
+            use_outer = true
+        end
+        if use_outer then
+            if note.Entry.Duration < finale.WHOLE_NOTE then
+                if for_endpoint then
+                    -- A downstem 2nd is always treated as OuterNote
+                    -- An upstem 2nd is always treated as OuterStem
+                    if stemdir < 0 and direction == finale.TIEMODDIR_UNDER and not downstem2nd then
+                        return finale.TIEPLACE_UNDEROUTERSTEM
+                    end
+                    if stemdir > 0 and direction == finale.TIEMODDIR_OVER and upstem2nd then
+                        return finale.TIEPLACE_OVEROUTERSTEM
+                    end
+                else
+                    -- see comments above and take their opposites
+                    if stemdir > 0 and direction == finale.TIEMODDIR_OVER and not upstem2nd then
+                        return finale.TIEPLACE_OVEROUTERSTEM
+                    end
+                    if stemdir < 0 and direction == finale.TIEMODDIR_UNDER and downstem2nd then
+                        return finale.TIEPLACE_UNDEROUTERSTEM
+                    end
+                end
+            end
+            return direction == finale.TIEMODDIR_UNDER and finale.TIEPLACE_UNDEROUTERNOTE or finale.TIEPLACE_OVEROUTERNOTE
+        end
+    end
+    return direction == finale.TIEMODDIR_UNDER and finale.TIEPLACE_UNDERINNER or finale.TIEPLACE_OVERINNER
+end
+
+--[[
+% calc_placement
+
+Calculates the current placement of a tie based on context and FCTiePrefs.
+
+@ note (FCNote) the note for which to return the tie direction.
+@ tie_mod (FCTieMod) the tie mods for the note, if any.
+@ for_pageview (bool) true if calculating for Page View, false for Scroll/Studio View
+@ direction (number) one of the TIEMOD_DIRECTION values or nil (if you don't know it yet)
+@ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
+: (number) TIEPLACEMENT_INDEXES value for start point
+: (number) TIEPLACEMENT_INDEXES value for end point
+]]
+function tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
+    if not tie_prefs then
+        tie_prefs = finale.FCTiePrefs()
+        tie_prefs:Load(0)
+    end
+    direction = direction and direction ~= finale.TIEMODDIR_AUTOMATIC and direction or tie.calc_direction(note, tie_mod, tie_prefs)
+    local stemdir = note.Entry:CalcStemUp() and 1 or -1
+    local start_placement, end_placement
+    if not tie_mod:IsStartTie() then
+        start_placement = calc_placement_for_endpoint(note, tie_mod, tie_prefs, direction, stemdir, false)
+        end_placement = calc_placement_for_endpoint(note, tie_mod, tie_prefs, direction, stemdir, true)
+    else
+        start_placement = calc_placement_for_endpoint(note, tie_mod, tie_prefs, direction, stemdir, false)
+        end_placement = start_placement -- initialize it with something
+        local note_entry_layer, start_note, end_note = tie_span(note, false)
+        if end_note then
+            local next_stemdir = end_note.Entry:CalcStemUp() and 1 or -1
+            end_placement = calc_placement_for_endpoint(end_note, tie_mod, tie_prefs, direction, next_stemdir, true)
+        else
+            -- more reverse-engineered logic. Here is the observed Finale behavior:
+            -- 1. Ties to rests and nothing have StemOuter placement at their endpoint.
+            -- 2. Ties to an adjacent empty bar have inner placement on both ends. (weird but true)
+            -- 3. Ties to notes are Inner if the down-tied-to entry has a note that is lower or
+            --			an up-tied-to entry has a note that is higher.
+            --			The flakiest behavior is with with under-ties to downstem chords containing 2nds.
+            --			In this case, we must pass in the UPSTEM 2nd bit or'ed from all notes in the chord.
+            local next_entry = start_note.Entry:Next() -- start_note is from note_entry_layer, which includes the next bar
+            if next_entry then
+                if not next_entry:IsRest() and next_entry.Count > 0 then
+                    if direction == finale.TIEMODDIR_UNDER then
+                        local next_note = next_entry:GetItemAt(0)
+                        if next_note.Displacment < note.Displacement then
+                            end_placement = finale.TIEPLACE_UNDERINNER
+                        else
+                            local next_stemdir = next_entry:CalcStemUp() and 1 or -1
+                            end_placement = calc_placement_for_endpoint(next_note, tie_mod, tie_prefs, direction, next_stemdir, true)
+                        end
+                    else
+                        local next_note = next_entry:GetItemAt(next_entry.Count - 1)
+                        if next_note.Displacment > note.Displacement then
+                            end_placement = finale.TIEPLACE_OVERINNER
+                        else
+                            -- flaky behavior alert: this code might not work in a future release but
+                            -- so far it it has held up. This is the Finale 2000 behavior.
+                            -- If the entry is downstem, OR together all the Upstem 2nd bits.
+                            -- Finale is so flaky that it does not do this for Scroll View at less than 130%.
+                            -- However, it seems to do it consistently in Page View.
+                            local upstem2nd = next_note.Upstem2nd
+                            if next_entry:CalcStemUp() then
+                                for check_note in each(next_entry) do
+                                    if check_note.Upstem2nd then
+                                        upstem2nd = true
+                                    end
+                                end
+                                local next_stemdir = direction == finale.TIEMODDIR_UNDER and -1 or 1
+                                end_placement = calc_placement_for_endpoint(next_note, tie_mod, tie_prefs, direction, next_stemdir, true, next_note.NoteIndex, next_entry.Count, upstem2nd, next_note.Downstem2nd)
+                            end
+                        end
+                    end
+                else
+                    local next_stemdir = direction == finale.TIEMODDIR_UNDER and -1 or 1
+                    end_placement = calc_placement_for_endpoint(note, tie_mod, tie_prefs, direction, next_stemdir, true, note.NoteIndex, note.Entry.Count, false, false)
+                end
+            else
+                if calc_is_end_of_system(note, for_pageview) then
+                    end_placement = direction == finale.TIEMODDIR_UNDER and finale.TIEPLACE_UNDEROUTERSTEM or finale.TIEPLACE_OVEROUTERSTEM
+                else
+                    end_placement = direction == finale.TIEMODDIR_UNDER and finale.TIEPLACE_UNDERINNER or finale.TIEPLACE_OVERINNER
+                end
+            end
+        end
+    end
+
+    -- if either of the endpoints is inner, make both of them inner.
+    if start_placement == finale.TIEPLACE_OVERINNER or start_placement == finale.TIEPLACE_UNDERINNER then
+        end_placement = start_placement
+    elseif end_placement == finale.TIEPLACE_OVERINNER or end_placement == finale.TIEPLACE_UNDERINNER then
+        start_placement = end_placement
+    end
+
+    return start_placement, end_placement
 end
 
 return tie
