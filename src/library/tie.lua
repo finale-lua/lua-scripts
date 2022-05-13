@@ -612,4 +612,75 @@ function tie.activate_endpoints(note, tie_mod, for_pageview, tie_prefs)
     end
 end
 
+local calc_tie_length = function(note, tie_mod, for_pageview, direction, tie_prefs)
+    local cell_metrics_start = finale.FCCellMetrics()
+    local entry_metrics_start = finale.FCEntryMetrics()
+    cell_metrics_start:LoadAtEntry(note.Entry)
+    entry_metrics_start:Load(note.Entry)
+
+    local cell_metrics_end = finale.FCCellMetrics()
+    local entry_metrics_end = finale.FCEntryMetrics()
+    local note_entry_layer, start_note, end_note = tie_span(note, false)
+    if tie_mod:IsStartTie() then
+        if end_note then
+            cell_metrics_end:LoadAtEntry(end_note.Entry)
+            entry_metrics_end:Load(end_note.Entry)
+        end
+    end
+
+    local lplacement, rplacement = tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
+    local horz_start = 0
+    local horz_end = 0
+    local incr_start = 0
+    local incr_end = 0
+
+    -- the following default locations are empirically determined.
+    local OUTER_NOTE_OFFSET_PCTG = 7.0 / 16.0
+    local INNER_INCREMENT = 6
+
+    local staff_scaling = cell_metrics_start.StaffScaling / 10000.0
+    local horz_stretch = for_pageview and 1 or cell_metrics_start.HorizontalStretch / 10000.0
+
+    if tie_mod:IsStartTie() then
+        horz_start = entry_metrics_start:GetNoteLeftPosition(note.NoteIndex) / horz_stretch
+        if lplacement == finale.TIEPLACE_OVERINNER or lplacement == finale.TIEPLACE_OVEROUTERSTEM or lplacement == finale.TIEPLACE_UNDERINNER then
+            horz_start = horz_start + entry_metrics_start:GetNoteWidth(note.NoteIndex)
+            incr_start = INNER_INCREMENT
+        else
+            horz_start = horz_start + (entry_metrics_start:GetNoteWidth(note.NoteIndex) * OUTER_NOTE_OFFSET_PCTG)
+        end
+    else
+        horz_start = (cell_metrics_start.MusicStartPos * staff_scaling) / horz_stretch
+    end
+
+    if tie_mod:IsStartTie() and (not end_note or cell_metrics_start.StaffSystem ~= cell_metrics_end.StaffSystem) then
+        local next_cell_metrics = finale.FCCellMetrics()
+        local next_metrics_loaded = next_cell_metrics:LoadAtCell(finale.FCCell(note.Entry.Measure + 1, note.entry.Staff))
+        if not next_metrics_loaded or cell_metrics_start.StaffSystem ~= cell_metrics_end.StaffSystem then
+            -- note: a tie to an empty measure on the same system will get here, but
+            -- currently we do not correctly calculate its span. To do so we would have to
+            -- read the measure separations from the prefs.
+            horz_end = (cell_metrics_start.MusicStartPos + cell_metrics_start.Width) * staff_scaling
+            incr_end = cell_metrics_start.RightBarlineWidth
+        else
+            horz_end = next_cell_metrics.MusicStartPos * staff_scaling
+        end
+        horz_end = horz_end / horz_stretch
+    else
+        local entry_metrics = tie_mod:IsStartTie() and cell_metrics_end or cell_metrics_start
+        local note_index = start_note.NoteIndex
+        if end_note then
+            -- if tie_mod:IsStartTie() is true, then end_note will never be nil here (see top if statement),
+            -- but the Lua delinter can't figure it out, so use an explicit if statement for end_note.
+            note_index = tie_mod:IsStartTie() and end_note.NoteIndex or note_index
+        end
+        horz_end = entry_metrics:GetNoteLeftPosition(note_index) / horz_stretch
+        if rplacement == finale.TIEPLACE_OVERINNER or rplacement == finale.TIEPLACE_UNDERINNER or rplacement == finale.TIEPLACE_UNDEROUTERSTEM then
+            incr_end = -INNER_INCREMENT
+        else
+            horz_end = horz_end + (entry_metrics_start:GetNoteWidth(note.NoteIndex) * (1.0 - OUTER_NOTE_OFFSET_PCTG))
+        end
+    end
+end
+
 return tie
