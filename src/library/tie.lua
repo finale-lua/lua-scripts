@@ -612,7 +612,7 @@ function tie.activate_endpoints(note, tie_mod, for_pageview, tie_prefs)
     end
 end
 
-local calc_tie_length = function(note, tie_mod, for_pageview, direction, tie_prefs)
+local calc_tie_length = function(note, tie_mod, for_pageview, direction, tie_prefs, tie_placement_prefs)
     local cell_metrics_start = finale.FCCellMetrics()
     local entry_metrics_start = finale.FCEntryMetrics()
     cell_metrics_start:LoadAtEntry(note.Entry)
@@ -667,7 +667,7 @@ local calc_tie_length = function(note, tie_mod, for_pageview, direction, tie_pre
         end
         horz_end = horz_end / horz_stretch
     else
-        local entry_metrics = tie_mod:IsStartTie() and cell_metrics_end or cell_metrics_start
+        local entry_metrics = tie_mod:IsStartTie() and entry_metrics_end or entry_metrics_start
         local note_index = start_note.NoteIndex
         if end_note then
             -- if tie_mod:IsStartTie() is true, then end_note will never be nil here (see top if statement),
@@ -681,6 +681,53 @@ local calc_tie_length = function(note, tie_mod, for_pageview, direction, tie_pre
             horz_end = horz_end + (entry_metrics_start:GetNoteWidth(note.NoteIndex) * (1.0 - OUTER_NOTE_OFFSET_PCTG))
         end
     end
+
+    local start_offset = tie_mod.StartHorizontalPos
+    if not tie_mod:IsStartPointActive() then
+        start_offset = calc_prefs_offset_for_endpoint(note, tie_prefs, tie_placement_prefs, lplacement, false, not tie_mod:IsStartTie(), for_pageview)
+    end
+    local end_offset = tie_mod.EndHorizontalPos
+    if not tie_mod:IsEndPointActive() then
+        end_offset = calc_prefs_offset_for_endpoint(note, tie_prefs, tie_placement_prefs, lplacement, true, not tie_mod:IsStartTie(), for_pageview)
+    end
+
+    local tie_length = horz_end - horz_start
+    -- 'undo' page/sys/line % scaling to get absolute EVPUs.
+    tie_length = tie_length / staff_scaling
+    tie_length = tie_length + ((end_offset + incr_end) - (start_offset + incr_start))
+    return math.floor(tie_length + 0.5)
+end
+
+--[[
+% calc_contour_index
+
+Calculates the current contour index of a tie based on context and FCTiePrefs.
+
+@ note (FCNote) the note for which to return the tie direction.
+@ tie_mod (FCTieMod) the tie mods for the note, if any.
+@ for_pageview (bool) true if calculating for Page View, false for Scroll/Studio View
+@ direction (number) one of the TIEMOD_DIRECTION values or nil (if you don't know it yet)
+@ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
+: (number) CONTOUR_INDEXES value for tie
+]]
+function tie.calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)
+    if not tie_prefs then
+        tie_prefs = finale.FCTiePrefs()
+        tie_prefs:Load(0)
+    end
+    direction = direction and direction ~= finale.TIEMODDIR_AUTOMATIC and direction or tie.calc_direction(note, tie_mod, tie_prefs)
+    local tie_placement_prefs = tie_prefs:CreateTiePlacementPrefs()
+    if tie_prefs.UseTieEndStyle then
+        return finale.TCONTOURIDX_TIEENDS
+    end
+    local tie_length = calc_tie_length(note, tie_mod, for_pageview, direction, tie_prefs, tie_placement_prefs)
+    local tie_contour_prefs = tie_prefs:CreateTieContourPrefs()
+    if tie_length >= tie_contour_prefs:GetSpan(finale.TCONTOURIDX_LONG) then
+        return finale.TCONTOURIDX_LONG
+    elseif tie_length <= tie_contour_prefs:GetSpan(finale.TCONTOURIDX_SHORT) then
+        return finale.TCONTOURIDX_SHORT
+    end
+    return finale.TCONTOURIDX_MEDIUM
 end
 
 return tie
