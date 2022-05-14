@@ -596,6 +596,7 @@ default values. If an endpoint is already activated, that endpoint is not touche
 @ tie_mod (FCTieMod) the tie mods for the note, if any.
 @ for_pageview (bool) true if calculating for Page View, false for Scroll/Studio View
 @ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
+: (boolean) returns true if anything changed
 ]]
 function tie.activate_endpoints(note, tie_mod, for_pageview, tie_prefs)
     if not tie_prefs then
@@ -610,6 +611,7 @@ function tie.activate_endpoints(note, tie_mod, for_pageview, tie_prefs)
     if lactivated and ractivated then
         tie_mod:LocalizeFromPreferences()
     end
+    return lactivated or ractivated
 end
 
 local calc_tie_length = function(note, tie_mod, for_pageview, direction, tie_prefs, tie_placement_prefs)
@@ -655,7 +657,7 @@ local calc_tie_length = function(note, tie_mod, for_pageview, direction, tie_pre
 
     if tie_mod:IsStartTie() and (not end_note or cell_metrics_start.StaffSystem ~= cell_metrics_end.StaffSystem) then
         local next_cell_metrics = finale.FCCellMetrics()
-        local next_metrics_loaded = next_cell_metrics:LoadAtCell(finale.FCCell(note.Entry.Measure + 1, note.entry.Staff))
+        local next_metrics_loaded = next_cell_metrics:LoadAtCell(finale.FCCell(note.Entry.Measure + 1, note.Entry.Staff))
         if not next_metrics_loaded or cell_metrics_start.StaffSystem ~= cell_metrics_end.StaffSystem then
             -- note: a tie to an empty measure on the same system will get here, but
             -- currently we do not correctly calculate its span. To do so we would have to
@@ -728,6 +730,60 @@ function tie.calc_contour_index(note, tie_mod, for_pageview, direction, tie_pref
         return finale.TCONTOURIDX_SHORT
     end
     return finale.TCONTOURIDX_MEDIUM
+end
+
+local calc_inset_and_height = function(tie_prefs, tie_contour_prefs, length, contour_index, get_fixed_func, get_relative_func, get_height_func)
+    -- This function is based on observed Finale behavior and may not precisely capture the exact same interpolated values.
+    -- However, it appears that Finale interpolates from Short to Medium for lengths in that span and from Medium to Long
+    -- for lengths in that span.
+    local height = get_height_func(tie_contour_prefs, contour_index)
+    local inset = tie_prefs.FixedInsetStyle and get_fixed_func(tie_contour_prefs, contour_index) or get_relative_func(tie_contour_prefs, contour_index)
+    if tie_prefs.UseInterpolation and contour_index == finale.TCONTOURIDX_MEDIUM then
+        local interpolation_length, interepolation_percent
+        if length <= tie_contour_prefs:GetSpan(finale.TCONTOURIDX_MEDIUM) then
+            interpolation_length = tie_contour_prefs:GetSpan(finale.TCONTOURIDX_MEDIUM) - tie_contour_prefs:GetSpan(finale.TCONTOURIDX_SHORT)
+            interpolation_percent = (tie_contour_prefs:GetSpan(finale.TCONTOURIDX_MEDIUM) - length) / interpolation_length
+        else
+            interpolation_length = tie_contour_prefs:GetSpan(finale.TCONTOURIDX_LONG) - tie_contour_prefs:GetSpan(finale.TCONTOURIDX_MEDIUM)
+            interpolation_percent = (tie_contour_prefs:GetSpan(finale.TCONTOURIDX_LONG) - length) / interpolation_length
+        end
+        height = height * interpolation_percent
+        if not tie_prefs.FixedInsetStyle then
+            inset = inset * interpolation_percent
+        end
+    end
+    return inset, height
+end
+
+--[[
+% activate_contour
+
+Activates the contour fields of the input tie_mod and initializes them with their
+default values. If the contour field are already activated, nothing is changed.
+
+@ note (FCNote) the note for which to return the tie direction.
+@ tie_mod (FCTieMod) the tie mods for the note, if any.
+@ for_pageview (bool) true if calculating for Page View, false for Scroll/Studio View
+@ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
+: (boolean) returns true if anything changed
+]]
+function tie.activate_contour(note, tie_mod, for_pageview, tie_contour_index, tie_prefs)
+    if tie_mod:IsContourActive() then
+        return false
+    end
+    if not tie_prefs then
+        tie_prefs = finale.FCTiePrefs()
+        tie_prefs:Load(0)
+    end
+    local direction = tie.calc_direction(note, tie_mod, tie_prefs)
+    local tie_contour_index = tie.calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)
+    local tie_contour_prefs = tie_prefs:CreateTieContourPrefs()
+    local left_height = tie_contour_prefs:GetLeftHeight(tie_contour_index)
+    local left_inset = tie_prefs.FixedInsetStyle and tie_contour_prefs:GetLeftFixedInset(tie_contour_index) or tie_contour_prefs:GetLeftRawRelativeInset(tie_contour_index)
+    local right_height = tie_contour_prefs:GetRightHeight(tie_contour_index)
+    local right_inset = tie_prefs.FixedInsetStyle and tie_contour_prefs:GetRightFixedInset(tie_contour_index) or tie_contour_prefs:GetRightRawRelativeInset(tie_contour_index)
+    tie_mod:ActivateContour(left_inset, left_height, right_inset, right_height, tie_prefs.FixedInsetStyle)
+    return true
 end
 
 return tie
