@@ -229,7 +229,9 @@ local calc_layer_is_visible = function(staff, layer_number)
         return staff.AltShowOtherNotes
     end
 
-    local hider_altnotation_types = {finale.ALTSTAFF_BLANKNOTATION, finale.ALTSTAFF_SLASHBEATS, finale.ALTSTAFF_ONEBARREPEAT, finale.ALTSTAFF_TWOBARREPEAT, finale.ALTSTAFF_BLANKNOTATIONRESTS}
+    local hider_altnotation_types = {
+        finale.ALTSTAFF_BLANKNOTATION, finale.ALTSTAFF_SLASHBEATS, finale.ALTSTAFF_ONEBARREPEAT, finale.ALTSTAFF_TWOBARREPEAT, finale.ALTSTAFF_BLANKNOTATIONRESTS,
+    }
     local altnotation_type = staff.AltNotationStyle
     for _, v in pairs(hider_altnotation_types) do
         if v == altnotation_type then
@@ -531,7 +533,9 @@ function tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
                                     end
                                 end
                                 local next_stemdir = direction == finale.TIEMODDIR_UNDER and -1 or 1
-                                end_placement = calc_placement_for_endpoint(next_note, tie_mod, tie_prefs, direction, next_stemdir, true, next_note.NoteIndex, next_entry.Count, upstem2nd, next_note.Downstem2nd)
+                                end_placement = calc_placement_for_endpoint(
+                                                    next_note, tie_mod, tie_prefs, direction, next_stemdir, true, next_note.NoteIndex, next_entry.Count, upstem2nd,
+                                                    next_note.Downstem2nd)
                             end
                         end
                     end
@@ -711,6 +715,7 @@ Calculates the current contour index of a tie based on context and FCTiePrefs.
 @ direction (number) one of the TIEMOD_DIRECTION values or nil (if you don't know it yet)
 @ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
 : (number) CONTOUR_INDEXES value for tie
+: (number) calculated length of tie in EVPU
 ]]
 function tie.calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)
     if not tie_prefs then
@@ -729,7 +734,7 @@ function tie.calc_contour_index(note, tie_mod, for_pageview, direction, tie_pref
     elseif tie_length <= tie_contour_prefs:GetSpan(finale.TCONTOURIDX_SHORT) then
         return finale.TCONTOURIDX_SHORT
     end
-    return finale.TCONTOURIDX_MEDIUM
+    return finale.TCONTOURIDX_MEDIUM, tie_length
 end
 
 local calc_inset_and_height = function(tie_prefs, tie_contour_prefs, length, contour_index, get_fixed_func, get_relative_func, get_height_func)
@@ -739,18 +744,26 @@ local calc_inset_and_height = function(tie_prefs, tie_contour_prefs, length, con
     local height = get_height_func(tie_contour_prefs, contour_index)
     local inset = tie_prefs.FixedInsetStyle and get_fixed_func(tie_contour_prefs, contour_index) or get_relative_func(tie_contour_prefs, contour_index)
     if tie_prefs.UseInterpolation and contour_index == finale.TCONTOURIDX_MEDIUM then
-        local interpolation_length, interepolation_percent
-        if length <= tie_contour_prefs:GetSpan(finale.TCONTOURIDX_MEDIUM) then
+        local interpolation_length, interpolation_percent, interpolation_height_diff, interpolation_inset_diff
+        if length < tie_contour_prefs:GetSpan(finale.TCONTOURIDX_MEDIUM) then
             interpolation_length = tie_contour_prefs:GetSpan(finale.TCONTOURIDX_MEDIUM) - tie_contour_prefs:GetSpan(finale.TCONTOURIDX_SHORT)
-            interpolation_percent = (tie_contour_prefs:GetSpan(finale.TCONTOURIDX_MEDIUM) - length) / interpolation_length
+            interpolation_percent = (interpolation_length - tie_contour_prefs:GetSpan(finale.TCONTOURIDX_MEDIUM) + length) / interpolation_length
+            interpolation_height_diff = get_height_func(tie_contour_prefs, finale.TCONTOURIDX_MEDIUM) - get_height_func(tie_contour_prefs, finale.TCONTOURIDX_SHORT)
+            interpolation_inset_diff = get_relative_func(tie_contour_prefs, finale.TCONTOURIDX_MEDIUM) - get_relative_func(tie_contour_prefs, finale.TCONTOURIDX_SHORT)
+            height = get_height_func(tie_contour_prefs, finale.TCONTOURIDX_SHORT)
+            if not tie_prefs.FixedInsetStyle then
+                inset = get_relative_func(tie_contour_prefs, finale.TCONTOURIDX_SHORT)
+            end
         else
             interpolation_length = tie_contour_prefs:GetSpan(finale.TCONTOURIDX_LONG) - tie_contour_prefs:GetSpan(finale.TCONTOURIDX_MEDIUM)
-            interpolation_percent = (tie_contour_prefs:GetSpan(finale.TCONTOURIDX_LONG) - length) / interpolation_length
+            interpolation_percent = (interpolation_length - tie_contour_prefs:GetSpan(finale.TCONTOURIDX_LONG) + length) / interpolation_length
+            interpolation_height_diff = get_height_func(tie_contour_prefs, finale.TCONTOURIDX_LONG) - get_height_func(tie_contour_prefs, finale.TCONTOURIDX_MEDIUM)
+            interpolation_inset_diff = get_relative_func(tie_contour_prefs, finale.TCONTOURIDX_LONG) - get_relative_func(tie_contour_prefs, finale.TCONTOURIDX_MEDIUM)
         end
-        height = height * interpolation_percent
-        if not tie_prefs.FixedInsetStyle then
-            inset = inset * interpolation_percent
-        end
+            height = math.floor(0.5 + height + interpolation_height_diff * interpolation_percent)
+            if not tie_prefs.FixedInsetStyle then
+                inset = math.floor(0.5 + inset + interpolation_inset_diff * interpolation_percent)
+            end
     end
     return inset, height
 end
@@ -759,7 +772,10 @@ end
 % activate_contour
 
 Activates the contour fields of the input tie_mod and initializes them with their
-default values. If the contour field are already activated, nothing is changed.
+default values. If the contour fields are already activated, nothing is changed. Note
+that for interpolated Medium span types, the interpolated values may not be identical
+to those calculated by Finale, but they should be close enough to make no appreciable
+visible difference.
 
 @ note (FCNote) the note for which to return the tie direction.
 @ tie_mod (FCTieMod) the tie mods for the note, if any.
@@ -767,7 +783,7 @@ default values. If the contour field are already activated, nothing is changed.
 @ [tie_prefs] (FCTiePrefs) use these tie prefs if supplied
 : (boolean) returns true if anything changed
 ]]
-function tie.activate_contour(note, tie_mod, for_pageview, tie_contour_index, tie_prefs)
+function tie.activate_contour(note, tie_mod, for_pageview, tie_prefs)
     if tie_mod:IsContourActive() then
         return false
     end
@@ -776,12 +792,14 @@ function tie.activate_contour(note, tie_mod, for_pageview, tie_contour_index, ti
         tie_prefs:Load(0)
     end
     local direction = tie.calc_direction(note, tie_mod, tie_prefs)
-    local tie_contour_index = tie.calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)
+    local tie_contour_index, length = tie.calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)
     local tie_contour_prefs = tie_prefs:CreateTieContourPrefs()
-    local left_height = tie_contour_prefs:GetLeftHeight(tie_contour_index)
-    local left_inset = tie_prefs.FixedInsetStyle and tie_contour_prefs:GetLeftFixedInset(tie_contour_index) or tie_contour_prefs:GetLeftRawRelativeInset(tie_contour_index)
-    local right_height = tie_contour_prefs:GetRightHeight(tie_contour_index)
-    local right_inset = tie_prefs.FixedInsetStyle and tie_contour_prefs:GetRightFixedInset(tie_contour_index) or tie_contour_prefs:GetRightRawRelativeInset(tie_contour_index)
+    local left_inset, left_height = calc_inset_and_height(
+                                        tie_prefs, tie_contour_prefs, length, tie_contour_index, tie_contour_prefs.GetLeftFixedInset, tie_contour_prefs.GetLeftRawRelativeInset,
+                                        tie_contour_prefs.GetLeftHeight)
+    local right_inset, right_height = calc_inset_and_height(
+                                          tie_prefs, tie_contour_prefs, length, tie_contour_index, tie_contour_prefs.GetRightFixedInset, tie_contour_prefs.GetRightRawRelativeInset,
+                                          tie_contour_prefs.GetRightHeight)
     tie_mod:ActivateContour(left_inset, left_height, right_inset, right_height, tie_prefs.FixedInsetStyle)
     return true
 end
