@@ -16,13 +16,13 @@ function plugindef()
 end
 
 function get_note_count(region)
-    local max_note_count = 0
+    local note_count = 0
     for entry in eachentry(region) do
         if entry.Count > max_note_count then
-            max_note_count = entry.Count
+            note_count = entry.Count
         end
     end
-    return max_note_count
+    return note_count
 end
 
 function explode_one_slot(slot)
