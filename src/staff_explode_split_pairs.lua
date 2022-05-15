@@ -44,7 +44,7 @@ function should_overwrite_existing_music()
     return should_overwrite
 end
 
-function get_max_note_count(source_staff_region)
+function get_note_count(source_staff_region)
     local max_note_count = 0
     for entry in eachentry(source_staff_region) do
         if entry.Count > 0 then
@@ -81,7 +81,7 @@ function staff_explode()
     local regions = {}
     regions[1] = source_staff_region
 
-    local max_note_count = get_max_note_count(source_staff_region)
+    local max_note_count = get_note_count(source_staff_region)
     if max_note_count <= 0 then
         return
     end
