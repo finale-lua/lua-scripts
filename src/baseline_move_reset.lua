@@ -38,6 +38,12 @@ function plugindef()
         Move Expression Baseline Below Down
         Move Expression Baseline Below Up
         Reset Expression Baseline Below
+        Move Chord Baseline Down
+        Move Chord Baseline Up
+        Reset Chord Baseline
+        Move Fretboard Baseline Down
+        Move Fretboard Baseline Up
+        Reset Fretboard Baseline
     ]]
     finaleplugin.AdditionalDescriptions = [[
         Moves all lyrics baselines up one space in the selected systems
@@ -48,6 +54,12 @@ function plugindef()
         Moves the selected expression below baseline down one space
         Moves the selected expression below baseline up one space
         Resets the selected expression below baselines
+        Moves the selected chord baseline down one space
+        Moves the selected chord baseline up one space
+        Resets the selected chord baselines
+        Moves the selected fretboard baseline down one space
+        Moves the selected fretboard baseline up one space
+        Resets the selected fretboard baselines
     ]]
     finaleplugin.AdditionalPrefixes = [[
         direction = 1 -- no baseline_types table, which picks up the default (lyrics)
@@ -58,6 +70,12 @@ function plugindef()
         direction = -1 baseline_types = {finale.BASELINEMODE_EXPRESSIONBELOW}
         direction = 1 baseline_types = {finale.BASELINEMODE_EXPRESSIONBELOW}
         direction = 0 baseline_types = {finale.BASELINEMODE_EXPRESSIONBELOW}
+        direction = -1 baseline_types = {finale.BASELINEMODE_CHORD}
+        direction = 1 baseline_types = {finale.BASELINEMODE_CHORD}
+        direction = 0 baseline_types = {finale.BASELINEMODE_CHORD}
+        direction = -1 baseline_types = {finale.BASELINEMODE_FRETBOARD}
+        direction = 1 baseline_types = {finale.BASELINEMODE_FRETBOARD}
+        direction = 0 baseline_types = {finale.BASELINEMODE_FRETBOARD}
     ]]
     return "Move Lyric Baselines Down", "Move Lyrics Baselines Down", "Moves all lyrics baselines down one space in the selected systems"
 end
@@ -136,21 +154,11 @@ function baseline_move()
                     end
                 end
             else
-                while true do
-                    -- we have to reload the baselines each time we delete one because the internal
-                    -- inci positions get changed when one is deleted
-                    baselines:LoadAllForSystem(baseline_type, i)
-                    local did1 = false
-                    for baseline in each(baselines) do
-                        local baseline_slot = region:CalcSlotNumber(baseline.Staff)
-                        if (start_slot <= baseline_slot) and (baseline_slot <= end_slot) then
-                            baseline:DeleteData()
-                            did1 = true
-                            break
-                        end
-                    end
-                    if not did1 then
-                        break
+                for j = start_slot, end_slot do
+                    baselines:LoadAllForSystemStaff(baseline_type, i, region:CalcStaffNumber(j))
+                    -- iterate backwards to preserve lower inci numbers when deleting
+                    for baseline in eachbackwards(baselines) do
+                        baseline:DeleteData()
                     end
                 end
             end
