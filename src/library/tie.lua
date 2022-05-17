@@ -760,10 +760,10 @@ local calc_inset_and_height = function(tie_prefs, tie_contour_prefs, length, con
             interpolation_height_diff = get_height_func(tie_contour_prefs, finale.TCONTOURIDX_LONG) - get_height_func(tie_contour_prefs, finale.TCONTOURIDX_MEDIUM)
             interpolation_inset_diff = get_relative_func(tie_contour_prefs, finale.TCONTOURIDX_LONG) - get_relative_func(tie_contour_prefs, finale.TCONTOURIDX_MEDIUM)
         end
-            height = math.floor(0.5 + height + interpolation_height_diff * interpolation_percent)
-            if not tie_prefs.FixedInsetStyle then
-                inset = math.floor(0.5 + inset + interpolation_inset_diff * interpolation_percent)
-            end
+        height = math.floor(0.5 + height + interpolation_height_diff * interpolation_percent)
+        if not tie_prefs.FixedInsetStyle then
+            inset = math.floor(0.5 + inset + interpolation_inset_diff * interpolation_percent)
+        end
     end
     return inset, height
 end
