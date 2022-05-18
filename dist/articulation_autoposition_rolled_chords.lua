@@ -353,7 +353,10 @@ function note_entry.delete_note(note)
     finale.FCNoteheadMod():EraseAt(note)
     finale.FCPercussionNoteMod():EraseAt(note)
     finale.FCTablatureNoteMod():EraseAt(note)
-    -- finale.FCTieMod():EraseAt(note)  -- FCTieMod is not currently lua supported, but leave this here in case it ever is
+    if finale.FCTieMod then -- added in RGP Lua 0.62
+        finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+        finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
+    end
 
     return entry:DeleteNote(note)
 end
@@ -759,7 +762,10 @@ function note_entry.delete_note(note)
     finale.FCNoteheadMod():EraseAt(note)
     finale.FCPercussionNoteMod():EraseAt(note)
     finale.FCTablatureNoteMod():EraseAt(note)
-    -- finale.FCTieMod():EraseAt(note)  -- FCTieMod is not currently lua supported, but leave this here in case it ever is
+    if finale.FCTieMod then -- added in RGP Lua 0.62
+        finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+        finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
+    end
 
     return entry:DeleteNote(note)
 end
@@ -869,7 +875,7 @@ Uses `FCArticulation.CalcMetricPos` to determine if the input articulation is on
 : (boolean) true if on note-side, otherwise false
 ]]
 function articulation.is_note_side(artic, curr_pos)
-    if not curr_pos then
+    if nil == curr_pos then
         curr_pos = finale.FCPoint(0, 0)
         if not artic:CalcMetricPos(curr_pos) then
             return false
