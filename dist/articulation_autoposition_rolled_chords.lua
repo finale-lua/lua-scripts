@@ -869,7 +869,7 @@ Uses `FCArticulation.CalcMetricPos` to determine if the input articulation is on
 : (boolean) true if on note-side, otherwise false
 ]]
 function articulation.is_note_side(artic, curr_pos)
-    if nil == curr_pos then
+    if not curr_pos then
         curr_pos = finale.FCPoint(0, 0)
         if not artic:CalcMetricPos(curr_pos) then
             return false
