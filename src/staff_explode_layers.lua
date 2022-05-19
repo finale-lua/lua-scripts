@@ -18,7 +18,7 @@ end
 function get_note_count(region)
     local note_count = 0
     for entry in eachentry(region) do
-        if entry.Count > max_note_count then
+        if entry.Count > note_count then
             note_count = entry.Count
         end
     end
