@@ -33,19 +33,21 @@ local config = { -- retained and over-written by the config file, if present
     cue_category_name   =   "Cue Names",
     cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
     prefs_folder        =   "script_settings",
-    prefs_file          =   "cue_notes_create.config.txt",
+    prefs_file          =   "cue_notes_create.config",
 }
 
 configuration.get_parameters(config.prefs_file, config)
 
 function save_config_file() 
-    local path_delimiter = "/" -- "\\" for Windows???
-    local path = finale.FCString()
-    path:SetRunningLuaFolderPath()
-    local file_path = path.LuaString .. path_delimiter .. config.prefs_folder .. path_delimiter .. config.prefs_file
+    local folder_path = finenv:RunningLuaFolderPath() .. config.prefs_folder
+    local file_path = folder_path .. '/' .. config.prefs_file
     local file = io.open(file_path, "w")
-    if nil == file then -- coudln't find file
-        return
+    if nil == file then -- couldn't find file
+        os.execute('mkdir "' .. folder_path ..'"') -- so make a folder
+        file = io.open(file_path, "w") -- try again
+        if nil == file then -- still couldn't find file
+            return -- give up
+        end
     end
     for i,v in pairs(config) do
         if type(v) == "boolean" then
