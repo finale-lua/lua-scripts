@@ -613,13 +613,7 @@ function mixin.subclass(object, class_name)
         error("Object is not a finale object.", 2)
     end
 
-    local success, result = pcall(mixin.subclass_helper, object, class_name)
-
-    if not success then
-        error(result, 2)
-    end
-
-    if not result then
+    if not catch_and_rethrow(mixin.subclass_helper, 2, object, class_name) then
         error(class_name .. " is not a subclass of " .. object.MixinClass, 2)
     end
 
@@ -628,13 +622,21 @@ end
 
 -- Returns true on success, false if class_name is not a subclass of the object, and throws errors for everything else
 -- Returns false because we only want the originally requested class name for the error message, which is then handled by mixin.subclass
-function mixin.subclass_helper(object, class_name)
+function mixin.subclass_helper(object, class_name, suppress_errors)
     if not object.MixinClass then
-        error("Object is not mixin-enabled.", 0)
+        if suppress_errors then
+            return false
+        end
+
+        error("Object is not mixin-enabled.", 2)
     end
 
     if not is_fcx_class_name(class_name) then
-        error("Mixins can only be subclassed with an FCX class.", 0)
+        if suppress_errors then
+            return false
+        end
+
+        error("Mixins can only be subclassed with an FCX class.", 2)
     end
 
     if object.MixinClass == class_name then return true end
@@ -642,7 +644,11 @@ function mixin.subclass_helper(object, class_name)
     mixin.load_mixin_class(class_name)
 
     if not mixin_classes[class_name] then
-        error("Mixin '" .. class_name .. "' not found.", 0)
+        if suppress_errors then
+            return false
+        end
+
+        error("Mixin '" .. class_name .. "' not found.", 2)
     end
 
     -- If we've reached the top of the FCX inheritance tree and the class names don't match, then class_name is not a subclass
@@ -651,8 +657,10 @@ function mixin.subclass_helper(object, class_name)
     end
 
     -- If loading the parent of class_name fails, then it's not a subclass of the object
-    if mixin_classes[class_name].props.MixinParent ~= object.MixinClass and not mixin.subclass_helper(object, mixin_classes[class_name].props.MixinParent) then
-        return false
+    if mixin_classes[class_name].props.MixinParent ~= object.MixinClass then
+        if not catch_and_rethrow(mixin.subclass_helper, 2, object, mixin_classes[class_name].props.MixinParent) then
+            return false
+        end
     end
 
     -- Copy the methods and properties over
@@ -663,7 +671,7 @@ function mixin.subclass_helper(object, class_name)
 
     -- Run initialiser, if there is one
     if mixin_classes[class_name].props.Init then
-        props.Init(object)
+        catch_and_rethrow(object.Init, 2, object)
     end
 
     return true
@@ -686,9 +694,9 @@ function mixin.create_fcx(class_name, ...)
 
     if not object then return nil end
 
-    local success, result = pcall(mixin.subclass_helper, object, class_name)
-
-    if not success or not result then return nil end
+    if not catch_and_rethrow(mixin.subclass_helper, 2, object, class_name, false) then
+        return nil
+    end
 
     return object
 end
