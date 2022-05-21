@@ -71,7 +71,8 @@ function ensure_score_has_enough_staves(slot, staff_count)
 end
 
 function staff_explode()
-    local source_staff_region = finenv.Region()
+    local source_staff_region = finale.FCMusicRegion()
+    source_staff_region:SetCurrentSelection()
     if source_staff_region:CalcStaffSpan() > 1 then
         return show_error("only_one_staff")
     end
@@ -86,7 +87,7 @@ function staff_explode()
         return
     end
 
-    local staff_count = math.floor( (max_note_count/2) + 0.5 ) -- allow for odd number of notes
+    local staff_count = math.floor((max_note_count / 2) + 0.5) -- allow for odd number of notes
     if not ensure_score_has_enough_staves(start_slot, staff_count) then
         show_error("need_more_staves")
         return
@@ -101,7 +102,7 @@ function staff_explode()
         local this_slot = start_slot + slot - 1 -- "real" slot number, indexed[1]
         regions[slot].StartSlot = this_slot
         regions[slot].EndSlot = this_slot
-        
+
         if destination_is_empty then
             for entry in eachentry(regions[slot]) do
                 if entry.Count > 0 then
@@ -121,17 +122,17 @@ function staff_explode()
             end
 
             local from_top = (slot - 1) * 2 -- delete how many notes from the top of the chord?
-            for entry in eachentrysaved(regions[slot]) do    -- check each note in the entry
+            for entry in eachentrysaved(regions[slot]) do -- check each note in the entry
                 if entry:IsNote() then
                     local from_bottom = entry.Count - (slot * 2) -- how many from the bottom?
                     if from_top > 0 then
                         for i = 1, from_top do
-                            entry:DeleteNote( entry:CalcHighestNote(nil) )
+                            entry:DeleteNote(entry:CalcHighestNote(nil))
                         end
                     end
                     if from_bottom > 0 then
                         for i = 1, from_bottom do
-                            entry:DeleteNote( entry:CalcLowestNote(nil) )
+                            entry:DeleteNote(entry:CalcLowestNote(nil))
                         end
                     end
                 end
@@ -152,6 +153,8 @@ function staff_explode()
     for slot = 2, staff_count do
         regions[slot]:ReleaseMusic()
     end
+
+    finenv:Region():SetInDocument()
 end
 
 staff_explode()

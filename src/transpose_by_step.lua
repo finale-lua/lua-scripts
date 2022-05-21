@@ -93,7 +93,7 @@ function create_dialog_box()
     local current_y = 0
     local x_increment = 105
     -- number of steps
-    local static = dialog:CreateStatic(0, current_y+2)
+    local static = dialog:CreateStatic(0, current_y + 2)
     str.LuaString = "Number Of Steps:"
     static:SetText(str)
     local edit_x = x_increment
@@ -106,7 +106,7 @@ function create_dialog_box()
         str:AppendInteger(context.number_of_steps)
         global_number_of_steps_edit:SetText(str)
     end
--- ok/cancel
+    -- ok/cancel
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     if dialog.OkButtonCanClose then -- OkButtonCanClose will be nil before 0.56 and true (the default) after
@@ -114,7 +114,7 @@ function create_dialog_box()
     end
     return dialog
 end
-    
+
 function on_ok()
     do_transpose_by_step(global_number_of_steps_edit:GetInteger())
 end
@@ -131,7 +131,7 @@ function on_close()
 end
 
 function transpose_by_step()
-    modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
+    modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
     if modifier_keys_on_invoke and context.number_of_steps then
         do_transpose_by_step(context.number_of_steps)
         return

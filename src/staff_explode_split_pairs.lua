@@ -71,7 +71,8 @@ function ensure_score_has_enough_staves(slot, max_note_count)
 end
 
 function staff_explode()
-    local source_staff_region = finenv.Region()
+    local source_staff_region = finale.FCMusicRegion()
+    source_staff_region:SetCurrentSelection()
     if source_staff_region:CalcStaffSpan() > 1 then
         return show_error("only_one_staff")
     end
@@ -86,7 +87,7 @@ function staff_explode()
         return
     end
 
-    local staff_count = math.floor( (max_note_count/2) + 0.5 ) -- allow for odd number of notes
+    local staff_count = math.floor((max_note_count / 2) + 0.5) -- allow for odd number of notes
     if not ensure_score_has_enough_staves(start_slot, staff_count) then
         show_error("need_more_staves")
         return
@@ -101,7 +102,7 @@ function staff_explode()
         local this_slot = start_slot + slot - 1 -- "real" slot number, indexed[1]
         regions[slot].StartSlot = this_slot
         regions[slot].EndSlot = this_slot
-        
+
         if destination_is_empty then
             for entry in eachentry(regions[slot]) do
                 if entry.Count > 0 then
@@ -113,20 +114,20 @@ function staff_explode()
     end
 
     if destination_is_empty or should_overwrite_existing_music() then
-    
+
         -- run through regions[1] copying the pitches in every chord
-        local pitches_to_keep = {}   -- compile an array of chords
-        local chord = 1      -- start at 1st chord
-        for entry in eachentry(regions[1]) do    -- check each entry chord
+        local pitches_to_keep = {} -- compile an array of chords
+        local chord = 1 -- start at 1st chord
+        for entry in eachentry(regions[1]) do -- check each entry chord
             if entry:IsNote() then
-                pitches_to_keep[chord] = {}   -- create new pitch array for each chord
-                for note in each(entry) do  -- index by ascending MIDI value
+                pitches_to_keep[chord] = {} -- create new pitch array for each chord
+                for note in each(entry) do -- index by ascending MIDI value
                     table.insert(pitches_to_keep[chord], note:CalcMIDIKey()) -- add to array
                 end
-                chord = chord + 1   -- next chord
+                chord = chord + 1 -- next chord
             end
         end
-    
+
         -- run through all staves deleting requisite notes in each copy
         for slot = 1, staff_count do
             if slot > 1 then
@@ -134,21 +135,20 @@ function staff_explode()
                 clef.restore_default_clef(start_measure, end_measure, regions[slot].StartStaff)
             end
 
-            chord = 1  -- first chord
-            for entry in eachentrysaved(regions[slot]) do    -- check each chord in the source
+            chord = 1 -- first chord
+            for entry in eachentrysaved(regions[slot]) do -- check each chord in the source
                 if entry:IsNote() then
                     -- which pitches to keep in this staff/slot?
                     local hi_pitch = entry.Count + 1 - slot -- index of highest pitch
                     local lo_pitch = hi_pitch - staff_count -- index of paired lower pitch (SPLIT pair)
 
-                    local overflow = -1     -- overflow counter
+                    local overflow = -1 -- overflow counter
                     while entry.Count > 0 and overflow < max_note_count do
-                        overflow = overflow + 1   -- don't get stuck!
-                        for note in each(entry) do  -- check MIDI value
+                        overflow = overflow + 1 -- don't get stuck!
+                        for note in each(entry) do -- check MIDI value
                             local pitch = note:CalcMIDIKey()
-                            if pitch ~= pitches_to_keep[chord][hi_pitch] 
-                            and pitch ~= pitches_to_keep[chord][lo_pitch] then
-                                entry:DeleteNote(note)  -- we don't want to keep this pitch
+                            if pitch ~= pitches_to_keep[chord][hi_pitch] and pitch ~= pitches_to_keep[chord][lo_pitch] then
+                                entry:DeleteNote(note) -- we don't want to keep this pitch
                                 break -- examine same entry again after note deletion
                             end
                         end
@@ -172,6 +172,8 @@ function staff_explode()
     for slot = 2, staff_count do
         regions[slot]:ReleaseMusic()
     end
+
+    finenv:Region():SetInDocument()
 end
 
 staff_explode()
