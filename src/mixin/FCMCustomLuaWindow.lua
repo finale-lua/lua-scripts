@@ -8,6 +8,8 @@ Summary of modifications:
 - Handlers for non-control events can receive the window object as an optional additional parameter.
 - Control handlers are passed original object to preserve mixin data.
 - Added custom callback queue which can be used by custom events to add dispatchers that will run with the next control event.
+- Added `HasBeenShown` method for checking if the window has been shown
+- Added methods for the automatic restoration of previous window position when showing (RGPLua > 0.60) for use with `finenv.RetainLuaState` and modeless windows.
 ]] --
 local mixin = require("library.mixin")
 local utils = require("library.utils")
@@ -16,7 +18,7 @@ local private = setmetatable({}, {__mode = "k"})
 local props = {}
 
 local control_handlers = {"HandleCommand", "HandleDataListCheck", "HandleDataListSelect", "HandleUpDownPressed"}
-local other_handlers = {"CancelButtonPressed", "OkButtonPressed", "InitWindow", "CloseWindow"}
+local other_handlers = {"HandleCancelButtonPressed", "HandleOkButtonPressed", "InitWindow", "CloseWindow"}
 
 local function flush_custom_queue(self)
     local queue = private[self].HandleCustomQueue
@@ -24,6 +26,15 @@ local function flush_custom_queue(self)
 
     for _, cb in ipairs(queue) do
         cb()
+    end
+end
+
+local function restore_position(window)
+    if private[window].HasBeenShown and private[window].AutoRestorePosition and
+        (finenv.MajorVersion > 0 or finenv.MinorVersion >= 60) then
+        window:StorePosition(false)
+        window:SetRestorePositionOnlyData_(private[window].StoredX, private[window].StoredY)
+        window:RestorePosition()
     end
 end
 
@@ -35,7 +46,16 @@ end
 @ self (FCMCustomLuaWindow)
 ]]
 function props:Init()
-    private[self] = private[self] or {NextTimerID = 1, HandleTimer = {}, HandleCustomQueue = {}}
+    private[self] = private[self] or {
+        NextTimerID = 1,
+        HandleTimer = {},
+        HandleCustomQueue = {},
+        HasBeenShown = false,
+        AutoRestorePosition = false,
+        AutoRestoreSize = false,
+        StoredX = nil,
+        StoredY = nil,
+    }
 
     -- Registers proxy functions up front to ensure that the handlers are passed the original object along with its mixin data
     for _, f in ipairs(control_handlers) do
@@ -90,17 +110,28 @@ function props:Init()
         private[self][f] = {Added = {}}
 
         if self["Register" .. f .. "_"] then
-            self["Register" .. f .. "_"](
-                self, function()
-                    local handlers = private[self][f]
-                    if handlers.Registered then
-                        handlers.Registered()
-                    end
+            local function cb()
+                local handlers = private[self][f]
+                if handlers.Registered then
+                    handlers.Registered()
+                end
 
-                    for _, v in ipairs(handlers.Added) do
-                        v(self)
-                    end
-                end)
+                for _, v in ipairs(handlers.Added) do
+                    v(self)
+                end
+            end
+
+            if f == "CloseWindow" then
+                self["Register" .. f .. "_"](
+                    self, function()
+                        cb()
+                        self:StorePosition(false)
+                        private[self].StoredX = self.StoredX
+                        private[self].StoredY = self.StoredY
+                    end)
+            else
+                self["Register" .. f .. "_"](self, cb)
+            end
         end
     end
 
@@ -187,7 +218,7 @@ Can optionally receive the window object.
 ]]
 
 --[[
-% RegisterCancelButtonPressed
+% RegisterHandleCancelButtonPressed
 
 **[Override]**
 
@@ -206,7 +237,7 @@ Can optionally receive the window object.
 ]]
 
 --[[
-% RegisterOkButtonPressed
+% RegisterHandleOkButtonPressed
 
 **[Override]**
 
@@ -313,7 +344,7 @@ for _, f in ipairs(control_handlers) do
 end
 
 --[[
-% AddCancelButtonPressed
+% AddHandleCancelButtonPressed
 
 **[Fluid]**
 Adds a handler. Similar to the equivalent `RegisterCancelButtonPressed` except there is no limit to the number of handlers that can be added.
@@ -324,7 +355,7 @@ Added handlers are called in the order they are added after the registered handl
 ]]
 
 --[[
-% AddOkButtonPressed
+% AddHandleOkButtonPressed
 
 **[Fluid]**
 Adds a handler. Similar to the equivalent `RegisterOkButtonPressed` except there is no limit to the number of handlers that can be added.
@@ -411,20 +442,20 @@ for _, f in ipairs(control_handlers) do
 end
 
 --[[
-% RemoveCancelButtonPressed
+% RemoveHandleCancelButtonPressed
 
 **[Fluid]**
-Removes a handler added by `AddCancelButtonPressed`.
+Removes a handler added by `AddHandleCancelButtonPressed`.
 
 @ self (FCMCustomLuaWindow)
 @ callback (function)
 ]]
 
 --[[
-% RemoveOkButtonPressed
+% RemoveHandleOkButtonPressed
 
 **[Fluid]**
-Removes a handler added by `AddOkButtonPressed`.
+Removes a handler added by `AddHandleOkButtonPressed`.
 
 @ self (FCMCustomLuaWindow)
 @ callback (function)
@@ -583,7 +614,7 @@ Can optionally receive the window object.
 Adds a handler for a timer. Handlers added by this method will be called after the registered handler, if there is one.
 If a handler is added for a timer that hasn't been set, the timer ID will be no longer be available to `GetNextTimerID` and `SetNextTimer`.
 
-@ self (FCCustomLuaWindow)
+@ self (FCMCustomLuaWindow)
 @ timerid (number)
 @ callback (function) See `CancelButtonPressed` for callback signature.
 ]]
@@ -602,7 +633,7 @@ If a handler is added for a timer that hasn't been set, the timer ID will be no 
 **[>= v0.56] [Fluid]**
 Removes a handler added with `AddHandleTimer`.
 
-@ self (FCCustomLuaWindow)
+@ self (FCMCustomLuaWindow)
 @ timerid (number)
 @ callback (function)
 ]]
@@ -616,6 +647,127 @@ Removes a handler added with `AddHandleTimer`.
 
         utils.table_remove_first(private[self].HandleTimer[timerid], callback)
     end
+end
+
+--[[
+% HasBeenShown
+
+Checks if the window has been shown, either as a modal or modeless.
+
+@ self (FCMCustomLuaWindow)
+: (boolean) `true` if it has been shown, `false` if not
+]]
+function props:HasBeenShown()
+    return private[self].HasBeenShown
+end
+
+if finenv.MajorVersion > 0 or finenv.MinorVersion >= 60 then
+    --[[
+% SetAutoRestorePosition
+
+**[>= v0.60] [Fluid]**
+Enables/disables automatic restoration of the window's position on subsequent openings.
+This is disabled by default.
+
+@ self (FCMCustomLuaWindow)
+@ enabled (boolean)
+]]
+    function props:SetAutoRestorePosition(enabled)
+        mixin.assert_argument(enabled, "boolean", 2)
+
+        private[self].AutoRestorePosition = enabled
+    end
+
+    --[[
+% GetAutoRestorePosition
+
+**[>= v0.60]**
+Returns whether automatic restoration of window position is enabled.
+
+@ self (FCMCustomLuaWindow)
+: (boolean) `true` if enabled, `false` if disabled.
+]]
+    function props:GetAutoRestorePosition()
+        return private[self].AutoRestorePosition
+    end
+
+    --[[
+% SetRestorePositionData
+
+**[>= v0.60] [Fluid] [Override]**
+If the position is changed while window is closed, ensures that the new position data will be used in auto restoration when window is shown.
+
+@ self (FCMCustomLuaWindow)
+@ x (number)
+@ y (number)
+@ width (number)
+@ height (number)
+]]
+    function props:SetRestorePositionData(x, y, width, height)
+        mixin.assert_argument(x, "number", 2)
+        mixin.assert_argument(y, "number", 3)
+        mixin.assert_argument(width, "number", 4)
+        mixin.assert_argument(height, "number", 5)
+
+        self:SetRestorePositionOnlyData_(x, y, width, height)
+
+        if self:HasBeenShown() and not self:WindowExists() then
+            private[self].StoredX = x
+            private[self].StoredY = y
+        end
+    end
+
+    --[[
+% SetRestorePositionOnlyData
+
+**[>= v0.60] [Fluid] [Override]**
+If the position is changed while window is closed, ensures that the new position data will be used in auto restoration when window is shown.
+
+@ self (FCMCustomLuaWindow)
+@ x (number)
+@ y (number)
+]]
+    function props:SetRestorePositionOnlyData(x, y)
+        mixin.assert_argument(x, "number", 2)
+        mixin.assert_argument(y, "number", 3)
+
+        self:SetRestorePositionOnlyData_(x, y)
+
+        if self:HasBeenShown() and not self:WindowExists() then
+            private[self].StoredX = x
+            private[self].StoredY = y
+        end
+    end
+end
+
+--[[
+% ExecuteModal
+
+**[Override]**
+Sets the `HasBeenShown` flag and restores the previous position if auto restore is on.
+
+@ self (FCMCustomLuaWindow)
+: (number)
+]]
+function props:ExecuteModal(parent)
+    restore_position(self)
+    private[self].HasBeenShown = true
+    return mixin.FCMCustomWindow.ExecuteModal(self, parent)
+end
+
+--[[
+% ShowModeless
+
+**[Override]**
+Sets the `HasBeenShown` flag and restores the previous position if auto restore is on.
+
+@ self (FCMCustomLuaWindow)
+: (boolean)
+]]
+function props:ShowModeless()
+    restore_position(self)
+    private[self].HasBeenShown = true
+    return self:ShowModeless_()
 end
 
 return props

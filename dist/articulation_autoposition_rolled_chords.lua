@@ -353,7 +353,10 @@ function note_entry.delete_note(note)
     finale.FCNoteheadMod():EraseAt(note)
     finale.FCPercussionNoteMod():EraseAt(note)
     finale.FCTablatureNoteMod():EraseAt(note)
-    -- finale.FCTieMod():EraseAt(note)  -- FCTieMod is not currently lua supported, but leave this here in case it ever is
+    if finale.FCTieMod then -- added in RGP Lua 0.62
+        finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+        finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
+    end
 
     return entry:DeleteNote(note)
 end
@@ -759,7 +762,10 @@ function note_entry.delete_note(note)
     finale.FCNoteheadMod():EraseAt(note)
     finale.FCPercussionNoteMod():EraseAt(note)
     finale.FCTablatureNoteMod():EraseAt(note)
-    -- finale.FCTieMod():EraseAt(note)  -- FCTieMod is not currently lua supported, but leave this here in case it ever is
+    if finale.FCTieMod then -- added in RGP Lua 0.62
+        finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+        finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
+    end
 
     return entry:DeleteNote(note)
 end
