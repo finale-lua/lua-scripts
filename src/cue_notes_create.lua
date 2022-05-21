@@ -8,7 +8,7 @@ function plugindef()
     finaleplugin.Notes = [[
 This script is keyboard-centric requiring no mouse action. It takes music in Layer 1 from one staff in the selected region and creates a "Cue" version on another chosen staff. The cue copy is reduced in size and muted, and can duplicate chosen markings from the original. It is shifted to the chosen layer with a (real) whole-note rest placed in layer 1.
 
-Your preferences are saved after each script run in a "config" file inside a folder called "script_settings" in the same file location as this script. If your choices aren't being saved then you need to create that folder. If that still doesn't work you need to use another folder for your Lua scripts that has fewer access restrictions. 
+Your preferences are saved after each script run in a "config" file inside a folder called "script_settings" in the same file location as this script. If your choices aren't being saved then you should use another folder for your Lua scripts with fewer access restrictions. 
 
 If using RGPLua (v0.58 or later) the script automatically creates a new expression category called "Cue Names" if it does not exist. If using JWLua, before running the script you must create an Expression Category called "Cue Names" containing at least one text expression.
 
