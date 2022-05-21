@@ -967,7 +967,7 @@ function create_dialog_box()
     local y_increment = 26
     local x_increment = 85
     -- direction
-    local static = dialog:CreateStatic(0, current_y+2)
+    local static = dialog:CreateStatic(0, current_y + 2)
     str.LuaString = "Direction:"
     static:SetText(str)
     direction_choice = dialog:CreatePopup(x_increment, current_y)
@@ -978,7 +978,7 @@ function create_dialog_box()
     end
     current_y = current_y + y_increment
     -- interval
-    static = dialog:CreateStatic(0, current_y+2)
+    static = dialog:CreateStatic(0, current_y + 2)
     str.LuaString = "Interval:"
     static:SetText(str)
     interval_choice = dialog:CreatePopup(x_increment, current_y)
@@ -989,7 +989,7 @@ function create_dialog_box()
     end
     current_y = current_y + y_increment
     -- simplify checkbox
-    do_simplify = dialog:CreateCheckbox(0, current_y+2)
+    do_simplify = dialog:CreateCheckbox(0, current_y + 2)
     str.LuaString = "Simplify Spelling"
     do_simplify:SetText(str)
     do_simplify:SetWidth(140)
@@ -998,7 +998,7 @@ function create_dialog_box()
     end
     current_y = current_y + y_increment
     -- plus octaves
-    static = dialog:CreateStatic(0, current_y+2)
+    static = dialog:CreateStatic(0, current_y + 2)
     str.LuaString = "Plus Octaves:"
     static:SetText(str)
     local edit_x = x_increment
@@ -1013,7 +1013,7 @@ function create_dialog_box()
     end
     current_y = current_y + y_increment
     -- preserve existing notes
-    do_preserve = dialog:CreateCheckbox(0, current_y+2)
+    do_preserve = dialog:CreateCheckbox(0, current_y + 2)
     str.LuaString = "Preserve Existing Notes"
     do_preserve:SetText(str)
     do_preserve:SetWidth(140)
@@ -1101,7 +1101,7 @@ function on_close()
 end
 
 function transpose_chromatic()
-    modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
+    modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
     if modifier_keys_on_invoke and nil ~= context.interval_index then
         do_transpose_chromatic(context.direction, context.interval_index, context.simplify, context.plus_octaves, context.preserve_originals)
         return

@@ -295,7 +295,8 @@ function ensure_score_has_enough_staves(slot, note_count)
 end
 
 function staff_explode()
-    local source_staff_region = finenv.Region()
+    local source_staff_region = finale.FCMusicRegion()
+    source_staff_region:SetCurrentSelection()
     if source_staff_region:CalcStaffSpan() > 1 then
         return show_error("only_one_staff")
     end
@@ -324,7 +325,7 @@ function staff_explode()
         local this_slot = start_slot + slot - 1 -- "real" slot number, indexed[1]
         regions[slot].StartSlot = this_slot
         regions[slot].EndSlot = this_slot
-        
+
         if destination_is_empty then
             for entry in eachentry(regions[slot]) do
                 if entry.Count > 0 then
@@ -376,6 +377,8 @@ function staff_explode()
     for slot = 2, max_note_count do
         regions[slot]:ReleaseMusic()
     end
+
+    finenv:Region():SetInDocument()
 end
 
 staff_explode()
