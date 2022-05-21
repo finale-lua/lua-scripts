@@ -3,13 +3,13 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.45"
+    finaleplugin.Version = "v1.47"
     finaleplugin.Date = "2022/05/16"
     finaleplugin.Notes = [[
-        This script explodes a set of chords from layer one on one staff onto single lines on subsequent staves. 
-        The number of staves is determined by the largest number of notes in any chord.
-        It warns if pre-existing music in the destination will be erased. 
-        It duplicates all markings from the original and resets the current clef on each destination staff.
+        This script explodes a set of chords from one staff into "split" pairs of notes, 
+        top to bottom, on subsequent staves (1-3/2-4; 1-4/2-5/3-6; etc). 
+        Chords may contain different numbers of notes, the number of pairs determined by the chord with the largest number of notes.
+        It warns if pre-existing music will be erased and duplicates all markings from the original, resetting the current clef for each destination staff.
 
         This script allows for the following configuration:
 
@@ -17,7 +17,7 @@ function plugindef()
         fix_note_spacing = true -- to respace music automatically when the script finishes
         ```
     ]]
-    return "Staff Explode", "Staff Explode", "Staff Explode onto consecutive single staves"
+    return "Staff Explode Split Pairs", "Staff Explode Split Pairs", "Staff Explode as pairs of notes onto consecutive single staves"
 end
 
 --  Author: Robert Patterson
@@ -250,14 +250,14 @@ end
 
 local config = {fix_note_spacing = true}
 
-configuration.get_parameters("staff_explode.config.txt", config)
+configuration.get_parameters("staff_explode_split_pairs.config.txt", config)
 
 function show_error(error_code)
     local errors = {
         need_more_staves = "There are not enough empty\nstaves to explode onto",
-        only_one_staff = "Please select only one staff!",
+        only_one_staff = "Please select only one source staff!",
         empty_region = "Please select a region\nwith some notes in it!",
-        require_chords = "Chords must contain\nat least two pitches",
+        four_or_more = "Explode Pairs needs\nfour or more notes per chord",
     }
     finenv.UI():AlertNeutral("script: " .. plugindef(), errors[error_code])
     return -1
@@ -265,30 +265,31 @@ end
 
 function should_overwrite_existing_music()
     local alert = finenv.UI():AlertOkCancel("script: " .. plugindef(), "Overwrite existing music?")
-    local should_overwrite = alert == 0
+    local should_overwrite = (alert == 0)
     return should_overwrite
 end
 
 function get_note_count(source_staff_region)
-    local note_count = 0
+    local max_note_count = 0
     for entry in eachentry(source_staff_region) do
-        if entry.Count > note_count then
-            note_count = entry.Count
+        if entry.Count > 0 then
+            if max_note_count < entry.Count then
+                max_note_count = entry.Count
+            end
         end
     end
-    if note_count == 0 then
+    if max_note_count == 0 then
         return show_error("empty_region")
+    elseif max_note_count < 4 then
+        return show_error("four_or_more")
     end
-    if note_count < 2 then
-        return show_error("require_chords")
-    end
-    return note_count
+    return max_note_count
 end
 
-function ensure_score_has_enough_staves(slot, note_count)
+function ensure_score_has_enough_staves(slot, max_note_count)
     local staves = finale.FCStaves()
     staves:LoadAll()
-    if note_count > staves.Count + 1 - slot then
+    if max_note_count > staves.Count - slot + 1 then
         return false
     end
     return true
@@ -310,14 +311,15 @@ function staff_explode()
         return
     end
 
-    if not ensure_score_has_enough_staves(start_slot, max_note_count) then
+    local staff_count = math.floor( (max_note_count/2) + 0.5 ) -- allow for odd number of notes
+    if not ensure_score_has_enough_staves(start_slot, staff_count) then
         show_error("need_more_staves")
         return
     end
 
-    -- copy top staff to note_count lower staves (one-based index)
+    -- copy top staff to max_note_count lower staves (one-based index)
     local destination_is_empty = true
-    for slot = 2, max_note_count do
+    for slot = 2, staff_count do
         regions[slot] = finale.FCMusicRegion()
         regions[slot]:SetRegion(regions[1])
         regions[slot]:CopyMusic()
@@ -336,28 +338,47 @@ function staff_explode()
     end
 
     if destination_is_empty or should_overwrite_existing_music() then
-        -- run through all staves deleting requisite notes in each entry
-        for slot = 1, max_note_count do
-            if slot > 1 then -- finish pasting a copy of the source music
-                regions[slot]:PasteMusic()
+    
+        -- run through regions[1] copying the pitches in every chord
+        local pitches_to_keep = {}   -- compile an array of chords
+        local chord = 1      -- start at 1st chord
+        for entry in eachentry(regions[1]) do    -- check each entry chord
+            if entry:IsNote() then
+                pitches_to_keep[chord] = {}   -- create new pitch array for each chord
+                for note in each(entry) do  -- index by ascending MIDI value
+                    table.insert(pitches_to_keep[chord], note:CalcMIDIKey()) -- add to array
+                end
+                chord = chord + 1   -- next chord
+            end
+        end
+    
+        -- run through all staves deleting requisite notes in each copy
+        for slot = 1, staff_count do
+            if slot > 1 then
+                regions[slot]:PasteMusic() -- paste the newly copied source music
                 clef.restore_default_clef(start_measure, end_measure, regions[slot].StartStaff)
             end
 
-            -- run the ENTRIES loop for current selection on staff copies
-            local from_top = slot - 1 -- delete how many notes from the top?
-            for entry in eachentrysaved(regions[slot]) do
+            chord = 1  -- first chord
+            for entry in eachentrysaved(regions[slot]) do    -- check each chord in the source
                 if entry:IsNote() then
-                    local from_bottom = entry.Count - slot -- how many from the bottom?
-                    if from_top > 0 then -- delete TOP notes
-                        for i = 1, from_top do
-                            entry:DeleteNote(entry:CalcHighestNote(nil))
+                    -- which pitches to keep in this staff/slot?
+                    local hi_pitch = entry.Count + 1 - slot -- index of highest pitch
+                    local lo_pitch = hi_pitch - staff_count -- index of paired lower pitch (SPLIT pair)
+
+                    local overflow = -1     -- overflow counter
+                    while entry.Count > 0 and overflow < max_note_count do
+                        overflow = overflow + 1   -- don't get stuck!
+                        for note in each(entry) do  -- check MIDI value
+                            local pitch = note:CalcMIDIKey()
+                            if pitch ~= pitches_to_keep[chord][hi_pitch] 
+                            and pitch ~= pitches_to_keep[chord][lo_pitch] then
+                                entry:DeleteNote(note)  -- we don't want to keep this pitch
+                                break -- examine same entry again after note deletion
+                            end
                         end
                     end
-                    if from_bottom > 0 then -- delete BOTTOM notes
-                        for i = 1, from_bottom do
-                            entry:DeleteNote(entry:CalcLowestNote(nil))
-                        end
-                    end
+                    chord = chord + 1 -- next chord
                 end
             end
         end
@@ -366,14 +387,14 @@ function staff_explode()
             regions[1]:SetFullMeasureStack()
             regions[1]:SetInDocument()
             finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
-            regions[1].StartSlot = start_slot
+            regions[1].StartSlot = start_slot -- reset display to original values
             regions[1].EndSlot = start_slot
             regions[1]:SetInDocument()
         end
     end
 
     -- ALL DONE -- empty out the copied clip files
-    for slot = 2, max_note_count do
+    for slot = 2, staff_count do
         regions[slot]:ReleaseMusic()
     end
 end

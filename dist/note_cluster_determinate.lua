@@ -328,7 +328,10 @@ function note_entry.delete_note(note)
     finale.FCNoteheadMod():EraseAt(note)
     finale.FCPercussionNoteMod():EraseAt(note)
     finale.FCTablatureNoteMod():EraseAt(note)
-    -- finale.FCTieMod():EraseAt(note)  -- FCTieMod is not currently lua supported, but leave this here in case it ever is
+    if finale.FCTieMod then -- added in RGP Lua 0.62
+        finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+        finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
+    end
 
     return entry:DeleteNote(note)
 end
@@ -526,7 +529,7 @@ function layer.copy(source, destination) -- source and destination layer numbers
     source = source - 1
     destination = destination - 1
     for system_staff in each(system_staves) do
-        staff_number = system_staff.Staff
+        local staff_number = system_staff.Staff
         local note_entry_layer_source = finale.FCNoteEntryLayer(source, staff_number, start, stop)
         note_entry_layer_source:Load()
         local noteentrylayerDest = note_entry_layer_source:CreateCloneEntries(destination, staff_number, start)
@@ -753,7 +756,6 @@ for add_staff = region:GetStartStaff(), region:GetEndStaff() do
         if entry.LayerNumber == 1 then
             table.insert(layer_one_note, entry)
             table.insert(measure, entry.Measure)
-            staff = entry.Staff
             count = count + 1
         elseif entry.LayerNumber == 2 then
             table.insert(layer_two_note, entry)
