@@ -11,6 +11,8 @@ Summary of modifications:
 - Introduced a `MeasurementUnitChange` event.
 - All controls with an `UpdateMeasurementUnit` method will have that method called upon a measurement unit change to allow them to immediately update their displayed values without needing to wait for a `MeasurementUnitChange` event.
 - Changed the default auto restoration behaviour for window position to enabled
+- finenv.RegisterModelessDialog is called automatically when ShowModeless is called
+- To assist debugging, if ALT or SHIFT key is pressed when window is closed and debug mode is enabled, finenv.RetainLuaState will be set to false
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
@@ -39,6 +41,14 @@ function props:Init()
 
     if self.SetAutoRestorePosition then
         self:SetAutoRestorePosition(true)
+    end
+
+    if finenv.RetainLuaState ~= nil then
+        self:AddCloseWindow(function(self)
+            if finenv.DebugEnabled and (self:QueryLastCommandModifierKeys(finale.CMDMODKEY_ALT) or self:QueryLastCommandModifierKeys(finale.CMDMODKEY_SHIFT)) then
+                finenv.RetainLuaState = false
+            end
+        end)
     end
 end
 
@@ -236,6 +246,20 @@ function props:ExecuteModal(parent)
     end
 
     return mixin.FCMCustomLuaWindow.ExecuteModal(self, parent)
+end
+
+--[[
+% ShowModeless
+
+**[Override]**
+Automatically registers the dialog with `finenv.RegisterModelessDialog`.
+
+@ self (FCXCustomLuaWindow)
+: (boolean)
+]]
+props:ShowModeless()
+    finenv.RegisterModelessDialog(self)
+    return mixin.FCMCustomLuaWindow.ShowModeless(self)
 end
 
 --[[
