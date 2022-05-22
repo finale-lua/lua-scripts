@@ -3,12 +3,12 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.62"
-    finaleplugin.Date = "2022/05/20"
+    finaleplugin.Version = "v0.63"
+    finaleplugin.Date = "2022/05/22"
     finaleplugin.Notes = [[
-This script is keyboard-centric requiring no mouse action. It takes music in Layer 1 from one staff in the selected region and creates a "Cue" version on another chosen staff. The cue copy is reduced in size and muted, and can duplicate chosen markings from the original. It is shifted to the chosen layer with a (real) whole-note rest placed in layer 1.
+This script is keyboard-centric requiring minimal mouse action. It takes music in Layer 1 from one staff in the selected region and creates a "Cue" version on another chosen staff. The cue copy is reduced in size and muted, and can duplicate chosen markings from the original. It is shifted to the chosen layer with a (real) whole-note rest placed in layer 1.
 
-Your preferences are saved after each script run in a "config" file inside a folder called "script_settings" in the same file location as this script. If your choices aren't being saved then you should use another folder for your Lua scripts with fewer access restrictions. 
+Your preferences are saved after each script run in a "config" file inside a folder called "script_settings" in the same file location as this script. If your choices aren't being saved then you need to create that folder. If that still doesn't work you need to use another folder for your Lua scripts that has fewer access restrictions. 
 
 If using RGPLua (v0.58 or later) the script automatically creates a new expression category called "Cue Names" if it does not exist. If using JWLua, before running the script you must create an Expression Category called "Cue Names" containing at least one text expression.
 
@@ -29,6 +29,7 @@ local config = { -- retained and over-written by the config file, if present
     mute_cuenotes       =   true,
     cuenote_percent     =   70,    -- (75% too big, 66% too small)
     cuenote_layer       =   3,
+    freeze_up_down      =   1,      -- "0" for no freezing, "1" for up, "2" for down
     -- if creating a new "Cue Names" category ...
     cue_category_name   =   "Cue Names",
     cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
@@ -175,7 +176,7 @@ function choose_destination_staff(source_staff)
         "copy_articulations",   "copy_expressions",   "copy_smartshapes",
         "copy_slurs",           "copy_clef",          "mute_cuenotes",
         -- integer config values - copy choices from CONFIG file
-        "cuenote_percent",      "cuenote_layer",
+        "cuenote_percent",      "cuenote_layer",       "freeze_up_down"
     }
     local boolean_count = 6 -- higher than this number are integer config values, not checkboxes
     local user_selections = {}  -- an array of controls corresponding to user choices
@@ -208,7 +209,7 @@ function choose_destination_staff(source_staff)
             user_selections[i]:SetWidth(120)
             local checked = config[v] and 1 or 0
             user_selections[i]:SetCheck(checked)
-        else    -- integer value
+        elseif i < #user_checks then    -- integer value (#user_checks = stem_direction_popup)
             str.LuaString = str.LuaString .. ":"
             dialog:CreateStatic(horiz_grid[1], i * vert_step):SetText(str)
             user_selections[i] = dialog:CreateEdit(horiz_grid[2], (i * vert_step) - mac_offset)
@@ -216,6 +217,16 @@ function choose_destination_staff(source_staff)
             user_selections[i]:SetWidth(50)
         end
     end
+    -- popup for stem direction
+    local stem_direction_popup = dialog:CreatePopup(horiz_grid[1], (#user_checks * vert_step) + 5)
+    str.LuaString = "Stems: natural direction"
+    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 0
+    str.LuaString = "Stems: freeze up"
+    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 1
+    str.LuaString = "Stems: freeze down"
+    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 2
+    stem_direction_popup:SetWidth(160)
+    stem_direction_popup:SetSelectedItem(config.freeze_up_down) -- 0-based index
 
     -- "CLEAR ALL" button to clear copy choices
     local clear_button = dialog:CreateButton(horiz_grid[3], vert_step * 2)
@@ -256,7 +267,7 @@ function choose_destination_staff(source_staff)
     for i,v in ipairs(user_checks) do -- run through config parameters
         if i <= boolean_count then
             config[v] = (user_selections[i]:GetCheck() == 1) -- "true" for value 1, checked
-        else
+        elseif i < #user_checks then    -- integer value (#user_checks = stem_direction_popup)
             local answer = user_selections[i]:GetInteger()
             if i == #user_selections and (answer < 2 or answer > 4) then -- legitimate layer number choice?
                 answer = 4 -- make sure layer number is in range
@@ -264,6 +275,8 @@ function choose_destination_staff(source_staff)
             config[v] = answer
         end
     end
+    config.freeze_up_down = stem_direction_popup:GetSelectedItem() -- 0-based index
+
     return ok, chosen_staff_number
 end
 
@@ -301,7 +314,7 @@ function copy_to_destination(source_region, destination_staff)
         layer.clear(destination_region, layer_number)
     end
 
-    -- mute / set to % size / delete articulations
+    -- mute / set to % size / delete articulations / freeze stems
     for entry in eachentrysaved(destination_region) do
         if entry:IsNote() and config.mute_cuenotes then
             entry.Playback = false
@@ -317,6 +330,10 @@ function copy_to_destination(source_region, destination_staff)
                 articulation:DeleteData()
             end
             entry:SetArticulationFlag(false)
+        end
+        if config.freeze_up_down > 0 then -- frozen stems requested
+            entry.FreezeStem = true
+            entry.StemUp = (config.freeze_up_down == 1) -- "true" -> upstem, "false" -> downstem
         end
     end
     -- swap layer 1 with cuenote_layer & fix clef
