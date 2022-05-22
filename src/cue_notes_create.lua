@@ -21,7 +21,7 @@ local clef = require("library.clef")
 local layer = require("library.layer")
 
 local config = { -- retained and over-written by the config file, if present
-    copy_articulations  =   true,
+    copy_articulations  =   false,
     copy_expressions    =   false,
     copy_smartshapes    =   false,
     copy_slurs          =   true,
@@ -29,7 +29,7 @@ local config = { -- retained and over-written by the config file, if present
     mute_cuenotes       =   true,
     cuenote_percent     =   70,    -- (75% too big, 66% too small)
     cuenote_layer       =   3,
-    freeze_up_down      =   1,      -- "0" for no freezing, "1" for up, "2" for down
+    freeze_up_down      =   0,      -- "0" for no freezing, "1" for up, "2" for down
     -- if creating a new "Cue Names" category ...
     cue_category_name   =   "Cue Names",
     cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
