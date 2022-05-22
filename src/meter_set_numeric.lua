@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.60
     finaleplugin.Author = "Carl Vine"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.55"
-    finaleplugin.Date = "2022/05/21"
+    finaleplugin.Version = "0.57"
+    finaleplugin.Date = "2022/05/22"
     finaleplugin.AuthorURL = "http://carlvine.com"
     finaleplugin.Notes = [[
 This script requires RGPLua 0.60 or later and does not work under JWLua.
@@ -16,7 +16,7 @@ All measures in the currently selected region will be assigned the new time sign
 
 "Bottom" numbers (denominators) are the usual "note" numbers - 2, 4, 8, 16, 32 or 64. "Top" numbers (numerators) must be integers, optionally joined by '+' signs. Multiples of 3 will automatically convert to compound signatures so, for instance, (9/16) will convert to three groups of dotted 8ths. To suppress automatic compounding, instead of the bottom 'note' number enter its EDU equivalent (quarter note = 1024; eighth note = 512 etc) but be careful since Finale can get confused if the number is inappropriate.
 
-Empty and zero "Top" numbers are ignored. If the "Secondary" Top is zero, "Tertiary" values are ignored. Finale's Time Signature tool will also accept "Top" numbers with decimals but I haven't allowed for that in this script. This script requires RGPLua 0.60 or later.
+Empty and zero "Top" numbers are ignored. If the "Secondary" Top is zero, "Tertiary" values are ignored. Finale's Time Signature tool will also accept "Top" numbers with decimals but I haven't allowed for that in this script.
 ]]
 	return "Meter Set Numeric", "Meter Set Numeric", "Set the Meter Numerically"
 end
@@ -168,27 +168,18 @@ function copy_meters_from_score(meters, measure_number)
 end
 
 function is_positive_integer(x)
-    if x == nil or x < 0 or x ~= math.floor(x) then 
-        return "All numbers must be positive integers"
-    end
-    return ""
+    return x ~= nil and x > 0 and x % 1 == 0
 end
 
-function is_power_of_2(test_number)
-    local result = is_positive_integer(test_number)
-    if result ~= "" then
-        return result
+function is_power_of_two(num)
+    local current = 1
+    while current < num do
+        current = current * 2
     end
-    local power_2_test = math.log(test_number) / math.log(2) -- power of 2???
-    if power_2_test ~= math.floor(power_2_test) then
-        result = "BOTTOM numbers must be 2,4,8,16 or 32\n(not \"" .. test_number .. "\")"
-    end
-    return result
+    return current == num
 end
 
 function convert_meter_pairs_to_numbers(top_index, meters)
-    local result = "" -- generic answer string ("" for no error)
-
     -- 'TOP' indexed meter is a string of numbers, possibly joined by "+" signs
     -- convert to a table of simple integers
     if meters[top_index] == "0" or meters[top_index] == "" then
@@ -196,7 +187,7 @@ function convert_meter_pairs_to_numbers(top_index, meters)
         if top_index == 1 then
             return "Primary time signature can not be zero"
         else
-            return "" -- nil result ... BOTTOM is irrelevant
+            return "" -- nil result ... BOTTOM (denominator) is irrelevant
         end
     end
     if string.find(meters[top_index], "[+ -/]") then -- TOP number string contains "+" or other divider
@@ -205,17 +196,15 @@ function convert_meter_pairs_to_numbers(top_index, meters)
         meters[top_index] = {} -- start over with empty table of integers
         for split_number in string.gmatch(string_copy, "[0-9]+") do -- split numbers
         	local as_number = tonumber(split_number)
-        	result = is_positive_integer(as_number)    -- positive integer result?
-            if result ~= "" then -- error
-                return result
+            if not is_positive_integer(as_number) then -- positive integer resultor?
+                return "All numbers must be positive integers\n(not " .. as_number .. ")"
             end
             table.insert(meters[top_index], as_number)    -- else add integer to table
         end
     else -- simple integer, re-store as single-element table
         local as_number = tonumber(meters[top_index])
-        result = is_positive_integer(as_number)    -- positive integer resultor?
-        if result ~= "" then -- error
-            return result
+        if not is_positive_integer(as_number) then
+            return "All numbers must be positive integers\n(not " .. as_number .. ")"
         end
         meters[top_index] = { as_number }    -- save single integer table
     end
@@ -227,49 +216,46 @@ function convert_meter_pairs_to_numbers(top_index, meters)
     if denominator == 0 then  -- no meter here!
         return ""
     end
-    if denominator > 65 then -- assume it's EDU, not a NOTE VALUE (bigger than 64th note)
-        result = is_positive_integer(denominator) -- positive integer resultor?
-        if result ~= "" then    -- error
-            return result
+    if not is_positive_integer(denominator) then
+        return "All numbers must be positive integers\n(not " .. denominator .. ")"
+    end
+    if denominator <= 64 then -- must be a NOTE VALUE (64th note or smaller) not EDU
+        if not is_power_of_two(denominator) then
+            return "Denominators must be powers of 2\n(not " .. denominator .. ")"
         end
-    else -- a NOTE VALUE number (8th note = '8' etc)
-        result = is_power_of_2(denominator) -- is it a power of 2?
-        if result ~= "" then -- error
-            return result
-        end
-        meters[bottom_index] = 4096 / denominator  -- else convert to EDUs
-
+        denominator = 4096 / denominator  -- convert to EDU
         -- check for COMPOUND meter
         if #meters[top_index] == 1 then -- single number, simple numerator
             local numerator = meters[top_index][1]
-            -- convert to COMPOUND if NOT a display meter (top_index>=7)
-            if top_index < 7 and numerator % 3 == 0 and meters[bottom_index] < 1024 then -- (8th notes or smaller)
-                meters[top_index][1] = numerator / 3
-                meters[bottom_index] = meters[bottom_index] * 3   -- convert to COMPOUND
+            -- convert to COMPOUND METER if not a display meter (top_index >= 7)
+            if top_index < 7 and numerator % 3 == 0 and denominator < 1024 then -- (8th notes or smaller)
+                meters[top_index][1] = numerator / 3 -- numerator divide by 3
+                denominator = denominator * 3   -- denominator multiply by 3
             end
         end
+        meters[bottom_index] = denominator
     end
     return ""   -- no errors
 end
 
-function new_composite_top(tableA, tableB, tableC)
-    -- each table contains one or more integers to be meter numerators
+function new_composite_top(numerator_valuesA, numerator_valuesB, numerator_valuesC)
+    -- each numerator_values is a table of one or more integers to be composite meter numerators
     local composite_top = finale.FCCompositeTimeSigTop()
-    local group = composite_top:AddGroup(#tableA)
-    for i = 1, #tableA do
-        composite_top:SetGroupElementBeats(group, i - 1, tableA[i])
+    local group = composite_top:AddGroup(#numerator_valuesA)
+    for i = 1, #numerator_valuesA do
+        composite_top:SetGroupElementBeats(group, i - 1, numerator_valuesA[i])
     end
 
-    if tableB[1] ~= 0 then    -- non-nul secondary
-        group = composite_top:AddGroup(#tableB)
-        for i = 1, #tableB do
-            composite_top:SetGroupElementBeats(group, i - 1, tableB[i])
+    if numerator_valuesB[1] ~= 0 then    -- secondary numerator is required
+        group = composite_top:AddGroup(#numerator_valuesB)
+        for i = 1, #numerator_valuesB do
+            composite_top:SetGroupElementBeats(group, i - 1, numerator_valuesB[i])
         end
-        -- only add tableC if tableB is non-zero
-        if tableC[1] ~= 0 then    -- non-nul tertiary
-            group = composite_top:AddGroup(#tableC)
-            for i = 1, #tableC do
-                composite_top:SetGroupElementBeats(group, i - 1, tableC[i])
+        -- only add numerator_valuesC if numerator_valuesB is non-nil
+        if numerator_valuesC[1] ~= 0 then    -- non-nul tertiary
+            group = composite_top:AddGroup(#numerator_valuesC)
+            for i = 1, #numerator_valuesC do
+                composite_top:SetGroupElementBeats(group, i - 1, numerator_valuesC[i])
             end
         end
     end
@@ -277,19 +263,19 @@ function new_composite_top(tableA, tableB, tableC)
     return composite_top
 end
 
-function new_composite_bottom(numA, numB, numC)
-    -- each number is an EDU value for meter denominator
+function new_composite_bottom(denominatorA, denominatorB, denominatorC)
+    -- each number is an EDU value for meter denominator (bottom number)
     local composite_bottom = finale.FCCompositeTimeSigBottom()
     local new_group = composite_bottom:AddGroup(1)
-    composite_bottom:SetGroupElementBeatDuration(new_group, 0, numA)
+    composite_bottom:SetGroupElementBeatDuration(new_group, 0, denominatorA)
     
-    if numB > 0 then
+    if denominatorB > 0 then
         new_group = composite_bottom:AddGroup(1)
-        composite_bottom:SetGroupElementBeatDuration(new_group, 0, numB)
-        -- only consider numC if numB is non-zero
-        if numC > 0 then
+        composite_bottom:SetGroupElementBeatDuration(new_group, 0, denominatorB)
+        -- only consider denominatorC if denominatorB is non-zero
+        if denominatorC > 0 then
             new_group = composite_bottom:AddGroup(1)
-            composite_bottom:SetGroupElementBeatDuration(new_group, 0, numC)
+            composite_bottom:SetGroupElementBeatDuration(new_group, 0, denominatorC)
         end
     end
     composite_bottom:SaveAll()
@@ -344,11 +330,11 @@ function create_new_meter()
     -- NOTE that "meters" array now equals
     -- TOPS (1,3,5 / 7,9,11) = arrays of integers, BOTTOMS (2,4,6 / 8,10,12) = simple integers
     --  -----------
-    -- new COMPOSITE METERS TABLE to hold FOUR combined composite Time Signatures: 
+    -- new COMPOSITE METERS TABLE to hold FOUR combined composite Time Signatures:
     -- "REAL" = 1 (top) / 2 (bottom) | "DISPLAY" = 3 (top) / 4 (bottom)
     local composites = { nil, nil, nil, nil }
     for i = 0, 1 do  -- PRIMARY meters then DISPLAY meters
-        local step = i * 6 -- 6 steps between "real" and "display" meter numbers
+        local step = i * 6 -- 6 steps between "real" and "display" meter numbers in { meters }
         if #meters[step + 1] > 1 or meters[step + 3][1] ~= 0 then -- composite TOP
             composites[(i * 2) + 1] = new_composite_top(meters[step + 1], meters[step + 3], meters[step + 5])
         end
