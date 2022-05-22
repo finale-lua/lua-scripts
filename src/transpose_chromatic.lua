@@ -1,6 +1,6 @@
 function plugindef()
     finaleplugin.RequireSelection = false
-    finaleplugin.HandlesUndo = true     -- not recognized by JW Lua or RGP Lua v0.55
+    finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.1"
@@ -29,8 +29,7 @@ function plugindef()
         Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
-    return "Transpose Chromatic...", "Transpose Chromatic",
-           "Chromatic transposition of selected region (supports microtone systems)."
+    return "Transpose Chromatic...", "Transpose Chromatic", "Chromatic transposition of selected region (supports microtone systems)."
 end
 
 if not finenv.RetainLuaState then
@@ -74,26 +73,7 @@ if not finenv.RetainLuaState then
         {6,-2}, {6,-1}, {6,0}, {6,1},       -- 7ths
         {7,-1}, {7,0}                       -- octaves
     }
-
-    context =
-    {
-        direction = nil,
-        interval_index = nil,
-        simplify = nil,
-        plus_octaves = nil,
-        preserve_originals = nil,
-        window_pos_x = nil,
-        window_pos_y = nil
-    }
 end
-
--- global vars for modeless operation
-direction_choice = nil
-interval_choice = nil
-do_simplify = nil
-plus_octaves = nil
-do_preserve = nil
-global_dialog = nil
 
 local modifier_keys_on_invoke = false
 
@@ -105,84 +85,39 @@ end
 
 local transposition = require("library.transposition")
 local note_entry = require("library.note_entry")
-
-function add_strings_to_control(control, strings)
-    local str = finale.FCString()
-    for k, v in pairs(strings) do
-        str.LuaString = v
-        control:AddString(str)
-    end
-end
+local mixin = require("library.mixin")
 
 function create_dialog_box()
-    local str = finale.FCString()
-    local dialog = finale.FCCustomLuaWindow() -- global dialog for modeless operation
-    str.LuaString = "Transpose Chromatic"
-    dialog:SetTitle(str)
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Transpose Chromatic")
     local current_y = 0
     local y_increment = 26
     local x_increment = 85
     -- direction
-    local static = dialog:CreateStatic(0, current_y + 2)
-    str.LuaString = "Direction:"
-    static:SetText(str)
-    direction_choice = dialog:CreatePopup(x_increment, current_y)
-    add_strings_to_control(direction_choice, {"Up", "Down"})
-    direction_choice:SetWidth(x_increment)
-    if context.direction and context.direction < 0 then
-        direction_choice:SetSelectedItem(1)
-    end
+    dialog:CreateStatic(0, current_y + 2):SetText("Direction:")
+    dialog:CreatePopup(x_increment, current_y, "direction_choice"):AddStrings("Up", "Down"):SetWidth(x_increment):SetSelectedItem(0)
     current_y = current_y + y_increment
     -- interval
-    static = dialog:CreateStatic(0, current_y + 2)
-    str.LuaString = "Interval:"
-    static:SetText(str)
-    interval_choice = dialog:CreatePopup(x_increment, current_y)
-    add_strings_to_control(interval_choice, interval_names)
-    interval_choice:SetWidth(140)
-    if context.interval_index then
-        interval_choice:SetSelectedItem(context.interval_index - 1)
-    end
+    static = dialog:CreateStatic(0, current_y + 2):SetText("Interval:")
+    dialog:CreatePopup(x_increment, current_y, "interval_choice"):AddStrings(interval_names):SetWidth(140):SetSelectedItem(0)
     current_y = current_y + y_increment
     -- simplify checkbox
-    do_simplify = dialog:CreateCheckbox(0, current_y + 2)
-    str.LuaString = "Simplify Spelling"
-    do_simplify:SetText(str)
-    do_simplify:SetWidth(140)
-    if context.simplify then
-        do_simplify:SetCheck(1)
-    end
+    dialog:CreateCheckbox(0, current_y + 2, "do_simplify"):SetText("Simplify Spelling"):SetWidth(140):SetCheck(0)
     current_y = current_y + y_increment
     -- plus octaves
-    static = dialog:CreateStatic(0, current_y + 2)
-    str.LuaString = "Plus Octaves:"
-    static:SetText(str)
+    dialog:CreateStatic(0, current_y + 2):SetText("Plus Octaves:")
     local edit_x = x_increment
     if finenv.UI():IsOnMac() then
         edit_x = edit_x + 4
     end
-    plus_octaves = dialog:CreateEdit(edit_x, current_y)
-    if context.plus_octaves and 0 ~= context.plus_octaves then
-        str.LuaString = ""
-        str:AppendInteger(context.plus_octaves)
-        plus_octaves:SetText(str)
-    end
+    dialog:CreateEdit(edit_x, current_y, "plus_octaves"):SetText("")
     current_y = current_y + y_increment
     -- preserve existing notes
-    do_preserve = dialog:CreateCheckbox(0, current_y + 2)
-    str.LuaString = "Preserve Existing Notes"
-    do_preserve:SetText(str)
-    do_preserve:SetWidth(140)
-    if context.preserve_originals then
-        do_preserve:SetCheck(1)
-    end
+    dialog:CreateCheckbox(0, current_y + 2, "do_preserve"):SetText("Preserve Existing Notes"):SetWidth(140):SetCheck(0)
     current_y = current_y + y_increment
     -- OK/Cxl
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    if dialog.OkButtonCanClose then -- OkButtonCanClose will be nil before 0.56 and true (the default) after
-        dialog.OkButtonCanClose = modifier_keys_on_invoke
-    end
+    dialog:RegisterHandleOkButtonPressed(on_ok)
     return dialog
 end
 
@@ -233,11 +168,14 @@ end
 
 function get_values_from_dialog()
     local direction = 1 -- up
-    if direction_choice:GetSelectedItem() > 0 then
+    if global_dialog:GetControl("direction_choice"):GetSelectedItem() > 0 then
         direction = -1 -- down
     end
-    return direction, 1+interval_choice:GetSelectedItem(), (0 ~= do_simplify:GetCheck()),
-                    plus_octaves:GetInteger(), (0 ~= do_preserve:GetCheck())
+    local interval_choice = 1 + global_dialog:GetControl("interval_choice"):GetSelectedItem()
+    local do_simplify = (0 ~= global_dialog:GetControl("do_simplify"):GetCheck())
+    local plus_octaves = global_dialog:GetControl("plus_octaves"):GetInteger()
+    local do_preserve = (0 ~= global_dialog:GetControl("do_preserve"):GetCheck())
+    return direction, interval_choice, do_simplify, plus_octaves, do_preserve
 end
 
 function on_ok()
@@ -245,39 +183,22 @@ function on_ok()
     do_transpose_chromatic(direction, interval_index, simplify, plus_octaves, preserve_originals)
 end
 
-function on_close()
-    if global_dialog:QueryLastCommandModifierKeys(finale.CMDMODKEY_ALT) or global_dialog:QueryLastCommandModifierKeys(finale.CMDMODKEY_SHIFT) then
-        finenv.RetainLuaState = false
-    else
-        context.direction, context.interval_index, context.simplify, context.plus_octaves, context.preserve_originals = get_values_from_dialog()
-        global_dialog:StorePosition()
-        context.window_pos_x = global_dialog.StoredX
-        context.window_pos_y = global_dialog.StoredY
-    end
-end
-
 function transpose_chromatic()
     modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-    if modifier_keys_on_invoke and nil ~= context.interval_index then
-        do_transpose_chromatic(context.direction, context.interval_index, context.simplify, context.plus_octaves, context.preserve_originals)
+    if modifier_keys_on_invoke and global_dialog then
+        on_ok()
         return
     end
-    global_dialog = create_dialog_box()
-    if nil ~= context.window_pos_x and nil ~= context.window_pos_y then
-        global_dialog:StorePosition()
-        global_dialog:SetRestorePositionOnlyData(context.window_pos_x, context.window_pos_y)
-        global_dialog:RestorePosition()
-    end
-    global_dialog:RegisterHandleOkButtonPressed(on_ok)
-    if global_dialog.RegisterCloseWindow then
-        global_dialog:RegisterCloseWindow(on_close)
+    if not global_dialog then
+        global_dialog = create_dialog_box()
     end
     if finenv.IsRGPLua then
-        if nil ~= finenv.RetainLuaState then
+        if global_dialog.OkButtonCanClose then -- OkButtonCanClose will be nil before 0.56 and true (the default) after
+            global_dialog.OkButtonCanClose = modifier_keys_on_invoke
+        end
+        if global_dialog:ShowModeless() then
             finenv.RetainLuaState = true
         end
-        finenv.RegisterModelessDialog(global_dialog)
-        global_dialog:ShowModeless()
     else
         if finenv.Region():IsEmpty() then
             finenv.UI():AlertInfo("Please select a music region before running this script.", "Selection Required")
