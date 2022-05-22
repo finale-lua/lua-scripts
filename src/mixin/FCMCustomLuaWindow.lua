@@ -30,8 +30,7 @@ local function flush_custom_queue(self)
 end
 
 local function restore_position(window)
-    if private[window].HasBeenShown and private[window].AutoRestorePosition and
-        (finenv.MajorVersion > 0 or finenv.MinorVersion >= 60) then
+    if private[window].HasBeenShown and private[window].AutoRestorePosition and window.StorePosition then
         window:StorePosition(false)
         window:SetRestorePositionOnlyData_(private[window].StoredX, private[window].StoredY)
         window:RestorePosition()
@@ -125,9 +124,12 @@ function props:Init()
                 self["Register" .. f .. "_"](
                     self, function()
                         cb()
-                        self:StorePosition(false)
-                        private[self].StoredX = self.StoredX
-                        private[self].StoredY = self.StoredY
+
+                        if self.StorePosition then
+                            self:StorePosition(false)
+                            private[self].StoredX = self.StoredX
+                            private[self].StoredY = self.StoredY
+                        end
                     end)
             else
                 self["Register" .. f .. "_"](self, cb)
