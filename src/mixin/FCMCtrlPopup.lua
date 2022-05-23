@@ -143,7 +143,7 @@ end
 Adds multiple strings to the popup.
 
 @ self (FCMCtrlPopup)
-@ ... (FCStrings|FCString|table|string|number)
+@ ... (FCStrings|FCString|string|number)
 ]]
 function props:AddStrings(...)
     for i = 1, select("#", ...) do
