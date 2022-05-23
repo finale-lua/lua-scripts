@@ -75,8 +75,6 @@ if not finenv.RetainLuaState then
     }
 end
 
-local modifier_keys_on_invoke = false
-
 if not finenv.IsRGPLua then
     local path = finale.FCString()
     path:SetRunningLuaFolderPath()
@@ -105,10 +103,7 @@ function create_dialog_box()
     current_y = current_y + y_increment
     -- plus octaves
     dialog:CreateStatic(0, current_y + 2):SetText("Plus Octaves:")
-    local edit_x = x_increment
-    if finenv.UI():IsOnMac() then
-        edit_x = edit_x + 4
-    end
+    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
     dialog:CreateEdit(edit_x, current_y, "plus_octaves"):SetText("")
     current_y = current_y + y_increment
     -- preserve existing notes
@@ -117,7 +112,18 @@ function create_dialog_box()
     -- OK/Cxl
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    dialog:RegisterHandleOkButtonPressed(on_ok)
+    function dialog:on_ok()
+        local direction = 1 -- up
+        if global_dialog:GetControl("direction_choice"):GetSelectedItem() > 0 then
+            direction = -1 -- down
+        end
+        local interval_choice = 1 + global_dialog:GetControl("interval_choice"):GetSelectedItem()
+        local do_simplify = (0 ~= global_dialog:GetControl("do_simplify"):GetCheck())
+        local plus_octaves = global_dialog:GetControl("plus_octaves"):GetInteger()
+        local preserve_originals = (0 ~= global_dialog:GetControl("do_preserve"):GetCheck())
+        do_transpose_chromatic(direction, interval_choice, do_simplify, plus_octaves, preserve_originals)
+    end
+    dialog:RegisterHandleOkButtonPressed(dialog.on_ok)
     return dialog
 end
 
@@ -166,27 +172,10 @@ function do_transpose_chromatic(direction, interval_index, simplify, plus_octave
     return success
 end
 
-function get_values_from_dialog()
-    local direction = 1 -- up
-    if global_dialog:GetControl("direction_choice"):GetSelectedItem() > 0 then
-        direction = -1 -- down
-    end
-    local interval_choice = 1 + global_dialog:GetControl("interval_choice"):GetSelectedItem()
-    local do_simplify = (0 ~= global_dialog:GetControl("do_simplify"):GetCheck())
-    local plus_octaves = global_dialog:GetControl("plus_octaves"):GetInteger()
-    local do_preserve = (0 ~= global_dialog:GetControl("do_preserve"):GetCheck())
-    return direction, interval_choice, do_simplify, plus_octaves, do_preserve
-end
-
-function on_ok()
-    local direction, interval_index, simplify, plus_octaves, preserve_originals = get_values_from_dialog()
-    do_transpose_chromatic(direction, interval_index, simplify, plus_octaves, preserve_originals)
-end
-
 function transpose_chromatic()
-    modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-    if modifier_keys_on_invoke and global_dialog then
-        on_ok()
+    local keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
+    if keys_on_invoke and global_dialog then
+        global_dialog:on_ok()
         return
     end
     if not global_dialog then
@@ -194,7 +183,7 @@ function transpose_chromatic()
     end
     if finenv.IsRGPLua then
         if global_dialog.OkButtonCanClose then -- OkButtonCanClose will be nil before 0.56 and true (the default) after
-            global_dialog.OkButtonCanClose = modifier_keys_on_invoke
+            global_dialog.OkButtonCanClose = keys_on_invoke
         end
         if global_dialog:ShowModeless() then
             finenv.RetainLuaState = true

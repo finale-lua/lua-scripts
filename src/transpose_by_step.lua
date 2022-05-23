@@ -33,8 +33,6 @@ function plugindef()
     return "Transpose By Steps...", "Transpose By Steps", "Transpose by the number of steps given, simplifying spelling as needed."
 end
 
-local modifier_keys_on_invoke = false
-
 if not finenv.IsRGPLua then
     local path = finale.FCString()
     path:SetRunningLuaFolderPath()
@@ -73,32 +71,28 @@ function do_transpose_by_step(global_number_of_steps_edit)
     return success
 end
 
-function on_ok()
-    do_transpose_by_step(global_dialog:GetControl("num_steps"):GetInteger())
-end
-
 function create_dialog_box()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Transpose By Steps")
     local current_y = 0
     local x_increment = 105
     -- number of steps
     dialog:CreateStatic(0, current_y + 2):SetText("Number Of Steps:")
-    local edit_x = x_increment
-    if finenv.UI():IsOnMac() then
-        edit_x = edit_x + 4
-    end
+    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
     dialog:CreateEdit(edit_x, current_y, "num_steps"):SetText("")
     -- ok/cancel
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    dialog:RegisterHandleOkButtonPressed(on_ok)
+    function dialog:on_ok()
+        do_transpose_by_step(global_dialog:GetControl("num_steps"):GetInteger())
+    end
+    dialog:RegisterHandleOkButtonPressed(dialog.on_ok)
     return dialog
 end
 
 function transpose_by_step()
-    modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-    if modifier_keys_on_invoke and global_dialog then
-        on_ok()
+    local keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
+    if keys_on_invoke and global_dialog then
+        global_dialog:on_ok()
         return
     end
     if not global_dialog then
@@ -106,7 +100,7 @@ function transpose_by_step()
     end
     if finenv.IsRGPLua then
         if global_dialog.OkButtonCanClose then -- OkButtonCanClose will be nil before 0.56 and true (the default) after
-            global_dialog.OkButtonCanClose = modifier_keys_on_invoke
+            global_dialog.OkButtonCanClose = keys_on_invoke
         end
         if global_dialog:ShowModeless() then
             finenv.RetainLuaState = true

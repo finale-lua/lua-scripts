@@ -155,7 +155,7 @@ function props:AddStrings(...)
                 mixin.FCMCtrlPopup.AddString(self, str)
             end
         elseif type(v) == "table" then
-            for _, str in pairsbykeys(v) do
+            for _, str in ipairs(v) do
                 mixin.FCMCtrlPopup.AddString(self, str)
             end
         else
