@@ -112,7 +112,7 @@ function props:Init()
             local function cb()
                 local handlers = private[self][f]
                 if handlers.Registered then
-                    handlers.Registered()
+                    handlers.Registered(self)
                 end
 
                 for _, v in ipairs(handlers.Added) do

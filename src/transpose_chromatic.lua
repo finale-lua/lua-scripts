@@ -96,7 +96,7 @@ function create_dialog_box()
     current_y = current_y + y_increment
     -- interval
     static = dialog:CreateStatic(0, current_y + 2):SetText("Interval:")
-    dialog:CreatePopup(x_increment, current_y, "interval_choice"):AddStrings(interval_names):SetWidth(140):SetSelectedItem(0)
+    dialog:CreatePopup(x_increment, current_y, "interval_choice"):AddStrings(table.unpack(interval_names)):SetWidth(140):SetSelectedItem(0)
     current_y = current_y + y_increment
     -- simplify checkbox
     dialog:CreateCheckbox(0, current_y + 2, "do_simplify"):SetText("Simplify Spelling"):SetWidth(140):SetCheck(0)
@@ -114,13 +114,13 @@ function create_dialog_box()
     dialog:CreateCancelButton()
     function dialog:on_ok()
         local direction = 1 -- up
-        if global_dialog:GetControl("direction_choice"):GetSelectedItem() > 0 then
+        if self:GetControl("direction_choice"):GetSelectedItem() > 0 then
             direction = -1 -- down
         end
-        local interval_choice = 1 + global_dialog:GetControl("interval_choice"):GetSelectedItem()
-        local do_simplify = (0 ~= global_dialog:GetControl("do_simplify"):GetCheck())
-        local plus_octaves = global_dialog:GetControl("plus_octaves"):GetInteger()
-        local preserve_originals = (0 ~= global_dialog:GetControl("do_preserve"):GetCheck())
+        local interval_choice = 1 + self:GetControl("interval_choice"):GetSelectedItem()
+        local do_simplify = (0 ~= self:GetControl("do_simplify"):GetCheck())
+        local plus_octaves = self:GetControl("plus_octaves"):GetInteger()
+        local preserve_originals = (0 ~= self:GetControl("do_preserve"):GetCheck())
         do_transpose_chromatic(direction, interval_choice, do_simplify, plus_octaves, preserve_originals)
     end
     dialog:RegisterHandleOkButtonPressed(dialog.on_ok)

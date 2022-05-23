@@ -148,14 +148,10 @@ Adds multiple strings to the popup.
 function props:AddStrings(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
-        mixin.assert_argument(v, {"string", "number", "FCString", "FCStrings", "table"}, i + 1)
+        mixin.assert_argument(v, {"string", "number", "FCString", "FCStrings"}, i + 1)
 
         if type(v) == "userdata" and v:ClassName() == "FCStrings" then
             for str in each(v) do
-                mixin.FCMCtrlPopup.AddString(self, str)
-            end
-        elseif type(v) == "table" then
-            for _, str in ipairs(v) do
                 mixin.FCMCtrlPopup.AddString(self, str)
             end
         else

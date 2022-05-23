@@ -83,7 +83,7 @@ function create_dialog_box()
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     function dialog:on_ok()
-        do_transpose_by_step(global_dialog:GetControl("num_steps"):GetInteger())
+        do_transpose_by_step(self:GetControl("num_steps"):GetInteger())
     end
     dialog:RegisterHandleOkButtonPressed(dialog.on_ok)
     return dialog
