@@ -38,10 +38,14 @@ function user_selects_offset()
         current_vert = current_vert + vertical_step
     end
 
-    local static = dialog:CreateStatic(0, current_vert + 5)
-    str.LuaString = "units are in EVPUs: 144 evpu = 0.5 inch / 1.27 cm"
+    local static = dialog:CreateStatic(0, current_vert + 8)
+    str.LuaString = "offsets are EVPUs: 144 evpu = 0.5 inch / 1.27 cm"
     static:SetText(str)
-    static:SetWidth(280)
+    static:SetWidth(260)
+    static = dialog:CreateStatic(12, current_vert + vertical_step)
+    str.LuaString = "24evpu = normal width of black notehead"
+    static:SetText(str)
+    static:SetWidth(240)
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
