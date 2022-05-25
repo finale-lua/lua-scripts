@@ -6,15 +6,18 @@ $module FCXCustomLuaWindow
 *Extends `FCMCustomLuaWindow`*
 
 Summary of modifications:
+- Changed argument order for timer handlers so that window is passed first, before `timerid` (enables handlers to be method of window).
+- Added `Add*` and `Remove*` handler methods for timers
 - Measurement unit can be set on the window or changed by the user through a `FCXCtrlMeasurementUnitPopup`.
 - Windows also have the option of inheriting the parent window's measurement unit when opening.
 - Introduced a `MeasurementUnitChange` event.
 - All controls with an `UpdateMeasurementUnit` method will have that method called upon a measurement unit change to allow them to immediately update their displayed values without needing to wait for a `MeasurementUnitChange` event.
 - Changed the default auto restoration behaviour for window position to enabled
 - finenv.RegisterModelessDialog is called automatically when ShowModeless is called
-- To assist debugging, if ALT or SHIFT key is pressed when window is closed and debug mode is enabled, finenv.RetainLuaState will be set to false
+- DebugClose is enabled by default
 ]] --
 local mixin = require("library.mixin")
+local utils = require("library.utils")
 local mixin_helper = require("library.mixin_helper")
 local measurement = require("library.measurement")
 
@@ -32,21 +35,34 @@ local each_last_measurement_unit_change
 @ self (FCXCustomLuaWindow)
 ]]
 function props:Init()
-    private[self] = private[self] or
-                        {
+    private[self] = private[self] or {
             MeasurementEdits = {},
             MeasurementUnit = measurement.get_real_default_unit(),
             UseParentMeasurementUnit = true,
+            HandleTimer = {},
         }
 
     if self.SetAutoRestorePosition then
         self:SetAutoRestorePosition(true)
     end
 
-    if finenv.RetainLuaState ~= nil then
-        self:AddCloseWindow(function(self)
-            if finenv.DebugEnabled and (self:QueryLastCommandModifierKeys(finale.CMDMODKEY_ALT) or self:QueryLastCommandModifierKeys(finale.CMDMODKEY_SHIFT)) then
-                finenv.RetainLuaState = false
+    self:SetEnableDebugClose(true)
+
+    -- Register proxy for HandlerTimer if it's available in this RGPLua version.
+    if self.RegisterHandleTimer_ then
+        self:RegisterHandleTimer_(function(timerid)
+            -- Call registered handler if there is one
+            if private[self].HandleTimer.Registered then
+                -- Pass window as first parameter
+                private[self].HandleTimer.Registered(self, timerid)
+            end
+
+            -- Call any added handlers for this timer
+            if private[self].HandleTimer[timerid] then
+                for _, cb in ipairs(private[self].HandleTimer[timerid]) do
+                    -- Pass window as first parameter
+                    cb(self, timerid)
+                end
             end
         end)
     end
@@ -228,6 +244,130 @@ function props:CreateUpDown(x, y, control_name)
 
     local updown = mixin.FCMCustomWindow.CreateUpDown(self, x, y, control_name)
     return mixin.subclass(updown, "FCXCtrlUpDown")
+end
+
+
+if finenv.MajorVersion > 0 or finenv.MinorVersion >= 56 then
+    --[[
+% SetTimer
+
+**[>= v0.56] [Fluid] [Override]**
+
+@ self (FCCustomLuaWindow)
+@ timerid (number)
+@ msinterval (number)
+]]
+    function props:SetTimer(timerid, msinterval)
+        mixin.assert_argument(timerid, "number", 2)
+        mixin.assert_argument(msinterval, "number", 3)
+
+        self:SetTimer_(timerid, msinterval)
+
+        private[self].HandleTimer[timerid] = private[self].HandleTimer[timerid] or {}
+    end
+
+    --[[
+% GetNextTimerID
+
+**[>= v0.56]**
+Returns the next available timer ID.
+
+@ self (FCMCustomLuaWindow)
+: (number)
+]]
+    function props:GetNextTimerID()
+        while private[self].HandleTimer[private[self].NextTimerID] do
+            private[self].NextTimerID = private[self].NextTimerID + 1
+        end
+
+        return private[self].NextTimerID
+    end
+
+    --[[
+% SetNextTimer
+
+**[>= v0.56]**
+Sets a timer using the next available ID (according to `GetNextTimerID`) and returns the ID.
+
+@ self (FCMCustomLuaWindow)
+@ msinterval (number)
+: (number) The ID of the newly created timer.
+]]
+    function props:SetNextTimer(msinterval)
+        mixin.assert_argument(msinterval, "number", 2)
+
+        local timerid = self:GetNextTimerID()
+        self:SetTimer(timerid, msinterval)
+
+        return timerid
+    end
+
+    --[[
+% HandleTimer
+
+**[Callback Template] [Override]**
+Insert window object as first argument to handler.
+
+@ window (FCXCustomLuaWindow)
+@ timerid (number)
+]]
+
+    --[[
+% RegisterHandleTimer
+
+**[>= v0.56] [Override]**
+
+@ self (FCMCustomLuaWindow)
+@ callback (function) See `HandleTimer` for callback signature (note the change of arguments).
+: (boolean) `true` on success
+]]
+    function props:RegisterHandleTimer(callback)
+        mixin.assert_argument(callback, "function", 2)
+
+        private[self].HandleTimer.Registered = callback
+        return true
+    end
+
+    --[[
+% AddHandleTimer
+
+**[>= v0.56] [Fluid]**
+Adds a handler for a timer. Handlers added by this method will be called after the registered handler, if there is one.
+If a handler is added for a timer that hasn't been set, the timer ID will be no longer be available to `GetNextTimerID` and `SetNextTimer`.
+
+@ self (FCMCustomLuaWindow)
+@ timerid (number)
+@ callback (function) See `CancelButtonPressed` for callback signature.
+]]
+    function props:AddHandleTimer(timerid, callback)
+        mixin.assert_argument(timerid, "number", 2)
+        mixin.assert_argument(callback, "function", 3)
+
+        private[self].HandleTimer[timerid] = private[self].HandleTimer[timerid] or {}
+
+        table.insert(private[self].HandleTimer[timerid], callback)
+    end
+
+    --[[
+% RemoveHandleTimer
+
+**[>= v0.56] [Fluid]**
+Removes a handler added with `AddHandleTimer`.
+
+@ self (FCMCustomLuaWindow)
+@ timerid (number)
+@ callback (function)
+]]
+    function props:RemoveHandleTimer(timerid, callback)
+        mixin.assert_argument(timerid, "number", 2)
+        mixin.assert_argument(callback, "function", 3)
+
+        if not private[self].HandleTimer[timerid] then
+            return
+        end
+
+        utils.table_remove_first(private[self].HandleTimer[timerid], callback)
+    end
 end
 
 --[[
