@@ -82,36 +82,16 @@ function create_dialog_box()
     -- ok/cancel
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    function dialog:on_ok()
-        do_transpose_by_step(self:GetControl("num_steps"):GetInteger())
-    end
-    dialog:RegisterHandleOkButtonPressed(dialog.on_ok)
+    dialog:RegisterHandleOkButtonPressed(function(self)
+            do_transpose_by_step(self:GetControl("num_steps"):GetInteger())
+        end
+    )
     return dialog
 end
 
 function transpose_by_step()
-    local keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-    if keys_on_invoke and global_dialog then
-        global_dialog:on_ok()
-        return
-    end
-    if not global_dialog then
-        global_dialog = create_dialog_box()
-    end
-    if finenv.IsRGPLua then
-        if global_dialog.OkButtonCanClose then -- OkButtonCanClose will be nil before 0.56 and true (the default) after
-            global_dialog.OkButtonCanClose = keys_on_invoke
-        end
-        if global_dialog:ShowModeless() then
-            finenv.RetainLuaState = true
-        end
-    else
-        if finenv.Region():IsEmpty() then
-            finenv.UI():AlertInfo("Please select a music region before running this script.", "Selection Required")
-            return
-        end
-        global_dialog:ExecuteModal(nil)
-    end
+    global_dialog = global_dialog or create_dialog_box()
+    global_dialog:RunModeless()
 end
 
 transpose_by_step()

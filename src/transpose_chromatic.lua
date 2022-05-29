@@ -85,48 +85,6 @@ local transposition = require("library.transposition")
 local note_entry = require("library.note_entry")
 local mixin = require("library.mixin")
 
-function create_dialog_box()
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Transpose Chromatic")
-    local current_y = 0
-    local y_increment = 26
-    local x_increment = 85
-    -- direction
-    dialog:CreateStatic(0, current_y + 2):SetText("Direction:")
-    dialog:CreatePopup(x_increment, current_y, "direction_choice"):AddStrings("Up", "Down"):SetWidth(x_increment):SetSelectedItem(0)
-    current_y = current_y + y_increment
-    -- interval
-    static = dialog:CreateStatic(0, current_y + 2):SetText("Interval:")
-    dialog:CreatePopup(x_increment, current_y, "interval_choice"):AddStrings(table.unpack(interval_names)):SetWidth(140):SetSelectedItem(0)
-    current_y = current_y + y_increment
-    -- simplify checkbox
-    dialog:CreateCheckbox(0, current_y + 2, "do_simplify"):SetText("Simplify Spelling"):SetWidth(140):SetCheck(0)
-    current_y = current_y + y_increment
-    -- plus octaves
-    dialog:CreateStatic(0, current_y + 2):SetText("Plus Octaves:")
-    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
-    dialog:CreateEdit(edit_x, current_y, "plus_octaves"):SetText("")
-    current_y = current_y + y_increment
-    -- preserve existing notes
-    dialog:CreateCheckbox(0, current_y + 2, "do_preserve"):SetText("Preserve Existing Notes"):SetWidth(140):SetCheck(0)
-    current_y = current_y + y_increment
-    -- OK/Cxl
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    function dialog:on_ok()
-        local direction = 1 -- up
-        if self:GetControl("direction_choice"):GetSelectedItem() > 0 then
-            direction = -1 -- down
-        end
-        local interval_choice = 1 + self:GetControl("interval_choice"):GetSelectedItem()
-        local do_simplify = (0 ~= self:GetControl("do_simplify"):GetCheck())
-        local plus_octaves = self:GetControl("plus_octaves"):GetInteger()
-        local preserve_originals = (0 ~= self:GetControl("do_preserve"):GetCheck())
-        do_transpose_chromatic(direction, interval_choice, do_simplify, plus_octaves, preserve_originals)
-    end
-    dialog:RegisterHandleOkButtonPressed(dialog.on_ok)
-    return dialog
-end
-
 function do_transpose_chromatic(direction, interval_index, simplify, plus_octaves, preserve_originals)
     if finenv.Region():IsEmpty() then
         return
@@ -172,29 +130,51 @@ function do_transpose_chromatic(direction, interval_index, simplify, plus_octave
     return success
 end
 
+function create_dialog_box()
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Transpose Chromatic")
+    local current_y = 0
+    local y_increment = 26
+    local x_increment = 85
+    -- direction
+    dialog:CreateStatic(0, current_y + 2):SetText("Direction:")
+    dialog:CreatePopup(x_increment, current_y, "direction_choice"):AddStrings("Up", "Down"):SetWidth(x_increment):SetSelectedItem(0)
+    current_y = current_y + y_increment
+    -- interval
+    static = dialog:CreateStatic(0, current_y + 2):SetText("Interval:")
+    dialog:CreatePopup(x_increment, current_y, "interval_choice"):AddStrings(table.unpack(interval_names)):SetWidth(140):SetSelectedItem(0)
+    current_y = current_y + y_increment
+    -- simplify checkbox
+    dialog:CreateCheckbox(0, current_y + 2, "do_simplify"):SetText("Simplify Spelling"):SetWidth(140):SetCheck(0)
+    current_y = current_y + y_increment
+    -- plus octaves
+    dialog:CreateStatic(0, current_y + 2):SetText("Plus Octaves:")
+    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
+    dialog:CreateEdit(edit_x, current_y, "plus_octaves"):SetText("")
+    current_y = current_y + y_increment
+    -- preserve existing notes
+    dialog:CreateCheckbox(0, current_y + 2, "do_preserve"):SetText("Preserve Existing Notes"):SetWidth(140):SetCheck(0)
+    current_y = current_y + y_increment
+    -- OK/Cxl
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    dialog:RegisterHandleOkButtonPressed(function(self)
+            local direction = 1 -- up
+            if self:GetControl("direction_choice"):GetSelectedItem() > 0 then
+                direction = -1 -- down
+            end
+            local interval_choice = 1 + self:GetControl("interval_choice"):GetSelectedItem()
+            local do_simplify = (0 ~= self:GetControl("do_simplify"):GetCheck())
+            local plus_octaves = self:GetControl("plus_octaves"):GetInteger()
+            local preserve_originals = (0 ~= self:GetControl("do_preserve"):GetCheck())
+            do_transpose_chromatic(direction, interval_choice, do_simplify, plus_octaves, preserve_originals)
+        end
+    )
+    return dialog
+end
+
 function transpose_chromatic()
-    local keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-    if keys_on_invoke and global_dialog then
-        global_dialog:on_ok()
-        return
-    end
-    if not global_dialog then
-        global_dialog = create_dialog_box()
-    end
-    if finenv.IsRGPLua then
-        if global_dialog.OkButtonCanClose then -- OkButtonCanClose will be nil before 0.56 and true (the default) after
-            global_dialog.OkButtonCanClose = keys_on_invoke
-        end
-        if global_dialog:ShowModeless() then
-            finenv.RetainLuaState = true
-        end
-    else
-        if finenv.Region():IsEmpty() then
-            finenv.UI():AlertInfo("Please select a music region before running this script.", "Selection Required")
-            return
-        end
-        global_dialog:ExecuteModal(nil)
-    end
+    global_dialog = global_dialog or create_dialog_box()
+    global_dialog:RunModeless()
 end
 
 transpose_chromatic()
