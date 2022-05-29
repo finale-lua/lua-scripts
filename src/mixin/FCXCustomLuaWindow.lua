@@ -36,10 +36,10 @@ local each_last_measurement_unit_change
 ]]
 function props:Init()
     private[self] = private[self] or {
-            MeasurementEdits = {},
             MeasurementUnit = measurement.get_real_default_unit(),
             UseParentMeasurementUnit = true,
             HandleTimer = {},
+            RunModelessDefaultAction = nil,
         }
 
     if self.SetAutoRestorePosition then
@@ -371,6 +371,22 @@ Removes a handler added with `AddHandleTimer`.
 end
 
 --[[
+% RegisterHandleOkButtonPressed
+
+**[Fluid] [Override]**
+Stores callback as default action for `RunModeless`.
+
+@ self (FCXCustomLuaWindow)
+@ callback (function) See documentation for `FCMCustomLuaWindow.OkButtonPressed` for callback signature.
+]]
+function props:RegisterHandleOkButtonPressed(callback)
+    mixin.assert_argument(callback, "function", 2)
+
+    private[self].RunModelessDefaultAction = callback
+    mixin.FCMCustomLuaWindow.RegisterHandleOkButtonPressed(self, callback)
+end
+
+--[[
 % ExecuteModal
 
 **[Override]**
@@ -400,6 +416,48 @@ Automatically registers the dialog with `finenv.RegisterModelessDialog`.
 function props:ShowModeless()
     finenv.RegisterModelessDialog(self)
     return mixin.FCMCustomLuaWindow.ShowModeless(self)
+end
+
+--[[
+% RunModeless
+
+**[Fluid]**
+Runs the window as a self-contained modeless plugin, performing the following steps:
+- The first time the plugin is run, if ALT or SHIFT keys are pressed, sets `OkButtonCanClose` to true
+- On subsequent runnings, if ALT or SHIFT keys are pressed the default action will be called without showing the window
+- The default action defaults to the function registered with `RegisterHandleOkButtonPressed`
+- If in JWLua, the window will be shown as a modal and it will check that a music region is currently selected
+
+@ self (FCXCustomLuaWindow)
+@ [no_selection_required] (boolean) If `true` and showing as a modal, will skip checking if a region is selected.
+@ [default_action_override] (boolean|function) If `false`, there will be no default action. If a `function`, overrides the registered `OkButtonPressed` handler as the default action.
+]]
+function props:RunModeless(no_selection_required, default_action_override)
+    local modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
+    local default_action = default_action_override == nil and private[self].RunModelessDefaultAction or default_action_override
+
+    if modifier_keys_on_invoke and self:HasBeenShown() and default_action then
+        default_action(self)
+        return
+    end
+
+    if finenv.IsRGPLua then
+        -- OkButtonCanClose will be nil before 0.56 and true (the default) after
+        if self.OkButtonCanClose then
+            self.OkButtonCanClose = modifier_keys_on_invoke
+        end
+
+        if self:ShowModeless() then
+            finenv.RetainLuaState = true
+        end
+    else
+        if not no_selection_required and finenv.Region():IsEmpty() then
+            finenv.UI():AlertInfo("Please select a music region before running this script.", "Selection Required")
+            return
+        end
+
+        self:ExecuteModal(nil)
+    end
 end
 
 --[[
