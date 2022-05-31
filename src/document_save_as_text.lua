@@ -31,6 +31,7 @@ function do_save_as_dialog(document)
     local file_path = finale.FCString()
     document:GetPath(file_path)
     file_path:SplitToPathAndFile(path_name, file_name)
+    local full_file_name = file_name.LuaString
     local extension = finale.FCString()
     extension.LuaString = file_name.LuaString
     extension:ExtractFileExtension()
@@ -39,6 +40,7 @@ function do_save_as_dialog(document)
     end
     file_name:AppendLuaString(text_extension)
     local save_dialog = mixin.FCMFileSaveAsDialog(finenv.UI())
+            :SetWindowTitle(fcstr("Save "..full_file_name.." As"))
             :AddFilter(fcstr("*"..text_extension), fcstr("Text File"))
             :SetInitFolder(path_name)
             :SetFileName(file_name)
@@ -51,9 +53,31 @@ function do_save_as_dialog(document)
     return selected_file_name.LuaString
 end
 
+-- known_chars includes SMuFL characters and other non-ASCII characters that are known
+-- to represent common articulations and dynamics
+local known_chars = {
+    [0xe4a0] = ">",  
+    [0xe4a2] = ".",
+}
+
+function get_char_string(char)
+    if known_chars[char] then
+        return known_chars[char]
+    end
+    if char > 255 then
+        return "#"..string.format("%x", char)
+    end
+    return string.char(char)
+end
+
 function entry_string(entry)
     local retval = ""
-    -- ToDo: write entry-attached items
+    -- ToDo: write entry-attached items (articulations done)
+    local articulations = entry:CreateArticulations()
+    for articulation in each(articulations) do
+        local articulation_def = articulation:CreateArticulationDef()
+        retval = retval .. " " .. get_char_string(articulation_def.MainSymbolChar)
+    end
     if entry:IsRest() then
         retval = retval .. " RR"
     else
@@ -88,7 +112,7 @@ function write_measure(file, measure, measure_number_regions)
     local display_text = finale.FCString()
     local region_number = measure_number_regions:CalcStringFromNumber(measure.ItemNo, display_text)
     if region_number < 0 then
-        display_text.LuaString = "#"..tostring(measure.ItemNo)        
+        display_text.LuaString = "#"..tostring(measure.ItemNo)
     end
     file:write("\n")
     file:write("Measure ", measure.ItemNo, " [", display_text.LuaString, "]\n")
