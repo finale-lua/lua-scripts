@@ -16,6 +16,7 @@ end
 
 local text_extension = ".txt"
 
+local note_entry = require('library.note_entry')
 local mixin = require('library.mixin')
 
 local fcstr = function(str)
@@ -30,8 +31,6 @@ function do_save_as_dialog(document)
     local file_path = finale.FCString()
     document:GetPath(file_path)
     file_path:SplitToPathAndFile(path_name, file_name)
-    print(path_name.LuaString)
-    print(file_name.LuaString)
     local extension = finale.FCString()
     extension.LuaString = file_name.LuaString
     extension:ExtractFileExtension()
@@ -52,16 +51,24 @@ function do_save_as_dialog(document)
     return selected_file_name.LuaString
 end
 
-function write_entry(file, entry)
-    for note_index = 0,entry.Length-1 do
-        local note = entry:GetItemAt(note_index)
-        
+function entry_string(entry)
+    local retval = ""
+    -- ToDo: write entry-attached items
+    if entry:IsRest() then
+        retval = retval .. " RR"
+    else
+        for note_index = 0,entry.Count-1 do
+            local note = entry:GetItemAt(note_index)
+            retval = retval .. " " .. note_entry.calc_pitch_string(note).LuaString
+        end
     end
+    return retval
 end
 
 function create_measure_table(measure_region)
+    --require('mobdebug').start()
     local measure_table = {}
-    for entry in each(measure_region) do
+    for entry in eachentry(measure_region) do
         if not measure_table[entry.Staff] then
             measure_table[entry.Staff] = {}
         end
@@ -73,7 +80,7 @@ function create_measure_table(measure_region)
         if not edupos_table.entries then
             edupos_table.entries = {}
         end
-        table.insert(edupos_table.entries, entry)
+        table.insert(edupos_table.entries, entry_string(entry))
     end
     return measure_table
 end
@@ -88,8 +95,8 @@ function write_measure(file, measure, measure_number_regions)
     file:write("Measure ", measure.ItemNo, " [", display_text.LuaString, "]\n")
     local measure_region = finale.FCMusicRegion()
     measure_region:SetFullDocument()
-    measure_region.StartMeasure = measure
-    measure_region.EndMeasure = measure
+    measure_region.StartMeasure = measure.ItemNo
+    measure_region.EndMeasure = measure.ItemNo
     local measure_table = create_measure_table(measure_region)
     for slot = 1, measure_region.EndSlot do
         local staff = measure_region:CalcStaffNumber(slot)
@@ -100,17 +107,17 @@ function write_measure(file, measure, measure_number_regions)
                 file:write(" ["..tostring(edupos).."]")
                 -- ToDo: write expressions, smart shapes first
                 if edupos_table.entries then
-                    for entry in ipairs(edupos_table.entries) do
-                        write_entry(file, entry)
+                    for _, entry_string in ipairs(edupos_table.entries) do
+                        file:write(entry_string)
                     end
                 end
             end
+            file:write("\n")
         end
     end
 end
 
 function document_save_as_text()
-    require('mobdebug').start()
     local documents = finale.FCDocuments()
     documents:LoadAll()
     local document = documents:FindCurrent()
