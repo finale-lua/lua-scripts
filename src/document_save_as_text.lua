@@ -52,6 +52,32 @@ function do_save_as_dialog(document)
     return selected_file_name.LuaString
 end
 
+function write_entry(file, entry)
+    for note_index = 0,entry.Length-1 do
+        local note = entry:GetItemAt(note_index)
+        
+    end
+end
+
+function create_measure_table(measure_region)
+    local measure_table = {}
+    for entry in each(measure_region) do
+        if not measure_table[entry.Staff] then
+            measure_table[entry.Staff] = {}
+        end
+        local staff_table = measure_table[entry.Staff]
+        if not staff_table[entry.MeasurePos] then
+            staff_table[entry.MeasurePos] = {}
+        end
+        local edupos_table = staff_table[entry.MeasurePos]
+        if not edupos_table.entries then
+            edupos_table.entries = {}
+        end
+        table.insert(edupos_table.entries, entry)
+    end
+    return measure_table
+end
+
 function write_measure(file, measure, measure_number_regions)
     local display_text = finale.FCString()
     local region_number = measure_number_regions:CalcStringFromNumber(measure.ItemNo, display_text)
@@ -60,6 +86,27 @@ function write_measure(file, measure, measure_number_regions)
     end
     file:write("\n")
     file:write("Measure ", measure.ItemNo, " [", display_text.LuaString, "]\n")
+    local measure_region = finale.FCMusicRegion()
+    measure_region:SetFullDocument()
+    measure_region.StartMeasure = measure
+    measure_region.EndMeasure = measure
+    local measure_table = create_measure_table(measure_region)
+    for slot = 1, measure_region.EndSlot do
+        local staff = measure_region:CalcStaffNumber(slot)
+        local staff_table = measure_table[staff]
+        if staff_table then
+            file:write("  Staff ", staff, ":") -- ToDo: get staff name here
+            for edupos, edupos_table in pairsbykeys(staff_table) do
+                file:write(" ["..tostring(edupos).."]")
+                -- ToDo: write expressions, smart shapes first
+                if edupos_table.entries then
+                    for entry in ipairs(edupos_table.entries) do
+                        write_entry(file, entry)
+                    end
+                end
+            end
+        end
+    end
 end
 
 function document_save_as_text()
