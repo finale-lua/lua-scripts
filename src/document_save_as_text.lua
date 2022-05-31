@@ -66,7 +66,6 @@ function entry_string(entry)
 end
 
 function create_measure_table(measure_region)
-    --require('mobdebug').start()
     local measure_table = {}
     for entry in eachentry(measure_region) do
         if not measure_table[entry.Staff] then
@@ -99,10 +98,19 @@ function write_measure(file, measure, measure_number_regions)
     measure_region.EndMeasure = measure.ItemNo
     local measure_table = create_measure_table(measure_region)
     for slot = 1, measure_region.EndSlot do
-        local staff = measure_region:CalcStaffNumber(slot)
-        local staff_table = measure_table[staff]
+        local staff_number = measure_region:CalcStaffNumber(slot)
+        local staff_table = measure_table[staff_number]
         if staff_table then
-            file:write("  Staff ", staff, ":") -- ToDo: get staff name here
+            --require('mobdebug').start()
+            local staff = finale.FCCurrentStaffSpec()
+            local staff_name = ""
+            if staff:LoadForCell(finale.FCCell(measure.ItemNo, staff_number), 0) then
+                staff_name = staff:CreateDisplayFullNameString().LuaString
+            end 
+            if staff_name == "" then
+                staff_name = "Staff " .. staff_number
+            end
+            file:write("  ", staff_name, ":")
             for edupos, edupos_table in pairsbykeys(staff_table) do
                 file:write(" ["..tostring(edupos).."]")
                 -- ToDo: write expressions, smart shapes first
