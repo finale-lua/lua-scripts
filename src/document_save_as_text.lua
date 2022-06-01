@@ -171,7 +171,7 @@ function write_measure(file, measure, measure_number_regions)
             local staff_name = ""
             if staff:LoadForCell(finale.FCCell(measure.ItemNo, staff_number), 0) then
                 staff_name = staff:CreateDisplayFullNameString().LuaString
-            end 
+            end
             if staff_name == "" then
                 staff_name = "Staff " .. staff_number
             end
