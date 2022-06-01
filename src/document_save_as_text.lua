@@ -75,7 +75,7 @@ end
 
 function entry_string(entry)
     local retval = ""
-    -- ToDo: write entry-attached items including lyrics syllables (articulations done)
+    -- ToDo: write entry-attached items (articulations, lyrics done)
     local articulations = entry:CreateArticulations()
     for articulation in each(articulations) do
         local articulation_def = articulation:CreateArticulationDef()
@@ -87,6 +87,17 @@ function entry_string(entry)
         for note_index = 0,entry.Count-1 do
             local note = entry:GetItemAt(note_index)
             retval = retval .. " " .. note_entry.calc_pitch_string(note).LuaString
+        end
+    end
+    for _, syllables in ipairs({finale.FCVerseSyllables(entry), finale.FCChorusSyllables(entry), finale.FCSectionSyllables(entry)}) do
+        if syllables:LoadAll() then
+            for syllable in each(syllables) do
+                local syllable_text = finale.FCString()
+                if syllable:GetText(syllable_text) then
+                    syllable_text:TrimEnigmaTags()
+                    retval = retval .. " " .. syllable_text.LuaString
+                end
+            end
         end
     end
     return retval
