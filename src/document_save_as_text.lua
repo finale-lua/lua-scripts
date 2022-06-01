@@ -56,6 +56,63 @@ function do_save_as_dialog(document)
     return selected_file_name.LuaString
 end
 
+local smart_shape_codes = {
+    [finale.SMARTSHAPE_SLURDOWN] = "SU",
+    [finale.SMARTSHAPE_DIMINUENDO] = "D",
+    [finale.SMARTSHAPE_CRESCENDO] = "C",
+    [finale.SMARTSHAPE_OCTAVEDOWN ] = "8B",
+    [finale.SMARTSHAPE_OCTAVEUP] = "8V",
+    [finale.SMARTSHAPE_DASHLINEUP] = "DU",
+    [finale.SMARTSHAPE_DASHLINEDOWN] = "DD",
+    [finale.SMARTSHAPE_DASHCURVEDOWN] = "DCU",
+    [finale.SMARTSHAPE_DASHCURVEUP] = "DCU",
+    [finale.SMARTSHAPE_DASHLINE ] = "DL",
+    [finale.SMARTSHAPE_SOLIDLINE] = "SL",
+    [finale.SMARTSHAPE_SOLIDLINEDOWN] = "SLD",
+    [finale.SMARTSHAPE_SOLIDLINEUP] = "SLU",
+    [finale.SMARTSHAPE_SLURAUTO] = "SS",
+    [finale.SMARTSHAPE_DASHCURVEAUTO] = "DC",
+    [finale.SMARTSHAPE_TRILLEXT] = "TE",
+    [finale.SMARTSHAPE_SOLIDLINEDOWN2] = "SLD2",
+    [finale.SMARTSHAPE_SOLIDLINEUP2] = "SLU2",
+    [finale.SMARTSHAPE_TWOOCTAVEDOWN] = "15B",
+    [finale.SMARTSHAPE_TWOOCTAVEUP] = "15V",
+    [finale.SMARTSHAPE_DASHLINEDOWN2] = "DLD2",
+    [finale.SMARTSHAPE_DASHLINEUP2] = "DLU2",
+    [finale.SMARTSHAPE_GLISSANDO] = "GL",
+    [finale.SMARTSHAPE_TABSLIDE] = "TS",
+    [finale.SMARTSHAPE_BEND_HAT] = "BH",
+    [finale.SMARTSHAPE_BEND_CURVE] = "BC",
+    [finale.SMARTSHAPE_CUSTOM] = "CU",
+    [finale.SMARTSHAPE_SOLIDLINEUPLEFT] = "SLUL",
+    [finale.SMARTSHAPE_SOLIDLINEDOWNLEFT] = "SLDL",
+    [finale.SMARTSHAPE_DASHLINEUPLEFT ] = "DLUL",
+    [finale.SMARTSHAPE_DASHLINEDOWNLEFT ] = "DLDL",
+    [finale.SMARTSHAPE_SOLIDLINEUPDOWN ] = "SLUD",
+    [finale.SMARTSHAPE_SOLIDLINEDOWNUP] = "SLDU",
+    [finale.SMARTSHAPE_DASHLINEUPDOWN] = "DLUD",
+    [finale.SMARTSHAPE_DASHLINEDOWNUP] = "DLDU",
+    [finale.SMARTSHAPE_HYPHEN] = "HY",
+    [finale.SMARTSHAPE_WORD_EXT] = "WE",
+    [finale.SMARTSHAPE_DASHEDSLURDOWN] = "DSD",
+    [finale.SMARTSHAPE_DASHEDSLURUP] = "DSU",
+    [finale.SMARTSHAPE_DASHEDSLURAUTO] = "DS"
+}
+
+function get_smartshape_string(smart_shape)
+    if smart_shape.ShapeType == finale.SMARTSHAPE_HYPHEN or smart_shape.ShapeType == finale.SMARTSHAPE_WORD_EXT then
+        return nil
+    end 
+    local desc = smart_shape_codes[smart_shape.ShapeType]
+    if not desc then
+        return "S"..tostring(smart_shape.ShapeType)
+    end
+    if smart_shape.ShapeType == finale.SMARTSHAPE_CUSTOM then
+        desc = desc .. tostring(smart_shape.LineID)
+    end
+    return desc
+end
+
 -- known_chars includes SMuFL characters and other non-ASCII characters that are known
 -- to represent common articulations and dynamics
 local known_chars = {
@@ -80,6 +137,26 @@ function entry_string(entry)
     for articulation in each(articulations) do
         local articulation_def = articulation:CreateArticulationDef()
         retval = retval .. " " .. get_char_string(articulation_def.MainSymbolChar)
+    end
+    local smart_shape_marks = finale.FCSmartShapeEntryMarks(entry)
+    if smart_shape_marks:LoadAll() then
+        for mark in each(smart_shape_marks) do
+            local beg_mark = mark:CalcLeftMark()
+            local end_mark = mark:CalcRightMark()
+            if beg_mark or end_mark then
+                local smart_shape = mark:CreateSmartShape()
+                local desc = get_smartshape_string(smart_shape)
+                if desc then
+                    retval = retval .. " " .. desc
+                    if beg_mark then
+                        retval = retval .. "-beg"
+                    end
+                    if end_mark then
+                        retval = retval .. "-end"
+                    end
+                end
+            end
+        end
     end
     if entry:IsRest() then
         retval = retval .. " RR"
@@ -116,7 +193,7 @@ end
 
 function create_measure_table(measure_region, measure)
     local measure_table = {}
-    -- ToDo: smart shapes, chords
+    -- ToDo: chords
     local expression_assignments = measure:CreateExpressions()
     for expression_assignment in each(expression_assignments) do
         --require('mobdebug').start()
@@ -140,6 +217,24 @@ function create_measure_table(measure_region, measure)
             end
         end
     end
+    --[[
+    local smart_shape_marks = finale.FCSmartShapeMeasureMarks()
+    if smart_shape_marks:LoadAllForRegion(measure_region) then
+        for mark in each(smart_shape_marks) do
+            local smart_shape = mark:CreateSmartShape()
+            local desc = get_smartshape_string(smart_shape)
+            if desc then
+                retval = retval .. " " .. desc
+                if beg_mark then
+                    retval = retval .. "-beg"
+                end
+                if end_mark then
+                    retval = retval .. "-end"
+                end
+            end
+        end
+    end
+    ]]
     for entry in eachentry(measure_region) do
         local edupos_table = get_edupos_table(measure_table, entry.Staff, entry.MeasurePos)
         if not edupos_table.entries then
