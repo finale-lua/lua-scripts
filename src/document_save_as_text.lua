@@ -78,8 +78,8 @@ end
 
 local smart_shape_codes = {
     [finale.SMARTSHAPE_SLURDOWN] = "SU",
-    [finale.SMARTSHAPE_DIMINUENDO] = "D",
-    [finale.SMARTSHAPE_CRESCENDO] = "C",
+    [finale.SMARTSHAPE_DIMINUENDO] = "DM",
+    [finale.SMARTSHAPE_CRESCENDO] = "CR",
     [finale.SMARTSHAPE_OCTAVEDOWN ] = "8B",
     [finale.SMARTSHAPE_OCTAVEUP] = "8V",
     [finale.SMARTSHAPE_DASHLINEUP] = "DU",
@@ -119,16 +119,19 @@ local smart_shape_codes = {
     [finale.SMARTSHAPE_DASHEDSLURAUTO] = "DS"
 }
 
-function get_smartshape_string(smart_shape)
-    if smart_shape.ShapeType == finale.SMARTSHAPE_HYPHEN or smart_shape.ShapeType == finale.SMARTSHAPE_WORD_EXT then
-        return nil
-    end 
+function get_smartshape_string(smart_shape, beg_mark, end_mark)
     local desc = smart_shape_codes[smart_shape.ShapeType]
     if not desc then
         return "S"..tostring(smart_shape.ShapeType)
     end
     if smart_shape.ShapeType == finale.SMARTSHAPE_CUSTOM then
         desc = desc .. tostring(smart_shape.LineID)
+    end
+    if end_mark then
+        desc = "<-" .. desc
+    end
+    if beg_mark then
+        desc = desc .. "->"
     end
     return desc
 end
@@ -174,15 +177,8 @@ function entry_string(entry)
                 local end_mark = mark:CalcRightMark()
                 if beg_mark or end_mark then
                     local smart_shape = mark:CreateSmartShape()
-                    local desc = get_smartshape_string(smart_shape)
-                    if desc then
-                        retval = retval .. " " .. desc
-                        if beg_mark then
-                            retval = retval .. "-beg"
-                        end
-                        if end_mark then
-                            retval = retval .. "-end"
-                        end
+                    if not smart_shape:CalcLyricBased() then
+                        retval = retval .. " " .. get_smartshape_string(smart_shape, beg_mark, end_mark)
                     end
                 end
             end
@@ -253,24 +249,47 @@ function create_measure_table(measure_region, measure)
             end
         end
     end
-    --[[
     local smart_shape_marks = finale.FCSmartShapeMeasureMarks()
+    local already_processed = {}
     if smart_shape_marks:LoadAllForRegion(measure_region) then
         for mark in each(smart_shape_marks) do
             local smart_shape = mark:CreateSmartShape()
-            local desc = get_smartshape_string(smart_shape)
-            if desc then
-                retval = retval .. " " .. desc
-                if beg_mark then
-                    retval = retval .. "-beg"
-                end
-                if end_mark then
-                    retval = retval .. "-end"
+            if not already_processed[smart_shape.ShapeNumber] and not smart_shape.EntryBased and not smart_shape:CalcLyricBased() then
+                already_processed[mark.ShapeNumber] = true
+                local lterm = smart_shape:GetTerminateSegmentLeft()
+                local rterm = smart_shape:GetTerminateSegmentRight()
+                local beg_mark = lterm.Measure == measure.ItemNo
+                local end_mark = lterm.Measure == measure.ItemNo
+                if beg_mark or end_mark then
+                    if beg_mark then
+                        local edupos_table = get_edupos_table(measure_table, lterm.Staff, lterm.MeasurePos)
+                        if not edupos_table.smartshapes then
+                            edupos_table.smartshapes = {}
+                        end
+                        local left_and_right = end_mark and rterm.Staff == lterm.Staff and rterm.Measure == lterm.Measure and rterm.MeasurePos == lterm.MeasurePos
+                        local desc = get_smartshape_string(smart_shape, true, left_and_right)
+                        if desc then
+                            table.insert(edupos_table.smartshapes, " " .. desc)
+                        end
+                        if left_and_right then
+                            end_mark = false
+                        end
+                    end
+                    if end_mark then
+                        -- if we get here, the shape has separate beg and end points, because of left_and_right check above
+                        local edupos_table = get_edupos_table(measure_table, rterm.Staff, rterm.MeasurePos)
+                        if not edupos_table.smartshapes then
+                            edupos_table.smartshapes = {}
+                        end
+                        local desc = get_smartshape_string(smart_shape, false, true)
+                        if desc then
+                            table.insert(edupos_table.smartshapes, " " .. desc)
+                        end
+                    end
                 end
             end
         end
     end
-    ]]
     for entry in eachentry(measure_region) do
         local edupos_table = get_edupos_table(measure_table, entry.Staff, entry.MeasurePos)
         if not edupos_table.entries then
@@ -309,7 +328,12 @@ function write_measure(file, measure, measure_number_regions)
             file:write("  ", staff_name, ":")
             for edupos, edupos_table in pairsbykeys(staff_table) do
                 file:write(" ["..tostring(edupos).."]")
-                -- ToDo: write smart shapes, chords first
+                -- ToDo: chords first
+                if edupos_table.smartshapes then
+                    for _, ss_string in ipairs(edupos_table.smartshapes) do
+                        file:write(ss_string)
+                    end
+                end
                 if edupos_table.expressions then
                     for _, exp_string in ipairs(edupos_table.expressions) do
                         file:write(exp_string)
