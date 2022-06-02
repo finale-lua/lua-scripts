@@ -8,9 +8,29 @@ function plugindef()
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.Notes = [[
-        This script writes the current document to a text file in a human readable format. The primary purpose is to find changes
-        between one version of a document and another. The idea is to write each version out to a text file and then
-        use a comparison tool like kdiff3 to find differences.
+        This script encodes the current document to a utf-8 text file. The primary purpose is to find changes
+        between one version of a document and another. One would then write each version out to a text file and then
+        use a comparison tool like kdiff3 to find differences. The text files could also be used to track changes with a tool like Git.
+
+        The specifics of the shorthand for how the music is represented may not be that important.
+        The idea is to identify the measures and staves that are different and then look at the score to see the differences.
+
+        The following are encoded in such a way that if they are different, a comparison tool will flag them.
+
+        - notes and rhythms
+        - articulations
+        - expressions (both text and shape)
+        - ties
+        - smart shapes
+        - lyric assignments
+
+        Chord symbols are currently not encoded, due to the lack of a simple way to generate a string for them. This is a needed
+        future enhancement.
+
+        The goal of this script is to assist in finding *substantive* differences that would affect how a player would play the piece.
+        The script encodes the items above but not small engraving differences such as placement coordinates. One hopes, for example,
+        that if there were a printed score that were out of date, this tool would flag the minimum number of changes that needed to
+        be hand-corrected in the older score.
     ]]
     return "Save Document As Text File...", "", "Write current document to text file."
 end
@@ -124,8 +144,10 @@ function get_char_string(char)
     if known_chars[char] then
         return known_chars[char]
     end
-    if char > 255 then
+    if char > 127 then
         return "#"..string.format("%x", char)
+    elseif char < 32 then
+        return " "
     end
     return string.char(char)
 end
@@ -136,23 +158,31 @@ function entry_string(entry)
     local articulations = entry:CreateArticulations()
     for articulation in each(articulations) do
         local articulation_def = articulation:CreateArticulationDef()
-        retval = retval .. " " .. get_char_string(articulation_def.MainSymbolChar)
+        if articulation_def.MainSymbolIsShape then
+            retval = retval .. " sa" .. tostring(articulation_def.MainSymbolShapeID)
+        else
+            retval = retval .. " " .. get_char_string(articulation_def.MainSymbolChar)
+        end
     end
     local smart_shape_marks = finale.FCSmartShapeEntryMarks(entry)
+    local already_processed = {}
     if smart_shape_marks:LoadAll() then
         for mark in each(smart_shape_marks) do
-            local beg_mark = mark:CalcLeftMark()
-            local end_mark = mark:CalcRightMark()
-            if beg_mark or end_mark then
-                local smart_shape = mark:CreateSmartShape()
-                local desc = get_smartshape_string(smart_shape)
-                if desc then
-                    retval = retval .. " " .. desc
-                    if beg_mark then
-                        retval = retval .. "-beg"
-                    end
-                    if end_mark then
-                        retval = retval .. "-end"
+            if not already_processed[mark.ShapeNumber] then
+                already_processed[mark.ShapeNumber] = true
+                local beg_mark = mark:CalcLeftMark()
+                local end_mark = mark:CalcRightMark()
+                if beg_mark or end_mark then
+                    local smart_shape = mark:CreateSmartShape()
+                    local desc = get_smartshape_string(smart_shape)
+                    if desc then
+                        retval = retval .. " " .. desc
+                        if beg_mark then
+                            retval = retval .. "-beg"
+                        end
+                        if end_mark then
+                            retval = retval .. "-end"
+                        end
                     end
                 end
             end
@@ -163,7 +193,14 @@ function entry_string(entry)
     else
         for note_index = 0,entry.Count-1 do
             local note = entry:GetItemAt(note_index)
-            retval = retval .. " " .. note_entry.calc_pitch_string(note).LuaString
+            retval = retval .. " "
+            if note.TieBackwards then
+                retval = retval .. "<-"
+            end
+            retval = retval .. note_entry.calc_pitch_string(note).LuaString
+            if note.Tie then
+                retval = retval .. "->"
+            end
         end
     end
     for _, syllables in ipairs({finale.FCVerseSyllables(entry), finale.FCChorusSyllables(entry), finale.FCSectionSyllables(entry)}) do
@@ -196,14 +233,13 @@ function create_measure_table(measure_region, measure)
     -- ToDo: chords
     local expression_assignments = measure:CreateExpressions()
     for expression_assignment in each(expression_assignments) do
-        --require('mobdebug').start()
         local staff_num = expression_assignment:CalcStaffInPageView()
         if staff_num > 0 then
-            local edupos_table = get_edupos_table(measure_table, staff_num, expression_assignment.MeasurePos)
-            if not edupos_table.expressions then
-                edupos_table.expressions = {}
-            end
             if expression.is_for_current_part(expression_assignment) then
+                local edupos_table = get_edupos_table(measure_table, staff_num, expression_assignment.MeasurePos)
+                if not edupos_table.expressions then
+                    edupos_table.expressions = {}
+                end
                 if expression_assignment.Shape then
                     local shapeexp_def = expression_assignment:CreateShapeExpressionDef()
                     table.insert(edupos_table.expressions, " Shape "..tostring(shapeexp_def.ID))
