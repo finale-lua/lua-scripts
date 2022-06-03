@@ -231,7 +231,7 @@ function create_measure_table(measure_region, measure)
     for expression_assignment in each(expression_assignments) do
         local staff_num = expression_assignment:CalcStaffInPageView()
         if staff_num > 0 then
-            if expression.is_for_current_part(expression_assignment) then
+            if expression.is_for_current_part(expression_assignment) and expression.Visible then
                 local edupos_table = get_edupos_table(measure_table, staff_num, expression_assignment.MeasurePos)
                 if not edupos_table.expressions then
                     edupos_table.expressions = {}
@@ -368,11 +368,9 @@ function document_save_as_text()
     file:write("Script document_save_as_text.lua version ", finaleplugin.Version, "\n")
     file:write(document_path.LuaString, "\n")
     file:write("Saving as ", file_to_write, "\n")
-    local measures = finale.FCMeasures()
-    measures:LoadAll()
     local measure_number_regions = finale.FCMeasureNumberRegions()
     measure_number_regions:LoadAll()
-    for measure in each(measures) do
+    for measure in loadall(finale.FCMeasures()) do
         write_measure(file, measure, measure_number_regions)
     end
     file:close()
