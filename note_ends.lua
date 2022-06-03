@@ -22,12 +22,12 @@ end
 eighth_notes = eighth_notes or false
 
 function expand_note_ends()
-	local delete_next = false
+	local should_delete_next = false
     local note_value = eighth_notes and finale.NOTE_8TH or finale.NOTE_QUARTER -- [ 512 / 1024 ]
     local beat_duration = note_value
 	local measure_number = 0
 	local measure = finale.FCMeasure()
-    local compound_meter = false
+    local is_compound_meter = false
 	
 	for entry in eachentrysaved(finenv.Region()) do
 	    if measure_number ~= entry.Measure then -- calculate beat duration for each new measure
@@ -35,12 +35,12 @@ function expand_note_ends()
 	        measure:Load(measure_number)
 	        local time_sig = measure:GetTimeSignature()
 	        beat_duration = time_sig:CalcLargestBeatDuration()
-            compound_meter = (beat_duration % 3 == 0) 
+            is_compound_meter = (beat_duration % 3 == 0)
 	    end
 	    
-		if delete_next then -- last note was expanded
+		if should_delete_next then -- last note was expanded
 			entry.Duration = 0 -- so delete this rest
-			delete_next = false -- and start over
+			should_delete_next = false -- and start over
             -- OTHERWISE
 		elseif entry:IsNote() -- this is a note
                 and entry:Next() -- with a following entry
@@ -48,7 +48,7 @@ function expand_note_ends()
                 and entry.Duration < note_value -- this note is too short
             then
 
-            local valid = true -- refine the validity criteria
+            local entry_is_valid = true -- refine validity criteria
             local position_in_beat = entry.MeasurePos % beat_duration
             local note_boundary = entry.MeasurePos % (note_value / 2)
             local start_beat = math.floor(entry.MeasurePos / beat_duration)
@@ -56,20 +56,20 @@ function expand_note_ends()
             if beat_duration < (position_in_beat + note_value) -- not enough room in beat for expanded note
                 or note_boundary ~= 0  -- not falling on an allowed duration boundary
                 then
-                valid = false -- don't expand
-                if not compound_meter and not eighth_notes and note_boundary == 0 and start_beat % 2 == 0 then
-                    valid = true  -- special case for quarters on beats 1 & 3
+                entry_is_valid = false -- don't expand
+                if not is_compound_meter and not eighth_notes and note_boundary == 0 and start_beat % 2 == 0 then
+                    entry_is_valid = true  -- special case for quarter notes on beats 1 & 3
                 end
             end
 
-            if valid then
+            if entry_is_valid then
                 local duration_with_rest = entry.Duration + entry:Next().Duration
                 entry.Duration = note_value	-- expand target note
                 if duration_with_rest == note_value then
-                    delete_next = true -- just delete the following rest
+                    should_delete_next = true -- just delete the following rest
                 elseif duration_with_rest > note_value then -- some duration left over
                     entry:Next().Duration = duration_with_rest - note_value -- make rest smaller
-                    delete_next = false -- and don't delete it
+                    should_delete_next = false -- and don't delete it
                 end
             end
 		end
