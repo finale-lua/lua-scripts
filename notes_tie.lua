@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.59"
-    finaleplugin.Date = "2022/06/03"
+    finaleplugin.Version = "v0.72"
+    finaleplugin.Date = "2022/06/04"
     finaleplugin.AdditionalMenuOptions = [[ Untie Notes ]]
     finaleplugin.AdditionalUndoText = [[    Untie Notes ]]
     finaleplugin.AdditionalPrefixes = [[    untie_notes = true ]]
@@ -20,67 +20,53 @@ end
 -- default to "tie" notes for normal operation
 untie_notes = untie_notes or false
 
-local function note_pitch(note)
-    -- thanks for this bitwise math magic, Robert G Patterson!
-    return bit32.bor(note.RaiseLower, bit32.lshift(note.Displacement, 16))
+function tie_between_entries(entry_one, entry_two)
+    if not entry_one or not entry_two -- entries must exist
+        or entry_one:IsRest() or entry_two:IsRest() -- not rests
+        or entry_one.Voice2 ~= entry_two.Voice2 -- on same voice
+        or (not entry_one.GraceNote and entry_two.GraceNote)
+        then return
+    end
+    for note in each(entry_one) do
+        if entry_two:FindPitch(note) then -- find the pitch?
+            note.Tie = true -- then tie it
+        end
+    end
 end
 
-local function tie_notes_in_selection()
+function tie_notes_in_selection()
     local region = finenv.Region()
 
     for staff_number = region.StartStaff, region.EndStaff do
-        for layer_number = 1, 4 do  -- run through each layer
-            local entry_layer = finale:NoteEntryLayer(layer_number, staff_number, region.StartMeasure, region.EndMeasure)
-            local entry = entry_layer:GetItemAt(0)    -- start at first entry
+        for layer_number = 0, 3 do  -- run through layers [0-based]
+            local held_v1_entry = nil -- v1 entry held while v2 running
+            local v2_is_active = false
+            local entry_layer = finale.FCNoteEntryLayer(layer_number, staff_number, region.StartMeasure, region.EndMeasure)
+            entry_layer:Load()
 
-            while entry:Next() do -- run until final entry
-                if entry:IsNote() and entry:Next():IsNote() then -- two consecutive notes
-                    local chord = {}
-                    for note in each(entry:Next()) do -- collate pitches in the following note
-                        chord[note_pitch(note)] = true -- flag each pitch
-                    end
-                    for note in each(entry) do -- match to pitches in first note
-                        if chord[note_pitch(note)] and not entry:Next().GraceNote then
-                            note.Tie = true -- tie the note forward
+            for entry in each(entry_layer) do
+                if not entry:Next() then -- this is the final entry
+                    if not entry.Voice2 and v2_is_active then -- possible left-over V1 ties
+                        tie_between_entries(held_v1_entry, entry)
+                    end -- all done with this layer
+                else
+                    -- voice 1, launching V2
+                    if not entry.Voice2 and entry.Voice2Launch and entry:Next().Voice2 then -- voice 2 is launching
+                        held_v1_entry = entry -- save this entry for later
+                        v2_is_active = true -- set V2 flag; nothing else to do
+                    elseif not (entry.Voice2 and not entry:Next().Voice2) then -- don't check for ties when V2 section is ending
+                        if not entry.Voice2 and v2_is_active then -- returning to V1, so check held_v1_entry
+                            tie_between_entries(held_v1_entry, entry) -- check backwards tie to saved V1 entry
+                            held_v1_entry = nil -- clear the saved V1 entry
+                            v2_is_active = false -- clear V2 flag
                         end
+                        -- now check for "standard" forward tie
+                        tie_between_entries(entry, entry:Next()) -- tests for all compliance
                     end
                 end
-                entry = entry:Next()
             end
-
---[[
-            local chords = {} -- collate pitches in each chord
-            local slot = 1 -- count each entry slot
-            -- collate pitch entries
-            for entry in eachentry(region, layer_number) do
-                chords[slot] = {} -- start with empty chord
-                if entry:IsNote() then
-                    for note in each(entry) do
-                        chords[slot][note_pitch(note)] = true -- flag this pitch in the chord
-                    end
-                end
-                slot = slot + 1
-            end
-    -- entry.Voice2 / entry.Voice2Launch
-            slot = 1 -- restart at 1st slot
-            for entry in eachentrysaved(region, layer_number) do
-                if entry:IsNote() then
-                    for note in each(entry) do
-                        if nil == chords[slot+1] then -- last chord
-                            break
-                        end
-                        if chords[slot+1][note_pitch(note)]
-                            and not entry:Next().GraceNote
-                        
-                        then
-                            note.Tie = true -- tie the note forward
-                        end
-                    end
-                end
-                slot = slot + 1
-            end
-            --]]
-        end -- layer_number loop
+            entry_layer:Save()
+        end
     end
 end
 
