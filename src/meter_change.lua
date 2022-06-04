@@ -75,6 +75,9 @@ end
 
 numerator = numerator or 4
 denominator = denominator or 4
+if denominator == 8 then
+    numerator = numerator / 3
+end
 
 local denominators = {}
 denominators[2] = 2048
