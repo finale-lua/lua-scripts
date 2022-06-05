@@ -28,8 +28,10 @@ function tie_between_entries(entry_one, entry_two)
         then return
     end
     for note in each(entry_one) do
-        if entry_two:FindPitch(note) then -- find the pitch?
+        local note_tied_to = entry_two:FindPitch(note) -- find the pitch?
+        if note_tied_to then
             note.Tie = true -- then tie it
+            note_tied_to.TieBackwards = true -- and backwards
         end
     end
 end
