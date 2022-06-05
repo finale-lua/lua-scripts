@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.72"
+    finaleplugin.Version = "v0.74"
     finaleplugin.Date = "2022/06/04"
     finaleplugin.AdditionalMenuOptions = [[ Untie Notes ]]
     finaleplugin.AdditionalUndoText = [[    Untie Notes ]]
@@ -24,7 +24,7 @@ function tie_between_entries(entry_one, entry_two)
     if not entry_one or not entry_two -- entries must exist
         or entry_one:IsRest() or entry_two:IsRest() -- not rests
         or entry_one.Voice2 ~= entry_two.Voice2 -- on same voice
-        or (not entry_one.GraceNote and entry_two.GraceNote)
+        or entry_two.GraceNote
         then return
     end
     for note in each(entry_one) do
@@ -39,7 +39,7 @@ function tie_notes_in_selection()
 
     for staff_number = region.StartStaff, region.EndStaff do
         for layer_number = 0, 3 do  -- run through layers [0-based]
-            local held_v1_entry = nil -- v1 entry held while v2 running
+            local saved_v1_entry = nil -- v1 entry held while v2 running
             local v2_is_active = false
             local entry_layer = finale.FCNoteEntryLayer(layer_number, staff_number, region.StartMeasure, region.EndMeasure)
             entry_layer:Load()
@@ -47,20 +47,20 @@ function tie_notes_in_selection()
             for entry in each(entry_layer) do
                 if not entry:Next() then -- this is the final entry
                     if not entry.Voice2 and v2_is_active then -- possible left-over V1 ties
-                        tie_between_entries(held_v1_entry, entry)
-                    end -- all done with this layer
+                        tie_between_entries(saved_v1_entry, entry)
+                    end -- finished with this layer
                 else
                     -- voice 1, launching V2
                     if not entry.Voice2 and entry.Voice2Launch and entry:Next().Voice2 then -- voice 2 is launching
-                        held_v1_entry = entry -- save this entry for later
+                        saved_v1_entry = entry -- save V1 entry for later
                         v2_is_active = true -- set V2 flag; nothing else to do
-                    elseif not (entry.Voice2 and not entry:Next().Voice2) then -- don't check for ties when V2 section is ending
-                        if not entry.Voice2 and v2_is_active then -- returning to V1, so check held_v1_entry
-                            tie_between_entries(held_v1_entry, entry) -- check backwards tie to saved V1 entry
-                            held_v1_entry = nil -- clear the saved V1 entry
+                    else
+                        if not entry.Voice2 and v2_is_active then -- returning to V1 chain, so check saved_v1_entry
+                            tie_between_entries(saved_v1_entry, entry) -- check backwards tie to last saved V1 entry
+                            saved_v1_entry = nil -- clear the saved V1 entry
                             v2_is_active = false -- clear V2 flag
                         end
-                        -- now check for "standard" forward tie
+                        -- check for normal forward tie
                         tie_between_entries(entry, entry:Next()) -- tests for all compliance
                     end
                 end
