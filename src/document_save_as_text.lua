@@ -147,12 +147,10 @@ function get_char_string(char)
     if known_chars[char] then
         return known_chars[char]
     end
-    if char > 127 then
-        return "#"..string.format("%x", char)
-    elseif char < 32 then
+    if char < 32 then
         return " "
     end
-    return string.char(char)
+    return utf8.char(char)
 end
 
 function entry_string(entry)
