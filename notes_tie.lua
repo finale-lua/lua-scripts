@@ -61,8 +61,8 @@ local function tie_notes_in_selection()
                     for note in each(entry) do
                         local tied_to_note = tied_to(note)
                         if tied_to_note and region:IsEntryPosWithin(tied_to_note.Entry) then
-                            note.Tie = true
-                            tied_to_note.TieBackwards = true
+                            note.Tie = not untie_notes
+                            tied_to_note.TieBackwards = not untie_notes
                         end
                     end
                 end
@@ -72,17 +72,4 @@ local function tie_notes_in_selection()
     end
 end
 
-local function untie_notes_in_selection()
-    for entry in eachentrysaved(finenv.Region()) do
-        for note in each(entry) do
-            note.Tie = false
-            note.TieBackwards = false
-        end
-    end
-end
-
-if untie_notes then
-    untie_notes_in_selection()
-else
-    tie_notes_in_selection()
-end
+tie_notes_in_selection()
