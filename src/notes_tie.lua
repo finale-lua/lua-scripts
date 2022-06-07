@@ -72,4 +72,5 @@ local function tie_notes_in_selection()
     end
 end
 
+
 tie_notes_in_selection()
