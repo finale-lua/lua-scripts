@@ -280,6 +280,18 @@ for v in eachbackwards(allpages) do
 end
 ```
 
+### eachcell()
+
+`eachcell()` feeds a `for` loop with all the cell coordinates for a region. Partially selected measures are treated as being selected. The first coordinate is the measure, the second is the staff ID. `eachcell()` requires a region as the parameter, and an easy way is to refer to `finenv.Region()` to get the currently selected region.
+
+Example:
+
+```lua
+for m, s in eachcell(finenv.Region()) do
+   print ("Measure: ", m, "Staff: ", s)
+end
+```
+
 ### eachentry()
 
 `eachentry()` feeds a `for` loop with all the note entry objects in a region, without saving them back. Mirror entries are processed with `eachentry()`.
@@ -309,6 +321,8 @@ end
 print ("The region contains", counter, "rest entries.")
 ```
 
+A word of caution when using `FCNoteEntry.Next` and `FCNoteEntry.Previous`. `eachentry()` and `eachentrysaved()` iterate one measure at a time. If you need the `Next` and `Previous` methods to cross barlines, use the `each()` iterator with `FCNoteEntryLayer` instead.
+
 ### eachentrysaved()
 
 `eachentrysaved()` feeds a `for` loop with all the note entry objects in a region and automatically saves the entries back to Finale after processing. Only use this function when the entries actually needs to be saved. It requires the same parameter(s) as `eachentry()` (see above). Mirror entries are _not_ processed with `eachentrysaved()`.
@@ -324,17 +338,21 @@ end
 
 Due to the way the TGF frame works, the note entry is not saved directly after each loop turn, but only when a frame has been fully processed.
 
-### eachcell()
+### eachstaff()
 
-`eachcell()` feeds a `for` loop with all the cell coordinates for a region. Partially selected measures are treated as being selected. The first coordinate is the measure, the second is the staff ID. `eachcell()` requires a region as the parameter, the easiest way is to refer to `finenv.Region()` to get the currently selected region.
+`eachstaff()` feeds a `for` loop with all the staves for a region, from top to bottom. 
+Iterating staves by number is a bit tricky, since Finale increments staff numbers as they
+are added, rather than in score order. This function encapsulates that logic. `eachstaff()` requires a region as the parameter, and an easy way is to refer to `finenv.Region()` to get the currently selected region.
 
 Example:
 
 ```lua
-for m, s in eachcell(finenv.Region()) do
-   print ("Measure: ", m, "Staff: ", s)
+for s in eachstaff(finenv.Region()) do
+   print ("Staff: ", s)
 end
 ```
+
+`eachstaff()` was added in version 0.63 of _RGP Lua_ and is not available in _JW Lua_.
 
 ### loadall()
 
