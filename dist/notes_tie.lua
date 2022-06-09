@@ -455,7 +455,8 @@ end
 local function tie_notes_in_selection()
     local region = finenv.Region()
 
-    for staff_number = region.StartStaff, region.EndStaff do
+    for slot = region.StartSlot, region.EndSlot do
+        local staff_number = region:CalcStaffNumber(slot)
         for layer_number = 0, 3 do  -- run through layers [0-based]
             local entry_layer = finale.FCNoteEntryLayer(layer_number, staff_number, region.StartMeasure, region.EndMeasure)
             entry_layer:Load()
@@ -474,6 +475,5 @@ local function tie_notes_in_selection()
         end
     end
 end
-
 
 tie_notes_in_selection()
