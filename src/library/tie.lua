@@ -6,6 +6,8 @@ as well as providing other useful information about ties.
 ]] --
 local tie = {}
 
+local note_entry = require('library.note_entry')
+
 -- returns the equal note in the next closest entry or nil if none
 local equal_note = function(entry, target_note, for_tieend)
     if entry:IsRest() then
@@ -36,23 +38,49 @@ end
 -- returns the note that the input note is tied to.
 -- for this function to work, note must be from a FCNoteEntryLayer
 -- instance constructed by function tie_span.
-local function tied_to(note)
+
+--[[
+% calc_default_direction
+
+Calculates the note that the input note could be (or is) tied to.
+For this function to work correctly across barlines, the input note
+must be from an instance of FCNoteEntryLayer.
+
+@ note (FCNote) the note for which to return the tie_to note
+@ [tie_must_exist] if true, only returns a note if the tie already exists.
+: (FCNote) Returns the tied-to note or nil if none
+]]
+
+function tie.tied_to(note, tie_must_exist)
     if not note then
         return nil
     end
+    local return_note = function(tied_to_note)
+        if not tied_to_note then
+            return nil
+        end
+        if tie_must_exist and not tied_to_note.TieBackwards then
+            return nil
+        end
+        return tied_to_note
+    end
     local next_entry = note.Entry
     if next_entry then
-        next_entry = next_entry:Next()
+        if next_entry.Voice2Launch then
+            next_entry = note_entry.get_next_same_v(next_entry)
+        else
+            next_entry = next_entry:Next()
+        end
         if next_entry and not next_entry.GraceNote then
-            local tied_to_note = equal_note(next_entry, note, true)
+            local tied_to_note = next_entry:FindPitch(note)
             if tied_to_note then
-                return tied_to_note
+                return return_note(tied_to_note)
             end
             if next_entry.Voice2Launch then
                 local next_v2_entry = next_entry:Next()
-                tied_to_note = equal_note(next_v2_entry, note, true)
+                tied_to_note = next_v2_entry:FindPitch(note)
                 if tied_to_note then
-                    return tied_to_note
+                    return return_note(tied_to_note)
                 end
             end
         end
