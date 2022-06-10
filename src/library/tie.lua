@@ -9,60 +9,38 @@ local tie = {}
 local note_entry = require('library.note_entry')
 
 -- returns the equal note in the next closest entry or nil if none
-local equal_note = function(entry, target_note, for_tieend)
-    if entry:IsRest() then
-        return nil
+local equal_note = function(entry, target_note, for_tieend, tie_must_exist)
+    local found_note = entry:FindPitch(target_note)
+    if not found_note or not tie_must_exist then
+        return found_note
     end
-    -- By using CalcStaffPosition we can support a key change in the middle of a tie. But it is at the cost
-    -- of not supporting a clef change in the middle of the tie. A calculation comparing normalized concert
-    -- pitch is *much* more complicated code, and clef changes in the middle of ties seem like a very limited
-    -- use case.
-    local target_staffline = target_note:CalcStaffPosition()
-    for note in each(entry) do
-        local this_staffline = note:CalcStaffPosition()
-        if this_staffline == target_staffline then
-            if for_tieend then
-                if note.TieBackwards then
-                    return note
-                end
-            else
-                if note.Tie then
-                    return note
-                end
-            end
+    if for_tieend then
+        if found_note.TieBackwards then
+            return found_note
+        end
+    else
+        if found_note.Tie then
+            return found_note
         end
     end
     return nil
 end
 
--- returns the note that the input note is tied to.
--- for this function to work, note must be from a FCNoteEntryLayer
--- instance constructed by function tie_span.
-
 --[[
-% calc_default_direction
+% calc_tied_to
 
 Calculates the note that the input note could be (or is) tied to.
 For this function to work correctly across barlines, the input note
-must be from an instance of FCNoteEntryLayer.
+must be from an instance of FCNoteEntryLayer that contains both the
+input note and the tied-to note.
 
-@ note (FCNote) the note for which to return the tie_to note
+@ note (FCNote) the note for which to return the tied-from note
 @ [tie_must_exist] if true, only returns a note if the tie already exists.
 : (FCNote) Returns the tied-to note or nil if none
 ]]
-
-function tie.tied_to(note, tie_must_exist)
+function tie.calc_tied_to(note, tie_must_exist)
     if not note then
         return nil
-    end
-    local return_note = function(tied_to_note)
-        if not tied_to_note then
-            return nil
-        end
-        if tie_must_exist and not tied_to_note.TieBackwards then
-            return nil
-        end
-        return tied_to_note
     end
     local next_entry = note.Entry
     if next_entry then
@@ -72,15 +50,15 @@ function tie.tied_to(note, tie_must_exist)
             next_entry = next_entry:Next()
         end
         if next_entry and not next_entry.GraceNote then
-            local tied_to_note = next_entry:FindPitch(note)
+            local tied_to_note = equal_note(next_entry, note, true, tie_must_exist)
             if tied_to_note then
-                return return_note(tied_to_note)
+                return tied_to_note
             end
             if next_entry.Voice2Launch then
                 local next_v2_entry = next_entry:Next()
-                tied_to_note = next_v2_entry:FindPitch(note)
+                tied_to_note = equal_note(next_v2_entry, note, true, tie_must_exist)
                 if tied_to_note then
-                    return return_note(tied_to_note)
+                    return tied_to_note
                 end
             end
         end
@@ -88,10 +66,19 @@ function tie.tied_to(note, tie_must_exist)
     return nil
 end
 
--- returns the note that the input note is tied from.
--- for this function to work, note must be from a FCNoteEntryLayer
--- instance constructed by function tie_span.
-local function tied_from(note)
+--[[
+% calc_tied_from
+
+Calculates the note that the input note could be (or is) tied from.
+For this function to work correctly across barlines, the input note
+must be from an instance of FCNoteEntryLayer that contains both the
+input note and the tied-from note.
+
+@ note (FCNote) the note for which to return the tied-from note
+@ [tie_must_exist] if true, only returns a note if the tie already exists.
+: (FCNote) Returns the tied-from note or nil if none
+]]
+function tie.calc_tied_from(note, tie_must_exist)
     if not note then
         return nil
     end
@@ -101,16 +88,39 @@ local function tied_from(note)
         if not entry then
             break
         end
-        tied_from_note = equal_note(entry, note, false)
+        tied_from_note = equal_note(entry, note, false, tie_must_exist)
         if tied_from_note then
             return tied_from_note
         end
     end
 end
 
--- returns FCNoteEntryLayer, along with start and end FCNotes for the tie that
---      are contained within the FCNoteEntryLayer.
-local tie_span = function(note, for_tieend)
+--[[
+% calc_tie_span
+
+Calculates the (potential) start and end notes for a tie, given an input note. The
+input note can be from anywhere, including from the `eachentry()` iterator functions.
+The function returns 3 values:
+
+    - A FCNoteLayerEntry containing both the start and and notes (if they exist),
+    You must maintain the lifetime of this variable as long as you are referencing either
+    of the other two values.
+    - The potential or actual start note of the tie (taken from the FCNoteLayerEntry above).
+    - The potential or actual end note of the tie (taken from the FCNoteLayerEntry above).
+
+Be very careful about modifying the return values from this function. If you do it within
+an iterator loop from `eachentry()` or `eachentrysaved()` you could end up overwriting your changes
+with stale data from the iterator loop. You may discover that this function is more useful
+for gathering information than for modifying the values it returns.
+
+@ note (FCNote) the note for which to calculated the tie span
+@ [for_tieend] if true, searches for a note tying to the input note. Otherwise, searches for a note tying from the input note.
+@ [tie_must_exist] if true, only returns notes for ties that already exist.
+: (FCNoteLayerEntry) A new FCNoteEntryLayer instance that contains both the following two return values.
+: (FCNote) The start note of the tie.
+: (FCNote) The end note of the tie.
+]]
+function tie.calc_tie_span(note, for_tieend, tie_must_exist)
     local start_measnum = (for_tieend and note.Entry.Measure > 1) and note.Entry.Measure - 1 or note.Entry.Measure
     local end_measnum = for_tieend and note.Entry.Measure or note.Entry.Measure + 1
     local note_entry_layer = finale.FCNoteEntryLayer(note.Entry.LayerNumber - 1, note.Entry.Staff, start_measnum, end_measnum)
@@ -126,8 +136,8 @@ local tie_span = function(note, for_tieend)
         return note_entry_layer
     end
     local note_entry_layer_note = same_entry:GetItemAt(note.NoteIndex)
-    local start_note = for_tieend and tied_from(note_entry_layer_note) or note_entry_layer_note
-    local end_note = for_tieend and note_entry_layer_note or tied_to(note_entry_layer_note)
+    local start_note = for_tieend and tie.calc_tied_from(note_entry_layer_note, tie_must_exist) or note_entry_layer_note
+    local end_note = for_tieend and note_entry_layer_note or tie.calc_tied_to(note_entry_layer_note, tie_must_exist)
     return note_entry_layer, start_note, end_note
 end
 
@@ -203,7 +213,7 @@ function tie.calc_default_direction(note, for_tieend, tie_prefs)
         end
     else
         local adjacent_stemdir = 0
-        local note_entry_layer, start_note, end_note = tie_span(note, for_tieend)
+        local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, for_tieend, true)
         if for_tieend then
             -- There seems to be a "bug" in how Finale determines mixed-stem values for Tie-Ends.
             -- It looks at the stem direction of the immediately preceding entry, even if that entry
@@ -362,7 +372,7 @@ local calc_is_end_of_system = function(note, for_pageview)
         end
     end
     if for_pageview then
-        local note_entry_layer, start_note, end_note = tie_span(note, false)
+        local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, false, true)
         if start_note and end_note then
             local systems = finale.FCStaffSystems()
             systems:LoadAll()
@@ -520,7 +530,7 @@ function tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
     else
         start_placement = calc_placement_for_endpoint(note, tie_mod, tie_prefs, direction, stemdir, false)
         end_placement = start_placement -- initialize it with something
-        local note_entry_layer, start_note, end_note = tie_span(note, false)
+        local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, false, true)
         if end_note then
             local next_stemdir = end_note.Entry:CalcStemUp() and 1 or -1
             end_placement = calc_placement_for_endpoint(end_note, tie_mod, tie_prefs, direction, next_stemdir, true)
@@ -654,7 +664,7 @@ local calc_tie_length = function(note, tie_mod, for_pageview, direction, tie_pre
 
     local cell_metrics_end = finale.FCCellMetrics()
     local entry_metrics_end = finale.FCEntryMetrics()
-    local note_entry_layer, start_note, end_note = tie_span(note, false)
+    local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, false, true)
     if tie_mod:IsStartTie() then
         if end_note then
             cell_metrics_end:LoadAtEntry(end_note.Entry)

@@ -19,35 +19,7 @@ end
 -- default to "tie" notes for normal operation
 untie_notes = untie_notes or false
 
-local note_entry = require('library.note_entry')
-
-local function tied_to(note)
-    if not note then
-        return nil
-    end
-    local next_entry = note.Entry
-    if next_entry then
-        if next_entry.Voice2Launch then
-            next_entry = note_entry.get_next_same_v(next_entry)
-        else
-            next_entry = next_entry:Next()
-        end
-        if next_entry and next_entry:IsNote() and not next_entry.GraceNote then
-            local tied_to_note = next_entry:FindPitch(note)
-            if tied_to_note then
-                return tied_to_note
-            end
-            if next_entry.Voice2Launch then
-                local next_v2_entry = next_entry:Next()
-                tied_to_note = next_v2_entry:FindPitch(note)
-                if tied_to_note then
-                    return tied_to_note
-                end
-            end
-        end
-    end
-    return nil
-end
+local tie = require('library.tie')
 
 local function tie_notes_in_selection()
     local region = finenv.Region()
@@ -60,10 +32,27 @@ local function tie_notes_in_selection()
             for entry in each(entry_layer) do
                 if entry:IsNote() and region:IsEntryPosWithin(entry) then
                     for note in each(entry) do
-                        local tied_to_note = tied_to(note)
-                        if tied_to_note and region:IsEntryPosWithin(tied_to_note.Entry) then
-                            note.Tie = not untie_notes
-                            tied_to_note.TieBackwards = not untie_notes
+                        if untie_notes then
+                            if note.TieBackwards then
+                                local tie_span_from, start_note = tie.calc_tie_span(note, true)
+                                if not start_note or region:IsEntryPosWithin(start_note.Entry) or not start_note.Tie then
+                                    note.TieBackwards = false
+                                    finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
+                                end
+                            end
+                            if note.Tie then
+                                local tie_span_to, _, end_note = tie.calc_tie_span(note, false)
+                                if not end_note or region:IsEntryPosWithin(end_note.Entry) or not end_note.TieBackwards then
+                                    note.Tie = false
+                                    finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+                                end
+                            end
+                        else
+                            local tied_to_note = tie.calc_tied_to(note)
+                            if tied_to_note and region:IsEntryPosWithin(tied_to_note.Entry) then
+                                note.Tie = true
+                                tied_to_note.TieBackwards = true
+                            end
                         end
                     end
                 end
