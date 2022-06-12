@@ -9,12 +9,12 @@ local tie = {}
 local note_entry = require('library.note_entry')
 
 -- returns the equal note in the next closest entry or nil if none
-local equal_note = function(entry, target_note, for_tieend, tie_must_exist)
+local equal_note = function(entry, target_note, for_tied_to, tie_must_exist)
     local found_note = entry:FindPitch(target_note)
     if not found_note or not tie_must_exist then
         return found_note
     end
-    if for_tieend then
+    if for_tied_to then
         if found_note.TieBackwards then
             return found_note
         end
@@ -114,15 +114,15 @@ with stale data from the iterator loop. You may discover that this function is m
 for gathering information than for modifying the values it returns.
 
 @ note (FCNote) the note for which to calculated the tie span
-@ [for_tieend] if true, searches for a note tying to the input note. Otherwise, searches for a note tying from the input note.
+@ [for_tied_to] if true, searches for a note tying to the input note. Otherwise, searches for a note tying from the input note.
 @ [tie_must_exist] if true, only returns notes for ties that already exist.
 : (FCNoteLayerEntry) A new FCNoteEntryLayer instance that contains both the following two return values.
 : (FCNote) The start note of the tie.
 : (FCNote) The end note of the tie.
 ]]
-function tie.calc_tie_span(note, for_tieend, tie_must_exist)
-    local start_measnum = (for_tieend and note.Entry.Measure > 1) and note.Entry.Measure - 1 or note.Entry.Measure
-    local end_measnum = for_tieend and note.Entry.Measure or note.Entry.Measure + 1
+function tie.calc_tie_span(note, for_tied_to, tie_must_exist)
+    local start_measnum = (for_tied_to and note.Entry.Measure > 1) and note.Entry.Measure - 1 or note.Entry.Measure
+    local end_measnum = for_tied_to and note.Entry.Measure or note.Entry.Measure + 1
     local note_entry_layer = finale.FCNoteEntryLayer(note.Entry.LayerNumber - 1, note.Entry.Staff, start_measnum, end_measnum)
     note_entry_layer:Load()
     local same_entry
@@ -136,8 +136,8 @@ function tie.calc_tie_span(note, for_tieend, tie_must_exist)
         return note_entry_layer
     end
     local note_entry_layer_note = same_entry:GetItemAt(note.NoteIndex)
-    local start_note = for_tieend and tie.calc_tied_from(note_entry_layer_note, tie_must_exist) or note_entry_layer_note
-    local end_note = for_tieend and note_entry_layer_note or tie.calc_tied_to(note_entry_layer_note, tie_must_exist)
+    local start_note = for_tied_to and tie.calc_tied_from(note_entry_layer_note, tie_must_exist) or note_entry_layer_note
+    local end_note = for_tied_to and note_entry_layer_note or tie.calc_tied_to(note_entry_layer_note, tie_must_exist)
     return note_entry_layer, start_note, end_note
 end
 
