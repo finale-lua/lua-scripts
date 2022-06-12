@@ -3,6 +3,9 @@
 This library encapsulates Finale's behavior for initializing FCTieMod endpoints,
 as well as providing other useful information about ties.
 
+- [calc_tied_to](#calc_tied_to)
+- [calc_tied_from](#calc_tied_from)
+- [calc_tie_span](#calc_tie_span)
 - [calc_default_direction](#calc_default_direction)
 - [calc_direction](#calc_direction)
 - [calc_connection_code](#calc_connection_code)
@@ -10,6 +13,83 @@ as well as providing other useful information about ties.
 - [activate_endpoints](#activate_endpoints)
 - [calc_contour_index](#calc_contour_index)
 - [activate_contour](#activate_contour)
+
+## calc_tied_to
+
+```lua
+tie.calc_tied_to(note)
+```
+
+
+Calculates the note that the input note could be (or is) tied to.
+For this function to work correctly across barlines, the input note
+must be from an instance of FCNoteEntryLayer that contains both the
+input note and the tied-to note.
+
+@ [tie_must_exist] if true, only returns a note if the tie already exists.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `note` | `FCNote` | the note for which to return the tied-from note |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `FCNote` | Returns the tied-to note or nil if none |
+
+## calc_tied_from
+
+```lua
+tie.calc_tied_from(note)
+```
+
+
+Calculates the note that the input note could be (or is) tied from.
+For this function to work correctly across barlines, the input note
+must be from an instance of FCNoteEntryLayer that contains both the
+input note and the tied-from note.
+
+@ [tie_must_exist] if true, only returns a note if the tie already exists.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `note` | `FCNote` | the note for which to return the tied-from note |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `FCNote` | Returns the tied-from note or nil if none |
+
+## calc_tie_span
+
+```lua
+tie.calc_tie_span(note)
+```
+
+
+Calculates the (potential) start and end notes for a tie, given an input note. The
+input note can be from anywhere, including from the `eachentry()` iterator functions.
+The function returns 3 values:
+
+    - A FCNoteLayerEntry containing both the start and and notes (if they exist),
+    You must maintain the lifetime of this variable as long as you are referencing either
+    of the other two values.
+    - The potential or actual start note of the tie (taken from the FCNoteLayerEntry above).
+    - The potential or actual end note of the tie (taken from the FCNoteLayerEntry above).
+
+Be very careful about modifying the return values from this function. If you do it within
+an iterator loop from `eachentry()` or `eachentrysaved()` you could end up overwriting your changes
+with stale data from the iterator loop. You may discover that this function is more useful
+for gathering information than for modifying the values it returns.
+
+@ [for_tied_to] if true, searches for a note tying to the input note. Otherwise, searches for a note tying from the input note.
+@ [tie_must_exist] if true, only returns notes for ties that already exist.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `note` | `FCNote` | the note for which to calculated the tie span |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `FCNote` | The end note of the tie. |
 
 ## calc_default_direction
 
