@@ -23,14 +23,15 @@ clear_breaks = clear_breaks or false
 
 function break_secondary_beams()
     local measure_number = 0
+    local staff_number = 0
     local beamed_length = finale.NOTE_8TH -- default to 8ths
-    local measure = finale.FCMeasure()
 
     for entry in eachentrysaved(finenv.Region()) do
-        if measure_number ~= entry:GetMeasure() then -- started a new measure
-            measure_number = entry:GetMeasure()
-            measure:Load(measure_number)
-            local time_sig = measure:GetTimeSignature()
+        if measure_number ~= entry.Measure or staff_number ~= entry.Staff then -- started a new cell
+            measure_number = entry.Measure
+            staff_number = entry.Staff
+            local cell = finale.FCCell(measure_number, staff_number)
+            local time_sig = cell:GetTimeSignature()
             beamed_length = time_sig:CalcLargestBeatDuration()
             if (beamed_length % 3 == 0) then  -- compound time_sig, divide beat by 3
                 beamed_length = beamed_length / 3
@@ -46,7 +47,12 @@ function break_secondary_beams()
             local sbbm = finale.FCSecondaryBeamBreakMod()
             sbbm:SetNoteEntry(entry)
             local bm_loaded = sbbm:LoadFirst()
-            sbbm:SetBreakAll(true)
+            for beam = 0, 8 do
+                local beam_value = bit32.rshift(finale.NOTE_16TH, beam)
+                if beam_value < beamed_length then
+                    sbbm:SetBreak(beam, true)
+                end
+            end
             if bm_loaded then
                 sbbm:Save() -- save existing data
             else
