@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.2"
-    finaleplugin.Date = "2022/06/12"
+    finaleplugin.Version = "v1.3"
+    finaleplugin.Date = "2022/06/13"
     finaleplugin.CategoryTags = "MIDI"
     finaleplugin.Notes = [[
     Change the playback START and STOP times for every note in the selected area on one or all layers. 
@@ -16,15 +16,15 @@ end
 -- RetainLuaState will return global variables:
 -- start_offset, stop_offset and layer_number
 
-function show_error(error_type, param)
+function show_error(error_type, actual_value)
     local errors = {
         bad_offset = "Offset times must be reasonable,\nsay -9999 to 9999\n(not ",
         bad_layer_number = "Layer number must be an\ninteger between zero and 4\n(not ",
     }
-    finenv.UI():AlertNeutral("script: " .. plugindef(), errors[error_type] .. param .. ")")
+    finenv.UI():AlertNeutral("script: " .. plugindef(), errors[error_type] .. actual_value .. ")")
 end
 
-function user_choices()
+function get_user_choices()
     local current_vert, vert_step = 10, 25
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
     local edit_horiz = 120
@@ -53,14 +53,14 @@ function user_choices()
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    return dialog:ExecuteModal(nil), 
+    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), 
         answer[1]:GetInteger(), answer[2]:GetInteger(), answer[3]:GetInteger()
 end
 
 function change_midi_duration()
     local ok = false
-    ok, start_offset, stop_offset, layer_number = user_choices()
-    if ok ~= finale.EXECMODAL_OK then
+    is_ok, start_offset, stop_offset, layer_number = get_user_choices()
+    if not is_ok then
         return
     end -- user cancelled
     
@@ -72,7 +72,7 @@ function change_midi_duration()
         show_error("bad_layer_number", layer_number)
         return
     end
-    if nil ~= finenv.RetainLuaState then
+    if finenv.RetainLuaState ~= nil then
         finenv.RetainLuaState = true
     end
 
