@@ -10,11 +10,11 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[ clear_breaks = true ]]
     finaleplugin.AdditionalDescriptions = [[ Clear all secondary beam breaks in the selected region ]]
     finaleplugin.Notes = [[ 
-    A string of small beamed notes (say 32nd note or shorter) are much easier to read if their secondary beam is broken in the middle of a beat. 
-    This script is designed principally to break secondary beams in simple meters (2/4, 3/4, 4/4 etc) in the middle of each beat. 
-    If the current meter is compound (6/8, 9/8 etc) then the beat is divided into three sections. 
-    RGPLua (0.62 and above) creates a companion menu item, "Clear secondary beam breaks".
-    ]]
+        A stream of many short beamed notes (say 32nd notes) are easier to read if the secondary beam is broken in the middle of a beat. 
+        This script is designed to break secondary beams in simple meters (2/4, 3/4, 4/4 etc) in the middle of each beat. 
+        If the meter is compound (6/8, 9/8 etc) then the beat is divided into three sections. 
+        RGPLua (0.62 and above) creates a companion menu item, "Clear secondary beam breaks".
+        ]]
     return "Break secondary beams", "Break secondary beams", "Break secondary beams with compound consideration"
 end
 
@@ -46,7 +46,7 @@ function break_secondary_beams()
             local sbbm = finale.FCSecondaryBeamBreakMod()
             sbbm:SetNoteEntry(entry)
             local bm_loaded = sbbm:LoadFirst()
-            sbbm:SetBreakAll(true) -- also "SetBreak128th" (true) etc
+            sbbm:SetBreakAll(true)
             if bm_loaded then
                 sbbm:Save() -- save existing data
             else
