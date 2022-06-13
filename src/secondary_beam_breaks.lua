@@ -41,7 +41,7 @@ function break_secondary_beams()
         end
 
         -- is this entry at a division point in a beamed group?
-        if not (entry.BeamBeat or entry:IsRest() or entry:Previous():IsRest())
+        if not (entry.BeamBeat or entry:IsRest() or (entry:Previous() and entry:Previous():IsRest()))
             and (entry.MeasurePos % beamed_length == 0) then
 
             local sbbm = finale.FCSecondaryBeamBreakMod()
