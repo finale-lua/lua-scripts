@@ -47,13 +47,11 @@ end
 ]]
 function props:Init()
     private[self] = private[self] or {
-        NextTimerID = 1,
-        HandleTimer = {},
         HandleCustomQueue = {},
         HasBeenShown = false,
         EnableDebugClose = false,
+        RestoreControlState = false,
         AutoRestorePosition = false,
-        AutoRestoreSize = false,
         StoredX = nil,
         StoredY = nil,
     }
@@ -122,23 +120,45 @@ function props:Init()
                 end
             end
 
-            if f == "CloseWindow" then
-                self["Register" .. f .. "_"](
-                    self, function()
-                        if private[self].EnableDebugClose and finenv.RetainLuaState ~= nil then
-                            if finenv.DebugEnabled and (self:QueryLastCommandModifierKeys(finale.CMDMODKEY_ALT) or self:QueryLastCommandModifierKeys(finale.CMDMODKEY_SHIFT)) then
-                                finenv.RetainLuaState = false
-                            end
+            if f == "InitWindow" then
+                self["Register" .. f .. "_"](self, function()
+                    if private[self].HasBeenShown and private[self].RestoreControlState then
+                        for control in each(self) do
+                            control:RestoreState()
                         end
+                    end
 
-                        cb()
-
-                        if self.StorePosition then
-                            self:StorePosition(false)
-                            private[self].StoredX = self.StoredX
-                            private[self].StoredY = self.StoredY
+                    cb()
+                end)
+            elseif f == "CloseWindow" then
+                self["Register" .. f .. "_"](self, function()
+                    if private[self].EnableDebugClose and finenv.RetainLuaState ~= nil then
+                        if finenv.DebugEnabled and (self:QueryLastCommandModifierKeys(finale.CMDMODKEY_ALT) or self:QueryLastCommandModifierKeys(finale.CMDMODKEY_SHIFT)) then
+                            finenv.RetainLuaState = false
                         end
-                    end)
+                    end
+
+                    -- Catch any errors so they don't disrupt storing window position and control state
+                    local is_error, error_msg = pcall(cb)
+
+                    if self.StorePosition then
+                        self:StorePosition(false)
+                        private[self].StoredX = self.StoredX
+                        private[self].StoredY = self.StoredY
+                    end
+
+                    if private[self].RestoreControlState then
+                        for control in each(self) do
+                            control:StoreState()
+                        end
+                    end
+
+                    private[self].HasBeenShown = true
+
+                    if is_error then
+                        error(error_msg, 0)
+                    end
+                end)
             else
                 self["Register" .. f .. "_"](self, cb)
             end
@@ -521,7 +541,7 @@ end
 --[[
 % HasBeenShown
 
-Checks if the window has been shown, either as a modal or modeless.
+Checks if the window has been shown at least once prior, either as a modal or modeless.
 
 @ self (FCMCustomLuaWindow)
 : (boolean) `true` if it has been shown, `false` if not
@@ -580,7 +600,7 @@ If the position is changed while window is closed, ensures that the new position
 
         self:SetRestorePositionOnlyData_(x, y, width, height)
 
-        if self:HasBeenShown() and not self:WindowExists() then
+        if private[self].HasBeenShown and not self:WindowExists() then
             private[self].StoredX = x
             private[self].StoredY = y
         end
@@ -602,7 +622,7 @@ If the position is changed while window is closed, ensures that the new position
 
         self:SetRestorePositionOnlyData_(x, y)
 
-        if self:HasBeenShown() and not self:WindowExists() then
+        if private[self].HasBeenShown and not self:WindowExists() then
             private[self].StoredX = x
             private[self].StoredY = y
         end
@@ -639,17 +659,44 @@ function props:GetEnableDebugClose(enabled)
 end
 
 --[[
+% SetRestoreControlState
+
+**[Fluid]**
+Enables or disables the automatic restoration of control state on subsequent showings of the window.
+This is disabled by default.
+
+@ self (FCMCustomLuaWindow)
+@ enabled (boolean) `true` to enable, `false` to disable.
+]]
+function props:SetRestoreControlState(enabled)
+    mixin.assert_argument(enabled, "boolean", 2)
+
+    private[self].RestoreControlState = enabled and true or false
+end
+
+--[[
+% GetRestoreControlState
+
+Checks if control state restoration is enabled.
+
+@ self (FCMCustomLuaWindow)
+: (boolean) `true` if enabled, `false` if disabled.
+]]
+function props:GetRestoreControlState()
+    return private[self].RestoreControlState
+end
+
+--[[
 % ExecuteModal
 
 **[Override]**
-Sets the `HasBeenShown` flag and restores the previous position if auto restore is on.
+Restores the previous position if auto restore is on.
 
 @ self (FCMCustomLuaWindow)
 : (number)
 ]]
 function props:ExecuteModal(parent)
     restore_position(self)
-    private[self].HasBeenShown = true
     return mixin.FCMCustomWindow.ExecuteModal(self, parent)
 end
 
@@ -657,14 +704,13 @@ end
 % ShowModeless
 
 **[Override]**
-Sets the `HasBeenShown` flag and restores the previous position if auto restore is on.
+Restores the previous position if auto restore is on.
 
 @ self (FCMCustomLuaWindow)
 : (boolean)
 ]]
 function props:ShowModeless()
     restore_position(self)
-    private[self].HasBeenShown = true
     return self:ShowModeless_()
 end
 

@@ -36,16 +36,17 @@ local each_last_measurement_unit_change
 ]]
 function props:Init()
     private[self] = private[self] or {
-            MeasurementUnit = measurement.get_real_default_unit(),
-            UseParentMeasurementUnit = true,
-            HandleTimer = {},
-            RunModelessDefaultAction = nil,
-        }
+        MeasurementUnit = measurement.get_real_default_unit(),
+        UseParentMeasurementUnit = true,
+        HandleTimer = {},
+        RunModelessDefaultAction = nil,
+    }
 
     if self.SetAutoRestorePosition then
         self:SetAutoRestorePosition(true)
     end
 
+    self:SetRestoreControlState(true)
     self:SetEnableDebugClose(true)
 
     -- Register proxy for HandlerTimer if it's available in this RGPLua version.
@@ -413,7 +414,7 @@ Automatically registers the dialog with `finenv.RegisterModelessDialog`.
 @ self (FCXCustomLuaWindow)
 : (boolean)
 ]]
-props:ShowModeless()
+function props:ShowModeless()
     finenv.RegisterModelessDialog(self)
     return mixin.FCMCustomLuaWindow.ShowModeless(self)
 end

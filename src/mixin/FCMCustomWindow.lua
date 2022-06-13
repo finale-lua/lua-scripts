@@ -21,7 +21,10 @@ local props = {}
 @ self (FCMCustomWindow)
 ]]
 function props:Init()
-    private[self] = private[self] or {Controls = {}, NamedControls = {}}
+    private[self] = private[self] or {
+        Controls = {},
+        NamedControls = {},
+    }
 end
 
 --[[
