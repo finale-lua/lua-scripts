@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.03"
-    finaleplugin.Date = "2022/06/09"
+    finaleplugin.Version = "v1.04"
+    finaleplugin.Date = "2022/06/15"
     finaleplugin.CategoryTags = "Note"
     finaleplugin.Notes = [[
         Clear all music from the chosen layer in the surrently selected region. 
@@ -14,17 +14,7 @@ function plugindef()
 end
 
 -- RetainLuaState will return global variable: clear_layer_number
-
-function clear_chosen_layer(layer_number)
-    layer_number = layer_number - 1   -- convert to 0-base
-    local region = finenv.Region()
-    for slot = region.StartSlot, region.EndSlot do
-        local staff_number = region:CalcStaffNumber(slot)
-        local entry_layer = finale.FCNoteEntryLayer(layer_number, staff_number, region.StartMeasure, region.EndMeasure)
-        entry_layer:Load()
-        entry_layer:ClearAllEntries()
-    end
-end
+local layer = require("library.layer")
 
 function get_user_choice()
     local vertical = 10
@@ -64,7 +54,7 @@ function clear_layers()
     if finenv.RetainLuaState ~= nil then
         finenv.RetainLuaState = true
     end
-    clear_chosen_layer(clear_layer_number)
+    layer.clear(finenv.Region(), clear_layer_number)
 end
 
 clear_layers()
