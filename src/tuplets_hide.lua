@@ -7,6 +7,7 @@ function plugindef()
     finaleplugin.Date = "2022/06/20"
     finaleplugin.AdditionalMenuOptions = [[ Tuplets Unhide ]]
     finaleplugin.AdditionalUndoText = [[    Tuplets Unhide ]]
+    finaleplugin.AdditionalDescriptions = [[ Unhide all tuplets in the current selection ]]
     finaleplugin.AdditionalPrefixes = [[    show_tuplets = true ]]
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
