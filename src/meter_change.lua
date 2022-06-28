@@ -145,7 +145,6 @@ function set_time(beat_num, beat_duration)
                 if config.stop_at_always_show and m.ShowTimeSignature == finale.SHOWSTATE_SHOW then
                     break
                 end
-                require('mobdebug').start()
                 if not selected_time_signature:IsIdentical(m:GetTimeSignature()) then
                     break
                 end
