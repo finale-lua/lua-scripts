@@ -11,7 +11,10 @@ function plugindef()
         Changes the meter. If a single measure is selected,
         the meter will be set for remaining measures in the score.
         If multiple measures are selected, the meter will be set
-        only for the selected measures.
+        only for the selected measures. However, you can override this
+        by holding down Shift or Option keys when invoking the script.
+        Then the meter is changed only in the range you selected, including
+        a single measure.
     ]]
     finaleplugin.AdditionalMenuOptions = [[
         Meter - 1/2
@@ -84,15 +87,16 @@ denominators[2] = 2048
 denominators[4] = 1024
 denominators[8] = 1536 -- for compound meters
 
+local do_single_bar = finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
+
 function set_time(beat_num, beat_duration)
     local measures = finale.FCMeasures()
     measures:LoadRegion(finenv.Region())
-    if measures.Count > 1 then
+    if measures.Count > 1 or do_single_bar then
         for m in each(measures) do
             local time_sig = m:GetTimeSignature()
-            time_sig:SetBeats(beat_num)
-            time_sig:SetBeatDuration(beat_duration)
-            time_sig:Save()
+            time_sig:RemoveCompositeTop(beat_num)
+            time_sig:RemoveCompositeBottom(beat_duration)
             m:Save()
         end
     else
@@ -102,9 +106,8 @@ function set_time(beat_num, beat_duration)
             local selectedMeasure = measures:GetItemAt(0)
             if (m.ItemNo >= selectedMeasure.ItemNo) then
                 local time_sig = m:GetTimeSignature()
-                time_sig:SetBeats(beat_num)
-                time_sig:SetBeatDuration(beat_duration)
-                time_sig:Save()
+                time_sig:RemoveCompositeTop(beat_num)
+                time_sig:RemoveCompositeBottom(beat_duration)
                 m:Save()
             end
         end
