@@ -121,7 +121,12 @@ function apply_new_time(measure, beat_num, beat_duration)
         abrv_time_sig:RemoveCompositeTop(beat_num)
         abrv_time_sig:RemoveCompositeBottom(beat_duration)
     else
-        measure.UseTimeSigForDisplay = false
+        if measure.UseTimeSigForDisplay then
+            local abrv_time_sig = measure:GetTimeSignatureForDisplay()
+            abrv_time_sig:RemoveCompositeTop(beat_num)
+            abrv_time_sig:RemoveCompositeBottom(beat_duration)
+            measure.UseTimeSigForDisplay = false
+        end
         time_sig:RemoveCompositeTop(beat_num)
     end
     time_sig:RemoveCompositeBottom(beat_duration)
