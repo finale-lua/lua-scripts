@@ -9,33 +9,17 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Notes = [[
         Changes the meter. If a single measure is selected,
-        the meter will be set for remaining measures in the score.
+        the meter will be set for all measures until the next
+        meter change, or until the next measure with Time Signature
+        set to "Always Show", or for the remaining measures in the score.
+        However, you can override this by holding down Shift or Option
+        keys when invoking the script. Then the meter is changed only
+        for the single measure you selected.
+
         If multiple measures are selected, the meter will be set
-        only for the selected measures. However, you can override this
-        by holding down Shift or Option keys when invoking the script.
-        Then the meter is changed only in the range you selected, including
-        a single measure.
+        exactly for the selected measures. 
     ]]
     finaleplugin.AdditionalMenuOptions = [[
-        Meter - 1/2
-        Meter - 2/2
-        Meter - 3/2
-        Meter - 4/2
-        Meter - 5/2
-        Meter - 6/2
-        Meter - 1/4
-        Meter - 2/4
-        Meter - 3/4
-        Meter - 5/4
-        Meter - 6/4
-        Meter - 7/4
-        Meter - 3/8
-        Meter - 6/8
-        Meter - 9/8
-        Meter - 12/8
-        Meter - 15/8
-    ]]
-    finaleplugin.AdditionalUndoText = [[
         Meter - 1/2
         Meter - 2/2
         Meter - 3/2
@@ -100,11 +84,18 @@ function set_time(beat_num, beat_duration)
             m:Save()
         end
     else
-        local allMeasures = finale.FCMeasures()
-        allMeasures:LoadAll()
-        for m in each(allMeasures) do
-            local selectedMeasure = measures:GetItemAt(0)
-            if (m.ItemNo >= selectedMeasure.ItemNo) then
+        local selected_measure = measures:GetItemAt(0)
+        local selected_time_signature = selected_measure:GetTimeSignature()
+        for m in loadall(finale.FCMeasures()) do
+            if (m.ItemNo >= selected_measure.ItemNo) then
+                if (m.ItemNo > selected_measure.ItemNo) then
+                    if m.ShowTimeSignature == finale.SHOWSTATE_SHOW then
+                        break
+                    end
+                    if not selected_time_signature:IsIdentical(m:GetTimeSignature()) then
+                        break
+                    end
+                end
                 local time_sig = m:GetTimeSignature()
                 time_sig:RemoveCompositeTop(beat_num)
                 time_sig:RemoveCompositeBottom(beat_duration)
