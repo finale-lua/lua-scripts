@@ -30,7 +30,7 @@ input note and the tied-to note.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
-| `note` | `FCNote` | the note for which to return the tied-from note |
+| `note` | `FCNote` | the note for which to return the tied-to note |
 
 | Return type | Description |
 | ----------- | ----------- |
@@ -69,7 +69,7 @@ Calculates the (potential) start and end notes for a tie, given an input note. T
 input note can be from anywhere, including from the `eachentry()` iterator functions.
 The function returns 3 values:
 
-    - A FCNoteLayerEntry containing both the start and and notes (if they exist),
+    - A FCNoteLayerEntry containing both the start and and notes (if they exist).
     You must maintain the lifetime of this variable as long as you are referencing either
     of the other two values.
     - The potential or actual start note of the tie (taken from the FCNoteLayerEntry above).
