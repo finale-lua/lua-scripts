@@ -99,22 +99,17 @@ function delete_selected()
     elseif delete_type == "measure_attached" then -- MEASURE-ATTACHED EXPRESSIONS type
         local measures = finale.FCMeasures()
         measures:LoadRegion(finenv.Region())
-        local try = finale.FCExpression()
         for measure in each(measures) do
-            for exp in eachbackwards(measure:CreateExpressions()) do
+            for exp in each(measure:CreateExpressions()) do
                 if exp.StaffGroupID > 0 then
                     exp:DeleteData()
                 end
-            end
-            if not try:Load(measure.ItemNo, 0) then
-                measure.ExpressionFlag = false -- no expressions left
-                measure:Save()
             end
         end
     elseif delete_type == "articulation" then -- ARTICULATION type
         for entry in eachentrysaved(finenv.Region()) do
             if entry:GetArticulationFlag() then
-                for articulation in eachbackwards(entry:CreateArticulations()) do
+                for articulation in each(entry:CreateArticulations()) do 
                     articulation:DeleteData()
                 end
                 entry:SetArticulationFlag(false)
