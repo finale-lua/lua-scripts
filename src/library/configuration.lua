@@ -147,12 +147,10 @@ function configuration.save_parameters(file_name, parameter_list)
         end
     end
     for i,v in pairs(parameter_list) do -- only integer or string values
-        if type(v) == "boolean" then
-            v = v and "true" or "false"
-        elseif type(v) == "string" then
+        if type(v) == "string" then
             v = "\"" .. v .."\""
-        elseif type(v) == "nil" then
-            v = "nil"
+        else
+            v = tostring(v)
         end
         file:write(i, " = ", v, "\n")
     end
