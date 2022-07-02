@@ -10,14 +10,15 @@ The default beheavior of this script makes all lyrics types (verse, section, cho
 This is easily toggled off, but to make the types indendent by default, add the following code to the
 'Optional prefix' field in the RGP Lua setup interface:
 
-independent = true
+all_lyrics = false
     ]]
     return "Lyrics - Space Baselines", "Lyrics - Space Baselines", "Lyrics - Space Baselines"
 end
 
-independent = independent or false
+all_lyrics = all_lyrics or true
 
 function lyrics_spacing(title)
+    local independent_lyrics = false
     local baseline_verse = finale.FCBaseline()
     baseline_verse:LoadDefaultForLyricNumber(finale.BASELINEMODE_LYRICSVERSE,1)
     local verse1_start = -baseline_verse.VerticalOffset
@@ -111,7 +112,7 @@ function lyrics_spacing(title)
     local chorus_static = add_ctrl(dialog, "static", "", col[4], row[1], row_h, col_w, 0, 0)
     local section_static = add_ctrl(dialog, "static", "", col[5], row[1], row_h, col_w, 0, 0)
     --
-    local lyric1_static = add_ctrl(dialog, "static", "Lyric 1 baseline:", col[1] + 32, row[2], row_h, col_w * 2, 0, 0)
+    local lyric1_static = add_ctrl(dialog, "static", "Lyric 1 baseline:", col[1] + 31, row[2], row_h, col_w * 2, 0, 0)
     local verse1_edit = add_ctrl(dialog, "edit", verse1_start, col[3], row[2], row_h, col_w, 0, 0)  
     local chorus1_edit = add_ctrl(dialog, "edit", chorus1_start, col[4], row[2], row_h, col_w, 0, 0)  
     local section1_edit = add_ctrl(dialog, "edit", section1_start, col[5], row[2], row_h, col_w, 0, 0)
@@ -121,18 +122,19 @@ function lyrics_spacing(title)
     local chorus_gap_edit = add_ctrl(dialog, "edit", chorus_gap, col[4], row[3], row_h, col_w, 0, 0)  
     local section_gap_edit = add_ctrl(dialog, "edit", section_gap, col[5], row[3], row_h, col_w, 0, 0)  
     --
-    local independent_check = add_ctrl(dialog, "checkbox", "Independent", col[3], row[4], row_h, col_w * 2, 0, 0) 
-    if independent == true then
-        independent_check:SetCheck(1)
+        local all_lyrics_static = add_ctrl(dialog, "static", "Edit all:", col[2] + 14, row[4], row_h, col_w, 0, 0)
+    local all_lyrics_check = add_ctrl(dialog, "checkbox", "", col[3], row[4], row_h, col_w * 2, 0, 0) 
+    if all_lyrics == true then
+        all_lyrics_check:SetCheck(1)
     else
-        independent_check:SetCheck(0)
+        all_lyrics_check:SetCheck(0)
     end
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     --
     function apply()
-        if independent == false then
+        if all_lyrics == true then
             verse1_edit:GetText(str)
             chorus1_edit:SetText(str)
             section1_edit:SetText(str)
@@ -172,12 +174,12 @@ function lyrics_spacing(title)
     end
 
     function callback(ctrl)
-        if ctrl:GetControlID() == independent_check:GetControlID()  then
+        if ctrl:GetControlID() == all_lyrics_check:GetControlID()  then
 
-            if independent_check:GetCheck() == 1 then
-                independent = true
+            if all_lyrics_check:GetCheck() == 1 then
+                all_lyrics = true
             else
-                independent = false
+                all_lyrics = false
             end
             update()
         end
@@ -186,7 +188,8 @@ function lyrics_spacing(title)
     dialog:RegisterHandleCommand(callback)
     --
     function update()
-        if independent == true then
+        if all_lyrics == false then
+            independent_lyrics = true
             str.LuaString = "Verse"
             verse_static:SetText(str)
             str.LuaString = "Chorus"
@@ -194,21 +197,22 @@ function lyrics_spacing(title)
             str.LuaString = "Section"
             section_static:SetText(str)
         else
+            independent_lyrics = false
             str.LuaString = "All Lyrics"
             verse_static:SetText(str)
             str.LuaString = ""
             chorus_static:SetText(str)
             section_static:SetText(str)
         end
-        chorus1_edit:SetEnable(independent)
-        section1_edit:SetEnable(independent)
-        chorus_gap_edit:SetEnable(independent)
-        section_gap_edit:SetEnable(independent)
+        chorus1_edit:SetEnable(independent_lyrics)
+        section1_edit:SetEnable(independent_lyrics)
+        chorus_gap_edit:SetEnable(independent_lyrics)
+        section_gap_edit:SetEnable(independent_lyrics)
         --
---        chorus1_edit:SetVisible(independent)
---        section1_edit:SetVisible(independent)
---        chorus_gap_edit:SetVisible(independent)
---        section_gap_edit:SetVisible(independent)
+--        chorus1_edit:SetVisible(independent_lyrics)
+--        section1_edit:SetVisible(independent_lyrics)
+--        chorus_gap_edit:SetVisible(independent_lyrics)
+--        section_gap_edit:SetVisible(independent_lyrics)
     end
 
     update()
