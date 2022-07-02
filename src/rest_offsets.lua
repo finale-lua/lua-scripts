@@ -2,8 +2,8 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Version = "v1.2"
-    finaleplugin.Date = "2022/06/17"
+    finaleplugin.Version = "v1.3"
+    finaleplugin.Date = "2022/06/19"
     finaleplugin.Notes = [[
     Several situations including cross-staff notation (rests should be centred between the staves) 
     require adjusting the vertical position (offset) of rests. 
@@ -26,7 +26,6 @@ function show_error(error_type, actual_value)
 end
 
 function get_user_choices()
-    local vertical, vert_step = 10, 25
     local horizontal = 110
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
     local answer = {}
@@ -35,20 +34,34 @@ function get_user_choices()
     str.LuaString = plugindef()
     dialog:SetTitle(str)
 
-    local texts = { -- words, default value
-        { "Vertical offset:", rest_offset or 0 },
-        { "Layer 1-4 (0 = all):", layer_number or 0 },
+    local texts = { -- text, default value, vertical_position
+        { "Vertical offset:", rest_offset or 0, 15 },
+        { "Layer 1-4 (0 = all):", layer_number or 0, 50  },
     }
-    for i,v in ipairs(texts) do
+    for i, v in ipairs(texts) do -- create labels and edit boxes
         str.LuaString = v[1]
-        local static = dialog:CreateStatic(0, vertical)
+        local static = dialog:CreateStatic(0, v[3])
         static:SetText(str)
         static:SetWidth(horizontal)
-        answer[i] = dialog:CreateEdit(horizontal, vertical - mac_offset)
+        answer[i] = dialog:CreateEdit(horizontal, v[3] - mac_offset)
         answer[i]:SetInteger(v[2])
         answer[i]:SetWidth(50)
-        vertical = vertical + vert_step
     end
+
+    texts = { -- offset number / horizontal offset / description /  vertical position
+        { "4", 5, "= top staff line", 0},
+        { "0", 5, "= middle staff line", 15 },
+        { "-4", 0, "= bottom staff line", 30 },
+    }
+    for i, v in ipairs(texts) do -- static text information lines
+        str.LuaString = v[1]
+        dialog:CreateStatic(horizontal + 60 + v[2], v[4]):SetText(str)
+        local static = dialog:CreateStatic(horizontal + 75, v[4])
+        str.LuaString = v[3]
+        static:SetText(str)
+        static:SetWidth(horizontal)
+    end
+
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), answer[1]:GetInteger(), answer[2]:GetInteger()
