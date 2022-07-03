@@ -32,7 +32,7 @@ function show_error(error_code)
         need_more_staves = "There are not enough empty\nstaves to explode onto",
         only_one_staff = "Please select only one staff!",
         empty_region = "Please select a region\nwith some notes in it!",
-        four_or_more = "Explode Pairs needs\nfour or more notes per chord",
+        three_or_more = "Explode Pairs needs\nthree or more notes per chord",
     }
     finenv.UI():AlertNeutral("script: " .. plugindef(), errors[error_code])
     return -1
@@ -55,8 +55,8 @@ function get_note_count(source_staff_region)
     end
     if note_count == 0 then
         return show_error("empty_region")
-    elseif note_count < 4 then
-        return show_error("four_or_more")
+    elseif note_count < 3 then
+        return show_error("three_or_more")
     end
     return note_count
 end
@@ -153,7 +153,6 @@ function staff_explode()
     for slot = 2, staff_count do
         regions[slot]:ReleaseMusic()
     end
-
     finenv:Region():SetInDocument()
 end
 

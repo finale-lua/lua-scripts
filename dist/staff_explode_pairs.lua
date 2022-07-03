@@ -149,6 +149,37 @@ function configuration.get_parameters(file_name, parameter_list)
     end
 end
 
+--[[
+% save_parameters
+
+Saves a config file with the input filename in the `script_settings` directory using values provided in `parameter_list`.
+
+@ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+]]
+function configuration.save_parameters(file_name, parameter_list)
+    local folder_path = finenv:RunningLuaFolderPath() .. script_settings_dir
+    local file_path = folder_path ..  path_delimiter .. file_name
+    local file = io.open(file_path, "w")
+    if file == nil then -- file not found
+        os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder
+        file = io.open(file_path, "w") -- try the file again
+        if file == nil then -- still couldn't find file
+            return false -- so give up
+        end
+    end
+    for i,v in pairs(parameter_list) do -- only integer or string values
+        if type(v) == "string" then
+            v = "\"" .. v .."\""
+        else
+            v = tostring(v)
+        end
+        file:write(i, " = ", v, "\n")
+    end
+    file:close()
+    return true -- success
+end
+
 
 
 --[[
@@ -257,7 +288,7 @@ function show_error(error_code)
         need_more_staves = "There are not enough empty\nstaves to explode onto",
         only_one_staff = "Please select only one staff!",
         empty_region = "Please select a region\nwith some notes in it!",
-        four_or_more = "Explode Pairs needs\nfour or more notes per chord",
+        three_or_more = "Explode Pairs needs\nthree or more notes per chord",
     }
     finenv.UI():AlertNeutral("script: " .. plugindef(), errors[error_code])
     return -1
@@ -280,8 +311,8 @@ function get_note_count(source_staff_region)
     end
     if note_count == 0 then
         return show_error("empty_region")
-    elseif note_count < 4 then
-        return show_error("four_or_more")
+    elseif note_count < 3 then
+        return show_error("three_or_more")
     end
     return note_count
 end
@@ -378,7 +409,6 @@ function staff_explode()
     for slot = 2, staff_count do
         regions[slot]:ReleaseMusic()
     end
-
     finenv:Region():SetInDocument()
 end
 
