@@ -595,6 +595,37 @@ function configuration.get_parameters(file_name, parameter_list)
     end
 end
 
+--[[
+% save_parameters
+
+Saves a config file with the input filename in the `script_settings` directory using values provided in `parameter_list`.
+
+@ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+]]
+function configuration.save_parameters(file_name, parameter_list)
+    local folder_path = finenv:RunningLuaFolderPath() .. script_settings_dir
+    local file_path = folder_path ..  path_delimiter .. file_name
+    local file = io.open(file_path, "w")
+    if file == nil then -- file not found
+        os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder
+        file = io.open(file_path, "w") -- try the file again
+        if file == nil then -- still couldn't find file
+            return false -- so give up
+        end
+    end
+    for i,v in pairs(parameter_list) do -- only integer or string values
+        if type(v) == "string" then
+            v = "\"" .. v .."\""
+        else
+            v = tostring(v)
+        end
+        file:write(i, " = ", v, "\n")
+    end
+    file:close()
+    return true -- success
+end
+
 
 
 --[[
@@ -1665,6 +1696,37 @@ function configuration.get_parameters(file_name, parameter_list)
             end
         end
     end
+end
+
+--[[
+% save_parameters
+
+Saves a config file with the input filename in the `script_settings` directory using values provided in `parameter_list`.
+
+@ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+]]
+function configuration.save_parameters(file_name, parameter_list)
+    local folder_path = finenv:RunningLuaFolderPath() .. script_settings_dir
+    local file_path = folder_path ..  path_delimiter .. file_name
+    local file = io.open(file_path, "w")
+    if file == nil then -- file not found
+        os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder
+        file = io.open(file_path, "w") -- try the file again
+        if file == nil then -- still couldn't find file
+            return false -- so give up
+        end
+    end
+    for i,v in pairs(parameter_list) do -- only integer or string values
+        if type(v) == "string" then
+            v = "\"" .. v .."\""
+        else
+            v = tostring(v)
+        end
+        file:write(i, " = ", v, "\n")
+    end
+    file:close()
+    return true -- success
 end
 
 
