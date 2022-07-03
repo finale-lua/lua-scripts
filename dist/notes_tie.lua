@@ -458,7 +458,7 @@ For this function to work correctly across barlines, the input note
 must be from an instance of FCNoteEntryLayer that contains both the
 input note and the tied-to note.
 
-@ note (FCNote) the note for which to return the tied-from note
+@ note (FCNote) the note for which to return the tied-to note
 @ [tie_must_exist] if true, only returns a note if the tie already exists.
 : (FCNote) Returns the tied-to note or nil if none
 ]]
@@ -526,7 +526,7 @@ Calculates the (potential) start and end notes for a tie, given an input note. T
 input note can be from anywhere, including from the `eachentry()` iterator functions.
 The function returns 3 values:
 
-    - A FCNoteLayerEntry containing both the start and and notes (if they exist),
+    - A FCNoteLayerEntry containing both the start and and notes (if they exist).
     You must maintain the lifetime of this variable as long as you are referencing either
     of the other two values.
     - The potential or actual start note of the tie (taken from the FCNoteLayerEntry above).
