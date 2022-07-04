@@ -26,6 +26,7 @@ local clef = require("library.clef")
 local config = {fix_note_spacing = true}
 
 configuration.get_parameters("staff_explode.config.txt", config)
+configuration.save_parameters("staff_explode.config.txt", config) -- create new file so the user doesn't have to
 
 function show_error(error_code)
     local errors = {
