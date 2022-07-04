@@ -227,9 +227,10 @@ function create_measure_table(measure_region, measure)
     -- ToDo: chords
     local expression_assignments = measure:CreateExpressions()
     for expression_assignment in each(expression_assignments) do
+        require('mobdebug').start()
         local staff_num = expression_assignment:CalcStaffInPageView()
         if staff_num > 0 then
-            if expression.is_for_current_part(expression_assignment) and expression.Visible then
+            if expression.is_for_current_part(expression_assignment) and expression_assignment.Visible then
                 local edupos_table = get_edupos_table(measure_table, staff_num, expression_assignment.MeasurePos)
                 if not edupos_table.expressions then
                     edupos_table.expressions = {}
