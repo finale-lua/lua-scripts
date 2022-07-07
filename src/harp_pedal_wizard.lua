@@ -9,17 +9,17 @@ function plugindef()
     return "Harp Pedal Wizard", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
 end
 
-  if finenv.IsRGPLua == false then
+if finenv.IsRGPLua == false then
     local ui = finenv.FCUI
     ui:AlertInfo("This script requires RGP Lua to function.", NULL)
     local str = finale.FCString()
     str.LuaString = "https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html"
     ui:DisplayWebURL(str)
-  end
+end
 
 local library = require("library.general_library")
 --local configuration = require("library.configuration")
-  
+
 local config_filename = "com.harp_pedal_wizard.text"
 
 -- finalelua library functions - copied from library\configuration.lua
@@ -161,11 +161,12 @@ end
 ---
 function harp()
     finenv.RetainLuaState = true
-    local default_music_font = get_def_mus_font() 
     local partial = false
     local changes = false
     local stack = true
     local pedal_lanes = true
+    local direct = false
+    local override = false
     local context =
     {
         window_pos_x = window_pos_x or nil,
@@ -177,6 +178,7 @@ function harp()
     description = finale.FCString()
     local changes_str = finale.FCString()
     changes_str.LuaString = ""
+    local default_music_font = get_def_mus_font()
     local diagram_font = "^fontTxt("..default_music_font..")"
     --
     local flat_char = ""
@@ -186,6 +188,7 @@ function harp()
     local desc_prefix = finale.FCString()
     desc_prefix.LuaString = ""
     local ui = finenv.UI()
+    local direct_notes = {0, 0, 0, 0, 0, 0, 0}
 
     local config = harp_config_load()
 
@@ -203,6 +206,7 @@ function harp()
 
     function process_return(harpnotes)
         local error = false
+        direct_notes = {0, 0, 0, 0, 0, 0, 0}
         --
         local harp_tbl = split(harpnotes, ",")
         local count = 0 
@@ -234,18 +238,25 @@ function harp()
             ---- Assign to strings...
             if harp_tbl[i]:sub(1,1) == "A" then 
                 harpstrings[7] = harp_tbl[i]
+                direct_notes[7] = harp_tbl[i]
             elseif harp_tbl[i]:sub(1,1) == "B" then 
                 harpstrings[3] = harp_tbl[i]
+                direct_notes[3] = harp_tbl[i]
             elseif harp_tbl[i]:sub(1,1) == "C" then
                 harpstrings[2] = harp_tbl[i]
+                direct_notes[2] = harp_tbl[i]
             elseif harp_tbl[i]:sub(1,1) == "D" then
                 harpstrings[1] = harp_tbl[i]
+                direct_notes[1] = harp_tbl[i]
             elseif harp_tbl[i]:sub(1,1) == "E" then
                 harpstrings[4] = harp_tbl[i]
+                direct_notes[4] = harp_tbl[i]
             elseif harp_tbl[i]:sub(1,1) == "F" then
                 harpstrings[5] = harp_tbl[i]
+                direct_notes[5] = harp_tbl[i]
             elseif harp_tbl[i]:sub(1,1) == "G" then
                 harpstrings[6] = harp_tbl[i]
+                direct_notes[6] = harp_tbl[i]
             else
 --                error = true
                 --goto error1               
@@ -395,6 +406,19 @@ function harp()
         else
             new_pedals = harpstrings
         end
+
+        if (changes == false) and (partial == true) then
+            if direct == true then
+                local yesno = ui:AlertYesNo("There are no pedal changes required.\rAdd anyway?", nil)
+                if yesno == 3 then
+                    override = true
+                elseif yesno == 2 then
+                    new_pedals = direct_notes
+                    changes = true
+                end
+            end
+        end
+
         changes_update()
         for i = 1, 7, 1 do
             if diag == true then
@@ -471,7 +495,6 @@ function harp()
             elseif (pedal_lanes == false and partial and diagram_string.LuaString == "") then
                 diagram_string.LuaString = left_strings.LuaString
             end
-
             diagram_string.LuaString = string.gsub(diagram_string.LuaString, "n", "^natural()")
             diagram_string.LuaString = string.gsub(diagram_string.LuaString, "b", "^flat()")
             diagram_string.LuaString = string.gsub(diagram_string.LuaString, "#", "^sharp()")
@@ -497,7 +520,7 @@ function harp()
         else
             undo_str = "Create harp pedals"
         end
-                finenv.StartNewUndoBlock(undo_str, false)
+        finenv.StartNewUndoBlock(undo_str, false)
         local categorydefs = finale.FCCategoryDefs()
         local misc_cat = finale.FCCategoryDef()
         categorydefs:LoadAll()
@@ -593,9 +616,10 @@ function harp()
             add_expression:SetMeasurePos(measure_pos)
             add_expression:SetID(diag_ted)
             add_expression:SaveNewToCell(and_cell)
-            finenv.EndUndoBlock(true)
+
 -------
             ::error1::
+            finenv.EndUndoBlock(true)
             if error == true then
                 print("There seems to be a problem with your harp diagram.")
                 local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", NULL)
@@ -1502,7 +1526,7 @@ or a chord from the drop down lists.]])
                     local root = root_calc()
                     local scaleinfo = ""
                     if return_string.LuaString ~= "" then
---                        harp_diagram(return_string.LuaString, diag, nil, partial)
+                        direct = true
                         process_return(return_string.LuaString)
                         strings_read()
                     else
@@ -1515,9 +1539,14 @@ or a chord from the drop down lists.]])
 
                     harp_diagram(str.LuaString, diag, scaleinfo, partial)
                     if (changes == false) and (partial == true) then
+                        if override == false then
+--                            require('mobdebug').start()
+                            ui:AlertInfo("There are no pedal changes required. Try entering notes directly in the 'Enter Notes' field, or update your 'last used' pedals somewhere else and try again.", nil)
+                        end
                         goto error
                     end
                     pedals_add(diag, partial)
+                    ::error::
                     str.LuaString = ""
                     harp_notes:SetText(str)
                     changes_static:SetText(str)
@@ -1527,12 +1556,11 @@ or a chord from the drop down lists.]])
                     str.LuaString = str.LuaString..harpstrings[7]
                     config.last_notes = str.LuaString
                     harp_config_save(config)
---                    ui:RedrawDocument()
                     finenv.Region():Redraw()
-                    ::error::
-                    if (changes == false) and (partial == true) then
-                        ui:AlertInfo("There are no pedal changes required.", NULL)
-                    end
+                    direct = false
+                    override = false
+                    changes = false
+                    direct_notes = {0, 0, 0, 0, 0, 0, 0}
                 end -- apply()
 
                 dialog:RegisterHandleCommand(callback)
