@@ -81,11 +81,11 @@ parse_parameter = function(val_string)
     return tonumber(val_string)
 end
 
-local get_parameters_from_file = function(file_path)
-    local parameters = {}
+local get_parameters_from_file = function(file_path, parameter_list)
+    local file_parameters = {}
 
     if not file_exists(file_path) then
-        return parameters, false
+        return false
     end
 
     for line in io.lines(file_path) do
@@ -97,11 +97,18 @@ local get_parameters_from_file = function(file_path)
         if nil ~= delimiter_at then
             local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
             local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
-            parameters[name] = parse_parameter(val_string)
+            file_parameters[name] = parse_parameter(val_string)
         end
     end
 
-    return parameters, true
+    for param_name, _ in pairs(parameter_list) do
+        local param_val = file_parameters[param_name]
+        if nil ~= param_val then
+            parameter_list[param_name] = param_val
+        end
+    end
+
+    return true
 end
 
 --[[
@@ -124,16 +131,7 @@ function configuration.get_parameters(file_name, parameter_list)
         path = str.LuaString
     end
     local file_path = path .. script_settings_dir .. path_delimiter .. file_name
-    local file_parameters, exists = get_parameters_from_file(file_path)
-    if nil ~= file_parameters then
-        for param_name, def_val in pairs(parameter_list) do
-            local param_val = file_parameters[param_name]
-            if nil ~= param_val then
-                parameter_list[param_name] = param_val
-            end
-        end
-    end
-    return exists
+    return get_parameters_from_file(file_path, parameter_list)
 end
 
 -- Calculates a filepath in the user's preferences folder using recommended naming conventions
@@ -203,15 +201,7 @@ the input string should just be the script name (without an extension).
 ]]
 function configuration.get_user_settings(script_name, parameter_list, create_automatically)
     if create_automatically == nil then create_automatically = true end
-    local file_parameters, exists = get_parameters_from_file(calc_preferences_filepath(script_name))
-    if nil ~= file_parameters then
-        for param_name, def_val in pairs(parameter_list) do
-            local param_val = file_parameters[param_name]
-            if nil ~= param_val then
-                parameter_list[param_name] = param_val
-            end
-        end
-    end
+    local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
     if not exists and create_automatically then
         configuration.save_user_settings(script_name, parameter_list)
     end
