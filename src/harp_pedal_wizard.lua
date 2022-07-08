@@ -6,37 +6,18 @@ function plugindef()
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "2.0"
     finaleplugin.Date = "2022-07-06"
+    finale.MinJWLuaVersion = 0.62 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     return "Harp Pedal Wizard", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
 end
 
-if finenv.IsRGPLua == false then
-    local ui = finenv.FCUI
-    ui:AlertInfo("This script requires RGP Lua to function.", NULL)
-    local str = finale.FCString()
-    str.LuaString = "https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html"
-    ui:DisplayWebURL(str)
-end
-
 local library = require("library.general_library")
---local configuration = require("library.configuration")
+--local configuration = require("library.configuration") -- Having trouble getting this to work!
 
 local config_filename = "com.harp_pedal_wizard.text"
 
 -- finalelua library functions - copied from library\configuration.lua
 local strip_leading_trailing_whitespace = function (str)
     return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
-end
-
-local parse_parameter -- forward function declaration
-
-
-local parse_table = function(val_string)
-    local ret_table = {}
-    for element in val_string:gmatch('[^,%s]+') do  -- lua pattern magic taken from the Internet
-        local parsed_element = parse_parameter(element)
-        table.insert(ret_table, parsed_element)
-    end
-    return ret_table
 end
 
 parse_parameter = function(val_string)
@@ -55,7 +36,18 @@ parse_parameter = function(val_string)
     return val_string
 end
 
-local get_parameters_from_file = function(file_name) -- modified
+local parse_table = function(val_string)
+    local ret_table = {}
+    for element in val_string:gmatch('[^,%s]+') do  -- lua pattern magic taken from the Internet
+        local parsed_element = parse_parameter(element)
+        table.insert(ret_table, parsed_element)
+    end
+    return ret_table
+end
+
+-- Modified from library
+
+local get_parameters_from_file = function(file_name)
     local parameters = {}
     for line in io.lines(file_name) do
         local comment_marker = "--"
@@ -74,7 +66,6 @@ local get_parameters_from_file = function(file_name) -- modified
     return parameters
 end
 
--- Modified from library
 function get_parameters(file_name, parameter_list)
     local file_parameters = get_parameters_from_file(file_name)
     if nil ~= file_parameters then
@@ -92,14 +83,8 @@ end
 function path_set(filename)
     local path = finale.FCString()
     local path_delimiter = finale.FCString()
-    local ui = finenv.UI()
+    path_delimiter.LuaString = "/"
     path:SetUserOptionsPath()
-    if ui:IsOnMac() then
-        path_delimiter.LuaString = "/"
-    elseif ui:IsOnWindows() then
-        path_delimiter.LuaString = "\\"
-        --path_delimiter.LuaString = "/" -- apparently Windows can use either! Go figure!
-    end
     path.LuaString = path.LuaString..path_delimiter.LuaString..filename
     return path
 end
@@ -108,15 +93,10 @@ function harp_config_load()
     local path = path_set(config_filename)
     local config_settings = {}
     local init_settings = {root = 2, accidental = 1, scale = 0, scale_check = 1, chord = 0, chord_check = 0, diagram_check = 1, names_check = 0, partial_check = 0, stack = 1, pedal_lanes = 1, last_notes = "D, C, B, E, F, G, A"}
-    -- This next might not be needed... But doesn't hurt so leaving it in for now...
-    local init_count = 0
-    for i,k in pairs(init_settings) do
-        init_count = init_count + 1
-    end
     --
     local file_r = io.open(path.LuaString, "r")
 
-    if file_r == nil then
+    if not file_r then
         config_settings = init_settings
         harp_config_save(config_settings)
         file_r = io.open(path.LuaString, "r")
@@ -160,7 +140,6 @@ end
 
 ---
 function harp()
-    finenv.RetainLuaState = true
     local partial = false
     local changes = false
     local stack = true
@@ -181,10 +160,10 @@ function harp()
     local default_music_font = get_def_mus_font()
     local diagram_font = "^fontTxt("..default_music_font..")"
     --
-    local flat_char = ""
-    local nat_char = ""
-    local sharp_char = ""
-    local cross_char = ""
+    local flat_char = "" -- utf8.char(0xe680) -- SMuFL: Harp pedal raised (flat)
+    local nat_char = "" -- utf8.char(0xe681) -- SMuFL: Harp pedal centered (natural)
+    local sharp_char = "" -- utf8.char(0xe682) -- SMuFL: Harp pedal lowered (sharp)
+    local divider_char = "" -- utf8.char(0xe683) -- SMuFL: Harp pedal divider
     local desc_prefix = finale.FCString()
     desc_prefix.LuaString = ""
     local ui = finenv.UI()
@@ -259,7 +238,7 @@ function harp()
                 direct_notes[6] = harp_tbl[i]
             else
 --                error = true
-                --goto error1               
+--                goto error1               
             end -- End string assignments
             count = i        
         end -- for i,j
@@ -285,7 +264,7 @@ function harp()
                 changes_temp = true
             end
         end
-        if changes_temp == false then 
+        if not changes_temp then 
             changes_str.LuaString = ""
         else
             local length = string.len(changes_str.LuaString) - 2
@@ -300,7 +279,7 @@ function harp()
         else
             desc_prefix.LuaString = "Hp. Pedals: "
         end
-        if partial == true then scaleinfo = nil end
+        if partial then scaleinfo = nil end
         local region = finenv.Region()
         local error = false
         local use_tech = false
@@ -318,7 +297,7 @@ function harp()
             flat_char = "o"
             nat_char = "O"
             sharp_char = "p"
-            cross_char = "P"
+            divider_char = "P"
         end
 ---------------------------------
 -- Initialize harpstring variables to 0
@@ -394,7 +373,7 @@ function harp()
             goto error1
         end
 
-        if partial == true then
+        if partial then
             for i = 1, 7, 1 do
                 if harpstrings[i] == compare_notes[i] then
                     new_pedals[i] = 0
@@ -407,8 +386,8 @@ function harp()
             new_pedals = harpstrings
         end
 
-        if (changes == false) and (partial == true) then
-            if direct == true then
+        if not changes and partial then
+            if direct then
                 local yesno = ui:AlertYesNo("There are no pedal changes required.\rAdd anyway?", nil)
                 if yesno == 3 then
                     override = true
@@ -421,7 +400,7 @@ function harp()
 
         changes_update()
         for i = 1, 7, 1 do
-            if diag == true then
+            if diag then
                 description.LuaString = description.LuaString..harpstrings[i]
                 if string.len(harpstrings[i]) == 1 then
                     diagram_string.LuaString = diagram_string.LuaString..nat_char
@@ -435,12 +414,12 @@ function harp()
                     end
                 end
                 if i == 3 then
-                    diagram_string.LuaString = diagram_string.LuaString..cross_char
+                    diagram_string.LuaString = diagram_string.LuaString..divider_char
                     description.LuaString = description.LuaString.." | "
                 elseif i < 7 then
                     description.LuaString = description.LuaString.." "
                 end
-            elseif diag == false then -- Settings for 'Note names'
+            elseif not diag then -- Settings for 'Note names'
                 if i < 3 then
                     if new_pedals[i] ~= 0 then
                         description.LuaString = description.LuaString..harpstrings[i].." "
@@ -482,17 +461,17 @@ function harp()
             end -- if diag...
         end -- i 1 to 7
 --
-        if diag == false then 
-            if (stack == false) then
+        if not diag then 
+            if not stack then
                 if diagram_string.LuaString ~= "" then
                     left_strings.LuaString = left_strings.LuaString.." "
                 end
                 diagram_string.LuaString = left_strings.LuaString..diagram_string.LuaString
-            elseif (stack == true and (config.pedal_lanes == false and diagram_string.LuaString ~= "")) 
-            or (stack == true and partial == false)
-            or (pedal_lanes and partial) then
+            elseif stack and (diagram_string.LuaString ~= ""and not config.pedal_lanes)
+            or stack and not partial
+            or pedal_lanes and partial then
                 diagram_string.LuaString = diagram_string.LuaString.."\r"..left_strings.LuaString
-            elseif (pedal_lanes == false and partial and diagram_string.LuaString == "") then
+            elseif (partial and diagram_string.LuaString == "" and not pedal_lanes) then
                 diagram_string.LuaString = left_strings.LuaString
             end
             diagram_string.LuaString = string.gsub(diagram_string.LuaString, "n", "^natural()")
@@ -500,15 +479,13 @@ function harp()
             diagram_string.LuaString = string.gsub(diagram_string.LuaString, "#", "^sharp()")
             diagram_string.LuaString = string.gsub(diagram_string.LuaString, " %\13", "\r")
         end
-        if scaleinfo ~= nil then description.LuaString = description.LuaString.." ("..scaleinfo..")" end
-        print(description.LuaString)
+        if scaleinfo then description.LuaString = description.LuaString.." ("..scaleinfo..")" end
         ::error1::
-        if error == true then
-            print("There seems to be a problem with your harp diagram.")
+        if error then
             local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", NULL)
-            if result == 2 then harp_dialog() end
+--            if result == 2 then harp_dialog() end
         end -- error
-        if (diag_asn == true) then
+        if diag_asn then
             ui:AlertInfo("There is already a harp diagram assigned to this region.", NULL)
         end
     end
@@ -546,7 +523,7 @@ function harp()
                 diagrams = cat.ID
                 diagrams_cat = cat
                 use_tech = true
-                if diag == true then
+                if diag then
                     print("No Harp Diagrams category found. Using Technique Text,",diagrams)
                 else
                     print("No Harp Pedals category found. Using Technique Text,",diagrams)
@@ -575,18 +552,16 @@ function harp()
         if diag_ted == 0 then
             local ex_ted = finale.FCTextExpressionDef()
             local ted_text = finale.FCString()
---        local text_font = "^fontTxt"..font:CreateEnigmaString(finale.FCString()).LuaString
-
-            if diag == true then
+            if diag then
                 local text_font = diagram_font
                 ted_text.LuaString = text_font..diagram_string.LuaString
             else 
                 ted_text.LuaString = diagram_string.LuaString
-            end -- if diag == true
+            end -- if diag
             ex_ted:AssignToCategory(diagrams_cat)
             ex_ted:SetDescription(description)
             ex_ted:SaveNewTextBlock(ted_text)
-            if use_tech == true then -- If using the Techniques category, override positioning
+            if use_tech then -- If using the Techniques category, override positioning
                 ex_ted:SetUseCategoryPos(false)
                 --ex_ted.HorizontalJustification = 1 -- Justify Center
                 --ex_ted.HorizontalAlignmentPoint = 5 -- Center on Music
@@ -620,23 +595,22 @@ function harp()
 -------
             ::error1::
             finenv.EndUndoBlock(true)
-            if error == true then
+            if error == true then -- Tried this as if error then, it broke the script
                 print("There seems to be a problem with your harp diagram.")
                 local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", NULL)
-                if result == 2 then harp_dialog() end
+--                if result == 2 then harp_dialog() end
             end -- error
-            if diag_asn == true then
+            if diag_asn then
                 ui:AlertInfo("There is already a harp diagram assigned to this region.", NULL)
             end
         end -- function add_pedals
 
         -------
         function harp_scale(root, scale, diag, chd, partial)
-            print("Harp Scale function called")
             local error = false
             local enharmonic = finale.FCString()
             local scaleinfo = root.." "..scale
-            if chd == true then scaleinfo = root..scale end
+            if chd then scaleinfo = root..scale end
             -------------------
             ---- Set up tables for all strings, as both numbers (C = 0) and letters. 
             local C_num = {11, 0, 1}
@@ -716,7 +690,7 @@ function harp()
                 chd = true
             end -- temporary change for exotic scales!
 
-            if chd == false then
+            if not chd then
                 for i = 1, 2, 1 do --- run through this twice...
                     if last == "A"  and scale_deg <= 7 then
                         local found = false
@@ -726,7 +700,7 @@ function harp()
                                 found = true
                             end
                         end -- for j
-                        if found == false then
+                        if not found then
                             error = true
                             goto error
                         end
@@ -741,7 +715,7 @@ function harp()
                                 found = true
                             end
                         end -- for j
-                        if found == false then
+                        if not found then
                             error = true
                             goto error
                         end
@@ -756,7 +730,7 @@ function harp()
                                 found = true
                             end
                         end -- for j
-                        if found == false then
+                        if not found then
                             error = true
                             goto error
                         end
@@ -771,7 +745,7 @@ function harp()
                                 found = true
                             end
                         end -- for j
-                        if found == false then
+                        if not found then
                             error = true
                             goto error
                         end
@@ -786,7 +760,7 @@ function harp()
                                 found = true
                             end 
                         end -- for j
-                        if found == false then
+                        if not found then
                             error = true
                             goto error
                         end
@@ -801,7 +775,7 @@ function harp()
                                 found = true
                             end
                         end -- for j
-                        if found == false then
+                        if not found then
                             error = true
                             goto error
                         end
@@ -816,7 +790,7 @@ function harp()
                                 found = true
                             end
                         end -- for j
-                        if found == false then
+                        if not found then
                             error = true
                             goto error
                         end
@@ -824,7 +798,7 @@ function harp()
                         last = "A"
                     end
                 end -- for i...
-            elseif chd == true then
+            elseif chd then
                 local ind_string_ltrs = {A_ltr, B_ltr, C_ltr, D_ltr, E_ltr, F_ltr, G_ltr}
                 local ind_string_nums = {A_num, B_num, C_num, D_num, E_num, F_num, G_num}
                 for i, j in pairs(ind_string_ltrs) do
@@ -859,7 +833,7 @@ function harp()
             harp_diagram(scale_ltrs, diag, scaleinfo, partial)
 ---
             ::error::
-            if error == true then
+            if error then
                 print("That scale won't work.")
                 local str = finale.FCString()
                 str.LuaString = "That scale won't work, sorry. \n Try again using "..enharmonic.LuaString.." "..scale.."?"
@@ -974,7 +948,6 @@ or a chord from the drop down lists.]])
                     sel_root:SetEnable(false)
                     sel_acc:SetEnable(false)
                 end
-
                 --
                 row_y = row_y + 32
                 local horz_line1 = dialog:CreateHorizontalLine(0, row_y - 6, 320)
@@ -1538,9 +1511,9 @@ or a chord from the drop down lists.]])
                     end
 
                     harp_diagram(str.LuaString, diag, scaleinfo, partial)
-                    if (changes == false) and (partial == true) then
-                        if override == false then
---                            require('mobdebug').start()
+
+                    if partial and not changes then
+                        if not override then
                             ui:AlertInfo("There are no pedal changes required. Try entering notes directly in the 'Enter Notes' field, or update your 'last used' pedals somewhere else and try again.", nil)
                         end
                         goto error
@@ -1580,6 +1553,9 @@ or a chord from the drop down lists.]])
                 dialog.OkButtonCanClose = false
                 finenv.RegisterModelessDialog(dialog) -- must register, or ShowModeless does nothing
                 dialog:ShowModeless()
+                if nil ~= finenv.RetainLuaState then -- if finenv.RetainLuaState then --same?
+                    finenv.RetainLuaState = true
+                end
 
 --                if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
 --                end -- if dialog:Execute...
