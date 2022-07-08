@@ -1,6 +1,6 @@
 # Configuration
 
-This library implements a UTF-8 text file scheme for configuration as follows:
+This library implements a UTF-8 text file scheme for configuration and user settings as follows:
 
 - Comments start with `--`
 - Leading, trailing, and extra whitespace is ignored
@@ -30,10 +30,13 @@ right_dynamic_cushion		= -6		--evpus
 
 Configuration files must be placed in a subfolder called `script_settings` within
 the folder of the calling script. Each script that has a configuration file
-defines its own configuration file name.
+defines its own configuration file name. Scripts may not create or modify configuration
+files. For that, use get_user_settings and save_user_settings. These are saved in
+the user's preferences folder (on Mac) or AppData folder (on Windows).
 
 - [get_parameters](#get_parameters)
-- [save_parameters](#save_parameters)
+- [save_user_settings](#save_user_settings)
+- [get_user_settings](#get_user_settings)
 
 ## get_parameters
 
@@ -41,22 +44,45 @@ defines its own configuration file name.
 configuration.get_parameters(file_name, parameter_list)
 ```
 
-Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list` with any that are found in the config file.
+Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list`
+with any that are found in the config file.
+
+: [boolean] true if the file exists
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `file_name` | `string` | the file name of the config file (which will be prepended with the `script_settings` directory) |
 | `parameter_list` | `table` | a table with the parameter name as key and the default value as value |
 
-## save_parameters
+## save_user_settings
 
 ```lua
-configuration.save_parameters(file_name, parameter_list)
+configuration.save_user_settings(script_name, parameter_list)
 ```
 
-Saves a config file with the input filename in the `script_settings` directory using values provided in `parameter_list`.
+Saves the user's preferences for a script from the values provided in `parameter_list`.
+
+: boolean true on success
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
-| `file_name` | `string` | the file name of the config file (which will be prepended with the `script_settings` directory) |
+| `script_name` | `string` | the name of the script (without an extension) |
+| `parameter_list` | `table` | a table with the parameter name as key and the default value as value |
+
+## get_user_settings
+
+```lua
+configuration.get_user_settings(script_name, parameter_list)
+```
+
+Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
+with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so
+the input string should just be the script name (without an extension).
+
+@ (boolean) (create_automatically) if true, create the file automatically (default is `true`)
+: [boolean] `true` if the file already existed, `false` if it did not or if it was created automatically
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `script_name` | `string` | the name of the script (without an extension) |
 | `parameter_list` | `table` | a table with the parameter name as key and the default value as value |
