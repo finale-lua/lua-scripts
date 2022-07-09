@@ -3,18 +3,20 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.45"
-    finaleplugin.Date = "2022/05/16"
+    finaleplugin.Version = "v1.46"
+    finaleplugin.Date = "2022/07/09"
     finaleplugin.Notes = [[
         This script explodes a set of chords from layer one on one staff onto single lines on subsequent staves. 
         The number of staves is determined by the largest number of notes in any chord.
         It warns if pre-existing music in the destination will be erased. 
         It duplicates all markings from the original and resets the current clef on each destination staff.
 
-        This script allows for the following configuration:
-
+        By default this script respaces the selected music after running. 
+        To change this behaviour you must create a `configuration` file. 
+        If it does not exist, create a subfolder called `script_settings` in the folder containing this script. 
+        In that folder create a text file  called `staff_explode.config.txt` containing the line:  
         ```
-        fix_note_spacing = true -- to respace music automatically when the script finishes
+        fix_note_spacing = false
         ```
     ]]
     return "Staff Explode", "Staff Explode", "Staff Explode onto consecutive single staves"
@@ -24,7 +26,6 @@ local configuration = require("library.configuration")
 local clef = require("library.clef")
 
 local config = {fix_note_spacing = true}
-
 configuration.get_parameters("staff_explode.config.txt", config)
 
 function show_error(error_code)
@@ -144,7 +145,6 @@ function staff_explode()
             finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
             regions[1].StartSlot = start_slot
             regions[1].EndSlot = start_slot
-            regions[1]:SetInDocument()
         end
     end
 
@@ -152,8 +152,7 @@ function staff_explode()
     for slot = 2, max_note_count do
         regions[slot]:ReleaseMusic()
     end
-
-    finenv:Region():SetInDocument()
+    regions[1]:SetInDocument()
 end
 
 staff_explode()
