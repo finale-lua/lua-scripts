@@ -7,7 +7,7 @@ This library implements a UTF-8 text file scheme for configuration and user sett
 - Each parameter is named and delimited as follows:
 
 ```
-`<parameter-name> = <parameter-value>`
+<parameter-name> = <parameter-value>
 ```
 
 Parameter values may be:
@@ -111,12 +111,14 @@ configuration.get_parameters(file_name, parameter_list)
 Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list`
 with any that are found in the config file.
 
-: [boolean] true if the file exists
-
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `file_name` | `string` | the file name of the config file (which will be prepended with the `script_settings` directory) |
 | `parameter_list` | `table` | a table with the parameter name as key and the default value as value |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` | true if the file exists |
 
 ## save_user_settings
 
@@ -126,27 +128,31 @@ configuration.save_user_settings(script_name, parameter_list)
 
 Saves the user's preferences for a script from the values provided in `parameter_list`.
 
-: boolean true on success
-
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `script_name` | `string` | the name of the script (without an extension) |
 | `parameter_list` | `table` | a table with the parameter name as key and the default value as value |
 
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` | true on success |
+
 ## get_user_settings
 
 ```lua
-configuration.get_user_settings(script_name, parameter_list)
+configuration.get_user_settings(script_name, parameter_list, create_automatically)
 ```
 
 Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
 with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so
 the input string should just be the script name (without an extension).
 
-@ (boolean) (create_automatically) if true, create the file automatically (default is `true`)
-: [boolean] `true` if the file already existed, `false` if it did not or if it was created automatically
-
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `script_name` | `string` | the name of the script (without an extension) |
 | `parameter_list` | `table` | a table with the parameter name as key and the default value as value |
+| `create_automatically` (optional) | `boolean` | if true, create the file automatically (default is `true`) |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` | `true` if the file already existed, `false` if it did not or if it was created automatically |

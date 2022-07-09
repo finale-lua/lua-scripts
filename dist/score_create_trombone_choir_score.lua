@@ -478,7 +478,7 @@ This library implements a UTF-8 text file scheme for configuration and user sett
 - Each parameter is named and delimited as follows:
 
 ```
-`<parameter-name> = <parameter-value>`
+<parameter-name> = <parameter-value>
 ```
 
 Parameter values may be:
@@ -653,7 +653,7 @@ with any that are found in the config file.
 
 @ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
 @ parameter_list (table) a table with the parameter name as key and the default value as value
-: [boolean] true if the file exists
+: (boolean) true if the file exists
 ]]
 function configuration.get_parameters(file_name, parameter_list)
     local path = ""
@@ -696,7 +696,7 @@ Saves the user's preferences for a script from the values provided in `parameter
 
 @ script_name (string) the name of the script (without an extension)
 @ parameter_list (table) a table with the parameter name as key and the default value as value
-: boolean true on success
+: (boolean) true on success
 ]]
 function configuration.save_user_settings(script_name, parameter_list)
     local file_path, folder_path = calc_preferences_filepath(script_name)
@@ -730,8 +730,8 @@ the input string should just be the script name (without an extension).
 
 @ script_name (string) the name of the script (without an extension)
 @ parameter_list (table) a table with the parameter name as key and the default value as value
-@ (boolean) (create_automatically) if true, create the file automatically (default is `true`)
-: [boolean] `true` if the file already existed, `false` if it did not or if it was created automatically
+@ [create_automatically] (boolean) if true, create the file automatically (default is `true`)
+: (boolean) `true` if the file already existed, `false` if it did not or if it was created automatically
 ]]
 function configuration.get_user_settings(script_name, parameter_list, create_automatically)
     if create_automatically == nil then create_automatically = true end
@@ -1697,7 +1697,7 @@ This library implements a UTF-8 text file scheme for configuration and user sett
 - Each parameter is named and delimited as follows:
 
 ```
-`<parameter-name> = <parameter-value>`
+<parameter-name> = <parameter-value>
 ```
 
 Parameter values may be:
@@ -1872,7 +1872,7 @@ with any that are found in the config file.
 
 @ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
 @ parameter_list (table) a table with the parameter name as key and the default value as value
-: [boolean] true if the file exists
+: (boolean) true if the file exists
 ]]
 function configuration.get_parameters(file_name, parameter_list)
     local path = ""
@@ -1915,7 +1915,7 @@ Saves the user's preferences for a script from the values provided in `parameter
 
 @ script_name (string) the name of the script (without an extension)
 @ parameter_list (table) a table with the parameter name as key and the default value as value
-: boolean true on success
+: (boolean) true on success
 ]]
 function configuration.save_user_settings(script_name, parameter_list)
     local file_path, folder_path = calc_preferences_filepath(script_name)
@@ -1949,8 +1949,8 @@ the input string should just be the script name (without an extension).
 
 @ script_name (string) the name of the script (without an extension)
 @ parameter_list (table) a table with the parameter name as key and the default value as value
-@ (boolean) (create_automatically) if true, create the file automatically (default is `true`)
-: [boolean] `true` if the file already existed, `false` if it did not or if it was created automatically
+@ [create_automatically] (boolean) if true, create the file automatically (default is `true`)
+: (boolean) `true` if the file already existed, `false` if it did not or if it was created automatically
 ]]
 function configuration.get_user_settings(script_name, parameter_list, create_automatically)
     if create_automatically == nil then create_automatically = true end
