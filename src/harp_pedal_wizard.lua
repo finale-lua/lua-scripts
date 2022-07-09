@@ -1,4 +1,4 @@
-function plugindef()
+ function plugindef()
     -- This function and the 'finaleplugin' namespace
     -- are both reserved for the plug-in definition.
     finaleplugin.RequireSelection = true
@@ -6,7 +6,7 @@ function plugindef()
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "2.0"
     finaleplugin.Date = "2022-07-06"
-    finale.MinJWLuaVersion = 0.62 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
+    finale.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     return "Harp Pedal Wizard", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
 end
 
@@ -160,10 +160,10 @@ function harp()
     local default_music_font = get_def_mus_font()
     local diagram_font = "^fontTxt("..default_music_font..")"
     --
-    local flat_char = "" -- utf8.char(0xe680) -- SMuFL: Harp pedal raised (flat)
-    local nat_char = "" -- utf8.char(0xe681) -- SMuFL: Harp pedal centered (natural)
-    local sharp_char = "" -- utf8.char(0xe682) -- SMuFL: Harp pedal lowered (sharp)
-    local divider_char = "" -- utf8.char(0xe683) -- SMuFL: Harp pedal divider
+    local flat_char = utf8.char(0xe680) -- SMuFL: Harp pedal raised (flat)
+    local nat_char = utf8.char(0xe681) -- SMuFL: Harp pedal centered (natural)
+    local sharp_char = utf8.char(0xe682) -- SMuFL: Harp pedal lowered (sharp)
+    local divider_char = utf8.char(0xe683) -- SMuFL: Harp pedal divider
     local desc_prefix = finale.FCString()
     desc_prefix.LuaString = ""
     local ui = finenv.UI()
