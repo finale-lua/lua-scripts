@@ -15,6 +15,7 @@
 - [update_layout(from_page, unfreeze_measures)](#update_layout)
 - [get_current_part()](#get_current_part)
 - [get_page_format_prefs()](#get_page_format_prefs)
+- [get_smufl_font_list()](#get_smufl_font_list)
 - [get_smufl_metadata_file(font_info)](#get_smufl_metadata_file)
 - [is_font_smufl_font(font_info)](#is_font_smufl_font)
 - [simple_input(title, text)](#simple_input)
@@ -220,6 +221,23 @@ Returns the default page format prefs for score or parts based on which is curre
 | Return type | Description |
 | ----------- | ----------- |
 | `FCPageFormatPrefs` |  |
+
+### get_smufl_font_list
+
+```lua
+library.get_smufl_font_list()
+```
+
+Returns table of installed SMuFL font names by searching the directory that contains
+the .json files for each font. The table is in the format:
+
+```lua
+<font-name> = "user" | "system"
+```
+
+| Return type | Description |
+| ----------- | ----------- |
+| `table` | an table with SMuFL font names as keys and values "user" or "system" |
 
 ### get_smufl_metadata_file
 
