@@ -34,7 +34,7 @@ jobs:
                   source: ./lua/src
                   output: ./website/src/lib/lib/script-data.json
             - name: Generate the docs
-              uses: finale-lua/lua-docs-generator@1.2.0
+              uses: finale-lua/lua-docs-generator@1.2.1
               with:
                   input: './lua/src/library'
                   output: './lua/docs/library'
