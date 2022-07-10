@@ -2,14 +2,14 @@
 
 ## Functions
 
-[trim_first_enigma_font_tags(string)](#trim_first_enigma_font_tags)
-[change_first_string_font(string, font_info)](#change_first_string_font)
-[change_first_text_block_font(text_block, font_info)](#change_first_text_block_font)
-[change_string_font(string, font_info)](#change_string_font)
-[change_text_block_font(text_block, font_info)](#change_text_block_font)
-[remove_inserts(fcstring, replace_with_generic)](#remove_inserts)
-[expand_value_tag(fcstring, value_num)](#expand_value_tag)
-[calc_text_advance_width(inp_string)](#calc_text_advance_width)
+- [trim_first_enigma_font_tags(string)](#trim_first_enigma_font_tags)
+- [change_first_string_font(string, font_info)](#change_first_string_font)
+- [change_first_text_block_font(text_block, font_info)](#change_first_text_block_font)
+- [change_string_font(string, font_info)](#change_string_font)
+- [change_text_block_font(text_block, font_info)](#change_text_block_font)
+- [remove_inserts(fcstring, replace_with_generic)](#remove_inserts)
+- [expand_value_tag(fcstring, value_num)](#expand_value_tag)
+- [calc_text_advance_width(inp_string)](#calc_text_advance_width)
 
 ### trim_first_enigma_font_tags
 

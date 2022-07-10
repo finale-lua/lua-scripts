@@ -4,10 +4,10 @@ A library of general Lua utility functions.
 
 ## Functions
 
-[copy_table(t)](#copy_table)
-[table_remove_first(t, value)](#table_remove_first)
-[iterate_keys(t)](#iterate_keys)
-[round(num)](#round)
+- [copy_table(t)](#copy_table)
+- [table_remove_first(t, value)](#table_remove_first)
+- [iterate_keys(t)](#iterate_keys)
+- [round(num)](#round)
 
 ### copy_table
 

@@ -2,7 +2,7 @@
 
 ## Functions
 
-[change_shape(note, shape)](#change_shape)
+- [change_shape(note, shape)](#change_shape)
 
 ### change_shape
 

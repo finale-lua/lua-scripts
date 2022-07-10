@@ -4,10 +4,10 @@ A library of helper functions to improve code reuse in mixins.
 
 ## Functions
 
-[disable_methods(props)](#disable_methods)
-[create_standard_control_event(name)](#create_standard_control_event)
-[create_custom_control_change_event()](#create_custom_control_change_event)
-[create_custom_window_change_event()](#create_custom_window_change_event)
+- [disable_methods(props)](#disable_methods)
+- [create_standard_control_event(name)](#create_standard_control_event)
+- [create_custom_control_change_event()](#create_custom_control_change_event)
+- [create_custom_window_change_event()](#create_custom_window_change_event)
 
 ### disable_methods
 

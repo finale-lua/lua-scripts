@@ -209,13 +209,13 @@ dialog:ExecuteModal(nil)
 
 ## Functions
 
-[subclass(object, class_name)](#subclass)
-[is_instance_of(object, class_name)](#is_instance_of)
-[assert_argument(value, expected_type, argument_number)](#assert_argument)
-[force_assert_argument(value, expected_type, argument_number)](#force_assert_argument)
-[assert(condition, message, no_level)](#assert)
-[force_assert(condition, message, no_level)](#force_assert)
-[UI()](#ui)
+- [subclass(object, class_name)](#subclass)
+- [is_instance_of(object, class_name)](#is_instance_of)
+- [assert_argument(value, expected_type, argument_number)](#assert_argument)
+- [force_assert_argument(value, expected_type, argument_number)](#force_assert_argument)
+- [assert(condition, message, no_level)](#assert)
+- [force_assert(condition, message, no_level)](#force_assert)
+- [UI()](#ui)
 
 ### subclass
 

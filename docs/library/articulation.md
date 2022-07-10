@@ -2,9 +2,9 @@
 
 ## Functions
 
-[delete_from_entry_by_char_num(entry, char_num)](#delete_from_entry_by_char_num)
-[is_note_side(artic, curr_pos)](#is_note_side)
-[calc_main_character_dimensions(artic_def)](#calc_main_character_dimensions)
+- [delete_from_entry_by_char_num(entry, char_num)](#delete_from_entry_by_char_num)
+- [is_note_side(artic, curr_pos)](#is_note_side)
+- [calc_main_character_dimensions(artic_def)](#calc_main_character_dimensions)
 
 ### delete_from_entry_by_char_num
 

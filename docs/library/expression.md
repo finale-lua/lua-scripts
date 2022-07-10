@@ -2,11 +2,11 @@
 
 ## Functions
 
-[get_music_region(exp_assign)](#get_music_region)
-[get_associated_entry(exp_assign)](#get_associated_entry)
-[calc_handle_offset_for_smart_shape(exp_assign)](#calc_handle_offset_for_smart_shape)
-[calc_text_width(expression_def, expand_tags)](#calc_text_width)
-[is_for_current_part(exp_assign, current_part)](#is_for_current_part)
+- [get_music_region(exp_assign)](#get_music_region)
+- [get_associated_entry(exp_assign)](#get_associated_entry)
+- [calc_handle_offset_for_smart_shape(exp_assign)](#calc_handle_offset_for_smart_shape)
+- [calc_text_width(expression_def, expand_tags)](#calc_text_width)
+- [is_for_current_part(exp_assign, current_part)](#is_for_current_part)
 
 ### get_music_region
 

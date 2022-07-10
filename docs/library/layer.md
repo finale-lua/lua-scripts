@@ -2,9 +2,9 @@
 
 ## Functions
 
-[copy(region, source_layer, destination_layer)](#copy)
-[clear(region, layer_to_clear)](#clear)
-[swap(region, swap_a, swap_b)](#swap)
+- [copy(region, source_layer, destination_layer)](#copy)
+- [clear(region, layer_to_clear)](#clear)
+- [swap(region, swap_a, swap_b)](#swap)
 
 ### copy
 

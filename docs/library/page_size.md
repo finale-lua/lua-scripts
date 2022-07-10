@@ -4,12 +4,12 @@ A library for determining page sizes.
 
 ## Functions
 
-[get_dimensions(size)](#get_dimensions)
-[is_size(size)](#is_size)
-[get_size(width, height)](#get_size)
-[get_page_size(page)](#get_page_size)
-[set_page_size(page, size)](#set_page_size)
-[pairs()](#pairs)
+- [get_dimensions(size)](#get_dimensions)
+- [is_size(size)](#is_size)
+- [get_size(width, height)](#get_size)
+- [get_page_size(page)](#get_page_size)
+- [set_page_size(page, size)](#set_page_size)
+- [pairs()](#pairs)
 
 ### get_dimensions
 

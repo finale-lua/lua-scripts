@@ -11,14 +11,14 @@ is ignored.
 
 ## Functions
 
-[diatonic_transpose(note, interval)](#diatonic_transpose)
-[change_octave(note, number_of_octaves)](#change_octave)
-[enharmonic_transpose(note, direction, ignore_error)](#enharmonic_transpose)
-[chromatic_transpose(note, interval, alteration, simplify)](#chromatic_transpose)
-[stepwise_transpose(note, number_of_steps)](#stepwise_transpose)
-[chromatic_major_third_down(note)](#chromatic_major_third_down)
-[chromatic_perfect_fourth_up(note)](#chromatic_perfect_fourth_up)
-[chromatic_perfect_fifth_down(note)](#chromatic_perfect_fifth_down)
+- [diatonic_transpose(note, interval)](#diatonic_transpose)
+- [change_octave(note, number_of_octaves)](#change_octave)
+- [enharmonic_transpose(note, direction, ignore_error)](#enharmonic_transpose)
+- [chromatic_transpose(note, interval, alteration, simplify)](#chromatic_transpose)
+- [stepwise_transpose(note, number_of_steps)](#stepwise_transpose)
+- [chromatic_major_third_down(note)](#chromatic_major_third_down)
+- [chromatic_perfect_fourth_up(note)](#chromatic_perfect_fourth_up)
+- [chromatic_perfect_fifth_down(note)](#chromatic_perfect_fifth_down)
 
 ### diatonic_transpose
 

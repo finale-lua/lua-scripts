@@ -100,9 +100,9 @@ without having to worry about older configuration files or user settings affecti
 
 ## Functions
 
-[get_parameters(file_name, parameter_list)](#get_parameters)
-[save_user_settings(script_name, parameter_list)](#save_user_settings)
-[get_user_settings(script_name, parameter_list, create_automatically)](#get_user_settings)
+- [get_parameters(file_name, parameter_list)](#get_parameters)
+- [save_user_settings(script_name, parameter_list)](#save_user_settings)
+- [get_user_settings(script_name, parameter_list, create_automatically)](#get_user_settings)
 
 ### get_parameters
 

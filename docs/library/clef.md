@@ -4,10 +4,10 @@ A library of general clef utility functions.
 
 ## Functions
 
-[get_cell_clef(measure, staff_number)](#get_cell_clef)
-[get_default_clef(first_measure, last_measure, staff_number)](#get_default_clef)
-[can_change_clef()](#can_change_clef)
-[restore_default_clef(first_measure, last_measure, staff_number)](#restore_default_clef)
+- [get_cell_clef(measure, staff_number)](#get_cell_clef)
+- [get_default_clef(first_measure, last_measure, staff_number)](#get_default_clef)
+- [can_change_clef()](#can_change_clef)
+- [restore_default_clef(first_measure, last_measure, staff_number)](#restore_default_clef)
 
 ### get_cell_clef
 

@@ -2,12 +2,12 @@
 
 ## Functions
 
-[convert_to_EVPUs(text)](#convert_to_evpus)
-[get_unit_name(unit)](#get_unit_name)
-[get_unit_suffix(unit)](#get_unit_suffix)
-[get_unit_abbreviation(unit)](#get_unit_abbreviation)
-[is_valid_unit(unit)](#is_valid_unit)
-[get_real_default_unit()](#get_real_default_unit)
+- [convert_to_EVPUs(text)](#convert_to_evpus)
+- [get_unit_name(unit)](#get_unit_name)
+- [get_unit_suffix(unit)](#get_unit_suffix)
+- [get_unit_abbreviation(unit)](#get_unit_abbreviation)
+- [is_valid_unit(unit)](#is_valid_unit)
+- [get_real_default_unit()](#get_real_default_unit)
 
 ### convert_to_EVPUs
 

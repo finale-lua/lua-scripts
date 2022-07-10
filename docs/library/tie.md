@@ -5,16 +5,16 @@ as well as providing other useful information about ties.
 
 ## Functions
 
-[calc_tied_to(note)](#calc_tied_to)
-[calc_tied_from(note)](#calc_tied_from)
-[calc_tie_span(note)](#calc_tie_span)
-[calc_default_direction(note, for_tieend, tie_prefs)](#calc_default_direction)
-[calc_direction(note, tie_mod, tie_prefs)](#calc_direction)
-[calc_connection_code(note, placement, direction, for_endpoint, for_tieend, for_pageview, tie_prefs)](#calc_connection_code)
-[calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)](#calc_placement)
-[activate_endpoints(note, tie_mod, for_pageview, tie_prefs)](#activate_endpoints)
-[calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)](#calc_contour_index)
-[activate_contour(note, tie_mod, for_pageview, tie_prefs)](#activate_contour)
+- [calc_tied_to(note)](#calc_tied_to)
+- [calc_tied_from(note)](#calc_tied_from)
+- [calc_tie_span(note)](#calc_tie_span)
+- [calc_default_direction(note, for_tieend, tie_prefs)](#calc_default_direction)
+- [calc_direction(note, tie_mod, tie_prefs)](#calc_direction)
+- [calc_connection_code(note, placement, direction, for_endpoint, for_tieend, for_pageview, tie_prefs)](#calc_connection_code)
+- [calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)](#calc_placement)
+- [activate_endpoints(note, tie_mod, for_pageview, tie_prefs)](#activate_endpoints)
+- [calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)](#calc_contour_index)
+- [activate_contour(note, tie_mod, for_pageview, tie_prefs)](#activate_contour)
 
 ### calc_tied_to
 
