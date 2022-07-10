@@ -9,16 +9,18 @@ can read the correct custom key signature information directly from
 Finale. Therefore, when you run this script with RGP Lua 0.58+, the configuration file
 is ignored.
 
-- [diatonic_transpose](#diatonic_transpose)
-- [change_octave](#change_octave)
-- [enharmonic_transpose](#enharmonic_transpose)
-- [chromatic_transpose](#chromatic_transpose)
-- [stepwise_transpose](#stepwise_transpose)
-- [chromatic_major_third_down](#chromatic_major_third_down)
-- [chromatic_perfect_fourth_up](#chromatic_perfect_fourth_up)
-- [chromatic_perfect_fifth_down](#chromatic_perfect_fifth_down)
+## Functions
 
-## diatonic_transpose
+[diatonic_transpose(note, interval)](#diatonic_transpose)
+[change_octave(note, number_of_octaves)](#change_octave)
+[enharmonic_transpose(note, direction, ignore_error)](#enharmonic_transpose)
+[chromatic_transpose(note, interval, alteration, simplify)](#chromatic_transpose)
+[stepwise_transpose(note, number_of_steps)](#stepwise_transpose)
+[chromatic_major_third_down(note)](#chromatic_major_third_down)
+[chromatic_perfect_fourth_up(note)](#chromatic_perfect_fourth_up)
+[chromatic_perfect_fifth_down(note)](#chromatic_perfect_fifth_down)
+
+### diatonic_transpose
 
 ```lua
 transposition.diatonic_transpose(note, interval)
@@ -31,7 +33,7 @@ Transpose the note diatonically by the given interval displacement.
 | `note` | `FCNote` | input and modified output |
 | `interval` | `number` | 0 = unison, 1 = up a diatonic second, -2 = down a diatonic third, etc. |
 
-## change_octave
+### change_octave
 
 ```lua
 transposition.change_octave(note, number_of_octaves)
@@ -44,7 +46,7 @@ Transpose the note by the given number of octaves.
 | `note` | `FCNote` | input and modified output |
 | `number_of_octaves` | `number` | 0 = no change, 1 = up an octave, -2 = down 2 octaves, etc. |
 
-## enharmonic_transpose
+### enharmonic_transpose
 
 ```lua
 transposition.enharmonic_transpose(note, direction, ignore_error)
@@ -63,7 +65,7 @@ Failure occurs if the note's `RaiseLower` value exceeds an absolute value of 7. 
 | ----------- | ----------- |
 | `boolean` | success or failure |
 
-## chromatic_transpose
+### chromatic_transpose
 
 ```lua
 transposition.chromatic_transpose(note, interval, alteration, simplify)
@@ -87,7 +89,7 @@ allows for downwards transposition.
 | ----------- | ----------- |
 | `boolean` | success or failure (see `enharmonic_transpose` for what causes failure) |
 
-## stepwise_transpose
+### stepwise_transpose
 
 ```lua
 transposition.stepwise_transpose(note, number_of_steps)
@@ -107,7 +109,7 @@ each step is the smallest division of the octave defined by the custom key signa
 | ----------- | ----------- |
 | `boolean` | success or failure (see `enharmonic_transpose` for what causes failure) |
 
-## chromatic_major_third_down
+### chromatic_major_third_down
 
 ```lua
 transposition.chromatic_major_third_down(note)
@@ -119,7 +121,7 @@ Transpose the note down by a major third.
 | ----- | ---- | ----------- |
 | `note` | `FCNote` | input and modified output |
 
-## chromatic_perfect_fourth_up
+### chromatic_perfect_fourth_up
 
 ```lua
 transposition.chromatic_perfect_fourth_up(note)
@@ -131,7 +133,7 @@ Transpose the note up by a perfect fourth.
 | ----- | ---- | ----------- |
 | `note` | `FCNote` | input and modified output |
 
-## chromatic_perfect_fifth_down
+### chromatic_perfect_fifth_down
 
 ```lua
 transposition.chromatic_perfect_fifth_down(note)

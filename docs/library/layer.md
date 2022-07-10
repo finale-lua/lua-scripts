@@ -1,10 +1,12 @@
 # Layer
 
-- [copy](#copy)
-- [clear](#clear)
-- [swap](#swap)
+## Functions
 
-## copy
+[copy(region, source_layer, destination_layer)](#copy)
+[clear(region, layer_to_clear)](#clear)
+[swap(region, swap_a, swap_b)](#swap)
+
+### copy
 
 ```lua
 layer.copy(region, source_layer, destination_layer)
@@ -20,7 +22,7 @@ Duplicates the notes from the source layer to the destination. The source layer 
 | `source_layer` | `number` | the number (1-4) of the layer to duplicate |
 | `destination_layer` | `number` | the number (1-4) of the layer to be copied to |
 
-## clear
+### clear
 
 ```lua
 layer.clear(region, layer_to_clear)
@@ -35,7 +37,7 @@ Clears all entries from a given layer.
 | `region` | `FCMusicRegion` | the region to be cleared |
 | `layer_to_clear` | `number` | the number (1-4) of the layer to clear |
 
-## swap
+### swap
 
 ```lua
 layer.swap(region, swap_a, swap_b)

@@ -2,12 +2,14 @@
 
 A library of general Lua utility functions.
 
-- [copy_table](#copy_table)
-- [table_remove_first](#table_remove_first)
-- [iterate_keys](#iterate_keys)
-- [round](#round)
+## Functions
 
-## copy_table
+[copy_table(t)](#copy_table)
+[table_remove_first(t, value)](#table_remove_first)
+[iterate_keys(t)](#iterate_keys)
+[round(num)](#round)
+
+### copy_table
 
 ```lua
 utility_functions.copy_table(t)
@@ -23,7 +25,7 @@ If a table is passed, returns a copy, otherwise returns the passed value.
 | ----------- | ----------- |
 | `mixed` |  |
 
-## table_remove_first
+### table_remove_first
 
 ```lua
 utility_functions.table_remove_first(t, value)
@@ -36,7 +38,7 @@ Removes the first occurrence of a value from an array table.
 | `t` | `table` |  |
 | `value` | `mixed` |  |
 
-## iterate_keys
+### iterate_keys
 
 ```lua
 utility_functions.iterate_keys(t)
@@ -52,7 +54,7 @@ Returns an unordered iterator for the keys in a table.
 | ----------- | ----------- |
 | `function` |  |
 
-## round
+### round
 
 ```lua
 utility_functions.round(num)

@@ -1,26 +1,28 @@
 # Note Entry
 
-- [get_music_region](#get_music_region)
-- [get_evpu_notehead_height](#get_evpu_notehead_height)
-- [get_top_note_position](#get_top_note_position)
-- [get_bottom_note_position](#get_bottom_note_position)
-- [calc_widths](#calc_widths)
-- [calc_left_of_all_noteheads](#calc_left_of_all_noteheads)
-- [calc_left_of_primary_notehead](#calc_left_of_primary_notehead)
-- [calc_center_of_all_noteheads](#calc_center_of_all_noteheads)
-- [calc_center_of_primary_notehead](#calc_center_of_primary_notehead)
-- [calc_stem_offset](#calc_stem_offset)
-- [calc_right_of_all_noteheads](#calc_right_of_all_noteheads)
-- [calc_note_at_index](#calc_note_at_index)
-- [stem_sign](#stem_sign)
-- [duplicate_note](#duplicate_note)
-- [delete_note](#delete_note)
-- [calc_spans_number_of_octaves](#calc_spans_number_of_octaves)
-- [add_augmentation_dot](#add_augmentation_dot)
-- [get_next_same_v](#get_next_same_v)
-- [hide_stem](#hide_stem)
+## Functions
 
-## get_music_region
+[get_music_region(entry)](#get_music_region)
+[get_evpu_notehead_height(entry)](#get_evpu_notehead_height)
+[get_top_note_position(entry, entry_metrics)](#get_top_note_position)
+[get_bottom_note_position(entry, entry_metrics)](#get_bottom_note_position)
+[calc_widths(entry)](#calc_widths)
+[calc_left_of_all_noteheads(entry)](#calc_left_of_all_noteheads)
+[calc_left_of_primary_notehead(entry)](#calc_left_of_primary_notehead)
+[calc_center_of_all_noteheads(entry)](#calc_center_of_all_noteheads)
+[calc_center_of_primary_notehead(entry)](#calc_center_of_primary_notehead)
+[calc_stem_offset(entry)](#calc_stem_offset)
+[calc_right_of_all_noteheads(entry)](#calc_right_of_all_noteheads)
+[calc_note_at_index(entry, note_index)](#calc_note_at_index)
+[stem_sign(entry)](#stem_sign)
+[duplicate_note(note)](#duplicate_note)
+[delete_note(note)](#delete_note)
+[calc_spans_number_of_octaves(entry)](#calc_spans_number_of_octaves)
+[add_augmentation_dot(entry)](#add_augmentation_dot)
+[get_next_same_v(entry)](#get_next_same_v)
+[hide_stem(entry)](#hide_stem)
+
+### get_music_region
 
 ```lua
 note_entry.get_music_region(entry)
@@ -36,7 +38,7 @@ Returns an intance of `FCMusicRegion` that corresponds to the metric location of
 | ----------- | ----------- |
 | `FCMusicRegion` |  |
 
-## get_evpu_notehead_height
+### get_evpu_notehead_height
 
 ```lua
 note_entry.get_evpu_notehead_height(entry)
@@ -52,7 +54,7 @@ Returns the calculated height of the notehead rectangle.
 | ----------- | ----------- |
 | `number` | the EVPU height |
 
-## get_top_note_position
+### get_top_note_position
 
 ```lua
 note_entry.get_top_note_position(entry, entry_metrics)
@@ -69,7 +71,7 @@ Returns the vertical page coordinate of the top of the notehead rectangle, not i
 | ----------- | ----------- |
 | `number` |  |
 
-## get_bottom_note_position
+### get_bottom_note_position
 
 ```lua
 note_entry.get_bottom_note_position(entry, entry_metrics)
@@ -86,7 +88,7 @@ Returns the vertical page coordinate of the bottom of the notehead rectangle, no
 | ----------- | ----------- |
 | `number` |  |
 
-## calc_widths
+### calc_widths
 
 ```lua
 note_entry.calc_widths(entry)
@@ -102,7 +104,7 @@ Get the widest left-side notehead width and widest right-side notehead width.
 | ----------- | ----------- |
 | `number, number` | widest left-side notehead width and widest right-side notehead width |
 
-## calc_left_of_all_noteheads
+### calc_left_of_all_noteheads
 
 ```lua
 note_entry.calc_left_of_all_noteheads(entry)
@@ -118,7 +120,7 @@ Calculates the handle offset for an expression with "Left of All Noteheads" hori
 | ----------- | ----------- |
 | `number` | offset from left side of primary notehead rectangle |
 
-## calc_left_of_primary_notehead
+### calc_left_of_primary_notehead
 
 ```lua
 note_entry.calc_left_of_primary_notehead(entry)
@@ -134,7 +136,7 @@ Calculates the handle offset for an expression with "Left of Primary Notehead" h
 | ----------- | ----------- |
 | `number` | offset from left side of primary notehead rectangle |
 
-## calc_center_of_all_noteheads
+### calc_center_of_all_noteheads
 
 ```lua
 note_entry.calc_center_of_all_noteheads(entry)
@@ -150,7 +152,7 @@ Calculates the handle offset for an expression with "Center of All Noteheads" ho
 | ----------- | ----------- |
 | `number` | offset from left side of primary notehead rectangle |
 
-## calc_center_of_primary_notehead
+### calc_center_of_primary_notehead
 
 ```lua
 note_entry.calc_center_of_primary_notehead(entry)
@@ -166,7 +168,7 @@ Calculates the handle offset for an expression with "Center of Primary Notehead"
 | ----------- | ----------- |
 | `number` | offset from left side of primary notehead rectangle |
 
-## calc_stem_offset
+### calc_stem_offset
 
 ```lua
 note_entry.calc_stem_offset(entry)
@@ -182,7 +184,7 @@ Calculates the offset of the stem from the left edge of the notehead rectangle. 
 | ----------- | ----------- |
 | `number` | offset of stem from the left edge of the notehead rectangle. |
 
-## calc_right_of_all_noteheads
+### calc_right_of_all_noteheads
 
 ```lua
 note_entry.calc_right_of_all_noteheads(entry)
@@ -198,7 +200,7 @@ Calculates the handle offset for an expression with "Right of All Noteheads" hor
 | ----------- | ----------- |
 | `number` | offset from left side of primary notehead rectangle |
 
-## calc_note_at_index
+### calc_note_at_index
 
 ```lua
 note_entry.calc_note_at_index(entry, note_index)
@@ -213,7 +215,7 @@ Currently the PDK Framework does not seem to offer a better option.
 | `entry` | `FCNoteEntry` |  |
 | `note_index` | `number` | the zero-based index |
 
-## stem_sign
+### stem_sign
 
 ```lua
 note_entry.stem_sign(entry)
@@ -230,7 +232,7 @@ based on stem direction.
 | ----------- | ----------- |
 | `number` | 1 if upstem, -1 otherwise |
 
-## duplicate_note
+### duplicate_note
 
 ```lua
 note_entry.duplicate_note(note)
@@ -244,7 +246,7 @@ note_entry.duplicate_note(note)
 | ----------- | ----------- |
 | `FCNote \\| nil` | reference to added FCNote or `nil` if not success |
 
-## delete_note
+### delete_note
 
 ```lua
 note_entry.delete_note(note)
@@ -260,7 +262,7 @@ Removes the specified FCNote from its associated FCNoteEntry.
 | ----------- | ----------- |
 | `boolean` | true if success |
 
-## calc_spans_number_of_octaves
+### calc_spans_number_of_octaves
 
 ```lua
 note_entry.calc_spans_number_of_octaves(entry)
@@ -276,7 +278,7 @@ Calculates the numer of octaves spanned by a chord (considering only staff posit
 | ----------- | ----------- |
 | `number` | of octaves spanned |
 
-## add_augmentation_dot
+### add_augmentation_dot
 
 ```lua
 note_entry.add_augmentation_dot(entry)
@@ -288,7 +290,7 @@ Adds an augentation dot to the entry. This works even if the entry already has o
 | ----- | ---- | ----------- |
 | `entry` | `FCNoteEntry` | the entry to which to add the augmentation dot |
 
-## get_next_same_v
+### get_next_same_v
 
 ```lua
 note_entry.get_next_same_v(entry)
@@ -306,7 +308,7 @@ If the input entry is V1, only the current measure and layer is searched.
 | ----------- | ----------- |
 | `FCNoteEntry` | the next entry or `nil` in none |
 
-## hide_stem
+### hide_stem
 
 ```lua
 note_entry.hide_stem(entry)

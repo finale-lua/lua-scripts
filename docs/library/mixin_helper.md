@@ -2,12 +2,14 @@
 
 A library of helper functions to improve code reuse in mixins.
 
-- [disable_methods](#disable_methods)
-- [create_standard_control_event](#create_standard_control_event)
-- [create_custom_control_change_event](#create_custom_control_change_event)
-- [create_custom_window_change_event](#create_custom_window_change_event)
+## Functions
 
-## disable_methods
+[disable_methods(props)](#disable_methods)
+[create_standard_control_event(name)](#create_standard_control_event)
+[create_custom_control_change_event()](#create_custom_control_change_event)
+[create_custom_window_change_event()](#create_custom_window_change_event)
+
+### disable_methods
 
 ```lua
 mixin_helper.disable_methods(props)
@@ -21,7 +23,7 @@ Disables mixin methods by setting an empty function that throws an error.
 | ----- | ---- | ----------- |
 | `props` | `table` | The mixin's props table. |
 
-## create_standard_control_event
+### create_standard_control_event
 
 ```lua
 mixin_helper.create_standard_control_event(name)
@@ -38,7 +40,7 @@ For example usage, refer to the source for the `FCMControl` mixin.
 | ----------- | ----------- |
 | `function` | Returns two functions: a function for adding handlers and a function for removing handlers. |
 
-## create_custom_control_change_event
+### create_custom_control_change_event
 
 ```lua
 mixin_helper.create_custom_control_change_event()
@@ -62,7 +64,7 @@ This function returns 4 values which are all functions:
 
 @ ... (table)
 
-## create_custom_window_change_event
+### create_custom_window_change_event
 
 ```lua
 mixin_helper.create_custom_window_change_event()

@@ -1,25 +1,27 @@
 # Library
 
-- [finale_version](#finale_version)
-- [group_overlaps_region](#group_overlaps_region)
-- [group_is_contained_in_region](#group_is_contained_in_region)
-- [staff_group_is_multistaff_instrument](#staff_group_is_multistaff_instrument)
-- [get_selected_region_or_whole_doc](#get_selected_region_or_whole_doc)
-- [get_first_cell_on_or_after_page](#get_first_cell_on_or_after_page)
-- [get_top_left_visible_cell](#get_top_left_visible_cell)
-- [get_top_left_selected_or_visible_cell](#get_top_left_selected_or_visible_cell)
-- [is_default_measure_number_visible_on_cell](#is_default_measure_number_visible_on_cell)
-- [is_default_number_visible_and_left_aligned](#is_default_number_visible_and_left_aligned)
-- [update_layout](#update_layout)
-- [get_current_part](#get_current_part)
-- [get_page_format_prefs](#get_page_format_prefs)
-- [get_smufl_metadata_file](#get_smufl_metadata_file)
-- [is_font_smufl_font](#is_font_smufl_font)
-- [simple_input](#simple_input)
-- [is_finale_object](#is_finale_object)
-- [system_indent_set_to_prefs](#system_indent_set_to_prefs)
+## Functions
 
-## finale_version
+[finale_version(major, minor, build)](#finale_version)
+[group_overlaps_region(staff_group, region)](#group_overlaps_region)
+[group_is_contained_in_region(staff_group, region)](#group_is_contained_in_region)
+[staff_group_is_multistaff_instrument(staff_group)](#staff_group_is_multistaff_instrument)
+[get_selected_region_or_whole_doc()](#get_selected_region_or_whole_doc)
+[get_first_cell_on_or_after_page(page_num)](#get_first_cell_on_or_after_page)
+[get_top_left_visible_cell()](#get_top_left_visible_cell)
+[get_top_left_selected_or_visible_cell()](#get_top_left_selected_or_visible_cell)
+[is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)](#is_default_measure_number_visible_on_cell)
+[is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)](#is_default_number_visible_and_left_aligned)
+[update_layout(from_page, unfreeze_measures)](#update_layout)
+[get_current_part()](#get_current_part)
+[get_page_format_prefs()](#get_page_format_prefs)
+[get_smufl_metadata_file(font_info)](#get_smufl_metadata_file)
+[is_font_smufl_font(font_info)](#is_font_smufl_font)
+[simple_input(title, text)](#simple_input)
+[is_finale_object(object)](#is_finale_object)
+[system_indent_set_to_prefs(system, page_format_prefs)](#system_indent_set_to_prefs)
+
+### finale_version
 
 ```lua
 library.finale_version(major, minor, build)
@@ -38,7 +40,7 @@ this is the internal major Finale version, not the year.
 | ----------- | ----------- |
 | `number` |  |
 
-## group_overlaps_region
+### group_overlaps_region
 
 ```lua
 library.group_overlaps_region(staff_group, region)
@@ -55,7 +57,7 @@ Returns true if the input staff group overlaps with the input music region, othe
 | ----------- | ----------- |
 | `boolean` |  |
 
-## group_is_contained_in_region
+### group_is_contained_in_region
 
 ```lua
 library.group_is_contained_in_region(staff_group, region)
@@ -73,7 +75,7 @@ If the start or end staff are not visible in the region, it returns false.
 | ----------- | ----------- |
 | `boolean` |  |
 
-## staff_group_is_multistaff_instrument
+### staff_group_is_multistaff_instrument
 
 ```lua
 library.staff_group_is_multistaff_instrument(staff_group)
@@ -89,7 +91,7 @@ Returns true if the entire input staff group is a multistaff instrument.
 | ----------- | ----------- |
 | `boolean` |  |
 
-## get_selected_region_or_whole_doc
+### get_selected_region_or_whole_doc
 
 ```lua
 library.get_selected_region_or_whole_doc()
@@ -102,7 +104,7 @@ SIDE-EFFECT WARNING: If there is no selected region, this function also changes 
 | ----------- | ----------- |
 | `FCMusicRegion` |  |
 
-## get_first_cell_on_or_after_page
+### get_first_cell_on_or_after_page
 
 ```lua
 library.get_first_cell_on_or_after_page(page_num)
@@ -118,7 +120,7 @@ Returns the first FCCell at the top of the input page. If the page is blank, it 
 | ----------- | ----------- |
 | `FCCell` |  |
 
-## get_top_left_visible_cell
+### get_top_left_visible_cell
 
 ```lua
 library.get_top_left_visible_cell()
@@ -130,7 +132,7 @@ Returns the topmost, leftmost visible FCCell on the screen, or the closest possi
 | ----------- | ----------- |
 | `FCCell` |  |
 
-## get_top_left_selected_or_visible_cell
+### get_top_left_selected_or_visible_cell
 
 ```lua
 library.get_top_left_selected_or_visible_cell()
@@ -143,7 +145,7 @@ Otherwise returns the best estimate for the topmost, leftmost currently visible 
 | ----------- | ----------- |
 | `FCCell` |  |
 
-## is_default_measure_number_visible_on_cell
+### is_default_measure_number_visible_on_cell
 
 ```lua
 library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
@@ -162,7 +164,7 @@ Returns true if measure numbers for the input region are visible on the input ce
 | ----------- | ----------- |
 | `boolean` |  |
 
-## is_default_number_visible_and_left_aligned
+### is_default_number_visible_and_left_aligned
 
 ```lua
 library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
@@ -182,7 +184,7 @@ Returns true if measure number for the input cell is visible and left-aligned.
 | ----------- | ----------- |
 | `boolean` |  |
 
-## update_layout
+### update_layout
 
 ```lua
 library.update_layout(from_page, unfreeze_measures)
@@ -195,7 +197,7 @@ Updates the page layout.
 | `from_page` (optional) | `number` | page to update from, defaults to 1 |
 | `unfreeze_measures` (optional) | `boolean` | defaults to false |
 
-## get_current_part
+### get_current_part
 
 ```lua
 library.get_current_part()
@@ -207,7 +209,7 @@ Returns the currently selected part or score.
 | ----------- | ----------- |
 | `FCPart` |  |
 
-## get_page_format_prefs
+### get_page_format_prefs
 
 ```lua
 library.get_page_format_prefs()
@@ -219,7 +221,7 @@ Returns the default page format prefs for score or parts based on which is curre
 | ----------- | ----------- |
 | `FCPageFormatPrefs` |  |
 
-## get_smufl_metadata_file
+### get_smufl_metadata_file
 
 ```lua
 library.get_smufl_metadata_file(font_info)
@@ -233,7 +235,7 @@ library.get_smufl_metadata_file(font_info)
 | ----------- | ----------- |
 | `file handle\\|nil` |  |
 
-## is_font_smufl_font
+### is_font_smufl_font
 
 ```lua
 library.is_font_smufl_font(font_info)
@@ -247,7 +249,7 @@ library.is_font_smufl_font(font_info)
 | ----------- | ----------- |
 | `boolean` |  |
 
-## simple_input
+### simple_input
 
 ```lua
 library.simple_input(title, text)
@@ -262,7 +264,7 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 | `title` (optional) | `string` | the title of the input dialog box |
 | `text` (optional) | `string` | descriptive text above the edit field |
 
-## is_finale_object
+### is_finale_object
 
 ```lua
 library.is_finale_object(object)
@@ -278,7 +280,7 @@ Attempts to determine if an object is a Finale object through ducktyping
 | ----------- | ----------- |
 | `bool` |  |
 
-## system_indent_set_to_prefs
+### system_indent_set_to_prefs
 
 ```lua
 library.system_indent_set_to_prefs(system, page_format_prefs)

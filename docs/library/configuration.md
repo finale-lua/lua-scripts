@@ -98,11 +98,13 @@ had no `q` parameter.
 This approach allows total flexibility for the script add to or modify its list of parameters
 without having to worry about older configuration files or user settings affecting it.
 
-- [get_parameters](#get_parameters)
-- [save_user_settings](#save_user_settings)
-- [get_user_settings](#get_user_settings)
+## Functions
 
-## get_parameters
+[get_parameters(file_name, parameter_list)](#get_parameters)
+[save_user_settings(script_name, parameter_list)](#save_user_settings)
+[get_user_settings(script_name, parameter_list, create_automatically)](#get_user_settings)
+
+### get_parameters
 
 ```lua
 configuration.get_parameters(file_name, parameter_list)
@@ -120,7 +122,7 @@ with any that are found in the config file.
 | ----------- | ----------- |
 | `boolean` | true if the file exists |
 
-## save_user_settings
+### save_user_settings
 
 ```lua
 configuration.save_user_settings(script_name, parameter_list)
@@ -137,7 +139,7 @@ Saves the user's preferences for a script from the values provided in `parameter
 | ----------- | ----------- |
 | `boolean` | true on success |
 
-## get_user_settings
+### get_user_settings
 
 ```lua
 configuration.get_user_settings(script_name, parameter_list, create_automatically)

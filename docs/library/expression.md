@@ -1,12 +1,14 @@
 # Expression
 
-- [get_music_region](#get_music_region)
-- [get_associated_entry](#get_associated_entry)
-- [calc_handle_offset_for_smart_shape](#calc_handle_offset_for_smart_shape)
-- [calc_text_width](#calc_text_width)
-- [is_for_current_part](#is_for_current_part)
+## Functions
 
-## get_music_region
+[get_music_region(exp_assign)](#get_music_region)
+[get_associated_entry(exp_assign)](#get_associated_entry)
+[calc_handle_offset_for_smart_shape(exp_assign)](#calc_handle_offset_for_smart_shape)
+[calc_text_width(expression_def, expand_tags)](#calc_text_width)
+[is_for_current_part(exp_assign, current_part)](#is_for_current_part)
+
+### get_music_region
 
 ```lua
 expression.get_music_region(exp_assign)
@@ -22,7 +24,7 @@ Returns a music region corresponding to the input expression assignment.
 | ----------- | ----------- |
 | `FCMusicRegion` |  |
 
-## get_associated_entry
+### get_associated_entry
 
 ```lua
 expression.get_associated_entry(exp_assign)
@@ -38,7 +40,7 @@ Returns the note entry associated with the input expression assignment, if any.
 | ----------- | ----------- |
 | `FCNoteEntry` | associated entry or nil if none |
 
-## calc_handle_offset_for_smart_shape
+### calc_handle_offset_for_smart_shape
 
 ```lua
 expression.calc_handle_offset_for_smart_shape(exp_assign)
@@ -54,7 +56,7 @@ Returns the horizontal EVPU offset for a smart shape endpoint to align exactly w
 | ----------- | ----------- |
 | `number` |  |
 
-## calc_text_width
+### calc_text_width
 
 ```lua
 expression.calc_text_width(expression_def, expand_tags)
@@ -71,7 +73,7 @@ Returns the text advance width of the input expression definition.
 | ----------- | ----------- |
 | `number` |  |
 
-## is_for_current_part
+### is_for_current_part
 
 ```lua
 expression.is_for_current_part(exp_assign, current_part)

@@ -1,10 +1,12 @@
 # Articulation
 
-- [delete_from_entry_by_char_num](#delete_from_entry_by_char_num)
-- [is_note_side](#is_note_side)
-- [calc_main_character_dimensions](#calc_main_character_dimensions)
+## Functions
 
-## delete_from_entry_by_char_num
+[delete_from_entry_by_char_num(entry, char_num)](#delete_from_entry_by_char_num)
+[is_note_side(artic, curr_pos)](#is_note_side)
+[calc_main_character_dimensions(artic_def)](#calc_main_character_dimensions)
+
+### delete_from_entry_by_char_num
 
 ```lua
 articulation.delete_from_entry_by_char_num(entry, char_num)
@@ -17,7 +19,7 @@ Removes any articulation assignment that has the specified character as its abov
 | `entry` | `FCNoteEntry` |  |
 | `char_num` | `number` | UTF-32 code of character (which is the same as ASCII for ASCII characters) |
 
-## is_note_side
+### is_note_side
 
 ```lua
 articulation.is_note_side(artic, curr_pos)
@@ -34,7 +36,7 @@ Uses `FCArticulation.CalcMetricPos` to determine if the input articulation is on
 | ----------- | ----------- |
 | `boolean` | true if on note-side, otherwise false |
 
-## calc_main_character_dimensions
+### calc_main_character_dimensions
 
 ```lua
 articulation.calc_main_character_dimensions(artic_def)

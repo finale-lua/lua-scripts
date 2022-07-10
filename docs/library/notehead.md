@@ -1,8 +1,10 @@
 # Notehead
 
-- [change_shape](#change_shape)
+## Functions
 
-## change_shape
+[change_shape(note, shape)](#change_shape)
+
+### change_shape
 
 ```lua
 notehead.change_shape(note, shape)

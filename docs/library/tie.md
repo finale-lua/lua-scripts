@@ -3,18 +3,20 @@
 This library encapsulates Finale's behavior for initializing FCTieMod endpoints,
 as well as providing other useful information about ties.
 
-- [calc_tied_to](#calc_tied_to)
-- [calc_tied_from](#calc_tied_from)
-- [calc_tie_span](#calc_tie_span)
-- [calc_default_direction](#calc_default_direction)
-- [calc_direction](#calc_direction)
-- [calc_connection_code](#calc_connection_code)
-- [calc_placement](#calc_placement)
-- [activate_endpoints](#activate_endpoints)
-- [calc_contour_index](#calc_contour_index)
-- [activate_contour](#activate_contour)
+## Functions
 
-## calc_tied_to
+[calc_tied_to(note)](#calc_tied_to)
+[calc_tied_from(note)](#calc_tied_from)
+[calc_tie_span(note)](#calc_tie_span)
+[calc_default_direction(note, for_tieend, tie_prefs)](#calc_default_direction)
+[calc_direction(note, tie_mod, tie_prefs)](#calc_direction)
+[calc_connection_code(note, placement, direction, for_endpoint, for_tieend, for_pageview, tie_prefs)](#calc_connection_code)
+[calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)](#calc_placement)
+[activate_endpoints(note, tie_mod, for_pageview, tie_prefs)](#activate_endpoints)
+[calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)](#calc_contour_index)
+[activate_contour(note, tie_mod, for_pageview, tie_prefs)](#activate_contour)
+
+### calc_tied_to
 
 ```lua
 tie.calc_tied_to(note)
@@ -36,7 +38,7 @@ input note and the tied-to note.
 | ----------- | ----------- |
 | `FCNote` | Returns the tied-to note or nil if none |
 
-## calc_tied_from
+### calc_tied_from
 
 ```lua
 tie.calc_tied_from(note)
@@ -58,7 +60,7 @@ input note and the tied-from note.
 | ----------- | ----------- |
 | `FCNote` | Returns the tied-from note or nil if none |
 
-## calc_tie_span
+### calc_tie_span
 
 ```lua
 tie.calc_tie_span(note)
@@ -89,9 +91,11 @@ for gathering information than for modifying the values it returns.
 
 | Return type | Description |
 | ----------- | ----------- |
+| `FCNoteLayerEntry` | A new FCNoteEntryLayer instance that contains both the following two return values. |
+| `FCNote` | The start note of the tie. |
 | `FCNote` | The end note of the tie. |
 
-## calc_default_direction
+### calc_default_direction
 
 ```lua
 tie.calc_default_direction(note, for_tieend, tie_prefs)
@@ -113,7 +117,7 @@ FCTieMods. Use tie.calc_direction to calculate the actual current tie direction.
 | ----------- | ----------- |
 | `number` | Returns either TIEMODDIR_UNDER or TIEMODDIR_OVER. If the input note has no applicable tie, it returns 0. |
 
-## calc_direction
+### calc_direction
 
 ```lua
 tie.calc_direction(note, tie_mod, tie_prefs)
@@ -135,7 +139,7 @@ FCTieMods.
 | ----------- | ----------- |
 | `number` | Returns either TIEMODDIR_UNDER or TIEMODDIR_OVER. If the input note has no applicable tie, it returns 0. |
 
-## calc_connection_code
+### calc_connection_code
 
 ```lua
 tie.calc_connection_code(note, placement, direction, for_endpoint, for_tieend, for_pageview, tie_prefs)
@@ -160,7 +164,7 @@ in FCTieMod.
 | ----------- | ----------- |
 | `number` | Returns one of TIEMOD_CONNECTION_CODES. If the input note has no applicable tie, it returns TIEMODCNCT_NONE. |
 
-## calc_placement
+### calc_placement
 
 ```lua
 tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
@@ -180,9 +184,10 @@ Calculates the current placement of a tie based on context and FCTiePrefs.
 
 | Return type | Description |
 | ----------- | ----------- |
+| `number` | TIEPLACEMENT_INDEXES value for start point |
 | `number` | TIEPLACEMENT_INDEXES value for end point |
 
-## activate_endpoints
+### activate_endpoints
 
 ```lua
 tie.activate_endpoints(note, tie_mod, for_pageview, tie_prefs)
@@ -204,7 +209,7 @@ default values. If an endpoint is already activated, that endpoint is not touche
 | ----------- | ----------- |
 | `boolean` | returns true if anything changed |
 
-## calc_contour_index
+### calc_contour_index
 
 ```lua
 tie.calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)
@@ -224,9 +229,10 @@ Calculates the current contour index of a tie based on context and FCTiePrefs.
 
 | Return type | Description |
 | ----------- | ----------- |
+| `number` | CONTOUR_INDEXES value for tie |
 | `number` | calculated length of tie in EVPU |
 
-## activate_contour
+### activate_contour
 
 ```lua
 tie.activate_contour(note, tie_mod, for_pageview, tie_prefs)

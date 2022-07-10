@@ -1,37 +1,39 @@
 # Score
 
-- [create_default_config](#create_default_config)
-- [delete_all_staves](#delete_all_staves)
-- [reset_and_clear_score](#reset_and_clear_score)
-- [set_show_staff_time_signature](#set_show_staff_time_signature)
-- [set_show_all_staves_time_signature](#set_show_all_staves_time_signature)
-- [set_staff_transposition](#set_staff_transposition)
-- [set_staff_allow_hiding](#set_staff_allow_hiding)
-- [set_staff_keyless](#set_staff_keyless)
-- [set_staff_keyless](#set_staff_keyless)
-- [set_staff_show_default_whole_rests](#set_staff_show_default_whole_rests)
-- [set_all_staves_show_default_whole_rests](#set_all_staves_show_default_whole_rests)
-- [add_space_above_staff](#add_space_above_staff)
-- [set_staff_full_name](#set_staff_full_name)
-- [set_staff_short_name](#set_staff_short_name)
-- [create_staff](#create_staff)
-- [create_staff_spaced](#create_staff_spaced)
-- [create_staff_percussion](#create_staff_percussion)
-- [create_group](#create_group)
-- [create_group_primary](#create_group_primary)
-- [create_group_secondary](#create_group_secondary)
-- [calc_system_scalings](#calc_system_scalings)
-- [set_global_system_scaling](#set_global_system_scaling)
-- [set_global_system_scaling](#set_global_system_scaling)
-- [set_large_time_signatures_settings](#set_large_time_signatures_settings)
-- [use_large_time_signatures](#use_large_time_signatures)
-- [use_large_measure_numbers](#use_large_measure_numbers)
-- [set_max_measures_per_system](#set_max_measures_per_system)
-- [set_score_page_size](#set_score_page_size)
-- [set_all_parts_page_size](#set_all_parts_page_size)
-- [apply_config](#apply_config)
+## Functions
 
-## create_default_config
+[create_default_config()](#create_default_config)
+[delete_all_staves()](#delete_all_staves)
+[reset_and_clear_score()](#reset_and_clear_score)
+[set_show_staff_time_signature(staff_id, show_time_signature)](#set_show_staff_time_signature)
+[set_show_all_staves_time_signature(show_time_signature)](#set_show_all_staves_time_signature)
+[set_staff_transposition(staff_id, key, interval, clef)](#set_staff_transposition)
+[set_staff_allow_hiding(staff_id, allow_hiding)](#set_staff_allow_hiding)
+[set_staff_keyless(staff_id, is_keyless)](#set_staff_keyless)
+[set_staff_keyless(is_keyless)](#set_staff_keyless)
+[set_staff_show_default_whole_rests(staff_id, show_whole_rests)](#set_staff_show_default_whole_rests)
+[set_all_staves_show_default_whole_rests(show_whole_rests)](#set_all_staves_show_default_whole_rests)
+[add_space_above_staff(staff_id)](#add_space_above_staff)
+[set_staff_full_name(staff, full_name, double)](#set_staff_full_name)
+[set_staff_short_name(staff, short_name, double)](#set_staff_short_name)
+[create_staff(full_name, short_name, type, clef, double)](#create_staff)
+[create_staff_spaced(full_name, short_name, type, clef, double)](#create_staff_spaced)
+[create_staff_percussion(full_name, short_name)](#create_staff_percussion)
+[create_group(start_staff, end_staff, brace_name, has_barline, level, full_name, short_name)](#create_group)
+[create_group_primary(start_staff, end_staff, full_name, short_name)](#create_group_primary)
+[create_group_secondary(start_staff, end_staff, full_name, short_name)](#create_group_secondary)
+[calc_system_scalings(systems_per_page)](#calc_system_scalings)
+[set_global_system_scaling(scaling)](#set_global_system_scaling)
+[set_global_system_scaling(system_number, scaling)](#set_global_system_scaling)
+[set_large_time_signatures_settings()](#set_large_time_signatures_settings)
+[use_large_time_signatures(uses_large_time_signatures, staves_with_time_signatures)](#use_large_time_signatures)
+[use_large_measure_numbers(distance)](#use_large_measure_numbers)
+[set_max_measures_per_system(max_measures_per_system)](#set_max_measures_per_system)
+[set_score_page_size(width, height)](#set_score_page_size)
+[set_all_parts_page_size(width, height)](#set_all_parts_page_size)
+[apply_config(config, options)](#apply_config)
+
+### create_default_config
 
 ```lua
 score.create_default_config()
@@ -44,7 +46,7 @@ creates that configuration object.
 | ----------- | ----------- |
 | `table` | the configuration object |
 
-## delete_all_staves
+### delete_all_staves
 
 ```lua
 score.delete_all_staves()
@@ -52,7 +54,7 @@ score.delete_all_staves()
 
 Deletes all staves in the current document.
 
-## reset_and_clear_score
+### reset_and_clear_score
 
 ```lua
 score.reset_and_clear_score()
@@ -60,7 +62,7 @@ score.reset_and_clear_score()
 
 Resets and clears the score to begin creating a new ensemble
 
-## set_show_staff_time_signature
+### set_show_staff_time_signature
 
 ```lua
 score.set_show_staff_time_signature(staff_id, show_time_signature)
@@ -77,7 +79,7 @@ Sets whether or not to show the time signature on the staff.
 | ----------- | ----------- |
 | `number` | the staff_id for the staff |
 
-## set_show_all_staves_time_signature
+### set_show_all_staves_time_signature
 
 ```lua
 score.set_show_all_staves_time_signature(show_time_signature)
@@ -89,7 +91,7 @@ Sets whether or not to show the time signature on the staff.
 | ----- | ---- | ----------- |
 | `show_time_signature` (optional) | `boolean` | whether or not to show the time signature, true if not specified |
 
-## set_staff_transposition
+### set_staff_transposition
 
 ```lua
 score.set_staff_transposition(staff_id, key, interval, clef)
@@ -108,7 +110,7 @@ Sets the transposition for a staff. Used for instruments that are not concert pi
 | ----------- | ----------- |
 | `number` | the staff_id for the staff |
 
-## set_staff_allow_hiding
+### set_staff_allow_hiding
 
 ```lua
 score.set_staff_allow_hiding(staff_id, allow_hiding)
@@ -125,7 +127,7 @@ Sets whether the staff is allowed to hide when it is empty.
 | ----------- | ----------- |
 | `number` | the staff_id for the staff |
 
-## set_staff_keyless
+### set_staff_keyless
 
 ```lua
 score.set_staff_keyless(staff_id, is_keyless)
@@ -142,7 +144,7 @@ Sets whether or not the staff is keyless.
 | ----------- | ----------- |
 | `number` | the staff_id for the staff |
 
-## set_staff_keyless
+### set_staff_keyless
 
 ```lua
 score.set_staff_keyless(is_keyless)
@@ -154,7 +156,7 @@ Sets whether or not all staves are keyless.
 | ----- | ---- | ----------- |
 | `is_keyless` (optional) | `boolean` | whether the staff is keyless, true if not specified |
 
-## set_staff_show_default_whole_rests
+### set_staff_show_default_whole_rests
 
 ```lua
 score.set_staff_show_default_whole_rests(staff_id, show_whole_rests)
@@ -171,7 +173,7 @@ Sets whether to show default whole rests on a particular staff.
 | ----------- | ----------- |
 | `number` | the staff_id for the staff |
 
-## set_all_staves_show_default_whole_rests
+### set_all_staves_show_default_whole_rests
 
 ```lua
 score.set_all_staves_show_default_whole_rests(show_whole_rests)
@@ -183,7 +185,7 @@ Sets whether or not all staves show default whole rests.
 | ----- | ---- | ----------- |
 | `show_whole_rests` (optional) | `boolean` | whether to show default whole rests, true if not specified |
 
-## add_space_above_staff
+### add_space_above_staff
 
 ```lua
 score.add_space_above_staff(staff_id)
@@ -199,7 +201,7 @@ This is the equivalent of "Add Vertical Space" in the Setup Wizard. It adds spac
 | ----------- | ----------- |
 | `number` | the staff_id for the staff |
 
-## set_staff_full_name
+### set_staff_full_name
 
 ```lua
 score.set_staff_full_name(staff, full_name, double)
@@ -215,7 +217,7 @@ If two instruments are on the same staff, this will also add the related numbers
 | `full_name` | `string` | the full name to set |
 | `double` (optional) | `number` | the number of the first instrument if two instruments share the staff |
 
-## set_staff_short_name
+### set_staff_short_name
 
 ```lua
 score.set_staff_short_name(staff, short_name, double)
@@ -231,7 +233,7 @@ If two instruments are on the same staff, this will also add the related numbers
 | `short_name` | `string` | the abbreviated name to set |
 | `double` (optional) | `number` | the number of the first instrument if two instruments share the staff |
 
-## create_staff
+### create_staff
 
 ```lua
 score.create_staff(full_name, short_name, type, clef, double)
@@ -251,7 +253,7 @@ Creates a staff at the end of the score.
 | ----------- | ----------- |
 | `number` | the staff_id for the new staff |
 
-## create_staff_spaced
+### create_staff_spaced
 
 ```lua
 score.create_staff_spaced(full_name, short_name, type, clef, double)
@@ -271,7 +273,7 @@ Creates a staff at the end of the score with a space above it. This is equivalen
 | ----------- | ----------- |
 | `number` | the staff_id for the new staff |
 
-## create_staff_percussion
+### create_staff_percussion
 
 ```lua
 score.create_staff_percussion(full_name, short_name)
@@ -288,7 +290,7 @@ Creates a percussion staff at the end of the score.
 | ----------- | ----------- |
 | `number` | the staff_id for the new staff |
 
-## create_group
+### create_group
 
 ```lua
 score.create_group(start_staff, end_staff, brace_name, has_barline, level, full_name, short_name)
@@ -306,7 +308,7 @@ Creates a percussion staff at the end of the score.
 | `full_name` (optional) | `string` | the full name for the group |
 | `short_name` (optional) | `string` | the abbreviated name for the group |
 
-## create_group_primary
+### create_group_primary
 
 ```lua
 score.create_group_primary(start_staff, end_staff, full_name, short_name)
@@ -321,7 +323,7 @@ Creates a primary group with the "curved_chorus" bracket.
 | `full_name` (optional) | `string` | the full name for the group |
 | `short_name` (optional) | `string` | the abbreviated name for the group |
 
-## create_group_secondary
+### create_group_secondary
 
 ```lua
 score.create_group_secondary(start_staff, end_staff, full_name, short_name)
@@ -336,7 +338,7 @@ Creates a primary group with the "desk" bracket.
 | `full_name` (optional) | `string` | the full name for the group |
 | `short_name` (optional) | `string` | the abbreviated name for the group |
 
-## calc_system_scalings
+### calc_system_scalings
 
 ```lua
 score.calc_system_scalings(systems_per_page)
@@ -357,7 +359,7 @@ scripts.
 | ----------- | ----------- |
 | `number, number` | the desired scaling factors—first_page_scaling, global_scaling |
 
-## set_global_system_scaling
+### set_global_system_scaling
 
 ```lua
 score.set_global_system_scaling(scaling)
@@ -369,7 +371,7 @@ Sets the system scaling for every system in the score.
 | ----- | ---- | ----------- |
 | `scaling` | `number` | the scaling factor |
 
-## set_global_system_scaling
+### set_global_system_scaling
 
 ```lua
 score.set_global_system_scaling(system_number, scaling)
@@ -382,7 +384,7 @@ Sets the system scaling for a specific system in the score.
 | `system_number` | `number` | the system number to set the scaling for |
 | `scaling` | `number` | the scaling factor |
 
-## set_large_time_signatures_settings
+### set_large_time_signatures_settings
 
 ```lua
 score.set_large_time_signatures_settings()
@@ -390,7 +392,7 @@ score.set_large_time_signatures_settings()
 
 Updates the document settings for large time signatures.
 
-## use_large_time_signatures
+### use_large_time_signatures
 
 ```lua
 score.use_large_time_signatures(uses_large_time_signatures, staves_with_time_signatures)
@@ -403,7 +405,7 @@ Sets the system scaling for a specific system in the score.
 | `uses_large_time_signatures` | `boolean` | the system number to set the scaling for |
 | `staves_with_time_signatures` | `table` | a table where all values are the staff_id for every staff with a time signature |
 
-## use_large_measure_numbers
+### use_large_measure_numbers
 
 ```lua
 score.use_large_measure_numbers(distance)
@@ -415,7 +417,7 @@ Adds large measure numbers below every measure in the score.
 | ----- | ---- | ----------- |
 | `distance` | `string` | the distance between the bottom staff and the measure numbers (e.g., "12s" for 12 spaces) |
 
-## set_max_measures_per_system
+### set_max_measures_per_system
 
 ```lua
 score.set_max_measures_per_system(max_measures_per_system)
@@ -427,7 +429,7 @@ Sets the maximum number of measures per system.
 | ----- | ---- | ----------- |
 | `max_measures_per_system` | `number` | maximum number of measures per system |
 
-## set_score_page_size
+### set_score_page_size
 
 ```lua
 score.set_score_page_size(width, height)
@@ -440,7 +442,7 @@ Sets the score page size.
 | `width` | `string` | the page height (e.g., "8.5i" for 8.5 inches) |
 | `height` | `string` | the page width (e.g., "11i" for 11 inches) |
 
-## set_all_parts_page_size
+### set_all_parts_page_size
 
 ```lua
 score.set_all_parts_page_size(width, height)
@@ -453,7 +455,7 @@ Sets the page size for all parts.
 | `width` | `string` | the page height (e.g., "8.5i" for 8.5 inches) |
 | `height` | `string` | the page width (e.g., "11i" for 11 inches) |
 
-## apply_config
+### apply_config
 
 ```lua
 score.apply_config(config, options)
