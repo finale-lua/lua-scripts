@@ -3,11 +3,11 @@ function plugindef()
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
-    finaleplugin.Version = "v1.26"
-    finaleplugin.Date = "2022/07/09"
+    finaleplugin.Version = "v1.27"
+    finaleplugin.Date = "2022/07/10"
     finaleplugin.AdditionalMenuOptions = [[  CrossStaff Offset No Dialog  ]]
     finaleplugin.AdditionalUndoText = [[     CrossStaff Offset No Dialog  ]]
-    finaleplugin.AdditionalPrefixes = [[     cross_staff_nodialog = true  ]]
+    finaleplugin.AdditionalPrefixes = [[     no_user_dialog = true  ]]
     finaleplugin.AdditionalDescriptions = [[ Offset horizontal position of cross-staff note entries - NO DIALOG ]]
     finaleplugin.Notes = [[
         When creating cross-staff notes using the option-downarrow shortcut, the stems of 
@@ -21,20 +21,23 @@ function plugindef()
         (This also offers a simple way to reset the horizontal offset of all notes in the selection to zero).
     
         Under RGPLua (version 0.62+) the script adds an extra menu item that repeats the last 
-        chosen offset without presenting a dialog, for fast changes duplicating the last settings. 
+        chosen offset without presenting a dialog, for faster changes duplicating the last settings. 
 ]]
-   return "CrossStaff Offset", "CrossStaff Offset", "Offset horizontal position of cross-staff note entries"
+   return "CrossStaff Offset…", "CrossStaff Offset", "Offset horizontal position of cross-staff note entries"
 end
 
+no_user_dialog = no_user_dialog or false
+
 local config = {
-    cross_staff_offset  = 0,
-    non_cross_offset    = 0,
-    layer_number        = 0,
-    script_name         = "cross_staff_offset"
+    cross_staff_offset = 0,
+    non_cross_offset = 0,
+    layer_number = 0,
+    window_pos_x = 70,
+    window_pos_y = 1200
 }
 
 local configuration = require("library.configuration")
-configuration.get_user_settings(config.script_name, config, true)
+configuration.get_user_settings("cross_staff_offset", config, true)
 
 function user_selects_offset()
     local current_vert = 10
@@ -53,37 +56,43 @@ function user_selects_offset()
         { "Non-crossed offset:", "non_cross_offset" }, --> answer[2]
         { "Layer 1-4 (0 = all):", "layer_number" } --> answer[3]
     }
+        local function make_static(msg, horiz, vert, width, red)
+            local static = dialog:CreateStatic(horiz, vert)
+            str.LuaString = msg
+            static:SetText(str)
+            static:SetWidth(width)
+            if red then
+                static:SetTextColor(204, 51, 0)
+            end
+        end
     for i,v in ipairs(texts) do
-        str.LuaString = v[1]
-        local static = dialog:CreateStatic(0, current_vert)
-        static:SetText(str)
-        static:SetWidth(200)
+        make_static(v[1], 0, current_vert, 200, false)
         answer[i] = dialog:CreateEdit(edit_box_horiz, current_vert - mac_offset)
         answer[i]:SetInteger(config[v[2]]) -- display the saved config value
         answer[i]:SetWidth(75)
         if i < 3 then
-            str.LuaString = "EVPUs"
-            dialog:CreateStatic(edit_box_horiz + 80, current_vert):SetText(str)
+            make_static( "EVPUs", edit_box_horiz + 80, current_vert, 75, false)
         end
         current_vert = current_vert + vertical_step
     end
 
-    local static = dialog:CreateStatic(0, current_vert + 8)
-    str.LuaString = "cross to staff below = [ -24, 0 ] or [ -12, 12 ]"
-    static:SetText(str)
-    static:SetWidth(240)
-    static = dialog:CreateStatic(0, current_vert + vertical_step)
-    str.LuaString = "cross to staff above = [ 24, 0 ] or [ 12, -12 ]"
-    static:SetText(str)
-    static:SetWidth(240)
-
+    dialog:StorePosition()
+    dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
+    dialog:RestorePosition()
+    local test_txt = "X" .. config.window_pos_x .. " Y" .. config.window_pos_y
+    make_static("cross to staff below = [ -24, 0 ] or [ -12, 12 ]" .. test_txt, 0, current_vert + 8, 320, true) -- 240?
+    make_static("cross to staff above = [ 24, 0 ] or [ 12, -12 ]", 0, current_vert + vertical_step, 280, true)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
+
     local ok = ( dialog:ExecuteModal(nil) == finale.EXECMODAL_OK )
     if ok then
         for i,v in ipairs(texts) do -- save the 3 integer values
            config[v[2]] = answer[i]:GetInteger()
         end
+        dialog:StorePosition()
+        config.window_pos_x = dialog.StoredX
+        config.window_pos_y = dialog.StoredY
     end
     return ok
 end
@@ -94,7 +103,7 @@ function is_out_of_range(horiz_offset)
 end
 
 function cross_staff_offset()
-    if not cross_staff_nodialog then
+    if not no_user_dialog then
         if not user_selects_offset() then -- user cancelled
             return
         else -- check new selections
@@ -109,7 +118,7 @@ function cross_staff_offset()
                 return
             end
             -- save revised config file
-            configuration.save_user_settings(config.script_name, config)
+            configuration.save_user_settings("cross_staff_offset", config)
         end
     end
     -- change entry offsets in the chosen layer (0 = all layers)
