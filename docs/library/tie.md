@@ -7,7 +7,7 @@ as well as providing other useful information about ties.
 
 - [calc_tied_to(note)](#calc_tied_to)
 - [calc_tied_from(note)](#calc_tied_from)
-- [calc_tie_span(note)](#calc_tie_span)
+- [calc_tie_span(note, for_tied_to, tie_must_exist)](#calc_tie_span)
 - [calc_default_direction(note, for_tieend, tie_prefs)](#calc_default_direction)
 - [calc_direction(note, tie_mod, tie_prefs)](#calc_direction)
 - [calc_connection_code(note, placement, direction, for_endpoint, for_tieend, for_pageview, tie_prefs)](#calc_connection_code)
@@ -63,7 +63,7 @@ input note and the tied-from note.
 ### calc_tie_span
 
 ```lua
-tie.calc_tie_span(note)
+tie.calc_tie_span(note, for_tied_to, tie_must_exist)
 ```
 
 
@@ -71,23 +71,23 @@ Calculates the (potential) start and end notes for a tie, given an input note. T
 input note can be from anywhere, including from the `eachentry()` iterator functions.
 The function returns 3 values:
 
-    - A FCNoteLayerEntry containing both the start and and notes (if they exist).
-    You must maintain the lifetime of this variable as long as you are referencing either
-    of the other two values.
-    - The potential or actual start note of the tie (taken from the FCNoteLayerEntry above).
-    - The potential or actual end note of the tie (taken from the FCNoteLayerEntry above).
+- A FCNoteLayerEntry containing both the start and and notes (if they exist).
+You must maintain the lifetime of this variable as long as you are referencing either
+of the other two values.
+- The potential or actual start note of the tie (taken from the FCNoteLayerEntry above).
+- The potential or actual end note of the tie (taken from the FCNoteLayerEntry above).
 
 Be very careful about modifying the return values from this function. If you do it within
 an iterator loop from `eachentry()` or `eachentrysaved()` you could end up overwriting your changes
 with stale data from the iterator loop. You may discover that this function is more useful
 for gathering information than for modifying the values it returns.
 
-@ [for_tied_to] if true, searches for a note tying to the input note. Otherwise, searches for a note tying from the input note.
-@ [tie_must_exist] if true, only returns notes for ties that already exist.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `note` | `FCNote` | the note for which to calculated the tie span |
+| `for_tied_to` (optional) | `boolean` | if true, searches for a note tying to the input note. Otherwise, searches for a note tying from the input note. |
+| `tie_must_exist` (optional) | `boolean` | if true, only returns notes for ties that already exist. |
 
 | Return type | Description |
 | ----------- | ----------- |
