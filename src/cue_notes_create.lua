@@ -3,24 +3,24 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.63"
-    finaleplugin.Date = "2022/05/22"
+    finaleplugin.Version = "v0.64"
+    finaleplugin.Date = "2022/07/11"
     finaleplugin.Notes = [[
-This script is keyboard-centric requiring minimal mouse action. It takes music in Layer 1 from one staff in the selected region and creates a "Cue" version on another chosen staff. The cue copy is reduced in size and muted, and can duplicate chosen markings from the original. It is shifted to the chosen layer with a (real) whole-note rest placed in layer 1.
+        This script is keyboard-centred requiring minimal mouse action. 
+        It takes music in Layer 1 from one staff in the selected region and creates a "Cue" version on another chosen staff. 
+        The cue copy is reduced in size and muted, and can duplicate chosen markings from the original. 
+        It is shifted to the chosen layer with a (real) whole-note rest placed in layer 1.
 
-Your preferences are saved after each script run in a "config" file inside a folder called "script_settings" in the same file location as this script. If your choices aren't being saved then you need to create that folder. If that still doesn't work you need to use another folder for your Lua scripts that has fewer access restrictions. 
-
-If using RGPLua (v0.58 or later) the script automatically creates a new expression category called "Cue Names" if it does not exist. If using JWLua, before running the script you must create an Expression Category called "Cue Names" containing at least one text expression.
-
+        Your choices are saved after each script run in your user preferences folder. 
+        If using RGPLua (v0.58+) the script automatically creates a new expression category 
+        called "Cue Names" if it does not exist. 
+        If using JWLua, before running the script you must create an Expression Category 
+        called "Cue Names" containing at least one text expression.
     ]]
-    return "Cue Notes Create", "Cue Notes Create", "Copy as cue notes to another staff"
+    return "Cue Notes Create…", "Cue Notes Create", "Copy as cue notes to another staff"
 end
 
-local configuration = require("library.configuration")
-local clef = require("library.clef")
-local layer = require("library.layer")
-
-local config = { -- retained and over-written by the config file, if present
+local config = { -- retained and over-written by the user's "settings" file
     copy_articulations  =   false,
     copy_expressions    =   false,
     copy_smartshapes    =   false,
@@ -33,33 +33,12 @@ local config = { -- retained and over-written by the config file, if present
     -- if creating a new "Cue Names" category ...
     cue_category_name   =   "Cue Names",
     cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
-    prefs_folder        =   "script_settings",
-    prefs_file          =   "cue_notes_create.config",
 }
+local configuration = require("library.configuration")
+local clef = require("library.clef")
+local layer = require("library.layer")
 
-configuration.get_parameters(config.prefs_file, config)
-
-function save_config_file() 
-    local folder_path = finenv:RunningLuaFolderPath() .. config.prefs_folder
-    local file_path = folder_path .. '/' .. config.prefs_file
-    local file = io.open(file_path, "w")
-    if nil == file then -- couldn't find file
-        os.execute('mkdir "' .. folder_path ..'"') -- so make a folder
-        file = io.open(file_path, "w") -- try again
-        if nil == file then -- still couldn't find file
-            return -- give up
-        end
-    end
-    for i,v in pairs(config) do
-        if type(v) == "boolean" then
-            v = v and "true" or "false"
-        elseif type(v) == "string" then
-            v = '"' .. v ..'"'
-        end
-        file:write(i, " = ", v, "\n")
-    end
-    file:close()
-end
+configuration.get_user_settings("cue_notes_create", config, true)
 
 function show_error(error_code)
     local errors = {
@@ -130,7 +109,8 @@ function choose_name_index(name_list)
 	end
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), staff_list:GetSelectedItem()
+    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    return ok, staff_list:GetSelectedItem()
     -- NOTE: returns the chosen INDEX number (0-based)
 end
 
@@ -139,7 +119,7 @@ function create_new_expression(exp_name, category_number)
     cat_def:Load(category_number)
     local tfi = cat_def:CreateTextFontInfo()
     local str = finale.FCString()
-    str.LuaString = "^fontTxt" 
+    str.LuaString = "^fontTxt"
         .. tfi:CreateEnigmaString(finale.FCString()).LuaString
         .. exp_name
     local ted = finale.FCTextExpressionDef()
@@ -219,7 +199,7 @@ function choose_destination_staff(source_staff)
     end
     -- popup for stem direction
     local stem_direction_popup = dialog:CreatePopup(horiz_grid[1], (#user_checks * vert_step) + 5)
-    str.LuaString = "Stems: natural direction"
+    str.LuaString = "Stems: normal"
     stem_direction_popup:AddString(str)  -- config.freeze_up_down == 0
     str.LuaString = "Stems: freeze up"
     stem_direction_popup:AddString(str)  -- config.freeze_up_down == 1
@@ -259,7 +239,6 @@ function choose_destination_staff(source_staff)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-
     local selected_item = list_box:GetSelectedItem() -- retrieve user staff selection (index base 0)
     local chosen_staff_number = staff_list[selected_item + 1][1]
 
@@ -276,7 +255,6 @@ function choose_destination_staff(source_staff)
         end
     end
     config.freeze_up_down = stem_direction_popup:GetSelectedItem() -- 0-based index
-
     return ok, chosen_staff_number
 end
 
@@ -465,8 +443,8 @@ function create_cue_notes()
 	if not ok then
         return
     end
-    -- save user preferences
-    save_config_file()  -- save new config if any
+    -- save revised config file
+    configuration.save_user_settings("cue_notes_create", config)
     -- make the cue copy
 	if not copy_to_destination(source_region, destination_staff) then
         return
