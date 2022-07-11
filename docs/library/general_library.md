@@ -21,6 +21,7 @@
 - [simple_input(title, text)](#simple_input)
 - [is_finale_object(object)](#is_finale_object)
 - [system_indent_set_to_prefs(system, page_format_prefs)](#system_indent_set_to_prefs)
+- [calc_script_name(include_extension)](#calc_script_name)
 
 ### finale_version
 
@@ -315,3 +316,19 @@ The page preferences may be provided optionally to avoid loading them for each c
 | Return type | Description |
 | ----------- | ----------- |
 | `boolean` | `true` if the system was successfully updated. |
+
+### calc_script_name
+
+```lua
+library.calc_script_name(include_extension)
+```
+
+Returns the running script name, with or without extension.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `include_extension` (optional) | `boolean` | Whether to include the file extension in the return value: `false` if omitted |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` | The name of the current running script. |

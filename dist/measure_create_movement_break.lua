@@ -511,6 +511,38 @@ function library.system_indent_set_to_prefs(system, page_format_prefs)
 end
 
 
+--[[
+% calc_script_name
+
+Returns the running script name, with or without extension.
+
+@ [include_extension] (boolean) Whether to include the file extension in the return value: `false` if omitted
+: (string) The name of the current running script.
+]]
+function library.calc_script_name(include_extension)
+    local fc_string = finale.FCString()
+    if finenv.RunningLuaFilePath then
+        -- Use finenv.RunningLuaFilePath() if available because it doesn't ever get overwritten when retaining state.
+        fc_string.LuaString = finenv.RunningLuaFilePath()
+    else
+        -- This code path is only taken by JW Lua (and very early versions of RGP Lua).
+        -- SetRunningLuaFilePath is not reliable when retaining state, so later versions use finenv.RunningLuaFilePath.
+        fc_string:SetRunningLuaFilePath()
+    end
+    local filename_string = finale.FCString()
+    fc_string:SplitToPathAndFile(nil, filename_string)
+    local retval = filename_string.LuaString
+    if not include_extension then
+        retval = retval:match("(.+)%..+")
+        if not retval or retval == "" then
+            retval = filename_string.LuaString
+        end
+    end
+    return retval
+end
+
+
+
 
 
 function measure_create_movement_break()
