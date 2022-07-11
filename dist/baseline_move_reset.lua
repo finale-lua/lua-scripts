@@ -1,13 +1,4 @@
-function plugindef()
-    finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Robert Patterson"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Date = "May 15, 2022"
-    finaleplugin.CategoryTags = "Baseline"
-    finaleplugin.AuthorURL = "http://robertgpatterson.com"
-    finaleplugin.MinJWLuaVersion = 0.62
-    finaleplugin.Notes = [[
+local a,b,c,d=(function(e)local f={[{}]=true}local g;local h={}local require;local i={}g=function(j,k)if not h[j]then h[j]=k end end;require=function(j)local l=i[j]if l then if l==f then return nil end else if not h[j]then if not e then local m=type(j)=='string'and'\"'..j..'\"'or tostring(j)error('Tried to require '..m..', but no such module has been registered')else return e(j)end end;i[j]=f;l=h[j](require,i,g,h)i[j]=l end;return l end;return require,i,g,h end)(require)c("__root",function(require,n,c,d)function plugindef()finaleplugin.RequireSelection=true;finaleplugin.Author="Robert Patterson"finaleplugin.Version="1.0"finaleplugin.Copyright="CC0 https://creativecommons.org/publicdomain/zero/1.0/"finaleplugin.Date="May 15, 2022"finaleplugin.CategoryTags="Baseline"finaleplugin.AuthorURL="http://robertgpatterson.com"finaleplugin.MinJWLuaVersion=0.62;finaleplugin.Notes=[[
         This script nudges system baselines up or down by a single staff-space (24 evpus). It introduces 10
         menu options to nudge each baseline type up or down. It also introduces 5 menu options to reset
         the baselines to their staff-level values.
@@ -28,8 +19,7 @@ function plugindef()
         ```
 
         A value in a prefix overrides any setting in a configuration file.
-    ]]
-    finaleplugin.AdditionalMenuOptions = [[
+    ]]finaleplugin.AdditionalMenuOptions=[[
         Move Lyric Baselines Up
         Reset Lyric Baselines
         Move Expression Baseline Above Down
@@ -44,8 +34,7 @@ function plugindef()
         Move Fretboard Baseline Down
         Move Fretboard Baseline Up
         Reset Fretboard Baseline
-    ]]
-    finaleplugin.AdditionalDescriptions = [[
+    ]]finaleplugin.AdditionalDescriptions=[[
         Moves all lyrics baselines up one space in the selected systems
         Resets all selected lyrics baselines to default
         Moves the selected expression above baseline down one space
@@ -60,8 +49,7 @@ function plugindef()
         Moves the selected fretboard baseline down one space
         Moves the selected fretboard baseline up one space
         Resets the selected fretboard baselines
-    ]]
-    finaleplugin.AdditionalPrefixes = [[
+    ]]finaleplugin.AdditionalPrefixes=[[
         direction = 1 -- no baseline_types table, which picks up the default (lyrics)
         direction = 0 -- no baseline_types table, which picks up the default (lyrics)
         direction = -1 baseline_types = {finale.BASELINEMODE_EXPRESSIONABOVE}
@@ -76,260 +64,4 @@ function plugindef()
         direction = -1 baseline_types = {finale.BASELINEMODE_FRETBOARD}
         direction = 1 baseline_types = {finale.BASELINEMODE_FRETBOARD}
         direction = 0 baseline_types = {finale.BASELINEMODE_FRETBOARD}
-    ]]
-    return "Move Lyric Baselines Down", "Move Lyrics Baselines Down", "Moves all lyrics baselines down one space in the selected systems"
-end
-
---  Author: Robert Patterson
---  Date: March 5, 2021
---[[
-$module Configuration
-
-This library implements a UTF-8 text file scheme for configuration as follows:
-
-- Comments start with `--`
-- Leading, trailing, and extra whitespace is ignored
-- Each parameter is named and delimited as follows:
-`<parameter-name> = <parameter-value>`
-
-Parameter values may be:
-
-- Strings delimited with either single- or double-quotes
-- Tables delimited with `{}` that may contain strings, booleans, or numbers
-- Booleans (`true` or `false`)
-- Numbers
-
-Currently the following are not supported:
-
-- Tables embedded within tables
-- Tables containing strings that contain commas
-
-A sample configuration file might be:
-
-```lua
--- Configuration File for "Hairpin and Dynamic Adjustments" script
---
-left_dynamic_cushion 		= 12		--evpus
-right_dynamic_cushion		= -6		--evpus
-```
-
-Configuration files must be placed in a subfolder called `script_settings` within
-the folder of the calling script. Each script that has a configuration file
-defines its own configuration file name.
-]] --
-local configuration = {}
-
-local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
-local comment_marker = "--"
-local parameter_delimiter = "="
-local path_delimiter = "/"
-
-local file_exists = function(file_path)
-    local f = io.open(file_path, "r")
-    if nil ~= f then
-        io.close(f)
-        return true
-    end
-    return false
-end
-
-local strip_leading_trailing_whitespace = function(str)
-    return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
-end
-
-local parse_parameter -- forward function declaration
-
-local parse_table = function(val_string)
-    local ret_table = {}
-    for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
-        local parsed_element = parse_parameter(element)
-        table.insert(ret_table, parsed_element)
-    end
-    return ret_table
-end
-
-parse_parameter = function(val_string)
-    if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
-        return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
-    elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
-        return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
-    elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-        return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
-    elseif "true" == val_string then
-        return true
-    elseif "false" == val_string then
-        return false
-    end
-    return tonumber(val_string)
-end
-
-local get_parameters_from_file = function(file_name)
-    local parameters = {}
-
-    local path = finale.FCString()
-    path:SetRunningLuaFolderPath()
-    local file_path = path.LuaString .. path_delimiter .. file_name
-    if not file_exists(file_path) then
-        return parameters
-    end
-
-    for line in io.lines(file_path) do
-        local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
-        if nil ~= comment_at then
-            line = string.sub(line, 1, comment_at - 1)
-        end
-        local delimiter_at = string.find(line, parameter_delimiter, 1, true)
-        if nil ~= delimiter_at then
-            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
-            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
-            parameters[name] = parse_parameter(val_string)
-        end
-    end
-
-    return parameters
-end
-
---[[
-% get_parameters
-
-Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list` with any that are found in the config file.
-
-@ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
-@ parameter_list (table) a table with the parameter name as key and the default value as value
-]]
-function configuration.get_parameters(file_name, parameter_list)
-    local file_parameters = get_parameters_from_file(script_settings_dir .. path_delimiter .. file_name)
-    if nil ~= file_parameters then
-        for param_name, def_val in pairs(parameter_list) do
-            local param_val = file_parameters[param_name]
-            if nil ~= param_val then
-                parameter_list[param_name] = param_val
-            end
-        end
-    end
-end
-
---[[
-% save_parameters
-
-Saves a config file with the input filename in the `script_settings` directory using values provided in `parameter_list`.
-
-@ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
-@ parameter_list (table) a table with the parameter name as key and the default value as value
-]]
-function configuration.save_parameters(file_name, parameter_list)
-    local folder_path = finenv:RunningLuaFolderPath() .. script_settings_dir
-    local file_path = folder_path ..  path_delimiter .. file_name
-    local file = io.open(file_path, "w")
-    if file == nil then -- file not found
-        os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder
-        file = io.open(file_path, "w") -- try the file again
-        if file == nil then -- still couldn't find file
-            return false -- so give up
-        end
-    end
-    for i,v in pairs(parameter_list) do -- only integer or string values
-        if type(v) == "string" then
-            v = "\"" .. v .."\""
-        else
-            v = tostring(v)
-        end
-        file:write(i, " = ", v, "\n")
-    end
-    file:close()
-    return true -- success
-end
-
-
-
-
-local config = {nudge_evpus = 24}
-
-if nil ~= configuration then
-    configuration.get_parameters("baseline_move.config.txt", config)
-end
-
-local lyric_baseline_types = {
-    [finale.BASELINEMODE_LYRICSVERSE] = function()
-        return finale.FCVerseLyricsText()
-    end,
-    [finale.BASELINEMODE_LYRICSCHORUS] = function()
-        return finale.FCChorusLyricsText()
-    end,
-    [finale.BASELINEMODE_LYRICSSECTION] = function()
-        return finale.FCSectionLyricsText()
-    end,
-}
-
-local find_valid_lyric_nums = function(baseline_type)
-    local lyrics_text_class_constructor = lyric_baseline_types[baseline_type]
-    if lyrics_text_class_constructor then
-        local valid_lyric_nums = {}
-        local lyrics_text_class = lyrics_text_class_constructor()
-        for i = 1, 32767, 1 do
-            if lyrics_text_class:Load(i) then
-                local str = finale.FCString()
-                lyrics_text_class:GetText(str)
-                if not str:IsEmpty() then
-                    valid_lyric_nums[{baseline_type, i}] = 1
-                end
-            end
-        end
-        return valid_lyric_nums
-    end
-    return nil
-end
-
-function baseline_move()
-    local region = finenv.Region()
-    local systems = finale.FCStaffSystems()
-    systems:LoadAll()
-
-    local start_measure = region:GetStartMeasure()
-    local end_measure = region:GetEndMeasure()
-    local system = systems:FindMeasureNumber(start_measure)
-    local lastSys = systems:FindMeasureNumber(end_measure)
-    local system_number = system:GetItemNo()
-    local lastSys_number = lastSys:GetItemNo()
-    local start_slot = region:GetStartSlot()
-    local end_slot = region:GetEndSlot()
-
-    for _, baseline_type in pairs(baseline_types) do
-        local valid_lyric_nums = find_valid_lyric_nums(baseline_type) -- will be nil for non-lyric baseline types
-        for i = system_number, lastSys_number, 1 do
-            local baselines = finale.FCBaselines()
-            if direction ~= 0 then
-                baselines:LoadAllForSystem(baseline_type, i)
-                for j = start_slot, end_slot do
-                    if valid_lyric_nums then
-                        for lyric_info, _ in pairs(valid_lyric_nums) do
-                            local _, lyric_number = table.unpack(lyric_info)
-                            bl = baselines:AssureSavedLyricNumber(baseline_type, i, region:CalcStaffNumber(j), lyric_number)
-                            bl.VerticalOffset = bl.VerticalOffset + direction * nudge_evpus
-                            bl:Save()
-                        end
-                    else
-                        bl = baselines:AssureSavedStaff(baseline_type, i, region:CalcStaffNumber(j))
-                        bl.VerticalOffset = bl.VerticalOffset + direction * nudge_evpus
-                        bl:Save()
-                    end
-                end
-            else
-                for j = start_slot, end_slot do
-                    baselines:LoadAllForSystemStaff(baseline_type, i, region:CalcStaffNumber(j))
-                    -- iterate backwards to preserve lower inci numbers when deleting
-                    for baseline in eachbackwards(baselines) do
-                        baseline:DeleteData()
-                    end
-                end
-            end
-        end
-    end
-end
-
--- parameters for additional menu options
-baseline_types = baseline_types or {finale.BASELINEMODE_LYRICSVERSE, finale.BASELINEMODE_LYRICSCHORUS, finale.BASELINEMODE_LYRICSSECTION}
-direction = direction or -1
-nudge_evpus = nudge_evpus or config.nudge_evpus
-
-baseline_move()
+    ]]return"Move Lyric Baselines Down","Move Lyrics Baselines Down","Moves all lyrics baselines down one space in the selected systems"end;local o=require("library.configuration")local p={nudge_evpus=24}if nil~=o then o.get_parameters("baseline_move.config.txt",p)end;local q={[finale.BASELINEMODE_LYRICSVERSE]=function()return finale.FCVerseLyricsText()end,[finale.BASELINEMODE_LYRICSCHORUS]=function()return finale.FCChorusLyricsText()end,[finale.BASELINEMODE_LYRICSSECTION]=function()return finale.FCSectionLyricsText()end}local r=function(s)local t=q[s]if t then local u={}local v=t()for w=1,32767,1 do if v:Load(w)then local x=finale.FCString()v:GetText(x)if not x:IsEmpty()then u[{s,w}]=1 end end end;return u end;return nil end;function baseline_move()local y=finenv.Region()local z=finale.FCStaffSystems()z:LoadAll()local A=y:GetStartMeasure()local B=y:GetEndMeasure()local C=z:FindMeasureNumber(A)local D=z:FindMeasureNumber(B)local E=C:GetItemNo()local F=D:GetItemNo()local G=y:GetStartSlot()local H=y:GetEndSlot()for I,s in pairs(baseline_types)do local u=r(s)for w=E,F,1 do local J=finale.FCBaselines()if direction~=0 then J:LoadAllForSystem(s,w)for K=G,H do if u then for L,I in pairs(u)do local I,M=table.unpack(L)bl=J:AssureSavedLyricNumber(s,w,y:CalcStaffNumber(K),M)bl.VerticalOffset=bl.VerticalOffset+direction*nudge_evpus;bl:Save()end else bl=J:AssureSavedStaff(s,w,y:CalcStaffNumber(K))bl.VerticalOffset=bl.VerticalOffset+direction*nudge_evpus;bl:Save()end end else for K=G,H do J:LoadAllForSystemStaff(s,w,y:CalcStaffNumber(K))for N in eachbackwards(J)do N:DeleteData()end end end end end end;baseline_types=baseline_types or{finale.BASELINEMODE_LYRICSVERSE,finale.BASELINEMODE_LYRICSCHORUS,finale.BASELINEMODE_LYRICSSECTION}direction=direction or-1;nudge_evpus=nudge_evpus or p.nudge_evpus;baseline_move()end)c("library.configuration",function(require,n,c,d)local O={}function O.finale_version(P,Q,R)local S=bit32.bor(bit32.lshift(math.floor(P),24),bit32.lshift(math.floor(Q),20))if R then S=bit32.bor(S,math.floor(R))end;return S end;function O.group_overlaps_region(T,y)if y:IsFullDocumentSpan()then return true end;local U=false;local V=finale.FCSystemStaves()V:LoadAllForRegion(y)for W in each(V)do if T:ContainsStaff(W:GetStaff())then U=true;break end end;if not U then return false end;if T.StartMeasure>y.EndMeasure or T.EndMeasure<y.StartMeasure then return false end;return true end;function O.group_is_contained_in_region(T,y)if not y:IsStaffIncluded(T.StartStaff)then return false end;if not y:IsStaffIncluded(T.EndStaff)then return false end;return true end;function O.staff_group_is_multistaff_instrument(T)local X=finale.FCMultiStaffInstruments()X:LoadAll()for Y in each(X)do if Y:ContainsStaff(T.StartStaff)and Y.GroupID==T:GetItemID()then return true end end;return false end;function O.get_selected_region_or_whole_doc()local Z=finenv.Region()if Z:IsEmpty()then Z:SetFullDocument()end;return Z end;function O.get_first_cell_on_or_after_page(_)local a0=_;local a1=finale.FCPage()local a2=false;while a1:Load(a0)do if a1:GetFirstSystem()>0 then a2=true;break end;a0=a0+1 end;if a2 then local a3=finale.FCStaffSystem()a3:Load(a1:GetFirstSystem())return finale.FCCell(a3.FirstMeasure,a3.TopStaff)end;local a4=finale.FCMusicRegion()a4:SetFullDocument()return finale.FCCell(a4.EndMeasure,a4.EndStaff)end;function O.get_top_left_visible_cell()if not finenv.UI():IsPageView()then local a5=finale.FCMusicRegion()a5:SetFullDocument()return finale.FCCell(finenv.UI():GetCurrentMeasure(),a5.StartStaff)end;return O.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())end;function O.get_top_left_selected_or_visible_cell()local Z=finenv.Region()if not Z:IsEmpty()then return finale.FCCell(Z.StartMeasure,Z.StartStaff)end;return O.get_top_left_visible_cell()end;function O.is_default_measure_number_visible_on_cell(a6,a7,a8,a9)local aa=finale.FCCurrentStaffSpec()if not aa:LoadForCell(a7,0)then return false end;if a6:GetShowOnTopStaff()and a7.Staff==a8.TopStaff then return true end;if a6:GetShowOnBottomStaff()and a7.Staff==a8:CalcBottomStaff()then return true end;if aa.ShowMeasureNumbers then return not a6:GetExcludeOtherStaves(a9)end;return false end;function O.is_default_number_visible_and_left_aligned(a6,a7,C,a9,ab)if a6.UseScoreInfoForParts then a9=false end;if ab and a6:GetShowOnMultiMeasureRests(a9)then if finale.MNALIGN_LEFT~=a6:GetMultiMeasureAlignment(a9)then return false end elseif a7.Measure==C.FirstMeasure then if not a6:GetShowOnSystemStart()then return false end;if finale.MNALIGN_LEFT~=a6:GetStartAlignment(a9)then return false end else if not a6:GetShowMultiples(a9)then return false end;if finale.MNALIGN_LEFT~=a6:GetMultipleAlignment(a9)then return false end end;return O.is_default_measure_number_visible_on_cell(a6,a7,C,a9)end;function O.update_layout(ac,ad)ac=ac or 1;ad=ad or false;local ae=finale.FCPage()if ae:Load(ac)then ae:UpdateLayout(ad)end end;function O.get_current_part()local af=finale.FCParts()af:LoadAll()return af:GetCurrent()end;function O.get_page_format_prefs()local ag=O.get_current_part()local ah=finale.FCPageFormatPrefs()local ai=false;if ag:IsScore()then ai=ah:LoadScore()else ai=ah:LoadParts()end;return ah,ai end;local aj=function(ak)local al=finenv.UI():IsOnWindows()local am=function(an,ao)if finenv.UI():IsOnWindows()then return an and os.getenv(an)or""else return ao and os.getenv(ao)or""end end;local ap=ak and am("LOCALAPPDATA","HOME")or am("COMMONPROGRAMFILES")if not al then ap=ap.."/Library/Application Support"end;ap=ap.."/SMuFL/Fonts/"return ap end;function O.get_smufl_font_list()local aq={}local ar=function(ak)local ap=aj(ak)local as=function()if finenv.UI():IsOnWindows()then return io.popen('dir "'..ap..'" /b /ad')else return io.popen('ls "'..ap..'"')end end;local at=function(au)local av=finale.FCString()av.LuaString=au;return finenv.UI():IsFontAvailable(av)end;for au in as():lines()do if not au:find("%.")then au=au:gsub(" Bold","")au=au:gsub(" Italic","")local av=finale.FCString()av.LuaString=au;if aq[au]or at(au)then aq[au]=ak and"user"or"system"end end end end;ar(true)ar(false)return aq end;function O.get_smufl_metadata_file(aw)if not aw then aw=finale.FCFontInfo()aw:LoadFontPrefs(finale.FONTPREF_MUSIC)end;local ax=function(ay,aw)local az=ay..aw.Name.."/"..aw.Name..".json"return io.open(az,"r")end;local aA=ax(aj(true),aw)if aA then return aA end;return ax(aj(false),aw)end;function O.is_font_smufl_font(aw)if not aw then aw=finale.FCFontInfo()aw:LoadFontPrefs(finale.FONTPREF_MUSIC)end;if finenv.RawFinaleVersion>=O.finale_version(27,1)then if nil~=aw.IsSMuFLFont then return aw.IsSMuFLFont end end;local aB=O.get_smufl_metadata_file(aw)if nil~=aB then io.close(aB)return true end;return false end;function O.simple_input(aC,aD)local aE=finale.FCString()aE.LuaString=""local x=finale.FCString()local aF=160;function format_ctrl(aG,aH,aI,aJ)aG:SetHeight(aH)aG:SetWidth(aI)x.LuaString=aJ;aG:SetText(x)end;title_width=string.len(aC)*6+54;if title_width>aF then aF=title_width end;text_width=string.len(aD)*6;if text_width>aF then aF=text_width end;x.LuaString=aC;local aK=finale.FCCustomLuaWindow()aK:SetTitle(x)local aL=aK:CreateStatic(0,0)format_ctrl(aL,16,aF,aD)local aM=aK:CreateEdit(0,20)format_ctrl(aM,20,aF,"")aK:CreateOkButton()aK:CreateCancelButton()function callback(aG)end;aK:RegisterHandleCommand(callback)if aK:ExecuteModal(nil)==finale.EXECMODAL_OK then aE.LuaString=aM:GetText(aE)return aE.LuaString end end;function O.is_finale_object(aN)return aN and type(aN)=="userdata"and aN.ClassName and aN.GetClassID and true or false end;function O.system_indent_set_to_prefs(C,ah)ah=ah or O.get_page_format_prefs()local aO=finale.FCMeasure()local aP=C.FirstMeasure==1;if not aP and aO:Load(C.FirstMeasure)then if aO.ShowFullNames then aP=true end end;if aP and ah.UseFirstSystemMargins then C.LeftMargin=ah.FirstSystemLeft else C.LeftMargin=ah.SystemLeft end;return C:Save()end;function O.calc_script_name(aQ)local aR=finale.FCString()if finenv.RunningLuaFilePath then aR.LuaString=finenv.RunningLuaFilePath()else aR:SetRunningLuaFilePath()end;local aS=finale.FCString()aR:SplitToPathAndFile(nil,aS)local S=aS.LuaString;if not aQ then S=S:match("(.+)%..+")if not S or S==""then S=aS.LuaString end end;return S end;return O end)return a("__root")
