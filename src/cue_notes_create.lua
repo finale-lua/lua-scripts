@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.63"
-    finaleplugin.Date = "2022/05/22"
+    finaleplugin.Version = "v0.64"
+    finaleplugin.Date = "2022/07/11"
     finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action. 
         It takes music in Layer 1 from one staff in the selected region and creates a "Cue" version on another chosen staff. 
@@ -17,7 +17,7 @@ function plugindef()
         If using JWLua, before running the script you must create an Expression Category 
         called "Cue Names" containing at least one text expression.
     ]]
-    return "Cue Notes Create", "Cue Notes Create", "Copy as cue notes to another staff"
+    return "Cue Notes Create…", "Cue Notes Create", "Copy as cue notes to another staff"
 end
 
 local config = { -- retained and over-written by the user's "settings" file
@@ -33,13 +33,12 @@ local config = { -- retained and over-written by the user's "settings" file
     -- if creating a new "Cue Names" category ...
     cue_category_name   =   "Cue Names",
     cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
-    script_name         =   "cue_notes_create"
 }
 local configuration = require("library.configuration")
 local clef = require("library.clef")
 local layer = require("library.layer")
 
-configuration.get_user_settings(config.script_name, config, true)
+configuration.get_user_settings("cue_notes_create", config, true)
 
 function show_error(error_code)
     local errors = {
@@ -110,7 +109,8 @@ function choose_name_index(name_list)
 	end
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), staff_list:GetSelectedItem()
+    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    return ok, staff_list:GetSelectedItem()
     -- NOTE: returns the chosen INDEX number (0-based)
 end
 
@@ -119,7 +119,7 @@ function create_new_expression(exp_name, category_number)
     cat_def:Load(category_number)
     local tfi = cat_def:CreateTextFontInfo()
     local str = finale.FCString()
-    str.LuaString = "^fontTxt" 
+    str.LuaString = "^fontTxt"
         .. tfi:CreateEnigmaString(finale.FCString()).LuaString
         .. exp_name
     local ted = finale.FCTextExpressionDef()
@@ -199,7 +199,7 @@ function choose_destination_staff(source_staff)
     end
     -- popup for stem direction
     local stem_direction_popup = dialog:CreatePopup(horiz_grid[1], (#user_checks * vert_step) + 5)
-    str.LuaString = "Stems: natural direction"
+    str.LuaString = "Stems: normal"
     stem_direction_popup:AddString(str)  -- config.freeze_up_down == 0
     str.LuaString = "Stems: freeze up"
     stem_direction_popup:AddString(str)  -- config.freeze_up_down == 1
@@ -239,7 +239,6 @@ function choose_destination_staff(source_staff)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-
     local selected_item = list_box:GetSelectedItem() -- retrieve user staff selection (index base 0)
     local chosen_staff_number = staff_list[selected_item + 1][1]
 
@@ -256,7 +255,6 @@ function choose_destination_staff(source_staff)
         end
     end
     config.freeze_up_down = stem_direction_popup:GetSelectedItem() -- 0-based index
-
     return ok, chosen_staff_number
 end
 
@@ -446,7 +444,7 @@ function create_cue_notes()
         return
     end
     -- save revised config file
-    configuration.save_user_settings(config.script_name, config)
+    configuration.save_user_settings("cue_notes_create", config)
     -- make the cue copy
 	if not copy_to_destination(source_region, destination_staff) then
         return
