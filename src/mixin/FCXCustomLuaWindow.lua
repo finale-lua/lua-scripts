@@ -413,7 +413,7 @@ Automatically registers the dialog with `finenv.RegisterModelessDialog`.
 @ self (FCXCustomLuaWindow)
 : (boolean)
 ]]
-props:ShowModeless()
+function props:ShowModeless()
     finenv.RegisterModelessDialog(self)
     return mixin.FCMCustomLuaWindow.ShowModeless(self)
 end
