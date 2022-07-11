@@ -1,3 +1,489 @@
-local a,b,c,d=(function(e)local f={[{}]=true}local g;local h={}local require;local i={}g=function(j,k)if not h[j]then h[j]=k end end;require=function(j)local l=i[j]if l then if l==f then return nil end else if not h[j]then if not e then local m=type(j)=='string'and'\"'..j..'\"'or tostring(j)error('Tried to require '..m..', but no such module has been registered')else return e(j)end end;i[j]=f;l=h[j](require,i,g,h)i[j]=l end;return l end;return require,i,g,h end)(require)c("__root",function(require,n,c,d)function plugindef()finaleplugin.RequireSelection=true;finaleplugin.MinFinaleVersion="2012"finaleplugin.Author="Jari Williamsson"finaleplugin.Version="0.01"finaleplugin.Notes=[[
+function plugindef()
+    finaleplugin.RequireSelection = true
+    finaleplugin.MinFinaleVersion = "2012"
+    finaleplugin.Author = "Jari Williamsson"
+    finaleplugin.Version = "0.01"
+    finaleplugin.Notes = [[
         This script will only process 7-tuplets that appears on staves that has been defined as "Harp" in the Score Manager.
-    ]]finaleplugin.CategoryTags="Idiomatic, Note, Plucked Strings, Region, Tuplet, Woodwinds"return"Harp gliss","Harp gliss","Transforms 7-tuplets to harp gliss notation."end;local o=require("library.configuration")local p={stem_length=84,small_note_size=70}o.get_parameters("harp_gliss.config.txt",p)function change_beam_info(q,r)local s=r:CalcStemLength()q.Thickness=0;if r:CalcStemUp()then q.LeftVerticalOffset=q.LeftVerticalOffset+p.stem_length-s else q.LeftVerticalOffset=q.LeftVerticalOffset-p.stem_length+s end end;function change_primary_beam(r)local t=finale.FCPrimaryBeamMods(r)t:LoadAll()if t.Count>0 then local q=t:GetItemAt(0)change_beam_info(q,r)q:Save()else local q=finale.FCBeamMod(false)q:SetNoteEntry(r)change_beam_info(q,r)q:SaveNew()end end;function verify_entries(r,u)local v=finale.FCCurrentStaffSpec()v:LoadForEntry(r)if v.InstrumentUUID~=finale.FFUUID_HARP then return false end;local w=0;local x=r;for y=0,6 do if r==nil then return false end;if r:IsRest()then return false end;if r.Duration>=finale.QUARTER_NOTE then return false end;if r.Staff~=x.Staff then return false end;if r.Layer~=x.Layer then return false end;if r:CalcDots()>0 then return false end;w=w+r.Duration;r=r:Next()end;return w==u:CalcFullSymbolicDuration()end;function get_matching_tuplet(r)local z=r:CreateTuplets()for u in each(z)do if u.SymbolicNumber==7 and verify_entries(r,u)then return u end end;return nil end;function hide_tuplet(u)u.ShapeStyle=finale.TUPLETSHAPE_NONE;u.NumberStyle=finale.TUPLETNUMBER_NONE;u.Visible=false;u:Save()end;function hide_stems(r,u)local A=u:CalcFullReferenceDuration()>=finale.WHOLE_NOTE;for B=0,6 do if B>0 or A then local C=finale.FCCustomStemMod()C:SetNoteEntry(r)C:UseUpStemData(r:CalcStemUp())if C:LoadFirst()then C.ShapeID=0;C:Save()else C.ShapeID=0;C:SaveNew()end end;r=r:Next()end end;function set_noteheads(r,u)for B=0,6 do for D in each(r)do local E=finale.FCNoteheadMod()if B==0 then local F=u:CalcFullReferenceDuration()if F>=finale.WHOLE_NOTE then E.CustomChar=119 elseif F>=finale.HALF_NOTE then E.CustomChar=250 end else E.Resize=p.small_note_size end;E:SaveAt(D)end;r=r:Next()end end;function change_dotted_first_entry(r,u)local F=u:CalcFullReferenceDuration()local G=finale.FCNoteEntry.CalcDotsForDuration(F)local H=r:CalcDots()if G==0 then return end;if G>3 then return end;if H>0 then return end;local I=r:Next()local J=I.Duration/2;for y=1,G do r.Duration=r.Duration+J;I.Duration=I.Duration-J;J=J/2 end end;function harp_gliss()local K=false;for r in eachentrysaved(finenv.Region())do local L=get_matching_tuplet(r)if L then K=true;for B=1,6 do r=r:Next()r.BeamBeat=false end end end;if not K then return end;finale.FCNoteEntry.MarkEntryMetricsForUpdate()for r in eachentrysaved(finenv.Region())do local L=get_matching_tuplet(r)if L then change_dotted_first_entry(r,L)change_primary_beam(r)hide_tuplet(L)hide_stems(r,L)set_noteheads(r,L)end end end;harp_gliss()end)c("library.configuration",function(require,n,c,d)local M={}function M.finale_version(N,O,P)local Q=bit32.bor(bit32.lshift(math.floor(N),24),bit32.lshift(math.floor(O),20))if P then Q=bit32.bor(Q,math.floor(P))end;return Q end;function M.group_overlaps_region(R,S)if S:IsFullDocumentSpan()then return true end;local T=false;local U=finale.FCSystemStaves()U:LoadAllForRegion(S)for V in each(U)do if R:ContainsStaff(V:GetStaff())then T=true;break end end;if not T then return false end;if R.StartMeasure>S.EndMeasure or R.EndMeasure<S.StartMeasure then return false end;return true end;function M.group_is_contained_in_region(R,S)if not S:IsStaffIncluded(R.StartStaff)then return false end;if not S:IsStaffIncluded(R.EndStaff)then return false end;return true end;function M.staff_group_is_multistaff_instrument(R)local W=finale.FCMultiStaffInstruments()W:LoadAll()for X in each(W)do if X:ContainsStaff(R.StartStaff)and X.GroupID==R:GetItemID()then return true end end;return false end;function M.get_selected_region_or_whole_doc()local Y=finenv.Region()if Y:IsEmpty()then Y:SetFullDocument()end;return Y end;function M.get_first_cell_on_or_after_page(Z)local _=Z;local a0=finale.FCPage()local a1=false;while a0:Load(_)do if a0:GetFirstSystem()>0 then a1=true;break end;_=_+1 end;if a1 then local a2=finale.FCStaffSystem()a2:Load(a0:GetFirstSystem())return finale.FCCell(a2.FirstMeasure,a2.TopStaff)end;local a3=finale.FCMusicRegion()a3:SetFullDocument()return finale.FCCell(a3.EndMeasure,a3.EndStaff)end;function M.get_top_left_visible_cell()if not finenv.UI():IsPageView()then local a4=finale.FCMusicRegion()a4:SetFullDocument()return finale.FCCell(finenv.UI():GetCurrentMeasure(),a4.StartStaff)end;return M.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())end;function M.get_top_left_selected_or_visible_cell()local Y=finenv.Region()if not Y:IsEmpty()then return finale.FCCell(Y.StartMeasure,Y.StartStaff)end;return M.get_top_left_visible_cell()end;function M.is_default_measure_number_visible_on_cell(a5,a6,a7,a8)local a9=finale.FCCurrentStaffSpec()if not a9:LoadForCell(a6,0)then return false end;if a5:GetShowOnTopStaff()and a6.Staff==a7.TopStaff then return true end;if a5:GetShowOnBottomStaff()and a6.Staff==a7:CalcBottomStaff()then return true end;if a9.ShowMeasureNumbers then return not a5:GetExcludeOtherStaves(a8)end;return false end;function M.is_default_number_visible_and_left_aligned(a5,a6,aa,a8,ab)if a5.UseScoreInfoForParts then a8=false end;if ab and a5:GetShowOnMultiMeasureRests(a8)then if finale.MNALIGN_LEFT~=a5:GetMultiMeasureAlignment(a8)then return false end elseif a6.Measure==aa.FirstMeasure then if not a5:GetShowOnSystemStart()then return false end;if finale.MNALIGN_LEFT~=a5:GetStartAlignment(a8)then return false end else if not a5:GetShowMultiples(a8)then return false end;if finale.MNALIGN_LEFT~=a5:GetMultipleAlignment(a8)then return false end end;return M.is_default_measure_number_visible_on_cell(a5,a6,aa,a8)end;function M.update_layout(ac,ad)ac=ac or 1;ad=ad or false;local ae=finale.FCPage()if ae:Load(ac)then ae:UpdateLayout(ad)end end;function M.get_current_part()local af=finale.FCParts()af:LoadAll()return af:GetCurrent()end;function M.get_page_format_prefs()local ag=M.get_current_part()local ah=finale.FCPageFormatPrefs()local ai=false;if ag:IsScore()then ai=ah:LoadScore()else ai=ah:LoadParts()end;return ah,ai end;local aj=function(ak)local al=finenv.UI():IsOnWindows()local am=function(an,ao)if finenv.UI():IsOnWindows()then return an and os.getenv(an)or""else return ao and os.getenv(ao)or""end end;local ap=ak and am("LOCALAPPDATA","HOME")or am("COMMONPROGRAMFILES")if not al then ap=ap.."/Library/Application Support"end;ap=ap.."/SMuFL/Fonts/"return ap end;function M.get_smufl_font_list()local aq={}local ar=function(ak)local ap=aj(ak)local as=function()if finenv.UI():IsOnWindows()then return io.popen('dir "'..ap..'" /b /ad')else return io.popen('ls "'..ap..'"')end end;local at=function(au)local av=finale.FCString()av.LuaString=au;return finenv.UI():IsFontAvailable(av)end;for au in as():lines()do if not au:find("%.")then au=au:gsub(" Bold","")au=au:gsub(" Italic","")local av=finale.FCString()av.LuaString=au;if aq[au]or at(au)then aq[au]=ak and"user"or"system"end end end end;ar(true)ar(false)return aq end;function M.get_smufl_metadata_file(aw)if not aw then aw=finale.FCFontInfo()aw:LoadFontPrefs(finale.FONTPREF_MUSIC)end;local ax=function(ay,aw)local az=ay..aw.Name.."/"..aw.Name..".json"return io.open(az,"r")end;local aA=ax(aj(true),aw)if aA then return aA end;return ax(aj(false),aw)end;function M.is_font_smufl_font(aw)if not aw then aw=finale.FCFontInfo()aw:LoadFontPrefs(finale.FONTPREF_MUSIC)end;if finenv.RawFinaleVersion>=M.finale_version(27,1)then if nil~=aw.IsSMuFLFont then return aw.IsSMuFLFont end end;local aB=M.get_smufl_metadata_file(aw)if nil~=aB then io.close(aB)return true end;return false end;function M.simple_input(aC,aD)local aE=finale.FCString()aE.LuaString=""local aF=finale.FCString()local aG=160;function format_ctrl(aH,aI,aJ,aK)aH:SetHeight(aI)aH:SetWidth(aJ)aF.LuaString=aK;aH:SetText(aF)end;title_width=string.len(aC)*6+54;if title_width>aG then aG=title_width end;text_width=string.len(aD)*6;if text_width>aG then aG=text_width end;aF.LuaString=aC;local aL=finale.FCCustomLuaWindow()aL:SetTitle(aF)local aM=aL:CreateStatic(0,0)format_ctrl(aM,16,aG,aD)local aN=aL:CreateEdit(0,20)format_ctrl(aN,20,aG,"")aL:CreateOkButton()aL:CreateCancelButton()function callback(aH)end;aL:RegisterHandleCommand(callback)if aL:ExecuteModal(nil)==finale.EXECMODAL_OK then aE.LuaString=aN:GetText(aE)return aE.LuaString end end;function M.is_finale_object(aO)return aO and type(aO)=="userdata"and aO.ClassName and aO.GetClassID and true or false end;function M.system_indent_set_to_prefs(aa,ah)ah=ah or M.get_page_format_prefs()local aP=finale.FCMeasure()local aQ=aa.FirstMeasure==1;if not aQ and aP:Load(aa.FirstMeasure)then if aP.ShowFullNames then aQ=true end end;if aQ and ah.UseFirstSystemMargins then aa.LeftMargin=ah.FirstSystemLeft else aa.LeftMargin=ah.SystemLeft end;return aa:Save()end;function M.calc_script_name(aR)local aS=finale.FCString()if finenv.RunningLuaFilePath then aS.LuaString=finenv.RunningLuaFilePath()else aS:SetRunningLuaFilePath()end;local aT=finale.FCString()aS:SplitToPathAndFile(nil,aT)local Q=aT.LuaString;if not aR then Q=Q:match("(.+)%..+")if not Q or Q==""then Q=aT.LuaString end end;return Q end;return M end)return a("__root")
+    ]]
+    finaleplugin.CategoryTags = "Idiomatic, Note, Plucked Strings, Region, Tuplet, Woodwinds"
+    return "Harp gliss", "Harp gliss", "Transforms 7-tuplets to harp gliss notation."
+end
+
+--  Author: Robert Patterson
+--  Date: March 5, 2021
+--[[
+$module Configuration
+
+This library implements a UTF-8 text file scheme for configuration and user settings as follows:
+
+- Comments start with `--`
+- Leading, trailing, and extra whitespace is ignored
+- Each parameter is named and delimited as follows:
+
+```
+<parameter-name> = <parameter-value>
+```
+
+Parameter values may be:
+
+- Strings delimited with either single- or double-quotes
+- Tables delimited with `{}` that may contain strings, booleans, or numbers
+- Booleans (`true` or `false`)
+- Numbers
+
+Currently the following are not supported:
+
+- Tables embedded within tables
+- Tables containing strings that contain commas
+
+A sample configuration file might be:
+
+```lua
+-- Configuration File for "Hairpin and Dynamic Adjustments" script
+--
+left_dynamic_cushion 		= 12		--evpus
+right_dynamic_cushion		= -6		--evpus
+```
+
+## Configuration Files
+
+Configuration files provide a way for power users to modify script behavior without
+having to modify the script itself. Some users track their changes to their configuration files,
+so scripts should not create or modify them programmatically.
+
+- The user creates each configuration file in a subfolder called `script_settings` within
+the folder of the calling script.
+- Each script that has a configuration file defines its own configuration file name.
+- It is entirely appropriate over time for scripts to transition from configuration files to user settings,
+but this requires implementing a user interface to modify the user settings from within the script.
+(See below.)
+
+## User Settings Files
+
+User settings are written by the scripts themselves and reside in the user's preferences folder
+in an appropriately-named location for the operating system. (The naming convention is a detail that the
+configuration library handles for the caller.) If the user settings are to be changed from their defaults,
+the script itself should provide a means to change them. This could be a (preferably optional) dialog box
+or any other mechanism the script author chooses.
+
+User settings are saved in the user's preferences folder (on Mac) or AppData folder (on Windows).
+
+## Merge Process
+
+Files are _merged_ into the passed-in list of default values. They do not _replace_ the list. Each calling script contains
+a table of all the configurable parameters or settings it recognizes along with default values. An example:
+
+`sample.lua:`
+
+```lua
+parameters = {
+   x = 1,
+   y = 2,
+   z = 3
+}
+
+configuration.get_parameters(parameters, "script.config.txt")
+
+for k, v in pairs(parameters) do
+   print(k, v)
+end
+```
+
+Suppose the `script.config.text` file is as follows:
+
+```
+y = 4
+q = 6
+```
+
+The returned parameters list is:
+
+
+```lua
+parameters = {
+   x = 1,       -- remains the default value passed in
+   y = 4,       -- replaced value from the config file
+   z = 3        -- remains the default value passed in
+}
+```
+
+The `q` parameter in the config file is ignored because the input paramater list
+had no `q` parameter.
+
+This approach allows total flexibility for the script add to or modify its list of parameters
+without having to worry about older configuration files or user settings affecting it.
+]]
+
+local configuration = {}
+
+local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
+local comment_marker = "--"
+local parameter_delimiter = "="
+local path_delimiter = "/"
+
+local file_exists = function(file_path)
+    local f = io.open(file_path, "r")
+    if nil ~= f then
+        io.close(f)
+        return true
+    end
+    return false
+end
+
+local strip_leading_trailing_whitespace = function(str)
+    return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
+end
+
+local parse_table = function(val_string)
+    local ret_table = {}
+    for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
+        local parsed_element = parse_parameter(element)
+        table.insert(ret_table, parsed_element)
+    end
+    return ret_table
+end
+
+parse_parameter = function(val_string)
+    if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
+        return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
+    elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
+        return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
+    elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
+        return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
+    elseif "true" == val_string then
+        return true
+    elseif "false" == val_string then
+        return false
+    end
+    return tonumber(val_string)
+end
+
+local get_parameters_from_file = function(file_path, parameter_list)
+    local file_parameters = {}
+
+    if not file_exists(file_path) then
+        return false
+    end
+
+    for line in io.lines(file_path) do
+        local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
+        if nil ~= comment_at then
+            line = string.sub(line, 1, comment_at - 1)
+        end
+        local delimiter_at = string.find(line, parameter_delimiter, 1, true)
+        if nil ~= delimiter_at then
+            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
+            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
+            file_parameters[name] = parse_parameter(val_string)
+        end
+    end
+
+    for param_name, _ in pairs(parameter_list) do
+        local param_val = file_parameters[param_name]
+        if nil ~= param_val then
+            parameter_list[param_name] = param_val
+        end
+    end
+
+    return true
+end
+
+--[[
+% get_parameters
+
+Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list`
+with any that are found in the config file.
+
+@ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+: (boolean) true if the file exists
+]]
+function configuration.get_parameters(file_name, parameter_list)
+    local path = ""
+    if finenv.IsRGPLua then
+        path = finenv.RunningLuaFolderPath()
+    else
+        local str = finale.FCString()
+        str:SetRunningLuaFolderPath()
+        path = str.LuaString
+    end
+    local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+    return get_parameters_from_file(file_path, parameter_list)
+end
+
+-- Calculates a filepath in the user's preferences folder using recommended naming conventions
+--
+local calc_preferences_filepath = function(script_name)
+    local str = finale.FCString()
+    str:SetUserOptionsPath()
+    local folder_name = str.LuaString
+    if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+        -- works around bug in SetUserOptionsPath() in JW Lua
+        folder_name = os.getenv("HOME") .. folder_name:sub(2) -- strip '~' and replace with actual folder
+    end
+    if finenv.UI():IsOnWindows() then
+        folder_name = folder_name .. path_delimiter .. "FinaleLua"
+    end
+    local file_path = folder_name .. path_delimiter
+    if finenv.UI():IsOnMac() then
+        file_path = file_path .. "com.finalelua."
+    end
+    file_path = file_path .. script_name .. ".settings.txt"
+    return file_path, folder_name
+end
+
+--[[
+% save_user_settings
+
+Saves the user's preferences for a script from the values provided in `parameter_list`.
+
+@ script_name (string) the name of the script (without an extension)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+: (boolean) true on success
+]]
+function configuration.save_user_settings(script_name, parameter_list)
+    local file_path, folder_path = calc_preferences_filepath(script_name)
+    local file = io.open(file_path, "w")
+    if not file and finenv.UI():IsOnWindows() then -- file not found
+        os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder (windows only, since the folder is guaranteed to exist on mac)
+        file = io.open(file_path, "w") -- try the file again
+    end
+    if not file then -- still couldn't find file
+        return false -- so give up
+    end
+    file:write("-- User settings for " .. script_name .. ".lua\n\n")
+    for k,v in pairs(parameter_list) do -- only number, boolean, or string values
+        if type(v) == "string" then
+            v = "\"" .. v .."\""
+        else
+            v = tostring(v)
+        end
+        file:write(k, " = ", v, "\n")
+    end
+    file:close()
+    return true -- success
+end
+
+--[[
+% get_user_settings
+
+Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
+with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so
+the input string should just be the script name (without an extension).
+
+@ script_name (string) the name of the script (without an extension)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+@ [create_automatically] (boolean) if true, create the file automatically (default is `true`)
+: (boolean) `true` if the file already existed, `false` if it did not or if it was created automatically
+]]
+function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+    if create_automatically == nil then create_automatically = true end
+    local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+    if not exists and create_automatically then
+        configuration.save_user_settings(script_name, parameter_list)
+    end
+    return exists
+end
+
+
+
+
+local config = {
+    stem_length = 84, -- Stem Length of the first note in EVPUs
+    small_note_size = 70, -- Resize % of small notes
+}
+
+configuration.get_parameters("harp_gliss.config.txt", config)
+
+-- Sets the beam width to 0 and resizes the stem for the first note (by moving
+-- the primary beam)
+-- This is a sub-function to ChangePrimaryBeam()
+function change_beam_info(primary_beam, entry)
+    local current_length = entry:CalcStemLength()
+    primary_beam.Thickness = 0
+    if entry:CalcStemUp() then
+        primary_beam.LeftVerticalOffset = primary_beam.LeftVerticalOffset + config.stem_length - current_length
+    else
+        primary_beam.LeftVerticalOffset = primary_beam.LeftVerticalOffset - config.stem_length + current_length
+    end
+end
+
+-- Changes a primary beam for and entry
+function change_primary_beam(entry)
+    local primary_beams = finale.FCPrimaryBeamMods(entry)
+    primary_beams:LoadAll()
+    if primary_beams.Count > 0 then
+        -- Modify the existing beam modification record to hide the beam
+        local primary_beam = primary_beams:GetItemAt(0)
+        change_beam_info(primary_beam, entry)
+        primary_beam:Save()
+    else
+        -- Create a beam modification record and hide the beam
+        local primary_beam = finale.FCBeamMod(false)
+        primary_beam:SetNoteEntry(entry)
+        change_beam_info(primary_beam, entry)
+        primary_beam:SaveNew()
+    end
+end
+
+-- Assures that the entries that spans the entries are
+-- considered "valid" for a harp gliss. Rests and too few
+-- notes in the tuplet are things that aren't ok.
+-- This is a sub-function to GetMatchingTuplet()
+function verify_entries(entry, tuplet)
+    local entry_staff_spec = finale.FCCurrentStaffSpec()
+    entry_staff_spec:LoadForEntry(entry)
+    if entry_staff_spec.InstrumentUUID ~= finale.FFUUID_HARP then
+        return false
+    end
+    local symbolic_duration = 0
+    local first_entry = entry
+    for _ = 0, 6 do
+        if entry == nil then
+            return false
+        end
+        if entry:IsRest() then
+            return false
+        end
+        if entry.Duration >= finale.QUARTER_NOTE then
+            return false
+        end
+        if entry.Staff ~= first_entry.Staff then
+            return false
+        end
+        if entry.Layer ~= first_entry.Layer then
+            return false
+        end
+        if entry:CalcDots() > 0 then
+            return false
+        end
+        symbolic_duration = symbolic_duration + entry.Duration
+        entry = entry:Next()
+    end
+    return (symbolic_duration == tuplet:CalcFullSymbolicDuration())
+end
+
+-- If a "valid" harp tuplet is found for an entry, this method returns it.
+function get_matching_tuplet(entry)
+    local tuplets = entry:CreateTuplets()
+    for tuplet in each(tuplets) do
+        if tuplet.SymbolicNumber == 7 and verify_entries(entry, tuplet) then
+            return tuplet
+        end
+    end
+    return nil
+end
+
+-- Hides a tuplet (both by visibility and appearance)
+function hide_tuplet(tuplet)
+    tuplet.ShapeStyle = finale.TUPLETSHAPE_NONE
+    tuplet.NumberStyle = finale.TUPLETNUMBER_NONE
+    tuplet.Visible = false
+    tuplet:Save()
+end
+
+-- Hide stems for the small notes in the gliss. If the "full" note has a long
+-- enough duration to not have a stem, the first entry also gets a hidden stem.
+function hide_stems(entry, tuplet)
+    local hide_first_entry = (tuplet:CalcFullReferenceDuration() >= finale.WHOLE_NOTE)
+    for i = 0, 6 do
+        if i > 0 or hide_first_entry then
+            local stem = finale.FCCustomStemMod()
+            stem:SetNoteEntry(entry)
+            stem:UseUpStemData(entry:CalcStemUp())
+            if stem:LoadFirst() then
+                stem.ShapeID = 0
+                stem:Save()
+            else
+                stem.ShapeID = 0
+                stem:SaveNew()
+            end
+        end
+        entry = entry:Next()
+    end
+end
+
+-- Change the notehead shapes and notehead sizes
+function set_noteheads(entry, tuplet)
+    for i = 0, 6 do
+        for chord_note in each(entry) do
+            local notehead = finale.FCNoteheadMod()
+            if i == 0 then
+                local reference_duration = tuplet:CalcFullReferenceDuration()
+                if reference_duration >= finale.WHOLE_NOTE then
+                    notehead.CustomChar = 119 -- Whole note character
+                elseif reference_duration >= finale.HALF_NOTE then
+                    notehead.CustomChar = 250 -- Half note character
+                end
+            else
+                notehead.Resize = config.small_note_size
+            end
+            notehead:SaveAt(chord_note)
+        end
+        entry = entry:Next()
+    end
+end
+
+-- If the tuplet spans a duration that is dotted, modify the
+-- rhythm at the beginning of the tuplet
+function change_dotted_first_entry(entry, tuplet)
+    local reference_duration = tuplet:CalcFullReferenceDuration()
+    local tuplet_dots = finale.FCNoteEntry.CalcDotsForDuration(reference_duration)
+    local entry_dots = entry:CalcDots()
+    if tuplet_dots == 0 then
+        return
+    end
+    if tuplet_dots > 3 then
+        return
+    end -- Don't support too complicated gliss rhythm values
+    if entry_dots > 0 then
+        return
+    end
+    -- Create dotted rhythm
+    local next_entry = entry:Next()
+    local next_duration = next_entry.Duration / 2
+    for _ = 1, tuplet_dots do
+        entry.Duration = entry.Duration + next_duration
+        next_entry.Duration = next_entry.Duration - next_duration
+        next_duration = next_duration / 2
+    end
+end
+
+function harp_gliss()
+    -- Make sure the harp tuplets are beamed
+    local harp_tuplets_exist = false
+    for entry in eachentrysaved(finenv.Region()) do
+        local harp_tuplet = get_matching_tuplet(entry)
+        if harp_tuplet then
+            harp_tuplets_exist = true
+            for i = 1, 6 do
+                entry = entry:Next()
+                entry.BeamBeat = false
+            end
+        end
+    end
+
+    if not harp_tuplets_exist then
+        return
+    end
+
+    -- Since the entries might change direction when they are beamed,
+    -- tell Finale to update the entry metric data info
+    finale.FCNoteEntry.MarkEntryMetricsForUpdate()
+
+    -- Change the harp tuplets
+    for entry in eachentrysaved(finenv.Region()) do
+        local harp_tuplet = get_matching_tuplet(entry)
+        if harp_tuplet then
+            change_dotted_first_entry(entry, harp_tuplet)
+            change_primary_beam(entry)
+            hide_tuplet(harp_tuplet)
+            hide_stems(entry, harp_tuplet)
+            set_noteheads(entry, harp_tuplet)
+        end
+    end
+end
+
+harp_gliss()
+
