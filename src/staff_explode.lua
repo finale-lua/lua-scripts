@@ -1,32 +1,30 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com"
+    finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.46"
-    finaleplugin.Date = "2022/07/09"
+    finaleplugin.Version = "v1.47"
+    finaleplugin.Date = "2022/07/11"
+    finaleplugin.AdditionalMenuOptions = [[ Staff Explode (spaced) ]]
+    finaleplugin.AdditionalUndoText = [[    Staff Explode (spaced) ]]
+    finaleplugin.AdditionalPrefixes = [[    music_spacing = true ]]
+    finaleplugin.AdditionalDescriptions = [[ Explode chords from one staff onto consecutive single staves (with music spacing) ]]
+    finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
-        This script explodes a set of chords from layer one on one staff onto single lines on subsequent staves. 
-        The number of staves is determined by the largest number of notes in any chord.
-        It warns if pre-existing music in the destination will be erased. 
+        This script explodes a set of chords from one staff into single lines on subsequent staves. 
+        The number of destination staves is determined by the largest number of notes in any chord.
+        It warns if pre-existing music in the destination will be erased or if there aren't enough 
+        staves to complete the expansion. 
         It duplicates all markings from the original and resets the current clef on each destination staff.
 
-        By default this script respaces the selected music after running. 
-        To change this behaviour you must create a `configuration` file. 
-        If it does not exist, create a subfolder called `script_settings` in the folder containing this script. 
-        In that folder create a text file  called `staff_explode.config.txt` containing the line:  
-        ```
-        fix_note_spacing = false
-        ```
+        If you prefer the music to be re-spaced after exploding, then use the 
+        second menu option produced by this script: `Staff Explode (spaced)`.
     ]]
-    return "Staff Explode", "Staff Explode", "Staff Explode onto consecutive single staves"
+    return "Staff Explode", "Staff Explode", "Explode chords from one staff onto consecutive single staves"
 end
 
-local configuration = require("library.configuration")
+music_spacing = music_spacing or false
 local clef = require("library.clef")
-
-local config = {fix_note_spacing = true}
-configuration.get_parameters("staff_explode.config.txt", config)
 
 function show_error(error_code)
     local errors = {
@@ -71,8 +69,7 @@ function ensure_score_has_enough_staves(slot, note_count)
 end
 
 function staff_explode()
-    local source_staff_region = finale.FCMusicRegion()
-    source_staff_region:SetCurrentSelection()
+    local source_staff_region = finenv.Region()
     if source_staff_region:CalcStaffSpan() > 1 then
         return show_error("only_one_staff")
     end
@@ -101,7 +98,7 @@ function staff_explode()
         local this_slot = start_slot + slot - 1 -- "real" slot number, indexed[1]
         regions[slot].StartSlot = this_slot
         regions[slot].EndSlot = this_slot
-
+        
         if destination_is_empty then
             for entry in eachentry(regions[slot]) do
                 if entry.Count > 0 then
@@ -139,7 +136,7 @@ function staff_explode()
             end
         end
 
-        if config.fix_note_spacing then
+        if music_spacing then
             regions[1]:SetFullMeasureStack()
             regions[1]:SetInDocument()
             finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
