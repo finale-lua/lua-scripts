@@ -1,4 +1,17 @@
-local a,b,c,d=(function(e)local f={[{}]=true}local g;local h={}local require;local i={}g=function(j,k)if not h[j]then h[j]=k end end;require=function(j)local l=i[j]if l then if l==f then return nil end else if not h[j]then if not e then local m=type(j)=='string'and'\"'..j..'\"'or tostring(j)error('Tried to require '..m..', but no such module has been registered')else return e(j)end end;i[j]=f;l=h[j](require,i,g,h)i[j]=l end;return l end;return require,i,g,h end)(require)c("__root",function(require,n,c,d)function plugindef()finaleplugin.RequireSelection=true;finaleplugin.HandlesUndo=true;finaleplugin.Copyright="CC0 https://creativecommons.org/publicdomain/zero/1.0/"finaleplugin.Author="Carl Vine"finaleplugin.AuthorURL="http://carlvine.com/lua/"finaleplugin.Version="v1.29"finaleplugin.Date="2022/07/11"finaleplugin.MinJWLuaVersion=0.62;finaleplugin.AdditionalMenuOptions=[[  CrossStaff Offset No Dialog  ]]finaleplugin.AdditionalUndoText=[[     CrossStaff Offset No Dialog  ]]finaleplugin.AdditionalPrefixes=[[     no_user_dialog = true  ]]finaleplugin.AdditionalDescriptions=[[ Offset horizontal position of cross-staff note entries - NO DIALOG ]]finaleplugin.Notes=[[
+function plugindef()
+    finaleplugin.RequireSelection = true
+    finaleplugin.HandlesUndo = true
+    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
+    finaleplugin.Author = "Carl Vine"
+    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
+    finaleplugin.Version = "v1.29"
+    finaleplugin.Date = "2022/07/11"
+	finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.AdditionalMenuOptions = [[  CrossStaff Offset No Dialog  ]]
+    finaleplugin.AdditionalUndoText = [[     CrossStaff Offset No Dialog  ]]
+    finaleplugin.AdditionalPrefixes = [[     no_user_dialog = true  ]]
+    finaleplugin.AdditionalDescriptions = [[ Offset horizontal position of cross-staff note entries - NO DIALOG ]]
+    finaleplugin.Notes = [[
         When creating cross-staff notes using the option-downarrow shortcut, the stems of 
         'crossed' notes are reversed (on the wrong side of the notehead) and appear too far 
         to the right (if shifting downwards) by the width of one notehead, typically 24EVPU. 
@@ -11,4 +24,411 @@ local a,b,c,d=(function(e)local f={[{}]=true}local g;local h={}local require;loc
     
         This script adds an extra `NO DIALOG` menu item to rapidly duplicate the last action
         without using a confirmation dialog.
-]]return"CrossStaff Offset…","CrossStaff Offset","Offset horizontal position of cross-staff note entries"end;no_user_dialog=no_user_dialog or false;global_dialog=nil;global_dialog_options={{"Cross-staff offset:","cross_staff_offset",nil},{"Non-crossed offset:","non_cross_offset",nil},{"Layer 1-4 (0 = all):","layer_number",nil}}config={cross_staff_offset=0,non_cross_offset=0,layer_number=0,window_pos_x=700,window_pos_y=200}local o=require("library.configuration")function is_out_of_range(p)return math.abs(p)>999 end;function no_submission_errors()local error=""if config.layer_number<0 or config.layer_number>4 then error="The layer number must\nbe between 0 and 4\n(not "..config.layer_number..")"elseif is_out_of_range(config.cross_staff_offset)or is_out_of_range(config.non_cross_offset)then error="Choose realistic offset\nvalues (say from -999 to 999)\n(not "..config.cross_staff_offset.." / "..config.non_cross_offset..")"end;if error~=""then finenv.UI():AlertNeutral("script: "..plugindef(),error)return false end;return true end;function create_user_dialog()local q=10;local r=25;local s=finenv.UI():IsOnMac()and 3 or 0;local t=120;local u=finale.FCCustomLuaWindow()local v=finale.FCString()v.LuaString=plugindef()u:SetTitle(v)function make_static(w,x,y,z,A)local B=u:CreateStatic(x,y)v.LuaString=w;B:SetText(v)B:SetWidth(z)if A=="red"then B:SetTextColor(204,51,0)end end;for C,D in ipairs(global_dialog_options)do make_static(D[1],0,q,t,"")D[3]=u:CreateEdit(t,q-s)D[3]:SetInteger(config[D[2]])D[3]:SetWidth(75)if C<3 then make_static("EVPUs",t+80,q,75,"")end;q=q+r end;make_static("cross to staff below = [ -24, 0 ] or [ -12, 12 ]",0,q+8,290,"red")make_static("cross to staff above = [ 24, 0 ] or [ 12, -12 ]",0,q+r,290,"red")u:CreateOkButton()u:CreateCancelButton()return u end;function change_the_offsets()finenv.StartNewUndoBlock("CrossStaff Offset",false)for E in eachentrysaved(finenv.Region(),config.layer_number)do if E:IsNote()then E.ManualPosition=E.CrossStaff and config.cross_staff_offset or config.non_cross_offset end end;if finenv.EndUndoBlock then finenv.EndUndoBlock(true)finenv.Region():Redraw()else finenv.StartNewUndoBlock("CrossStaff Offset",true)end end;function on_ok()for C,D in ipairs(global_dialog_options)do config[D[2]]=D[3]:GetInteger()end;if no_submission_errors()then change_the_offsets()end end;function on_close()global_dialog:StorePosition()config.window_pos_x=global_dialog.StoredX;config.window_pos_y=global_dialog.StoredY;o.save_user_settings("cross_staff_offset",config)end;function cross_staff_offset()o.get_user_settings("cross_staff_offset",config)if no_user_dialog then change_the_offsets()return end;global_dialog=create_user_dialog()if config.window_pos_x~=nil and config.window_pos_y~=nil then global_dialog:StorePosition()global_dialog:SetRestorePositionOnlyData(config.window_pos_x,config.window_pos_y)global_dialog:RestorePosition()end;global_dialog:RegisterHandleOkButtonPressed(on_ok)if global_dialog.RegisterCloseWindow then global_dialog:RegisterCloseWindow(on_close)end;finenv.RegisterModelessDialog(global_dialog)global_dialog:ShowModeless()end;cross_staff_offset()end)c("library.configuration",function(require,n,c,d)local F={}function F.finale_version(G,H,I)local J=bit32.bor(bit32.lshift(math.floor(G),24),bit32.lshift(math.floor(H),20))if I then J=bit32.bor(J,math.floor(I))end;return J end;function F.group_overlaps_region(K,L)if L:IsFullDocumentSpan()then return true end;local M=false;local N=finale.FCSystemStaves()N:LoadAllForRegion(L)for O in each(N)do if K:ContainsStaff(O:GetStaff())then M=true;break end end;if not M then return false end;if K.StartMeasure>L.EndMeasure or K.EndMeasure<L.StartMeasure then return false end;return true end;function F.group_is_contained_in_region(K,L)if not L:IsStaffIncluded(K.StartStaff)then return false end;if not L:IsStaffIncluded(K.EndStaff)then return false end;return true end;function F.staff_group_is_multistaff_instrument(K)local P=finale.FCMultiStaffInstruments()P:LoadAll()for Q in each(P)do if Q:ContainsStaff(K.StartStaff)and Q.GroupID==K:GetItemID()then return true end end;return false end;function F.get_selected_region_or_whole_doc()local R=finenv.Region()if R:IsEmpty()then R:SetFullDocument()end;return R end;function F.get_first_cell_on_or_after_page(S)local T=S;local U=finale.FCPage()local V=false;while U:Load(T)do if U:GetFirstSystem()>0 then V=true;break end;T=T+1 end;if V then local W=finale.FCStaffSystem()W:Load(U:GetFirstSystem())return finale.FCCell(W.FirstMeasure,W.TopStaff)end;local X=finale.FCMusicRegion()X:SetFullDocument()return finale.FCCell(X.EndMeasure,X.EndStaff)end;function F.get_top_left_visible_cell()if not finenv.UI():IsPageView()then local Y=finale.FCMusicRegion()Y:SetFullDocument()return finale.FCCell(finenv.UI():GetCurrentMeasure(),Y.StartStaff)end;return F.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())end;function F.get_top_left_selected_or_visible_cell()local R=finenv.Region()if not R:IsEmpty()then return finale.FCCell(R.StartMeasure,R.StartStaff)end;return F.get_top_left_visible_cell()end;function F.is_default_measure_number_visible_on_cell(Z,_,a0,a1)local a2=finale.FCCurrentStaffSpec()if not a2:LoadForCell(_,0)then return false end;if Z:GetShowOnTopStaff()and _.Staff==a0.TopStaff then return true end;if Z:GetShowOnBottomStaff()and _.Staff==a0:CalcBottomStaff()then return true end;if a2.ShowMeasureNumbers then return not Z:GetExcludeOtherStaves(a1)end;return false end;function F.is_default_number_visible_and_left_aligned(Z,_,a3,a1,a4)if Z.UseScoreInfoForParts then a1=false end;if a4 and Z:GetShowOnMultiMeasureRests(a1)then if finale.MNALIGN_LEFT~=Z:GetMultiMeasureAlignment(a1)then return false end elseif _.Measure==a3.FirstMeasure then if not Z:GetShowOnSystemStart()then return false end;if finale.MNALIGN_LEFT~=Z:GetStartAlignment(a1)then return false end else if not Z:GetShowMultiples(a1)then return false end;if finale.MNALIGN_LEFT~=Z:GetMultipleAlignment(a1)then return false end end;return F.is_default_measure_number_visible_on_cell(Z,_,a3,a1)end;function F.update_layout(a5,a6)a5=a5 or 1;a6=a6 or false;local a7=finale.FCPage()if a7:Load(a5)then a7:UpdateLayout(a6)end end;function F.get_current_part()local a8=finale.FCParts()a8:LoadAll()return a8:GetCurrent()end;function F.get_page_format_prefs()local a9=F.get_current_part()local aa=finale.FCPageFormatPrefs()local ab=false;if a9:IsScore()then ab=aa:LoadScore()else ab=aa:LoadParts()end;return aa,ab end;local ac=function(ad)local ae=finenv.UI():IsOnWindows()local af=function(ag,ah)if finenv.UI():IsOnWindows()then return ag and os.getenv(ag)or""else return ah and os.getenv(ah)or""end end;local ai=ad and af("LOCALAPPDATA","HOME")or af("COMMONPROGRAMFILES")if not ae then ai=ai.."/Library/Application Support"end;ai=ai.."/SMuFL/Fonts/"return ai end;function F.get_smufl_font_list()local aj={}local ak=function(ad)local ai=ac(ad)local al=function()if finenv.UI():IsOnWindows()then return io.popen('dir "'..ai..'" /b /ad')else return io.popen('ls "'..ai..'"')end end;local am=function(an)local ao=finale.FCString()ao.LuaString=an;return finenv.UI():IsFontAvailable(ao)end;for an in al():lines()do if not an:find("%.")then an=an:gsub(" Bold","")an=an:gsub(" Italic","")local ao=finale.FCString()ao.LuaString=an;if aj[an]or am(an)then aj[an]=ad and"user"or"system"end end end end;ak(true)ak(false)return aj end;function F.get_smufl_metadata_file(ap)if not ap then ap=finale.FCFontInfo()ap:LoadFontPrefs(finale.FONTPREF_MUSIC)end;local aq=function(ar,ap)local as=ar..ap.Name.."/"..ap.Name..".json"return io.open(as,"r")end;local at=aq(ac(true),ap)if at then return at end;return aq(ac(false),ap)end;function F.is_font_smufl_font(ap)if not ap then ap=finale.FCFontInfo()ap:LoadFontPrefs(finale.FONTPREF_MUSIC)end;if finenv.RawFinaleVersion>=F.finale_version(27,1)then if nil~=ap.IsSMuFLFont then return ap.IsSMuFLFont end end;local au=F.get_smufl_metadata_file(ap)if nil~=au then io.close(au)return true end;return false end;function F.simple_input(av,aw)local ax=finale.FCString()ax.LuaString=""local v=finale.FCString()local ay=160;function format_ctrl(az,aA,aB,aC)az:SetHeight(aA)az:SetWidth(aB)v.LuaString=aC;az:SetText(v)end;title_width=string.len(av)*6+54;if title_width>ay then ay=title_width end;text_width=string.len(aw)*6;if text_width>ay then ay=text_width end;v.LuaString=av;local u=finale.FCCustomLuaWindow()u:SetTitle(v)local aD=u:CreateStatic(0,0)format_ctrl(aD,16,ay,aw)local aE=u:CreateEdit(0,20)format_ctrl(aE,20,ay,"")u:CreateOkButton()u:CreateCancelButton()function callback(az)end;u:RegisterHandleCommand(callback)if u:ExecuteModal(nil)==finale.EXECMODAL_OK then ax.LuaString=aE:GetText(ax)return ax.LuaString end end;function F.is_finale_object(aF)return aF and type(aF)=="userdata"and aF.ClassName and aF.GetClassID and true or false end;function F.system_indent_set_to_prefs(a3,aa)aa=aa or F.get_page_format_prefs()local aG=finale.FCMeasure()local aH=a3.FirstMeasure==1;if not aH and aG:Load(a3.FirstMeasure)then if aG.ShowFullNames then aH=true end end;if aH and aa.UseFirstSystemMargins then a3.LeftMargin=aa.FirstSystemLeft else a3.LeftMargin=aa.SystemLeft end;return a3:Save()end;function F.calc_script_name(aI)local aJ=finale.FCString()if finenv.RunningLuaFilePath then aJ.LuaString=finenv.RunningLuaFilePath()else aJ:SetRunningLuaFilePath()end;local aK=finale.FCString()aJ:SplitToPathAndFile(nil,aK)local J=aK.LuaString;if not aI then J=J:match("(.+)%..+")if not J or J==""then J=aK.LuaString end end;return J end;return F end)return a("__root")
+]]
+   return "CrossStaff Offset…", "CrossStaff Offset", "Offset horizontal position of cross-staff note entries"
+end
+
+no_user_dialog = no_user_dialog or false
+
+-- other global variables for modeless operation
+global_dialog = nil
+global_dialog_options = { -- words, key value in config, edit control holder
+    { "Cross-staff offset:", "cross_staff_offset", nil },
+    { "Non-crossed offset:", "non_cross_offset", nil },
+    { "Layer 1-4 (0 = all):", "layer_number", nil }
+}
+config = {
+    cross_staff_offset  = 0,
+    non_cross_offset = 0,
+    layer_number = 0,
+    window_pos_x = 700,
+    window_pos_y = 200
+}
+--  Author: Robert Patterson
+--  Date: March 5, 2021
+--[[
+$module Configuration
+
+This library implements a UTF-8 text file scheme for configuration and user settings as follows:
+
+- Comments start with `--`
+- Leading, trailing, and extra whitespace is ignored
+- Each parameter is named and delimited as follows:
+
+```
+<parameter-name> = <parameter-value>
+```
+
+Parameter values may be:
+
+- Strings delimited with either single- or double-quotes
+- Tables delimited with `{}` that may contain strings, booleans, or numbers
+- Booleans (`true` or `false`)
+- Numbers
+
+Currently the following are not supported:
+
+- Tables embedded within tables
+- Tables containing strings that contain commas
+
+A sample configuration file might be:
+
+```lua
+-- Configuration File for "Hairpin and Dynamic Adjustments" script
+--
+left_dynamic_cushion 		= 12		--evpus
+right_dynamic_cushion		= -6		--evpus
+```
+
+## Configuration Files
+
+Configuration files provide a way for power users to modify script behavior without
+having to modify the script itself. Some users track their changes to their configuration files,
+so scripts should not create or modify them programmatically.
+
+- The user creates each configuration file in a subfolder called `script_settings` within
+the folder of the calling script.
+- Each script that has a configuration file defines its own configuration file name.
+- It is entirely appropriate over time for scripts to transition from configuration files to user settings,
+but this requires implementing a user interface to modify the user settings from within the script.
+(See below.)
+
+## User Settings Files
+
+User settings are written by the scripts themselves and reside in the user's preferences folder
+in an appropriately-named location for the operating system. (The naming convention is a detail that the
+configuration library handles for the caller.) If the user settings are to be changed from their defaults,
+the script itself should provide a means to change them. This could be a (preferably optional) dialog box
+or any other mechanism the script author chooses.
+
+User settings are saved in the user's preferences folder (on Mac) or AppData folder (on Windows).
+
+## Merge Process
+
+Files are _merged_ into the passed-in list of default values. They do not _replace_ the list. Each calling script contains
+a table of all the configurable parameters or settings it recognizes along with default values. An example:
+
+`sample.lua:`
+
+```lua
+parameters = {
+   x = 1,
+   y = 2,
+   z = 3
+}
+
+configuration.get_parameters(parameters, "script.config.txt")
+
+for k, v in pairs(parameters) do
+   print(k, v)
+end
+```
+
+Suppose the `script.config.text` file is as follows:
+
+```
+y = 4
+q = 6
+```
+
+The returned parameters list is:
+
+
+```lua
+parameters = {
+   x = 1,       -- remains the default value passed in
+   y = 4,       -- replaced value from the config file
+   z = 3        -- remains the default value passed in
+}
+```
+
+The `q` parameter in the config file is ignored because the input paramater list
+had no `q` parameter.
+
+This approach allows total flexibility for the script add to or modify its list of parameters
+without having to worry about older configuration files or user settings affecting it.
+]]
+
+local configuration = {}
+
+local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
+local comment_marker = "--"
+local parameter_delimiter = "="
+local path_delimiter = "/"
+
+local file_exists = function(file_path)
+    local f = io.open(file_path, "r")
+    if nil ~= f then
+        io.close(f)
+        return true
+    end
+    return false
+end
+
+local strip_leading_trailing_whitespace = function(str)
+    return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
+end
+
+local parse_table = function(val_string)
+    local ret_table = {}
+    for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
+        local parsed_element = parse_parameter(element)
+        table.insert(ret_table, parsed_element)
+    end
+    return ret_table
+end
+
+parse_parameter = function(val_string)
+    if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
+        return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
+    elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
+        return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
+    elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
+        return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
+    elseif "true" == val_string then
+        return true
+    elseif "false" == val_string then
+        return false
+    end
+    return tonumber(val_string)
+end
+
+local get_parameters_from_file = function(file_path, parameter_list)
+    local file_parameters = {}
+
+    if not file_exists(file_path) then
+        return false
+    end
+
+    for line in io.lines(file_path) do
+        local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
+        if nil ~= comment_at then
+            line = string.sub(line, 1, comment_at - 1)
+        end
+        local delimiter_at = string.find(line, parameter_delimiter, 1, true)
+        if nil ~= delimiter_at then
+            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
+            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
+            file_parameters[name] = parse_parameter(val_string)
+        end
+    end
+
+    for param_name, _ in pairs(parameter_list) do
+        local param_val = file_parameters[param_name]
+        if nil ~= param_val then
+            parameter_list[param_name] = param_val
+        end
+    end
+
+    return true
+end
+
+--[[
+% get_parameters
+
+Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list`
+with any that are found in the config file.
+
+@ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+: (boolean) true if the file exists
+]]
+function configuration.get_parameters(file_name, parameter_list)
+    local path = ""
+    if finenv.IsRGPLua then
+        path = finenv.RunningLuaFolderPath()
+    else
+        local str = finale.FCString()
+        str:SetRunningLuaFolderPath()
+        path = str.LuaString
+    end
+    local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+    return get_parameters_from_file(file_path, parameter_list)
+end
+
+-- Calculates a filepath in the user's preferences folder using recommended naming conventions
+--
+local calc_preferences_filepath = function(script_name)
+    local str = finale.FCString()
+    str:SetUserOptionsPath()
+    local folder_name = str.LuaString
+    if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+        -- works around bug in SetUserOptionsPath() in JW Lua
+        folder_name = os.getenv("HOME") .. folder_name:sub(2) -- strip '~' and replace with actual folder
+    end
+    if finenv.UI():IsOnWindows() then
+        folder_name = folder_name .. path_delimiter .. "FinaleLua"
+    end
+    local file_path = folder_name .. path_delimiter
+    if finenv.UI():IsOnMac() then
+        file_path = file_path .. "com.finalelua."
+    end
+    file_path = file_path .. script_name .. ".settings.txt"
+    return file_path, folder_name
+end
+
+--[[
+% save_user_settings
+
+Saves the user's preferences for a script from the values provided in `parameter_list`.
+
+@ script_name (string) the name of the script (without an extension)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+: (boolean) true on success
+]]
+function configuration.save_user_settings(script_name, parameter_list)
+    local file_path, folder_path = calc_preferences_filepath(script_name)
+    local file = io.open(file_path, "w")
+    if not file and finenv.UI():IsOnWindows() then -- file not found
+        os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder (windows only, since the folder is guaranteed to exist on mac)
+        file = io.open(file_path, "w") -- try the file again
+    end
+    if not file then -- still couldn't find file
+        return false -- so give up
+    end
+    file:write("-- User settings for " .. script_name .. ".lua\n\n")
+    for k,v in pairs(parameter_list) do -- only number, boolean, or string values
+        if type(v) == "string" then
+            v = "\"" .. v .."\""
+        else
+            v = tostring(v)
+        end
+        file:write(k, " = ", v, "\n")
+    end
+    file:close()
+    return true -- success
+end
+
+--[[
+% get_user_settings
+
+Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
+with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so
+the input string should just be the script name (without an extension).
+
+@ script_name (string) the name of the script (without an extension)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+@ [create_automatically] (boolean) if true, create the file automatically (default is `true`)
+: (boolean) `true` if the file already existed, `false` if it did not or if it was created automatically
+]]
+function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+    if create_automatically == nil then create_automatically = true end
+    local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+    if not exists and create_automatically then
+        configuration.save_user_settings(script_name, parameter_list)
+    end
+    return exists
+end
+
+
+
+
+function is_out_of_range(horiz_offset)
+    return ( math.abs(horiz_offset) > 999 ) -- some unreasonable EVPU offset
+end
+
+function no_submission_errors()
+    local error = ""
+    if config.layer_number < 0 or config.layer_number > 4  then 
+        error = "The layer number must\nbe between 0 and 4\n(not " .. config.layer_number .. ")"
+    elseif is_out_of_range(config.cross_staff_offset) or is_out_of_range(config.non_cross_offset) then
+        error = "Choose realistic offset\nvalues (say from -999 to 999)\n(not "
+            .. config.cross_staff_offset .. " / " .. config.non_cross_offset .. ")"
+    end
+    if error ~= "" then  -- error dialog and exit
+        finenv.UI():AlertNeutral("script: " .. plugindef(), error)
+        return false
+    end
+    return true
+end
+
+function create_user_dialog() -- attempting MODELESS operation
+    local current_vert = 10
+    local vertical_step = 25
+    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
+    local edit_box_horiz = 120
+
+    local dialog = finale.FCCustomLuaWindow()
+    local str = finale.FCString()
+    str.LuaString = plugindef()
+    dialog:SetTitle(str)
+
+    function make_static(msg, horiz, vert, width, color)
+        local static = dialog:CreateStatic(horiz, vert)
+        str.LuaString = msg
+        static:SetText(str)
+        static:SetWidth(width)
+        if color == "red" then
+            static:SetTextColor(204, 51, 0)
+        end
+    end
+
+    for i, v in ipairs(global_dialog_options) do
+        make_static(v[1], 0, current_vert, edit_box_horiz, "")
+        v[3] = dialog:CreateEdit(edit_box_horiz, current_vert - mac_offset)
+        v[3]:SetInteger(config[v[2]]) -- display the saved config value
+        v[3]:SetWidth(75)
+        if i < 3 then
+            make_static("EVPUs", edit_box_horiz + 80, current_vert, 75, "")
+        end
+        current_vert = current_vert + vertical_step
+    end
+    make_static("cross to staff below = [ -24, 0 ] or [ -12, 12 ]", 0, current_vert + 8, 290, "red")
+    make_static("cross to staff above = [ 24, 0 ] or [ 12, -12 ]", 0, current_vert + vertical_step, 290, "red")
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    return dialog
+end
+
+function change_the_offsets() -- change entry offsets in the chosen layer (0 = all layers)
+    finenv.StartNewUndoBlock("CrossStaff Offset", false)
+    for entry in eachentrysaved(finenv.Region(), config.layer_number) do
+        if entry:IsNote() then
+            entry.ManualPosition = entry.CrossStaff and config.cross_staff_offset or config.non_cross_offset
+        end
+    end
+    if finenv.EndUndoBlock then
+        finenv.EndUndoBlock(true)
+        finenv.Region():Redraw()
+    else
+        finenv.StartNewUndoBlock("CrossStaff Offset", true)
+    end
+end
+
+function on_ok()
+    for i, v in ipairs(global_dialog_options) do -- save the 3 integer values
+        config[v[2]] = v[3]:GetInteger()
+    end
+    if no_submission_errors() then
+        change_the_offsets()
+    end
+end
+
+function on_close()
+    global_dialog:StorePosition()
+    config.window_pos_x = global_dialog.StoredX
+    config.window_pos_y = global_dialog.StoredY
+    configuration.save_user_settings("cross_staff_offset", config)
+end
+
+function cross_staff_offset()
+    configuration.get_user_settings("cross_staff_offset", config)
+    if no_user_dialog then
+        change_the_offsets()
+        return
+    end
+    global_dialog = create_user_dialog()
+    if config.window_pos_x ~= nil and config.window_pos_y ~= nil then
+        global_dialog:StorePosition()
+        global_dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
+        global_dialog:RestorePosition()
+    end
+    global_dialog:RegisterHandleOkButtonPressed(on_ok)
+    if global_dialog.RegisterCloseWindow then
+        global_dialog:RegisterCloseWindow(on_close)
+    end
+    finenv.RegisterModelessDialog(global_dialog)
+    global_dialog:ShowModeless()
+end
+
+cross_staff_offset()
