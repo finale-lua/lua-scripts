@@ -1,4 +1,11 @@
-local a,b,c,d=(function(e)local f={[{}]=true}local g;local h={}local require;local i={}g=function(j,k)if not h[j]then h[j]=k end end;require=function(j)local l=i[j]if l then if l==f then return nil end else if not h[j]then if not e then local m=type(j)=='string'and'\"'..j..'\"'or tostring(j)error('Tried to require '..m..', but no such module has been registered')else return e(j)end end;i[j]=f;l=h[j](require,i,g,h)i[j]=l end;return l end;return require,i,g,h end)(require)c("__root",function(require,n,c,d)function plugindef()finaleplugin.RequireSelection=true;finaleplugin.Author="Carl Vine"finaleplugin.AuthorURL="http://carlvine.com"finaleplugin.Copyright="CC0 https://creativecommons.org/publicdomain/zero/1.0/"finaleplugin.Version="v0.64"finaleplugin.Date="2022/07/11"finaleplugin.Notes=[[
+function plugindef()
+    finaleplugin.RequireSelection = true
+    finaleplugin.Author = "Carl Vine"
+    finaleplugin.AuthorURL = "http://carlvine.com"
+    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
+    finaleplugin.Version = "v0.64"
+    finaleplugin.Date = "2022/07/11"
+    finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action. 
         It takes music in Layer 1 from one staff in the selected region and creates a "Cue" version on another chosen staff. 
         The cue copy is reduced in size and muted, and can duplicate chosen markings from the original. 
@@ -9,4 +16,902 @@ local a,b,c,d=(function(e)local f={[{}]=true}local g;local h={}local require;loc
         called "Cue Names" if it does not exist. 
         If using JWLua, before running the script you must create an Expression Category 
         called "Cue Names" containing at least one text expression.
-    ]]return"Cue Notes Create…","Cue Notes Create","Copy as cue notes to another staff"end;local o={copy_articulations=false,copy_expressions=false,copy_smartshapes=false,copy_slurs=true,copy_clef=false,mute_cuenotes=true,cuenote_percent=70,cuenote_layer=3,freeze_up_down=0,cue_category_name="Cue Names",cue_font_smaller=1}local p=require("library.configuration")local q=require("library.clef")local r=require("library.layer")p.get_user_settings("cue_notes_create",o,true)function show_error(s)local t={only_one_staff="Please select just one staff\n as the source for the new cue",empty_region="Please select a region\nwith some notes in it!",first_make_expression_category="You must first create a new Text Expression Category called \""..o.cue_category_name.."\" containing at least one entry"}finenv.UI():AlertNeutral("script: "..plugindef(),t[s])return-1 end;function should_overwrite_existing_music()local u=finenv.UI():AlertOkCancel("script: "..plugindef(),"Overwrite existing music?")local v=u==0;return v end;function region_is_empty(w)for x in eachentry(w)do if x.Count>0 then return false end end;return true end;function new_cue_name(y)local z=finale.FCCustomWindow()local A=finale.FCString()A.LuaString=plugindef()z:SetTitle(A)A.LuaString="New cue name:"z:CreateStatic(0,20):SetText(A)local B=z:CreateEdit(0,40)B:SetWidth(200)local C=finale.FCStaff()C:Load(y)B:SetText(C:CreateDisplayFullNameString())z:CreateOkButton()z:CreateCancelButton()local D=z:ExecuteModal(nil)==finale.EXECMODAL_OK;B:GetText(A)return D,A.LuaString end;function choose_name_index(E)local z=finale.FCCustomWindow()local A=finale.FCString()A.LuaString=plugindef()z:SetTitle(A)A.LuaString="Select cue name:"z:CreateStatic(0,20):SetText(A)local F=z:CreateListBox(0,40)F:SetWidth(200)A.LuaString="*** new name ***"F:AddString(A)for G,H in ipairs(E)do A.LuaString=H[1]F:AddString(A)end;z:CreateOkButton()z:CreateCancelButton()local D=z:ExecuteModal(nil)==finale.EXECMODAL_OK;return D,F:GetSelectedItem()end;function create_new_expression(I,J)local K=finale.FCCategoryDef()K:Load(J)local L=K:CreateTextFontInfo()local A=finale.FCString()A.LuaString="^fontTxt"..L:CreateEnigmaString(finale.FCString()).LuaString..I;local M=finale.FCTextExpressionDef()M:SaveNewTextBlock(A)M:AssignToCategory(K)M:SetUseCategoryPos(true)M:SetUseCategoryFont(true)M:SaveNew()return M:GetItemNo()end;function choose_destination_staff(y)local F={}local N=finenv.Region()local O=N.StartSlot;N:SetFullMeasureStack()local C=finale.FCStaff()for P=N.StartSlot,N.EndSlot do local Q=N:CalcStaffNumber(P)if Q~=y then C:Load(Q)table.insert(F,{Q,C:CreateDisplayFullNameString().LuaString})end end;N.StartSlot=O;N.EndSlot=O;local R={210,310,360}local S=20;local T=finenv.UI():IsOnMac()and 3 or 0;local U={"copy_articulations","copy_expressions","copy_smartshapes","copy_slurs","copy_clef","mute_cuenotes","cuenote_percent","cuenote_layer","freeze_up_down"}local V=6;local W={}local A=finale.FCString()local z=finale.FCCustomLuaWindow()A.LuaString=plugindef()z:SetTitle(A)local X=z:CreateStatic(0,0)A.LuaString="Select destination staff:"X:SetText(A)X:SetWidth(200)local Y=z:CreateListBox(0,S)Y.UseCheckboxes=true;Y:SetWidth(200)for G,H in ipairs(F)do A.LuaString=H[2]Y:AddString(A)end;A.LuaString="Cue Options:"z:CreateStatic(R[1],0):SetText(A)for G,H in ipairs(U)do A.LuaString=string.gsub(H,'_',' ')if G<=V then W[G]=z:CreateCheckbox(R[1],G*S)W[G]:SetText(A)W[G]:SetWidth(120)local Z=o[H]and 1 or 0;W[G]:SetCheck(Z)elseif G<#U then A.LuaString=A.LuaString..":"z:CreateStatic(R[1],G*S):SetText(A)W[G]=z:CreateEdit(R[2],G*S-T)W[G]:SetInteger(o[H])W[G]:SetWidth(50)end end;local _=z:CreatePopup(R[1],#U*S+5)A.LuaString="Stems: normal"_:AddString(A)A.LuaString="Stems: freeze up"_:AddString(A)A.LuaString="Stems: freeze down"_:AddString(A)_:SetWidth(160)_:SetSelectedItem(o.freeze_up_down)local a0=z:CreateButton(R[3],S*2)A.LuaString="Clear All"a0:SetWidth(80)a0:SetText(A)z:RegisterHandleControlEvent(a0,function()for G=1,V do W[G]:SetCheck(0)end;Y:SetKeyboardFocus()end)local a1=z:CreateButton(R[3],S*4)A.LuaString="Set All"a1:SetWidth(80)a1:SetText(A)z:RegisterHandleControlEvent(a1,function()for G=1,V do W[G]:SetCheck(1)end;Y:SetKeyboardFocus()end)z:CreateOkButton()z:CreateCancelButton()local D=z:ExecuteModal(nil)==finale.EXECMODAL_OK;local a2=Y:GetSelectedItem()local a3=F[a2+1][1]for G,H in ipairs(U)do if G<=V then o[H]=W[G]:GetCheck()==1 elseif G<#U then local a4=W[G]:GetInteger()if G==#W and(a4<2 or a4>4)then a4=4 end;o[H]=a4 end end;o.freeze_up_down=_:GetSelectedItem()return D,a3 end;function fix_text_expressions(w)local a5=finale.FCExpressions()a5:LoadAllForRegion(w)for a6 in eachbackwards(a5)do if a6.StaffGroupID==0 then if o.copy_expressions then a6.LayerAssignment=o.cuenote_layer;a6.ScaleWithEntry=true;a6:Save()else a6:DeleteData()end end end end;function copy_to_destination(a7,a8)local a9=finale.FCMusicRegion()a9:SetRegion(a7)a9:CopyMusic()a9.StartStaff=a8;a9.EndStaff=a8;if not region_is_empty(a9)and not should_overwrite_existing_music()then a9:ReleaseMusic()return false end;a9:PasteMusic()a9:ReleaseMusic()for aa=2,4 do r.clear(a9,aa)end;for x in eachentrysaved(a9)do if x:IsNote()and o.mute_cuenotes then x.Playback=false end;x:SetNoteDetailFlag(true)local ab=finale.FCEntryAlterMod()ab:SetNoteEntry(x)ab:SetResize(o.cuenote_percent)ab:Save()if not o.copy_articulations and x:GetArticulationFlag()then for ac in each(x:CreateArticulations())do ac:DeleteData()end;x:SetArticulationFlag(false)end;if o.freeze_up_down>0 then x.FreezeStem=true;x.StemUp=o.freeze_up_down==1 end end;r.swap(a9,1,o.cuenote_layer)if not o.copy_clef then q.restore_default_clef(a9.StartMeasure,a9.EndMeasure,a8)end;fix_text_expressions(a9)if not o.copy_smartshapes or not o.copy_slurs then local ad=finale.FCSmartShapeMeasureMarks()ad:LoadAllForRegion(a9,true)for ae in each(ad)do local af=ae:CreateSmartShape()if af:IsSlur()and not o.copy_slurs or not af:IsSlur()and not o.copy_smartshapes then af:DeleteData()end end end;for ag=a9.StartMeasure,a9.EndMeasure do local ah=finale.FCNoteEntryCell(ag,a8)ah:Load()local ai=ah:AppendEntriesInLayer(1,1)if ai then ai.Duration=finale.WHOLE_NOTE;ai.Legality=true;ai:MakeRest()ah:Save()end end;return true end;function new_expression_category(aj)local D=false;local ak=0;if not finenv.IsRGPLua then return D,ak end;local al=finale.FCCategoryDef()al:Load(finale.DEFAULTCATID_TECHNIQUETEXT)local A=finale.FCString()A.LuaString=aj;al:SetName(A)al:SetVerticalAlignmentPoint(finale.ALIGNVERT_STAFF_REFERENCE_LINE)al:SetVerticalBaselineOffset(30)al:SetHorizontalAlignmentPoint(finale.ALIGNHORIZ_CLICKPOS)al:SetHorizontalOffset(-18)local L=al:CreateTextFontInfo()L.Size=L.Size-o.cue_font_smaller;al:SetTextFontInfo(L)D=al:SaveNewWithType(finale.DEFAULTCATID_TECHNIQUETEXT)if D then ak=al:GetID()end;return D,ak end;function assign_expression_to_staff(Q,am,an,ao)local ap=finale.FCExpression()ap:SetStaff(Q)ap:SetVisible(true)ap:SetMeasurePos(an)ap:SetScaleWithEntry(false)ap:SetPartAssignment(true)ap:SetScoreAssignment(true)ap:SetID(ao)ap:SaveNewToCell(finale.FCCell(am,Q))end;function create_cue_notes()local aq={}local a7=finenv.Region()local ar=a7.StartStaff;local D,as,at,au,av,aw,a8,ap;if a7:CalcStaffSpan()>1 then return show_error("only_one_staff")elseif region_is_empty(a7)then return show_error("empty_region")end;as=finale.FCCategoryDef()at=finale.FCTextExpressionDefs()at:LoadAll()for ax in each(at)do as:Load(ax.CategoryID)if string.find(as:CreateName().LuaString,o.cue_category_name)then au=ax.CategoryID;local A=ax:CreateTextString()A:TrimEnigmaTags()table.insert(aq,{A.LuaString,ax.ItemNo})end end;if#aq==0 then D,au=new_expression_category(o.cue_category_name)if not D then return show_error("first_make_expression_category")end end;D,aw=choose_name_index(aq)if not D then return end;if aw==0 then D,ap=new_cue_name(ar)if not D or ap==""then return end;av=create_new_expression(ap,au)else av=aq[aw][2]end;D,a8=choose_destination_staff(ar)if not D then return end;p.save_user_settings("cue_notes_create",o)if not copy_to_destination(a7,a8)then return end;assign_expression_to_staff(a8,a7.StartMeasure,0,av)a7:SetInDocument()end;create_cue_notes()end)c("library.layer",function(require,n,c,d)local ay={}function ay.finale_version(az,aA,aB)local aC=bit32.bor(bit32.lshift(math.floor(az),24),bit32.lshift(math.floor(aA),20))if aB then aC=bit32.bor(aC,math.floor(aB))end;return aC end;function ay.group_overlaps_region(aD,w)if w:IsFullDocumentSpan()then return true end;local aE=false;local aF=finale.FCSystemStaves()aF:LoadAllForRegion(w)for aG in each(aF)do if aD:ContainsStaff(aG:GetStaff())then aE=true;break end end;if not aE then return false end;if aD.StartMeasure>w.EndMeasure or aD.EndMeasure<w.StartMeasure then return false end;return true end;function ay.group_is_contained_in_region(aD,w)if not w:IsStaffIncluded(aD.StartStaff)then return false end;if not w:IsStaffIncluded(aD.EndStaff)then return false end;return true end;function ay.staff_group_is_multistaff_instrument(aD)local aH=finale.FCMultiStaffInstruments()aH:LoadAll()for aI in each(aH)do if aI:ContainsStaff(aD.StartStaff)and aI.GroupID==aD:GetItemID()then return true end end;return false end;function ay.get_selected_region_or_whole_doc()local aJ=finenv.Region()if aJ:IsEmpty()then aJ:SetFullDocument()end;return aJ end;function ay.get_first_cell_on_or_after_page(aK)local aL=aK;local aM=finale.FCPage()local aN=false;while aM:Load(aL)do if aM:GetFirstSystem()>0 then aN=true;break end;aL=aL+1 end;if aN then local aO=finale.FCStaffSystem()aO:Load(aM:GetFirstSystem())return finale.FCCell(aO.FirstMeasure,aO.TopStaff)end;local aP=finale.FCMusicRegion()aP:SetFullDocument()return finale.FCCell(aP.EndMeasure,aP.EndStaff)end;function ay.get_top_left_visible_cell()if not finenv.UI():IsPageView()then local aQ=finale.FCMusicRegion()aQ:SetFullDocument()return finale.FCCell(finenv.UI():GetCurrentMeasure(),aQ.StartStaff)end;return ay.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())end;function ay.get_top_left_selected_or_visible_cell()local aJ=finenv.Region()if not aJ:IsEmpty()then return finale.FCCell(aJ.StartMeasure,aJ.StartStaff)end;return ay.get_top_left_visible_cell()end;function ay.is_default_measure_number_visible_on_cell(aR,aS,aT,aU)local C=finale.FCCurrentStaffSpec()if not C:LoadForCell(aS,0)then return false end;if aR:GetShowOnTopStaff()and aS.Staff==aT.TopStaff then return true end;if aR:GetShowOnBottomStaff()and aS.Staff==aT:CalcBottomStaff()then return true end;if C.ShowMeasureNumbers then return not aR:GetExcludeOtherStaves(aU)end;return false end;function ay.is_default_number_visible_and_left_aligned(aR,aS,aV,aU,aW)if aR.UseScoreInfoForParts then aU=false end;if aW and aR:GetShowOnMultiMeasureRests(aU)then if finale.MNALIGN_LEFT~=aR:GetMultiMeasureAlignment(aU)then return false end elseif aS.Measure==aV.FirstMeasure then if not aR:GetShowOnSystemStart()then return false end;if finale.MNALIGN_LEFT~=aR:GetStartAlignment(aU)then return false end else if not aR:GetShowMultiples(aU)then return false end;if finale.MNALIGN_LEFT~=aR:GetMultipleAlignment(aU)then return false end end;return ay.is_default_measure_number_visible_on_cell(aR,aS,aV,aU)end;function ay.update_layout(aX,aY)aX=aX or 1;aY=aY or false;local aZ=finale.FCPage()if aZ:Load(aX)then aZ:UpdateLayout(aY)end end;function ay.get_current_part()local a_=finale.FCParts()a_:LoadAll()return a_:GetCurrent()end;function ay.get_page_format_prefs()local b0=ay.get_current_part()local b1=finale.FCPageFormatPrefs()local b2=false;if b0:IsScore()then b2=b1:LoadScore()else b2=b1:LoadParts()end;return b1,b2 end;local b3=function(b4)local b5=finenv.UI():IsOnWindows()local b6=function(b7,b8)if finenv.UI():IsOnWindows()then return b7 and os.getenv(b7)or""else return b8 and os.getenv(b8)or""end end;local b9=b4 and b6("LOCALAPPDATA","HOME")or b6("COMMONPROGRAMFILES")if not b5 then b9=b9 .."/Library/Application Support"end;b9=b9 .."/SMuFL/Fonts/"return b9 end;function ay.get_smufl_font_list()local ba={}local bb=function(b4)local b9=b3(b4)local bc=function()if finenv.UI():IsOnWindows()then return io.popen('dir "'..b9 ..'" /b /ad')else return io.popen('ls "'..b9 ..'"')end end;local bd=function(be)local bf=finale.FCString()bf.LuaString=be;return finenv.UI():IsFontAvailable(bf)end;for be in bc():lines()do if not be:find("%.")then be=be:gsub(" Bold","")be=be:gsub(" Italic","")local bf=finale.FCString()bf.LuaString=be;if ba[be]or bd(be)then ba[be]=b4 and"user"or"system"end end end end;bb(true)bb(false)return ba end;function ay.get_smufl_metadata_file(bg)if not bg then bg=finale.FCFontInfo()bg:LoadFontPrefs(finale.FONTPREF_MUSIC)end;local bh=function(bi,bg)local bj=bi..bg.Name.."/"..bg.Name..".json"return io.open(bj,"r")end;local bk=bh(b3(true),bg)if bk then return bk end;return bh(b3(false),bg)end;function ay.is_font_smufl_font(bg)if not bg then bg=finale.FCFontInfo()bg:LoadFontPrefs(finale.FONTPREF_MUSIC)end;if finenv.RawFinaleVersion>=ay.finale_version(27,1)then if nil~=bg.IsSMuFLFont then return bg.IsSMuFLFont end end;local bl=ay.get_smufl_metadata_file(bg)if nil~=bl then io.close(bl)return true end;return false end;function ay.simple_input(bm,bn)local bo=finale.FCString()bo.LuaString=""local A=finale.FCString()local bp=160;function format_ctrl(bq,br,bs,bt)bq:SetHeight(br)bq:SetWidth(bs)A.LuaString=bt;bq:SetText(A)end;title_width=string.len(bm)*6+54;if title_width>bp then bp=title_width end;text_width=string.len(bn)*6;if text_width>bp then bp=text_width end;A.LuaString=bm;local z=finale.FCCustomLuaWindow()z:SetTitle(A)local bu=z:CreateStatic(0,0)format_ctrl(bu,16,bp,bn)local bv=z:CreateEdit(0,20)format_ctrl(bv,20,bp,"")z:CreateOkButton()z:CreateCancelButton()function callback(bq)end;z:RegisterHandleCommand(callback)if z:ExecuteModal(nil)==finale.EXECMODAL_OK then bo.LuaString=bv:GetText(bo)return bo.LuaString end end;function ay.is_finale_object(bw)return bw and type(bw)=="userdata"and bw.ClassName and bw.GetClassID and true or false end;function ay.system_indent_set_to_prefs(aV,b1)b1=b1 or ay.get_page_format_prefs()local bx=finale.FCMeasure()local by=aV.FirstMeasure==1;if not by and bx:Load(aV.FirstMeasure)then if bx.ShowFullNames then by=true end end;if by and b1.UseFirstSystemMargins then aV.LeftMargin=b1.FirstSystemLeft else aV.LeftMargin=b1.SystemLeft end;return aV:Save()end;function ay.calc_script_name(bz)local bA=finale.FCString()if finenv.RunningLuaFilePath then bA.LuaString=finenv.RunningLuaFilePath()else bA:SetRunningLuaFilePath()end;local bB=finale.FCString()bA:SplitToPathAndFile(nil,bB)local aC=bB.LuaString;if not bz then aC=aC:match("(.+)%..+")if not aC or aC==""then aC=bB.LuaString end end;return aC end;return ay end)c("library.clef",function(require,n,c,d)local ay={}function ay.finale_version(az,aA,aB)local aC=bit32.bor(bit32.lshift(math.floor(az),24),bit32.lshift(math.floor(aA),20))if aB then aC=bit32.bor(aC,math.floor(aB))end;return aC end;function ay.group_overlaps_region(aD,w)if w:IsFullDocumentSpan()then return true end;local aE=false;local aF=finale.FCSystemStaves()aF:LoadAllForRegion(w)for aG in each(aF)do if aD:ContainsStaff(aG:GetStaff())then aE=true;break end end;if not aE then return false end;if aD.StartMeasure>w.EndMeasure or aD.EndMeasure<w.StartMeasure then return false end;return true end;function ay.group_is_contained_in_region(aD,w)if not w:IsStaffIncluded(aD.StartStaff)then return false end;if not w:IsStaffIncluded(aD.EndStaff)then return false end;return true end;function ay.staff_group_is_multistaff_instrument(aD)local aH=finale.FCMultiStaffInstruments()aH:LoadAll()for aI in each(aH)do if aI:ContainsStaff(aD.StartStaff)and aI.GroupID==aD:GetItemID()then return true end end;return false end;function ay.get_selected_region_or_whole_doc()local aJ=finenv.Region()if aJ:IsEmpty()then aJ:SetFullDocument()end;return aJ end;function ay.get_first_cell_on_or_after_page(aK)local aL=aK;local aM=finale.FCPage()local aN=false;while aM:Load(aL)do if aM:GetFirstSystem()>0 then aN=true;break end;aL=aL+1 end;if aN then local aO=finale.FCStaffSystem()aO:Load(aM:GetFirstSystem())return finale.FCCell(aO.FirstMeasure,aO.TopStaff)end;local aP=finale.FCMusicRegion()aP:SetFullDocument()return finale.FCCell(aP.EndMeasure,aP.EndStaff)end;function ay.get_top_left_visible_cell()if not finenv.UI():IsPageView()then local aQ=finale.FCMusicRegion()aQ:SetFullDocument()return finale.FCCell(finenv.UI():GetCurrentMeasure(),aQ.StartStaff)end;return ay.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())end;function ay.get_top_left_selected_or_visible_cell()local aJ=finenv.Region()if not aJ:IsEmpty()then return finale.FCCell(aJ.StartMeasure,aJ.StartStaff)end;return ay.get_top_left_visible_cell()end;function ay.is_default_measure_number_visible_on_cell(aR,aS,aT,aU)local C=finale.FCCurrentStaffSpec()if not C:LoadForCell(aS,0)then return false end;if aR:GetShowOnTopStaff()and aS.Staff==aT.TopStaff then return true end;if aR:GetShowOnBottomStaff()and aS.Staff==aT:CalcBottomStaff()then return true end;if C.ShowMeasureNumbers then return not aR:GetExcludeOtherStaves(aU)end;return false end;function ay.is_default_number_visible_and_left_aligned(aR,aS,aV,aU,aW)if aR.UseScoreInfoForParts then aU=false end;if aW and aR:GetShowOnMultiMeasureRests(aU)then if finale.MNALIGN_LEFT~=aR:GetMultiMeasureAlignment(aU)then return false end elseif aS.Measure==aV.FirstMeasure then if not aR:GetShowOnSystemStart()then return false end;if finale.MNALIGN_LEFT~=aR:GetStartAlignment(aU)then return false end else if not aR:GetShowMultiples(aU)then return false end;if finale.MNALIGN_LEFT~=aR:GetMultipleAlignment(aU)then return false end end;return ay.is_default_measure_number_visible_on_cell(aR,aS,aV,aU)end;function ay.update_layout(aX,aY)aX=aX or 1;aY=aY or false;local aZ=finale.FCPage()if aZ:Load(aX)then aZ:UpdateLayout(aY)end end;function ay.get_current_part()local a_=finale.FCParts()a_:LoadAll()return a_:GetCurrent()end;function ay.get_page_format_prefs()local b0=ay.get_current_part()local b1=finale.FCPageFormatPrefs()local b2=false;if b0:IsScore()then b2=b1:LoadScore()else b2=b1:LoadParts()end;return b1,b2 end;local b3=function(b4)local b5=finenv.UI():IsOnWindows()local b6=function(b7,b8)if finenv.UI():IsOnWindows()then return b7 and os.getenv(b7)or""else return b8 and os.getenv(b8)or""end end;local b9=b4 and b6("LOCALAPPDATA","HOME")or b6("COMMONPROGRAMFILES")if not b5 then b9=b9 .."/Library/Application Support"end;b9=b9 .."/SMuFL/Fonts/"return b9 end;function ay.get_smufl_font_list()local ba={}local bb=function(b4)local b9=b3(b4)local bc=function()if finenv.UI():IsOnWindows()then return io.popen('dir "'..b9 ..'" /b /ad')else return io.popen('ls "'..b9 ..'"')end end;local bd=function(be)local bf=finale.FCString()bf.LuaString=be;return finenv.UI():IsFontAvailable(bf)end;for be in bc():lines()do if not be:find("%.")then be=be:gsub(" Bold","")be=be:gsub(" Italic","")local bf=finale.FCString()bf.LuaString=be;if ba[be]or bd(be)then ba[be]=b4 and"user"or"system"end end end end;bb(true)bb(false)return ba end;function ay.get_smufl_metadata_file(bg)if not bg then bg=finale.FCFontInfo()bg:LoadFontPrefs(finale.FONTPREF_MUSIC)end;local bh=function(bi,bg)local bj=bi..bg.Name.."/"..bg.Name..".json"return io.open(bj,"r")end;local bk=bh(b3(true),bg)if bk then return bk end;return bh(b3(false),bg)end;function ay.is_font_smufl_font(bg)if not bg then bg=finale.FCFontInfo()bg:LoadFontPrefs(finale.FONTPREF_MUSIC)end;if finenv.RawFinaleVersion>=ay.finale_version(27,1)then if nil~=bg.IsSMuFLFont then return bg.IsSMuFLFont end end;local bl=ay.get_smufl_metadata_file(bg)if nil~=bl then io.close(bl)return true end;return false end;function ay.simple_input(bm,bn)local bo=finale.FCString()bo.LuaString=""local A=finale.FCString()local bp=160;function format_ctrl(bq,br,bs,bt)bq:SetHeight(br)bq:SetWidth(bs)A.LuaString=bt;bq:SetText(A)end;title_width=string.len(bm)*6+54;if title_width>bp then bp=title_width end;text_width=string.len(bn)*6;if text_width>bp then bp=text_width end;A.LuaString=bm;local z=finale.FCCustomLuaWindow()z:SetTitle(A)local bu=z:CreateStatic(0,0)format_ctrl(bu,16,bp,bn)local bv=z:CreateEdit(0,20)format_ctrl(bv,20,bp,"")z:CreateOkButton()z:CreateCancelButton()function callback(bq)end;z:RegisterHandleCommand(callback)if z:ExecuteModal(nil)==finale.EXECMODAL_OK then bo.LuaString=bv:GetText(bo)return bo.LuaString end end;function ay.is_finale_object(bw)return bw and type(bw)=="userdata"and bw.ClassName and bw.GetClassID and true or false end;function ay.system_indent_set_to_prefs(aV,b1)b1=b1 or ay.get_page_format_prefs()local bx=finale.FCMeasure()local by=aV.FirstMeasure==1;if not by and bx:Load(aV.FirstMeasure)then if bx.ShowFullNames then by=true end end;if by and b1.UseFirstSystemMargins then aV.LeftMargin=b1.FirstSystemLeft else aV.LeftMargin=b1.SystemLeft end;return aV:Save()end;function ay.calc_script_name(bz)local bA=finale.FCString()if finenv.RunningLuaFilePath then bA.LuaString=finenv.RunningLuaFilePath()else bA:SetRunningLuaFilePath()end;local bB=finale.FCString()bA:SplitToPathAndFile(nil,bB)local aC=bB.LuaString;if not bz then aC=aC:match("(.+)%..+")if not aC or aC==""then aC=bB.LuaString end end;return aC end;return ay end)c("library.configuration",function(require,n,c,d)local ay={}function ay.finale_version(az,aA,aB)local aC=bit32.bor(bit32.lshift(math.floor(az),24),bit32.lshift(math.floor(aA),20))if aB then aC=bit32.bor(aC,math.floor(aB))end;return aC end;function ay.group_overlaps_region(aD,w)if w:IsFullDocumentSpan()then return true end;local aE=false;local aF=finale.FCSystemStaves()aF:LoadAllForRegion(w)for aG in each(aF)do if aD:ContainsStaff(aG:GetStaff())then aE=true;break end end;if not aE then return false end;if aD.StartMeasure>w.EndMeasure or aD.EndMeasure<w.StartMeasure then return false end;return true end;function ay.group_is_contained_in_region(aD,w)if not w:IsStaffIncluded(aD.StartStaff)then return false end;if not w:IsStaffIncluded(aD.EndStaff)then return false end;return true end;function ay.staff_group_is_multistaff_instrument(aD)local aH=finale.FCMultiStaffInstruments()aH:LoadAll()for aI in each(aH)do if aI:ContainsStaff(aD.StartStaff)and aI.GroupID==aD:GetItemID()then return true end end;return false end;function ay.get_selected_region_or_whole_doc()local aJ=finenv.Region()if aJ:IsEmpty()then aJ:SetFullDocument()end;return aJ end;function ay.get_first_cell_on_or_after_page(aK)local aL=aK;local aM=finale.FCPage()local aN=false;while aM:Load(aL)do if aM:GetFirstSystem()>0 then aN=true;break end;aL=aL+1 end;if aN then local aO=finale.FCStaffSystem()aO:Load(aM:GetFirstSystem())return finale.FCCell(aO.FirstMeasure,aO.TopStaff)end;local aP=finale.FCMusicRegion()aP:SetFullDocument()return finale.FCCell(aP.EndMeasure,aP.EndStaff)end;function ay.get_top_left_visible_cell()if not finenv.UI():IsPageView()then local aQ=finale.FCMusicRegion()aQ:SetFullDocument()return finale.FCCell(finenv.UI():GetCurrentMeasure(),aQ.StartStaff)end;return ay.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())end;function ay.get_top_left_selected_or_visible_cell()local aJ=finenv.Region()if not aJ:IsEmpty()then return finale.FCCell(aJ.StartMeasure,aJ.StartStaff)end;return ay.get_top_left_visible_cell()end;function ay.is_default_measure_number_visible_on_cell(aR,aS,aT,aU)local C=finale.FCCurrentStaffSpec()if not C:LoadForCell(aS,0)then return false end;if aR:GetShowOnTopStaff()and aS.Staff==aT.TopStaff then return true end;if aR:GetShowOnBottomStaff()and aS.Staff==aT:CalcBottomStaff()then return true end;if C.ShowMeasureNumbers then return not aR:GetExcludeOtherStaves(aU)end;return false end;function ay.is_default_number_visible_and_left_aligned(aR,aS,aV,aU,aW)if aR.UseScoreInfoForParts then aU=false end;if aW and aR:GetShowOnMultiMeasureRests(aU)then if finale.MNALIGN_LEFT~=aR:GetMultiMeasureAlignment(aU)then return false end elseif aS.Measure==aV.FirstMeasure then if not aR:GetShowOnSystemStart()then return false end;if finale.MNALIGN_LEFT~=aR:GetStartAlignment(aU)then return false end else if not aR:GetShowMultiples(aU)then return false end;if finale.MNALIGN_LEFT~=aR:GetMultipleAlignment(aU)then return false end end;return ay.is_default_measure_number_visible_on_cell(aR,aS,aV,aU)end;function ay.update_layout(aX,aY)aX=aX or 1;aY=aY or false;local aZ=finale.FCPage()if aZ:Load(aX)then aZ:UpdateLayout(aY)end end;function ay.get_current_part()local a_=finale.FCParts()a_:LoadAll()return a_:GetCurrent()end;function ay.get_page_format_prefs()local b0=ay.get_current_part()local b1=finale.FCPageFormatPrefs()local b2=false;if b0:IsScore()then b2=b1:LoadScore()else b2=b1:LoadParts()end;return b1,b2 end;local b3=function(b4)local b5=finenv.UI():IsOnWindows()local b6=function(b7,b8)if finenv.UI():IsOnWindows()then return b7 and os.getenv(b7)or""else return b8 and os.getenv(b8)or""end end;local b9=b4 and b6("LOCALAPPDATA","HOME")or b6("COMMONPROGRAMFILES")if not b5 then b9=b9 .."/Library/Application Support"end;b9=b9 .."/SMuFL/Fonts/"return b9 end;function ay.get_smufl_font_list()local ba={}local bb=function(b4)local b9=b3(b4)local bc=function()if finenv.UI():IsOnWindows()then return io.popen('dir "'..b9 ..'" /b /ad')else return io.popen('ls "'..b9 ..'"')end end;local bd=function(be)local bf=finale.FCString()bf.LuaString=be;return finenv.UI():IsFontAvailable(bf)end;for be in bc():lines()do if not be:find("%.")then be=be:gsub(" Bold","")be=be:gsub(" Italic","")local bf=finale.FCString()bf.LuaString=be;if ba[be]or bd(be)then ba[be]=b4 and"user"or"system"end end end end;bb(true)bb(false)return ba end;function ay.get_smufl_metadata_file(bg)if not bg then bg=finale.FCFontInfo()bg:LoadFontPrefs(finale.FONTPREF_MUSIC)end;local bh=function(bi,bg)local bj=bi..bg.Name.."/"..bg.Name..".json"return io.open(bj,"r")end;local bk=bh(b3(true),bg)if bk then return bk end;return bh(b3(false),bg)end;function ay.is_font_smufl_font(bg)if not bg then bg=finale.FCFontInfo()bg:LoadFontPrefs(finale.FONTPREF_MUSIC)end;if finenv.RawFinaleVersion>=ay.finale_version(27,1)then if nil~=bg.IsSMuFLFont then return bg.IsSMuFLFont end end;local bl=ay.get_smufl_metadata_file(bg)if nil~=bl then io.close(bl)return true end;return false end;function ay.simple_input(bm,bn)local bo=finale.FCString()bo.LuaString=""local A=finale.FCString()local bp=160;function format_ctrl(bq,br,bs,bt)bq:SetHeight(br)bq:SetWidth(bs)A.LuaString=bt;bq:SetText(A)end;title_width=string.len(bm)*6+54;if title_width>bp then bp=title_width end;text_width=string.len(bn)*6;if text_width>bp then bp=text_width end;A.LuaString=bm;local z=finale.FCCustomLuaWindow()z:SetTitle(A)local bu=z:CreateStatic(0,0)format_ctrl(bu,16,bp,bn)local bv=z:CreateEdit(0,20)format_ctrl(bv,20,bp,"")z:CreateOkButton()z:CreateCancelButton()function callback(bq)end;z:RegisterHandleCommand(callback)if z:ExecuteModal(nil)==finale.EXECMODAL_OK then bo.LuaString=bv:GetText(bo)return bo.LuaString end end;function ay.is_finale_object(bw)return bw and type(bw)=="userdata"and bw.ClassName and bw.GetClassID and true or false end;function ay.system_indent_set_to_prefs(aV,b1)b1=b1 or ay.get_page_format_prefs()local bx=finale.FCMeasure()local by=aV.FirstMeasure==1;if not by and bx:Load(aV.FirstMeasure)then if bx.ShowFullNames then by=true end end;if by and b1.UseFirstSystemMargins then aV.LeftMargin=b1.FirstSystemLeft else aV.LeftMargin=b1.SystemLeft end;return aV:Save()end;function ay.calc_script_name(bz)local bA=finale.FCString()if finenv.RunningLuaFilePath then bA.LuaString=finenv.RunningLuaFilePath()else bA:SetRunningLuaFilePath()end;local bB=finale.FCString()bA:SplitToPathAndFile(nil,bB)local aC=bB.LuaString;if not bz then aC=aC:match("(.+)%..+")if not aC or aC==""then aC=bB.LuaString end end;return aC end;return ay end)return a("__root")
+    ]]
+    return "Cue Notes Create…", "Cue Notes Create", "Copy as cue notes to another staff"
+end
+
+local config = { -- retained and over-written by the user's "settings" file
+    copy_articulations  =   false,
+    copy_expressions    =   false,
+    copy_smartshapes    =   false,
+    copy_slurs          =   true,
+    copy_clef           =   false,
+    mute_cuenotes       =   true,
+    cuenote_percent     =   70,    -- (75% too big, 66% too small)
+    cuenote_layer       =   3,
+    freeze_up_down      =   0,      -- "0" for no freezing, "1" for up, "2" for down
+    -- if creating a new "Cue Names" category ...
+    cue_category_name   =   "Cue Names",
+    cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
+}
+--  Author: Robert Patterson
+--  Date: March 5, 2021
+--[[
+$module Configuration
+
+This library implements a UTF-8 text file scheme for configuration and user settings as follows:
+
+- Comments start with `--`
+- Leading, trailing, and extra whitespace is ignored
+- Each parameter is named and delimited as follows:
+
+```
+<parameter-name> = <parameter-value>
+```
+
+Parameter values may be:
+
+- Strings delimited with either single- or double-quotes
+- Tables delimited with `{}` that may contain strings, booleans, or numbers
+- Booleans (`true` or `false`)
+- Numbers
+
+Currently the following are not supported:
+
+- Tables embedded within tables
+- Tables containing strings that contain commas
+
+A sample configuration file might be:
+
+```lua
+-- Configuration File for "Hairpin and Dynamic Adjustments" script
+--
+left_dynamic_cushion 		= 12		--evpus
+right_dynamic_cushion		= -6		--evpus
+```
+
+## Configuration Files
+
+Configuration files provide a way for power users to modify script behavior without
+having to modify the script itself. Some users track their changes to their configuration files,
+so scripts should not create or modify them programmatically.
+
+- The user creates each configuration file in a subfolder called `script_settings` within
+the folder of the calling script.
+- Each script that has a configuration file defines its own configuration file name.
+- It is entirely appropriate over time for scripts to transition from configuration files to user settings,
+but this requires implementing a user interface to modify the user settings from within the script.
+(See below.)
+
+## User Settings Files
+
+User settings are written by the scripts themselves and reside in the user's preferences folder
+in an appropriately-named location for the operating system. (The naming convention is a detail that the
+configuration library handles for the caller.) If the user settings are to be changed from their defaults,
+the script itself should provide a means to change them. This could be a (preferably optional) dialog box
+or any other mechanism the script author chooses.
+
+User settings are saved in the user's preferences folder (on Mac) or AppData folder (on Windows).
+
+## Merge Process
+
+Files are _merged_ into the passed-in list of default values. They do not _replace_ the list. Each calling script contains
+a table of all the configurable parameters or settings it recognizes along with default values. An example:
+
+`sample.lua:`
+
+```lua
+parameters = {
+   x = 1,
+   y = 2,
+   z = 3
+}
+
+configuration.get_parameters(parameters, "script.config.txt")
+
+for k, v in pairs(parameters) do
+   print(k, v)
+end
+```
+
+Suppose the `script.config.text` file is as follows:
+
+```
+y = 4
+q = 6
+```
+
+The returned parameters list is:
+
+
+```lua
+parameters = {
+   x = 1,       -- remains the default value passed in
+   y = 4,       -- replaced value from the config file
+   z = 3        -- remains the default value passed in
+}
+```
+
+The `q` parameter in the config file is ignored because the input paramater list
+had no `q` parameter.
+
+This approach allows total flexibility for the script add to or modify its list of parameters
+without having to worry about older configuration files or user settings affecting it.
+]]
+
+local configuration = {}
+
+local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
+local comment_marker = "--"
+local parameter_delimiter = "="
+local path_delimiter = "/"
+
+local file_exists = function(file_path)
+    local f = io.open(file_path, "r")
+    if nil ~= f then
+        io.close(f)
+        return true
+    end
+    return false
+end
+
+local strip_leading_trailing_whitespace = function(str)
+    return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
+end
+
+local parse_table = function(val_string)
+    local ret_table = {}
+    for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
+        local parsed_element = parse_parameter(element)
+        table.insert(ret_table, parsed_element)
+    end
+    return ret_table
+end
+
+parse_parameter = function(val_string)
+    if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
+        return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
+    elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
+        return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
+    elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
+        return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
+    elseif "true" == val_string then
+        return true
+    elseif "false" == val_string then
+        return false
+    end
+    return tonumber(val_string)
+end
+
+local get_parameters_from_file = function(file_path, parameter_list)
+    local file_parameters = {}
+
+    if not file_exists(file_path) then
+        return false
+    end
+
+    for line in io.lines(file_path) do
+        local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
+        if nil ~= comment_at then
+            line = string.sub(line, 1, comment_at - 1)
+        end
+        local delimiter_at = string.find(line, parameter_delimiter, 1, true)
+        if nil ~= delimiter_at then
+            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
+            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
+            file_parameters[name] = parse_parameter(val_string)
+        end
+    end
+
+    for param_name, _ in pairs(parameter_list) do
+        local param_val = file_parameters[param_name]
+        if nil ~= param_val then
+            parameter_list[param_name] = param_val
+        end
+    end
+
+    return true
+end
+
+--[[
+% get_parameters
+
+Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list`
+with any that are found in the config file.
+
+@ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+: (boolean) true if the file exists
+]]
+function configuration.get_parameters(file_name, parameter_list)
+    local path = ""
+    if finenv.IsRGPLua then
+        path = finenv.RunningLuaFolderPath()
+    else
+        local str = finale.FCString()
+        str:SetRunningLuaFolderPath()
+        path = str.LuaString
+    end
+    local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+    return get_parameters_from_file(file_path, parameter_list)
+end
+
+-- Calculates a filepath in the user's preferences folder using recommended naming conventions
+--
+local calc_preferences_filepath = function(script_name)
+    local str = finale.FCString()
+    str:SetUserOptionsPath()
+    local folder_name = str.LuaString
+    if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+        -- works around bug in SetUserOptionsPath() in JW Lua
+        folder_name = os.getenv("HOME") .. folder_name:sub(2) -- strip '~' and replace with actual folder
+    end
+    if finenv.UI():IsOnWindows() then
+        folder_name = folder_name .. path_delimiter .. "FinaleLua"
+    end
+    local file_path = folder_name .. path_delimiter
+    if finenv.UI():IsOnMac() then
+        file_path = file_path .. "com.finalelua."
+    end
+    file_path = file_path .. script_name .. ".settings.txt"
+    return file_path, folder_name
+end
+
+--[[
+% save_user_settings
+
+Saves the user's preferences for a script from the values provided in `parameter_list`.
+
+@ script_name (string) the name of the script (without an extension)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+: (boolean) true on success
+]]
+function configuration.save_user_settings(script_name, parameter_list)
+    local file_path, folder_path = calc_preferences_filepath(script_name)
+    local file = io.open(file_path, "w")
+    if not file and finenv.UI():IsOnWindows() then -- file not found
+        os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder (windows only, since the folder is guaranteed to exist on mac)
+        file = io.open(file_path, "w") -- try the file again
+    end
+    if not file then -- still couldn't find file
+        return false -- so give up
+    end
+    file:write("-- User settings for " .. script_name .. ".lua\n\n")
+    for k,v in pairs(parameter_list) do -- only number, boolean, or string values
+        if type(v) == "string" then
+            v = "\"" .. v .."\""
+        else
+            v = tostring(v)
+        end
+        file:write(k, " = ", v, "\n")
+    end
+    file:close()
+    return true -- success
+end
+
+--[[
+% get_user_settings
+
+Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
+with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so
+the input string should just be the script name (without an extension).
+
+@ script_name (string) the name of the script (without an extension)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+@ [create_automatically] (boolean) if true, create the file automatically (default is `true`)
+: (boolean) `true` if the file already existed, `false` if it did not or if it was created automatically
+]]
+function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+    if create_automatically == nil then create_automatically = true end
+    local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+    if not exists and create_automatically then
+        configuration.save_user_settings(script_name, parameter_list)
+    end
+    return exists
+end
+
+
+
+--[[
+$module Clef
+
+A library of general clef utility functions.
+]] --
+local clef = {}
+
+--[[
+% get_cell_clef
+
+Gets the clef for any cell.
+
+@ measure (number) The measure number for the cell
+@ staff_number (number) The staff number for the cell
+: (number) The clef for the cell
+]]
+function clef.get_cell_clef(measure, staff_number)
+    local cell_clef = -1
+    local cell = finale.FCCell(measure, staff_number)
+    local cell_frame_hold = finale.FCCellFrameHold()
+
+    cell_frame_hold:ConnectCell(cell)
+    if cell_frame_hold:Load() then
+        if cell_frame_hold.IsClefList then
+            cell_clef = cell_frame_hold:CreateFirstCellClefChange().ClefIndex
+        else
+            cell_clef = cell_frame_hold.ClefIndex
+        end
+    end
+    return cell_clef
+end
+
+--[[
+% get_default_clef
+
+Gets the default clef for any staff for a specific region.
+
+@ first_measure (number) The first measure of the region
+@ last_measure (number) The last measure of the region
+@ staff_number (number) The staff number for the cell
+: (number) The default clef for the staff
+]]
+function clef.get_default_clef(first_measure, last_measure, staff_number)
+    local staff = finale.FCStaff()
+    local cell_clef = clef.get_cell_clef(first_measure - 1, staff_number)
+    if cell_clef < 0 then -- failed, so check clef AFTER insertion
+        cell_clef = clef.get_cell_clef(last_measure + 1, staff_number)
+        if cell_clef < 0 then -- resort to destination staff default clef
+            cell_clef = staff:Load(staff_number) and staff.DefaultClef or 0 -- default treble
+        end
+    end
+    return cell_clef
+end
+
+--[[
+% can_change_clef
+
+Determine if the current version of the plugin can change clefs.
+
+: (boolean) Whether or not the plugin can change clefs
+]]
+function clef.can_change_clef()
+    -- RGPLua 0.60 or later needed for clef changing
+    return finenv.IsRGPLua or finenv.StringVersion >= "0.60"
+end
+
+--[[
+% restore_default_clef
+
+Restores the default clef for any staff for a specific region.
+
+@ first_measure (number) The first measure of the region
+@ last_measure (number) The last measure of the region
+@ staff_number (number) The staff number for the cell
+]]
+function clef.restore_default_clef(first_measure, last_measure, staff_number)
+    if not clef.can_change_clef() then
+        return
+    end
+
+    local default_clef = clef.get_default_clef(first_measure, last_measure, staff_number)
+
+    for measure = first_measure, last_measure do
+        local cell = finale.FCCell(measure, staff_number)
+        local cell_frame_hold = finale.FCCellFrameHold()
+        cell_frame_hold:ConnectCell(cell)
+        if cell_frame_hold:Load() then
+            cell_frame_hold:MakeCellSingleClef(nil) -- RGPLua v0.60
+            cell_frame_hold:SetClefIndex(default_clef)
+            cell_frame_hold:Save()
+        end
+    end
+end
+
+
+
+--[[
+$module Layer
+]] --
+local layer = {}
+
+--[[
+% copy
+
+Duplicates the notes from the source layer to the destination. The source layer remains untouched.
+
+@ region (FCMusicRegion) the region to be copied
+@ source_layer (number) the number (1-4) of the layer to duplicate
+@ destination_layer (number) the number (1-4) of the layer to be copied to
+]]
+function layer.copy(region, source_layer, destination_layer)
+    local start = region.StartMeasure
+    local stop = region.EndMeasure
+    local sysstaves = finale.FCSystemStaves()
+    sysstaves:LoadAllForRegion(region)
+    source_layer = source_layer - 1
+    destination_layer = destination_layer - 1
+    for sysstaff in each(sysstaves) do
+        staffNum = sysstaff.Staff
+        local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
+        noteentry_source_layer:Load()
+        local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
+                                                destination_layer, staffNum, start)
+        noteentry_destination_layer:Save()
+        noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
+        noteentry_destination_layer:Save()
+    end
+end -- function layer_copy
+
+--[[
+% clear
+
+Clears all entries from a given layer.
+
+@ region (FCMusicRegion) the region to be cleared
+@ layer_to_clear (number) the number (1-4) of the layer to clear
+]]
+function layer.clear(region, layer_to_clear)
+    layer_to_clear = layer_to_clear - 1 -- Turn 1 based layer to 0 based layer
+    local start = region.StartMeasure
+    local stop = region.EndMeasure
+    local sysstaves = finale.FCSystemStaves()
+    sysstaves:LoadAllForRegion(region)
+    for sysstaff in each(sysstaves) do
+        staffNum = sysstaff.Staff
+        local noteentrylayer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+        noteentrylayer:Load()
+        noteentrylayer:ClearAllEntries()
+    end
+end
+
+--[[
+% swap
+
+Swaps the entries from two different layers (e.g. 1-->2 and 2-->1).
+
+@ region (FCMusicRegion) the region to be swapped
+@ swap_a (number) the number (1-4) of the first layer to be swapped
+@ swap_b (number) the number (1-4) of the second layer to be swapped
+]]
+function layer.swap(region, swap_a, swap_b)
+    local start = region.StartMeasure
+    local stop = region.EndMeasure
+    local sysstaves = finale.FCSystemStaves()
+    sysstaves:LoadAllForRegion(region)
+    -- Set layers for 0 based
+    swap_a = swap_a - 1
+    swap_b = swap_b - 1
+    for sysstaff in each(sysstaves) do
+        staffNum = sysstaff.Staff
+        local noteentrylayer_1 = finale.FCNoteEntryLayer(swap_a, staffNum, start, stop)
+        noteentrylayer_1:Load()
+        noteentrylayer_1.LayerIndex = swap_b
+        --
+        local noteentrylayer_2 = finale.FCNoteEntryLayer(swap_b, staffNum, start, stop)
+        noteentrylayer_2:Load()
+        noteentrylayer_2.LayerIndex = swap_a
+        noteentrylayer_1:Save()
+        noteentrylayer_2:Save()
+    end
+end
+
+
+
+
+configuration.get_user_settings("cue_notes_create", config, true)
+
+function show_error(error_code)
+    local errors = {
+        only_one_staff = "Please select just one staff\n as the source for the new cue",
+        empty_region = "Please select a region\nwith some notes in it!",
+        first_make_expression_category = "You must first create a new Text Expression Category called \""..config.cue_category_name.."\" containing at least one entry",
+    }
+    finenv.UI():AlertNeutral("script: " .. plugindef(), errors[error_code])
+    return -1
+end
+
+function should_overwrite_existing_music()
+    local alert = finenv.UI():AlertOkCancel("script: " .. plugindef(), "Overwrite existing music?")
+    local should_overwrite = (alert == 0)
+    return should_overwrite
+end
+
+function region_is_empty(region)
+    for entry in eachentry(region) do
+        if entry.Count > 0 then
+            return false
+        end
+    end
+    return true
+end
+
+function new_cue_name(source_staff)
+    local dialog = finale.FCCustomWindow()
+    local str = finale.FCString()
+    str.LuaString = plugindef()
+    dialog:SetTitle(str)
+
+    str.LuaString = "New cue name:"
+    dialog:CreateStatic(0, 20):SetText(str)
+    
+	local the_name = dialog:CreateEdit(0, 40)
+	the_name:SetWidth(200)
+	-- copy default name from the source Staff Name
+	local staff = finale.FCStaff()
+	staff:Load(source_staff)
+	the_name:SetText( staff:CreateDisplayFullNameString() )
+	
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    the_name:GetText(str)
+    return ok, str.LuaString
+end
+
+function choose_name_index(name_list)
+    local dialog = finale.FCCustomWindow()
+    local str = finale.FCString()
+    str.LuaString = plugindef()
+    dialog:SetTitle(str)
+    str.LuaString = "Select cue name:"
+    dialog:CreateStatic(0, 20):SetText(str)
+
+	local staff_list = dialog:CreateListBox(0, 40)
+	staff_list:SetWidth(200)
+	-- item "0" in the list is "*** new name ***"
+    str.LuaString = "*** new name ***"
+	staff_list:AddString(str)
+
+    -- add all names in the extant list
+    for i,v in ipairs(name_list) do
+        str.LuaString = v[1]  -- copy the name, not the ItemNo
+		staff_list:AddString(str)
+	end
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    return ok, staff_list:GetSelectedItem()
+    -- NOTE: returns the chosen INDEX number (0-based)
+end
+
+function create_new_expression(exp_name, category_number)
+    local cat_def = finale.FCCategoryDef()
+    cat_def:Load(category_number)
+    local tfi = cat_def:CreateTextFontInfo()
+    local str = finale.FCString()
+    str.LuaString = "^fontTxt"
+        .. tfi:CreateEnigmaString(finale.FCString()).LuaString
+        .. exp_name
+    local ted = finale.FCTextExpressionDef()
+    ted:SaveNewTextBlock(str)
+    ted:AssignToCategory(cat_def)
+    ted:SetUseCategoryPos(true)
+    ted:SetUseCategoryFont(true)
+    ted:SaveNew()
+    return ted:GetItemNo() -- *** RETURNS the new expression's ITEM NUMBER
+end
+
+function choose_destination_staff(source_staff)
+	local staff_list = {}    -- compile all staves in the score
+    local rgn = finenv.Region()
+    -- compile staff list by slot number
+    local original_slot = rgn.StartSlot
+    rgn:SetFullMeasureStack()   -- scan the whole stack
+    local staff = finale.FCStaff()
+    for slot = rgn.StartSlot, rgn.EndSlot do
+        local staff_number = rgn:CalcStaffNumber(slot)
+        if staff_number ~= source_staff then
+            staff:Load(staff_number) -- staff at this slot
+            table.insert(staff_list, { staff_number, staff:CreateDisplayFullNameString().LuaString } )
+        end
+    end
+    rgn.StartSlot = original_slot -- restore original single staff
+    rgn.EndSlot = original_slot
+
+    -- draw up the dialog box
+    local horiz_grid = { 210, 310, 360 }
+    local vert_step = 20
+    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra horizontal offset for Mac edit boxes
+    local user_checks = { -- boolean config values - copy choices from CONFIG file
+        "copy_articulations",   "copy_expressions",   "copy_smartshapes",
+        "copy_slurs",           "copy_clef",          "mute_cuenotes",
+        -- integer config values - copy choices from CONFIG file
+        "cuenote_percent",      "cuenote_layer",       "freeze_up_down"
+    }
+    local boolean_count = 6 -- higher than this number are integer config values, not checkboxes
+    local user_selections = {}  -- an array of controls corresponding to user choices
+
+    local str = finale.FCString()
+    local dialog = finale.FCCustomLuaWindow()
+    str.LuaString = plugindef()
+    dialog:SetTitle(str)
+    local static = dialog:CreateStatic(0, 0)
+    str.LuaString = "Select destination staff:"
+    static:SetText(str)
+	static:SetWidth(200)
+	
+	local list_box = dialog:CreateListBox(0, vert_step)
+    list_box.UseCheckboxes = true
+	list_box:SetWidth(200)
+    for i,v in ipairs(staff_list) do -- list all staff names
+        str.LuaString = v[2]
+		list_box:AddString(str)
+	end
+    -- add user options
+    str.LuaString = "Cue Options:"
+    dialog:CreateStatic(horiz_grid[1], 0):SetText(str)
+
+    for i,v in ipairs(user_checks) do -- run through config parameters
+        str.LuaString = string.gsub(v, '_', ' ')
+        if i <= boolean_count then -- boolean checkbox
+            user_selections[i] = dialog:CreateCheckbox(horiz_grid[1], i * vert_step)
+            user_selections[i]:SetText(str)
+            user_selections[i]:SetWidth(120)
+            local checked = config[v] and 1 or 0
+            user_selections[i]:SetCheck(checked)
+        elseif i < #user_checks then    -- integer value (#user_checks = stem_direction_popup)
+            str.LuaString = str.LuaString .. ":"
+            dialog:CreateStatic(horiz_grid[1], i * vert_step):SetText(str)
+            user_selections[i] = dialog:CreateEdit(horiz_grid[2], (i * vert_step) - mac_offset)
+            user_selections[i]:SetInteger(config[v])
+            user_selections[i]:SetWidth(50)
+        end
+    end
+    -- popup for stem direction
+    local stem_direction_popup = dialog:CreatePopup(horiz_grid[1], (#user_checks * vert_step) + 5)
+    str.LuaString = "Stems: normal"
+    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 0
+    str.LuaString = "Stems: freeze up"
+    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 1
+    str.LuaString = "Stems: freeze down"
+    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 2
+    stem_direction_popup:SetWidth(160)
+    stem_direction_popup:SetSelectedItem(config.freeze_up_down) -- 0-based index
+
+    -- "CLEAR ALL" button to clear copy choices
+    local clear_button = dialog:CreateButton(horiz_grid[3], vert_step * 2)
+    str.LuaString = "Clear All"
+    clear_button:SetWidth(80)
+    clear_button:SetText(str)
+    dialog:RegisterHandleControlEvent ( clear_button,
+        function()
+            for i = 1, boolean_count do
+                user_selections[i]:SetCheck(0)
+            end
+            list_box:SetKeyboardFocus()
+        end
+    )
+
+    -- "SET ALL" button to set all copy choices
+    local set_button = dialog:CreateButton(horiz_grid[3], vert_step * 4)
+    str.LuaString = "Set All"
+    set_button:SetWidth(80)
+    set_button:SetText(str)
+    dialog:RegisterHandleControlEvent ( set_button,
+        function()
+            for i = 1, boolean_count do
+                user_selections[i]:SetCheck(1)
+            end
+            list_box:SetKeyboardFocus()
+        end
+    )
+    -- run the dialog
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    local selected_item = list_box:GetSelectedItem() -- retrieve user staff selection (index base 0)
+    local chosen_staff_number = staff_list[selected_item + 1][1]
+
+    -- save User Pref changes
+    for i,v in ipairs(user_checks) do -- run through config parameters
+        if i <= boolean_count then
+            config[v] = (user_selections[i]:GetCheck() == 1) -- "true" for value 1, checked
+        elseif i < #user_checks then    -- integer value (#user_checks = stem_direction_popup)
+            local answer = user_selections[i]:GetInteger()
+            if i == #user_selections and (answer < 2 or answer > 4) then -- legitimate layer number choice?
+                answer = 4 -- make sure layer number is in range
+            end
+            config[v] = answer
+        end
+    end
+    config.freeze_up_down = stem_direction_popup:GetSelectedItem() -- 0-based index
+    return ok, chosen_staff_number
+end
+
+function fix_text_expressions(region)
+    local expressions = finale.FCExpressions()
+    expressions:LoadAllForRegion(region)
+    for expression in eachbackwards(expressions) do
+        if expression.StaffGroupID == 0 then -- staff-attached expressions only
+            if config.copy_expressions then -- keep them and switch to cuenote layer
+                expression.LayerAssignment = config.cuenote_layer
+                expression.ScaleWithEntry = true -- and scale to smaller noteheads
+                expression:Save()
+            else
+                expression:DeleteData() -- otherwise delete them
+            end
+        end
+    end
+end
+
+function copy_to_destination(source_region, destination_staff)
+    local destination_region = finale.FCMusicRegion()
+    destination_region:SetRegion(source_region)
+    destination_region:CopyMusic() -- copy the original
+    destination_region.StartStaff = destination_staff
+    destination_region.EndStaff = destination_staff
+
+    if not region_is_empty(destination_region) and (not should_overwrite_existing_music()) then
+        destination_region:ReleaseMusic() -- clear memory
+        return false -- and go home
+    end
+    -- otherwise carry on ...
+    destination_region:PasteMusic()   -- paste the copy
+    destination_region:ReleaseMusic() -- and release memory
+    for layer_number = 2, 4 do     -- clear out LAYERS 2-4
+        layer.clear(destination_region, layer_number)
+    end
+
+    -- mute / set to % size / delete articulations / freeze stems
+    for entry in eachentrysaved(destination_region) do
+        if entry:IsNote() and config.mute_cuenotes then
+            entry.Playback = false
+        end
+        entry:SetNoteDetailFlag(true)
+        local entry_mod = finale.FCEntryAlterMod()
+        entry_mod:SetNoteEntry(entry)
+        entry_mod:SetResize(config.cuenote_percent)
+        entry_mod:Save()
+        
+        if not config.copy_articulations and entry:GetArticulationFlag() then
+            for articulation in each(entry:CreateArticulations()) do
+                articulation:DeleteData()
+            end
+            entry:SetArticulationFlag(false)
+        end
+        if config.freeze_up_down > 0 then -- frozen stems requested
+            entry.FreezeStem = true
+            entry.StemUp = (config.freeze_up_down == 1) -- "true" -> upstem, "false" -> downstem
+        end
+    end
+    -- swap layer 1 with cuenote_layer & fix clef
+    layer.swap(destination_region, 1, config.cuenote_layer)
+    if not config.copy_clef then
+        clef.restore_default_clef(destination_region.StartMeasure, destination_region.EndMeasure, destination_staff)
+    end
+
+    -- delete or amend text expressions
+    fix_text_expressions(destination_region)
+    -- check smart shapes
+    if not config.copy_smartshapes or not config.copy_slurs then
+        local marks = finale.FCSmartShapeMeasureMarks()
+        marks:LoadAllForRegion(destination_region, true)
+        for one_mark in each(marks) do
+            local shape = one_mark:CreateSmartShape()
+            if (shape:IsSlur() and not config.copy_slurs) or (not shape:IsSlur() and not config.copy_smartshapes) then
+                shape:DeleteData()
+            end
+        end
+    end
+
+    -- create whole-note rest in layer 1 in each measure
+    for measure = destination_region.StartMeasure, destination_region.EndMeasure do
+        local notecell = finale.FCNoteEntryCell(measure, destination_staff)
+        notecell:Load()
+        local whole_note = notecell:AppendEntriesInLayer(1, 1) --   Append to layer 1, add 1 entry
+        if whole_note then
+            whole_note.Duration = finale.WHOLE_NOTE
+            whole_note.Legality = true
+            whole_note:MakeRest()
+            notecell:Save()
+        end
+    end
+    return true
+end
+
+function new_expression_category(new_name)
+    local ok = false
+    local category_id = 0
+    if not finenv.IsRGPLua then  -- SaveNewWithType only works on RGPLua 0.58+
+        return ok, category_id   -- and crashes on JWLua
+    end
+    local new_category = finale.FCCategoryDef()
+    new_category:Load(finale.DEFAULTCATID_TECHNIQUETEXT)
+    local str = finale.FCString()
+    str.LuaString = new_name
+    new_category:SetName(str)
+    new_category:SetVerticalAlignmentPoint(finale.ALIGNVERT_STAFF_REFERENCE_LINE)
+    new_category:SetVerticalBaselineOffset(30)
+    new_category:SetHorizontalAlignmentPoint(finale.ALIGNHORIZ_CLICKPOS)
+    new_category:SetHorizontalOffset(-18)
+    -- make font slightly smaller than standard TECHNIQUE expression
+    local tfi = new_category:CreateTextFontInfo()
+    tfi.Size = tfi.Size - config.cue_font_smaller
+    new_category:SetTextFontInfo(tfi)
+    
+    ok = new_category:SaveNewWithType(finale.DEFAULTCATID_TECHNIQUETEXT)
+    if ok then
+        category_id = new_category:GetID()
+    end
+    return ok, category_id
+end
+
+function assign_expression_to_staff(staff_number, measure_number, measure_position, expression_id)
+    local new_expression = finale.FCExpression()
+    new_expression:SetStaff(staff_number)
+    new_expression:SetVisible(true)
+    new_expression:SetMeasurePos(measure_position)
+    new_expression:SetScaleWithEntry(false)    -- could possibly be true!  
+    new_expression:SetPartAssignment(true)
+    new_expression:SetScoreAssignment(true)
+    new_expression:SetID(expression_id)
+    new_expression:SaveNewToCell( finale.FCCell(measure_number, staff_number) )
+end
+
+function create_cue_notes()
+	local cue_names = { }	-- compile NAME/ItemNo of all pre-existing CUE_NAME expressions
+    local source_region = finenv.Region()
+    local start_staff = source_region.StartStaff
+    -- declare all other local variables
+    local ok, cd, expression_defs, cat_ID, expression_ID, name_index, destination_staff, new_expression
+
+    if source_region:CalcStaffSpan() > 1 then
+        return show_error("only_one_staff")
+    elseif region_is_empty(source_region) then
+        return show_error("empty_region")
+    end
+    
+    cd = finale.FCCategoryDef()
+    expression_defs = finale.FCTextExpressionDefs()
+	expression_defs:LoadAll()
+
+	-- collate extant cue names
+	for text_def in each(expression_defs) do
+		cd:Load(text_def.CategoryID)
+		if string.find(cd:CreateName().LuaString, config.cue_category_name) then
+			cat_ID = text_def.CategoryID
+			local str = text_def:CreateTextString()
+			str:TrimEnigmaTags()
+			-- save expresion NAME and ItemNo
+			table.insert(cue_names, {str.LuaString, text_def.ItemNo} )
+	    end
+	end
+	-- test for pre-existing names
+	if #cue_names == 0 then
+	    -- create a new Text Expression Category
+	    ok, cat_ID = new_expression_category(config.cue_category_name)
+	    if not ok then -- creation failed
+            return show_error("first_make_expression_category")
+        end
+	end
+	-- choose cue name
+	ok, name_index = choose_name_index(cue_names)
+    if not ok then
+        return
+    end
+	if name_index == 0 then	-- USER wants to provide a new cue name
+		ok, new_expression = new_cue_name(start_staff)
+		if not ok or new_expression == "" then
+            return
+        end
+		expression_ID = create_new_expression(new_expression, cat_ID)
+	else          -- otherwise get the ItemNo of chosen pre-existing expression
+	    expression_ID = cue_names[name_index][2] --([name_index][1] is the item name)
+    end
+    -- choose destination staff
+	ok, destination_staff = choose_destination_staff(start_staff)
+	if not ok then
+        return
+    end
+    -- save revised config file
+    configuration.save_user_settings("cue_notes_create", config)
+    -- make the cue copy
+	if not copy_to_destination(source_region, destination_staff) then
+        return
+    end
+	-- name the cue
+	assign_expression_to_staff(destination_staff, source_region.StartMeasure, 0, expression_ID)
+    -- reset visible selection to original staff
+    source_region:SetInDocument()
+end
+
+create_cue_notes() -- go and do it already

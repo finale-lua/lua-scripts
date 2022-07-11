@@ -1,1 +1,573 @@
-local a,b,c,d=(function(e)local f={[{}]=true}local g;local h={}local require;local i={}g=function(j,k)if not h[j]then h[j]=k end end;require=function(j)local l=i[j]if l then if l==f then return nil end else if not h[j]then if not e then local m=type(j)=='string'and'\"'..j..'\"'or tostring(j)error('Tried to require '..m..', but no such module has been registered')else return e(j)end end;i[j]=f;l=h[j](require,i,g,h)i[j]=l end;return l end;return require,i,g,h end)(require)c("__root",function(require,n,c,d)function plugindef()finaleplugin.Author="Robert Patterson"finaleplugin.Copyright="CC0 https://creativecommons.org/publicdomain/zero/1.0/"finaleplugin.Version="1.0"finaleplugin.Date="July 7, 2021"finaleplugin.CategoryTags="Measure"return"Measure Numbers Reset Vertical","Measure Numbers Reset Vertical","Reset vertical position to default for selected measure numbers."end;local o=require("library.general_library")function measure_numbers_reset_vertical()local p=finale.FCStaffSystems()p:LoadAll()local q=finale.FCMeasureNumberRegions()q:LoadAll()local r=finale.FCParts()r:LoadAll()local s=r:GetCurrent()local t=not s:IsScore()local u=o.get_selected_region_or_whole_doc()local v=finale.FCCells()v:ApplyRegion(u)for w in each(v)do local x=p:FindMeasureNumber(w.Measure)local y=q:FindMeasure(w.Measure)if nil~=x and nil~=y then if o.is_default_measure_number_visible_on_cell(y,w,x,t)then local z=finale.FCSeparateMeasureNumbers()z:LoadAllInCell(w)if z.Count>0 then for A in each(z)do A.VerticalPosition=0;A:Save()end end end end end end;measure_numbers_reset_vertical()end)c("library.general_library",function(require,n,c,d)local o={}function o.finale_version(B,C,D)local E=bit32.bor(bit32.lshift(math.floor(B),24),bit32.lshift(math.floor(C),20))if D then E=bit32.bor(E,math.floor(D))end;return E end;function o.group_overlaps_region(F,G)if G:IsFullDocumentSpan()then return true end;local H=false;local I=finale.FCSystemStaves()I:LoadAllForRegion(G)for J in each(I)do if F:ContainsStaff(J:GetStaff())then H=true;break end end;if not H then return false end;if F.StartMeasure>G.EndMeasure or F.EndMeasure<G.StartMeasure then return false end;return true end;function o.group_is_contained_in_region(F,G)if not G:IsStaffIncluded(F.StartStaff)then return false end;if not G:IsStaffIncluded(F.EndStaff)then return false end;return true end;function o.staff_group_is_multistaff_instrument(F)local K=finale.FCMultiStaffInstruments()K:LoadAll()for L in each(K)do if L:ContainsStaff(F.StartStaff)and L.GroupID==F:GetItemID()then return true end end;return false end;function o.get_selected_region_or_whole_doc()local u=finenv.Region()if u:IsEmpty()then u:SetFullDocument()end;return u end;function o.get_first_cell_on_or_after_page(M)local N=M;local O=finale.FCPage()local P=false;while O:Load(N)do if O:GetFirstSystem()>0 then P=true;break end;N=N+1 end;if P then local Q=finale.FCStaffSystem()Q:Load(O:GetFirstSystem())return finale.FCCell(Q.FirstMeasure,Q.TopStaff)end;local R=finale.FCMusicRegion()R:SetFullDocument()return finale.FCCell(R.EndMeasure,R.EndStaff)end;function o.get_top_left_visible_cell()if not finenv.UI():IsPageView()then local S=finale.FCMusicRegion()S:SetFullDocument()return finale.FCCell(finenv.UI():GetCurrentMeasure(),S.StartStaff)end;return o.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())end;function o.get_top_left_selected_or_visible_cell()local u=finenv.Region()if not u:IsEmpty()then return finale.FCCell(u.StartMeasure,u.StartStaff)end;return o.get_top_left_visible_cell()end;function o.is_default_measure_number_visible_on_cell(y,w,T,t)local U=finale.FCCurrentStaffSpec()if not U:LoadForCell(w,0)then return false end;if y:GetShowOnTopStaff()and w.Staff==T.TopStaff then return true end;if y:GetShowOnBottomStaff()and w.Staff==T:CalcBottomStaff()then return true end;if U.ShowMeasureNumbers then return not y:GetExcludeOtherStaves(t)end;return false end;function o.is_default_number_visible_and_left_aligned(y,w,x,t,V)if y.UseScoreInfoForParts then t=false end;if V and y:GetShowOnMultiMeasureRests(t)then if finale.MNALIGN_LEFT~=y:GetMultiMeasureAlignment(t)then return false end elseif w.Measure==x.FirstMeasure then if not y:GetShowOnSystemStart()then return false end;if finale.MNALIGN_LEFT~=y:GetStartAlignment(t)then return false end else if not y:GetShowMultiples(t)then return false end;if finale.MNALIGN_LEFT~=y:GetMultipleAlignment(t)then return false end end;return o.is_default_measure_number_visible_on_cell(y,w,x,t)end;function o.update_layout(W,X)W=W or 1;X=X or false;local Y=finale.FCPage()if Y:Load(W)then Y:UpdateLayout(X)end end;function o.get_current_part()local r=finale.FCParts()r:LoadAll()return r:GetCurrent()end;function o.get_page_format_prefs()local s=o.get_current_part()local Z=finale.FCPageFormatPrefs()local _=false;if s:IsScore()then _=Z:LoadScore()else _=Z:LoadParts()end;return Z,_ end;local a0=function(a1)local a2=finenv.UI():IsOnWindows()local a3=function(a4,a5)if finenv.UI():IsOnWindows()then return a4 and os.getenv(a4)or""else return a5 and os.getenv(a5)or""end end;local a6=a1 and a3("LOCALAPPDATA","HOME")or a3("COMMONPROGRAMFILES")if not a2 then a6=a6 .."/Library/Application Support"end;a6=a6 .."/SMuFL/Fonts/"return a6 end;function o.get_smufl_font_list()local a7={}local a8=function(a1)local a6=a0(a1)local a9=function()if finenv.UI():IsOnWindows()then return io.popen('dir "'..a6 ..'" /b /ad')else return io.popen('ls "'..a6 ..'"')end end;local aa=function(ab)local ac=finale.FCString()ac.LuaString=ab;return finenv.UI():IsFontAvailable(ac)end;for ab in a9():lines()do if not ab:find("%.")then ab=ab:gsub(" Bold","")ab=ab:gsub(" Italic","")local ac=finale.FCString()ac.LuaString=ab;if a7[ab]or aa(ab)then a7[ab]=a1 and"user"or"system"end end end end;a8(true)a8(false)return a7 end;function o.get_smufl_metadata_file(ad)if not ad then ad=finale.FCFontInfo()ad:LoadFontPrefs(finale.FONTPREF_MUSIC)end;local ae=function(af,ad)local ag=af..ad.Name.."/"..ad.Name..".json"return io.open(ag,"r")end;local ah=ae(a0(true),ad)if ah then return ah end;return ae(a0(false),ad)end;function o.is_font_smufl_font(ad)if not ad then ad=finale.FCFontInfo()ad:LoadFontPrefs(finale.FONTPREF_MUSIC)end;if finenv.RawFinaleVersion>=o.finale_version(27,1)then if nil~=ad.IsSMuFLFont then return ad.IsSMuFLFont end end;local ai=o.get_smufl_metadata_file(ad)if nil~=ai then io.close(ai)return true end;return false end;function o.simple_input(aj,ak)local al=finale.FCString()al.LuaString=""local am=finale.FCString()local an=160;function format_ctrl(ao,ap,aq,ar)ao:SetHeight(ap)ao:SetWidth(aq)am.LuaString=ar;ao:SetText(am)end;title_width=string.len(aj)*6+54;if title_width>an then an=title_width end;text_width=string.len(ak)*6;if text_width>an then an=text_width end;am.LuaString=aj;local as=finale.FCCustomLuaWindow()as:SetTitle(am)local at=as:CreateStatic(0,0)format_ctrl(at,16,an,ak)local au=as:CreateEdit(0,20)format_ctrl(au,20,an,"")as:CreateOkButton()as:CreateCancelButton()function callback(ao)end;as:RegisterHandleCommand(callback)if as:ExecuteModal(nil)==finale.EXECMODAL_OK then al.LuaString=au:GetText(al)return al.LuaString end end;function o.is_finale_object(av)return av and type(av)=="userdata"and av.ClassName and av.GetClassID and true or false end;function o.system_indent_set_to_prefs(x,Z)Z=Z or o.get_page_format_prefs()local aw=finale.FCMeasure()local ax=x.FirstMeasure==1;if not ax and aw:Load(x.FirstMeasure)then if aw.ShowFullNames then ax=true end end;if ax and Z.UseFirstSystemMargins then x.LeftMargin=Z.FirstSystemLeft else x.LeftMargin=Z.SystemLeft end;return x:Save()end;function o.calc_script_name(ay)local az=finale.FCString()if finenv.RunningLuaFilePath then az.LuaString=finenv.RunningLuaFilePath()else az:SetRunningLuaFilePath()end;local aA=finale.FCString()az:SplitToPathAndFile(nil,aA)local E=aA.LuaString;if not ay then E=E:match("(.+)%..+")if not E or E==""then E=aA.LuaString end end;return E end;return o end)return a("__root")
+function plugindef()
+    finaleplugin.Author = "Robert Patterson"
+    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
+    finaleplugin.Version = "1.0"
+    finaleplugin.Date = "July 7, 2021"
+    finaleplugin.CategoryTags = "Measure"
+    return "Measure Numbers Reset Vertical", "Measure Numbers Reset Vertical", "Reset vertical position to default for selected measure numbers."
+end
+
+--[[
+$module Library
+]] --
+local library = {}
+
+--[[
+% finale_version
+
+Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
+this is the internal major Finale version, not the year.
+
+@ major (number) Major Finale version
+@ minor (number) Minor Finale version
+@ [build] (number) zero if omitted
+: (number)
+]]
+function library.finale_version(major, minor, build)
+    local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
+    if build then
+        retval = bit32.bor(retval, math.floor(build))
+    end
+    return retval
+end
+
+--[[
+% group_overlaps_region
+
+Returns true if the input staff group overlaps with the input music region, otherwise false.
+
+@ staff_group (FCGroup)
+@ region (FCMusicRegion)
+: (boolean)
+]]
+function library.group_overlaps_region(staff_group, region)
+    if region:IsFullDocumentSpan() then
+        return true
+    end
+    local staff_exists = false
+    local sys_staves = finale.FCSystemStaves()
+    sys_staves:LoadAllForRegion(region)
+    for sys_staff in each(sys_staves) do
+        if staff_group:ContainsStaff(sys_staff:GetStaff()) then
+            staff_exists = true
+            break
+        end
+    end
+    if not staff_exists then
+        return false
+    end
+    if (staff_group.StartMeasure > region.EndMeasure) or (staff_group.EndMeasure < region.StartMeasure) then
+        return false
+    end
+    return true
+end
+
+--[[
+% group_is_contained_in_region
+
+Returns true if the entire input staff group is contained within the input music region.
+If the start or end staff are not visible in the region, it returns false.
+
+@ staff_group (FCGroup)
+@ region (FCMusicRegion)
+: (boolean)
+]]
+function library.group_is_contained_in_region(staff_group, region)
+    if not region:IsStaffIncluded(staff_group.StartStaff) then
+        return false
+    end
+    if not region:IsStaffIncluded(staff_group.EndStaff) then
+        return false
+    end
+    return true
+end
+
+--[[
+% staff_group_is_multistaff_instrument
+
+Returns true if the entire input staff group is a multistaff instrument.
+
+@ staff_group (FCGroup)
+: (boolean)
+]]
+function library.staff_group_is_multistaff_instrument(staff_group)
+    local multistaff_instruments = finale.FCMultiStaffInstruments()
+    multistaff_instruments:LoadAll()
+    for inst in each(multistaff_instruments) do
+        if inst:ContainsStaff(staff_group.StartStaff) and (inst.GroupID == staff_group:GetItemID()) then
+            return true
+        end
+    end
+    return false
+end
+
+--[[
+% get_selected_region_or_whole_doc
+
+Returns a region that contains the selected region if there is a selection or the whole document if there isn't.
+SIDE-EFFECT WARNING: If there is no selected region, this function also changes finenv.Region() to the whole document.
+
+: (FCMusicRegion)
+]]
+function library.get_selected_region_or_whole_doc()
+    local sel_region = finenv.Region()
+    if sel_region:IsEmpty() then
+        sel_region:SetFullDocument()
+    end
+    return sel_region
+end
+
+--[[
+% get_first_cell_on_or_after_page
+
+Returns the first FCCell at the top of the input page. If the page is blank, it returns the first cell after the input page.
+
+@ page_num (number)
+: (FCCell)
+]]
+function library.get_first_cell_on_or_after_page(page_num)
+    local curr_page_num = page_num
+    local curr_page = finale.FCPage()
+    local got1 = false
+    -- skip over any blank pages
+    while curr_page:Load(curr_page_num) do
+        if curr_page:GetFirstSystem() > 0 then
+            got1 = true
+            break
+        end
+        curr_page_num = curr_page_num + 1
+    end
+    if got1 then
+        local staff_sys = finale.FCStaffSystem()
+        staff_sys:Load(curr_page:GetFirstSystem())
+        return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
+    end
+    -- if we got here there were nothing but blank pages left at the end
+    local end_region = finale.FCMusicRegion()
+    end_region:SetFullDocument()
+    return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
+end
+
+--[[
+% get_top_left_visible_cell
+
+Returns the topmost, leftmost visible FCCell on the screen, or the closest possible estimate of it.
+
+: (FCCell)
+]]
+function library.get_top_left_visible_cell()
+    if not finenv.UI():IsPageView() then
+        local all_region = finale.FCMusicRegion()
+        all_region:SetFullDocument()
+        return finale.FCCell(finenv.UI():GetCurrentMeasure(), all_region.StartStaff)
+    end
+    return library.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())
+end
+
+--[[
+% get_top_left_selected_or_visible_cell
+
+If there is a selection, returns the topmost, leftmost cell in the selected region.
+Otherwise returns the best estimate for the topmost, leftmost currently visible cell.
+
+: (FCCell)
+]]
+function library.get_top_left_selected_or_visible_cell()
+    local sel_region = finenv.Region()
+    if not sel_region:IsEmpty() then
+        return finale.FCCell(sel_region.StartMeasure, sel_region.StartStaff)
+    end
+    return library.get_top_left_visible_cell()
+end
+
+--[[
+% is_default_measure_number_visible_on_cell
+
+Returns true if measure numbers for the input region are visible on the input cell for the staff system.
+
+@ meas_num_region (FCMeasureNumberRegion)
+@ cell (FCCell)
+@ staff_system (FCStaffSystem)
+@ current_is_part (boolean) true if the current view is a linked part, otherwise false
+: (boolean)
+]]
+function library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
+    local staff = finale.FCCurrentStaffSpec()
+    if not staff:LoadForCell(cell, 0) then
+        return false
+    end
+    if meas_num_region:GetShowOnTopStaff() and (cell.Staff == staff_system.TopStaff) then
+        return true
+    end
+    if meas_num_region:GetShowOnBottomStaff() and (cell.Staff == staff_system:CalcBottomStaff()) then
+        return true
+    end
+    if staff.ShowMeasureNumbers then
+        return not meas_num_region:GetExcludeOtherStaves(current_is_part)
+    end
+    return false
+end
+
+--[[
+% is_default_number_visible_and_left_aligned
+
+Returns true if measure number for the input cell is visible and left-aligned.
+
+@ meas_num_region (FCMeasureNumberRegion)
+@ cell (FCCell)
+@ system (FCStaffSystem)
+@ current_is_part (boolean) true if the current view is a linked part, otherwise false
+@ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
+: (boolean)
+]]
+function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part,
+                                                            is_for_multimeasure_rest)
+    if meas_num_region.UseScoreInfoForParts then
+        current_is_part = false
+    end
+    if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultiMeasureAlignment(current_is_part)) then
+            return false
+        end
+    elseif (cell.Measure == system.FirstMeasure) then
+        if not meas_num_region:GetShowOnSystemStart() then
+            return false
+        end
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetStartAlignment(current_is_part)) then
+            return false
+        end
+    else
+        if not meas_num_region:GetShowMultiples(current_is_part) then
+            return false
+        end
+        if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultipleAlignment(current_is_part)) then
+            return false
+        end
+    end
+    return library.is_default_measure_number_visible_on_cell(meas_num_region, cell, system, current_is_part)
+end
+
+--[[
+% update_layout
+
+Updates the page layout.
+
+@ [from_page] (number) page to update from, defaults to 1
+@ [unfreeze_measures] (boolean) defaults to false
+]]
+function library.update_layout(from_page, unfreeze_measures)
+    from_page = from_page or 1
+    unfreeze_measures = unfreeze_measures or false
+    local page = finale.FCPage()
+    if page:Load(from_page) then
+        page:UpdateLayout(unfreeze_measures)
+    end
+end
+
+--[[
+% get_current_part
+
+Returns the currently selected part or score.
+
+: (FCPart)
+]]
+function library.get_current_part()
+    local parts = finale.FCParts()
+    parts:LoadAll()
+    return parts:GetCurrent()
+end
+
+--[[
+% get_page_format_prefs
+
+Returns the default page format prefs for score or parts based on which is currently selected.
+
+: (FCPageFormatPrefs)
+]]
+function library.get_page_format_prefs()
+    local current_part = library.get_current_part()
+    local page_format_prefs = finale.FCPageFormatPrefs()
+    local success = false
+    if current_part:IsScore() then
+        success = page_format_prefs:LoadScore()
+    else
+        success = page_format_prefs:LoadParts()
+    end
+    return page_format_prefs, success
+end
+
+local calc_smufl_directory = function(for_user)
+    local is_on_windows = finenv.UI():IsOnWindows()
+    local do_getenv = function (win_var, mac_var)
+        if finenv.UI():IsOnWindows() then
+            return win_var and os.getenv(win_var) or ""
+        else
+            return mac_var and os.getenv(mac_var) or ""
+        end
+    end
+    local smufl_directory = for_user and do_getenv("LOCALAPPDATA", "HOME") or do_getenv("COMMONPROGRAMFILES")
+    if not is_on_windows then
+        smufl_directory = smufl_directory .. "/Library/Application Support"
+    end
+    smufl_directory = smufl_directory .. "/SMuFL/Fonts/"
+    return smufl_directory
+end
+
+--[[
+% get_smufl_font_list
+
+Returns table of installed SMuFL font names by searching the directory that contains
+the .json files for each font. The table is in the format:
+
+```lua
+<font-name> = "user" | "system"
+```
+
+: (table) an table with SMuFL font names as keys and values "user" or "system"
+]]
+
+function library.get_smufl_font_list()
+    local font_names = {}
+    local add_to_table = function(for_user)
+        local smufl_directory = calc_smufl_directory(for_user)
+        local get_dirs = function()
+            if finenv.UI():IsOnWindows() then
+                return io.popen('dir "'..smufl_directory..'" /b /ad')
+            else
+                return io.popen('ls "'..smufl_directory..'"')
+            end
+        end
+        local is_font_available = function(dir)
+            local fc_dir = finale.FCString()
+            fc_dir.LuaString = dir
+            return finenv.UI():IsFontAvailable(fc_dir)
+        end
+        for dir in get_dirs():lines() do
+            if not dir:find("%.") then
+                dir = dir:gsub(" Bold", "")
+                dir = dir:gsub(" Italic", "")
+                local fc_dir = finale.FCString()
+                fc_dir.LuaString = dir
+                if font_names[dir] or is_font_available(dir) then
+                    font_names[dir] = for_user and "user" or "system"
+                end
+            end
+        end
+    end
+    add_to_table(true)
+    add_to_table(false)
+    return font_names
+end
+
+--[[
+% get_smufl_metadata_file
+
+@ [font_info] (FCFontInfo) if non-nil, the font to search for; if nil, search for the Default Music Font
+: (file handle|nil)
+]]
+function library.get_smufl_metadata_file(font_info)
+    if not font_info then
+        font_info = finale.FCFontInfo()
+        font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
+    end
+
+    local try_prefix = function(prefix, font_info)
+        local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
+        return io.open(file_path, "r")
+    end
+
+    local user_file = try_prefix(calc_smufl_directory(true), font_info)
+    if user_file then
+        return user_file
+    end
+
+    return try_prefix(calc_smufl_directory(false), font_info)
+end
+
+--[[
+% is_font_smufl_font
+
+@ [font_info] (FCFontInfo) if non-nil, the font to check; if nil, check the Default Music Font
+: (boolean)
+]]
+function library.is_font_smufl_font(font_info)
+    if not font_info then
+        font_info = finale.FCFontInfo()
+        font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
+    end
+
+    if finenv.RawFinaleVersion >= library.finale_version(27, 1) then
+        if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
+            return font_info.IsSMuFLFont
+        end
+    end
+
+    local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
+    if nil ~= smufl_metadata_file then
+        io.close(smufl_metadata_file)
+        return true
+    end
+    return false
+end
+
+--[[
+% simple_input
+
+Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
+
+@ [title] (string) the title of the input dialog box
+@ [text] (string) descriptive text above the edit field
+: string
+]]
+function library.simple_input(title, text)
+    local return_value = finale.FCString()
+    return_value.LuaString = ""
+    local str = finale.FCString()
+    local min_width = 160
+    --
+    function format_ctrl(ctrl, h, w, st)
+        ctrl:SetHeight(h)
+        ctrl:SetWidth(w)
+        str.LuaString = st
+        ctrl:SetText(str)
+    end -- function format_ctrl
+    --
+    title_width = string.len(title) * 6 + 54
+    if title_width > min_width then
+        min_width = title_width
+    end
+    text_width = string.len(text) * 6
+    if text_width > min_width then
+        min_width = text_width
+    end
+    --
+    str.LuaString = title
+    local dialog = finale.FCCustomLuaWindow()
+    dialog:SetTitle(str)
+    local descr = dialog:CreateStatic(0, 0)
+    format_ctrl(descr, 16, min_width, text)
+    local input = dialog:CreateEdit(0, 20)
+    format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    --
+    function callback(ctrl)
+    end -- callback
+    --
+    dialog:RegisterHandleCommand(callback)
+    --
+    if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
+        return_value.LuaString = input:GetText(return_value)
+        -- print(return_value.LuaString)
+        return return_value.LuaString
+        -- OK button was pressed
+    end
+end -- function simple_input
+
+--[[
+% is_finale_object
+
+Attempts to determine if an object is a Finale object through ducktyping
+
+@ object (__FCBase)
+: (bool)
+]]
+function library.is_finale_object(object)
+    -- All finale objects implement __FCBase, so just check for the existence of __FCBase methods
+    return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
+end
+
+--[[
+% system_indent_set_to_prefs
+
+Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
+The page preferences may be provided optionally to avoid loading them for each call.
+
+@ system (FCStaffSystem)
+@ [page_format_prefs] (FCPageFormatPrefs) page format preferences to use, if supplied.
+: (boolean) `true` if the system was successfully updated.
+]]
+function library.system_indent_set_to_prefs(system, page_format_prefs)
+    page_format_prefs = page_format_prefs or library.get_page_format_prefs()
+    local first_meas = finale.FCMeasure()
+    local is_first_system = (system.FirstMeasure == 1)
+    if (not is_first_system) and first_meas:Load(system.FirstMeasure) then
+        if first_meas.ShowFullNames then
+            is_first_system = true
+        end
+    end
+    if is_first_system and page_format_prefs.UseFirstSystemMargins then
+        system.LeftMargin = page_format_prefs.FirstSystemLeft
+    else
+        system.LeftMargin = page_format_prefs.SystemLeft
+    end
+    return system:Save()
+end
+
+
+--[[
+% calc_script_name
+
+Returns the running script name, with or without extension.
+
+@ [include_extension] (boolean) Whether to include the file extension in the return value: `false` if omitted
+: (string) The name of the current running script.
+]]
+function library.calc_script_name(include_extension)
+    local fc_string = finale.FCString()
+    if finenv.RunningLuaFilePath then
+        -- Use finenv.RunningLuaFilePath() if available because it doesn't ever get overwritten when retaining state.
+        fc_string.LuaString = finenv.RunningLuaFilePath()
+    else
+        -- This code path is only taken by JW Lua (and very early versions of RGP Lua).
+        -- SetRunningLuaFilePath is not reliable when retaining state, so later versions use finenv.RunningLuaFilePath.
+        fc_string:SetRunningLuaFilePath()
+    end
+    local filename_string = finale.FCString()
+    fc_string:SplitToPathAndFile(nil, filename_string)
+    local retval = filename_string.LuaString
+    if not include_extension then
+        retval = retval:match("(.+)%..+")
+        if not retval or retval == "" then
+            retval = filename_string.LuaString
+        end
+    end
+    return retval
+end
+
+
+
+
+
+function measure_numbers_reset_vertical()
+    local systems = finale.FCStaffSystems()
+    systems:LoadAll()
+    local meas_num_regions = finale.FCMeasureNumberRegions()
+    meas_num_regions:LoadAll()
+    local parts = finale.FCParts()
+    parts:LoadAll()
+    local current_part = parts:GetCurrent()
+    local current_is_part = not current_part:IsScore()
+    local sel_region = library.get_selected_region_or_whole_doc()
+
+    local cells = finale.FCCells()
+    cells:ApplyRegion(sel_region)
+    for cell in each(cells) do
+        local system = systems:FindMeasureNumber(cell.Measure)
+        local meas_num_region = meas_num_regions:FindMeasure(cell.Measure)
+        if (nil ~= system) and (nil ~= meas_num_region) then
+            if library.is_default_measure_number_visible_on_cell(meas_num_region, cell, system, current_is_part) then
+                local sep_nums = finale.FCSeparateMeasureNumbers()
+                sep_nums:LoadAllInCell(cell)
+                if (sep_nums.Count > 0) then
+                    for sep_num in each(sep_nums) do
+                        sep_num.VerticalPosition = 0
+                        sep_num:Save()
+                    end
+                end
+            end
+        end
+    end
+end
+
+measure_numbers_reset_vertical()
