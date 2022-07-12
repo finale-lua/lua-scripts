@@ -1,11 +1,11 @@
 RGP Lua Development Environment
 ===============================
 
-_RGP Lua_ is compatible with any external text editor or IDE. The only requirement is that the script you are developing has to have been configured in the [RGP Lua Configuration Window](/docs/rgp-lua/rgp-lua-configuration) and be visible in Finale's plugin window. This can be done before you have actually added any code to the script.
+_RGP Lua_ is compatible with any external text editor or IDE. The only requirement is that the script you are developing has to have been configured in the [RGP Lua Configuration Window](/docs/rgp-lua/rgp-lua-configuration) and be visible in Finale's plugin menu. This can be done before you have actually added any code to the script.
 
-Two common development environments for Lua are [Visual Studio Code](https://code.visualstudio.com/) and [ZeroBrane Studio](https://studio.zerobrane.com/). Both have their advantages and drawbacks, and both were useful in the development of _RGP Lua_. Each have extensive documentation pages that need not be replicated here. These instructions focus on setting up debugging in ZeroBrane Studio because it is very easy to set up and use.
+Two common development environments for Lua are [Visual Studio Code](https://code.visualstudio.com/) and [ZeroBrane Studio](https://studio.zerobrane.com/). Both have their advantages and drawbacks, and both were useful in the development of _RGP Lua_. Each has extensive documentation pages that need not be replicated here. These instructions focus on setting up debugging in ZeroBrane Studio because it is very easy to set up and use.
 
-One of the effects of the “Enable Debugging” option in _RGP Lua_ is to pre-embed [`luasocket`](https://aiq0.github.io/luasocket/index.html) library in the Lua machine before calling the script. Many of the solutions for debugging embedded Lua over the years have used this library for communicating between the host program and the IDE.
+One of the effects of the “Enable Debugging” option in _RGP Lua_ is to pre-embed the [`luasocket`](https://aiq0.github.io/luasocket/index.html) library in the Lua machine before calling the script. Many of the solutions for debugging embedded Lua over the years have used this library for communicating between the host program and the IDE.
 
 The debugging solution presented here uses the script `mobdebug.lua` within ZeroBrane Studio.
 

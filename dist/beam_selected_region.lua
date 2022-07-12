@@ -4,9 +4,10 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.1"
-    finaleplugin.Date = "June 12, 2020"
+    finaleplugin.Version = "2.0"
+    finaleplugin.Date = "May 17, 2022"
     finaleplugin.CategoryTags = "Note"
+    finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         This script beams together any notes or rests in the selected region that can
         be beamed together and breaks beams that cross into or out of the selected
@@ -17,18 +18,32 @@ function plugindef()
 
         It does *not* create beams over barlines.
 
+        By default, the plugin installs two menu options, one to beam the selected region and
+        the other to unbeam the selected region. You can instead unbeam all notes in the selected region
+        by invoking the "Beam Selected Region" menu option with the Option key pressed (macOS) or
+        the Shift key pressed. This is identical to invoking the "Unbeam Selected Region" menu option.
+
         This script could be particularly useful if you assign it a keystroke using a keyboard macro utility.
+    ]]
+    finaleplugin.AdditionalMenuOptions = [[
+        Unbeam Selected Region
+    ]]
+    finaleplugin.AdditionalDescriptions = [[
+        Unbeam Selected Region
+    ]]
+    finaleplugin.AdditionalPrefixes = [[
+        do_unbeam = true
     ]]
     return "Beam Selected Region", "Beam Selected Region", "Beam Selected Region"
 end
 
 --[[
 $module Note Entry
-]]
+]] --
 local note_entry = {}
 
 --[[
-% get_music_region(entry)
+% get_music_region
 
 Returns an intance of `FCMusicRegion` that corresponds to the metric location of the input note entry.
 
@@ -47,10 +62,10 @@ function note_entry.get_music_region(entry)
     return exp_region
 end
 
---entry_metrics can be omitted, in which case they are constructed and released here
---return entry_metrics, loaded_here
+-- entry_metrics can be omitted, in which case they are constructed and released here
+-- return entry_metrics, loaded_here
 local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
-    if nil ~= entry_metrics then
+    if entry_metrics then
         return entry_metrics, false
     end
     entry_metrics = finale.FCEntryMetrics()
@@ -61,7 +76,7 @@ local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
 end
 
 --[[
-% get_evpu_notehead_height(entry)
+% get_evpu_notehead_height
 
 Returns the calculated height of the notehead rectangle.
 
@@ -77,7 +92,7 @@ function note_entry.get_evpu_notehead_height(entry)
 end
 
 --[[
-% get_top_note_position(entry, entry_metrics)
+% get_top_note_position
 
 Returns the vertical page coordinate of the top of the notehead rectangle, not including the stem.
 
@@ -98,7 +113,7 @@ function note_entry.get_top_note_position(entry, entry_metrics)
         local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
         if nil ~= cell_metrics then
             local evpu_height = note_entry.get_evpu_notehead_height(entry)
-            local scaled_height = math.floor(((cell_metrics.StaffScaling*evpu_height)/10000) + 0.5)
+            local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
             retval = entry_metrics.BottomPosition + scaled_height
             cell_metrics:FreeMetrics()
         end
@@ -110,7 +125,7 @@ function note_entry.get_top_note_position(entry, entry_metrics)
 end
 
 --[[
-% get_bottom_note_position(entry, entry_metrics)
+% get_bottom_note_position
 
 Returns the vertical page coordinate of the bottom of the notehead rectangle, not including the stem.
 
@@ -131,7 +146,7 @@ function note_entry.get_bottom_note_position(entry, entry_metrics)
         local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
         if nil ~= cell_metrics then
             local evpu_height = note_entry.get_evpu_notehead_height(entry)
-            local scaled_height = math.floor(((cell_metrics.StaffScaling*evpu_height)/10000) + 0.5)
+            local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
             retval = entry_metrics.TopPosition - scaled_height
             cell_metrics:FreeMetrics()
         end
@@ -143,7 +158,7 @@ function note_entry.get_bottom_note_position(entry, entry_metrics)
 end
 
 --[[
-% calc_widths(entry)
+% calc_widths
 
 Get the widest left-side notehead width and widest right-side notehead width.
 
@@ -175,7 +190,7 @@ end
 -- with the primary notehead rectangle.
 
 --[[
-% calc_left_of_all_noteheads(entry)
+% calc_left_of_all_noteheads
 
 Calculates the handle offset for an expression with "Left of All Noteheads" horizontal positioning.
 
@@ -191,7 +206,7 @@ function note_entry.calc_left_of_all_noteheads(entry)
 end
 
 --[[
-% calc_left_of_primary_notehead(entry)
+% calc_left_of_primary_notehead
 
 Calculates the handle offset for an expression with "Left of Primary Notehead" horizontal positioning.
 
@@ -203,7 +218,7 @@ function note_entry.calc_left_of_primary_notehead(entry)
 end
 
 --[[
-% calc_center_of_all_noteheads(entry)
+% calc_center_of_all_noteheads
 
 Calculates the handle offset for an expression with "Center of All Noteheads" horizontal positioning.
 
@@ -220,7 +235,7 @@ function note_entry.calc_center_of_all_noteheads(entry)
 end
 
 --[[
-% calc_center_of_primary_notehead(entry)
+% calc_center_of_primary_notehead
 
 Calculates the handle offset for an expression with "Center of Primary Notehead" horizontal positioning.
 
@@ -236,7 +251,7 @@ function note_entry.calc_center_of_primary_notehead(entry)
 end
 
 --[[
-% calc_stem_offset(entry)
+% calc_stem_offset
 
 Calculates the offset of the stem from the left edge of the notehead rectangle. Eventually the PDK Framework may be able to provide this instead.
 
@@ -252,7 +267,7 @@ function note_entry.calc_stem_offset(entry)
 end
 
 --[[
-% calc_right_of_all_noteheads(entry)
+% calc_right_of_all_noteheads
 
 Calculates the handle offset for an expression with "Right of All Noteheads" horizontal positioning.
 
@@ -268,7 +283,7 @@ function note_entry.calc_right_of_all_noteheads(entry)
 end
 
 --[[
-% calc_note_at_index(entry, note_index)
+% calc_note_at_index
 
 This function assumes `for note in each(note_entry)` always iterates in the same direction.
 (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
@@ -289,7 +304,7 @@ function note_entry.calc_note_at_index(entry, note_index)
 end
 
 --[[
-% stem_sign(entry)
+% stem_sign
 
 This is useful for many x,y positioning fields in Finale that mirror +/-
 based on stem direction.
@@ -305,7 +320,7 @@ function note_entry.stem_sign(entry)
 end
 
 --[[
-% duplicate_note(note)
+% duplicate_note
 
 @ note (FCNote)
 : (FCNote | nil) reference to added FCNote or `nil` if not success
@@ -322,7 +337,7 @@ function note_entry.duplicate_note(note)
 end
 
 --[[
-% delete_note(note)
+% delete_note
 
 Removes the specified FCNote from its associated FCNoteEntry.
 
@@ -342,13 +357,33 @@ function note_entry.delete_note(note)
     finale.FCNoteheadMod():EraseAt(note)
     finale.FCPercussionNoteMod():EraseAt(note)
     finale.FCTablatureNoteMod():EraseAt(note)
-    --finale.FCTieMod():EraseAt(note)  -- FCTieMod is not currently lua supported, but leave this here in case it ever is
+    if finale.FCTieMod then -- added in RGP Lua 0.62
+        finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+        finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
+    end
 
     return entry:DeleteNote(note)
 end
 
 --[[
-% calc_spans_number_of_octaves(entry)
+% calc_pitch_string
+
+Calculates the pitch string of a note for display purposes.
+
+@ note (FCNote)
+: (string) display string for note
+]]
+
+function note_entry.calc_pitch_string(note)
+    local pitch_string = finale.FCString()
+    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+    local key_signature = cell:GetKeySignature()
+    note:GetString(pitch_string, key_signature, false, false)
+    return pitch_string
+end
+
+--[[
+% calc_spans_number_of_octaves
 
 Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).
 
@@ -364,7 +399,7 @@ function note_entry.calc_spans_number_of_octaves(entry)
 end
 
 --[[
-% add_augmentation_dot(entry)
+% add_augmentation_dot
 
 Adds an augentation dot to the entry. This works even if the entry already has one or more augmentation dots.
 
@@ -376,7 +411,7 @@ function note_entry.add_augmentation_dot(entry)
 end
 
 --[[
-% get_next_same_v(entry)
+% get_next_same_v
 
 Returns the next entry in the same V1 or V2 as the input entry.
 If the input entry is V2, only the current V2 launch is searched.
@@ -402,23 +437,23 @@ function note_entry.get_next_same_v(entry)
 end
 
 --[[
-% hide_stem(entry)
+% hide_stem
 
 Hides the stem of the entry by replacing it with Shape 0.
 
 @ entry (FCNoteEntry) the entry to process
 ]]
 function note_entry.hide_stem(entry)
-    local stem = finale.FCCustomStemMod()        
+    local stem = finale.FCCustomStemMod()
     stem:SetNoteEntry(entry)
     stem:UseUpStemData(entry:CalcStemUp())
     if stem:LoadFirst() then
-        stem.ShapeID = 0    
+        stem.ShapeID = 0
         stem:Save()
     else
         stem.ShapeID = 0
         stem:SaveNew()
-    end   
+    end
 end
 
 
@@ -442,8 +477,10 @@ function beam_selected_region()
         if not isV2 then
             first_in_beam_v2 = true
         end
-        if entry:GetDuration() < 1024 then -- less than quarter note duration
-            if (not isV2 and first_in_beam) or (isV2 and first_in_beam_v2) then
+        if entry:GetDuration() < finale.QUARTER_NOTE then -- less than quarter note duration
+            if do_unbeam then
+                entry:SetBeamBeat(true)
+            elseif (not isV2 and first_in_beam) or (isV2 and first_in_beam_v2) then
                 entry:SetBeamBeat(true)
                 if not isV2 then
                     first_in_beam = false
@@ -454,12 +491,14 @@ function beam_selected_region()
                 entry:SetBeamBeat(false)
             end
             local next_entry = note_entry.get_next_same_v(entry)
-            if (nil ~= next_entry) and (next_entry:GetDuration() < 1024) and
-                not finenv.Region():IsEntryPosWithin(next_entry) then
+            if (nil ~= next_entry) and (next_entry:GetDuration() < finale.QUARTER_NOTE) and not finenv.Region():IsEntryPosWithin(next_entry) then
                 next_entry:SetBeamBeat(true)
             end
         end
     end
 end
 
+if do_unbeam == nil then
+    do_unbeam = finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
+end
 beam_selected_region()

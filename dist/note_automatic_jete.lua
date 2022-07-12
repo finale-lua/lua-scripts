@@ -60,11 +60,11 @@ end
 
 --[[
 $module Note Entry
-]]
+]] --
 local note_entry = {}
 
 --[[
-% get_music_region(entry)
+% get_music_region
 
 Returns an intance of `FCMusicRegion` that corresponds to the metric location of the input note entry.
 
@@ -83,10 +83,10 @@ function note_entry.get_music_region(entry)
     return exp_region
 end
 
---entry_metrics can be omitted, in which case they are constructed and released here
---return entry_metrics, loaded_here
+-- entry_metrics can be omitted, in which case they are constructed and released here
+-- return entry_metrics, loaded_here
 local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
-    if nil ~= entry_metrics then
+    if entry_metrics then
         return entry_metrics, false
     end
     entry_metrics = finale.FCEntryMetrics()
@@ -97,7 +97,7 @@ local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
 end
 
 --[[
-% get_evpu_notehead_height(entry)
+% get_evpu_notehead_height
 
 Returns the calculated height of the notehead rectangle.
 
@@ -113,7 +113,7 @@ function note_entry.get_evpu_notehead_height(entry)
 end
 
 --[[
-% get_top_note_position(entry, entry_metrics)
+% get_top_note_position
 
 Returns the vertical page coordinate of the top of the notehead rectangle, not including the stem.
 
@@ -134,7 +134,7 @@ function note_entry.get_top_note_position(entry, entry_metrics)
         local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
         if nil ~= cell_metrics then
             local evpu_height = note_entry.get_evpu_notehead_height(entry)
-            local scaled_height = math.floor(((cell_metrics.StaffScaling*evpu_height)/10000) + 0.5)
+            local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
             retval = entry_metrics.BottomPosition + scaled_height
             cell_metrics:FreeMetrics()
         end
@@ -146,7 +146,7 @@ function note_entry.get_top_note_position(entry, entry_metrics)
 end
 
 --[[
-% get_bottom_note_position(entry, entry_metrics)
+% get_bottom_note_position
 
 Returns the vertical page coordinate of the bottom of the notehead rectangle, not including the stem.
 
@@ -167,7 +167,7 @@ function note_entry.get_bottom_note_position(entry, entry_metrics)
         local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
         if nil ~= cell_metrics then
             local evpu_height = note_entry.get_evpu_notehead_height(entry)
-            local scaled_height = math.floor(((cell_metrics.StaffScaling*evpu_height)/10000) + 0.5)
+            local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
             retval = entry_metrics.TopPosition - scaled_height
             cell_metrics:FreeMetrics()
         end
@@ -179,7 +179,7 @@ function note_entry.get_bottom_note_position(entry, entry_metrics)
 end
 
 --[[
-% calc_widths(entry)
+% calc_widths
 
 Get the widest left-side notehead width and widest right-side notehead width.
 
@@ -211,7 +211,7 @@ end
 -- with the primary notehead rectangle.
 
 --[[
-% calc_left_of_all_noteheads(entry)
+% calc_left_of_all_noteheads
 
 Calculates the handle offset for an expression with "Left of All Noteheads" horizontal positioning.
 
@@ -227,7 +227,7 @@ function note_entry.calc_left_of_all_noteheads(entry)
 end
 
 --[[
-% calc_left_of_primary_notehead(entry)
+% calc_left_of_primary_notehead
 
 Calculates the handle offset for an expression with "Left of Primary Notehead" horizontal positioning.
 
@@ -239,7 +239,7 @@ function note_entry.calc_left_of_primary_notehead(entry)
 end
 
 --[[
-% calc_center_of_all_noteheads(entry)
+% calc_center_of_all_noteheads
 
 Calculates the handle offset for an expression with "Center of All Noteheads" horizontal positioning.
 
@@ -256,7 +256,7 @@ function note_entry.calc_center_of_all_noteheads(entry)
 end
 
 --[[
-% calc_center_of_primary_notehead(entry)
+% calc_center_of_primary_notehead
 
 Calculates the handle offset for an expression with "Center of Primary Notehead" horizontal positioning.
 
@@ -272,7 +272,7 @@ function note_entry.calc_center_of_primary_notehead(entry)
 end
 
 --[[
-% calc_stem_offset(entry)
+% calc_stem_offset
 
 Calculates the offset of the stem from the left edge of the notehead rectangle. Eventually the PDK Framework may be able to provide this instead.
 
@@ -288,7 +288,7 @@ function note_entry.calc_stem_offset(entry)
 end
 
 --[[
-% calc_right_of_all_noteheads(entry)
+% calc_right_of_all_noteheads
 
 Calculates the handle offset for an expression with "Right of All Noteheads" horizontal positioning.
 
@@ -304,7 +304,7 @@ function note_entry.calc_right_of_all_noteheads(entry)
 end
 
 --[[
-% calc_note_at_index(entry, note_index)
+% calc_note_at_index
 
 This function assumes `for note in each(note_entry)` always iterates in the same direction.
 (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
@@ -325,7 +325,7 @@ function note_entry.calc_note_at_index(entry, note_index)
 end
 
 --[[
-% stem_sign(entry)
+% stem_sign
 
 This is useful for many x,y positioning fields in Finale that mirror +/-
 based on stem direction.
@@ -341,7 +341,7 @@ function note_entry.stem_sign(entry)
 end
 
 --[[
-% duplicate_note(note)
+% duplicate_note
 
 @ note (FCNote)
 : (FCNote | nil) reference to added FCNote or `nil` if not success
@@ -358,7 +358,7 @@ function note_entry.duplicate_note(note)
 end
 
 --[[
-% delete_note(note)
+% delete_note
 
 Removes the specified FCNote from its associated FCNoteEntry.
 
@@ -378,13 +378,33 @@ function note_entry.delete_note(note)
     finale.FCNoteheadMod():EraseAt(note)
     finale.FCPercussionNoteMod():EraseAt(note)
     finale.FCTablatureNoteMod():EraseAt(note)
-    --finale.FCTieMod():EraseAt(note)  -- FCTieMod is not currently lua supported, but leave this here in case it ever is
+    if finale.FCTieMod then -- added in RGP Lua 0.62
+        finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+        finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
+    end
 
     return entry:DeleteNote(note)
 end
 
 --[[
-% calc_spans_number_of_octaves(entry)
+% calc_pitch_string
+
+Calculates the pitch string of a note for display purposes.
+
+@ note (FCNote)
+: (string) display string for note
+]]
+
+function note_entry.calc_pitch_string(note)
+    local pitch_string = finale.FCString()
+    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+    local key_signature = cell:GetKeySignature()
+    note:GetString(pitch_string, key_signature, false, false)
+    return pitch_string
+end
+
+--[[
+% calc_spans_number_of_octaves
 
 Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).
 
@@ -400,7 +420,7 @@ function note_entry.calc_spans_number_of_octaves(entry)
 end
 
 --[[
-% add_augmentation_dot(entry)
+% add_augmentation_dot
 
 Adds an augentation dot to the entry. This works even if the entry already has one or more augmentation dots.
 
@@ -412,7 +432,7 @@ function note_entry.add_augmentation_dot(entry)
 end
 
 --[[
-% get_next_same_v(entry)
+% get_next_same_v
 
 Returns the next entry in the same V1 or V2 as the input entry.
 If the input entry is V2, only the current V2 launch is searched.
@@ -438,40 +458,39 @@ function note_entry.get_next_same_v(entry)
 end
 
 --[[
-% hide_stem(entry)
+% hide_stem
 
 Hides the stem of the entry by replacing it with Shape 0.
 
 @ entry (FCNoteEntry) the entry to process
 ]]
 function note_entry.hide_stem(entry)
-    local stem = finale.FCCustomStemMod()        
+    local stem = finale.FCCustomStemMod()
     stem:SetNoteEntry(entry)
     stem:UseUpStemData(entry:CalcStemUp())
     if stem:LoadFirst() then
-        stem.ShapeID = 0    
+        stem.ShapeID = 0
         stem:Save()
     else
         stem.ShapeID = 0
         stem:SaveNew()
-    end   
+    end
 end
 
 
 
 --[[
 $module Articulation
-]]
-
+]] --
 local articulation = {}
 
 --[[
 $module Note Entry
-]]
+]] --
 local note_entry = {}
 
 --[[
-% get_music_region(entry)
+% get_music_region
 
 Returns an intance of `FCMusicRegion` that corresponds to the metric location of the input note entry.
 
@@ -490,10 +509,10 @@ function note_entry.get_music_region(entry)
     return exp_region
 end
 
---entry_metrics can be omitted, in which case they are constructed and released here
---return entry_metrics, loaded_here
+-- entry_metrics can be omitted, in which case they are constructed and released here
+-- return entry_metrics, loaded_here
 local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
-    if nil ~= entry_metrics then
+    if entry_metrics then
         return entry_metrics, false
     end
     entry_metrics = finale.FCEntryMetrics()
@@ -504,7 +523,7 @@ local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
 end
 
 --[[
-% get_evpu_notehead_height(entry)
+% get_evpu_notehead_height
 
 Returns the calculated height of the notehead rectangle.
 
@@ -520,7 +539,7 @@ function note_entry.get_evpu_notehead_height(entry)
 end
 
 --[[
-% get_top_note_position(entry, entry_metrics)
+% get_top_note_position
 
 Returns the vertical page coordinate of the top of the notehead rectangle, not including the stem.
 
@@ -541,7 +560,7 @@ function note_entry.get_top_note_position(entry, entry_metrics)
         local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
         if nil ~= cell_metrics then
             local evpu_height = note_entry.get_evpu_notehead_height(entry)
-            local scaled_height = math.floor(((cell_metrics.StaffScaling*evpu_height)/10000) + 0.5)
+            local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
             retval = entry_metrics.BottomPosition + scaled_height
             cell_metrics:FreeMetrics()
         end
@@ -553,7 +572,7 @@ function note_entry.get_top_note_position(entry, entry_metrics)
 end
 
 --[[
-% get_bottom_note_position(entry, entry_metrics)
+% get_bottom_note_position
 
 Returns the vertical page coordinate of the bottom of the notehead rectangle, not including the stem.
 
@@ -574,7 +593,7 @@ function note_entry.get_bottom_note_position(entry, entry_metrics)
         local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
         if nil ~= cell_metrics then
             local evpu_height = note_entry.get_evpu_notehead_height(entry)
-            local scaled_height = math.floor(((cell_metrics.StaffScaling*evpu_height)/10000) + 0.5)
+            local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
             retval = entry_metrics.TopPosition - scaled_height
             cell_metrics:FreeMetrics()
         end
@@ -586,7 +605,7 @@ function note_entry.get_bottom_note_position(entry, entry_metrics)
 end
 
 --[[
-% calc_widths(entry)
+% calc_widths
 
 Get the widest left-side notehead width and widest right-side notehead width.
 
@@ -618,7 +637,7 @@ end
 -- with the primary notehead rectangle.
 
 --[[
-% calc_left_of_all_noteheads(entry)
+% calc_left_of_all_noteheads
 
 Calculates the handle offset for an expression with "Left of All Noteheads" horizontal positioning.
 
@@ -634,7 +653,7 @@ function note_entry.calc_left_of_all_noteheads(entry)
 end
 
 --[[
-% calc_left_of_primary_notehead(entry)
+% calc_left_of_primary_notehead
 
 Calculates the handle offset for an expression with "Left of Primary Notehead" horizontal positioning.
 
@@ -646,7 +665,7 @@ function note_entry.calc_left_of_primary_notehead(entry)
 end
 
 --[[
-% calc_center_of_all_noteheads(entry)
+% calc_center_of_all_noteheads
 
 Calculates the handle offset for an expression with "Center of All Noteheads" horizontal positioning.
 
@@ -663,7 +682,7 @@ function note_entry.calc_center_of_all_noteheads(entry)
 end
 
 --[[
-% calc_center_of_primary_notehead(entry)
+% calc_center_of_primary_notehead
 
 Calculates the handle offset for an expression with "Center of Primary Notehead" horizontal positioning.
 
@@ -679,7 +698,7 @@ function note_entry.calc_center_of_primary_notehead(entry)
 end
 
 --[[
-% calc_stem_offset(entry)
+% calc_stem_offset
 
 Calculates the offset of the stem from the left edge of the notehead rectangle. Eventually the PDK Framework may be able to provide this instead.
 
@@ -695,7 +714,7 @@ function note_entry.calc_stem_offset(entry)
 end
 
 --[[
-% calc_right_of_all_noteheads(entry)
+% calc_right_of_all_noteheads
 
 Calculates the handle offset for an expression with "Right of All Noteheads" horizontal positioning.
 
@@ -711,7 +730,7 @@ function note_entry.calc_right_of_all_noteheads(entry)
 end
 
 --[[
-% calc_note_at_index(entry, note_index)
+% calc_note_at_index
 
 This function assumes `for note in each(note_entry)` always iterates in the same direction.
 (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
@@ -732,7 +751,7 @@ function note_entry.calc_note_at_index(entry, note_index)
 end
 
 --[[
-% stem_sign(entry)
+% stem_sign
 
 This is useful for many x,y positioning fields in Finale that mirror +/-
 based on stem direction.
@@ -748,7 +767,7 @@ function note_entry.stem_sign(entry)
 end
 
 --[[
-% duplicate_note(note)
+% duplicate_note
 
 @ note (FCNote)
 : (FCNote | nil) reference to added FCNote or `nil` if not success
@@ -765,7 +784,7 @@ function note_entry.duplicate_note(note)
 end
 
 --[[
-% delete_note(note)
+% delete_note
 
 Removes the specified FCNote from its associated FCNoteEntry.
 
@@ -785,13 +804,33 @@ function note_entry.delete_note(note)
     finale.FCNoteheadMod():EraseAt(note)
     finale.FCPercussionNoteMod():EraseAt(note)
     finale.FCTablatureNoteMod():EraseAt(note)
-    --finale.FCTieMod():EraseAt(note)  -- FCTieMod is not currently lua supported, but leave this here in case it ever is
+    if finale.FCTieMod then -- added in RGP Lua 0.62
+        finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+        finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
+    end
 
     return entry:DeleteNote(note)
 end
 
 --[[
-% calc_spans_number_of_octaves(entry)
+% calc_pitch_string
+
+Calculates the pitch string of a note for display purposes.
+
+@ note (FCNote)
+: (string) display string for note
+]]
+
+function note_entry.calc_pitch_string(note)
+    local pitch_string = finale.FCString()
+    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+    local key_signature = cell:GetKeySignature()
+    note:GetString(pitch_string, key_signature, false, false)
+    return pitch_string
+end
+
+--[[
+% calc_spans_number_of_octaves
 
 Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).
 
@@ -807,7 +846,7 @@ function note_entry.calc_spans_number_of_octaves(entry)
 end
 
 --[[
-% add_augmentation_dot(entry)
+% add_augmentation_dot
 
 Adds an augentation dot to the entry. This works even if the entry already has one or more augmentation dots.
 
@@ -819,7 +858,7 @@ function note_entry.add_augmentation_dot(entry)
 end
 
 --[[
-% get_next_same_v(entry)
+% get_next_same_v
 
 Returns the next entry in the same V1 or V2 as the input entry.
 If the input entry is V2, only the current V2 launch is searched.
@@ -845,30 +884,30 @@ function note_entry.get_next_same_v(entry)
 end
 
 --[[
-% hide_stem(entry)
+% hide_stem
 
 Hides the stem of the entry by replacing it with Shape 0.
 
 @ entry (FCNoteEntry) the entry to process
 ]]
 function note_entry.hide_stem(entry)
-    local stem = finale.FCCustomStemMod()        
+    local stem = finale.FCCustomStemMod()
     stem:SetNoteEntry(entry)
     stem:UseUpStemData(entry:CalcStemUp())
     if stem:LoadFirst() then
-        stem.ShapeID = 0    
+        stem.ShapeID = 0
         stem:Save()
     else
         stem.ShapeID = 0
         stem:SaveNew()
-    end   
+    end
 end
 
 
 
 
 --[[
-% delete_from_entry_by_char_num(entry, char_num)
+% delete_from_entry_by_char_num
 
 Removes any articulation assignment that has the specified character as its above-character.
 
@@ -886,7 +925,7 @@ function articulation.delete_from_entry_by_char_num(entry, char_num)
 end
 
 --[[
-% is_note_side(artic, curr_pos)
+% is_note_side
 
 Uses `FCArticulation.CalcMetricPos` to determine if the input articulation is on the note-side.
 
@@ -908,19 +947,18 @@ function articulation.is_note_side(artic, curr_pos)
     end
     if entry:CalcStemUp() then
         local bot_pos = note_entry.get_bottom_note_position(entry)
-        bot_pos = math.floor(((10000*bot_pos)/cell_metrics.StaffScaling) + 0.5)
+        bot_pos = math.floor(((10000 * bot_pos) / cell_metrics.StaffScaling) + 0.5)
         return curr_pos.Y <= bot_pos
     else
         local top_pos = note_entry.get_top_note_position(entry)
-        top_pos = math.floor(((10000*top_pos)/cell_metrics.StaffScaling) + 0.5)
+        top_pos = math.floor(((10000 * top_pos) / cell_metrics.StaffScaling) + 0.5)
         return curr_pos.Y >= top_pos
     end
     return false
 end
 
-
 --[[
-% calc_main_character_dimensions(artic)
+% calc_main_character_dimensions
 
 Uses `FCTextMetrics:LoadArticulation` to determine the dimensions of the main character
 
@@ -939,16 +977,18 @@ end
 
 --  Author: Robert Patterson
 --  Date: March 5, 2021
-
 --[[
 $module Configuration
 
-This library implements a UTF-8 text file scheme for configuration as follows:
+This library implements a UTF-8 text file scheme for configuration and user settings as follows:
 
 - Comments start with `--`
 - Leading, trailing, and extra whitespace is ignored
 - Each parameter is named and delimited as follows:
-`<parameter-name> = <parameter-value>`
+
+```
+<parameter-name> = <parameter-value>
+```
 
 Parameter values may be:
 
@@ -971,9 +1011,73 @@ left_dynamic_cushion 		= 12		--evpus
 right_dynamic_cushion		= -6		--evpus
 ```
 
-Configuration files must be placed in a subfolder called `script_settings` within
-the folder of the calling script. Each script that has a configuration file
-defines its own configuration file name.
+## Configuration Files
+
+Configuration files provide a way for power users to modify script behavior without
+having to modify the script itself. Some users track their changes to their configuration files,
+so scripts should not create or modify them programmatically.
+
+- The user creates each configuration file in a subfolder called `script_settings` within
+the folder of the calling script.
+- Each script that has a configuration file defines its own configuration file name.
+- It is entirely appropriate over time for scripts to transition from configuration files to user settings,
+but this requires implementing a user interface to modify the user settings from within the script.
+(See below.)
+
+## User Settings Files
+
+User settings are written by the scripts themselves and reside in the user's preferences folder
+in an appropriately-named location for the operating system. (The naming convention is a detail that the
+configuration library handles for the caller.) If the user settings are to be changed from their defaults,
+the script itself should provide a means to change them. This could be a (preferably optional) dialog box
+or any other mechanism the script author chooses.
+
+User settings are saved in the user's preferences folder (on Mac) or AppData folder (on Windows).
+
+## Merge Process
+
+Files are _merged_ into the passed-in list of default values. They do not _replace_ the list. Each calling script contains
+a table of all the configurable parameters or settings it recognizes along with default values. An example:
+
+`sample.lua:`
+
+```lua
+parameters = {
+   x = 1,
+   y = 2,
+   z = 3
+}
+
+configuration.get_parameters(parameters, "script.config.txt")
+
+for k, v in pairs(parameters) do
+   print(k, v)
+end
+```
+
+Suppose the `script.config.text` file is as follows:
+
+```
+y = 4
+q = 6
+```
+
+The returned parameters list is:
+
+
+```lua
+parameters = {
+   x = 1,       -- remains the default value passed in
+   y = 4,       -- replaced value from the config file
+   z = 3        -- remains the default value passed in
+}
+```
+
+The `q` parameter in the config file is ignored because the input paramater list
+had no `q` parameter.
+
+This approach allows total flexibility for the script add to or modify its list of parameters
+without having to worry about older configuration files or user settings affecting it.
 ]]
 
 local configuration = {}
@@ -984,7 +1088,7 @@ local parameter_delimiter = "="
 local path_delimiter = "/"
 
 local file_exists = function(file_path)
-    local f = io.open(file_path,"r")
+    local f = io.open(file_path, "r")
     if nil ~= f then
         io.close(f)
         return true
@@ -992,15 +1096,13 @@ local file_exists = function(file_path)
     return false
 end
 
-local strip_leading_trailing_whitespace = function (str)
+local strip_leading_trailing_whitespace = function(str)
     return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
 end
 
-local parse_parameter -- forward function declaration
-
 local parse_table = function(val_string)
     local ret_table = {}
-    for element in val_string:gmatch('[^,%s]+') do  -- lua pattern magic taken from the Internet
+    for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
         local parsed_element = parse_parameter(element)
         table.insert(ret_table, parsed_element)
     end
@@ -1008,11 +1110,11 @@ local parse_table = function(val_string)
 end
 
 parse_parameter = function(val_string)
-    if '"' == val_string:sub(1,1) and '"' == val_string:sub(#val_string,#val_string) then -- double-quote string
-        return string.gsub(val_string, '"(.+)"', "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
-    elseif "'" == val_string:sub(1,1) and "'" == val_string:sub(#val_string,#val_string) then -- single-quote string
+    if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
+        return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
+    elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
         return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
-    elseif "{" == val_string:sub(1,1) and "}" == val_string:sub(#val_string,#val_string) then
+    elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
         return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
     elseif "true" == val_string then
         return true
@@ -1022,61 +1124,142 @@ parse_parameter = function(val_string)
     return tonumber(val_string)
 end
 
-local get_parameters_from_file = function(file_name)
-    local parameters = {}
+local get_parameters_from_file = function(file_path, parameter_list)
+    local file_parameters = {}
 
-    local path = finale.FCString()
-    path:SetRunningLuaFolderPath()
-    local file_path = path.LuaString .. path_delimiter .. file_name
     if not file_exists(file_path) then
-        return parameters
+        return false
     end
 
     for line in io.lines(file_path) do
         local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
         if nil ~= comment_at then
-            line = string.sub(line, 1, comment_at-1)
+            line = string.sub(line, 1, comment_at - 1)
         end
         local delimiter_at = string.find(line, parameter_delimiter, 1, true)
         if nil ~= delimiter_at then
-            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at-1))
-            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at+1))
-            parameters[name] = parse_parameter(val_string)
+            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
+            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
+            file_parameters[name] = parse_parameter(val_string)
         end
     end
-    
-    return parameters
+
+    for param_name, _ in pairs(parameter_list) do
+        local param_val = file_parameters[param_name]
+        if nil ~= param_val then
+            parameter_list[param_name] = param_val
+        end
+    end
+
+    return true
 end
 
 --[[
-% get_parameters(file_name, parameter_list)
+% get_parameters
 
-Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list` with any that are found in the config file.
+Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list`
+with any that are found in the config file.
 
 @ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
 @ parameter_list (table) a table with the parameter name as key and the default value as value
+: (boolean) true if the file exists
 ]]
 function configuration.get_parameters(file_name, parameter_list)
-    local file_parameters = get_parameters_from_file(script_settings_dir .. path_delimiter .. file_name)
-    if nil ~= file_parameters then
-        for param_name, def_val in pairs(parameter_list) do
-            local param_val = file_parameters[param_name]
-            if nil ~= param_val then
-                parameter_list[param_name] = param_val
-            end
-        end
+    local path = ""
+    if finenv.IsRGPLua then
+        path = finenv.RunningLuaFolderPath()
+    else
+        local str = finale.FCString()
+        str:SetRunningLuaFolderPath()
+        path = str.LuaString
     end
+    local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+    return get_parameters_from_file(file_path, parameter_list)
+end
+
+-- Calculates a filepath in the user's preferences folder using recommended naming conventions
+--
+local calc_preferences_filepath = function(script_name)
+    local str = finale.FCString()
+    str:SetUserOptionsPath()
+    local folder_name = str.LuaString
+    if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+        -- works around bug in SetUserOptionsPath() in JW Lua
+        folder_name = os.getenv("HOME") .. folder_name:sub(2) -- strip '~' and replace with actual folder
+    end
+    if finenv.UI():IsOnWindows() then
+        folder_name = folder_name .. path_delimiter .. "FinaleLua"
+    end
+    local file_path = folder_name .. path_delimiter
+    if finenv.UI():IsOnMac() then
+        file_path = file_path .. "com.finalelua."
+    end
+    file_path = file_path .. script_name .. ".settings.txt"
+    return file_path, folder_name
+end
+
+--[[
+% save_user_settings
+
+Saves the user's preferences for a script from the values provided in `parameter_list`.
+
+@ script_name (string) the name of the script (without an extension)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+: (boolean) true on success
+]]
+function configuration.save_user_settings(script_name, parameter_list)
+    local file_path, folder_path = calc_preferences_filepath(script_name)
+    local file = io.open(file_path, "w")
+    if not file and finenv.UI():IsOnWindows() then -- file not found
+        os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder (windows only, since the folder is guaranteed to exist on mac)
+        file = io.open(file_path, "w") -- try the file again
+    end
+    if not file then -- still couldn't find file
+        return false -- so give up
+    end
+    file:write("-- User settings for " .. script_name .. ".lua\n\n")
+    for k,v in pairs(parameter_list) do -- only number, boolean, or string values
+        if type(v) == "string" then
+            v = "\"" .. v .."\""
+        else
+            v = tostring(v)
+        end
+        file:write(k, " = ", v, "\n")
+    end
+    file:close()
+    return true -- success
+end
+
+--[[
+% get_user_settings
+
+Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
+with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so
+the input string should just be the script name (without an extension).
+
+@ script_name (string) the name of the script (without an extension)
+@ parameter_list (table) a table with the parameter name as key and the default value as value
+@ [create_automatically] (boolean) if true, create the file automatically (default is `true`)
+: (boolean) `true` if the file already existed, `false` if it did not or if it was created automatically
+]]
+function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+    if create_automatically == nil then create_automatically = true end
+    local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+    if not exists and create_automatically then
+        configuration.save_user_settings(script_name, parameter_list)
+    end
+    return exists
 end
 
 
 
 --[[
 $module Library
-]]
+]] --
 local library = {}
 
 --[[
-% finale_version(major, minor, build)
+% finale_version
 
 Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
 this is the internal major Finale version, not the year.
@@ -1095,7 +1278,7 @@ function library.finale_version(major, minor, build)
 end
 
 --[[
-% group_overlaps_region(staff_group, region)
+% group_overlaps_region
 
 Returns true if the input staff group overlaps with the input music region, otherwise false.
 
@@ -1126,7 +1309,7 @@ function library.group_overlaps_region(staff_group, region)
 end
 
 --[[
-% group_is_contained_in_region(staff_group, region)
+% group_is_contained_in_region
 
 Returns true if the entire input staff group is contained within the input music region.
 If the start or end staff are not visible in the region, it returns false.
@@ -1146,7 +1329,7 @@ function library.group_is_contained_in_region(staff_group, region)
 end
 
 --[[
-% staff_group_is_multistaff_instrument(staff_group)
+% staff_group_is_multistaff_instrument
 
 Returns true if the entire input staff group is a multistaff instrument.
 
@@ -1165,7 +1348,7 @@ function library.staff_group_is_multistaff_instrument(staff_group)
 end
 
 --[[
-% get_selected_region_or_whole_doc()
+% get_selected_region_or_whole_doc
 
 Returns a region that contains the selected region if there is a selection or the whole document if there isn't.
 SIDE-EFFECT WARNING: If there is no selected region, this function also changes finenv.Region() to the whole document.
@@ -1181,7 +1364,7 @@ function library.get_selected_region_or_whole_doc()
 end
 
 --[[
-% get_first_cell_on_or_after_page(page_num)
+% get_first_cell_on_or_after_page
 
 Returns the first FCCell at the top of the input page. If the page is blank, it returns the first cell after the input page.
 
@@ -1192,7 +1375,7 @@ function library.get_first_cell_on_or_after_page(page_num)
     local curr_page_num = page_num
     local curr_page = finale.FCPage()
     local got1 = false
-    --skip over any blank pages
+    -- skip over any blank pages
     while curr_page:Load(curr_page_num) do
         if curr_page:GetFirstSystem() > 0 then
             got1 = true
@@ -1205,14 +1388,14 @@ function library.get_first_cell_on_or_after_page(page_num)
         staff_sys:Load(curr_page:GetFirstSystem())
         return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
     end
-    --if we got here there were nothing but blank pages left at the end
+    -- if we got here there were nothing but blank pages left at the end
     local end_region = finale.FCMusicRegion()
     end_region:SetFullDocument()
     return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
 end
 
 --[[
-% get_top_left_visible_cell()
+% get_top_left_visible_cell
 
 Returns the topmost, leftmost visible FCCell on the screen, or the closest possible estimate of it.
 
@@ -1228,7 +1411,7 @@ function library.get_top_left_visible_cell()
 end
 
 --[[
-% get_top_left_selected_or_visible_cell()
+% get_top_left_selected_or_visible_cell
 
 If there is a selection, returns the topmost, leftmost cell in the selected region.
 Otherwise returns the best estimate for the topmost, leftmost currently visible cell.
@@ -1244,7 +1427,7 @@ function library.get_top_left_selected_or_visible_cell()
 end
 
 --[[
-% is_default_measure_number_visible_on_cell (meas_num_region, cell, staff_system, current_is_part)
+% is_default_measure_number_visible_on_cell
 
 Returns true if measure numbers for the input region are visible on the input cell for the staff system.
 
@@ -1254,7 +1437,7 @@ Returns true if measure numbers for the input region are visible on the input ce
 @ current_is_part (boolean) true if the current view is a linked part, otherwise false
 : (boolean)
 ]]
-function library.is_default_measure_number_visible_on_cell (meas_num_region, cell, staff_system, current_is_part)
+function library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
     local staff = finale.FCCurrentStaffSpec()
     if not staff:LoadForCell(cell, 0) then
         return false
@@ -1272,7 +1455,7 @@ function library.is_default_measure_number_visible_on_cell (meas_num_region, cel
 end
 
 --[[
-% is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+% is_default_number_visible_and_left_aligned
 
 Returns true if measure number for the input cell is visible and left-aligned.
 
@@ -1283,7 +1466,8 @@ Returns true if measure number for the input cell is visible and left-aligned.
 @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
 : (boolean)
 ]]
-function library.is_default_number_visible_and_left_aligned (meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part,
+                                                            is_for_multimeasure_rest)
     if meas_num_region.UseScoreInfoForParts then
         current_is_part = false
     end
@@ -1306,11 +1490,11 @@ function library.is_default_number_visible_and_left_aligned (meas_num_region, ce
             return false
         end
     end
-    return library.is_default_measure_number_visible_on_cell (meas_num_region, cell, system, current_is_part)
+    return library.is_default_measure_number_visible_on_cell(meas_num_region, cell, system, current_is_part)
 end
 
 --[[
-% update_layout(from_page, unfreeze_measures)
+% update_layout
 
 Updates the page layout.
 
@@ -1327,20 +1511,20 @@ function library.update_layout(from_page, unfreeze_measures)
 end
 
 --[[
-% get_current_part()
+% get_current_part
 
 Returns the currently selected part or score.
 
 : (FCPart)
 ]]
 function library.get_current_part()
-    local parts = finale.FCParts()
-    parts:LoadAll()
-    return parts:GetCurrent()
+    local part = finale.FCPart(finale.PARTID_CURRENT)
+    part:Load(part.ID)
+    return part
 end
 
 --[[
-% get_page_format_prefs()
+% get_page_format_prefs
 
 Returns the default page format prefs for score or parts based on which is currently selected.
 
@@ -1358,59 +1542,112 @@ function library.get_page_format_prefs()
     return page_format_prefs, success
 end
 
+local calc_smufl_directory = function(for_user)
+    local is_on_windows = finenv.UI():IsOnWindows()
+    local do_getenv = function (win_var, mac_var)
+        if finenv.UI():IsOnWindows() then
+            return win_var and os.getenv(win_var) or ""
+        else
+            return mac_var and os.getenv(mac_var) or ""
+        end
+    end
+    local smufl_directory = for_user and do_getenv("LOCALAPPDATA", "HOME") or do_getenv("COMMONPROGRAMFILES")
+    if not is_on_windows then
+        smufl_directory = smufl_directory .. "/Library/Application Support"
+    end
+    smufl_directory = smufl_directory .. "/SMuFL/Fonts/"
+    return smufl_directory
+end
+
 --[[
-% get_smufl_metadata_file(font_info)
+% get_smufl_font_list
+
+Returns table of installed SMuFL font names by searching the directory that contains
+the .json files for each font. The table is in the format:
+
+```lua
+<font-name> = "user" | "system"
+```
+
+: (table) an table with SMuFL font names as keys and values "user" or "system"
+]]
+
+function library.get_smufl_font_list()
+    local font_names = {}
+    local add_to_table = function(for_user)
+        local smufl_directory = calc_smufl_directory(for_user)
+        local get_dirs = function()
+            if finenv.UI():IsOnWindows() then
+                return io.popen('dir "'..smufl_directory..'" /b /ad')
+            else
+                return io.popen('ls "'..smufl_directory..'"')
+            end
+        end
+        local is_font_available = function(dir)
+            local fc_dir = finale.FCString()
+            fc_dir.LuaString = dir
+            return finenv.UI():IsFontAvailable(fc_dir)
+        end
+        for dir in get_dirs():lines() do
+            if not dir:find("%.") then
+                dir = dir:gsub(" Bold", "")
+                dir = dir:gsub(" Italic", "")
+                local fc_dir = finale.FCString()
+                fc_dir.LuaString = dir
+                if font_names[dir] or is_font_available(dir) then
+                    font_names[dir] = for_user and "user" or "system"
+                end
+            end
+        end
+    end
+    add_to_table(true)
+    add_to_table(false)
+    return font_names
+end
+
+--[[
+% get_smufl_metadata_file
 
 @ [font_info] (FCFontInfo) if non-nil, the font to search for; if nil, search for the Default Music Font
 : (file handle|nil)
 ]]
 function library.get_smufl_metadata_file(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
 
     local try_prefix = function(prefix, font_info)
-        local file_path = prefix .. "/SMuFL/Fonts/" .. font_info.Name .. "/" .. font_info.Name .. ".json"
+        local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
         return io.open(file_path, "r")
     end
 
-    local smufl_json_user_prefix = ""
-    if finenv.UI():IsOnWindows() then
-        smufl_json_user_prefix = os.getenv("LOCALAPPDATA")
-    else
-        smufl_json_user_prefix = os.getenv("HOME") .. "/Library/Application Support"
-    end
-    local user_file = try_prefix(smufl_json_user_prefix, font_info)
-    if nil ~= user_file then
+    local user_file = try_prefix(calc_smufl_directory(true), font_info)
+    if user_file then
         return user_file
     end
 
-    local smufl_json_system_prefix = "/Library/Application Support"
-    if finenv.UI():IsOnWindows() then
-        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES") 
-    end
-    return try_prefix(smufl_json_system_prefix, font_info)
+    return try_prefix(calc_smufl_directory(false), font_info)
 end
 
 --[[
-% is_font_smufl_font(font_info)
+% is_font_smufl_font
 
 @ [font_info] (FCFontInfo) if non-nil, the font to check; if nil, check the Default Music Font
 : (boolean)
 ]]
 function library.is_font_smufl_font(font_info)
-    if nil == font_info then
+    if not font_info then
         font_info = finale.FCFontInfo()
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
-    
+
     if finenv.RawFinaleVersion >= library.finale_version(27, 1) then
         if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
             return font_info.IsSMuFLFont
         end
     end
-    
+
     local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
     if nil ~= smufl_metadata_file then
         io.close(smufl_metadata_file)
@@ -1420,7 +1657,7 @@ function library.is_font_smufl_font(font_info)
 end
 
 --[[
-% simple_input(title, text)
+% simple_input
 
 Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
 
@@ -1429,48 +1666,52 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 : string
 ]]
 function library.simple_input(title, text)
-  local return_value = finale.FCString()
-  return_value.LuaString = ""
-  local str = finale.FCString()
-  local min_width = 160
-  --
-  function format_ctrl(ctrl, h, w, st)
-      ctrl:SetHeight(h)
-      ctrl:SetWidth(w)
-      str.LuaString = st
-      ctrl:SetText(str)
-  end -- function format_ctrl
-  --
-  title_width = string.len(title) * 6 + 54
-  if title_width > min_width then min_width = title_width end
-  text_width = string.len(text) * 6
-  if text_width > min_width then min_width = text_width end
-  --
-  str.LuaString = title
-  local dialog = finale.FCCustomLuaWindow()
-  dialog:SetTitle(str)
-  local descr = dialog:CreateStatic(0, 0)
-  format_ctrl(descr, 16, min_width, text)
-  local input = dialog:CreateEdit(0, 20)
-  format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
-  dialog:CreateOkButton()
-  dialog:CreateCancelButton()
-  --
-  function callback(ctrl)
-  end -- callback
-  --
-  dialog:RegisterHandleCommand(callback)
-  --
-  if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
-    return_value.LuaString = input:GetText(return_value)
-    --print(return_value.LuaString)
-    return return_value.LuaString
-  -- OK button was pressed
-  end
+    local return_value = finale.FCString()
+    return_value.LuaString = ""
+    local str = finale.FCString()
+    local min_width = 160
+    --
+    function format_ctrl(ctrl, h, w, st)
+        ctrl:SetHeight(h)
+        ctrl:SetWidth(w)
+        str.LuaString = st
+        ctrl:SetText(str)
+    end -- function format_ctrl
+    --
+    title_width = string.len(title) * 6 + 54
+    if title_width > min_width then
+        min_width = title_width
+    end
+    text_width = string.len(text) * 6
+    if text_width > min_width then
+        min_width = text_width
+    end
+    --
+    str.LuaString = title
+    local dialog = finale.FCCustomLuaWindow()
+    dialog:SetTitle(str)
+    local descr = dialog:CreateStatic(0, 0)
+    format_ctrl(descr, 16, min_width, text)
+    local input = dialog:CreateEdit(0, 20)
+    format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    --
+    function callback(ctrl)
+    end -- callback
+    --
+    dialog:RegisterHandleCommand(callback)
+    --
+    if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
+        return_value.LuaString = input:GetText(return_value)
+        -- print(return_value.LuaString)
+        return return_value.LuaString
+        -- OK button was pressed
+    end
 end -- function simple_input
 
 --[[
-% is_finale_object(object)
+% is_finale_object
 
 Attempts to determine if an object is a Finale object through ducktyping
 
@@ -1479,10 +1720,66 @@ Attempts to determine if an object is a Finale object through ducktyping
 ]]
 function library.is_finale_object(object)
     -- All finale objects implement __FCBase, so just check for the existence of __FCBase methods
-    return object and type(object) == 'userdata' and object.ClassName and object.GetClassID and true or false
+    return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
+end
+
+--[[
+% system_indent_set_to_prefs
+
+Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
+The page preferences may be provided optionally to avoid loading them for each call.
+
+@ system (FCStaffSystem)
+@ [page_format_prefs] (FCPageFormatPrefs) page format preferences to use, if supplied.
+: (boolean) `true` if the system was successfully updated.
+]]
+function library.system_indent_set_to_prefs(system, page_format_prefs)
+    page_format_prefs = page_format_prefs or library.get_page_format_prefs()
+    local first_meas = finale.FCMeasure()
+    local is_first_system = (system.FirstMeasure == 1)
+    if (not is_first_system) and first_meas:Load(system.FirstMeasure) then
+        if first_meas.ShowFullNames then
+            is_first_system = true
+        end
+    end
+    if is_first_system and page_format_prefs.UseFirstSystemMargins then
+        system.LeftMargin = page_format_prefs.FirstSystemLeft
+    else
+        system.LeftMargin = page_format_prefs.SystemLeft
+    end
+    return system:Save()
 end
 
 
+--[[
+% calc_script_name
+
+Returns the running script name, with or without extension.
+
+@ [include_extension] (boolean) Whether to include the file extension in the return value: `false` if omitted
+: (string) The name of the current running script.
+]]
+function library.calc_script_name(include_extension)
+    local fc_string = finale.FCString()
+    if finenv.RunningLuaFilePath then
+        -- Use finenv.RunningLuaFilePath() if available because it doesn't ever get overwritten when retaining state.
+        fc_string.LuaString = finenv.RunningLuaFilePath()
+    else
+        -- This code path is only taken by JW Lua (and very early versions of RGP Lua).
+        -- SetRunningLuaFilePath is not reliable when retaining state, so later versions use finenv.RunningLuaFilePath.
+        fc_string:SetRunningLuaFilePath()
+    end
+    local filename_string = finale.FCString()
+    fc_string:SplitToPathAndFile(nil, filename_string)
+    local retval = filename_string.LuaString
+    if not include_extension then
+        retval = retval:match("(.+)%..+")
+        if not retval or retval == "" then
+            retval = filename_string.LuaString
+        end
+    end
+    return retval
+end
 
 
 

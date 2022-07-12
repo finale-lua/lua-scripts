@@ -76,12 +76,12 @@ function staff_rename()
 
         table.insert(multi_fullnames, str.LuaString)
         local font_enigma = finale.FCString()
-        font_enigma = font:CreateEnigmaString(NULL)
+        font_enigma = font:CreateEnigmaString(nil)
         table.insert(multi_full_fonts, font_enigma.LuaString)
         --
         str = grp:CreateAbbreviatedNameString()
         font = str:CreateLastFontInfo()
-        font_enigma = font:CreateEnigmaString(NULL)
+        font_enigma = font:CreateEnigmaString(nil)
         enigma_to_accidental(str)
         table.insert(multi_abbnames, str.LuaString)
         table.insert(multi_abb_fonts, font_enigma.LuaString)
@@ -140,13 +140,13 @@ function staff_rename()
         enigma_to_accidental(str)
         table.insert(fullnames, str.LuaString)
         local font_enigma = finale.FCString()
-        font_enigma = font:CreateEnigmaString(NULL)
+        font_enigma = font:CreateEnigmaString(nil)
         table.insert(full_fonts, font_enigma.LuaString)
         str = staff:CreateAbbreviatedNameString()
         font = str:CreateLastFontInfo()
         enigma_to_accidental(str)
         table.insert(abbnames, str.LuaString)
-        font_enigma = font:CreateEnigmaString(NULL)
+        font_enigma = font:CreateEnigmaString(nil)
         table.insert(abb_fonts, font_enigma.LuaString)
         table.insert(staves, sysstaff.Staff)
         ::done::
@@ -176,7 +176,7 @@ function staff_rename()
 
         function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)
             str.LuaString = text
-            local ctrl = ""
+            local ctrl
             if ctrl_type == "button" then
                 ctrl = dialog:CreateButton(x, y)
             elseif ctrl_type == "popup" then
@@ -225,7 +225,7 @@ function staff_rename()
         for i,j in pairs(forms) do
             str.LuaString = forms[i]
             form_select:AddString(str)
-        end   
+        end
         --
         dialog:CreateOkButton()
         dialog:CreateCancelButton()

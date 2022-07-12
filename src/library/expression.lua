@@ -1,6 +1,6 @@
 --[[
 $module Expression
-]]
+]] --
 local expression = {}
 
 local library = require("library.general_library")
@@ -8,7 +8,7 @@ local note_entry = require("library.note_entry")
 local enigma_string = require("library.enigma_string")
 
 --[[
-% get_music_region(exp_assign)
+% get_music_region
 
 Returns a music region corresponding to the input expression assignment.
 
@@ -31,7 +31,7 @@ function expression.get_music_region(exp_assign)
 end
 
 --[[
-% get_associated_entry(exp_assign)
+% get_associated_entry
 
 Returns the note entry associated with the input expression assignment, if any.
 
@@ -54,7 +54,7 @@ function expression.get_associated_entry(exp_assign)
 end
 
 --[[
-% calc_handle_offset_for_smart_shape(exp_assign)
+% calc_handle_offset_for_smart_shape
 
 Returns the horizontal EVPU offset for a smart shape endpoint to align exactly with the handle of the input expression, given that they both have the same EDU position.
 
@@ -89,7 +89,7 @@ function expression.calc_handle_offset_for_smart_shape(exp_assign)
 end
 
 --[[
-% calc_text_width(expression_def, expand_tags)
+% calc_text_width
 
 Returns the text advance width of the input expression definition.
 
@@ -108,7 +108,7 @@ function expression.calc_text_width(expression_def, expand_tags)
 end
 
 --[[
-% is_for_current_part(exp_assign, current_part)
+% is_for_current_part
 
 Returns true if the expression assignment is assigned to the current part or score.
 

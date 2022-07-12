@@ -1,8 +1,7 @@
 --[[
 $module Enigma String
-]]
+]] --
 local enigma_string = {}
-
 local starts_with_font_command = function(string)
     local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
     for i, text_cmd in ipairs(text_cmds) do
@@ -23,7 +22,7 @@ functions that can replace only font, only size, only style, or all three togeth
 ]]
 
 --[[
-% trim_first_enigma_font_tags(string)
+% trim_first_enigma_font_tags
 
 Trims the first font tags and returns the result as an instance of FCFontInfo.
 
@@ -45,7 +44,7 @@ function enigma_string.trim_first_enigma_font_tags(string)
         if string:SplitAt(end_of_tag, font_tag, nil, true) then
             font_info:ParseEnigmaCommand(font_tag)
         end
-        string:DeleteCharactersAt(0, end_of_tag+1)
+        string:DeleteCharactersAt(0, end_of_tag + 1)
         found_tag = true
     end
     if found_tag then
@@ -55,7 +54,7 @@ function enigma_string.trim_first_enigma_font_tags(string)
 end
 
 --[[
-% change_first_string_font (string, font_info)
+% change_first_string_font
 
 Replaces the first enigma font tags of the input enigma string.
 
@@ -63,19 +62,19 @@ Replaces the first enigma font tags of the input enigma string.
 @ font_info (FCFontInfo) replacement font info
 : (boolean) true if success
 ]]
-function enigma_string.change_first_string_font (string, font_info)
+function enigma_string.change_first_string_font(string, font_info)
     local final_text = font_info:CreateEnigmaString(nil)
     local current_font_info = enigma_string.trim_first_enigma_font_tags(string)
     if (current_font_info == nil) or not font_info:IsIdenticalTo(current_font_info) then
         final_text:AppendString(string)
-        string:SetString (final_text)
+        string:SetString(final_text)
         return true
     end
     return false
 end
 
 --[[
-% change_first_text_block_font (text_block, font_info)
+% change_first_text_block_font
 
 Replaces the first enigma font tags of input text block.
 
@@ -83,7 +82,7 @@ Replaces the first enigma font tags of input text block.
 @ font_info (FCFontInfo) replacement font info
 : (boolean) true if success
 ]]
-function enigma_string.change_first_text_block_font (text_block, font_info)
+function enigma_string.change_first_text_block_font(text_block, font_info)
     local new_text = text_block:CreateRawTextString()
     if enigma_string.change_first_string_font(new_text, font_info) then
         text_block:SaveRawTextString(new_text)
@@ -92,51 +91,53 @@ function enigma_string.change_first_text_block_font (text_block, font_info)
     return false
 end
 
---These implement a complete font replacement using the PDK Framework's
---built-in TrimEnigmaFontTags() function.
- 
+-- These implement a complete font replacement using the PDK Framework's
+-- built-in TrimEnigmaFontTags() function.
+
 --[[
-% change_string_font (string, font_info)
+% change_string_font
 
 Changes the entire enigma string to have the input font info.
 
 @ string (FCString) this is both the input and the modified output result
 @ font_info (FCFontInfo) replacement font info
 ]]
-function enigma_string.change_string_font (string, font_info)
+function enigma_string.change_string_font(string, font_info)
     local final_text = font_info:CreateEnigmaString(nil)
     string:TrimEnigmaFontTags()
     final_text:AppendString(string)
-    string:SetString (final_text)
+    string:SetString(final_text)
 end
 
 --[[
-% change_text_block_font (text_block, font_info)
+% change_text_block_font
 
 Changes the entire text block to have the input font info.
 
 @ text_block (FCTextBlock) this is both the input and the modified output result
 @ font_info (FCFontInfo) replacement font info
 ]]
-function enigma_string.change_text_block_font (text_block, font_info)
+function enigma_string.change_text_block_font(text_block, font_info)
     local new_text = text_block:CreateRawTextString()
     enigma_string.change_string_font(new_text, font_info)
     text_block:SaveRawTextString(new_text)
 end
 
 --[[
-% remove_inserts (fcstring, replace_with_generic)
+% remove_inserts
 
-Removes text inserts other than font commands and replaces them with 
+Removes text inserts other than font commands and replaces them with
 
 @ fcstring (FCString) this is both the input and the modified output result
 @ replace_with_generic (boolean) if true, replace the insert with the text of the enigma command
 ]]
-function enigma_string.remove_inserts (fcstring, replace_with_generic)
+function enigma_string.remove_inserts(fcstring, replace_with_generic)
     -- so far this just supports page-level inserts. if this ever needs to work with expressions, we'll need to
     -- add the last three items in the (Finale 26) text insert menu, which are playback inserts not available to page text
-    local text_cmds = {"^arranger", "^composer", "^copyright", "^date", "^description", "^fdate", "^filename",
-                        "^lyricist", "^page", "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages"}
+    local text_cmds = {
+        "^arranger", "^composer", "^copyright", "^date", "^description", "^fdate", "^filename", "^lyricist", "^page",
+        "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages",
+    }
     local lua_string = fcstring.LuaString
     for i, text_cmd in ipairs(text_cmds) do
         local starts_at = string.find(lua_string, text_cmd, 1, true) -- true: do a plain search
@@ -145,14 +146,14 @@ function enigma_string.remove_inserts (fcstring, replace_with_generic)
             if replace_with_generic then
                 replace_with = string.sub(text_cmd, 2)
             end
-            local after_text_at = starts_at+string.len(text_cmd)
+            local after_text_at = starts_at + string.len(text_cmd)
             local next_at = string.find(lua_string, ")", after_text_at, true)
             if nil ~= next_at then
                 next_at = next_at + 1
             else
                 next_at = starts_at
             end
-            lua_string = string.sub(lua_string, 1, starts_at-1) .. replace_with .. string.sub(lua_string, next_at)
+            lua_string = string.sub(lua_string, 1, starts_at - 1) .. replace_with .. string.sub(lua_string, next_at)
             starts_at = string.find(lua_string, text_cmd, 1, true)
         end
     end
@@ -160,7 +161,7 @@ function enigma_string.remove_inserts (fcstring, replace_with_generic)
 end
 
 --[[
-% expand_value_tag(fcstring, value_num)
+% expand_value_tag
 
 Expands the value tag to the input value_num.
 
@@ -168,12 +169,12 @@ Expands the value tag to the input value_num.
 @ value_num (number) the value number to replace the tag with
 ]]
 function enigma_string.expand_value_tag(fcstring, value_num)
-    value_num = math.floor(value_num +0.5) -- in case value_num is not an integer
+    value_num = math.floor(value_num + 0.5) -- in case value_num is not an integer
     fcstring.LuaString = fcstring.LuaString:gsub("%^value%(%)", tostring(value_num))
 end
 
 --[[
-% calc_text_advance_width(inp_string)
+% calc_text_advance_width
 
 Calculates the advance width of the input string taking into account all font and style changes within the string.
 
