@@ -275,9 +275,9 @@ Returns the currently selected part or score.
 : (FCPart)
 ]]
 function library.get_current_part()
-    local parts = finale.FCParts()
-    parts:LoadAll()
-    return parts:GetCurrent()
+    local part = finale.FCPart(finale.PARTID_CURRENT)
+    part:Load(part.ID)
+    return part
 end
 
 --[[

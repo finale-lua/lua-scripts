@@ -17,6 +17,7 @@
 - [stem_sign(entry)](#stem_sign)
 - [duplicate_note(note)](#duplicate_note)
 - [delete_note(note)](#delete_note)
+- [calc_pitch_string(note)](#calc_pitch_string)
 - [calc_spans_number_of_octaves(entry)](#calc_spans_number_of_octaves)
 - [add_augmentation_dot(entry)](#add_augmentation_dot)
 - [get_next_same_v(entry)](#get_next_same_v)
@@ -261,6 +262,22 @@ Removes the specified FCNote from its associated FCNoteEntry.
 | Return type | Description |
 | ----------- | ----------- |
 | `boolean` | true if success |
+
+### calc_pitch_string
+
+```lua
+note_entry.calc_pitch_string(note)
+```
+
+Calculates the pitch string of a note for display purposes.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `note` | `FCNote` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` | display string for note |
 
 ### calc_spans_number_of_octaves
 

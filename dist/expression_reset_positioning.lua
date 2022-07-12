@@ -272,9 +272,9 @@ Returns the currently selected part or score.
 : (FCPart)
 ]]
 function library.get_current_part()
-    local parts = finale.FCParts()
-    parts:LoadAll()
-    return parts:GetCurrent()
+    local part = finale.FCPart(finale.PARTID_CURRENT)
+    part:Load(part.ID)
+    return part
 end
 
 --[[
@@ -808,9 +808,9 @@ Returns the currently selected part or score.
 : (FCPart)
 ]]
 function library.get_current_part()
-    local parts = finale.FCParts()
-    parts:LoadAll()
-    return parts:GetCurrent()
+    local part = finale.FCPart(finale.PARTID_CURRENT)
+    part:Load(part.ID)
+    return part
 end
 
 --[[
@@ -1400,6 +1400,23 @@ function note_entry.delete_note(note)
     end
 
     return entry:DeleteNote(note)
+end
+
+--[[
+% calc_pitch_string
+
+Calculates the pitch string of a note for display purposes.
+
+@ note (FCNote)
+: (string) display string for note
+]]
+
+function note_entry.calc_pitch_string(note)
+    local pitch_string = finale.FCString()
+    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+    local key_signature = cell:GetKeySignature()
+    note:GetString(pitch_string, key_signature, false, false)
+    return pitch_string
 end
 
 --[[
