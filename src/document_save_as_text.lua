@@ -43,9 +43,7 @@ local enigma_string = require('library.enigma_string')
 local mixin = require('library.mixin')
 
 local fcstr = function(str)
-    local retval = finale.FCString()
-    retval.LuaString = str
-    return retval
+    return mixin.FCMString():SetLuaString(str)
 end
 
 function do_save_as_dialog(document)
@@ -55,9 +53,9 @@ function do_save_as_dialog(document)
     document:GetPath(file_path)
     file_path:SplitToPathAndFile(path_name, file_name)
     local full_file_name = file_name.LuaString
-    local extension = finale.FCString()
-    extension.LuaString = file_name.LuaString
-    extension:ExtractFileExtension()
+    local extension = mixin.FCMString()
+                            :SetLuaString(file_name.LuaString)
+                            :ExtractFileExtension()
     if extension.Length > 0 then
         file_name:TruncateAt(file_name:FindLast("."..extension.LuaString))
     end
