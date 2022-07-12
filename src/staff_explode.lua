@@ -15,9 +15,9 @@ function plugindef()
         If you want automatic respacing you must create a `configuration` file. 
         If it does not exist, create a subfolder called `script_settings` in the folder containing this script. 
         In that folder create a plain text file  called `staff_explode.config.txt` containing the line:  
+
         ```
         fix_note_spacing = true -- respace music when the script finishes
-
         ```
     ]]
     return "Staff Explode", "Staff Explode", "Staff Explode onto consecutive single staves"
