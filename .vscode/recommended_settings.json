@@ -17,6 +17,11 @@
         "bit32",
         "utf8"
     ],
+    "files.exclude": {
+        "decoder.lua": true,
+        "mobdebug.lua": true,
+        "sax.lua": true
+    },
     "editor.formatOnSave": true,
     "Lua.diagnostics.disable": [
         "lowercase-global",
