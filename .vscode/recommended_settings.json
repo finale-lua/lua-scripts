@@ -9,7 +9,8 @@
         "eachentry",
         "pairsbykeys",
         "loadall",
-        "bit32"
+        "bit32",
+        "utf8"
     ],
     "editor.formatOnSave": true,
     "Lua.diagnostics.disable": ["lowercase-global", "luadoc-miss-cate-name"],
