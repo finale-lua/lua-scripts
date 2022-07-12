@@ -88,7 +88,7 @@ function layer.swap(region, swap_a, swap_b)
                     if new_cell_frame_hold.SetCellClefChanges then
                         new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
                     end
-                    -- no remedy in JW Lua. The clefs can be changed by a layer swap.
+                    -- No remedy here in JW Lua. The clef list can be changed by a layer swap.
                 else
                     new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
                 end
