@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after CJ Garcia"
     finaleplugin.AuthorURL = "http://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.49"
-    finaleplugin.Date = "2022/07/13"
+    finaleplugin.Version = "v0.51"
+    finaleplugin.Date = "2022/07/14"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin create diminuendo
         Hairpin create swell
@@ -35,68 +35,69 @@ function plugindef()
         articulations and dynamics on each staff in the selection. 
         Dynamics are shifted vertically to match the calculated hairpin positions. 
         Dynamics in the middle of a hairpin span will also be levelled, so 
-        give them an opaque background so they will appear to sit "above" the hairpin. 
+        giving them an opaque background will make them appear to sit "above" the hairpin. 
         The script also considers `trailing` notes and dynamics, just beyond the end of the selected music, 
         since a hairpin is normally expected to end just before the note with the destination dynamic. 
 
-        Hairpin positions in Finale are more accurate when're attached to these "trailing" notes and dynamics, 
-        but this can be problematic if trailing items fall across a barline and especially if they are 
+        Hairpin positions in Finale are more accurate when attached to these "trailing" notes and dynamics, 
+        but this can be a problem if trailing items fall across a barline and especially if they are 
         on a different system from the end of the hairpin. 
-        (Elaine Gould - "Behind Bars" pp.103-106 - outlines contrasting scenarios for hairpin placement 
-        over barlines. Your typical preferences might differ.)
+        (Elaine Gould - "Behind Bars" pp.103-106 - outlines multiple hairpin scenarios in which they  
+        should or shouldn't "attach" across barlines. Your preferences may differ.)
 
-        You will probably get the best results by entering dynamic markings before running the script. 
+        You should get the best results by entering dynamic markings before running the script. 
         It will find the lowest acceptable vertical offset for the hairpin, but if you want it lower than that then 
-        first move one or more dynamic to the lowest point you want. 
-        (Dynamics will not be shifted left-or-right, only up-and-down).
+        first move one or more dynamic to the lowest point you need. 
         
-        You can change the script's default settings by creating a `configuration` file. 
-        To do so, if it doesn't exist, inside the folder containing this script create a subfolder called `script_settings`. 
-        In that folder create a plain text file called `hairpin_creator.config.txt`. 
-        Write in that file single lines of text containing a different value for any or all of the default parameters:
-
-        ```
-        dynamics_match_hairpin = true -- change to "false" to skip moving dynamics vertically
-        include_trailing_items = true -- change to "false" to ignore "trailing" notes and dynamics
-        attach_over_end_barline = true -- change to "false" to NOT attach the right end of hairpins to notes across a barline
-        attach_over_system_break = false -- change to "true" if you WANT to attach the right end hairpins to notes over a system break
-        -- (attach_over_system_break = true will only work if attach_over_end_barline is also true)
-        inclusions_EDU_margin = 256 -- the duration margin (in EDUs) for items INCLUDED beyond the end of the selected music
-        -- (obviously inclusions_EDU_margin is irrelevant if include_trailing_items is false)
-        shape_vert_adjust = 13 -- upward shift of hairpin to match the median-height of dynamic markings
-        below_note_cushion = 56 -- extra vertical space (EVPUs) for the hairpin to leave below the lowest note
-        downstem_cushion = 44 -- extra vertical space (EVPUs) for the hairpin to leave below the lowest downstem
-        below_artic_cushion = 40 -- extra vertical space (EVPUs) for the hairpin to leave below the lowest articulation
-        left_horiz_offset = 10 -- horizontal gap (EVPUs) between the start of the region and the start of the hairpin (if no dynamic)
-        right_horiz_offset = -10 -- horizontal gap (EVPUs) between the end of the hairpin and the end of the region (if no dynamic)
-        left_dynamic_cushion = 16 -- horizontal gap (EVPUs) between the starting dynamic (if present) and the start of the hairpin
-        right_dynamic_cushion = -16 -- horizontal gap (EVPUs) between the end of the hairpin and the ending dynamic (if present)
-        ```
+        To change the script's default settings hold down the `alt` / `option` key when selecting the menu item. 
+        (This may not work when invoking the menu with a keystroke macro program). 
+        For simple hairpin creation that doesn't mess around with trailing barlines try selecting 
+        `dynamics match hairpin` and de-selecting the other options.
     ]]
     return "Hairpin create crescendo", "Hairpin create crescendo", "Create crescendo spanning the selected region"
 end
 
 hairpin_type = hairpin_type or finale.SMARTSHAPE_CRESCENDO
 
+-- global variables for modeless operation
+global_dialog = nil
+global_dialog_options = { -- key value in config, explanation, dialog control holder
+    { "dynamics_match_hairpin", "move dynamics vertically to match hairpin", nil},
+    { "include_trailing_items", "consider notes and dynamics past the end of selection", nil},
+    { "attach_over_end_barline", "attach right end of hairpin across the final barline", nil},
+    { "attach_over_system_break", "attach across final barline even over a system break", nil},
+    { "inclusions_EDU_margin", "(EDUs) the marginal duration for included trailing items", nil},
+    { "shape_vert_adjust",  "(EVPUs) vertical adjustment for hairpin to match dynamics", nil},
+    { "below_note_cushion", "(EVPUs) extra gap below notes", nil},
+    { "downstem_cushion", "(EVPUs) extra gap below down-stems", nil},
+    { "below_artic_cushion", "(EVPUs) extra gap below articulations", nil},
+    { "left_horiz_offset",  "(EVPUs) gap between the start of selection and hairpin (no dynamics)", nil},
+    { "right_horiz_offset",  "(EVPUs) gap between end of hairpin and end of selection (no dynamics)", nil},
+    { "left_dynamic_cushion",  "(EVPUs) gap between first dynamic and start of hairpin", nil},
+    { "right_dynamic_cushion",  "(EVPUs) gap between end of the hairpin and ending dynamic", nil},
+}
+
 local config = {
-    dynamics_match_hairpin = true, -- false
-    include_trailing_items = true, -- false
-    attach_over_end_barline = true, -- true,
-    attach_over_system_break = false, -- true,
+    dynamics_match_hairpin = true,
+    include_trailing_items = true,
+    attach_over_end_barline = true,
+    attach_over_system_break = false,
     inclusions_EDU_margin = 256,
     shape_vert_adjust = 13,
     below_note_cushion = 56,
     downstem_cushion = 44,
     below_artic_cushion = 40,
-    left_horiz_offset = 10, -- basic offset values overridden by dynamic measurements
-    right_horiz_offset = -10,
+    left_horiz_offset = 10,
+    right_horiz_offset = -14,
     left_dynamic_cushion = 16,
     right_dynamic_cushion = -16,
+    window_pos_x = 500,
+    window_pos_y = 200,
+    number_of_booleans = 4, -- number of boolean values at start of global_dialog_options
 }
 
 local configuration = require("library.configuration")
 local expression = require("library.expression")
-configuration.get_parameters("hairpin_creator.config.txt", config) -- overwrite default preferences
 
 local function measure_width(measure_number)
     local m = finale.FCMeasure()
@@ -378,9 +379,17 @@ local function design_staff_swell(rgn, hairpin_shape, lowest_vert)
             if offset < right_offset then
                 right_offset = offset
             end
-            if last_dyn.Measure ~= rgn.EndMeasure and config.attach_over_end_barline then -- matching final dynamic is in the following measure
-                new_end_measure = last_dyn.Measure
-                new_end_postion = last_dyn.MeasurePos
+            if last_dyn.Measure ~= rgn.EndMeasure then
+                if config.attach_over_end_barline then -- matching final dynamic is in the following measure
+                    local dyn_system = calc_measure_system(last_dyn.Measure, last_dyn.Staff)
+                    local rgn_system = calc_measure_system(rgn.EndMeasure, rgn.StartStaff)
+                    if config.attach_over_system_break or dyn_system == rgn_system then
+                        new_end_measure = last_dyn.Measure
+                        new_end_postion = last_dyn.MeasurePos
+                    end
+                else
+                    right_offset = config.right_horiz_offset -- revert to end-of-measure position
+                end
             end
         end
     end
@@ -423,12 +432,16 @@ local function design_staff_hairpin(rgn, hairpin_shape)
             if right_offset > offset then
                 right_offset = offset
             end
-            if last_dyn.Measure ~= rgn.EndMeasure and config.attach_over_end_barline then -- matching final dynamic is in the following measure
-                local dyn_system = calc_measure_system(last_dyn.Measure, last_dyn.Staff)
-                local rgn_system = calc_measure_system(rgn.EndMeasure, rgn.StartStaff)
-                if config.attach_over_system_break or dyn_system == rgn_system then
-                    new_end_measure = last_dyn.Measure
-                    new_end_postion = last_dyn.MeasurePos
+            if last_dyn.Measure ~= rgn.EndMeasure then
+                if config.attach_over_end_barline then -- matching final dynamic is in the following measure
+                    local dyn_system = calc_measure_system(last_dyn.Measure, last_dyn.Staff)
+                    local rgn_system = calc_measure_system(rgn.EndMeasure, rgn.StartStaff)
+                    if config.attach_over_system_break or dyn_system == rgn_system then
+                        new_end_measure = last_dyn.Measure
+                        new_end_postion = last_dyn.MeasurePos
+                    end
+                else
+                    right_offset = config.right_horiz_offset -- revert to end-of-measure position
                 end
             end
         end
@@ -512,9 +525,107 @@ local function create_hairpin(shape_type)
     end
 end
 
--- =================== DO THE WORK! ======================
-if hairpin_type < 0 then -- SWELL / UNSWELL
-    create_swell(hairpin_type == -1) -- true for SWELL, otherwise UNSWELL
-else
-    create_hairpin(hairpin_type) -- preset CRESC / DIM
+function create_user_dialog() -- attempting MODELESS operation
+    local y_step = 20
+    local max_text_width = 400
+    local x_offset = {0, 130, 155, 190}
+    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra horizontal offset for Mac edit boxes
+    local str = finale.FCString()
+    local dialog = finale.FCCustomLuaWindow()
+    str.LuaString = plugindef()
+    dialog:SetTitle(str)
+
+        local function make_static(msg, horiz, vert, width, sepia)
+            local str2 = finale.FCString()
+            local static = dialog:CreateStatic(horiz, vert)
+            str2.LuaString = msg
+            static:SetText(str2)
+            static:SetWidth(width)
+            if sepia then
+                static:SetTextColor(204, 102, 51)
+            end
+        end
+
+    for i, v in ipairs(global_dialog_options) do -- run through config parameters
+        local y_current = y_step * i
+        str.LuaString = string.gsub(v[1], "_", " ")
+        if i <= config.number_of_booleans then -- boolean checkboxes
+            v[3] = dialog:CreateCheckbox(x_offset[1], y_current)
+            v[3]:SetText(str)
+            v[3]:SetWidth(x_offset[3])
+            local checked = config[v[1]] and 1 or 0
+            v[3]:SetCheck(checked)
+            make_static(v[2], x_offset[3], y_current, max_text_width, true) -- parameter explanation
+        else  -- integer value
+            y_current = y_current + 10 -- gap before the integer variables
+            str.LuaString = str.LuaString .. ":"
+            make_static(str.LuaString, x_offset[1], y_current, x_offset[2], false) -- parameter name
+            v[3] = dialog:CreateEdit(x_offset[2], y_current - mac_offset)
+            v[3]:SetInteger(config[v[1]])
+            v[3]:SetWidth(50)
+            make_static(v[2], x_offset[4], y_current, max_text_width, true) -- parameter explanation
+        end
+    end
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    return dialog
 end
+
+function activity_selector()
+    if hairpin_type < 0 then -- SWELL / UNSWELL
+        create_swell(hairpin_type == -1) -- true for SWELL, otherwise UNSWELL
+    else
+        create_hairpin(hairpin_type) -- preset CRESC / DIM
+    end
+end
+
+function on_ok() -- config changed, now do the work
+    for i, v in ipairs(global_dialog_options) do
+        if i > config.number_of_booleans then
+            config[v[1]] = v[3]:GetInteger()
+        else
+            config[v[1]] = (v[3]:GetCheck() == 1) -- "true" for checked
+        end
+    end
+    finenv.StartNewUndoBlock("Hairpin Creator", false)
+    activity_selector() --   ******** DO tHE WORK HERE! ***********
+    if finenv.EndUndoBlock then
+        finenv.EndUndoBlock(true)
+        finenv.Region():Redraw()
+    else
+        finenv.StartNewUndoBlock("Hairpin Creator", true)
+    end
+end
+
+function on_close()
+    global_dialog:StorePosition()
+    config.window_pos_x = global_dialog.StoredX
+    config.window_pos_y = global_dialog.StoredY
+    configuration.save_user_settings("hairpin_creator", config)
+end
+
+function user_changes_configuration()
+    global_dialog = create_user_dialog()
+    if config.window_pos_x ~= nil and config.window_pos_y ~= nil then
+        global_dialog:StorePosition()
+        global_dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
+        global_dialog:RestorePosition()
+    end
+    global_dialog:RegisterHandleOkButtonPressed(on_ok)
+  if global_dialog.RegisterCloseWindow then
+        global_dialog:RegisterCloseWindow(on_close)
+    end
+    finenv.RegisterModelessDialog(global_dialog)
+    global_dialog:ShowModeless()
+end
+
+function action_type()
+    configuration.get_user_settings("hairpin_creator", config) -- overwrite default preferences
+    if finenv.QueryInvokedModifierKeys and finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) then
+        user_changes_configuration()
+    else
+       activity_selector()
+    end
+end
+
+action_type()
