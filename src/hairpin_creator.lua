@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after CJ Garcia"
     finaleplugin.AuthorURL = "http://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.51"
+    finaleplugin.Version = "v0.52"
     finaleplugin.Date = "2022/07/14"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin create diminuendo
@@ -51,8 +51,8 @@ function plugindef()
         
         To change the script's default settings hold down the `alt` / `option` key when selecting the menu item. 
         (This may not work when invoking the menu with a keystroke macro program). 
-        For simple hairpin creation that doesn't mess around with trailing barlines try selecting 
-        `dynamics match hairpin` and de-selecting the other options.
+        For simple hairpins that don't mess around with trailing barlines try selecting 
+        `dynamics_match_hairpin` and de-selecting the other options.
     ]]
     return "Hairpin create crescendo", "Hairpin create crescendo", "Create crescendo spanning the selected region"
 end
@@ -62,7 +62,7 @@ hairpin_type = hairpin_type or finale.SMARTSHAPE_CRESCENDO
 -- global variables for modeless operation
 global_dialog = nil
 global_dialog_options = { -- key value in config, explanation, dialog control holder
-    { "dynamics_match_hairpin", "move dynamics vertically to match hairpin", nil},
+    { "dynamics_match_hairpin", "move dynamics vertically to match hairpin height", nil},
     { "include_trailing_items", "consider notes and dynamics past the end of selection", nil},
     { "attach_over_end_barline", "attach right end of hairpin across the final barline", nil},
     { "attach_over_system_break", "attach across final barline even over a system break", nil},
@@ -91,8 +91,8 @@ local config = {
     right_horiz_offset = -14,
     left_dynamic_cushion = 16,
     right_dynamic_cushion = -16,
-    window_pos_x = 500,
-    window_pos_y = 200,
+    window_pos_x = 0,
+    window_pos_y = 0,
     number_of_booleans = 4, -- number of boolean values at start of global_dialog_options
 }
 
@@ -373,10 +373,10 @@ local function design_staff_swell(rgn, hairpin_shape, lowest_vert)
             end
         end
         local last_dyn = dynamic_list[#dynamic_list]
-        local end_dynamic_gap = duration_gap(last_dyn.Measure, last_dyn.MeasurePos, rgn.EndMeasure, rgn.EndMeasurePos)
-        if math.abs(end_dynamic_gap) < config.inclusions_EDU_margin then
-            local offset = dynamic_horiz_offset(last_dyn, "right")
-            if offset < right_offset then
+        local edu_gap = duration_gap(last_dyn.Measure, last_dyn.MeasurePos, rgn.EndMeasure, rgn.EndMeasurePos)
+        if math.abs(edu_gap) < config.inclusions_EDU_margin then
+            local offset = dynamic_horiz_offset(last_dyn, "right") -- (negative value)
+            if right_offset > offset then
                 right_offset = offset
             end
             if last_dyn.Measure ~= rgn.EndMeasure then
@@ -525,20 +525,20 @@ local function create_hairpin(shape_type)
     end
 end
 
-function create_user_dialog() -- attempting MODELESS operation
+function create_user_dialog() -- MODELESS dialog
     local y_step = 20
-    local max_text_width = 400
+    local max_text_width = 385
     local x_offset = {0, 130, 155, 190}
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra horizontal offset for Mac edit boxes
     local str = finale.FCString()
     local dialog = finale.FCCustomLuaWindow()
-    str.LuaString = plugindef()
+    str.LuaString = "HAIRPIN CREATOR CONFIGURATION"
     dialog:SetTitle(str)
 
         local function make_static(msg, horiz, vert, width, sepia)
             local str2 = finale.FCString()
-            local static = dialog:CreateStatic(horiz, vert)
             str2.LuaString = msg
+            local static = dialog:CreateStatic(horiz, vert)
             static:SetText(str2)
             static:SetWidth(width)
             if sepia then
@@ -558,8 +558,7 @@ function create_user_dialog() -- attempting MODELESS operation
             make_static(v[2], x_offset[3], y_current, max_text_width, true) -- parameter explanation
         else  -- integer value
             y_current = y_current + 10 -- gap before the integer variables
-            str.LuaString = str.LuaString .. ":"
-            make_static(str.LuaString, x_offset[1], y_current, x_offset[2], false) -- parameter name
+            make_static(str.LuaString .. ":", x_offset[1], y_current, x_offset[2], false) -- parameter name
             v[3] = dialog:CreateEdit(x_offset[2], y_current - mac_offset)
             v[3]:SetInteger(config[v[1]])
             v[3]:SetWidth(50)
@@ -579,7 +578,7 @@ function activity_selector()
     end
 end
 
-function on_ok() -- config changed, now do the work
+function on_ok() -- config changed, save prefs and do the work
     for i, v in ipairs(global_dialog_options) do
         if i > config.number_of_booleans then
             config[v[1]] = v[3]:GetInteger()
@@ -587,8 +586,13 @@ function on_ok() -- config changed, now do the work
             config[v[1]] = (v[3]:GetCheck() == 1) -- "true" for checked
         end
     end
+    global_dialog:StorePosition() -- save current dialog window position
+    config.window_pos_x = global_dialog.StoredX
+    config.window_pos_y = global_dialog.StoredY
+    configuration.save_user_settings("hairpin_creator", config)
+
     finenv.StartNewUndoBlock("Hairpin Creator", false)
-    activity_selector() --   ******** DO tHE WORK HERE! ***********
+    activity_selector() --   ******** DO THE WORK HERE! ***********
     if finenv.EndUndoBlock then
         finenv.EndUndoBlock(true)
         finenv.Region():Redraw()
@@ -597,34 +601,24 @@ function on_ok() -- config changed, now do the work
     end
 end
 
-function on_close()
-    global_dialog:StorePosition()
-    config.window_pos_x = global_dialog.StoredX
-    config.window_pos_y = global_dialog.StoredY
-    configuration.save_user_settings("hairpin_creator", config)
-end
-
 function user_changes_configuration()
     global_dialog = create_user_dialog()
-    if config.window_pos_x ~= nil and config.window_pos_y ~= nil then
+    if config.window_pos_x > 0 and config.window_pos_y > 0 then
         global_dialog:StorePosition()
         global_dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
         global_dialog:RestorePosition()
     end
     global_dialog:RegisterHandleOkButtonPressed(on_ok)
-  if global_dialog.RegisterCloseWindow then
-        global_dialog:RegisterCloseWindow(on_close)
-    end
     finenv.RegisterModelessDialog(global_dialog)
     global_dialog:ShowModeless()
 end
 
 function action_type()
-    configuration.get_user_settings("hairpin_creator", config) -- overwrite default preferences
+    configuration.get_user_settings("hairpin_creator", config, true) -- overwrite default preferences
     if finenv.QueryInvokedModifierKeys and finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) then
         user_changes_configuration()
     else
-       activity_selector()
+        activity_selector()
     end
 end
 
