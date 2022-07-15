@@ -62,14 +62,14 @@ function measure_numbers_adjust_for_leadin()
                                                 -- FCCellMetrics did not provide the barline width before v0.59.
                                                 -- Use the value derived from document settings above if we can't get the real width.
                                                 local barline_thickness = default_barline_thickness
-                                                if nil ~= cell_metrics.GetRightBarlineWidth then -- if the property getter exists, then we are at 0.59+
+                                                if cell_metrics.GetRightBarlineWidth then -- if the property getter exists, then we are at 0.59+
                                                     local previous_cell_metrics = finale.FCCellMetrics()
                                                     if previous_cell_metrics:LoadAtCell(finale.FCCell(previous_meas_num, staff)) then
                                                         barline_thickness = previous_cell_metrics.RightBarlineWidth
                                                         previous_cell_metrics:FreeMetrics()
                                                     end
                                                 end
-                                                lead_in = lead_in - barline_thickness
+                                                lead_in = lead_in - barline_thickness + math.floor(barline_thickness/2.0 + 0.5)
                                                 if (0 ~= lead_in) then
                                                     lead_in = lead_in - additional_offset
                                                     -- Finale scales the lead_in by the staff percent, so remove that if any
@@ -79,6 +79,7 @@ function measure_numbers_adjust_for_leadin()
                                                     local horz_percent = cell_metrics.HorizontalStretch / 10000.0
                                                     lead_in = math.floor(lead_in/horz_percent + 0.5)
                                                 end
+                                                lead_in = lead_in + meas_num_region:GetMultipleHorizontalPosition(library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part))
                                             end
                                             cell_metrics:FreeMetrics() -- not sure if this is needed, but it can't hurt
                                         end
