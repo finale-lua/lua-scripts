@@ -4,8 +4,6 @@ import { getInput } from '@actions/core'
 import fs from 'fs-extra'
 
 import { bundleFile } from './bundle'
-import type { LibraryInput } from './prepare-library'
-import { prepareLibrary } from './prepare-library'
 
 const IS_DEV_ENVIRONMENT = process.env.NODE_ENV === 'development'
 const sourcePath = IS_DEV_ENVIRONMENT
@@ -21,20 +19,6 @@ const outputPath = IS_DEV_ENVIRONMENT
 /*
    create bundled library files
     */
-
-const libraryFileNames = fs.readdirSync(libraryPath)
-const libraryRawFiles: LibraryInput = []
-
-libraryFileNames.forEach(fileName => {
-    const name = fileName.replace('.lua', '')
-    const contents = fs.readFileSync(path.join(libraryPath, fileName)).toString()
-    libraryRawFiles.push({
-        fileName: name,
-        contents,
-    })
-})
-
-const library = prepareLibrary(libraryRawFiles)
 
 /*
    remove old bundled files (if they exist)
