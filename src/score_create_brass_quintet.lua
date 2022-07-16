@@ -36,7 +36,7 @@ local function score_create_brass_quintet_score()
     local staves = {}
 
     staves.trumpet_1 = score.create_staff("Trumpet in C 1", "Tpt. 1", finale.FFUUID_TRUMPETC, "treble")
-    staves.trumpet_2 = score.create_staff("Trumpet in C 1", "Tpt. 1", finale.FFUUID_TRUMPETC, "treble")
+    staves.trumpet_2 = score.create_staff("Trumpet in C 2", "Tpt. 2", finale.FFUUID_TRUMPETC, "treble")
     -- Yes, I know, alto clef for horns. Trust me, though, it's better
     -- to read horns in alto clef when viewing the score in concert pitch.
     -- Alto clef fits the horns' concert pitch range perfectly.
