@@ -2,19 +2,19 @@ import { getAllImports, getImport } from './helpers'
 
 describe('detects valid imports', () => {
     const lines: [string, string][] = [
-        ['local library = require("library.file_name")', 'library/file_name.lua'],
-        ['local library = require("Library.file_name")', 'Library/file_name.lua'],
-        ['local library = require("library.articulation")', 'library/articulation.lua'],
-        ['local library = require("library.Articulation")', 'library/Articulation.lua'],
-        ['local library = require("library.articulation") -- no path, no ".lua"', 'library/articulation.lua'],
-        ['library = require("library.articulation")', 'library/articulation.lua'],
-        ['articulation = require("library.articulation")', 'library/articulation.lua'],
-        ['articulation   =    require("library.file_name")', 'library/file_name.lua'],
-        ["articulation   =    require('library.file_name')", 'library/file_name.lua'],
-        ['local library = require("not_library.file_name")', 'not_library/file_name.lua'],
+        ['local library = require("library.file_name")', 'library.file_name'],
+        ['local library = require("Library.file_name")', 'Library.file_name'],
+        ['local library = require("library.articulation")', 'library.articulation'],
+        ['local library = require("library.Articulation")', 'library.Articulation'],
+        ['local library = require("library.articulation") -- no path, no ""', 'library.articulation'],
+        ['library = require("library.articulation")', 'library.articulation'],
+        ['articulation = require("library.articulation")', 'library.articulation'],
+        ['articulation   =    require("library.file_name")', 'library.file_name'],
+        ["articulation   =    require('library.file_name')", 'library.file_name'],
+        ['local library = require("not_library.file_name")', 'not_library.file_name'],
         ['local library = import("library.file_name")', ''],
-        ['local library = require("library.")', 'library.lua'],
-        ['local library = require("file_name")', 'file_name.lua'],
+        ['local library = require("library.")', 'library.'],
+        ['local library = require("file_name")', 'file_name'],
     ]
 
     it.each(lines)('line "%s" imports "%s"', (line, importFile) => {
@@ -25,12 +25,12 @@ describe('detects valid imports', () => {
 })
 
 describe('checks if file imports anything', () => {
-    const lines: [string, Set<string>][] = [
-        ['local library = require("library.file_name")', new Set(['library/file_name.lua'])],
-        ['this is some random text', new Set()],
+    const lines: [string, string[]][] = [
+        ['local library = require("library.file_name")', ['library.file_name']],
+        ['this is some random text', []],
         [
             'local library = require("library.expression")\nlocal library = require("library.articulation")',
-            new Set(['library/expression.lua', 'library/articulation.lua']),
+            ['library.expression', 'library.articulation'],
         ],
     ]
 

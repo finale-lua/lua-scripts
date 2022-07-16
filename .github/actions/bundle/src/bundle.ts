@@ -1,9 +1,11 @@
-import { getAllImports, getImport, getVariableName } from './helpers'
+import fs from 'fs'
+import path from 'path'
+import { getAllImports } from './helpers'
+import { generateLuaRequire, resolveRequiredFile } from './lua-require'
 import { wrapImport } from './wrap-import'
 
 export type ImportedFile = {
-    importedFrom: Set<string>
-    dependencies: Set<string>
+    dependencies: string[]
     wrapped: string
 }
 
@@ -16,16 +18,11 @@ export type Library = {
 
 export const files: ImportedFiles = {}
 
-export const importFileBase = async (
-    name: string,
-    importedFiles: ImportedFiles,
-    fetcher: (name: string) => Promise<string>
-) => {
+export const importFileBase = (name: string, importedFiles: ImportedFiles, fetcher: (name: string) => string) => {
     try {
         if (name in importedFiles) return true
-        const contents = await fetcher(name)
+        const contents = fetcher(resolveRequiredFile(name))
         importedFiles[name] = {
-            importedFrom: new Set(),
             dependencies: getAllImports(contents),
             wrapped: wrapImport(name, contents),
         }
@@ -35,18 +32,34 @@ export const importFileBase = async (
     }
 }
 
-export const bundleFile = (file: string, library: Library): string => {
-    const lines = file.split('\n')
-    const output: string[] = []
-    lines.forEach(line => {
-        const { importedFile, isImport } = getImport(line)
-        if (!isImport && !(importedFile in library)) {
-            output.push(line)
-            return
+export const bundleFileBase = (name: string, importedFiles: ImportedFiles, fetcher: (name: string) => string) => {
+    const fileStack: string[] = []
+    const fileContents = fetcher(name)
+    const importStack: string[] = getAllImports(fileContents)
+    const importedFileNames = new Set<string>()
+
+    while (importStack.length > 0) {
+        const nextImport = importStack.pop() ?? ''
+        if (importedFileNames.has(nextImport)) continue
+        try {
+            importFileBase(nextImport, importedFiles, fetcher)
+            const file = importedFiles[nextImport]
+            if (file) {
+                importStack.push(...file.dependencies)
+                fileStack.push(file.wrapped)
+            }
+        } catch {
+            console.error(`Unresolvable import in file "${name}": ${nextImport}`)
+            process.exitCode = 1
         }
-        const variableName = getVariableName(line)
-        if (library[importedFile])
-            output.push(library[importedFile].contents.replace(/BUNDLED_LIBRARY_VARIABLE_NAME/gu, variableName))
-    })
-    return output.join('\n')
+    }
+
+    if (fileStack.length > 1) fileStack.push(generateLuaRequire())
+    return fileStack.reverse().join('\n\n')
+}
+
+export const bundleFile = (name: string, sourcePath: string): string => {
+    return bundleFileBase(name, files, (fileName: string) =>
+        fs.readFileSync(path.join(sourcePath, fileName)).toString()
+    )
 }
