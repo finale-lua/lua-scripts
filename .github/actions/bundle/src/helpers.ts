@@ -4,12 +4,6 @@ export const getImport = (line: string): { importedFile: string; isImport: boole
     return { importedFile: matches[1], isImport: true }
 }
 
-export const getVariableName = (line: string): string => {
-    const matches = line.match(/^(local )?([a-zA-Z_]+)/u)
-    if (!matches) return ''
-    return matches[2]
-}
-
 export const getAllImports = (file: string): string[] => {
     const imports: Set<string> = new Set()
     const lines = file.split('\n')
