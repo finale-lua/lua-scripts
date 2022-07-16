@@ -1,8 +1,37 @@
-import { getImport, getVariableName } from './helpers'
+import { getAllImports, getImport, getVariableName } from './helpers'
+import { wrapImport } from './wrap-import'
 
+export type ImportedFile = {
+    importedFrom: Set<string>
+    dependencies: Set<string>
+    wrapped: string
+}
+
+export type ImportedFiles = Record<string, ImportedFile | undefined>
 export type Library = {
     [name: string]: {
         contents: string
+    }
+}
+
+export const files: ImportedFiles = {}
+
+export const importFileBase = async (
+    name: string,
+    importedFiles: ImportedFiles,
+    fetcher: (name: string) => Promise<string>
+) => {
+    try {
+        if (name in importedFiles) return true
+        const contents = await fetcher(name)
+        importedFiles[name] = {
+            importedFrom: new Set(),
+            dependencies: getAllImports(contents),
+            wrapped: wrapImport(name, contents),
+        }
+        return true
+    } catch {
+        return false
     }
 }
 

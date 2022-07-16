@@ -1,5 +1,25 @@
-import type { Library } from './bundle'
-import { bundleFile } from './bundle'
+import { ImportedFiles, importFileBase, Library } from './bundle'
+
+describe('importFile', () => {
+    it('files can be imported', async () => {
+        const fetcher = jest.fn(() => Promise.resolve("local hello = require('hello')"))
+        let importedFilesMock: ImportedFiles = {}
+        await importFileBase('my-lib', importedFilesMock, fetcher)
+
+        expect(importedFilesMock['my-lib']).toEqual({
+            importedFrom: new Set(),
+            dependencies: new Set(['hello.lua']),
+            wrapped: ['__imports["my-lib"] = function()', "    local hello = require('hello')", 'end'].join('\n'),
+        })
+    })
+    it('files are imported only once', async () => {
+        const fetcher = jest.fn(() => Promise.resolve("local hello = require('hello')"))
+        let importedFilesMock: ImportedFiles = {}
+        expect(await importFileBase('my-lib', importedFilesMock, fetcher)).toBe(true)
+        expect(await importFileBase('my-lib', importedFilesMock, fetcher)).toBe(true)
+        expect(fetcher).toBeCalledTimes(1)
+    })
+})
 
 const library: Library = {
     articulation: {
@@ -34,7 +54,7 @@ local library = {}
 function library.method()
 end
 `
-    expect(bundleFile(file, library)).toEqual(output)
+    // expect(bundleFile(file, library)).toEqual(output)
 })
 
 it('works with multiple imports', () => {
@@ -58,5 +78,5 @@ function expression.method()
   -- does something
 end
 `
-    expect(bundleFile(file, library)).toEqual(output)
+    // expect(bundleFile(file, library)).toEqual(output)
 })

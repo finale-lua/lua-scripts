@@ -1,7 +1,9 @@
+import { resolveRequiredFile } from './lua-require'
+
 export const getImport = (line: string): { importedFile: string; isImport: boolean } => {
-    const matches = line.match(/require\(["']library\.([A-Z_a-z]+)["']\)/iu)
+    const matches = line.match(/require\(["']([A-Z_a-z.]+)["']\)/iu)
     if (!matches) return { importedFile: '', isImport: false }
-    return { importedFile: matches[1], isImport: true }
+    return { importedFile: resolveRequiredFile(matches[1]), isImport: true }
 }
 
 export const getVariableName = (line: string): string => {
