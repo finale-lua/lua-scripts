@@ -10,11 +10,6 @@ export type ImportedFile = {
 }
 
 export type ImportedFiles = Record<string, ImportedFile | undefined>
-export type Library = {
-    [name: string]: {
-        contents: string
-    }
-}
 
 export const files: ImportedFiles = {}
 
@@ -33,8 +28,8 @@ export const importFileBase = (name: string, importedFiles: ImportedFiles, fetch
 }
 
 export const bundleFileBase = (name: string, importedFiles: ImportedFiles, fetcher: (name: string) => string) => {
-    const fileStack: string[] = []
     const fileContents = fetcher(name)
+    const fileStack: string[] = [fileContents]
     const importStack: string[] = getAllImports(fileContents)
     const importedFileNames = new Set<string>()
 
@@ -44,6 +39,7 @@ export const bundleFileBase = (name: string, importedFiles: ImportedFiles, fetch
         try {
             importFileBase(nextImport, importedFiles, fetcher)
             const file = importedFiles[nextImport]
+            importedFileNames.add(nextImport)
             if (file) {
                 importStack.push(...file.dependencies)
                 fileStack.push(file.wrapped)

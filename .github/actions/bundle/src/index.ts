@@ -10,15 +10,9 @@ const sourcePath = IS_DEV_ENVIRONMENT
     ? path.join('..', '..', '..', 'src')
     : path.join(...getInput('source', { required: true }).split('/'))
 
-const libraryPath = path.join(sourcePath, 'library')
-
 const outputPath = IS_DEV_ENVIRONMENT
     ? path.join('..', '..', '..', 'dist')
     : path.join(...getInput('output', { required: true }).split('/'))
-
-/*
-   create bundled library files
-    */
 
 /*
    remove old bundled files (if they exist)
@@ -35,7 +29,6 @@ const sourceFiles = fs.readdirSync(sourcePath).filter(fileName => fileName.endsW
 
 sourceFiles.forEach(file => {
     if (file.startsWith('personal')) return
-    const contents = fs.readFileSync(path.join(sourcePath, file)).toString()
-    const bundledFile = bundleFile(contents, library)
+    const bundledFile = bundleFile(file, sourcePath)
     fs.writeFileSync(path.join(outputPath, file), bundledFile)
 })
