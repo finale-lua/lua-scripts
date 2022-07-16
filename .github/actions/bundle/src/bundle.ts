@@ -27,7 +27,12 @@ export const importFileBase = (name: string, importedFiles: ImportedFiles, fetch
     }
 }
 
-export const bundleFileBase = (name: string, importedFiles: ImportedFiles, fetcher: (name: string) => string) => {
+export const bundleFileBase = (
+    name: string,
+    importedFiles: ImportedFiles,
+    mixins: string[],
+    fetcher: (name: string) => string
+) => {
     const fileContents = fetcher(name)
     const fileStack: string[] = [fileContents]
     const importStack: string[] = getAllImports(fileContents)
@@ -44,6 +49,7 @@ export const bundleFileBase = (name: string, importedFiles: ImportedFiles, fetch
                 importStack.push(...file.dependencies)
                 fileStack.push(file.wrapped)
             }
+            if (resolveRequiredFile(nextImport) === 'library/mixin.lua') importStack.push(...mixins)
         } catch {
             console.error(`Unresolvable import in file "${name}": ${nextImport}`)
             process.exitCode = 1
@@ -54,8 +60,8 @@ export const bundleFileBase = (name: string, importedFiles: ImportedFiles, fetch
     return fileStack.reverse().join('\n\n')
 }
 
-export const bundleFile = (name: string, sourcePath: string): string => {
-    return bundleFileBase(name, files, (fileName: string) =>
+export const bundleFile = (name: string, sourcePath: string, mixins: string[]): string => {
+    return bundleFileBase(name, files, mixins, (fileName: string) =>
         fs.readFileSync(path.join(sourcePath, fileName)).toString()
     )
 }

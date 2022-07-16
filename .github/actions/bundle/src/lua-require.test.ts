@@ -14,6 +14,7 @@ describe('resolveRequiredFile', () => {
         ['hello.lua', 'hello.lua'],
         ['library.configuration', 'library/configuration.lua'],
         ['library.configuration.lua', 'library/configuration.lua'],
+        ['library.mixin', 'library/mixin.lua'],
         ['mixin.FCMControl', 'mixin/FCMControl.lua'],
         ['im.a.deeply.nested.file', 'im/a/deeply/nested/file.lua'],
         ['hello.', 'hello.lua'],

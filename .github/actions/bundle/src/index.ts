@@ -21,6 +21,19 @@ const outputPath = IS_DEV_ENVIRONMENT
 fs.ensureDirSync(outputPath)
 fs.readdirSync(outputPath).forEach(fileName => fs.removeSync(fileName))
 
+const mixins = fs
+    .readdirSync(path.join(sourcePath, 'mixin'))
+    .filter(fileName => fileName.endsWith('.lua'))
+    .map(file => 'mixin.' + file.replace(/\.lua$/, ''))
+if (fs.pathExistsSync(path.join(sourcePath, 'personal_mixin'))) {
+    mixins.push(
+        ...fs
+            .readdirSync(path.join(sourcePath, 'personal_mixin'))
+            .filter(fileName => fileName.endsWith('.lua'))
+            .map(file => 'personal_mixin.' + file.replace(/\.lua$/, ''))
+    )
+}
+
 /*
    bundle and save source files
     */
@@ -29,6 +42,6 @@ const sourceFiles = fs.readdirSync(sourcePath).filter(fileName => fileName.endsW
 
 sourceFiles.forEach(file => {
     if (file.startsWith('personal')) return
-    const bundledFile = bundleFile(file, sourcePath)
+    const bundledFile = bundleFile(file, sourcePath, mixins)
     fs.writeFileSync(path.join(outputPath, file), bundledFile)
 })
