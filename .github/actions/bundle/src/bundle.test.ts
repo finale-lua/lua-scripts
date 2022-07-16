@@ -2,18 +2,17 @@ import { ImportedFiles, importFileBase, Library } from './bundle'
 
 describe('importFile', () => {
     it('files can be imported', async () => {
-        const fetcher = jest.fn(() => Promise.resolve("local hello = require('hello')"))
+        const fetcher = jest.fn(() => "local hello = require('hello')")
         let importedFilesMock: ImportedFiles = {}
         await importFileBase('my-lib', importedFilesMock, fetcher)
 
         expect(importedFilesMock['my-lib']).toEqual({
-            importedFrom: new Set(),
-            dependencies: new Set(['hello.lua']),
+            dependencies: ['hello'],
             wrapped: ['__imports["my-lib"] = function()', "    local hello = require('hello')", 'end'].join('\n'),
         })
     })
     it('files are imported only once', async () => {
-        const fetcher = jest.fn(() => Promise.resolve("local hello = require('hello')"))
+        const fetcher = jest.fn(() => "local hello = require('hello')")
         let importedFilesMock: ImportedFiles = {}
         expect(await importFileBase('my-lib', importedFilesMock, fetcher)).toBe(true)
         expect(await importFileBase('my-lib', importedFilesMock, fetcher)).toBe(true)
