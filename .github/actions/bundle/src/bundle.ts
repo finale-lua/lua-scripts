@@ -41,8 +41,9 @@ export const bundleFileBase = (
     while (importStack.length > 0) {
         const nextImport = importStack.pop() ?? ''
         if (importedFileNames.has(nextImport)) continue
-        try {
-            importFileBase(nextImport, importedFiles, fetcher)
+
+        const fileFound = importFileBase(nextImport, importedFiles, fetcher)
+        if (fileFound) {
             const file = importedFiles[nextImport]
             importedFileNames.add(nextImport)
             if (file) {
@@ -50,7 +51,7 @@ export const bundleFileBase = (
                 fileStack.push(file.wrapped)
             }
             if (resolveRequiredFile(nextImport) === 'library/mixin.lua') importStack.push(...mixins)
-        } catch {
+        } else {
             console.error(`Unresolvable import in file "${name}": ${nextImport}`)
             process.exitCode = 1
         }
