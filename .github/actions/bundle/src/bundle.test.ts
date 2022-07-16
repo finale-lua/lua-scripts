@@ -27,12 +27,16 @@ describe('bundle', () => {
             'b.lua': "local b = require('b')",
             'c.lua': 'return {}',
             'invalid.lua': "local invalid = require('invalid.import')",
+            'mixin.lua': "local mixin = require('library.mixin')",
+            'library/mixin.lua': 'return {}',
+            'mixin/FCMControl.lua': 'return {}',
+            'mixin/FCMString.lua': 'return {}',
         }
         return files[fileName]
     }
 
     it('bundleFile', () => {
-        const bundle = bundleFileBase('a.lua', {}, fetcher)
+        const bundle = bundleFileBase('a.lua', {}, [], fetcher)
         expect(bundle).toBe(
             [
                 'local __imports = {}',
@@ -56,12 +60,39 @@ describe('bundle', () => {
     })
 
     it('bundleFile with no imports', () => {
-        const bundle = bundleFileBase('c.lua', {}, fetcher)
+        const bundle = bundleFileBase('c.lua', {}, [], fetcher)
         expect(bundle).toBe('return {}')
     })
 
     it('ignore unresolvable imports', () => {
-        const bundle = bundleFileBase('invalid.lua', {}, fetcher)
+        const bundle = bundleFileBase('invalid.lua', {}, [], fetcher)
         expect(bundle).toBe(["local invalid = require('invalid.import')"].join('\n'))
+    })
+
+    it('imports all mixins', () => {
+        const bundle = bundleFileBase('mixin.lua', {}, ['mixin.FCMControl', 'mixin.FCMString'], fetcher)
+        expect(bundle).toBe(
+            [
+                'local __imports = {}',
+                '',
+                'function require(item)',
+                '    return __imports[item]()',
+                'end',
+                '',
+                '__imports["mixin.FCMControl"] = function()',
+                '    return {}',
+                'end',
+                '',
+                '__imports["mixin.FCMString"] = function()',
+                '    return {}',
+                'end',
+                '',
+                '__imports["library.mixin"] = function()',
+                '    return {}',
+                'end',
+                '',
+                "local mixin = require('library.mixin')",
+            ].join('\n')
+        )
     })
 })

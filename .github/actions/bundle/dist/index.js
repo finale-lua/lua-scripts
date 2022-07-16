@@ -4519,7 +4519,7 @@ const importFileBase = (name, importedFiles, fetcher) => {
     }
 };
 exports.importFileBase = importFileBase;
-const bundleFileBase = (name, importedFiles, fetcher) => {
+const bundleFileBase = (name, importedFiles, mixins, fetcher) => {
     var _a;
     const fileContents = fetcher(name);
     const fileStack = [fileContents];
@@ -4537,6 +4537,8 @@ const bundleFileBase = (name, importedFiles, fetcher) => {
                 importStack.push(...file.dependencies);
                 fileStack.push(file.wrapped);
             }
+            if ((0, lua_require_1.resolveRequiredFile)(nextImport) === 'library/mixin.lua')
+                importStack.push(...mixins);
         }
         catch (_b) {
             console.error(`Unresolvable import in file "${name}": ${nextImport}`);
@@ -4548,8 +4550,8 @@ const bundleFileBase = (name, importedFiles, fetcher) => {
     return fileStack.reverse().join('\n\n');
 };
 exports.bundleFileBase = bundleFileBase;
-const bundleFile = (name, sourcePath) => {
-    return (0, exports.bundleFileBase)(name, exports.files, (fileName) => fs_1.default.readFileSync(path_1.default.join(sourcePath, fileName)).toString());
+const bundleFile = (name, sourcePath, mixins) => {
+    return (0, exports.bundleFileBase)(name, exports.files, mixins, (fileName) => fs_1.default.readFileSync(path_1.default.join(sourcePath, fileName)).toString());
 };
 exports.bundleFile = bundleFile;
 
@@ -4610,6 +4612,16 @@ const outputPath = IS_DEV_ENVIRONMENT
     */
 fs_extra_1.default.ensureDirSync(outputPath);
 fs_extra_1.default.readdirSync(outputPath).forEach(fileName => fs_extra_1.default.removeSync(fileName));
+const mixins = fs_extra_1.default
+    .readdirSync(path_1.default.join(sourcePath, 'mixin'))
+    .filter(fileName => fileName.endsWith('.lua'))
+    .map(file => 'mixin.' + file.replace(/\.lua$/, ''));
+if (fs_extra_1.default.pathExistsSync(path_1.default.join(sourcePath, 'personal_mixin'))) {
+    mixins.push(...fs_extra_1.default
+        .readdirSync(path_1.default.join(sourcePath, 'personal_mixin'))
+        .filter(fileName => fileName.endsWith('.lua'))
+        .map(file => 'personal_mixin.' + file.replace(/\.lua$/, '')));
+}
 /*
    bundle and save source files
     */
@@ -4617,7 +4629,7 @@ const sourceFiles = fs_extra_1.default.readdirSync(sourcePath).filter(fileName =
 sourceFiles.forEach(file => {
     if (file.startsWith('personal'))
         return;
-    const bundledFile = (0, bundle_1.bundleFile)(file, sourcePath);
+    const bundledFile = (0, bundle_1.bundleFile)(file, sourcePath, mixins);
     fs_extra_1.default.writeFileSync(path_1.default.join(outputPath, file), bundledFile);
 });
 
