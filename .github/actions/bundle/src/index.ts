@@ -41,7 +41,6 @@ if (fs.pathExistsSync(path.join(sourcePath, 'personal_mixin'))) {
 const sourceFiles = fs.readdirSync(sourcePath).filter(fileName => fileName.endsWith('.lua'))
 
 sourceFiles.forEach(file => {
-    if (file.startsWith('personal')) return
     const bundledFile = bundleFile(file, sourcePath, mixins)
     fs.writeFileSync(path.join(outputPath, file), bundledFile)
 })

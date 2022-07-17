@@ -20,7 +20,8 @@ node_modules
 coverage
 mobdebug.lua
 
-src/personal*
+src/**/personal*
+dist/**/personal*
 
 .vscode/settings.json
 */**/.vscode
