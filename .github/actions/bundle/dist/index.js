@@ -4529,8 +4529,8 @@ const bundleFileBase = (name, importedFiles, mixins, fetcher) => {
         const nextImport = (_a = importStack.pop()) !== null && _a !== void 0 ? _a : '';
         if (importedFileNames.has(nextImport))
             continue;
-        try {
-            (0, exports.importFileBase)(nextImport, importedFiles, fetcher);
+        const fileFound = (0, exports.importFileBase)(nextImport, importedFiles, fetcher);
+        if (fileFound) {
             const file = importedFiles[nextImport];
             importedFileNames.add(nextImport);
             if (file) {
@@ -4540,7 +4540,7 @@ const bundleFileBase = (name, importedFiles, mixins, fetcher) => {
             if ((0, lua_require_1.resolveRequiredFile)(nextImport) === 'library/mixin.lua')
                 importStack.push(...mixins);
         }
-        catch (_b) {
+        else {
             console.error(`Unresolvable import in file "${name}": ${nextImport}`);
             process.exitCode = 1;
         }
@@ -4627,8 +4627,6 @@ if (fs_extra_1.default.pathExistsSync(path_1.default.join(sourcePath, 'personal_
     */
 const sourceFiles = fs_extra_1.default.readdirSync(sourcePath).filter(fileName => fileName.endsWith('.lua'));
 sourceFiles.forEach(file => {
-    if (file.startsWith('personal'))
-        return;
     const bundledFile = (0, bundle_1.bundleFile)(file, sourcePath, mixins);
     fs_extra_1.default.writeFileSync(path_1.default.join(outputPath, file), bundledFile);
 });
