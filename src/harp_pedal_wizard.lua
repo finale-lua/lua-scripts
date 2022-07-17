@@ -177,7 +177,7 @@ function harp()
     end
     if partial then scaleinfo = nil end
     local region = finenv.Region()
-    local error = false
+    local harp_error = false
     local use_tech = false
     local sysstaves = finale.FCSystemStaves()
     sysstaves:LoadScrollView()
@@ -217,7 +217,7 @@ function harp()
     for i,k in pairs(harp_tbl) do
       harp_tbl[i] = trim(harp_tbl[i])
       if string.len(harp_tbl[i]) > 2 then
-        error = true
+        harp_error = true
         goto error1            
       end
       harp_tbl[i] = string.lower(harp_tbl[i])
@@ -234,7 +234,7 @@ function harp()
         or string.sub(harp_tbl[i], -1) == "n" then
           -- then nothing!!!
         else
-          error = true
+          harp_error = true
           goto error1     
         end
       end -- if length is 2...
@@ -255,7 +255,7 @@ function harp()
       elseif harp_tbl[i]:sub(1,1) == "G" then
         G = harp_tbl[i]
       else
-        error = true
+        harp_error = true
         goto error1               
       end -- End string assignments
       count = i        
@@ -265,7 +265,7 @@ function harp()
     pedals_update()
 
     if count > 7 then
-      error = true
+      harp_error = true
       goto error1
     end
 
@@ -377,7 +377,7 @@ function harp()
     end
     if scaleinfo then description.LuaString = description.LuaString.." ("..scaleinfo..")" end
     ::error1::
-    if error then
+    if harp_error then
       local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", NULL)
 --            if result == 2 then harp_dialog() end
     end -- error
@@ -492,7 +492,7 @@ function harp()
 -------
       ::error1::
       finenv.EndUndoBlock(true)
-      if error == true then -- Tried this as if error then, it broke the script
+      if harp_error then
         print("There seems to be a problem with your harp diagram.")
         local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", NULL)
 --                if result == 2 then harp_dialog() end
@@ -504,7 +504,7 @@ function harp()
 
     -------
     function harp_scale(root, scale, diag, chd, partial)
-      local error = false
+      local scale_error = false
       local enharmonic = finale.FCString()
       local scaleinfo = root.." "..scale
       if chd then scaleinfo = root..scale end
@@ -598,8 +598,8 @@ function harp()
               end
             end -- for j
             if not found then
-              error = true
-              goto error
+              scale_error = true
+              goto scale_error
             end
             scale_deg = scale_deg + 1
             last = "B"
@@ -613,8 +613,8 @@ function harp()
               end
             end -- for j
             if not found then
-              error = true
-              goto error
+              scale_error = true
+              goto scale_error
             end
             scale_deg = scale_deg + 1
             last = "C"
@@ -628,8 +628,8 @@ function harp()
               end
             end -- for j
             if not found then
-              error = true
-              goto error
+              scale_error = true
+              goto scale_error
             end
             scale_deg = scale_deg + 1
             last = "D"
@@ -643,8 +643,8 @@ function harp()
               end
             end -- for j
             if not found then
-              error = true
-              goto error
+              scale_error = true
+              goto scale_error
             end
             scale_deg = scale_deg + 1
             last = "E"
@@ -658,8 +658,8 @@ function harp()
               end 
             end -- for j
             if not found then
-              error = true
-              goto error
+              scale_error = true
+              goto scale_error
             end
             scale_deg = scale_deg + 1
             last = "F"
@@ -673,8 +673,8 @@ function harp()
               end
             end -- for j
             if not found then
-              error = true
-              goto error
+              scale_error = true
+              goto scale_error
             end
             scale_deg = scale_deg + 1
             last = "G"
@@ -688,8 +688,8 @@ function harp()
               end
             end -- for j
             if not found then
-              error = true
-              goto error
+              scale_error = true
+              goto scale_error
             end
             scale_deg = scale_deg + 1
             last = "A"
@@ -729,8 +729,8 @@ function harp()
 
       harp_diagram(scale_ltrs, diag, scaleinfo, partial)
 ---
-      ::error::
-      if error then
+      ::scale_error::
+      if scale_error then
         print("That scale won't work.")
         local str = finale.FCString()
         str.LuaString = "That scale won't work, sorry. \n Try again using "..enharmonic.LuaString.." "..scale.."?"
@@ -1455,10 +1455,10 @@ or a chord from the drop down lists.]])
             if not override then
               ui:AlertInfo("There are no pedal changes required. Try entering notes directly in the 'Enter Notes' field, or update your 'last used' pedals somewhere else and try again.", nil)
             end
-            goto error
+            goto apply_error
           end
           pedals_add(diag, partial)
-          ::error::
+          ::apply_error::
           str.LuaString = ""
           harp_notes:SetText(str)
           changes_static:SetText(str)
