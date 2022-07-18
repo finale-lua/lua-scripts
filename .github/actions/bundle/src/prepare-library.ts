@@ -55,7 +55,7 @@ export const prepareLibrary = (inputFiles: LibraryInput): Library => {
             completedFiles.add(file.fileName)
             library[file.fileName] = { contents: bundledFile }
         }
-        files = files.filter((file) => !completedFiles.has(file.fileName))
+        files = files.filter(file => !completedFiles.has(file.fileName))
         counter++
     }
     return library

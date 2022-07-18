@@ -3,16 +3,30 @@
         "finale",
         "finenv",
         "finaleplugin",
+        "coll2table",
+        "dumpproperties",
         "each",
-        "eachentrysaved",
         "eachbackwards",
+        "eachcell",
         "eachentry",
-        "pairsbykeys",
+        "eachentrysaved",
+        "eachstaff",
         "loadall",
-        "bit32"
+        "loadallforregion",
+        "pairsbykeys",
+        "bit32",
+        "utf8"
     ],
+    "files.exclude": {
+        "decoder.lua": true,
+        "mobdebug.lua": true,
+        "sax.lua": true
+    },
     "editor.formatOnSave": true,
-    "Lua.diagnostics.disable": ["lowercase-global", "luadoc-miss-cate-name"],
+    "Lua.diagnostics.disable": [
+        "lowercase-global",
+        "luadoc-miss-cate-name"
+    ],
     "vscode-lua-format.configPath": "./luaconfig.config",
     "[lua]": {
         "editor.defaultFormatter": "Koihik.vscode-lua-format"

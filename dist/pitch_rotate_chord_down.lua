@@ -928,6 +928,23 @@ function note_entry.delete_note(note)
 end
 
 --[[
+% calc_pitch_string
+
+Calculates the pitch string of a note for display purposes.
+
+@ note (FCNote)
+: (string) display string for note
+]]
+
+function note_entry.calc_pitch_string(note)
+    local pitch_string = finale.FCString()
+    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+    local key_signature = cell:GetKeySignature()
+    note:GetString(pitch_string, key_signature, false, false)
+    return pitch_string
+end
+
+--[[
 % calc_spans_number_of_octaves
 
 Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).

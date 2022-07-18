@@ -356,6 +356,23 @@ function note_entry.delete_note(note)
 end
 
 --[[
+% calc_pitch_string
+
+Calculates the pitch string of a note for display purposes.
+
+@ note (FCNote)
+: (string) display string for note
+]]
+
+function note_entry.calc_pitch_string(note)
+    local pitch_string = finale.FCString()
+    local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+    local key_signature = cell:GetKeySignature()
+    note:GetString(pitch_string, key_signature, false, false)
+    return pitch_string
+end
+
+--[[
 % calc_spans_number_of_octaves
 
 Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).
@@ -526,11 +543,11 @@ Calculates the (potential) start and end notes for a tie, given an input note. T
 input note can be from anywhere, including from the `eachentry()` iterator functions.
 The function returns 3 values:
 
-    - A FCNoteLayerEntry containing both the start and and notes (if they exist).
-    You must maintain the lifetime of this variable as long as you are referencing either
-    of the other two values.
-    - The potential or actual start note of the tie (taken from the FCNoteLayerEntry above).
-    - The potential or actual end note of the tie (taken from the FCNoteLayerEntry above).
+- A FCNoteLayerEntry containing both the start and and notes (if they exist).
+You must maintain the lifetime of this variable as long as you are referencing either
+of the other two values.
+- The potential or actual start note of the tie (taken from the FCNoteLayerEntry above).
+- The potential or actual end note of the tie (taken from the FCNoteLayerEntry above).
 
 Be very careful about modifying the return values from this function. If you do it within
 an iterator loop from `eachentry()` or `eachentrysaved()` you could end up overwriting your changes
@@ -538,8 +555,8 @@ with stale data from the iterator loop. You may discover that this function is m
 for gathering information than for modifying the values it returns.
 
 @ note (FCNote) the note for which to calculated the tie span
-@ [for_tied_to] if true, searches for a note tying to the input note. Otherwise, searches for a note tying from the input note.
-@ [tie_must_exist] if true, only returns notes for ties that already exist.
+@ [for_tied_to] (boolean) if true, searches for a note tying to the input note. Otherwise, searches for a note tying from the input note.
+@ [tie_must_exist] (boolean) if true, only returns notes for ties that already exist.
 : (FCNoteLayerEntry) A new FCNoteEntryLayer instance that contains both the following two return values.
 : (FCNote) The start note of the tie.
 : (FCNote) The end note of the tie.

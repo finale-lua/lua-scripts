@@ -1,20 +1,25 @@
 function plugindef()
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.1.0"
-    finaleplugin.Date = "September 2, 2021"
+    finaleplugin.Version = "1.0.0"
+    finaleplugin.Date = "July 12, 2022"
     finaleplugin.CategoryTags = "Score"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.Notes = [[
-        This script sets up a score for trombone octet - 6 tenors, 2 basses.
+        This script sets up a score for brass quintet:
+
+        - Trumpet in C 1
+        - Trumpet in C 2
+        - Horn in F
+        - Trombone
+        - Tuba
 
         To use it, first open your default document or document styles. Then, run the script.
-        All existing staffs will be deleted. And in their place, the trombone octet will be created.
+        All existing staffs will be deleted. And in their place, the brass quintet will be created.
 
         This script uses the standard ensemble creation configuration options.
     ]]
-    return "Create trombone choir score", "Create trombone choir score",
-           "Creates the score setup correctly for trombone choir"
+    return "Create brass quintet score", "Create brass quintet score", "Creates the score setup correctly for brass quintet"
 end
 
 --[[
@@ -2051,27 +2056,29 @@ end
 
 local config = score.create_default_config()
 config.systems_per_page = 2
-config.large_measure_number_space = "24s"
-configuration.get_parameters("score_create_trombone_choir_score.config.txt", config)
+config.large_measure_number_space = "12s"
+configuration.get_parameters("score_create_brass_quintet_score.config.txt", config)
 
-local function score_create_trombone_choir_score()
+local function score_create_brass_quintet_score()
     score.reset_and_clear_score()
 
     local staves = {}
-    staves.trombone_1 = score.create_staff("Trombone 1", "Tbn. 1", finale.FFUUID_TROMBONE, "tenor")
-    staves.trombone_2 = score.create_staff("Trombone 2", "Tbn. 2", finale.FFUUID_TROMBONE, "tenor")
-    staves.trombone_3 = score.create_staff("Trombone 3", "Tbn. 3", finale.FFUUID_TROMBONE, "tenor")
-    staves.trombone_4 = score.create_staff("Trombone 4", "Tbn. 4", finale.FFUUID_TROMBONE, "bass")
-    staves.trombone_5 = score.create_staff("Trombone 5", "Tbn. 5", finale.FFUUID_TROMBONE, "bass")
-    staves.trombone_6 = score.create_staff("Trombone 6", "Tbn. 6", finale.FFUUID_TROMBONE, "bass")
-    staves.bass_trombone_1 = score.create_staff("Bass Trombone 1", "B. Tbn. 1", finale.FFUUID_BASSTROMBONE, "bass")
-    staves.bass_trombone_2 = score.create_staff("Bass Trombone 2", "B. Tbn. 2", finale.FFUUID_BASSTROMBONE, "bass")
 
-    score.create_group_primary(staves.trombone_1, staves.bass_trombone_2)
-    score.create_group_secondary(staves.trombone_1, staves.trombone_6)
-    score.create_group_secondary(staves.bass_trombone_1, staves.bass_trombone_2)
+    staves.trumpet_1 = score.create_staff("Trumpet in C 1", "Tpt. 1", finale.FFUUID_TRUMPETC, "treble")
+    staves.trumpet_2 = score.create_staff("Trumpet in C 1", "Tpt. 1", finale.FFUUID_TRUMPETC, "treble")
+    -- Yes, I know, alto clef for horns. Trust me, though, it's better
+    -- to read horns in alto clef when viewing the score in concert pitch.
+    -- Alto clef fits the horns' concert pitch range perfectly.
+    staves.horn = score.create_staff("Horn in F", "Hn.", finale.FFUUID_HORNF, "alto")
+    staves.trombone = score.create_staff("Trombone", "Tbn.", finale.FFUUID_TROMBONE, "bass")
+    staves.tuba = score.create_staff("Tuba", "Tba.", finale.FFUUID_TUBA, "bass")
 
-    score.apply_config(config, {force_staves_show_time_signatures = {staves.trombone_1, staves.trombone_5}})
+    score.create_group_primary(staves.trumpet_1, staves.tuba)
+    score.create_group_secondary(staves.trumpet_1, staves.trumpet_2)
+
+    score.set_staff_transposition(staves.horn, "F", 4, "treble")
+
+    score.apply_config(config, {force_staves_show_time_signatures = {staves.trumpet_2}})
 end
 
-score_create_trombone_choir_score()
+score_create_brass_quintet_score()

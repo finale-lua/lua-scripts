@@ -1,4 +1,4 @@
-import { getImport, getVariableName, getAllImports } from './helpers'
+import { getAllImports, getImport, getVariableName } from './helpers'
 
 describe('detects valid imports', () => {
     const lines: [string, string][] = [

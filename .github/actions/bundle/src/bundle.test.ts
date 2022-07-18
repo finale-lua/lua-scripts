@@ -6,9 +6,7 @@ const library: Library = {
         contents: `--[[
 $module Articulation
 ]]
-
 local BUNDLED_LIBRARY_VARIABLE_NAME = {}
-
 function BUNDLED_LIBRARY_VARIABLE_NAME.method()
 end`,
     },
@@ -16,9 +14,7 @@ end`,
         contents: `--[[
 $module Articulation
 ]]
-
 local BUNDLED_LIBRARY_VARIABLE_NAME = {}
-
 function BUNDLED_LIBRARY_VARIABLE_NAME.method()
   -- does something
 end`,
@@ -34,9 +30,7 @@ local library = require("library.articulation")
 --[[
 $module Articulation
 ]]
-
 local library = {}
-
 function library.method()
 end
 `
@@ -53,17 +47,13 @@ local expression = require("library.expression")
 --[[
 $module Articulation
 ]]
-
 local articulation = {}
-
 function articulation.method()
 end
 --[[
 $module Articulation
 ]]
-
 local expression = {}
-
 function expression.method()
   -- does something
 end

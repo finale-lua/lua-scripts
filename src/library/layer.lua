@@ -63,24 +63,38 @@ Swaps the entries from two different layers (e.g. 1-->2 and 2-->1).
 @ swap_b (number) the number (1-4) of the second layer to be swapped
 ]]
 function layer.swap(region, swap_a, swap_b)
-    local start = region.StartMeasure
-    local stop = region.EndMeasure
-    local sysstaves = finale.FCSystemStaves()
-    sysstaves:LoadAllForRegion(region)
     -- Set layers for 0 based
     swap_a = swap_a - 1
     swap_b = swap_b - 1
-    for sysstaff in each(sysstaves) do
-        staffNum = sysstaff.Staff
-        local noteentrylayer_1 = finale.FCNoteEntryLayer(swap_a, staffNum, start, stop)
+    for measure, staff_number in eachcell(region) do
+        local cell_frame_hold = finale.FCCellFrameHold()    
+        cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+        local loaded = cell_frame_hold:Load()
+        local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
+        local noteentrylayer_1 = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
         noteentrylayer_1:Load()
         noteentrylayer_1.LayerIndex = swap_b
         --
-        local noteentrylayer_2 = finale.FCNoteEntryLayer(swap_b, staffNum, start, stop)
+        local noteentrylayer_2 = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
         noteentrylayer_2:Load()
         noteentrylayer_2.LayerIndex = swap_a
         noteentrylayer_1:Save()
         noteentrylayer_2:Save()
+        if loaded then
+            local new_cell_frame_hold = finale.FCCellFrameHold()
+            new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+            if new_cell_frame_hold:Load() then
+                if cell_frame_hold.IsClefList then
+                    if new_cell_frame_hold.SetCellClefChanges then
+                        new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
+                    end
+                    -- No remedy here in JW Lua. The clef list can be changed by a layer swap.
+                else
+                    new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
+                end
+                new_cell_frame_hold:Save()
+            end
+        end
     end
 end
 

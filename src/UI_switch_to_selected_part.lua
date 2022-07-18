@@ -43,8 +43,7 @@ function ui_switch_to_selected_part()
             -- scroll the selected region into view, because Finale sometimes loses track of it
             ui:MoveToMeasure(top_cell.Measure, music_region.StartStaff)
         else
-            finenv.UI():AlertInfo(
-                "Hmm, this part doesn't seem to be generated.\nTry generating parts and try again", "No Part Detected")
+            finenv.UI():AlertInfo("Hmm, this part doesn't seem to be generated.\nTry generating parts and try again", "No Part Detected")
         end
     else
         local score_ID = parts:GetScore()

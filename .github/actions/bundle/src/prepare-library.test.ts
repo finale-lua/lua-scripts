@@ -1,13 +1,11 @@
 import type { LibraryInput } from './prepare-library'
-import { prepareLibraryFile, LIBRARY_VARIABLE_NAME, prepareLibrary } from './prepare-library'
+import { LIBRARY_VARIABLE_NAME, prepareLibrary, prepareLibraryFile } from './prepare-library'
 
 const articulationFile = `
 --[[
 $module Articulation
 ]]
-
 local articulation = {}
-
 --[[
 % delete_from_entry_by_char_num(entry, char_num)
 Removes any articulation assignment that has the specified character as its above-character.
@@ -23,16 +21,13 @@ function articulation.delete_from_entry_by_char_num(entry, char_num)
         end
     end
 end
-
 return articulation`
 
 const preparedArticulationFile = `
 --[[
 $module Articulation
 ]]
-
 local ${LIBRARY_VARIABLE_NAME} = {}
-
 --[[
 % delete_from_entry_by_char_num(entry, char_num)
 Removes any articulation assignment that has the specified character as its above-character.
@@ -48,7 +43,6 @@ function ${LIBRARY_VARIABLE_NAME}.delete_from_entry_by_char_num(entry, char_num)
         end
     end
 end
-
 `
 
 const bundledArticulationFile = preparedArticulationFile
@@ -57,11 +51,8 @@ const expressionFile = `
 --[[
 $module Articulation
 ]]
-
 local expression = {}
-
 local articulation = require("library.articulation")
-
 --[[
 % delete_from_entry_by_char_num(entry, char_num)
 Removes any articulation assignment that has the specified character as its above-character.
@@ -77,18 +68,14 @@ function expression.delete_from_entry_by_char_num(entry, char_num)
         end
     end
 end
-
 return expression`
 
 const bundledExpressionFile = `
 --[[
 $module Articulation
 ]]
-
 local ${LIBRARY_VARIABLE_NAME} = {}
-
 ${bundledArticulationFile.replace(new RegExp(LIBRARY_VARIABLE_NAME, 'gu'), 'articulation')}
-
 --[[
 % delete_from_entry_by_char_num(entry, char_num)
 Removes any articulation assignment that has the specified character as its above-character.
@@ -104,7 +91,6 @@ function ${LIBRARY_VARIABLE_NAME}.delete_from_entry_by_char_num(entry, char_num)
         end
     end
 end
-
 `
 
 it('empty file stays empty', () => {

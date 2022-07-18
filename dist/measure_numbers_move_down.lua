@@ -272,9 +272,9 @@ Returns the currently selected part or score.
 : (FCPart)
 ]]
 function library.get_current_part()
-    local parts = finale.FCParts()
-    parts:LoadAll()
-    return parts:GetCurrent()
+    local part = finale.FCPart(finale.PARTID_CURRENT)
+    part:Load(part.ID)
+    return part
 end
 
 --[[
@@ -296,6 +296,69 @@ function library.get_page_format_prefs()
     return page_format_prefs, success
 end
 
+local calc_smufl_directory = function(for_user)
+    local is_on_windows = finenv.UI():IsOnWindows()
+    local do_getenv = function (win_var, mac_var)
+        if finenv.UI():IsOnWindows() then
+            return win_var and os.getenv(win_var) or ""
+        else
+            return mac_var and os.getenv(mac_var) or ""
+        end
+    end
+    local smufl_directory = for_user and do_getenv("LOCALAPPDATA", "HOME") or do_getenv("COMMONPROGRAMFILES")
+    if not is_on_windows then
+        smufl_directory = smufl_directory .. "/Library/Application Support"
+    end
+    smufl_directory = smufl_directory .. "/SMuFL/Fonts/"
+    return smufl_directory
+end
+
+--[[
+% get_smufl_font_list
+
+Returns table of installed SMuFL font names by searching the directory that contains
+the .json files for each font. The table is in the format:
+
+```lua
+<font-name> = "user" | "system"
+```
+
+: (table) an table with SMuFL font names as keys and values "user" or "system"
+]]
+
+function library.get_smufl_font_list()
+    local font_names = {}
+    local add_to_table = function(for_user)
+        local smufl_directory = calc_smufl_directory(for_user)
+        local get_dirs = function()
+            if finenv.UI():IsOnWindows() then
+                return io.popen('dir "'..smufl_directory..'" /b /ad')
+            else
+                return io.popen('ls "'..smufl_directory..'"')
+            end
+        end
+        local is_font_available = function(dir)
+            local fc_dir = finale.FCString()
+            fc_dir.LuaString = dir
+            return finenv.UI():IsFontAvailable(fc_dir)
+        end
+        for dir in get_dirs():lines() do
+            if not dir:find("%.") then
+                dir = dir:gsub(" Bold", "")
+                dir = dir:gsub(" Italic", "")
+                local fc_dir = finale.FCString()
+                fc_dir.LuaString = dir
+                if font_names[dir] or is_font_available(dir) then
+                    font_names[dir] = for_user and "user" or "system"
+                end
+            end
+        end
+    end
+    add_to_table(true)
+    add_to_table(false)
+    return font_names
+end
+
 --[[
 % get_smufl_metadata_file
 
@@ -309,26 +372,16 @@ function library.get_smufl_metadata_file(font_info)
     end
 
     local try_prefix = function(prefix, font_info)
-        local file_path = prefix .. "/SMuFL/Fonts/" .. font_info.Name .. "/" .. font_info.Name .. ".json"
+        local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
         return io.open(file_path, "r")
     end
 
-    local smufl_json_user_prefix = ""
-    if finenv.UI():IsOnWindows() then
-        smufl_json_user_prefix = os.getenv("LOCALAPPDATA")
-    else
-        smufl_json_user_prefix = os.getenv("HOME") .. "/Library/Application Support"
-    end
-    local user_file = try_prefix(smufl_json_user_prefix, font_info)
-    if nil ~= user_file then
+    local user_file = try_prefix(calc_smufl_directory(true), font_info)
+    if user_file then
         return user_file
     end
 
-    local smufl_json_system_prefix = "/Library/Application Support"
-    if finenv.UI():IsOnWindows() then
-        smufl_json_system_prefix = os.getenv("COMMONPROGRAMFILES")
-    end
-    return try_prefix(smufl_json_system_prefix, font_info)
+    return try_prefix(calc_smufl_directory(false), font_info)
 end
 
 --[[
@@ -450,6 +503,38 @@ function library.system_indent_set_to_prefs(system, page_format_prefs)
     end
     return system:Save()
 end
+
+
+--[[
+% calc_script_name
+
+Returns the running script name, with or without extension.
+
+@ [include_extension] (boolean) Whether to include the file extension in the return value: `false` if omitted
+: (string) The name of the current running script.
+]]
+function library.calc_script_name(include_extension)
+    local fc_string = finale.FCString()
+    if finenv.RunningLuaFilePath then
+        -- Use finenv.RunningLuaFilePath() if available because it doesn't ever get overwritten when retaining state.
+        fc_string.LuaString = finenv.RunningLuaFilePath()
+    else
+        -- This code path is only taken by JW Lua (and very early versions of RGP Lua).
+        -- SetRunningLuaFilePath is not reliable when retaining state, so later versions use finenv.RunningLuaFilePath.
+        fc_string:SetRunningLuaFilePath()
+    end
+    local filename_string = finale.FCString()
+    fc_string:SplitToPathAndFile(nil, filename_string)
+    local retval = filename_string.LuaString
+    if not include_extension then
+        retval = retval:match("(.+)%..+")
+        if not retval or retval == "" then
+            retval = filename_string.LuaString
+        end
+    end
+    return retval
+end
+
 
 
 
