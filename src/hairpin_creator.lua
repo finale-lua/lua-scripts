@@ -25,7 +25,7 @@ function plugindef()
         hairpin_type = -1 -- "swell"
         hairpin_type = -2 -- "unswell"
     ]]
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.ScriptGroupName = "Hairpin creator"
     finaleplugin.Notes = [[
         This script creates hairpins spanning the currently selected music region. 
@@ -544,7 +544,7 @@ function create_dialog_box()
         local function make_static(msg, horiz, vert, width, sepia)
             local static = dialog:CreateStatic(horiz, vert):SetText(msg)
             static:SetWidth(width)
-            if sepia then
+            if sepia and static.SetTextColor then
                 static:SetTextColor(204, 102, 51)
             end
         end
