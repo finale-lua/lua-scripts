@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after CJ Garcia"
     finaleplugin.AuthorURL = "http://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.54" -- (now with Mixin)
+    finaleplugin.Version = "v0.55" -- (now with Mixin)
     finaleplugin.Date = "2022/07/18"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin create diminuendo
@@ -43,7 +43,7 @@ function plugindef()
         Hairpin positions in Finale are more accurate when attached to these "trailing" notes and dynamics, 
         but this can be a problem if trailing items fall across a barline and especially if they are 
         on a different system from the end of the hairpin. 
-7        (Elaine Gould - "Behind Bars" pp.103-106 - outlines multiple hairpin scenarios in which they  
+        (Elaine Gould - "Behind Bars" pp.103-106 - outlines multiple hairpin scenarios in which they  
         should or shouldn't "attach" across barlines. Your preferences may differ.)
 
         You should get the best results by entering dynamic markings before running the script. 
@@ -576,12 +576,13 @@ function create_dialog_box()
                     config[v[1]] = (self:GetControl(v[1]):GetCheck() == 1)
                 end
             end
+            --[[ ]]
             self:StorePosition()
             config.window_pos_x = self.StoredX
             config.window_pos_y = self.StoredY --]]
             configuration.save_user_settings("hairpin_creator", config)
             finenv.StartNewUndoBlock("Hairpin creator", false)
-            activity_selector() -- **** DO THE WORK HERE! ****
+            activity_selector() -- **** THE WORK IS DONE HERE! ****
             if finenv.EndUndoBlock then
                 finenv.EndUndoBlock(true)
                 finenv.Region():Redraw()
@@ -596,8 +597,9 @@ end
 function action_type()
     configuration.get_user_settings("hairpin_creator", config, true) -- overwrite default preferences
     if finenv.QueryInvokedModifierKeys and finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) then
-        local prefs_dialog = create_dialog_box()
+        prefs_dialog = create_dialog_box()
         prefs_dialog.OkButtonCanClose = true
+        --[[ ]]
         if config.window_pos_x > 0 and config.window_pos_y > 0 then
             prefs_dialog:StorePosition()
             prefs_dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
