@@ -11,7 +11,7 @@ function plugindef()
 end
 
 local library = require("library.general_library")
-local configuration = require("library.configuration") -- Having trouble getting this to work!
+local configuration = require("library.configuration")
 
 --------------------------------------
 -- borrowed JetStream functions - will replace later with repo equivalents!
@@ -852,32 +852,32 @@ or a chord from the drop down lists.]])
         -- Setup diagram or Note Names 
         str.LuaString = "Style:"
         local style_label = dialog:CreateStatic(0, row_y-1)
-        format_ctrl(style_label, 20, 40, str.LuaString)
+        format_ctrl(style_label, 20, 70, str.LuaString)
         --
         local diagram_checkbox = dialog:CreateCheckbox(40, row_y)
         str.LuaString = " Diagram"
-        format_ctrl(diagram_checkbox, 16, 60, str.LuaString)
+        format_ctrl(diagram_checkbox, 16, 70, str.LuaString)
         diagram_checkbox:SetCheck(config.diagram_check) 
         --
         local names_checkbox = dialog:CreateCheckbox(132, row_y)
         str.LuaString = " Note Names"
-        format_ctrl(names_checkbox, 16, 70, str.LuaString)
+        format_ctrl(names_checkbox, 16, 90, str.LuaString)
         names_checkbox:SetCheck(config.names_check)
         --
         local partial_checkbox = dialog:CreateCheckbox(224, row_y)
         str.LuaString = " Partial"
-        format_ctrl(partial_checkbox, 16, 60, str.LuaString)
+        format_ctrl(partial_checkbox, 16, 70, str.LuaString)
         partial_checkbox:SetCheck(config.partial_check)
         --
         row_y = row_y + 18
         local stack_checkbox = dialog:CreateCheckbox(132, row_y)
         str.LuaString = " Stack"
-        format_ctrl(stack_checkbox, 16, 60, str.LuaString)
+        format_ctrl(stack_checkbox, 16, 70, str.LuaString)
         stack_checkbox:SetCheck(config.stack)    
         --
         local lanes_checkbox = dialog:CreateCheckbox(224, row_y)
         str.LuaString = " Preserve Lanes"
-        format_ctrl(lanes_checkbox, 16, 60, str.LuaString)
+        format_ctrl(lanes_checkbox, 16, 100, str.LuaString)
         lanes_checkbox:SetCheck(config.pedal_lanes)
         --
         row_y = row_y + 26
