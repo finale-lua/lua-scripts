@@ -801,13 +801,12 @@ or a chord from the drop down lists.]])
         sel_acc:SetSelectedItem(config.accidental)
 
         -- Setup Scales
-        str.LuaString = ""  
+        str.LuaString = " Scale"  
         local scale_check = dialog:CreateCheckbox(86, row_y-14)
-        scale_check:SetText(str)
+                format_ctrl(scale_check, 16, 70, str.LuaString)
+
         scale_check:SetCheck(config.scale_check)
 
-        local scale_label = dialog:CreateStatic(100,row_y-14)
-        format_ctrl(scale_label, 15, 48, "Scale")
         local scales = {"Major", "Natural Minor", "Harmonic Minor", "Ionian",
           "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Hungarian Minor", 
           "Whole tone", "Major Pentatonic", "Minor Pentatonic"}
@@ -825,12 +824,11 @@ or a chord from the drop down lists.]])
         end
 
         --- Setup Chords
-        str.LuaString = ""  
+        str.LuaString = " Chord"  
         local chord_check = dialog:CreateCheckbox(220, row_y-14)
-        chord_check:SetText(str)
+        format_ctrl(chord_check, 16, 70, str.LuaString)
         chord_check:SetCheck(config.chord_check)
-        local chord_label = dialog:CreateStatic(234, row_y-14)
-        format_ctrl(chord_label, 15, 48, "Chord")
+
         local chords = {"dom7", "maj7", "min7", "m7b5", "dim7", "aug"}
         local sel_chord = dialog:CreatePopup(220, row_y)
         format_ctrl(sel_chord, 20, 100, "Chord")
