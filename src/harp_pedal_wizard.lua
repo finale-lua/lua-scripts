@@ -11,7 +11,7 @@ function plugindef()
 end
 
 local library = require("library.general_library")
-local configuration = require("library.configuration") -- Having trouble getting this to work!
+local configuration = require("library.configuration")
 
 --------------------------------------
 -- borrowed JetStream functions - will replace later with repo equivalents!
@@ -735,11 +735,24 @@ function harp_pedal_wizard()
 ---
       ::scale_error::
       if scale_error then
-        print("That scale won't work.")
         local str = finale.FCString()
         str.LuaString = "That scale won't work, sorry. \n Try again using "..enharmonic.LuaString.." "..scale.."?"
         local result = ui:AlertYesNo(str.LuaString, NULL)
-        if result == 2 then harp_scale(enharmonic.LuaString, scale, use_diagram, use_chord) end
+        if result == 2 then
+          sel_acc:SetSelectedItem(1)
+          for i, k in pairs(roots) do
+            if string.sub(enharmonic.LuaString, 1, 1) == roots[i] then
+              sel_root:SetSelectedItem(i-1)
+            end
+          end
+          if string.len(enharmonic.LuaString) == 2 then
+            if string.sub(enharmonic.LuaString, -1) == "b" then
+              sel_acc:SetSelectedItem(0)
+            elseif string.sub(enharmonic.LuaString, -1) == "#" then
+              sel_acc:SetSelectedItem(2)
+            end
+          end
+        end
       end -- error
 
     end -- function harp_scale()
@@ -780,10 +793,10 @@ or a chord from the drop down lists.]])
 ----
         row_y = row_y + 52
 
-        local roots = {"A", "B", "C", "D", "E", "F", "G"}
+        roots = {"A", "B", "C", "D", "E", "F", "G"}
         local root_label = dialog:CreateStatic(8,row_y-14)
         format_ctrl(root_label, 15, 30, "Root")
-        local sel_root = dialog:CreatePopup(8, row_y)
+        sel_root = dialog:CreatePopup(8, row_y)
         format_ctrl(sel_root, 20, 36, "Root")
         for i,j in pairs(roots) do
           str.LuaString = roots[i]
@@ -792,7 +805,7 @@ or a chord from the drop down lists.]])
         sel_root:SetSelectedItem(config.root)
         local accidentals = {"b", "♮", "#"} -- unicode symbols... natural at least displays as 'n' on Windows
 --      local accidentals = {"♭", "♮", "♯"} -- unicode symbols
-        local sel_acc = dialog:CreatePopup(42, row_y)
+        sel_acc = dialog:CreatePopup(42, row_y)
         format_ctrl(sel_acc, 20, 32, "Accidental")
         for i,j in pairs(accidentals) do
           str.LuaString = accidentals[i]
@@ -801,13 +814,12 @@ or a chord from the drop down lists.]])
         sel_acc:SetSelectedItem(config.accidental)
 
         -- Setup Scales
-        str.LuaString = ""  
+        str.LuaString = " Scale"  
         local scale_check = dialog:CreateCheckbox(86, row_y-14)
-        scale_check:SetText(str)
+        format_ctrl(scale_check, 16, 70, str.LuaString)
+
         scale_check:SetCheck(config.scale_check)
 
-        local scale_label = dialog:CreateStatic(100,row_y-14)
-        format_ctrl(scale_label, 15, 48, "Scale")
         local scales = {"Major", "Natural Minor", "Harmonic Minor", "Ionian",
           "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Hungarian Minor", 
           "Whole tone", "Major Pentatonic", "Minor Pentatonic"}
@@ -825,12 +837,11 @@ or a chord from the drop down lists.]])
         end
 
         --- Setup Chords
-        str.LuaString = ""  
+        str.LuaString = " Chord"  
         local chord_check = dialog:CreateCheckbox(220, row_y-14)
-        chord_check:SetText(str)
+        format_ctrl(chord_check, 16, 70, str.LuaString)
         chord_check:SetCheck(config.chord_check)
-        local chord_label = dialog:CreateStatic(234, row_y-14)
-        format_ctrl(chord_label, 15, 48, "Chord")
+
         local chords = {"dom7", "maj7", "min7", "m7b5", "dim7", "aug"}
         local sel_chord = dialog:CreatePopup(220, row_y)
         format_ctrl(sel_chord, 20, 100, "Chord")
@@ -852,32 +863,32 @@ or a chord from the drop down lists.]])
         -- Setup diagram or Note Names 
         str.LuaString = "Style:"
         local style_label = dialog:CreateStatic(0, row_y-1)
-        format_ctrl(style_label, 20, 40, str.LuaString)
+        format_ctrl(style_label, 20, 70, str.LuaString)
         --
         local diagram_checkbox = dialog:CreateCheckbox(40, row_y)
         str.LuaString = " Diagram"
-        format_ctrl(diagram_checkbox, 16, 60, str.LuaString)
+        format_ctrl(diagram_checkbox, 16, 70, str.LuaString)
         diagram_checkbox:SetCheck(config.diagram_check) 
         --
         local names_checkbox = dialog:CreateCheckbox(132, row_y)
         str.LuaString = " Note Names"
-        format_ctrl(names_checkbox, 16, 70, str.LuaString)
+        format_ctrl(names_checkbox, 16, 90, str.LuaString)
         names_checkbox:SetCheck(config.names_check)
         --
         local partial_checkbox = dialog:CreateCheckbox(224, row_y)
         str.LuaString = " Partial"
-        format_ctrl(partial_checkbox, 16, 60, str.LuaString)
+        format_ctrl(partial_checkbox, 16, 70, str.LuaString)
         partial_checkbox:SetCheck(config.partial_check)
         --
         row_y = row_y + 18
         local stack_checkbox = dialog:CreateCheckbox(132, row_y)
         str.LuaString = " Stack"
-        format_ctrl(stack_checkbox, 16, 60, str.LuaString)
+        format_ctrl(stack_checkbox, 16, 70, str.LuaString)
         stack_checkbox:SetCheck(config.stack)    
         --
         local lanes_checkbox = dialog:CreateCheckbox(224, row_y)
         str.LuaString = " Preserve Lanes"
-        format_ctrl(lanes_checkbox, 16, 60, str.LuaString)
+        format_ctrl(lanes_checkbox, 16, 100, str.LuaString)
         lanes_checkbox:SetCheck(config.pedal_lanes)
         --
         row_y = row_y + 26
