@@ -4488,27 +4488,70 @@ exports.fromPromise = function (fn) {
 /***/ }),
 
 /***/ 4762:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.bundleFile = void 0;
+exports.bundleFile = exports.bundleFileBase = exports.importFileBase = exports.files = void 0;
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const helpers_1 = __nccwpck_require__(8092);
-const bundleFile = (file, library) => {
-    const lines = file.split('\n');
-    const output = [];
-    lines.forEach(line => {
-        const { importedFile, isImport } = (0, helpers_1.getImport)(line);
-        if (!isImport && !(importedFile in library)) {
-            output.push(line);
-            return;
+const lua_require_1 = __nccwpck_require__(9083);
+const wrap_import_1 = __nccwpck_require__(3494);
+exports.files = {};
+const importFileBase = (name, importedFiles, fetcher) => {
+    try {
+        if (name in importedFiles)
+            return true;
+        const contents = fetcher((0, lua_require_1.resolveRequiredFile)(name));
+        importedFiles[name] = {
+            dependencies: (0, helpers_1.getAllImports)(contents),
+            wrapped: (0, wrap_import_1.wrapImport)(name, contents),
+        };
+        return true;
+    }
+    catch (_a) {
+        return false;
+    }
+};
+exports.importFileBase = importFileBase;
+const bundleFileBase = (name, importedFiles, mixins, fetcher) => {
+    var _a;
+    const fileContents = fetcher(name);
+    const fileStack = [fileContents];
+    const importStack = (0, helpers_1.getAllImports)(fileContents);
+    const importedFileNames = new Set();
+    while (importStack.length > 0) {
+        const nextImport = (_a = importStack.pop()) !== null && _a !== void 0 ? _a : '';
+        if (importedFileNames.has(nextImport))
+            continue;
+        const fileFound = (0, exports.importFileBase)(nextImport, importedFiles, fetcher);
+        if (fileFound) {
+            const file = importedFiles[nextImport];
+            importedFileNames.add(nextImport);
+            if (file) {
+                importStack.push(...file.dependencies);
+                fileStack.push(file.wrapped);
+            }
+            if ((0, lua_require_1.resolveRequiredFile)(nextImport) === 'library/mixin.lua')
+                importStack.push(...mixins);
         }
-        const variableName = (0, helpers_1.getVariableName)(line);
-        if (library[importedFile])
-            output.push(library[importedFile].contents.replace(/BUNDLED_LIBRARY_VARIABLE_NAME/gu, variableName));
-    });
-    return output.join('\n');
+        else {
+            console.error(`Unresolvable import in file "${name}": ${nextImport}`);
+            process.exitCode = 1;
+        }
+    }
+    if (fileStack.length > 1)
+        fileStack.push((0, lua_require_1.generateLuaRequire)());
+    return fileStack.reverse().join('\n\n');
+};
+exports.bundleFileBase = bundleFileBase;
+const bundleFile = (name, sourcePath, mixins) => {
+    return (0, exports.bundleFileBase)(name, exports.files, mixins, (fileName) => fs_1.default.readFileSync(path_1.default.join(sourcePath, fileName)).toString());
 };
 exports.bundleFile = bundleFile;
 
@@ -4521,21 +4564,14 @@ exports.bundleFile = bundleFile;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getAllImports = exports.getVariableName = exports.getImport = void 0;
+exports.getAllImports = exports.getImport = void 0;
 const getImport = (line) => {
-    const matches = line.match(/require\(["']library\.([A-Z_a-z]+)["']\)/iu);
+    const matches = line.match(/require\(["']([A-Z_a-z.]+)["']\)/iu);
     if (!matches)
         return { importedFile: '', isImport: false };
     return { importedFile: matches[1], isImport: true };
 };
 exports.getImport = getImport;
-const getVariableName = (line) => {
-    const matches = line.match(/^(local )?([a-zA-Z_]+)/u);
-    if (!matches)
-        return '';
-    return matches[2];
-};
-exports.getVariableName = getVariableName;
 const getAllImports = (file) => {
     const imports = new Set();
     const lines = file.split('\n');
@@ -4544,7 +4580,7 @@ const getAllImports = (file) => {
         if (isImport)
             imports.add(importedFile);
     }
-    return imports;
+    return [...imports];
 };
 exports.getAllImports = getAllImports;
 
@@ -4564,110 +4600,85 @@ const path_1 = __importDefault(__nccwpck_require__(1017));
 const core_1 = __nccwpck_require__(3539);
 const fs_extra_1 = __importDefault(__nccwpck_require__(6417));
 const bundle_1 = __nccwpck_require__(4762);
-const prepare_library_1 = __nccwpck_require__(572);
 const IS_DEV_ENVIRONMENT = process.env.NODE_ENV === 'development';
 const sourcePath = IS_DEV_ENVIRONMENT
     ? path_1.default.join('..', '..', '..', 'src')
     : path_1.default.join(...(0, core_1.getInput)('source', { required: true }).split('/'));
-const libraryPath = path_1.default.join(sourcePath, 'library');
 const outputPath = IS_DEV_ENVIRONMENT
     ? path_1.default.join('..', '..', '..', 'dist')
     : path_1.default.join(...(0, core_1.getInput)('output', { required: true }).split('/'));
-/*
-   create bundled library files
-    */
-const libraryFileNames = fs_extra_1.default.readdirSync(libraryPath);
-const libraryRawFiles = [];
-libraryFileNames.forEach(fileName => {
-    const name = fileName.replace('.lua', '');
-    const contents = fs_extra_1.default.readFileSync(path_1.default.join(libraryPath, fileName)).toString();
-    libraryRawFiles.push({
-        fileName: name,
-        contents,
-    });
-});
-const library = (0, prepare_library_1.prepareLibrary)(libraryRawFiles);
 /*
    remove old bundled files (if they exist)
     */
 fs_extra_1.default.ensureDirSync(outputPath);
 fs_extra_1.default.readdirSync(outputPath).forEach(fileName => fs_extra_1.default.removeSync(fileName));
+const mixins = fs_extra_1.default
+    .readdirSync(path_1.default.join(sourcePath, 'mixin'))
+    .filter(fileName => fileName.endsWith('.lua'))
+    .map(file => 'mixin.' + file.replace(/\.lua$/, ''));
+if (fs_extra_1.default.pathExistsSync(path_1.default.join(sourcePath, 'personal_mixin'))) {
+    mixins.push(...fs_extra_1.default
+        .readdirSync(path_1.default.join(sourcePath, 'personal_mixin'))
+        .filter(fileName => fileName.endsWith('.lua'))
+        .map(file => 'personal_mixin.' + file.replace(/\.lua$/, '')));
+}
 /*
    bundle and save source files
     */
 const sourceFiles = fs_extra_1.default.readdirSync(sourcePath).filter(fileName => fileName.endsWith('.lua'));
 sourceFiles.forEach(file => {
-    if (file.startsWith('personal'))
-        return;
-    const contents = fs_extra_1.default.readFileSync(path_1.default.join(sourcePath, file)).toString();
-    const bundledFile = (0, bundle_1.bundleFile)(contents, library);
+    const bundledFile = (0, bundle_1.bundleFile)(file, sourcePath, mixins);
     fs_extra_1.default.writeFileSync(path_1.default.join(outputPath, file), bundledFile);
 });
 
 
 /***/ }),
 
-/***/ 572:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ 9083:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.resolveRequiredFile = exports.generateLuaRequire = void 0;
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const generateLuaRequire = () => {
+    return ['local __imports = {}', '', 'function require(item)', '    return __imports[item]()', 'end'].join('\n');
+};
+exports.generateLuaRequire = generateLuaRequire;
+const resolveRequiredFile = (name) => {
+    const splitName = name.split('.');
+    if (splitName[splitName.length - 1] === 'lua')
+        splitName.pop();
+    return path_1.default.join(...splitName) + '.lua';
+};
+exports.resolveRequiredFile = resolveRequiredFile;
+
+
+/***/ }),
+
+/***/ 3494:
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.prepareLibrary = exports.prepareLibraryFile = exports.LIBRARY_VARIABLE_NAME = void 0;
-const bundle_1 = __nccwpck_require__(4762);
-const helpers_1 = __nccwpck_require__(8092);
-exports.LIBRARY_VARIABLE_NAME = 'BUNDLED_LIBRARY_VARIABLE_NAME';
-const prepareLibraryFile = (file, fileName) => {
-    const lines = file.split('\n');
-    let internalModuleName = fileName;
-    if (!internalModuleName.match(new RegExp(`local ${internalModuleName} = \\{\\}`, 'u'))) {
-        for (const line of lines) {
-            const matches = line.match(/^local ([a-zA-Z+]+) = \{\}/iu);
-            if (matches === null || matches === void 0 ? void 0 : matches[1]) {
-                internalModuleName = matches[1];
-                break;
-            }
-        }
+exports.wrapImport = void 0;
+const wrapImport = (name, contents) => {
+    const output = [`__imports["${name}"] = function()`];
+    for (const line of contents.split('\n')) {
+        if (line === '')
+            output.push(line);
+        else
+            output.push('    ' + line);
     }
-    const output = [];
-    const declarationRegex = new RegExp(`^local ${internalModuleName} = \\{\\}`, 'u');
-    const methodRegex = new RegExp(`^function ${internalModuleName}\\.`, 'ug');
-    const returnRegex = new RegExp(`^return ${internalModuleName}`, 'ug');
-    for (const line of lines) {
-        let outputtedLine = line.replace(declarationRegex, `local ${exports.LIBRARY_VARIABLE_NAME} = {}`);
-        outputtedLine = outputtedLine.replace(methodRegex, `function ${exports.LIBRARY_VARIABLE_NAME}.`);
-        outputtedLine = outputtedLine.replace(returnRegex, ``);
-        output.push(outputtedLine);
-    }
-    return { contents: output.join('\n') };
+    output.push('end');
+    return output.join('\n');
 };
-exports.prepareLibraryFile = prepareLibraryFile;
-/* eslint-disable-next-line sonarjs/cognitive-complexity -- fix in the future */
-const prepareLibrary = (inputFiles) => {
-    let files = [...inputFiles];
-    const library = {};
-    let counter = 0;
-    while (files.length > 0 && counter < 10) {
-        const completedFiles = new Set();
-        for (const file of files) {
-            const imports = (0, helpers_1.getAllImports)(file.contents);
-            for (const importFile of imports)
-                if (importFile in library)
-                    imports.delete(importFile);
-            /* eslint-disable-next-line no-continue -- it's just best here */
-            if (imports.size > 0)
-                continue;
-            const preparedFile = (0, exports.prepareLibraryFile)(file.contents, file.fileName);
-            const bundledFile = (0, bundle_1.bundleFile)(preparedFile.contents, library);
-            completedFiles.add(file.fileName);
-            library[file.fileName] = { contents: bundledFile };
-        }
-        files = files.filter(file => !completedFiles.has(file.fileName));
-        counter++;
-    }
-    return library;
-};
-exports.prepareLibrary = prepareLibrary;
+exports.wrapImport = wrapImport;
 
 
 /***/ }),

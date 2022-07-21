@@ -1,3 +1,494 @@
+local __imports = {}
+
+function require(item)
+    return __imports[item]()
+end
+
+__imports["library.configuration"] = function()
+    --  Author: Robert Patterson
+    --  Date: March 5, 2021
+    --[[
+    $module Configuration
+
+    This library implements a UTF-8 text file scheme for configuration and user settings as follows:
+
+    - Comments start with `--`
+    - Leading, trailing, and extra whitespace is ignored
+    - Each parameter is named and delimited as follows:
+
+    ```
+    <parameter-name> = <parameter-value>
+    ```
+
+    Parameter values may be:
+
+    - Strings delimited with either single- or double-quotes
+    - Tables delimited with `{}` that may contain strings, booleans, or numbers
+    - Booleans (`true` or `false`)
+    - Numbers
+
+    Currently the following are not supported:
+
+    - Tables embedded within tables
+    - Tables containing strings that contain commas
+
+    A sample configuration file might be:
+
+    ```lua
+    -- Configuration File for "Hairpin and Dynamic Adjustments" script
+    --
+    left_dynamic_cushion 		= 12		--evpus
+    right_dynamic_cushion		= -6		--evpus
+    ```
+
+    ## Configuration Files
+
+    Configuration files provide a way for power users to modify script behavior without
+    having to modify the script itself. Some users track their changes to their configuration files,
+    so scripts should not create or modify them programmatically.
+
+    - The user creates each configuration file in a subfolder called `script_settings` within
+    the folder of the calling script.
+    - Each script that has a configuration file defines its own configuration file name.
+    - It is entirely appropriate over time for scripts to transition from configuration files to user settings,
+    but this requires implementing a user interface to modify the user settings from within the script.
+    (See below.)
+
+    ## User Settings Files
+
+    User settings are written by the scripts themselves and reside in the user's preferences folder
+    in an appropriately-named location for the operating system. (The naming convention is a detail that the
+    configuration library handles for the caller.) If the user settings are to be changed from their defaults,
+    the script itself should provide a means to change them. This could be a (preferably optional) dialog box
+    or any other mechanism the script author chooses.
+
+    User settings are saved in the user's preferences folder (on Mac) or AppData folder (on Windows).
+
+    ## Merge Process
+
+    Files are _merged_ into the passed-in list of default values. They do not _replace_ the list. Each calling script contains
+    a table of all the configurable parameters or settings it recognizes along with default values. An example:
+
+    `sample.lua:`
+
+    ```lua
+    parameters = {
+       x = 1,
+       y = 2,
+       z = 3
+    }
+
+    configuration.get_parameters(parameters, "script.config.txt")
+
+    for k, v in pairs(parameters) do
+       print(k, v)
+    end
+    ```
+
+    Suppose the `script.config.text` file is as follows:
+
+    ```
+    y = 4
+    q = 6
+    ```
+
+    The returned parameters list is:
+
+
+    ```lua
+    parameters = {
+       x = 1,       -- remains the default value passed in
+       y = 4,       -- replaced value from the config file
+       z = 3        -- remains the default value passed in
+    }
+    ```
+
+    The `q` parameter in the config file is ignored because the input paramater list
+    had no `q` parameter.
+
+    This approach allows total flexibility for the script add to or modify its list of parameters
+    without having to worry about older configuration files or user settings affecting it.
+    ]]
+
+    local configuration = {}
+
+    local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
+    local comment_marker = "--"
+    local parameter_delimiter = "="
+    local path_delimiter = "/"
+
+    local file_exists = function(file_path)
+        local f = io.open(file_path, "r")
+        if nil ~= f then
+            io.close(f)
+            return true
+        end
+        return false
+    end
+
+    local strip_leading_trailing_whitespace = function(str)
+        return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
+    end
+
+    local parse_table = function(val_string)
+        local ret_table = {}
+        for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
+            local parsed_element = parse_parameter(element)
+            table.insert(ret_table, parsed_element)
+        end
+        return ret_table
+    end
+
+    parse_parameter = function(val_string)
+        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
+            return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
+        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
+            return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
+        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
+            return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
+        elseif "true" == val_string then
+            return true
+        elseif "false" == val_string then
+            return false
+        end
+        return tonumber(val_string)
+    end
+
+    local get_parameters_from_file = function(file_path, parameter_list)
+        local file_parameters = {}
+
+        if not file_exists(file_path) then
+            return false
+        end
+
+        for line in io.lines(file_path) do
+            local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
+            if nil ~= comment_at then
+                line = string.sub(line, 1, comment_at - 1)
+            end
+            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
+            if nil ~= delimiter_at then
+                local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
+                local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
+                file_parameters[name] = parse_parameter(val_string)
+            end
+        end
+
+        for param_name, _ in pairs(parameter_list) do
+            local param_val = file_parameters[param_name]
+            if nil ~= param_val then
+                parameter_list[param_name] = param_val
+            end
+        end
+
+        return true
+    end
+
+    --[[
+    % get_parameters
+
+    Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list`
+    with any that are found in the config file.
+
+    @ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
+    @ parameter_list (table) a table with the parameter name as key and the default value as value
+    : (boolean) true if the file exists
+    ]]
+    function configuration.get_parameters(file_name, parameter_list)
+        local path = ""
+        if finenv.IsRGPLua then
+            path = finenv.RunningLuaFolderPath()
+        else
+            local str = finale.FCString()
+            str:SetRunningLuaFolderPath()
+            path = str.LuaString
+        end
+        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+        return get_parameters_from_file(file_path, parameter_list)
+    end
+
+    -- Calculates a filepath in the user's preferences folder using recommended naming conventions
+    --
+    local calc_preferences_filepath = function(script_name)
+        local str = finale.FCString()
+        str:SetUserOptionsPath()
+        local folder_name = str.LuaString
+        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+            -- works around bug in SetUserOptionsPath() in JW Lua
+            folder_name = os.getenv("HOME") .. folder_name:sub(2) -- strip '~' and replace with actual folder
+        end
+        if finenv.UI():IsOnWindows() then
+            folder_name = folder_name .. path_delimiter .. "FinaleLua"
+        end
+        local file_path = folder_name .. path_delimiter
+        if finenv.UI():IsOnMac() then
+            file_path = file_path .. "com.finalelua."
+        end
+        file_path = file_path .. script_name .. ".settings.txt"
+        return file_path, folder_name
+    end
+
+    --[[
+    % save_user_settings
+
+    Saves the user's preferences for a script from the values provided in `parameter_list`.
+
+    @ script_name (string) the name of the script (without an extension)
+    @ parameter_list (table) a table with the parameter name as key and the default value as value
+    : (boolean) true on success
+    ]]
+    function configuration.save_user_settings(script_name, parameter_list)
+        local file_path, folder_path = calc_preferences_filepath(script_name)
+        local file = io.open(file_path, "w")
+        if not file and finenv.UI():IsOnWindows() then -- file not found
+            os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder (windows only, since the folder is guaranteed to exist on mac)
+            file = io.open(file_path, "w") -- try the file again
+        end
+        if not file then -- still couldn't find file
+            return false -- so give up
+        end
+        file:write("-- User settings for " .. script_name .. ".lua\n\n")
+        for k,v in pairs(parameter_list) do -- only number, boolean, or string values
+            if type(v) == "string" then
+                v = "\"" .. v .."\""
+            else
+                v = tostring(v)
+            end
+            file:write(k, " = ", v, "\n")
+        end
+        file:close()
+        return true -- success
+    end
+
+    --[[
+    % get_user_settings
+
+    Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
+    with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so
+    the input string should just be the script name (without an extension).
+
+    @ script_name (string) the name of the script (without an extension)
+    @ parameter_list (table) a table with the parameter name as key and the default value as value
+    @ [create_automatically] (boolean) if true, create the file automatically (default is `true`)
+    : (boolean) `true` if the file already existed, `false` if it did not or if it was created automatically
+    ]]
+    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+        if create_automatically == nil then create_automatically = true end
+        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+        if not exists and create_automatically then
+            configuration.save_user_settings(script_name, parameter_list)
+        end
+        return exists
+    end
+
+    return configuration
+
+end
+
+__imports["library.clef"] = function()
+    --[[
+    $module Clef
+
+    A library of general clef utility functions.
+    ]] --
+    local clef = {}
+
+    --[[
+    % get_cell_clef
+
+    Gets the clef for any cell.
+
+    @ measure (number) The measure number for the cell
+    @ staff_number (number) The staff number for the cell
+    : (number) The clef for the cell
+    ]]
+    function clef.get_cell_clef(measure, staff_number)
+        local cell_clef = -1
+        local cell = finale.FCCell(measure, staff_number)
+        local cell_frame_hold = finale.FCCellFrameHold()
+
+        cell_frame_hold:ConnectCell(cell)
+        if cell_frame_hold:Load() then
+            if cell_frame_hold.IsClefList then
+                cell_clef = cell_frame_hold:CreateFirstCellClefChange().ClefIndex
+            else
+                cell_clef = cell_frame_hold.ClefIndex
+            end
+        end
+        return cell_clef
+    end
+
+    --[[
+    % get_default_clef
+
+    Gets the default clef for any staff for a specific region.
+
+    @ first_measure (number) The first measure of the region
+    @ last_measure (number) The last measure of the region
+    @ staff_number (number) The staff number for the cell
+    : (number) The default clef for the staff
+    ]]
+    function clef.get_default_clef(first_measure, last_measure, staff_number)
+        local staff = finale.FCStaff()
+        local cell_clef = clef.get_cell_clef(first_measure - 1, staff_number)
+        if cell_clef < 0 then -- failed, so check clef AFTER insertion
+            cell_clef = clef.get_cell_clef(last_measure + 1, staff_number)
+            if cell_clef < 0 then -- resort to destination staff default clef
+                cell_clef = staff:Load(staff_number) and staff.DefaultClef or 0 -- default treble
+            end
+        end
+        return cell_clef
+    end
+
+    --[[
+    % can_change_clef
+
+    Determine if the current version of the plugin can change clefs.
+
+    : (boolean) Whether or not the plugin can change clefs
+    ]]
+    function clef.can_change_clef()
+        -- RGPLua 0.60 or later needed for clef changing
+        return finenv.IsRGPLua or finenv.StringVersion >= "0.60"
+    end
+
+    --[[
+    % restore_default_clef
+
+    Restores the default clef for any staff for a specific region.
+
+    @ first_measure (number) The first measure of the region
+    @ last_measure (number) The last measure of the region
+    @ staff_number (number) The staff number for the cell
+    ]]
+    function clef.restore_default_clef(first_measure, last_measure, staff_number)
+        if not clef.can_change_clef() then
+            return
+        end
+
+        local default_clef = clef.get_default_clef(first_measure, last_measure, staff_number)
+
+        for measure = first_measure, last_measure do
+            local cell = finale.FCCell(measure, staff_number)
+            local cell_frame_hold = finale.FCCellFrameHold()
+            cell_frame_hold:ConnectCell(cell)
+            if cell_frame_hold:Load() then
+                cell_frame_hold:MakeCellSingleClef(nil) -- RGPLua v0.60
+                cell_frame_hold:SetClefIndex(default_clef)
+                cell_frame_hold:Save()
+            end
+        end
+    end
+
+    return clef
+
+end
+
+__imports["library.layer"] = function()
+    --[[
+    $module Layer
+    ]] --
+    local layer = {}
+    
+    --[[
+    % copy
+    
+    Duplicates the notes from the source layer to the destination. The source layer remains untouched.
+    
+    @ region (FCMusicRegion) the region to be copied
+    @ source_layer (number) the number (1-4) of the layer to duplicate
+    @ destination_layer (number) the number (1-4) of the layer to be copied to
+    ]]
+    function layer.copy(region, source_layer, destination_layer)
+        local start = region.StartMeasure
+        local stop = region.EndMeasure
+        local sysstaves = finale.FCSystemStaves()
+        sysstaves:LoadAllForRegion(region)
+        source_layer = source_layer - 1
+        destination_layer = destination_layer - 1
+        for sysstaff in each(sysstaves) do
+            staffNum = sysstaff.Staff
+            local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
+            noteentry_source_layer:Load()
+            local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
+                                                    destination_layer, staffNum, start)
+            noteentry_destination_layer:Save()
+            noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
+            noteentry_destination_layer:Save()
+        end
+    end -- function layer_copy
+    
+    --[[
+    % clear
+    
+    Clears all entries from a given layer.
+    
+    @ region (FCMusicRegion) the region to be cleared
+    @ layer_to_clear (number) the number (1-4) of the layer to clear
+    ]]
+    function layer.clear(region, layer_to_clear)
+        layer_to_clear = layer_to_clear - 1 -- Turn 1 based layer to 0 based layer
+        local start = region.StartMeasure
+        local stop = region.EndMeasure
+        local sysstaves = finale.FCSystemStaves()
+        sysstaves:LoadAllForRegion(region)
+        for sysstaff in each(sysstaves) do
+            staffNum = sysstaff.Staff
+            local noteentrylayer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            noteentrylayer:Load()
+            noteentrylayer:ClearAllEntries()
+        end
+    end
+    
+    --[[
+    % swap
+    
+    Swaps the entries from two different layers (e.g. 1-->2 and 2-->1).
+    
+    @ region (FCMusicRegion) the region to be swapped
+    @ swap_a (number) the number (1-4) of the first layer to be swapped
+    @ swap_b (number) the number (1-4) of the second layer to be swapped
+    ]]
+    function layer.swap(region, swap_a, swap_b)
+        -- Set layers for 0 based
+        swap_a = swap_a - 1
+        swap_b = swap_b - 1
+        for measure, staff_number in eachcell(region) do
+            local cell_frame_hold = finale.FCCellFrameHold()    
+            cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+            local loaded = cell_frame_hold:Load()
+            local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
+            local noteentrylayer_1 = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
+            noteentrylayer_1:Load()
+            noteentrylayer_1.LayerIndex = swap_b
+            --
+            local noteentrylayer_2 = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
+            noteentrylayer_2:Load()
+            noteentrylayer_2.LayerIndex = swap_a
+            noteentrylayer_1:Save()
+            noteentrylayer_2:Save()
+            if loaded then
+                local new_cell_frame_hold = finale.FCCellFrameHold()
+                new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+                if new_cell_frame_hold:Load() then
+                    if cell_frame_hold.IsClefList then
+                        if new_cell_frame_hold.SetCellClefChanges then
+                            new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
+                        end
+                        -- No remedy here in JW Lua. The clef list can be changed by a layer swap.
+                    else
+                        new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
+                    end
+                    new_cell_frame_hold:Save()
+                end
+            end
+        end
+    end
+    
+    return layer
+
+end
+
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
@@ -34,482 +525,9 @@ local config = { -- retained and over-written by the user's "settings" file
     cue_category_name   =   "Cue Names",
     cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
 }
---  Author: Robert Patterson
---  Date: March 5, 2021
---[[
-$module Configuration
-
-This library implements a UTF-8 text file scheme for configuration and user settings as follows:
-
-- Comments start with `--`
-- Leading, trailing, and extra whitespace is ignored
-- Each parameter is named and delimited as follows:
-
-```
-<parameter-name> = <parameter-value>
-```
-
-Parameter values may be:
-
-- Strings delimited with either single- or double-quotes
-- Tables delimited with `{}` that may contain strings, booleans, or numbers
-- Booleans (`true` or `false`)
-- Numbers
-
-Currently the following are not supported:
-
-- Tables embedded within tables
-- Tables containing strings that contain commas
-
-A sample configuration file might be:
-
-```lua
--- Configuration File for "Hairpin and Dynamic Adjustments" script
---
-left_dynamic_cushion 		= 12		--evpus
-right_dynamic_cushion		= -6		--evpus
-```
-
-## Configuration Files
-
-Configuration files provide a way for power users to modify script behavior without
-having to modify the script itself. Some users track their changes to their configuration files,
-so scripts should not create or modify them programmatically.
-
-- The user creates each configuration file in a subfolder called `script_settings` within
-the folder of the calling script.
-- Each script that has a configuration file defines its own configuration file name.
-- It is entirely appropriate over time for scripts to transition from configuration files to user settings,
-but this requires implementing a user interface to modify the user settings from within the script.
-(See below.)
-
-## User Settings Files
-
-User settings are written by the scripts themselves and reside in the user's preferences folder
-in an appropriately-named location for the operating system. (The naming convention is a detail that the
-configuration library handles for the caller.) If the user settings are to be changed from their defaults,
-the script itself should provide a means to change them. This could be a (preferably optional) dialog box
-or any other mechanism the script author chooses.
-
-User settings are saved in the user's preferences folder (on Mac) or AppData folder (on Windows).
-
-## Merge Process
-
-Files are _merged_ into the passed-in list of default values. They do not _replace_ the list. Each calling script contains
-a table of all the configurable parameters or settings it recognizes along with default values. An example:
-
-`sample.lua:`
-
-```lua
-parameters = {
-   x = 1,
-   y = 2,
-   z = 3
-}
-
-configuration.get_parameters(parameters, "script.config.txt")
-
-for k, v in pairs(parameters) do
-   print(k, v)
-end
-```
-
-Suppose the `script.config.text` file is as follows:
-
-```
-y = 4
-q = 6
-```
-
-The returned parameters list is:
-
-
-```lua
-parameters = {
-   x = 1,       -- remains the default value passed in
-   y = 4,       -- replaced value from the config file
-   z = 3        -- remains the default value passed in
-}
-```
-
-The `q` parameter in the config file is ignored because the input paramater list
-had no `q` parameter.
-
-This approach allows total flexibility for the script add to or modify its list of parameters
-without having to worry about older configuration files or user settings affecting it.
-]]
-
-local configuration = {}
-
-local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
-local comment_marker = "--"
-local parameter_delimiter = "="
-local path_delimiter = "/"
-
-local file_exists = function(file_path)
-    local f = io.open(file_path, "r")
-    if nil ~= f then
-        io.close(f)
-        return true
-    end
-    return false
-end
-
-local strip_leading_trailing_whitespace = function(str)
-    return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
-end
-
-local parse_table = function(val_string)
-    local ret_table = {}
-    for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
-        local parsed_element = parse_parameter(element)
-        table.insert(ret_table, parsed_element)
-    end
-    return ret_table
-end
-
-parse_parameter = function(val_string)
-    if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
-        return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
-    elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
-        return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
-    elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-        return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
-    elseif "true" == val_string then
-        return true
-    elseif "false" == val_string then
-        return false
-    end
-    return tonumber(val_string)
-end
-
-local get_parameters_from_file = function(file_path, parameter_list)
-    local file_parameters = {}
-
-    if not file_exists(file_path) then
-        return false
-    end
-
-    for line in io.lines(file_path) do
-        local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
-        if nil ~= comment_at then
-            line = string.sub(line, 1, comment_at - 1)
-        end
-        local delimiter_at = string.find(line, parameter_delimiter, 1, true)
-        if nil ~= delimiter_at then
-            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
-            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
-            file_parameters[name] = parse_parameter(val_string)
-        end
-    end
-
-    for param_name, _ in pairs(parameter_list) do
-        local param_val = file_parameters[param_name]
-        if nil ~= param_val then
-            parameter_list[param_name] = param_val
-        end
-    end
-
-    return true
-end
-
---[[
-% get_parameters
-
-Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list`
-with any that are found in the config file.
-
-@ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
-@ parameter_list (table) a table with the parameter name as key and the default value as value
-: (boolean) true if the file exists
-]]
-function configuration.get_parameters(file_name, parameter_list)
-    local path = ""
-    if finenv.IsRGPLua then
-        path = finenv.RunningLuaFolderPath()
-    else
-        local str = finale.FCString()
-        str:SetRunningLuaFolderPath()
-        path = str.LuaString
-    end
-    local file_path = path .. script_settings_dir .. path_delimiter .. file_name
-    return get_parameters_from_file(file_path, parameter_list)
-end
-
--- Calculates a filepath in the user's preferences folder using recommended naming conventions
---
-local calc_preferences_filepath = function(script_name)
-    local str = finale.FCString()
-    str:SetUserOptionsPath()
-    local folder_name = str.LuaString
-    if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
-        -- works around bug in SetUserOptionsPath() in JW Lua
-        folder_name = os.getenv("HOME") .. folder_name:sub(2) -- strip '~' and replace with actual folder
-    end
-    if finenv.UI():IsOnWindows() then
-        folder_name = folder_name .. path_delimiter .. "FinaleLua"
-    end
-    local file_path = folder_name .. path_delimiter
-    if finenv.UI():IsOnMac() then
-        file_path = file_path .. "com.finalelua."
-    end
-    file_path = file_path .. script_name .. ".settings.txt"
-    return file_path, folder_name
-end
-
---[[
-% save_user_settings
-
-Saves the user's preferences for a script from the values provided in `parameter_list`.
-
-@ script_name (string) the name of the script (without an extension)
-@ parameter_list (table) a table with the parameter name as key and the default value as value
-: (boolean) true on success
-]]
-function configuration.save_user_settings(script_name, parameter_list)
-    local file_path, folder_path = calc_preferences_filepath(script_name)
-    local file = io.open(file_path, "w")
-    if not file and finenv.UI():IsOnWindows() then -- file not found
-        os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder (windows only, since the folder is guaranteed to exist on mac)
-        file = io.open(file_path, "w") -- try the file again
-    end
-    if not file then -- still couldn't find file
-        return false -- so give up
-    end
-    file:write("-- User settings for " .. script_name .. ".lua\n\n")
-    for k,v in pairs(parameter_list) do -- only number, boolean, or string values
-        if type(v) == "string" then
-            v = "\"" .. v .."\""
-        else
-            v = tostring(v)
-        end
-        file:write(k, " = ", v, "\n")
-    end
-    file:close()
-    return true -- success
-end
-
---[[
-% get_user_settings
-
-Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
-with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so
-the input string should just be the script name (without an extension).
-
-@ script_name (string) the name of the script (without an extension)
-@ parameter_list (table) a table with the parameter name as key and the default value as value
-@ [create_automatically] (boolean) if true, create the file automatically (default is `true`)
-: (boolean) `true` if the file already existed, `false` if it did not or if it was created automatically
-]]
-function configuration.get_user_settings(script_name, parameter_list, create_automatically)
-    if create_automatically == nil then create_automatically = true end
-    local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
-    if not exists and create_automatically then
-        configuration.save_user_settings(script_name, parameter_list)
-    end
-    return exists
-end
-
-
-
---[[
-$module Clef
-
-A library of general clef utility functions.
-]] --
-local clef = {}
-
---[[
-% get_cell_clef
-
-Gets the clef for any cell.
-
-@ measure (number) The measure number for the cell
-@ staff_number (number) The staff number for the cell
-: (number) The clef for the cell
-]]
-function clef.get_cell_clef(measure, staff_number)
-    local cell_clef = -1
-    local cell = finale.FCCell(measure, staff_number)
-    local cell_frame_hold = finale.FCCellFrameHold()
-
-    cell_frame_hold:ConnectCell(cell)
-    if cell_frame_hold:Load() then
-        if cell_frame_hold.IsClefList then
-            cell_clef = cell_frame_hold:CreateFirstCellClefChange().ClefIndex
-        else
-            cell_clef = cell_frame_hold.ClefIndex
-        end
-    end
-    return cell_clef
-end
-
---[[
-% get_default_clef
-
-Gets the default clef for any staff for a specific region.
-
-@ first_measure (number) The first measure of the region
-@ last_measure (number) The last measure of the region
-@ staff_number (number) The staff number for the cell
-: (number) The default clef for the staff
-]]
-function clef.get_default_clef(first_measure, last_measure, staff_number)
-    local staff = finale.FCStaff()
-    local cell_clef = clef.get_cell_clef(first_measure - 1, staff_number)
-    if cell_clef < 0 then -- failed, so check clef AFTER insertion
-        cell_clef = clef.get_cell_clef(last_measure + 1, staff_number)
-        if cell_clef < 0 then -- resort to destination staff default clef
-            cell_clef = staff:Load(staff_number) and staff.DefaultClef or 0 -- default treble
-        end
-    end
-    return cell_clef
-end
-
---[[
-% can_change_clef
-
-Determine if the current version of the plugin can change clefs.
-
-: (boolean) Whether or not the plugin can change clefs
-]]
-function clef.can_change_clef()
-    -- RGPLua 0.60 or later needed for clef changing
-    return finenv.IsRGPLua or finenv.StringVersion >= "0.60"
-end
-
---[[
-% restore_default_clef
-
-Restores the default clef for any staff for a specific region.
-
-@ first_measure (number) The first measure of the region
-@ last_measure (number) The last measure of the region
-@ staff_number (number) The staff number for the cell
-]]
-function clef.restore_default_clef(first_measure, last_measure, staff_number)
-    if not clef.can_change_clef() then
-        return
-    end
-
-    local default_clef = clef.get_default_clef(first_measure, last_measure, staff_number)
-
-    for measure = first_measure, last_measure do
-        local cell = finale.FCCell(measure, staff_number)
-        local cell_frame_hold = finale.FCCellFrameHold()
-        cell_frame_hold:ConnectCell(cell)
-        if cell_frame_hold:Load() then
-            cell_frame_hold:MakeCellSingleClef(nil) -- RGPLua v0.60
-            cell_frame_hold:SetClefIndex(default_clef)
-            cell_frame_hold:Save()
-        end
-    end
-end
-
-
-
---[[
-$module Layer
-]] --
-local layer = {}
-
---[[
-% copy
-
-Duplicates the notes from the source layer to the destination. The source layer remains untouched.
-
-@ region (FCMusicRegion) the region to be copied
-@ source_layer (number) the number (1-4) of the layer to duplicate
-@ destination_layer (number) the number (1-4) of the layer to be copied to
-]]
-function layer.copy(region, source_layer, destination_layer)
-    local start = region.StartMeasure
-    local stop = region.EndMeasure
-    local sysstaves = finale.FCSystemStaves()
-    sysstaves:LoadAllForRegion(region)
-    source_layer = source_layer - 1
-    destination_layer = destination_layer - 1
-    for sysstaff in each(sysstaves) do
-        staffNum = sysstaff.Staff
-        local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
-        noteentry_source_layer:Load()
-        local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
-                                                destination_layer, staffNum, start)
-        noteentry_destination_layer:Save()
-        noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
-        noteentry_destination_layer:Save()
-    end
-end -- function layer_copy
-
---[[
-% clear
-
-Clears all entries from a given layer.
-
-@ region (FCMusicRegion) the region to be cleared
-@ layer_to_clear (number) the number (1-4) of the layer to clear
-]]
-function layer.clear(region, layer_to_clear)
-    layer_to_clear = layer_to_clear - 1 -- Turn 1 based layer to 0 based layer
-    local start = region.StartMeasure
-    local stop = region.EndMeasure
-    local sysstaves = finale.FCSystemStaves()
-    sysstaves:LoadAllForRegion(region)
-    for sysstaff in each(sysstaves) do
-        staffNum = sysstaff.Staff
-        local noteentrylayer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
-        noteentrylayer:Load()
-        noteentrylayer:ClearAllEntries()
-    end
-end
-
---[[
-% swap
-
-Swaps the entries from two different layers (e.g. 1-->2 and 2-->1).
-
-@ region (FCMusicRegion) the region to be swapped
-@ swap_a (number) the number (1-4) of the first layer to be swapped
-@ swap_b (number) the number (1-4) of the second layer to be swapped
-]]
-function layer.swap(region, swap_a, swap_b)
-    -- Set layers for 0 based
-    swap_a = swap_a - 1
-    swap_b = swap_b - 1
-    for measure, staff_number in eachcell(region) do
-        local cell_frame_hold = finale.FCCellFrameHold()    
-        cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-        local loaded = cell_frame_hold:Load()
-        local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
-        local noteentrylayer_1 = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
-        noteentrylayer_1:Load()
-        noteentrylayer_1.LayerIndex = swap_b
-        --
-        local noteentrylayer_2 = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
-        noteentrylayer_2:Load()
-        noteentrylayer_2.LayerIndex = swap_a
-        noteentrylayer_1:Save()
-        noteentrylayer_2:Save()
-        if loaded then
-            local new_cell_frame_hold = finale.FCCellFrameHold()
-            new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-            if new_cell_frame_hold:Load() then
-                if cell_frame_hold.IsClefList then
-                    if new_cell_frame_hold.SetCellClefChanges then
-                        new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
-                    end
-                    -- No remedy here in JW Lua. The clef list can be changed by a layer swap.
-                else
-                    new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
-                end
-                new_cell_frame_hold:Save()
-            end
-        end
-    end
-end
-
-
-
+local configuration = require("library.configuration")
+local clef = require("library.clef")
+local layer = require("library.layer")
 
 configuration.get_user_settings("cue_notes_create", config, true)
 
