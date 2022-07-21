@@ -735,11 +735,24 @@ function harp_pedal_wizard()
 ---
       ::scale_error::
       if scale_error then
-        print("That scale won't work.")
         local str = finale.FCString()
         str.LuaString = "That scale won't work, sorry. \n Try again using "..enharmonic.LuaString.." "..scale.."?"
         local result = ui:AlertYesNo(str.LuaString, NULL)
-        if result == 2 then harp_scale(enharmonic.LuaString, scale, use_diagram, use_chord) end
+        if result == 2 then
+          sel_acc:SetSelectedItem(1)
+          for i, k in pairs(roots) do
+            if string.sub(enharmonic.LuaString, 1, 1) == roots[i] then
+              sel_root:SetSelectedItem(i-1)
+            end
+          end
+          if string.len(enharmonic.LuaString) == 2 then
+            if string.sub(enharmonic.LuaString, -1) == "b" then
+              sel_acc:SetSelectedItem(0)
+            elseif string.sub(enharmonic.LuaString, -1) == "#" then
+              sel_acc:SetSelectedItem(2)
+            end
+          end
+        end
       end -- error
 
     end -- function harp_scale()
@@ -780,10 +793,10 @@ or a chord from the drop down lists.]])
 ----
         row_y = row_y + 52
 
-        local roots = {"A", "B", "C", "D", "E", "F", "G"}
+        roots = {"A", "B", "C", "D", "E", "F", "G"}
         local root_label = dialog:CreateStatic(8,row_y-14)
         format_ctrl(root_label, 15, 30, "Root")
-        local sel_root = dialog:CreatePopup(8, row_y)
+        sel_root = dialog:CreatePopup(8, row_y)
         format_ctrl(sel_root, 20, 36, "Root")
         for i,j in pairs(roots) do
           str.LuaString = roots[i]
@@ -792,7 +805,7 @@ or a chord from the drop down lists.]])
         sel_root:SetSelectedItem(config.root)
         local accidentals = {"b", "♮", "#"} -- unicode symbols... natural at least displays as 'n' on Windows
 --      local accidentals = {"♭", "♮", "♯"} -- unicode symbols
-        local sel_acc = dialog:CreatePopup(42, row_y)
+        sel_acc = dialog:CreatePopup(42, row_y)
         format_ctrl(sel_acc, 20, 32, "Accidental")
         for i,j in pairs(accidentals) do
           str.LuaString = accidentals[i]
@@ -803,7 +816,7 @@ or a chord from the drop down lists.]])
         -- Setup Scales
         str.LuaString = " Scale"  
         local scale_check = dialog:CreateCheckbox(86, row_y-14)
-                format_ctrl(scale_check, 16, 70, str.LuaString)
+        format_ctrl(scale_check, 16, 70, str.LuaString)
 
         scale_check:SetCheck(config.scale_check)
 
