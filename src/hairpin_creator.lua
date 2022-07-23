@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after CJ Garcia"
     finaleplugin.AuthorURL = "http://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.58"
-    finaleplugin.Date = "2022/07/22"
+    finaleplugin.Version = "v0.59"
+    finaleplugin.Date = "2022/07/24"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin create diminuendo
         Hairpin create swell
@@ -51,7 +51,7 @@ function plugindef()
         first move one or more dynamic to the lowest point you need. 
         
         To change the script's default settings hold down the `shift` or `alt` (option) key when selecting the menu item. 
-        (This may need special treatment when using a keystroke macro program like KeyboardMaestro). 
+        (This might need special treatment when using a keystroke macro program like KeyboardMaestro). 
         For simple hairpins that don't mess around with trailing barlines and dynamics try selecting 
         `dynamics_match_hairpin` and de-selecting the other options.
     ]]
@@ -288,10 +288,12 @@ local function lowest_note_element(rgn)
 end
 
 local function expression_is_dynamic(exp)
-    if not exp:IsShape() and exp.StaffGroupID == 0 then
+    if not exp:IsShape() and exp.Visible and exp.StaffGroupID == 0 then
         local cd = finale.FCCategoryDef()
         local text_def = exp:CreateTextExpressionDef()
-        if text_def and cd:Load(text_def.CategoryID) then
+        local font_info = text_def:CreateTextString():CreateLastFontInfo() -- ignore hidden expressions
+
+        if text_def and cd:Load(text_def.CategoryID) and not font_info.Hidden then
             if text_def.CategoryID == finale.DEFAULTCATID_DYNAMICS or string.find(cd:CreateName().LuaString, "Dynamic") then
                 return true
             end
@@ -573,9 +575,10 @@ function create_user_dialog() -- attempting MODELESS operation
         end
     end
     -- measurement unit options
-    dialog:CreateStatic(0, (#dialog_options + 1) * y_step + 24 - mac_offset):SetText("Units:")
+    local y_current = (#dialog_options + 1.6) * y_step
+    dialog:CreateStatic(x_offset[2] - 40, y_current ):SetText("Units:") -- + mac_offset
     dialog:SetMeasurementUnit(config.measurement_unit)
-    dialog:CreateMeasurementUnitPopup(40, (#dialog_options + 1) * y_step + 20)
+    dialog:CreateMeasurementUnitPopup(x_offset[2], y_current)
 
     -- InitWindow: set config values
     dialog:RegisterInitWindow(function(self)
@@ -631,6 +634,7 @@ function action_type()
             global_dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
             global_dialog:RestorePosition()
         end
+        global_dialog.OkButtonCanClose = true
         finenv.RegisterModelessDialog(global_dialog)
         global_dialog:ShowModeless()
     else
