@@ -3,14 +3,16 @@ function plugindef()
     finaleplugin.Version = 1.0
     finaleplugin.Copyright = "2022/01/03"
     finaleplugin.HandlesUndo = true
+    finaleplugin.Notes = [[
+    Inspired by the 'r' key in Sibelius, this script copies the selected music, and pastes it directly to the right.
+Works with a single or multiple measures.
+When activated with a shortcut or hotkey, ultra fast replication is possible.
+]]
 return "Replicate Music", "Replicate Music", "Inspired by the 'r' key in Sibelius, this script copies the selected music, and pastes it directly to the right"
 end
 
---[[
-Inspired by the 'r' key in Sibelius, this script copies the selected music, and pastes it directly to the right.
-Works with a single or multiple measures.
-When activated with a shortcut or hotkey, ultra fast replication is possible.
---]]
+
+
 
 
 local function replicate_music()
