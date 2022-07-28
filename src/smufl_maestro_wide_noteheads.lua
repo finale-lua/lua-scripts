@@ -11,26 +11,9 @@ Replaces the noteheads in a 'Finale Maestro' document with the 'Maestro Wide' gl
     return "Finale Maestro: Wide Notes", "Finale Maestro: Wide Notes", "Replaces noteheads in Finale Maestro with the wide variation."
 end
 
---JETSTREAM-- should add to library!
-function getUsedFontName(standard_name)
-    local font_name = standard_name
-    if string.find(os.tmpname(), "/") then
-        font_name = standard_name
-    elseif string.find(os.tmpname(), "\\") then
-        font_name = string.gsub(standard_name, "%s", "")
-    end
-    return font_name
-end
-
-function get_def_mus_font()
-    local fontinfo = finale.FCFontInfo()
-    if fontinfo:LoadFontPrefs(finale.FONTPREF_MUSIC) then
-        return getUsedFontName(fontinfo:GetName())
-    end
-end
--------------
 function maestro_wide_update()
-    local default_music_font = get_def_mus_font()
+    local library = require("library.general_library")
+    local default_music_font = library.get_default_music_font()
     if default_music_font == "Finale Maestro" or default_music_font == "FinaleMaestro" then
         local musiccharacterprefs = finale.FCMusicCharacterPrefs()
         musiccharacterprefs:Load(1)
