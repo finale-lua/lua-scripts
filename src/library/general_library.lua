@@ -211,8 +211,6 @@ Returns true if measure number for the input cell is visible and left-aligned.
 @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
 : (boolean)
 ]]
-function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part,
-                                                            is_for_multimeasure_rest)
 function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, 
         is_for_multimeasure_rest)
     if meas_num_region.UseScoreInfoForParts then
