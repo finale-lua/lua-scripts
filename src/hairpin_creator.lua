@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after CJ Garcia"
     finaleplugin.AuthorURL = "http://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.59"
-    finaleplugin.Date = "2022/07/24"
+    finaleplugin.Version = "v0.60"
+    finaleplugin.Date = "2022/07/25"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin create diminuendo
         Hairpin create swell
@@ -239,7 +239,6 @@ local function articulation_metric_vertical(entry)
             vertical = arg_point.Y
         end
         local art_def = articulation:CreateArticulationDef() -- subtract articulation HEIGHT
-        -- ???? does metrics:LoadArticulation work on SMuFL characters ????
         if text_mets:LoadArticulation(art_def, false, 100) then
             vertical = vertical - math.floor(text_mets:CalcHeightEVPUs() + 0.5)
         end
@@ -291,11 +290,12 @@ local function expression_is_dynamic(exp)
     if not exp:IsShape() and exp.Visible and exp.StaffGroupID == 0 then
         local cd = finale.FCCategoryDef()
         local text_def = exp:CreateTextExpressionDef()
-        local font_info = text_def:CreateTextString():CreateLastFontInfo() -- ignore hidden expressions
-
-        if text_def and cd:Load(text_def.CategoryID) and not font_info.Hidden then
-            if text_def.CategoryID == finale.DEFAULTCATID_DYNAMICS or string.find(cd:CreateName().LuaString, "Dynamic") then
-                return true
+        if text_def then
+            local font_info = text_def:CreateTextString():CreateLastFontInfo() -- ignore hidden expressions
+            if cd:Load(text_def.CategoryID) and not font_info.Hidden then
+                if text_def.CategoryID == finale.DEFAULTCATID_DYNAMICS or string.find(cd:CreateName().LuaString, "Dynamic") then
+                    return true
+                end
             end
         end
     end
@@ -385,6 +385,10 @@ local function design_staff_swell(rgn, hairpin_shape, lowest_vert)
             if offset > left_offset then
                 left_offset = offset
             end
+            if rgn.StartMeasurePos ~= first_dyn.MeasurePos then -- align them horizontally
+                rgn.StartMeasurePos = first_dyn.MeasurePos
+                rgn.StartMeasure = first_dyn.Measure
+            end
         end
         local last_dyn = dynamic_list[#dynamic_list]
         local edu_gap = duration_gap(last_dyn.Measure, last_dyn.MeasurePos, rgn.EndMeasure, rgn.EndMeasurePos)
@@ -437,6 +441,10 @@ local function design_staff_hairpin(rgn, hairpin_shape)
             local offset = dynamic_horiz_offset(first_dyn, "left")
             if offset > left_offset then
                 left_offset = offset
+            end
+            if rgn.StartMeasurePos ~= first_dyn.MeasurePos then -- align them horizontally
+                rgn.StartMeasurePos = first_dyn.MeasurePos
+                rgn.StartMeasure = first_dyn.Measure
             end
         end
         local last_dyn = dynamics_list[#dynamics_list][1]
@@ -635,7 +643,6 @@ function action_type()
             global_dialog:RestorePosition()
         end
         global_dialog.OkButtonCanClose = true
-        finenv.RegisterModelessDialog(global_dialog)
         global_dialog:ShowModeless()
     else
         activity_selector() -- just go do the work
