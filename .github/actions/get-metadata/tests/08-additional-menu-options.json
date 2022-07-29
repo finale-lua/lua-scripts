@@ -1,9 +1,14 @@
 {
-    "fileName": "07-revision-notes.lua",
-    "name": "Script",
-    "undoText": "Script",
-    "shortDescription": "Script",
-    "menuItems": ["Script"],
+    "fileName": "08-additional-menu-options.lua",
+    "name": "Hairpin create crescendo",
+    "undoText": "Hairpin create crescendo",
+    "shortDescription": "Hairpin create crescendo",
+    "menuItems": [
+        "Hairpin create crescendo",
+        "Hairpin create diminuendo",
+        "Hairpin create swell",
+        "Hairpin create unswell"
+    ],
     "scriptGroupName": "",
     "scriptGroupDescription": "",
     "requireSelection": false,
@@ -19,7 +24,7 @@
     "categories": [],
     "date": "",
     "notes": "",
-    "revisionNotes": ["July 26, 2013: Version 1.00", "July 28, 2013: Version 1.01"],
+    "revisionNotes": [],
     "id": "",
     "minJWLuaVersion": "",
     "maxJWLuaVersion": "",
