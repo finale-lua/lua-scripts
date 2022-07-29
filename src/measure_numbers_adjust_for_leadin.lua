@@ -43,6 +43,7 @@ function measure_numbers_adjust_for_leadin()
                 if meas_num > skip_past_meas_num then
                     local meas_num_region = meas_num_regions:FindMeasure(meas_num)
                     if nil ~= meas_num_region then
+                        local parts_val = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
                         multimeasure_rest = finale.FCMultiMeasureRest()
                         local is_for_multimeasure_rest = multimeasure_rest:Load(meas_num)
                         if is_for_multimeasure_rest then
@@ -62,7 +63,7 @@ function measure_numbers_adjust_for_leadin()
                                                 -- FCCellMetrics did not provide the barline width before v0.59.
                                                 -- Use the value derived from document settings above if we can't get the real width.
                                                 local barline_thickness = default_barline_thickness
-                                                if nil ~= cell_metrics.GetRightBarlineWidth then -- if the property getter exists, then we are at 0.59+
+                                                if cell_metrics.GetRightBarlineWidth then -- if the property getter exists, then we are at 0.59+
                                                     local previous_cell_metrics = finale.FCCellMetrics()
                                                     if previous_cell_metrics:LoadAtCell(finale.FCCell(previous_meas_num, staff)) then
                                                         barline_thickness = previous_cell_metrics.RightBarlineWidth
@@ -70,8 +71,10 @@ function measure_numbers_adjust_for_leadin()
                                                     end
                                                 end
                                                 lead_in = lead_in - barline_thickness
+                                                if meas_num_region:GetMultipleJustification(parts_val) == finale.MNJUSTIFY_CENTER then
+                                                    lead_in = lead_in + math.floor(barline_thickness/2.0 + 0.5)
+                                                end
                                                 if (0 ~= lead_in) then
-                                                    lead_in = lead_in - additional_offset
                                                     -- Finale scales the lead_in by the staff percent, so remove that if any
                                                     local staff_percent = (cell_metrics.StaffScaling / 10000.0) / (cell_metrics.SystemScaling / 10000.0)
                                                     lead_in = math.floor(lead_in/staff_percent + 0.5)
@@ -79,6 +82,7 @@ function measure_numbers_adjust_for_leadin()
                                                     local horz_percent = cell_metrics.HorizontalStretch / 10000.0
                                                     lead_in = math.floor(lead_in/horz_percent + 0.5)
                                                 end
+                                                lead_in = lead_in + meas_num_region:GetMultipleHorizontalPosition(parts_val)
                                             end
                                             cell_metrics:FreeMetrics() -- not sure if this is needed, but it can't hurt
                                         end
@@ -86,14 +90,14 @@ function measure_numbers_adjust_for_leadin()
                                         sep_nums:LoadAllInCell(cell)
                                         if (sep_nums.Count > 0) then
                                             for sep_num in each(sep_nums) do
-                                                sep_num.HorizontalPosition = -lead_in
+                                                sep_num.HorizontalPosition = -lead_in + additional_offset
                                                 sep_num:Save()
                                             end
                                         elseif (0 ~= lead_in) then
                                             local sep_num = finale.FCSeparateMeasureNumber()
                                             sep_num:ConnectCell(cell)
                                             sep_num:AssignMeasureNumberRegion(meas_num_region)
-                                            sep_num.HorizontalPosition = -lead_in
+                                            sep_num.HorizontalPosition = -lead_in + additional_offset
                                             --sep_num:SetShowOverride(true) -- enable this line if you want to force show the number. otherwise it will show or hide based on the measure number region
                                             if sep_num:SaveNew() then
                                                 local measure = finale.FCMeasure()
