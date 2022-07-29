@@ -19,7 +19,7 @@ Summary of modifications:
 fcmctrlupdown.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L23)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L23)
 
 **[Internal]**
 
@@ -33,7 +33,7 @@ fcmctrlupdown.Init(self)
 fcmctrlupdown.GetConnectedEdit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L36)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L36)
 
 **[Override]**
 Ensures that original edit control is returned.
@@ -52,7 +52,7 @@ Ensures that original edit control is returned.
 fcmctrlupdown.ConnectIntegerEdit(self, control, minvalue, maxvalue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L51)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L51)
 
 **[Override]**
 
@@ -73,7 +73,7 @@ fcmctrlupdown.ConnectIntegerEdit(self, control, minvalue, maxvalue)
 fcmctrlupdown.ConnectMeasurementEdit(self, control, minvalue, maxvalue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L76)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L76)
 
 **[Override]**
 
@@ -94,7 +94,7 @@ fcmctrlupdown.ConnectMeasurementEdit(self, control, minvalue, maxvalue)
 fcmctrlupdown.AddHandlePress(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L104)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L104)
 
 **[Fluid]**
 Adds a handler for UpDownPressed events.
@@ -110,7 +110,7 @@ Adds a handler for UpDownPressed events.
 fcmctrlupdown.RemoveHandlePress(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L109)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L109)
 
 **[Fluid]**
 Removes a handler added with `AddHandlePress`.

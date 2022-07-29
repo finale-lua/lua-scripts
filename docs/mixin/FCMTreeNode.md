@@ -15,7 +15,7 @@ Summary of modifications:
 fcmtreenode.GetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMTreeNode.lua.lua#L26)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMTreeNode.lua#L26)
 
 **[Override]**
 Returns a Lua `string` and makes passing an `FCString` optional.
@@ -35,7 +35,7 @@ Returns a Lua `string` and makes passing an `FCString` optional.
 fcmtreenode.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMTreeNode.lua.lua#L47)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMTreeNode.lua#L47)
 
 **[Fluid] [Override]**
 Accepts Lua `string` and `number` in addition to `FCString`.

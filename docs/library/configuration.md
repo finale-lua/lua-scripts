@@ -110,7 +110,7 @@ without having to worry about older configuration files or user settings affecti
 configuration.get_parameters(file_name, parameter_list)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua.lua#L190)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua#L190)
 
 Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list`
 with any that are found in the config file.
@@ -130,7 +130,7 @@ with any that are found in the config file.
 configuration.save_user_settings(script_name, parameter_list)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua.lua#L233)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua#L233)
 
 Saves the user's preferences for a script from the values provided in `parameter_list`.
 
@@ -149,7 +149,7 @@ Saves the user's preferences for a script from the values provided in `parameter
 configuration.get_user_settings(script_name, parameter_list, create_automatically)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua.lua#L268)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua#L268)
 
 Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
 with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so

@@ -24,7 +24,7 @@ If using version 0.56 or later, then the dispatcher will run every 1 second. Thi
 fcmctrlslider.RegisterParent(self, window)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L54)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua#L54)
 
 **[Internal] [Override]**
 
@@ -39,7 +39,7 @@ fcmctrlslider.RegisterParent(self, window)
 fcmctrlslider.SetThumbPosition(self, position)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L79)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua#L79)
 
 **[Fluid] [Override]**
 Ensures that `ThumbPositionChange` event is triggered.
@@ -55,7 +55,7 @@ Ensures that `ThumbPositionChange` event is triggered.
 fcmctrlslider.SetMinValue(self, minvalue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L96)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua#L96)
 
 **[Fluid] [Override]**
 Ensures that `ThumbPositionChange` is triggered.
@@ -71,7 +71,7 @@ Ensures that `ThumbPositionChange` is triggered.
 fcmctrlslider.SetMaxValue(self, maxvalue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L113)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua#L113)
 
 **[Fluid] [Override]**
 Ensures that `ThumbPositionChange` is triggered.
@@ -87,7 +87,7 @@ Ensures that `ThumbPositionChange` is triggered.
 fcmctrlslider.HandleThumbPositionChange(control, last_position)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L141)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua#L141)
 
 **[Callback Template]**
 
@@ -102,7 +102,7 @@ fcmctrlslider.HandleThumbPositionChange(control, last_position)
 fcmctrlslider.AddHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua#L-1)
 
 **[Fluid]**
 Adds a handler for when the slider's thumb position changes.
@@ -122,7 +122,7 @@ The even will fire when:
 fcmctrlslider.RemoveHandleThumbPositionChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L153)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua#L153)
 
 **[Fluid]**
 Removes a handler added with `AddHandleThumbPositionChange`.

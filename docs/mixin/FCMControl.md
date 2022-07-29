@@ -21,7 +21,7 @@ Summary of modifications:
 fcmcontrol.GetParent(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua.lua#L31)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L31)
 
 **[PDK Port]**
 Returns the control's parent window.
@@ -41,7 +41,7 @@ Do not override or disable this method.
 fcmcontrol.RegisterParent(self, window)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua.lua#L45)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L45)
 
 **[Fluid] [Internal]**
 Used to register the parent window when the control is created.
@@ -58,7 +58,7 @@ Do not disable this method.
 fcmcontrol.GetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua.lua#L65)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L65)
 
 **[Override]**
 Returns a Lua `string` and makes passing an `FCString` optional.
@@ -78,7 +78,7 @@ Returns a Lua `string` and makes passing an `FCString` optional.
 fcmcontrol.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua.lua#L86)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L86)
 
 **[Fluid] [Override]**
 Accepts Lua `string` and `number` in addition to `FCString`.
@@ -94,7 +94,7 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 fcmcontrol.AddHandleCommand(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua.lua#L111)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L111)
 
 **[Fluid]**
 Adds a handler for command events.
@@ -110,7 +110,7 @@ Adds a handler for command events.
 fcmcontrol.RemoveHandleCommand(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua.lua#L116)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L116)
 
 **[Fluid]**
 Removes a handler added with `AddHandleCommand`.

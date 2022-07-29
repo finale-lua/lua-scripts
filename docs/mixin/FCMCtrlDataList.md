@@ -19,7 +19,7 @@ Summary of modifications:
 fcmctrldatalist.AddColumn(self, title, columnwidth)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua.lua#L27)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L27)
 
 **[Fluid] [Override]**
 Accepts Lua `string` and `number` in addition to `FCString`.
@@ -36,7 +36,7 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 fcmctrldatalist.SetColumnTitle(self, columnindex, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua.lua#L49)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L49)
 
 **[Fluid] [Override]**
 Accepts Lua `string` and `number` in addition to `FCString`.
@@ -53,7 +53,7 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 fcmctrldatalist.AddHandleCheck(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua.lua#L75)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L75)
 
 **[Fluid]**
 Adds a handler for DataListCheck events.
@@ -69,7 +69,7 @@ Adds a handler for DataListCheck events.
 fcmctrldatalist.RemoveHandleCheck(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua.lua#L80)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L80)
 
 **[Fluid]**
 Removes a handler added with `AddHandleCheck`.
@@ -85,7 +85,7 @@ Removes a handler added with `AddHandleCheck`.
 fcmctrldatalist.AddHandleSelect(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua.lua#L96)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L96)
 
 **[Fluid]**
 Adds a handler for DataListSelect events.
@@ -101,7 +101,7 @@ Adds a handler for DataListSelect events.
 fcmctrldatalist.RemoveHandleSelect(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua.lua#L101)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L101)
 
 **[Fluid]**
 Removes a handler added with `AddHandleSelect`.
