@@ -3,6 +3,9 @@
     "name": "Note Duration Statistics",
     "undoText": "Note Duration Statistics",
     "shortDescription": "Counts the number of each note value in a given region",
+    "scriptGroupName": "",
+    "scriptGroupDescription": "",
+    "menuItems": ["Note Duration Statistics"],
     "requireSelection": false,
     "requireScore": false,
     "noStore": false,
@@ -17,5 +20,9 @@
     "date": "2020-06-26",
     "notes": "",
     "revisionNotes": ["Edited by Nick Mazuk to give more detailed duration statistics"],
-    "id": ""
+    "id": "",
+    "minJWLuaVersion": "",
+    "maxJWLuaVersion": "",
+    "minFinaleVersion": "",
+    "maxFinaleVersion": ""
 }

@@ -3,6 +3,9 @@
     "name": "Force Full Names",
     "undoText": "Force Full Names",
     "shortDescription": "Force first selected measure to show full staff names.",
+    "menuItems": ["Force Full Names"],
+    "scriptGroupName": "",
+    "scriptGroupDescription": "",
     "requireSelection": true,
     "requireScore": false,
     "noStore": false,
@@ -17,5 +20,9 @@
     "date": "2020-06-10",
     "notes": "",
     "revisionNotes": [],
-    "id": ""
+    "id": "",
+    "minJWLuaVersion": "",
+    "maxJWLuaVersion": "",
+    "minFinaleVersion": "",
+    "maxFinaleVersion": ""
 }
