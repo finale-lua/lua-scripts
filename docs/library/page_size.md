@@ -17,6 +17,8 @@ A library for determining page sizes.
 page_size.get_dimensions(size)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/page_size.lua.lua#L41)
+
 Returns the dimensions of the requested page size. Dimensions are in portrait.
 
 | Input | Type | Description |
@@ -33,6 +35,8 @@ Returns the dimensions of the requested page size. Dimensions are in portrait.
 page_size.is_size(size)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/page_size.lua.lua#L53)
+
 Checks if the given size is defined.
 
 | Input | Type | Description |
@@ -48,6 +52,8 @@ Checks if the given size is defined.
 ```lua
 page_size.get_size(width, height)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/page_size.lua.lua#L66)
 
 Determines the page size based on the given dimensions.
 
@@ -66,6 +72,8 @@ Determines the page size based on the given dimensions.
 page_size.get_page_size(page)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/page_size.lua.lua#L91)
+
 Determines the page size of an `FCPage`.
 
 | Input | Type | Description |
@@ -82,6 +90,8 @@ Determines the page size of an `FCPage`.
 page_size.set_page_size(page, size)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/page_size.lua.lua#L103)
+
 Sets the dimensions of an `FCPage` to the given size. The existing page orientation will be preserved.
 
 | Input | Type | Description |
@@ -94,6 +104,8 @@ Sets the dimensions of an `FCPage` to the given size. The existing page orientat
 ```lua
 page_size.pairs()
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/page_size.lua.lua#L127)
 
 Return an alphabetical order iterator that yields the following pairs:
 `(string) size`

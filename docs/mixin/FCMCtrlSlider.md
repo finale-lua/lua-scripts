@@ -24,6 +24,8 @@ If using version 0.56 or later, then the dispatcher will run every 1 second. Thi
 fcmctrlslider.RegisterParent(self, window)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L54)
+
 **[Internal] [Override]**
 
 | Input | Type | Description |
@@ -36,6 +38,8 @@ fcmctrlslider.RegisterParent(self, window)
 ```lua
 fcmctrlslider.SetThumbPosition(self, position)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L79)
 
 **[Fluid] [Override]**
 Ensures that `ThumbPositionChange` event is triggered.
@@ -51,6 +55,8 @@ Ensures that `ThumbPositionChange` event is triggered.
 fcmctrlslider.SetMinValue(self, minvalue)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L96)
+
 **[Fluid] [Override]**
 Ensures that `ThumbPositionChange` is triggered.
 
@@ -64,6 +70,8 @@ Ensures that `ThumbPositionChange` is triggered.
 ```lua
 fcmctrlslider.SetMaxValue(self, maxvalue)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L113)
 
 **[Fluid] [Override]**
 Ensures that `ThumbPositionChange` is triggered.
@@ -79,6 +87,8 @@ Ensures that `ThumbPositionChange` is triggered.
 fcmctrlslider.HandleThumbPositionChange(control, last_position)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L141)
+
 **[Callback Template]**
 
 | Input | Type | Description |
@@ -91,6 +101,8 @@ fcmctrlslider.HandleThumbPositionChange(control, last_position)
 ```lua
 fcmctrlslider.AddHandleChange(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L-1)
 
 **[Fluid]**
 Adds a handler for when the slider's thumb position changes.
@@ -109,6 +121,8 @@ The even will fire when:
 ```lua
 fcmctrlslider.RemoveHandleThumbPositionChange(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSlider.lua.lua#L153)
 
 **[Fluid]**
 Removes a handler added with `AddHandleThumbPositionChange`.

@@ -16,6 +16,8 @@ Summary of modifications:
 fcmctrlcheckbox.SetCheck(self, checked)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua.lua#L26)
+
 **[Fluid] [Override]**
 Ensures that `CheckChange` event is triggered.
 
@@ -30,6 +32,8 @@ Ensures that `CheckChange` event is triggered.
 fcmctrlcheckbox.HandleCheckChange(control, last_check)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua.lua#L54)
+
 **[Callback Template]**
 
 | Input | Type | Description |
@@ -42,6 +46,8 @@ fcmctrlcheckbox.HandleCheckChange(control, last_check)
 ```lua
 fcmctrlcheckbox.AddHandleChange(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua.lua#L-1)
 
 **[Fluid]**
 Adds a handler for when the value of the control's check state changes.
@@ -60,6 +66,8 @@ The even will fire when:
 ```lua
 fcmctrlcheckbox.RemoveHandleCheckChange(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua.lua#L66)
 
 **[Fluid]**
 Removes a handler added with `AddHandleCheckChange`.

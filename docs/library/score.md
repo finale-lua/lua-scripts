@@ -39,6 +39,8 @@
 score.create_default_config()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L58)
+
 Many of the "create ensemble" plugins use the same configuration. This function
 creates that configuration object.
 
@@ -52,6 +54,8 @@ creates that configuration object.
 score.delete_all_staves()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L81)
+
 Deletes all staves in the current document.
 
 ### reset_and_clear_score
@@ -60,6 +64,8 @@ Deletes all staves in the current document.
 score.reset_and_clear_score()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L95)
+
 Resets and clears the score to begin creating a new ensemble
 
 ### set_show_staff_time_signature
@@ -67,6 +73,8 @@ Resets and clears the score to begin creating a new ensemble
 ```lua
 score.set_show_staff_time_signature(staff_id, show_time_signature)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L109)
 
 Sets whether or not to show the time signature on the staff.
 
@@ -85,6 +93,8 @@ Sets whether or not to show the time signature on the staff.
 score.set_show_all_staves_time_signature(show_time_signature)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L128)
+
 Sets whether or not to show the time signature on the staff.
 
 | Input | Type | Description |
@@ -96,6 +106,8 @@ Sets whether or not to show the time signature on the staff.
 ```lua
 score.set_staff_transposition(staff_id, key, interval, clef)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L148)
 
 Sets the transposition for a staff. Used for instruments that are not concert pitch (e.g., Bb Clarinet or F Horn)
 
@@ -116,6 +128,8 @@ Sets the transposition for a staff. Used for instruments that are not concert pi
 score.set_staff_allow_hiding(staff_id, allow_hiding)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L171)
+
 Sets whether the staff is allowed to hide when it is empty.
 
 | Input | Type | Description |
@@ -132,6 +146,8 @@ Sets whether the staff is allowed to hide when it is empty.
 ```lua
 score.set_staff_keyless(staff_id, is_keyless)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L189)
 
 Sets whether or not the staff is keyless.
 
@@ -150,6 +166,8 @@ Sets whether or not the staff is keyless.
 score.set_staff_keyless(is_keyless)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L208)
+
 Sets whether or not all staves are keyless.
 
 | Input | Type | Description |
@@ -161,6 +179,8 @@ Sets whether or not all staves are keyless.
 ```lua
 score.set_staff_show_default_whole_rests(staff_id, show_whole_rests)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L222)
 
 Sets whether to show default whole rests on a particular staff.
 
@@ -179,6 +199,8 @@ Sets whether to show default whole rests on a particular staff.
 score.set_all_staves_show_default_whole_rests(show_whole_rests)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L237)
+
 Sets whether or not all staves show default whole rests.
 
 | Input | Type | Description |
@@ -190,6 +212,8 @@ Sets whether or not all staves show default whole rests.
 ```lua
 score.add_space_above_staff(staff_id)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L254)
 
 This is the equivalent of "Add Vertical Space" in the Setup Wizard. It adds space above the staff as well as adds the staff to Staff List 1, which allows it to show tempo markings.
 
@@ -207,6 +231,8 @@ This is the equivalent of "Add Vertical Space" in the Setup Wizard. It adds spac
 score.set_staff_full_name(staff, full_name, double)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L284)
+
 Sets the full name for the staff.
 
 If two instruments are on the same staff, this will also add the related numbers. For instance, if horn one and 2 are on the same staff, this will show Horn 1/2. `double` sets the first number. In this example, `double` should be `1` to show Horn 1/2. If the staff is for horn three and four, `double` should be `3`.
@@ -223,6 +249,8 @@ If two instruments are on the same staff, this will also add the related numbers
 score.set_staff_short_name(staff, short_name, double)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L309)
+
 Sets the abbreviated name for the staff.
 
 If two instruments are on the same staff, this will also add the related numbers. For instance, if horn one and 2 are on the same staff, this will show Horn 1/2. `double` sets the first number. In this example, `double` should be `1` to show Horn 1/2. If the staff is for horn three and four, `double` should be `3`.
@@ -238,6 +266,8 @@ If two instruments are on the same staff, this will also add the related numbers
 ```lua
 score.create_staff(full_name, short_name, type, clef, double)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L336)
 
 Creates a staff at the end of the score.
 
@@ -259,6 +289,8 @@ Creates a staff at the end of the score.
 score.create_staff_spaced(full_name, short_name, type, clef, double)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L373)
+
 Creates a staff at the end of the score with a space above it. This is equivalent to using `score.create_staff` then `score.add_space_above_staff`.
 
 | Input | Type | Description |
@@ -279,6 +311,8 @@ Creates a staff at the end of the score with a space above it. This is equivalen
 score.create_staff_percussion(full_name, short_name)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L389)
+
 Creates a percussion staff at the end of the score.
 
 | Input | Type | Description |
@@ -295,6 +329,8 @@ Creates a percussion staff at the end of the score.
 ```lua
 score.create_group(start_staff, end_staff, brace_name, has_barline, level, full_name, short_name)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L411)
 
 Creates a percussion staff at the end of the score.
 
@@ -314,6 +350,8 @@ Creates a percussion staff at the end of the score.
 score.create_group_primary(start_staff, end_staff, full_name, short_name)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L471)
+
 Creates a primary group with the "curved_chorus" bracket.
 
 | Input | Type | Description |
@@ -329,6 +367,8 @@ Creates a primary group with the "curved_chorus" bracket.
 score.create_group_secondary(start_staff, end_staff, full_name, short_name)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L485)
+
 Creates a primary group with the "desk" bracket.
 
 | Input | Type | Description |
@@ -343,6 +383,8 @@ Creates a primary group with the "desk" bracket.
 ```lua
 score.calc_system_scalings(systems_per_page)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L503)
 
 _EXPERIMENTAL_
 
@@ -365,6 +407,8 @@ scripts.
 score.set_global_system_scaling(scaling)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L541)
+
 Sets the system scaling for every system in the score.
 
 | Input | Type | Description |
@@ -376,6 +420,8 @@ Sets the system scaling for every system in the score.
 ```lua
 score.set_global_system_scaling(system_number, scaling)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L778)
 
 Sets the system scaling for a specific system in the score.
 
@@ -390,6 +436,8 @@ Sets the system scaling for a specific system in the score.
 score.set_large_time_signatures_settings()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L578)
+
 Updates the document settings for large time signatures.
 
 ### use_large_time_signatures
@@ -397,6 +445,8 @@ Updates the document settings for large time signatures.
 ```lua
 score.use_large_time_signatures(uses_large_time_signatures, staves_with_time_signatures)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L600)
 
 Sets the system scaling for a specific system in the score.
 
@@ -411,6 +461,8 @@ Sets the system scaling for a specific system in the score.
 score.use_large_measure_numbers(distance)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L618)
+
 Adds large measure numbers below every measure in the score.
 
 | Input | Type | Description |
@@ -423,6 +475,8 @@ Adds large measure numbers below every measure in the score.
 score.set_max_measures_per_system(max_measures_per_system)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L671)
+
 Sets the maximum number of measures per system.
 
 | Input | Type | Description |
@@ -434,6 +488,8 @@ Sets the maximum number of measures per system.
 ```lua
 score.set_score_page_size(width, height)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L702)
 
 Sets the score page size.
 
@@ -448,6 +504,8 @@ Sets the score page size.
 score.set_all_parts_page_size(width, height)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L726)
+
 Sets the page size for all parts.
 
 | Input | Type | Description |
@@ -460,6 +518,8 @@ Sets the page size for all parts.
 ```lua
 score.apply_config(config, options)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/score.lua.lua#L765)
 
 When creating an ensemble, this function is used to apply the configuration.
 

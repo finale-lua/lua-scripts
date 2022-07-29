@@ -15,6 +15,8 @@
 measurement.convert_to_EVPUs(text)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/measurement.lua.lua#L52)
+
 Converts the specified string into EVPUs. Like text boxes in Finale, this supports
 the usage of units at the end of the string. The following are a few examples:
 
@@ -42,6 +44,8 @@ for more details about measurement units in Finale.
 measurement.get_unit_name(unit)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/measurement.lua.lua#L66)
+
 Returns the name of a measurement unit.
 
 | Input | Type | Description |
@@ -57,6 +61,8 @@ Returns the name of a measurement unit.
 ```lua
 measurement.get_unit_suffix(unit)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/measurement.lua.lua#L83)
 
 Returns the measurement unit's suffix. Suffixes can be used to force the text value (eg in `FCString` or `FCCtrlEdit`) to be treated as being from a particular measurement unit
 Note that although this method returns a "p" for Picas, the fractional part goes after the "p" (eg `1p6`), so in practice it may be that no suffix is needed.
@@ -74,6 +80,8 @@ Note that although this method returns a "p" for Picas, the fractional part goes
 ```lua
 measurement.get_unit_abbreviation(unit)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/measurement.lua.lua#L111)
 
 Returns measurement unit abbreviations that are more human-readable than Finale's internal suffixes.
 Abbreviations are also compatible with the internal ones because Finale discards everything after the first letter that isn't part of the suffix.
@@ -103,6 +111,8 @@ print(str_internal:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT) == str_display
 measurement.is_valid_unit(unit)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/measurement.lua.lua#L127)
+
 Checks if a number is equal to one of the finale MEASUREMENTUNIT constants.
 
 | Input | Type | Description |
@@ -118,6 +128,8 @@ Checks if a number is equal to one of the finale MEASUREMENTUNIT constants.
 ```lua
 measurement.get_real_default_unit()
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/measurement.lua.lua#L138)
 
 Resolves `finale.MEASUREMENTUNIT_DEFAULT` to the value of one of the other `MEASUREMENTUNIT` constants.
 

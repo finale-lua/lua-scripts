@@ -39,6 +39,8 @@ Summary of modifications:
 fcxcustomluawindow.Init(self)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L37)
+
 **[Internal]**
 
 | Input | Type | Description |
@@ -50,6 +52,8 @@ fcxcustomluawindow.Init(self)
 ```lua
 fcxcustomluawindow.GetMeasurementUnit(self)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L79)
 
 Returns the window's current measurement unit.
 
@@ -67,6 +71,8 @@ Returns the window's current measurement unit.
 fcxcustomluawindow.SetMeasurementUnit(self, unit)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L94)
+
 **[Fluid]**
 Sets the window's current measurement unit. Millimeters are not supported.
 
@@ -82,6 +88,8 @@ All controls that have an `UpdateMeasurementUnit` method will have that method c
 ```lua
 fcxcustomluawindow.GetMeasurementUnitName(self)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L128)
 
 Returns the name of the window's current measurement unit.
 
@@ -99,6 +107,8 @@ Returns the name of the window's current measurement unit.
 fcxcustomluawindow.UseParentMeasurementUnit(self, on)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L141)
+
 **[Fluid]**
 Sets whether to use the parent window's measurement unit when opening this window. Defaults to `true`.
 
@@ -112,6 +122,8 @@ Sets whether to use the parent window's measurement unit when opening this windo
 ```lua
 fcxcustomluawindow.CreateMeasurementEdit(self, x, y, control_name)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L158)
 
 Creates a `FCXCtrlMeasurementEdit` control.
 
@@ -132,6 +144,8 @@ Creates a `FCXCtrlMeasurementEdit` control.
 fcxcustomluawindow.CreateMeasurementUnitPopup(self, x, y, control_name)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L178)
+
 Creates a popup which allows the user to change the window's measurement unit.
 
 | Input | Type | Description |
@@ -151,6 +165,8 @@ Creates a popup which allows the user to change the window's measurement unit.
 fcxcustomluawindow.CreatePageSizePopup(self, x, y, control_name)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L198)
+
 Creates a popup which allows the user to select a page size.
 
 | Input | Type | Description |
@@ -169,6 +185,8 @@ Creates a popup which allows the user to select a page size.
 ```lua
 fcxcustomluawindow.CreateStatic(self, x, y, control_name)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L219)
 
 **[Override]**
 Creates an `FCXCtrlStatic` control.
@@ -190,6 +208,8 @@ Creates an `FCXCtrlStatic` control.
 fcxcustomluawindow.CreateUpDown(self, x, y, control_name)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L240)
+
 **[Override]**
 Creates an `FCXCtrlUpDown` control.
 
@@ -210,6 +230,8 @@ Creates an `FCXCtrlUpDown` control.
 fcxcustomluawindow.RegisterHandleOkButtonPressed(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L382)
+
 **[Fluid] [Override]**
 Stores callback as default action for `RunModeless`.
 
@@ -223,6 +245,8 @@ Stores callback as default action for `RunModeless`.
 ```lua
 fcxcustomluawindow.ExecuteModal(self, parent)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L399)
 
 **[Override]**
 If a parent window is passed and the `UseParentMeasurementUnit` setting is on, the measurement unit is automatically changed to match the parent.
@@ -242,6 +266,8 @@ If a parent window is passed and the `UseParentMeasurementUnit` setting is on, t
 fcxcustomluawindow.ShowModeless(self)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L416)
+
 **[Override]**
 Automatically registers the dialog with `finenv.RegisterModelessDialog`.
 
@@ -258,6 +284,8 @@ Automatically registers the dialog with `finenv.RegisterModelessDialog`.
 ```lua
 fcxcustomluawindow.RunModeless(self, no_selection_required, default_action_override)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L435)
 
 **[Fluid]**
 Runs the window as a self-contained modeless plugin, performing the following steps:
@@ -278,6 +306,8 @@ Runs the window as a self-contained modeless plugin, performing the following st
 fcxcustomluawindow.HandleMeasurementUnitChange(window, last_unit)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L474)
+
 **[Callback Template]**
 Template for MeasurementUnitChange handlers.
 
@@ -291,6 +321,8 @@ Template for MeasurementUnitChange handlers.
 ```lua
 fcxcustomluawindow.AddHandleMeasurementUnitChange(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L491)
 
 **[Fluid]**
 Adds a handler for a change in the window's measurement unit.
@@ -309,6 +341,8 @@ The even will fire when:
 ```lua
 fcxcustomluawindow.RemoveHandleMeasurementUnitChange(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua.lua#L496)
 
 **[Fluid]**
 Removes a handler added with `AddHandleMeasurementUnitChange`.

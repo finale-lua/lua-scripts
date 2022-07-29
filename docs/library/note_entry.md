@@ -29,6 +29,8 @@
 note_entry.get_music_region(entry)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L14)
+
 Returns an intance of `FCMusicRegion` that corresponds to the metric location of the input note entry.
 
 | Input | Type | Description |
@@ -45,6 +47,8 @@ Returns an intance of `FCMusicRegion` that corresponds to the metric location of
 note_entry.get_evpu_notehead_height(entry)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L48)
+
 Returns the calculated height of the notehead rectangle.
 
 | Input | Type | Description |
@@ -60,6 +64,8 @@ Returns the calculated height of the notehead rectangle.
 ```lua
 note_entry.get_top_note_position(entry, entry_metrics)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L64)
 
 Returns the vertical page coordinate of the top of the notehead rectangle, not including the stem.
 
@@ -78,6 +84,8 @@ Returns the vertical page coordinate of the top of the notehead rectangle, not i
 note_entry.get_bottom_note_position(entry, entry_metrics)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L97)
+
 Returns the vertical page coordinate of the bottom of the notehead rectangle, not including the stem.
 
 | Input | Type | Description |
@@ -95,6 +103,8 @@ Returns the vertical page coordinate of the bottom of the notehead rectangle, no
 note_entry.calc_widths(entry)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L129)
+
 Get the widest left-side notehead width and widest right-side notehead width.
 
 | Input | Type | Description |
@@ -110,6 +120,8 @@ Get the widest left-side notehead width and widest right-side notehead width.
 ```lua
 note_entry.calc_left_of_all_noteheads(entry)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L161)
 
 Calculates the handle offset for an expression with "Left of All Noteheads" horizontal positioning.
 
@@ -127,6 +139,8 @@ Calculates the handle offset for an expression with "Left of All Noteheads" hori
 note_entry.calc_left_of_primary_notehead(entry)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L177)
+
 Calculates the handle offset for an expression with "Left of Primary Notehead" horizontal positioning.
 
 | Input | Type | Description |
@@ -142,6 +156,8 @@ Calculates the handle offset for an expression with "Left of Primary Notehead" h
 ```lua
 note_entry.calc_center_of_all_noteheads(entry)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L189)
 
 Calculates the handle offset for an expression with "Center of All Noteheads" horizontal positioning.
 
@@ -159,6 +175,8 @@ Calculates the handle offset for an expression with "Center of All Noteheads" ho
 note_entry.calc_center_of_primary_notehead(entry)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L206)
+
 Calculates the handle offset for an expression with "Center of Primary Notehead" horizontal positioning.
 
 | Input | Type | Description |
@@ -174,6 +192,8 @@ Calculates the handle offset for an expression with "Center of Primary Notehead"
 ```lua
 note_entry.calc_stem_offset(entry)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L222)
 
 Calculates the offset of the stem from the left edge of the notehead rectangle. Eventually the PDK Framework may be able to provide this instead.
 
@@ -191,6 +211,8 @@ Calculates the offset of the stem from the left edge of the notehead rectangle. 
 note_entry.calc_right_of_all_noteheads(entry)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L238)
+
 Calculates the handle offset for an expression with "Right of All Noteheads" horizontal positioning.
 
 | Input | Type | Description |
@@ -207,6 +229,8 @@ Calculates the handle offset for an expression with "Right of All Noteheads" hor
 note_entry.calc_note_at_index(entry, note_index)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L256)
+
 This function assumes `for note in each(note_entry)` always iterates in the same direction.
 (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
 Currently the PDK Framework does not seem to offer a better option.
@@ -221,6 +245,8 @@ Currently the PDK Framework does not seem to offer a better option.
 ```lua
 note_entry.stem_sign(entry)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L276)
 
 This is useful for many x,y positioning fields in Finale that mirror +/-
 based on stem direction.
@@ -239,6 +265,8 @@ based on stem direction.
 note_entry.duplicate_note(note)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L289)
+
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `note` | `FCNote` |  |
@@ -252,6 +280,8 @@ note_entry.duplicate_note(note)
 ```lua
 note_entry.delete_note(note)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L308)
 
 Removes the specified FCNote from its associated FCNoteEntry.
 
@@ -269,6 +299,8 @@ Removes the specified FCNote from its associated FCNoteEntry.
 note_entry.calc_pitch_string(note)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L338)
+
 Calculates the pitch string of a note for display purposes.
 
 | Input | Type | Description |
@@ -284,6 +316,8 @@ Calculates the pitch string of a note for display purposes.
 ```lua
 note_entry.calc_spans_number_of_octaves(entry)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L354)
 
 Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).
 
@@ -301,6 +335,8 @@ Calculates the numer of octaves spanned by a chord (considering only staff posit
 note_entry.add_augmentation_dot(entry)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L369)
+
 Adds an augentation dot to the entry. This works even if the entry already has one or more augmentation dots.
 
 | Input | Type | Description |
@@ -312,6 +348,8 @@ Adds an augentation dot to the entry. This works even if the entry already has o
 ```lua
 note_entry.get_next_same_v(entry)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L384)
 
 Returns the next entry in the same V1 or V2 as the input entry.
 If the input entry is V2, only the current V2 launch is searched.
@@ -330,6 +368,8 @@ If the input entry is V1, only the current measure and layer is searched.
 ```lua
 note_entry.hide_stem(entry)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua.lua#L407)
 
 Hides the stem of the entry by replacing it with Shape 0.
 

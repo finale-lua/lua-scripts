@@ -53,6 +53,8 @@ Summary of modifications:
 fcmcustomluawindow.Init(self)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L48)
+
 **[Internal]**
 
 | Input | Type | Description |
@@ -64,6 +66,8 @@ fcmcustomluawindow.Init(self)
 ```lua
 fcmcustomluawindow.RegisterHandleCommand(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L289)
 
 **[Override]**
 Ensures that the handler is passed the original control object.
@@ -83,6 +87,8 @@ Ensures that the handler is passed the original control object.
 fcmcustomluawindow.RegisterHandleDataListCheck(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L300)
+
 **[Override]**
 Ensures that the handler is passed the original control object.
 
@@ -100,6 +106,8 @@ Ensures that the handler is passed the original control object.
 ```lua
 fcmcustomluawindow.RegisterHandleDataListSelect(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L311)
 
 **[Override]**
 Ensures that the handler is passed the original control object.
@@ -119,6 +127,8 @@ Ensures that the handler is passed the original control object.
 fcmcustomluawindow.RegisterHandleUpDownPressed(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L322)
+
 **[Override]**
 Ensures that the handler is passed the original control object.
 
@@ -137,6 +147,8 @@ Ensures that the handler is passed the original control object.
 fcmcustomluawindow.CancelButtonPressed(window)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L211)
+
 **[Callback Template] [Override]**
 Can optionally receive the window object.
 
@@ -149,6 +161,8 @@ Can optionally receive the window object.
 ```lua
 fcmcustomluawindow.RegisterHandleCancelButtonPressed(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L-1)
 
 **[Override]**
 
@@ -167,6 +181,8 @@ fcmcustomluawindow.RegisterHandleCancelButtonPressed(self, callback)
 fcmcustomluawindow.OkButtonPressed(window)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L230)
+
 **[Callback Template] [Override]**
 Can optionally receive the window object.
 
@@ -179,6 +195,8 @@ Can optionally receive the window object.
 ```lua
 fcmcustomluawindow.RegisterHandleOkButtonPressed(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L-1)
 
 **[Override]**
 
@@ -197,6 +215,8 @@ fcmcustomluawindow.RegisterHandleOkButtonPressed(self, callback)
 fcmcustomluawindow.InitWindow(window)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L249)
+
 **[Callback Template] [Override]**
 Can optionally receive the window object.
 
@@ -209,6 +229,8 @@ Can optionally receive the window object.
 ```lua
 fcmcustomluawindow.RegisterInitWindow(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L362)
 
 **[Override]**
 
@@ -227,6 +249,8 @@ fcmcustomluawindow.RegisterInitWindow(self, callback)
 fcmcustomluawindow.CloseWindow(window)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L268)
+
 **[Callback Template] [Override]**
 Can optionally receive the window object.
 
@@ -239,6 +263,8 @@ Can optionally receive the window object.
 ```lua
 fcmcustomluawindow.RegisterCloseWindow(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L373)
 
 **[Override]**
 
@@ -257,6 +283,8 @@ fcmcustomluawindow.RegisterCloseWindow(self, callback)
 fcmcustomluawindow.AddHandleCommand(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L391)
+
 **[Fluid]**
 Adds a handler. Similar to the equivalent `RegisterHandleCommand` except there is no limit to the number of handlers that can be added.
 Added handlers are called in the order they are added after the registered handler, if there is one.
@@ -271,6 +299,8 @@ Added handlers are called in the order they are added after the registered handl
 ```lua
 fcmcustomluawindow.AddHandleDataListCheck(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L401)
 
 **[Fluid]**
 Adds a handler. Similar to the equivalent `RegisterHandleDataListCheck` except there is no limit to the number of handlers that can be added.
@@ -287,6 +317,8 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.AddHandleDataListSelect(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L411)
+
 **[Fluid]**
 Adds a handler. Similar to the equivalent `RegisterHandleDataListSelect` except there is no limit to the number of handlers that can be added.
 Added handlers are called in the order they are added after the registered handler, if there is one.
@@ -301,6 +333,8 @@ Added handlers are called in the order they are added after the registered handl
 ```lua
 fcmcustomluawindow.AddHandleUpDownPressed(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L421)
 
 **[Fluid]**
 Adds a handler. Similar to the equivalent `RegisterHandleUpDownPressed` except there is no limit to the number of handlers that can be added.
@@ -317,6 +351,8 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.AddHandleCancelButtonPressed(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L438)
+
 **[Fluid]**
 Adds a handler. Similar to the equivalent `RegisterCancelButtonPressed` except there is no limit to the number of handlers that can be added.
 Added handlers are called in the order they are added after the registered handler, if there is one.
@@ -331,6 +367,8 @@ Added handlers are called in the order they are added after the registered handl
 ```lua
 fcmcustomluawindow.AddHandleOkButtonPressed(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L448)
 
 **[Fluid]**
 Adds a handler. Similar to the equivalent `RegisterOkButtonPressed` except there is no limit to the number of handlers that can be added.
@@ -347,6 +385,8 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.AddInitWindow(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L458)
+
 **[Fluid]**
 Adds a handler. Similar to the equivalent `RegisterInitWindow` except there is no limit to the number of handlers that can be added.
 Added handlers are called in the order they are added after the registered handler, if there is one.
@@ -361,6 +401,8 @@ Added handlers are called in the order they are added after the registered handl
 ```lua
 fcmcustomluawindow.AddCloseWindow(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L468)
 
 **[Fluid]**
 Adds a handler. Similar to the equivalent `RegisterCloseWindow` except there is no limit to the number of handlers that can be added.
@@ -377,6 +419,8 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.RemoveHandleCommand(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L-1)
+
 **[Fluid]**
 Removes a handler added by `AddHandleCommand`.
 
@@ -390,6 +434,8 @@ Removes a handler added by `AddHandleCommand`.
 ```lua
 fcmcustomluawindow.RemoveHandleDataListCheck(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L-1)
 
 **[Fluid]**
 Removes a handler added by `AddHandleDataListCheck`.
@@ -405,6 +451,8 @@ Removes a handler added by `AddHandleDataListCheck`.
 fcmcustomluawindow.RemoveHandleDataListSelect(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L-1)
+
 **[Fluid]**
 Removes a handler added by `AddHandleDataListSelect`.
 
@@ -418,6 +466,8 @@ Removes a handler added by `AddHandleDataListSelect`.
 ```lua
 fcmcustomluawindow.RemoveHandleUpDownPressed(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L-1)
 
 **[Fluid]**
 Removes a handler added by `AddHandleUpDownPressed`.
@@ -433,6 +483,8 @@ Removes a handler added by `AddHandleUpDownPressed`.
 fcmcustomluawindow.RemoveHandleCancelButtonPressed(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L-1)
+
 **[Fluid]**
 Removes a handler added by `AddHandleCancelButtonPressed`.
 
@@ -446,6 +498,8 @@ Removes a handler added by `AddHandleCancelButtonPressed`.
 ```lua
 fcmcustomluawindow.RemoveHandleOkButtonPressed(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L-1)
 
 **[Fluid]**
 Removes a handler added by `AddHandleOkButtonPressed`.
@@ -461,6 +515,8 @@ Removes a handler added by `AddHandleOkButtonPressed`.
 fcmcustomluawindow.RemoveInitWindow(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L-1)
+
 **[Fluid]**
 Removes a handler added by `AddInitWindow`.
 
@@ -475,6 +531,8 @@ Removes a handler added by `AddInitWindow`.
 fcmcustomluawindow.RemoveCloseWindow(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L-1)
+
 **[Fluid]**
 Removes a handler added by `AddCloseWindow`.
 
@@ -488,6 +546,8 @@ Removes a handler added by `AddCloseWindow`.
 ```lua
 fcmcustomluawindow.QueueHandleCustom(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L492)
 
 **[Fluid] [Internal]**
 Adds a function to the queue which will be executed in the same context as an event handler at the next available opportunity.
@@ -505,6 +565,8 @@ The callback will not be passed any arguments.
 fcmcustomluawindow.HasBeenShown(self)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L529)
+
 Checks if the window has been shown, either as a modal or modeless.
 
 | Input | Type | Description |
@@ -520,6 +582,8 @@ Checks if the window has been shown, either as a modal or modeless.
 ```lua
 fcmcustomluawindow.SetEnableDebugClose(self, enabled)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L623)
 
 **[Fluid]**
 If enabled and in debug mode, when the window is closed with either ALT or SHIFT key pressed, `finenv.RetainLuaState` will be set to `false`.
@@ -537,6 +601,8 @@ Default state is disabled.
 fcmcustomluawindow.GetEnableDebugClose(self)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L637)
+
 Returns the enabled state of the DebugClose option.
 
 | Input | Type | Description |
@@ -552,6 +618,8 @@ Returns the enabled state of the DebugClose option.
 ```lua
 fcmcustomluawindow.ExecuteModal(self)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L650)
 
 **[Override]**
 Sets the `HasBeenShown` flag and restores the previous position if auto restore is on.
@@ -569,6 +637,8 @@ Sets the `HasBeenShown` flag and restores the previous position if auto restore 
 ```lua
 fcmcustomluawindow.ShowModeless(self)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua.lua#L665)
 
 **[Override]**
 Sets the `HasBeenShown` flag and restores the previous position if auto restore is on.
