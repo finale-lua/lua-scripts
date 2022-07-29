@@ -6,7 +6,6 @@ A library of general clef utility functions.
 
 - [get_cell_clef(measure, staff_number)](#get_cell_clef)
 - [get_default_clef(first_measure, last_measure, staff_number)](#get_default_clef)
-- [can_change_clef()](#can_change_clef)
 - [restore_default_clef(first_measure, last_measure, staff_number)](#restore_default_clef)
 
 ### get_cell_clef
@@ -14,6 +13,8 @@ A library of general clef utility functions.
 ```lua
 clef.get_cell_clef(measure, staff_number)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L19)
 
 Gets the clef for any cell.
 
@@ -32,6 +33,8 @@ Gets the clef for any cell.
 clef.get_default_clef(first_measure, last_measure, staff_number)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L45)
+
 Gets the default clef for any staff for a specific region.
 
 | Input | Type | Description |
@@ -44,23 +47,13 @@ Gets the default clef for any staff for a specific region.
 | ----------- | ----------- |
 | `number` | The default clef for the staff |
 
-### can_change_clef
-
-```lua
-clef.can_change_clef()
-```
-
-Determine if the current version of the plugin can change clefs.
-
-| Return type | Description |
-| ----------- | ----------- |
-| `boolean` | Whether or not the plugin can change clefs |
-
 ### restore_default_clef
 
 ```lua
 clef.restore_default_clef(first_measure, last_measure, staff_number)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L66)
 
 Restores the default clef for any staff for a specific region.
 

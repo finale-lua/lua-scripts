@@ -18,6 +18,7 @@ is ignored.
 --
 local transposition = {}
 
+local client = require("library.client")
 local configuration = require("library.configuration")
 
 local standard_key_number_of_steps = 12
@@ -30,10 +31,7 @@ local max_allowed_abs_alteration = 7 -- Finale cannot represent an alteration ou
 -- second number is minus_octaves
 local diatonic_interval_adjustments = {{0, 0}, {2, -1}, {4, -2}, {-1, 1}, {1, 0}, {3, -1}, {5, -2}, {0, 1}}
 
-local custom_key_sig_config = {
-    number_of_steps = standard_key_number_of_steps,
-    diatonic_steps = standard_key_major_diatonic_steps,
-}
+local custom_key_sig_config = {number_of_steps = standard_key_number_of_steps, diatonic_steps = standard_key_major_diatonic_steps}
 
 configuration.get_parameters("custom_key_sig.config.txt", custom_key_sig_config)
 
@@ -66,7 +64,7 @@ end
 local get_key_info = function(key)
     local number_of_steps = standard_key_number_of_steps
     local diatonic_steps = standard_key_major_diatonic_steps
-    if finenv.IsRGPLua and key.CalcTotalChromaticSteps then -- if this version of RGP Lua supports custom key sigs
+    if client.supports_custom_key_signatures() then
         number_of_steps = key:CalcTotalChromaticSteps()
         diatonic_steps = key:CalcDiatonicStepsMap()
     else
@@ -96,8 +94,7 @@ local calc_steps_between_scale_degrees = function(key, first_disp, second_disp)
     local number_of_steps_in_key, diatonic_steps = get_key_info(key)
     local first_scale_degree = calc_scale_degree(first_disp, #diatonic_steps)
     local second_scale_degree = calc_scale_degree(second_disp, #diatonic_steps)
-    local number_of_steps = sign(second_disp - first_disp) *
-                                (diatonic_steps[second_scale_degree + 1] - diatonic_steps[first_scale_degree + 1])
+    local number_of_steps = sign(second_disp - first_disp) * (diatonic_steps[second_scale_degree + 1] - diatonic_steps[first_scale_degree + 1])
     if number_of_steps < 0 then
         number_of_steps = number_of_steps + number_of_steps_in_key
     end
@@ -116,8 +113,7 @@ local calc_steps_in_normalized_interval = function(key, interval_normalized)
     local number_of_steps_in_key, _, fifth_steps = get_key_info(key)
     local plus_fifths = diatonic_interval_adjustments[math.abs(interval_normalized) + 1][1] -- number of fifths to add for interval
     local minus_octaves = diatonic_interval_adjustments[math.abs(interval_normalized) + 1][2] -- number of octaves to subtract for alteration
-    local number_of_steps_in_interval = sign(interval_normalized) *
-                                            ((plus_fifths * fifth_steps) + (minus_octaves * number_of_steps_in_key))
+    local number_of_steps_in_interval = sign(interval_normalized) * ((plus_fifths * fifth_steps) + (minus_octaves * number_of_steps_in_key))
     return number_of_steps_in_interval
 end
 
@@ -188,8 +184,7 @@ function transposition.enharmonic_transpose(note, direction, ignore_error)
     local curr_disp = note.Displacement
     local curr_alt = note.RaiseLower
     local key = get_key(note)
-    local key_step_enharmonic = calc_steps_between_scale_degrees(
-                                    key, note.Displacement, note.Displacement + sign(direction))
+    local key_step_enharmonic = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + sign(direction))
     transposition.diatonic_transpose(note, sign(direction))
     note.RaiseLower = note.RaiseLower - sign(direction) * key_step_enharmonic
     if ignore_error then
@@ -233,8 +228,7 @@ function transposition.chromatic_transpose(note, interval, alteration, simplify)
     local interval_normalized = signed_modulus(interval, #diatonic_steps)
     local steps_in_alteration = calc_steps_in_alteration(key, interval, alteration)
     local steps_in_interval = calc_steps_in_normalized_interval(key, interval_normalized)
-    local steps_in_diatonic_interval = calc_steps_between_scale_degrees(
-                                           key, note.Displacement, note.Displacement + interval_normalized)
+    local steps_in_diatonic_interval = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + interval_normalized)
     local effective_alteration = steps_in_alteration + steps_in_interval - sign(interval) * steps_in_diatonic_interval
     transposition.diatonic_transpose(note, interval)
     note.RaiseLower = note.RaiseLower + effective_alteration
