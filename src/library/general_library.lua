@@ -3,24 +3,7 @@ $module Library
 ]] --
 local library = {}
 
---[[
-% finale_version
-
-Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
-this is the internal major Finale version, not the year.
-
-@ major (number) Major Finale version
-@ minor (number) Minor Finale version
-@ [build] (number) zero if omitted
-: (number)
-]]
-function library.finale_version(major, minor, build)
-    local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
-    if build then
-        retval = bit32.bor(retval, math.floor(build))
-    end
-    return retval
-end
+local client = require("library.client")
 
 --[[
 % group_overlaps_region
@@ -213,7 +196,7 @@ function library.calc_parts_boolean_for_measure_number_region(meas_num_region, f
         return false
     end
     if nil == for_part then
-        finenv.UI():IsPartView()
+        return finenv.UI():IsPartView()
     end
     return for_part
 end
@@ -305,7 +288,7 @@ end
 
 local calc_smufl_directory = function(for_user)
     local is_on_windows = finenv.UI():IsOnWindows()
-    local do_getenv = function (win_var, mac_var)
+    local do_getenv = function(win_var, mac_var)
         if finenv.UI():IsOnWindows() then
             return win_var and os.getenv(win_var) or ""
         else
@@ -339,9 +322,9 @@ function library.get_smufl_font_list()
         local smufl_directory = calc_smufl_directory(for_user)
         local get_dirs = function()
             if finenv.UI():IsOnWindows() then
-                return io.popen('dir "'..smufl_directory..'" /b /ad')
+                return io.popen("dir \"" .. smufl_directory .. "\" /b /ad")
             else
-                return io.popen('ls "'..smufl_directory..'"')
+                return io.popen("ls \"" .. smufl_directory .. "\"")
             end
         end
         local is_font_available = function(dir)
@@ -403,7 +386,7 @@ function library.is_font_smufl_font(font_info)
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
 
-    if finenv.RawFinaleVersion >= library.finale_version(27, 1) then
+    if client.supports_smufl_fonts() then
         if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
             return font_info.IsSMuFLFont
         end
@@ -511,7 +494,6 @@ function library.system_indent_set_to_prefs(system, page_format_prefs)
     return system:Save()
 end
 
-
 --[[
 % calc_script_name
 
@@ -541,6 +523,5 @@ function library.calc_script_name(include_extension)
     end
     return retval
 end
-
 
 return library
