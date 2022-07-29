@@ -2,7 +2,6 @@
 
 ## Functions
 
-- [finale_version(major, minor, build)](#finale_version)
 - [group_overlaps_region(staff_group, region)](#group_overlaps_region)
 - [group_is_contained_in_region(staff_group, region)](#group_is_contained_in_region)
 - [staff_group_is_multistaff_instrument(staff_group)](#staff_group_is_multistaff_instrument)
@@ -22,25 +21,6 @@
 - [is_finale_object(object)](#is_finale_object)
 - [system_indent_set_to_prefs(system, page_format_prefs)](#system_indent_set_to_prefs)
 - [calc_script_name(include_extension)](#calc_script_name)
-
-### finale_version
-
-```lua
-library.finale_version(major, minor, build)
-```
-
-Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
-this is the internal major Finale version, not the year.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `major` | `number` | Major Finale version |
-| `minor` | `number` | Minor Finale version |
-| `build` (optional) | `number` | zero if omitted |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `number` |  |
 
 ### group_overlaps_region
 
