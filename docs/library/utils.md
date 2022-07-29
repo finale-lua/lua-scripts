@@ -15,7 +15,7 @@ A library of general Lua utility functions.
 utility_functions.copy_table(t)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua.lua#L16)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L16)
 
 If a table is passed, returns a copy, otherwise returns the passed value.
 
@@ -33,7 +33,7 @@ If a table is passed, returns a copy, otherwise returns the passed value.
 utility_functions.table_remove_first(t, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua.lua#L37)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L37)
 
 Removes the first occurrence of a value from an array table.
 
@@ -48,7 +48,7 @@ Removes the first occurrence of a value from an array table.
 utility_functions.iterate_keys(t)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua.lua#L54)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L54)
 
 Returns an unordered iterator for the keys in a table.
 
@@ -66,7 +66,7 @@ Returns an unordered iterator for the keys in a table.
 utility_functions.round(num)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua.lua#L71)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L71)
 
 Rounds a number to the nearest whole integer.
 

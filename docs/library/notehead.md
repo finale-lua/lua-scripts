@@ -10,7 +10,7 @@
 notehead.change_shape(note, shape)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/notehead.lua.lua#L35)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/notehead.lua#L35)
 
 Changes the given notehead to a specified notehead descriptor string. Currently only supports "diamond".
 

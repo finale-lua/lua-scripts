@@ -12,7 +12,7 @@
 layer.copy(region, source_layer, destination_layer)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua.lua#L15)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L15)
 
 
 Duplicates the notes from the source layer to the destination. The source layer remains untouched.
@@ -30,7 +30,7 @@ Duplicates the notes from the source layer to the destination. The source layer 
 layer.clear(region, layer_to_clear)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua.lua#L42)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L42)
 
 
 Clears all entries from a given layer.
@@ -47,7 +47,7 @@ Clears all entries from a given layer.
 layer.swap(region, swap_a, swap_b)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua.lua#L65)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L65)
 
 
 Swaps the entries from two different layers (e.g. 1-->2 and 2-->1).

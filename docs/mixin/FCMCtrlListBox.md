@@ -33,7 +33,7 @@ Summary of modifications:
 fcmctrllistbox.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L32)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L32)
 
 **[Internal]**
 
@@ -47,7 +47,7 @@ fcmctrllistbox.Init(self)
 fcmctrllistbox.Clear(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L43)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L43)
 
 **[Fluid] [Override]**
 
@@ -61,7 +61,7 @@ fcmctrllistbox.Clear(self)
 fcmctrllistbox.SetSelectedItem(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L65)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L65)
 
 **[Fluid] [Override]**
 Ensures that `SelectionChange` is triggered.
@@ -77,7 +77,7 @@ Ensures that `SelectionChange` is triggered.
 fcmctrllistbox.SetSelectedLast(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L82)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L82)
 
 **[Override]**
 Ensures that `SelectionChange` is triggered.
@@ -96,7 +96,7 @@ Ensures that `SelectionChange` is triggered.
 fcmctrllistbox.AddString(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L97)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L97)
 
 **[Fluid] [Override]**
 
@@ -113,7 +113,7 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 fcmctrllistbox.AddStrings(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L120)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L120)
 
 **[Fluid]**
 Adds multiple strings to the list box.
@@ -130,7 +130,7 @@ Adds multiple strings to the list box.
 fcmctrllistbox.GetStrings(self, strs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L144)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L144)
 
 Returns a copy of all strings in the list box.
 
@@ -149,7 +149,7 @@ Returns a copy of all strings in the list box.
 fcmctrllistbox.SetStrings(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L167)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L167)
 
 **[Fluid] [Override]**
 Accepts multiple arguments.
@@ -166,7 +166,7 @@ Accepts multiple arguments.
 fcmctrllistbox.GetItemText(self, index, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L202)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L202)
 
 Returns the text for an item in the list box.
 This method works in all JW/RGP Lua versions and irrespective of whether `InitWindow` has been called.
@@ -187,7 +187,7 @@ This method works in all JW/RGP Lua versions and irrespective of whether `InitWi
 fcmctrllistbox.SetItemText(self, index, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L227)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L227)
 
 **[Fluid] [PDK Port]**
 Sets the text for an item.
@@ -204,7 +204,7 @@ Sets the text for an item.
 fcmctrllistbox.GetSelectedString(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L265)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L265)
 
 Returns the text for the item that is currently selected.
 
@@ -223,7 +223,7 @@ Returns the text for the item that is currently selected.
 fcmctrllistbox.SetSelectedString(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L296)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L296)
 
 **[Fluid]**
 Sets the currently selected item to the first item with a matching text value.
@@ -241,7 +241,7 @@ If no match is found, the current selected item will remain selected.
 fcmctrllistbox.InsertItem(self, index, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L322)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L322)
 
 **[Fluid] [PDKPort]**
 Inserts a string at the specified index.
@@ -260,7 +260,7 @@ If index is >= Count, will insert at the end.
 fcmctrllistbox.DeleteItem(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L367)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L367)
 
 **[Fluid] [PDK Port]**
 Deletes an item from the list box.
@@ -277,7 +277,7 @@ If the currently selected item is deleted, items will be deselected (ie set to -
 fcmctrllistbox.HandleSelectionChange(control, last_item, last_item_text, is_deleted)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L419)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L419)
 
 **[Callback Template]**
 
@@ -294,7 +294,7 @@ fcmctrllistbox.HandleSelectionChange(control, last_item, last_item_text, is_dele
 fcmctrllistbox.AddHandleSelectionChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L440)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L440)
 
 **[Fluid]**
 Adds a handler for SelectionChange events.
@@ -318,7 +318,7 @@ The event will fire in the following cases:
 fcmctrllistbox.RemoveHandleSelectionChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua.lua#L445)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlListBox.lua#L445)
 
 **[Fluid]**
 Removes a handler added with `AddHandleSelectionChange`.

@@ -37,7 +37,7 @@ Summary of modifications:
 fcmcustomwindow.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L23)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L23)
 
 **[Internal]**
 
@@ -51,7 +51,7 @@ fcmcustomwindow.Init(self)
 fcmcustomwindow.CreateCancelButton(self, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -71,7 +71,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateOkButton(self, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -91,7 +91,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateButton(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -113,7 +113,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateCheckbox(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -135,7 +135,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateDataList(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -157,7 +157,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateEdit(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -179,7 +179,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateListBox(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -201,7 +201,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreatePopup(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -223,7 +223,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateSlider(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -245,7 +245,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateStatic(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -267,7 +267,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateSwitcher(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -289,7 +289,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateTree(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -311,7 +311,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateUpDown(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -333,7 +333,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateHorizontalLine(self, x, y, length, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -356,7 +356,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.CreateVerticalLine(self, x, y, length, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 Add optional `control_name` parameter.
@@ -379,7 +379,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.FindControl(self, control_id)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L306)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L306)
 
 **[PDK Port]**
 Finds a control based on its ID.
@@ -399,7 +399,7 @@ Finds a control based on its ID.
 fcmcustomwindow.GetControl(self, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L321)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L321)
 
 Finds a control based on its name.
 
@@ -418,7 +418,7 @@ Finds a control based on its name.
 fcmcustomwindow.Each(self, class_filter)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L335)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L335)
 
 An iterator for controls that can filter by class.
 
@@ -437,7 +437,7 @@ An iterator for controls that can filter by class.
 fcmcustomwindow.GetItemAt(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L360)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L360)
 
 **[Override]**
 Ensures that the original control object is returned.
@@ -457,7 +457,7 @@ Ensures that the original control object is returned.
 fcmcustomwindow.CreateCloseButton(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L378)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L378)
 
 **[>= v0.56] [Override]**
 Add optional `control_name` parameter.
@@ -479,7 +479,7 @@ Add optional `control_name` parameter.
 fcmcustomwindow.GetParent(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L410)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L410)
 
 **[PDK Port]**
 Returns the parent window. The parent will only be available while the window is showing.
@@ -498,7 +498,7 @@ Returns the parent window. The parent will only be available while the window is
 fcmcustomwindow.ExecuteModal(self, parent)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua.lua#L424)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L424)
 
 **[Override]**
 Stores the parent window to make it available via `GetParent`.

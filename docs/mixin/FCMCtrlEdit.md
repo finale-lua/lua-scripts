@@ -21,7 +21,7 @@ Summary of modifications:
 fcmctrledit.SetInteger(self, anint)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua.lua#L26)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L26)
 
 **[Fluid] [Override]**
 Ensures that `Change` event is triggered.
@@ -37,7 +37,7 @@ Ensures that `Change` event is triggered.
 fcmctrledit.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua.lua#L42)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L42)
 
 **[Fluid] [Override]**
 Ensures that `Change` event is triggered.
@@ -53,7 +53,7 @@ Ensures that `Change` event is triggered.
 fcmctrledit.SetMeasurement(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua.lua#L59)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L59)
 
 **[Fluid] [Override]**
 Ensures that `Change` event is triggered.
@@ -70,7 +70,7 @@ Ensures that `Change` event is triggered.
 fcmctrledit.SetMeasurementEfix(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua.lua#L77)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L77)
 
 **[Fluid] [Override]**
 Ensures that `Change` event is triggered.
@@ -87,7 +87,7 @@ Ensures that `Change` event is triggered.
 fcmctrledit.SetMeasurementInteger(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua.lua#L95)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L95)
 
 **[Fluid] [Override]**
 Ensures that `Change` event is triggered.
@@ -104,7 +104,7 @@ Ensures that `Change` event is triggered.
 fcmctrledit.SetFloat(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua.lua#L112)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L112)
 
 **[Fluid] [Override]**
 Ensures that `Change` event is triggered.
@@ -120,7 +120,7 @@ Ensures that `Change` event is triggered.
 fcmctrledit.HandleChange(control, last_value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua.lua#L129)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L129)
 
 **[Callback Template]**
 
@@ -135,7 +135,7 @@ fcmctrledit.HandleChange(control, last_value)
 fcmctrledit.AddHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua.lua#L146)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L146)
 
 **[Fluid]**
 Adds a handler for when the value of the control changes.
@@ -155,7 +155,7 @@ The even will fire when:
 fcmctrledit.RemoveHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua.lua#L151)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L151)
 
 **[Fluid]**
 Removes a handler added with `AddHandleChange`.

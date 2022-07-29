@@ -40,7 +40,7 @@ The following inherited methods have been disabled:
 fcxctrlpagesizepopup.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L84)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua#L84)
 
 **[Internal]**
 
@@ -54,7 +54,7 @@ fcxctrlpagesizepopup.Init(self)
 fcxctrlpagesizepopup.GetSelectedPageSize(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L98)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua#L98)
 
 Returns the selected page size.
 
@@ -72,7 +72,7 @@ Returns the selected page size.
 fcxctrlpagesizepopup.SetSelectedPageSize(self, size)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L116)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua#L116)
 
 **[Fluid]**
 Sets the selected page size. Must be a valid page size.
@@ -88,7 +88,7 @@ Sets the selected page size. Must be a valid page size.
 fcxctrlpagesizepopup.UpdateMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L144)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua#L144)
 
 **[Fluid] [Internal]**
 Checks the parent window's measurement and updates the displayed page dimensions if necessary.
@@ -103,7 +103,7 @@ Checks the parent window's measurement and updates the displayed page dimensions
 fcxctrlpagesizepopup.HandlePageSizeChange(control, last_page_size)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L158)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua#L158)
 
 **[Callback Template]**
 
@@ -118,7 +118,7 @@ fcxctrlpagesizepopup.HandlePageSizeChange(control, last_page_size)
 fcxctrlpagesizepopup.AddHandlePageSizeChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L176)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua#L176)
 
 **[Fluid]**
 Adds a handler for PageSizeChange events.
@@ -139,7 +139,7 @@ The event will fire in the following cases:
 fcxctrlpagesizepopup.RemoveHandlePageSizeChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L181)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua#L181)
 
 **[Fluid]**
 Removes a handler added with `AddHandlePageSizeChange`.

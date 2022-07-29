@@ -37,7 +37,7 @@ Summary of modifications:
 fcxctrlupdown.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L65)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L65)
 
 **[Internal]**
 
@@ -51,7 +51,7 @@ fcxctrlupdown.Init(self)
 fcxctrlupdown.GetConnectedEdit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L155)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L155)
 
 **[Override]**
 Ensures that original edit control is returned.
@@ -70,7 +70,7 @@ Ensures that original edit control is returned.
 fcxctrlupdown.ConnectIntegerEdit(self, control, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L171)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L171)
 
 **[Fluid] [Override]**
 Connects an integer edit.
@@ -89,7 +89,7 @@ The underlying methods used in `GetValue` and `SetValue` will be `GetRangeIntege
 fcxctrlupdown.ConnectMeasurementEdit(self, control, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L197)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L197)
 
 **[Fluid] [Override]**
 Connects a measurement edit. The control will be automatically registered as a measurement edit if it isn't already.
@@ -108,7 +108,7 @@ The underlying methods used in `GetValue` and `SetValue` will depend on the meas
 fcxctrlupdown.SetIntegerStepSize(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L217)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L217)
 
 **[Fluid]**
 Sets the step size for integer edits.
@@ -124,7 +124,7 @@ Sets the step size for integer edits.
 fcxctrlupdown.SetEVPUsStepSize(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L232)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L232)
 
 **[Fluid]**
 Sets the step size for measurement edits that are currently displaying in EVPUs.
@@ -140,7 +140,7 @@ Sets the step size for measurement edits that are currently displaying in EVPUs.
 fcxctrlupdown.SetInchesStepSize(self, value, is_evpus)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L248)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L248)
 
 **[Fluid]**
 Sets the step size for measurement edits that are currently displaying in Inches.
@@ -157,7 +157,7 @@ Sets the step size for measurement edits that are currently displaying in Inches
 fcxctrlupdown.SetCentimetersStepSize(self, value, is_evpus)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L268)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L268)
 
 **[Fluid]**
 Sets the step size for measurement edits that are currently displaying in Centimeters.
@@ -174,7 +174,7 @@ Sets the step size for measurement edits that are currently displaying in Centim
 fcxctrlupdown.SetPointsStepSize(self, value, is_evpus)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L288)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L288)
 
 **[Fluid]**
 Sets the step size for measurement edits that are currently displaying in Points.
@@ -191,7 +191,7 @@ Sets the step size for measurement edits that are currently displaying in Points
 fcxctrlupdown.SetPicasStepSize(self, value, is_evpus)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L308)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L308)
 
 **[Fluid]**
 Sets the step size for measurement edits that are currently displaying in Picas.
@@ -208,7 +208,7 @@ Sets the step size for measurement edits that are currently displaying in Picas.
 fcxctrlupdown.SetSpacesStepSize(self, value, is_evpus)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L329)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L329)
 
 **[Fluid]**
 Sets the step size for measurement edits that are currently displaying in Spaces.
@@ -225,7 +225,7 @@ Sets the step size for measurement edits that are currently displaying in Spaces
 fcxctrlupdown.AlignWSetAlignWhenMovinghenMoving(self, on)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L-1)
 
 **[Fluid]**
 Sets whether to align to the next multiple of a step when moving.
@@ -241,7 +241,7 @@ Sets whether to align to the next multiple of a step when moving.
 fcxctrlupdown.GetValue(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L369)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L369)
 
 **[Override]**
 Returns the value of the connected edit, clamped according to the set minimum and maximum.
@@ -266,7 +266,7 @@ Different types of connected edits will return different types and use different
 fcxctrlupdown.SetValue(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L398)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L398)
 
 **[Fluid] [Override]**
 Sets the value of the attached control, clamped according to the set minimum and maximum.
@@ -288,7 +288,7 @@ Different types of connected edits will accept different types and use different
 fcxctrlupdown.GetMinimum(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L423)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L423)
 
 **[Override]**
 
@@ -306,7 +306,7 @@ fcxctrlupdown.GetMinimum(self)
 fcxctrlupdown.GetMaximum(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L436)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L436)
 
 **[Override]**
 
@@ -324,7 +324,7 @@ fcxctrlupdown.GetMaximum(self)
 fcxctrlupdown.SetRange(self, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua.lua#L449)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlUpDown.lua#L449)
 
 **[Fluid] [Override]**
 

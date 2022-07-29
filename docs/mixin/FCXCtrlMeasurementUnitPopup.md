@@ -34,7 +34,7 @@ Event listeners for changes of measurement should be added to the parent window.
 fcxctrlmeasurementunitpopup.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementUnitPopup.lua.lua#L57)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementUnitPopup.lua#L57)
 
 **[Internal]**
 
@@ -48,7 +48,7 @@ fcxctrlmeasurementunitpopup.Init(self)
 fcxctrlmeasurementunitpopup.UpdateMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementUnitPopup.lua.lua#L82)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementUnitPopup.lua#L82)
 
 **[Fluid] [Internal]**
 Checks the parent window's measurement unit and updates the selection if necessary.
