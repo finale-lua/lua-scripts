@@ -38,6 +38,11 @@ jobs:
               with:
                   input: './lua/src/library'
                   output: './lua/docs/library'
+            - name: Generate the docs
+              uses: finale-lua/lua-docs-generator@1.2.1
+              with:
+                  input: './lua/src/mixin'
+                  output: './lua/docs/mixin'
             - run: 'rm -rf website/docs'
             - run: 'cp -R lua/docs website/docs'
             - name: Commit & Push docs to website
