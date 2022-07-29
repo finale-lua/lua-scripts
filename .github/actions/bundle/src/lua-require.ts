@@ -1,7 +1,17 @@
 import path from 'path'
 
 export const generateLuaRequire = () => {
-    return ['local __imports = {}', '', 'function require(item)', '    return __imports[item]()', 'end'].join('\n')
+    return [
+        'local __imports = {}',
+        '',
+        'function require(item)',
+        '    if __imports[item] then',
+        '        return __imports[item]()',
+        '    else',
+        '        error("module \'" .. item .. "\' not found")',
+        '    end',
+        'end',
+    ].join('\n')
 }
 
 export const resolveRequiredFile = (name: string) => {

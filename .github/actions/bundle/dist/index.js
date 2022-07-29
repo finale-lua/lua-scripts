@@ -4646,7 +4646,17 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.resolveRequiredFile = exports.generateLuaRequire = void 0;
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const generateLuaRequire = () => {
-    return ['local __imports = {}', '', 'function require(item)', '    return __imports[item]()', 'end'].join('\n');
+    return [
+        'local __imports = {}',
+        '',
+        'function require(item)',
+        '    if __imports[item] then',
+        '        return __imports[item]()',
+        '    else',
+        '        error("module \'" .. item .. "\' not found")',
+        '    end',
+        'end',
+    ].join('\n');
 };
 exports.generateLuaRequire = generateLuaRequire;
 const resolveRequiredFile = (name) => {
