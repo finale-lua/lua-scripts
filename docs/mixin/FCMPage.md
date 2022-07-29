@@ -16,6 +16,8 @@ Summary of modifications:
 fcmpage.GetSize(self)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMPage.lua.lua#L23)
+
 Returns the size of the page.
 
 | Input | Type | Description |
@@ -32,6 +34,8 @@ Returns the size of the page.
 fcmpage.SetSize(self, size)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMPage.lua.lua#L36)
+
 **[Fluid]**
 Sets the dimensions of this page to match the given size. Page orientation will be preserved.
 
@@ -45,6 +49,8 @@ Sets the dimensions of this page to match the given size. Page orientation will 
 ```lua
 fcmpage.IsBlank(self)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMPage.lua.lua#L51)
 
 Checks if this is a blank page (ie it contains no systems).
 

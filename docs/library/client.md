@@ -27,6 +27,8 @@ These functions don't accept any arguments, and should always return a boolean.
 client.get_raw_finale_version(major, minor, build)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua.lua#L27)
+
 Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
 this is the internal major Finale version, not the year.
 
@@ -46,6 +48,8 @@ this is the internal major Finale version, not the year.
 client.supports_smufl_fonts()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua.lua#L42)
+
 Returns true if the current client supports SMuFL fonts.
 
 | Return type | Description |
@@ -57,6 +61,8 @@ Returns true if the current client supports SMuFL fonts.
 ```lua
 client.supports_category_save_with_new_type()
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua.lua#L53)
 
 Returns true if the current client supports FCCategory::SaveWithNewType().
 
@@ -70,6 +76,8 @@ Returns true if the current client supports FCCategory::SaveWithNewType().
 client.supports_finenv_query_invoked_modifier_keys()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua.lua#L64)
+
 Returns true if the current client supports finenv.QueryInvokedModifierKeys().
 
 | Return type | Description |
@@ -81,6 +89,8 @@ Returns true if the current client supports finenv.QueryInvokedModifierKeys().
 ```lua
 client.supports_retained_state()
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua.lua#L75)
 
 Returns true if the current client supports retaining state between runs.
 
@@ -94,6 +104,8 @@ Returns true if the current client supports retaining state between runs.
 client.supports_modeless_dialog()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua.lua#L86)
+
 Returns true if the current client supports modeless dialogs.
 
 | Return type | Description |
@@ -106,6 +118,8 @@ Returns true if the current client supports modeless dialogs.
 client.supports_clef_changes()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua.lua#L97)
+
 Returns true if the current client supports changing clefs.
 
 | Return type | Description |
@@ -117,6 +131,8 @@ Returns true if the current client supports changing clefs.
 ```lua
 client.supports_custom_key_signatures()
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua.lua#L108)
 
 Returns true if the current client supports changing clefs.
 

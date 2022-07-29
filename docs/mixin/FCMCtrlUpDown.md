@@ -19,6 +19,8 @@ Summary of modifications:
 fcmctrlupdown.Init(self)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L23)
+
 **[Internal]**
 
 | Input | Type | Description |
@@ -30,6 +32,8 @@ fcmctrlupdown.Init(self)
 ```lua
 fcmctrlupdown.GetConnectedEdit(self)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L36)
 
 **[Override]**
 Ensures that original edit control is returned.
@@ -47,6 +51,8 @@ Ensures that original edit control is returned.
 ```lua
 fcmctrlupdown.ConnectIntegerEdit(self, control, minvalue, maxvalue)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L51)
 
 **[Override]**
 
@@ -67,6 +73,8 @@ fcmctrlupdown.ConnectIntegerEdit(self, control, minvalue, maxvalue)
 fcmctrlupdown.ConnectMeasurementEdit(self, control, minvalue, maxvalue)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L76)
+
 **[Override]**
 
 | Input | Type | Description |
@@ -86,6 +94,8 @@ fcmctrlupdown.ConnectMeasurementEdit(self, control, minvalue, maxvalue)
 fcmctrlupdown.AddHandlePress(self, callback)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L104)
+
 **[Fluid]**
 Adds a handler for UpDownPressed events.
 
@@ -99,6 +109,8 @@ Adds a handler for UpDownPressed events.
 ```lua
 fcmctrlupdown.RemoveHandlePress(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua.lua#L109)
 
 **[Fluid]**
 Removes a handler added with `AddHandlePress`.

@@ -21,6 +21,8 @@ Summary of modifications:
 fcmstrings.AddCopy(self, str)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMStrings.lua.lua#L27)
+
 **[Override]**
 Accepts Lua `string` and `number` in addition to `FCString`.
 
@@ -38,6 +40,8 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 ```lua
 fcmstrings.AddCopies(self)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMStrings.lua.lua#L48)
 
 **[Override]**
 Same as `AddCopy`, but accepts multiple arguments so that multiple strings can be added at a time.
@@ -58,6 +62,8 @@ Same as `AddCopy`, but accepts multiple arguments so that multiple strings can b
 fcmstrings.CopyFrom(self)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMStrings.lua.lua#L74)
+
 **[Override]**
 Accepts multiple arguments.
 
@@ -77,6 +83,8 @@ Accepts multiple arguments.
 fcmstrings.Find(self, str)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMStrings.lua.lua#L117)
+
 **[Override]**
 Accepts Lua `string` and `number` in addition to `FCString`.
 
@@ -94,6 +102,8 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 ```lua
 fcmstrings.FindNocase(self, str)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMStrings.lua.lua#L138)
 
 **[Override]**
 Accepts Lua `string` and `number` in addition to `FCString`.
@@ -113,6 +123,8 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 fcmstrings.LoadFolderFiles(self, folderstring)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMStrings.lua.lua#L159)
+
 **[Override]**
 Accepts Lua `string` in addition to `FCString`.
 
@@ -131,6 +143,8 @@ Accepts Lua `string` in addition to `FCString`.
 fcmstrings.LoadSubfolders(self, folderstring)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMStrings.lua.lua#L180)
+
 **[Override]**
 Accepts Lua `string` in addition to `FCString`.
 
@@ -148,6 +162,8 @@ Accepts Lua `string` in addition to `FCString`.
 ```lua
 fcmstrings.InsertStringAt(self, str, index)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMStrings.lua.lua#L202)
 
 **[>= v0.59] [Fluid] [Override]**
 Accepts Lua `string` and `number` in addition to `FCString`.

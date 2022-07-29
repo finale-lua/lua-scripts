@@ -14,6 +14,8 @@
 expression.get_music_region(exp_assign)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua.lua#L18)
+
 Returns a music region corresponding to the input expression assignment.
 
 | Input | Type | Description |
@@ -29,6 +31,8 @@ Returns a music region corresponding to the input expression assignment.
 ```lua
 expression.get_associated_entry(exp_assign)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua.lua#L41)
 
 Returns the note entry associated with the input expression assignment, if any.
 
@@ -46,6 +50,8 @@ Returns the note entry associated with the input expression assignment, if any.
 expression.calc_handle_offset_for_smart_shape(exp_assign)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua.lua#L64)
+
 Returns the horizontal EVPU offset for a smart shape endpoint to align exactly with the handle of the input expression, given that they both have the same EDU position.
 
 | Input | Type | Description |
@@ -61,6 +67,8 @@ Returns the horizontal EVPU offset for a smart shape endpoint to align exactly w
 ```lua
 expression.calc_text_width(expression_def, expand_tags)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua.lua#L100)
 
 Returns the text advance width of the input expression definition.
 
@@ -78,6 +86,8 @@ Returns the text advance width of the input expression definition.
 ```lua
 expression.is_for_current_part(exp_assign, current_part)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua.lua#L119)
 
 Returns true if the expression assignment is assigned to the current part or score.
 

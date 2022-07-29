@@ -13,6 +13,8 @@ Summary of modifications:
 fcmctrltree.AddNode(self, parentnode, iscontainer, text)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlTree.lua.lua#L27)
+
 **[Override]**
 Accepts Lua `string` and `number` in addition to `FCString`.
 

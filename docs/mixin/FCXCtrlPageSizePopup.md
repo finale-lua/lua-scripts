@@ -40,6 +40,8 @@ The following inherited methods have been disabled:
 fcxctrlpagesizepopup.Init(self)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L84)
+
 **[Internal]**
 
 | Input | Type | Description |
@@ -51,6 +53,8 @@ fcxctrlpagesizepopup.Init(self)
 ```lua
 fcxctrlpagesizepopup.GetSelectedPageSize(self)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L98)
 
 Returns the selected page size.
 
@@ -68,6 +72,8 @@ Returns the selected page size.
 fcxctrlpagesizepopup.SetSelectedPageSize(self, size)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L116)
+
 **[Fluid]**
 Sets the selected page size. Must be a valid page size.
 
@@ -82,6 +88,8 @@ Sets the selected page size. Must be a valid page size.
 fcxctrlpagesizepopup.UpdateMeasurementUnit(self)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L144)
+
 **[Fluid] [Internal]**
 Checks the parent window's measurement and updates the displayed page dimensions if necessary.
 
@@ -95,6 +103,8 @@ Checks the parent window's measurement and updates the displayed page dimensions
 fcxctrlpagesizepopup.HandlePageSizeChange(control, last_page_size)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L158)
+
 **[Callback Template]**
 
 | Input | Type | Description |
@@ -107,6 +117,8 @@ fcxctrlpagesizepopup.HandlePageSizeChange(control, last_page_size)
 ```lua
 fcxctrlpagesizepopup.AddHandlePageSizeChange(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L176)
 
 **[Fluid]**
 Adds a handler for PageSizeChange events.
@@ -126,6 +138,8 @@ The event will fire in the following cases:
 ```lua
 fcxctrlpagesizepopup.RemoveHandlePageSizeChange(self, callback)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlPageSizePopup.lua.lua#L181)
 
 **[Fluid]**
 Removes a handler added with `AddHandlePageSizeChange`.

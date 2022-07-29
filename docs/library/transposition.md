@@ -26,6 +26,8 @@ is ignored.
 transposition.diatonic_transpose(note, interval)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua.lua#L151)
+
 Transpose the note diatonically by the given interval displacement.
 
 | Input | Type | Description |
@@ -39,6 +41,8 @@ Transpose the note diatonically by the given interval displacement.
 transposition.change_octave(note, number_of_octaves)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua.lua#L163)
+
 Transpose the note by the given number of octaves.
 
 | Input | Type | Description |
@@ -51,6 +55,8 @@ Transpose the note by the given number of octaves.
 ```lua
 transposition.enharmonic_transpose(note, direction, ignore_error)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua.lua#L182)
 
 Transpose the note enharmonically in the given direction. In some microtone systems this yields a different result than transposing by a diminished 2nd.
 Failure occurs if the note's `RaiseLower` value exceeds an absolute value of 7. This is a hard-coded limit in Finale.
@@ -70,6 +76,8 @@ Failure occurs if the note's `RaiseLower` value exceeds an absolute value of 7. 
 ```lua
 transposition.chromatic_transpose(note, interval, alteration, simplify)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua.lua#L221)
 
 Transposes a note chromatically by the input chromatic interval. Supports custom key signatures
 and microtone systems by means of a `custom_key_sig.config.txt` file. In Finale, chromatic intervals
@@ -95,6 +103,8 @@ allows for downwards transposition.
 transposition.stepwise_transpose(note, number_of_steps)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua.lua#L260)
+
 Transposes the note by the input number of steps and simplifies the spelling.
 For predefined key signatures, each step is a half-step.
 For microtone systems defined with custom key signatures and matching options in the `custom_key_sig.config.txt` file,
@@ -115,6 +125,8 @@ each step is the smallest division of the octave defined by the custom key signa
 transposition.chromatic_major_third_down(note)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua.lua#L279)
+
 Transpose the note down by a major third.
 
 | Input | Type | Description |
@@ -127,6 +139,8 @@ Transpose the note down by a major third.
 transposition.chromatic_perfect_fourth_up(note)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua.lua#L290)
+
 Transpose the note up by a perfect fourth.
 
 | Input | Type | Description |
@@ -138,6 +152,8 @@ Transpose the note up by a perfect fourth.
 ```lua
 transposition.chromatic_perfect_fifth_down(note)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua.lua#L301)
 
 Transpose the note down by a perfect fifth.
 
