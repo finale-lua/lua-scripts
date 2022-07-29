@@ -3,7 +3,17 @@ import { generateLuaRequire, resolveRequiredFile } from './lua-require'
 describe('generateLuaRequire', () => {
     it('lua-require', () => {
         expect(generateLuaRequire()).toBe(
-            ['local __imports = {}', '', 'function require(item)', '    return __imports[item]()', 'end'].join('\n')
+            [
+                'local __imports = {}',
+                '',
+                'function require(item)',
+                '    if __imports[item] then',
+                '        return __imports[item]()',
+                '    else',
+                '        error("module \'" .. item .. "\' not found")',
+                '    end',
+                'end',
+            ].join('\n')
         )
     })
 })

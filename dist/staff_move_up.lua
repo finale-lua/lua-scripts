@@ -1,7 +1,11 @@
 local __imports = {}
 
 function require(item)
-    return __imports[item]()
+    if __imports[item] then
+        return __imports[item]()
+    else
+        error("module '" .. item .. "' not found")
+    end
 end
 
 __imports["library.measurement"] = function()
