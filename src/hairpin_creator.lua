@@ -26,6 +26,7 @@ function plugindef()
         hairpin_type = -2 -- "unswell"
     ]]
     finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.ScriptGroupName = "Hairpin creator"
     finaleplugin.Notes = [[
         This script creates hairpins spanning the currently selected music region. 
         The default hairpin type is `CRESCENDO`, with three additional menu items provided to create:  
