@@ -527,36 +527,19 @@ function library.calc_script_name(include_extension)
 end
 
 --[[
-% get_used_font_name
-
-Processes an input font name into Mac or Windows specific versions. This function is used by get_defualt_music_font().
-
-@ [standard_name] (string) The name of the font as returned by FCFontInfo:GetName().
-: (string) The OS-specific name of the font.
-]]
-function get_used_font_name(standard_name)
-    local font_name = standard_name
-    if string.find(os.tmpname(), "/") then
-        font_name = standard_name
-    elseif string.find(os.tmpname(), "\\") then
-        font_name = string.gsub(standard_name, "%s", "")
-    end
-    return font_name
-end
-
---[[
-% get_default_music_font
+% get_default_music_font_name
 
 Fetches the default music font from document options and processes the name into a usable format.
 
 : (string) The name of the defalt music font.
 ]]
-function get_default_music_font()
+function library.get_default_music_font_name()
     local fontinfo = finale.FCFontInfo()
+    local default_music_font_name = finale.FCString()
     if fontinfo:LoadFontPrefs(finale.FONTPREF_MUSIC) then
-        return getUsedFontName(fontinfo:GetName())
+        fontinfo:GetNameString(default_music_font_name)
+        return default_music_font_name.LuaString
     end
 end
-
 
 return library

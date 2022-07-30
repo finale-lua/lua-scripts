@@ -11,9 +11,10 @@ Replaces the noteheads in a 'Finale Maestro' document with the 'Maestro Wide' gl
     return "Finale Maestro: Wide Notes", "Finale Maestro: Wide Notes", "Replaces noteheads in Finale Maestro with the wide variation."
 end
 
-function maestro_wide_update()
-    local library = require("library.general_library")
-    local default_music_font = library.get_default_music_font()
+local library = require("library.general_library")
+
+function maestro_wide_noteheads()
+    local default_music_font = library.get_default_music_font_name()
     if default_music_font == "Finale Maestro" or default_music_font == "FinaleMaestro" then
         local musiccharacterprefs = finale.FCMusicCharacterPrefs()
         musiccharacterprefs:Load(1)
@@ -25,4 +26,4 @@ function maestro_wide_update()
     end
 end
 
-maestro_wide_update()
+maestro_wide_noteheads()

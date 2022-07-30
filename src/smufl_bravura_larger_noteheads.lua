@@ -11,9 +11,10 @@ Replaces the noteheads in a 'Bravura' document with the larger glyphs included i
     return "Bravura: Large Noteheads", "Bravura: Large Noteheads", "Replaces noteheads in Bravura with the intended larger size."
 end
 
-function bravura_notehead_update()
-    local library = require("library.general_library")
-    local default_music_font = library.get_default_music_font()
+local library = require("library.general_library")
+
+function bravura_large_noteheads()
+    local default_music_font = library.get_default_music_font_name()
     if default_music_font == "Bravura" then
         local musiccharacterprefs = finale.FCMusicCharacterPrefs()
         musiccharacterprefs:Load(1)
@@ -25,5 +26,4 @@ function bravura_notehead_update()
     end
 end
 
-
-bravura_notehead_update()
+bravura_large_noteheads()
