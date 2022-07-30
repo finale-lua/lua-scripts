@@ -2,6 +2,9 @@
     "fileName": "04-partial-multiline-return.lua",
     "name": "Remove Duplicate Articulations",
     "undoText": "Remove Duplicate Articulations",
+    "menuItems": ["Remove Duplicate Articulations"],
+    "scriptGroupName": "",
+    "scriptGroupDescription": "",
     "shortDescription": "",
     "requireSelection": false,
     "requireScore": false,
@@ -17,5 +20,9 @@
     "date": "",
     "notes": "",
     "revisionNotes": [],
-    "id": ""
+    "id": "",
+    "minJWLuaVersion": "",
+    "maxJWLuaVersion": "",
+    "minFinaleVersion": "",
+    "maxFinaleVersion": ""
 }

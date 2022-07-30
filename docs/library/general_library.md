@@ -10,6 +10,7 @@
 - [get_top_left_visible_cell()](#get_top_left_visible_cell)
 - [get_top_left_selected_or_visible_cell()](#get_top_left_selected_or_visible_cell)
 - [is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)](#is_default_measure_number_visible_on_cell)
+- [calc_parts_boolean_for_measure_number_region(meas_num_region, for_part)](#calc_parts_boolean_for_measure_number_region)
 - [is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)](#is_default_number_visible_and_left_aligned)
 - [update_layout(from_page, unfreeze_measures)](#update_layout)
 - [get_current_part()](#get_current_part)
@@ -162,13 +163,32 @@ Returns true if measure numbers for the input region are visible on the input ce
 | ----------- | ----------- |
 | `boolean` |  |
 
+### calc_parts_boolean_for_measure_number_region
+
+```lua
+library.calc_parts_boolean_for_measure_number_region(meas_num_region, for_part)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L194)
+
+Returns the correct boolean value to use when requesting information about a measure number region.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `meas_num_region` | `FCMeasureNumberRegion` |  |
+| `for_part` (optional) | `boolean` | true if requesting values for a linked part, otherwise false. If omitted, this value is calculated. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` | the value to pass to FCMeasureNumberRegion methods with a parts boolean |
+
 ### is_default_number_visible_and_left_aligned
 
 ```lua
 library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L197)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L216)
 
 Returns true if measure number for the input cell is visible and left-aligned.
 
@@ -190,7 +210,7 @@ Returns true if measure number for the input cell is visible and left-aligned.
 library.update_layout(from_page, unfreeze_measures)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L231)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L248)
 
 Updates the page layout.
 
@@ -205,7 +225,7 @@ Updates the page layout.
 library.get_current_part()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L247)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L264)
 
 Returns the currently selected part or score.
 
@@ -219,7 +239,7 @@ Returns the currently selected part or score.
 library.get_page_format_prefs()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L260)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L277)
 
 Returns the default page format prefs for score or parts based on which is currently selected.
 
@@ -233,7 +253,7 @@ Returns the default page format prefs for score or parts based on which is curre
 library.get_smufl_font_list()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L302)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L319)
 
 Returns table of installed SMuFL font names by searching the directory that contains
 the .json files for each font. The table is in the format:
@@ -252,7 +272,7 @@ the .json files for each font. The table is in the format:
 library.get_smufl_metadata_file(font_info)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L341)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L358)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -268,7 +288,7 @@ library.get_smufl_metadata_file(font_info)
 library.is_font_smufl_font(font_info)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L366)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L383)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -284,7 +304,7 @@ library.is_font_smufl_font(font_info)
 library.simple_input(title, text)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L395)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L412)
 
 Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
 
@@ -301,7 +321,7 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 library.is_finale_object(object)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L448)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L465)
 
 Attempts to determine if an object is a Finale object through ducktyping
 
@@ -319,7 +339,7 @@ Attempts to determine if an object is a Finale object through ducktyping
 library.system_indent_set_to_prefs(system, page_format_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L463)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L480)
 
 Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
 The page preferences may be provided optionally to avoid loading them for each call.
@@ -339,7 +359,7 @@ The page preferences may be provided optionally to avoid loading them for each c
 library.calc_script_name(include_extension)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L488)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L505)
 
 Returns the running script name, with or without extension.
 
