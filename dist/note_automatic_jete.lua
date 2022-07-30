@@ -1125,11 +1125,6 @@ __imports["library.general_library"] = function()
     @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
     : (boolean)
     ]]
-    function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, 
-            is_for_multimeasure_rest)
-        if meas_num_region.UseScoreInfoForParts then
-            current_is_part = false
-        end
     function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
         current_is_part = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
         if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
