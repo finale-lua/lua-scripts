@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.AuthorURL = "http://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "v0.60"
-    finaleplugin.Date = "2022/07/25"
+    finaleplugin.Date = "2022/07/31"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin create diminuendo
         Hairpin create swell
