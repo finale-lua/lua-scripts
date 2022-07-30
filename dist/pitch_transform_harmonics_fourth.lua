@@ -1010,6 +1010,11 @@ __imports["library.general_library"] = function()
     @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
     : (boolean)
     ]]
+    function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, 
+            is_for_multimeasure_rest)
+        if meas_num_region.UseScoreInfoForParts then
+            current_is_part = false
+        end
     function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
         current_is_part = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
         if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
@@ -1319,6 +1324,22 @@ __imports["library.general_library"] = function()
             end
         end
         return retval
+    end
+
+    --[[
+    % get_default_music_font_name
+
+    Fetches the default music font from document options and processes the name into a usable format.
+
+    : (string) The name of the defalt music font.
+    ]]
+    function library.get_default_music_font_name()
+        local fontinfo = finale.FCFontInfo()
+        local default_music_font_name = finale.FCString()
+        if fontinfo:LoadFontPrefs(finale.FONTPREF_MUSIC) then
+            fontinfo:GetNameString(default_music_font_name)
+            return default_music_font_name.LuaString
+        end
     end
 
     return library
