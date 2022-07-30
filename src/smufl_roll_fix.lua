@@ -5,14 +5,14 @@ function plugindef()
   finaleplugin.Version = "1.0"
   finaleplugin.Date = "2022-07-24"
   finaleplugin.Notes = [[
-The rolled arpeggio articulation in Finale uses a glyph that is NOT part of the SMuFL standard (SMuFL uses rotated horizontal glyphs for arpeggios rather than MakeMusic's vertical glyph). Therefore, when using SMuFL fonts other than MakeMusic's (e.g. Bravura or Leland), rolled arpeggio articulations get mapped to an incorrect glyph. 
+The 'roll' articulation in Finale uses a glyph that is NOT part of the SMuFL standard (SMuFL uses rotated horizontal glyphs for arpeggios rather than MakeMusic's vertical glyph). Therefore, when using SMuFL fonts other than MakeMusic's (e.g. Bravura or Leland), 'roll' articulations get mapped to an incorrect glyph. 
 
 This script will replace the font and character used by the rolled arpeggio articulation to use Finale Maestro, regardless of the default music font.
     ]]
-  return "SMuFL: Fix arpeggio", "SMuFL: Fix arpeggio", "Fixes arpeggio articulations when converting from non-SMuFL to SMuFL fonts."
+  return "SMuFL: Fix roll", "SMuFL: Fix roll", "Fixes 'roll' articulations when converting from non-SMuFL to SMuFL fonts."
 end
 
-function arpeggio_update()
+function roll_fix()
   local artics = finale.FCArticulationDefs()
   artics:LoadAll()
 
@@ -31,4 +31,4 @@ function arpeggio_update()
   end
 end
 
-arpeggio_update()
+roll_fix()
