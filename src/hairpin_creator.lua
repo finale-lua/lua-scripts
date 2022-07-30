@@ -5,7 +5,7 @@ function plugindef()
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "v0.52"
     finaleplugin.Date = "2022/07/14"
-    finaleplugin.AdditionalMenuOptions = [[
+    finaleplugin.AdditionalMenuOptions = [[ 
         Hairpin create diminuendo
         Hairpin create swell
         Hairpin create unswell
