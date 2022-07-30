@@ -1,30 +1,34 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com"
+    finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.47"
-    finaleplugin.Date = "2022/05/16"
+    finaleplugin.Version = "v1.48"
+    finaleplugin.Date = "2022/07/14"
     finaleplugin.Notes = [[
         This script explodes a set of chords from one staff into pairs of notes, top to bottom, on subsequent staves. 
         Chords may contain different numbers of notes, the number of destination staves determined by the chord with the largest number of notes.
         It duplicates all markings from the original, and resets the current clef for each destination staff.
         It warns if pre-existing music in the destination will be erased. 
-        
-        This script allows for the following configuration:
+
+        By default this script doesn't respace the selected music after it completes. 
+        If you want automatic respacing, hold down the `shift` or `alt` (option) key when selecting the script's menu item. 
+
+        Alternatively, if you want the default behaviour to include spacing then create a `configuration` file:  
+        If it does not exist, create a subfolder called `script_settings` in the folder containing this script. 
+        In that folder create a plain text file  called `staff_explode_pairs.config.txt` containing the line: 
 
         ```
-        fix_note_spacing = true -- to respace music automatically when the script finishes
+        fix_note_spacing = true -- respace music when the script finishes
         ```
+        If you subsequently hold down the `shift` or `alt` (option) key, spacing will not be included.
     ]]
-    return "Staff Explode Pairs", "Staff Explode Pairs", "Staff Explode as pairs of notes onto consecutive single staves"
+    return "Staff Explode Pairs", "Staff Explode Pairs", "Explode chords from one staff into pairs of notes on consecutive single staves"
 end
 
 local configuration = require("library.configuration")
 local clef = require("library.clef")
-
-local config = {fix_note_spacing = true}
-
+local config = { fix_note_spacing = false }
 configuration.get_parameters("staff_explode_pairs.config.txt", config)
 
 function show_error(error_code)
@@ -71,6 +75,12 @@ function ensure_score_has_enough_staves(slot, staff_count)
 end
 
 function staff_explode()
+    if finenv.QueryInvokedModifierKeys and
+    (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
+        then
+        config.fix_note_spacing = not config.fix_note_spacing
+    end
+
     local source_staff_region = finale.FCMusicRegion()
     source_staff_region:SetCurrentSelection()
     if source_staff_region:CalcStaffSpan() > 1 then
@@ -102,7 +112,7 @@ function staff_explode()
         local this_slot = start_slot + slot - 1 -- "real" slot number, indexed[1]
         regions[slot].StartSlot = this_slot
         regions[slot].EndSlot = this_slot
-
+        
         if destination_is_empty then
             for entry in eachentry(regions[slot]) do
                 if entry.Count > 0 then
