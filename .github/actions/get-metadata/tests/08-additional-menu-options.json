@@ -1,0 +1,33 @@
+{
+    "fileName": "08-additional-menu-options.lua",
+    "name": "Hairpin create crescendo",
+    "undoText": "Hairpin create crescendo",
+    "shortDescription": "Hairpin create crescendo",
+    "menuItems": [
+        "Hairpin create crescendo",
+        "Hairpin create diminuendo",
+        "Hairpin create swell",
+        "Hairpin create unswell"
+    ],
+    "scriptGroupName": "",
+    "scriptGroupDescription": "",
+    "requireSelection": false,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "",
+        "website": "",
+        "email": ""
+    },
+    "copyright": "",
+    "version": "",
+    "categories": [],
+    "date": "",
+    "notes": "",
+    "revisionNotes": [],
+    "id": "",
+    "minJWLuaVersion": "",
+    "maxJWLuaVersion": "",
+    "minFinaleVersion": "",
+    "maxFinaleVersion": ""
+}

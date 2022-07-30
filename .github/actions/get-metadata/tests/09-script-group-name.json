@@ -1,0 +1,33 @@
+{
+    "fileName": "09-script-group-name.lua",
+    "name": "Hairpin creator",
+    "undoText": "Hairpin create crescendo",
+    "shortDescription": "Create all sorts of hairpins",
+    "menuItems": [
+        "Hairpin create crescendo",
+        "Hairpin create diminuendo",
+        "Hairpin create swell",
+        "Hairpin create unswell"
+    ],
+    "scriptGroupName": "Hairpin creator",
+    "scriptGroupDescription": "Create all sorts of hairpins",
+    "requireSelection": false,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "",
+        "website": "",
+        "email": ""
+    },
+    "copyright": "",
+    "version": "",
+    "categories": [],
+    "date": "",
+    "notes": "",
+    "revisionNotes": [],
+    "id": "",
+    "minJWLuaVersion": "",
+    "maxJWLuaVersion": "",
+    "minFinaleVersion": "",
+    "maxFinaleVersion": ""
+}

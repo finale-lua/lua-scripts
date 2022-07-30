@@ -1,0 +1,28 @@
+{
+    "fileName": "10-invalid-script-group-name.lua",
+    "name": "Hairpin create crescendo",
+    "undoText": "Hairpin create crescendo",
+    "shortDescription": "Hairpin create crescendo",
+    "menuItems": ["Hairpin create crescendo"],
+    "scriptGroupName": "Hairpin creator",
+    "scriptGroupDescription": "Create all sorts of hairpins",
+    "requireSelection": false,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "",
+        "website": "",
+        "email": ""
+    },
+    "copyright": "",
+    "version": "",
+    "categories": [],
+    "date": "",
+    "notes": "",
+    "revisionNotes": [],
+    "id": "",
+    "minJWLuaVersion": "",
+    "maxJWLuaVersion": "",
+    "minFinaleVersion": "",
+    "maxFinaleVersion": ""
+}

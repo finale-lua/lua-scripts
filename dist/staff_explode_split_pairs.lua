@@ -1,7 +1,11 @@
 local __imports = {}
 
 function require(item)
-    return __imports[item]()
+    if __imports[item] then
+        return __imports[item]()
+    else
+        error("module '" .. item .. "' not found")
+    end
 end
 
 __imports["library.configuration"] = function()
@@ -285,6 +289,123 @@ __imports["library.configuration"] = function()
 
 end
 
+__imports["library.client"] = function()
+    --[[
+    $module Client
+
+    Get information about the current client. For the purposes of Finale Lua, the client is
+    the Finale application that's running on someones machine. Therefore, the client has
+    details about the user's setup, such as their Finale version, plugin version, and
+    operating system.
+
+    One of the main uses of using client details is to check its capabilities. As such,
+    the bulk of this library is helper functions to determine what the client supports.
+    All functions to check a client's capabilities should start with `client.supports_`.
+    These functions don't accept any arguments, and should always return a boolean.
+    ]] --
+    local client = {}
+
+    --[[
+    % get_raw_finale_version
+    Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
+    this is the internal major Finale version, not the year.
+
+    @ major (number) Major Finale version
+    @ minor (number) Minor Finale version
+    @ [build] (number) zero if omitted
+
+    : (number)
+    ]]
+    function client.get_raw_finale_version(major, minor, build)
+        local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
+        if build then
+            retval = bit32.bor(retval, math.floor(build))
+        end
+        return retval
+    end
+
+    --[[
+    % supports_smufl_fonts()
+
+    Returns true if the current client supports SMuFL fonts.
+
+    : (boolean)
+    ]]
+    function client.supports_smufl_fonts()
+        return finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1)
+    end
+
+    --[[
+    % supports_category_save_with_new_type()
+
+    Returns true if the current client supports FCCategory::SaveWithNewType().
+
+    : (boolean)
+    ]]
+    function client.supports_category_save_with_new_type()
+        return finenv.StringVersion >= "0.58"
+    end
+
+    --[[
+    % supports_finenv_query_invoked_modifier_keys()
+
+    Returns true if the current client supports finenv.QueryInvokedModifierKeys().
+
+    : (boolean)
+    ]]
+    function client.supports_finenv_query_invoked_modifier_keys()
+        return finenv.IsRGPLua and finenv.QueryInvokedModifierKeys
+    end
+
+    --[[
+    % supports_retained_state()
+
+    Returns true if the current client supports retaining state between runs.
+
+    : (boolean)
+    ]]
+    function client.supports_retained_state()
+        return finenv.IsRGPLua and finenv.RetainLuaState ~= nil
+    end
+
+    --[[
+    % supports_modeless_dialog()
+
+    Returns true if the current client supports modeless dialogs.
+
+    : (boolean)
+    ]]
+    function client.supports_modeless_dialog()
+        return finenv.IsRGPLua
+    end
+
+    --[[
+    % supports_clef_changes()
+
+    Returns true if the current client supports changing clefs.
+
+    : (boolean)
+    ]]
+    function client.supports_clef_changes()
+        return finenv.IsRGPLua or finenv.StringVersion >= "0.60"
+    end
+
+    --[[
+    % supports_custom_key_signatures()
+
+    Returns true if the current client supports changing clefs.
+
+    : (boolean)
+    ]]
+    function client.supports_custom_key_signatures()
+        local key = finale.FCKeySignature()
+        return finenv.IsRGPLua and key.CalcTotalChromaticSteps
+    end
+
+    return client
+
+end
+
 __imports["library.clef"] = function()
     --[[
     $module Clef
@@ -292,6 +413,8 @@ __imports["library.clef"] = function()
     A library of general clef utility functions.
     ]] --
     local clef = {}
+
+    local client = require("library.client")
 
     --[[
     % get_cell_clef
@@ -341,18 +464,6 @@ __imports["library.clef"] = function()
     end
 
     --[[
-    % can_change_clef
-
-    Determine if the current version of the plugin can change clefs.
-
-    : (boolean) Whether or not the plugin can change clefs
-    ]]
-    function clef.can_change_clef()
-        -- RGPLua 0.60 or later needed for clef changing
-        return finenv.IsRGPLua or finenv.StringVersion >= "0.60"
-    end
-
-    --[[
     % restore_default_clef
 
     Restores the default clef for any staff for a specific region.
@@ -362,7 +473,7 @@ __imports["library.clef"] = function()
     @ staff_number (number) The staff number for the cell
     ]]
     function clef.restore_default_clef(first_measure, last_measure, staff_number)
-        if not clef.can_change_clef() then
+        if not client.supports_clef_changes() then
             return
         end
 
@@ -387,30 +498,35 @@ end
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com"
+    finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.47"
-    finaleplugin.Date = "2022/05/16"
+    finaleplugin.Version = "v1.48"
+    finaleplugin.Date = "2022/07/14"
     finaleplugin.Notes = [[
         This script explodes a set of chords from one staff into "split" pairs of notes, 
         top to bottom, on subsequent staves (1-3/2-4; 1-4/2-5/3-6; etc). 
         Chords may contain different numbers of notes, the number of pairs determined by the chord with the largest number of notes.
-        It warns if pre-existing music will be erased and duplicates all markings from the original, resetting the current clef for each destination staff.
+        It warns if pre-existing music will be erased and duplicates all markings from the original, 
+        resetting the current clef for each destination staff.
 
-        This script allows for the following configuration:
+        By default this script doesn't respace the selected music after it completes. 
+        If you want automatic respacing, hold down the `shift` or `alt` (option) key when selecting the script's menu item. 
+
+        Alternatively, if you want the default behaviour to include spacing then create a `configuration` file:  
+        If it does not exist, create a subfolder called `script_settings` in the folder containing this script. 
+        In that folder create a plain text file  called `staff_explode_split_pairs.config.txt` containing the line: 
 
         ```
-        fix_note_spacing = true -- to respace music automatically when the script finishes
+        fix_note_spacing = true -- respace music when the script finishes
         ```
+        If you subsequently hold down the `shift` or `alt` (option) key, spacing will not be included.
     ]]
-    return "Staff Explode Split Pairs", "Staff Explode Split Pairs", "Staff Explode as pairs of notes onto consecutive single staves"
+    return "Staff Explode Split Pairs", "Staff Explode Split Pairs", "Explode chords from one staff into split pairs of notes on consecutive single staves"
 end
 
 local configuration = require("library.configuration")
 local clef = require("library.clef")
-
-local config = {fix_note_spacing = true}
-
+local config = { fix_note_spacing = false }
 configuration.get_parameters("staff_explode_split_pairs.config.txt", config)
 
 function show_error(error_code)
@@ -430,7 +546,7 @@ function should_overwrite_existing_music()
     return should_overwrite
 end
 
-function get_note_count(source_staff_region)
+function get_max_note_count(source_staff_region)
     local max_note_count = 0
     for entry in eachentry(source_staff_region) do
         if entry.Count > 0 then
@@ -457,6 +573,12 @@ function ensure_score_has_enough_staves(slot, max_note_count)
 end
 
 function staff_explode()
+    if finenv.QueryInvokedModifierKeys and
+    (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
+        then
+        config.fix_note_spacing = not config.fix_note_spacing
+    end
+
     local source_staff_region = finale.FCMusicRegion()
     source_staff_region:SetCurrentSelection()
     if source_staff_region:CalcStaffSpan() > 1 then
@@ -468,7 +590,7 @@ function staff_explode()
     local regions = {}
     regions[1] = source_staff_region
 
-    local max_note_count = get_note_count(source_staff_region)
+    local max_note_count = get_max_note_count(source_staff_region)
     if max_note_count <= 0 then
         return
     end
@@ -488,7 +610,7 @@ function staff_explode()
         local this_slot = start_slot + slot - 1 -- "real" slot number, indexed[1]
         regions[slot].StartSlot = this_slot
         regions[slot].EndSlot = this_slot
-
+        
         if destination_is_empty then
             for entry in eachentry(regions[slot]) do
                 if entry.Count > 0 then
@@ -500,7 +622,7 @@ function staff_explode()
     end
 
     if destination_is_empty or should_overwrite_existing_music() then
-
+    
         -- run through regions[1] copying the pitches in every chord
         local pitches_to_keep = {} -- compile an array of chords
         local chord = 1 -- start at 1st chord
@@ -513,7 +635,7 @@ function staff_explode()
                 chord = chord + 1 -- next chord
             end
         end
-
+    
         -- run through all staves deleting requisite notes in each copy
         for slot = 1, staff_count do
             if slot > 1 then
@@ -521,20 +643,20 @@ function staff_explode()
                 clef.restore_default_clef(start_measure, end_measure, regions[slot].StartStaff)
             end
 
-            chord = 1 -- first chord
-            for entry in eachentrysaved(regions[slot]) do -- check each chord in the source
+            chord = 1  -- first chord
+            for entry in eachentrysaved(regions[slot]) do    -- check each chord in the source
                 if entry:IsNote() then
                     -- which pitches to keep in this staff/slot?
                     local hi_pitch = entry.Count + 1 - slot -- index of highest pitch
                     local lo_pitch = hi_pitch - staff_count -- index of paired lower pitch (SPLIT pair)
 
-                    local overflow = -1 -- overflow counter
+                    local overflow = -1     -- overflow counter
                     while entry.Count > 0 and overflow < max_note_count do
-                        overflow = overflow + 1 -- don't get stuck!
-                        for note in each(entry) do -- check MIDI value
+                        overflow = overflow + 1   -- don't get stuck!
+                        for note in each(entry) do  -- check MIDI value
                             local pitch = note:CalcMIDIKey()
                             if pitch ~= pitches_to_keep[chord][hi_pitch] and pitch ~= pitches_to_keep[chord][lo_pitch] then
-                                entry:DeleteNote(note) -- we don't want to keep this pitch
+                                entry:DeleteNote(note)  -- we don't want to keep this pitch
                                 break -- examine same entry again after note deletion
                             end
                         end

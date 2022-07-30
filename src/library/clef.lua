@@ -5,6 +5,8 @@ A library of general clef utility functions.
 ]] --
 local clef = {}
 
+local client = require("library.client")
+
 --[[
 % get_cell_clef
 
@@ -53,18 +55,6 @@ function clef.get_default_clef(first_measure, last_measure, staff_number)
 end
 
 --[[
-% can_change_clef
-
-Determine if the current version of the plugin can change clefs.
-
-: (boolean) Whether or not the plugin can change clefs
-]]
-function clef.can_change_clef()
-    -- RGPLua 0.60 or later needed for clef changing
-    return finenv.IsRGPLua or finenv.StringVersion >= "0.60"
-end
-
---[[
 % restore_default_clef
 
 Restores the default clef for any staff for a specific region.
@@ -74,7 +64,7 @@ Restores the default clef for any staff for a specific region.
 @ staff_number (number) The staff number for the cell
 ]]
 function clef.restore_default_clef(first_measure, last_measure, staff_number)
-    if not clef.can_change_clef() then
+    if not client.supports_clef_changes() then
         return
     end
 

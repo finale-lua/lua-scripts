@@ -1,7 +1,11 @@
 local __imports = {}
 
 function require(item)
-    return __imports[item]()
+    if __imports[item] then
+        return __imports[item]()
+    else
+        error("module '" .. item .. "' not found")
+    end
 end
 
 __imports["library.configuration"] = function()
@@ -306,6 +310,7 @@ __imports["library.transposition"] = function()
     --
     local transposition = {}
 
+    local client = require("library.client")
     local configuration = require("library.configuration")
 
     local standard_key_number_of_steps = 12
@@ -318,10 +323,7 @@ __imports["library.transposition"] = function()
     -- second number is minus_octaves
     local diatonic_interval_adjustments = {{0, 0}, {2, -1}, {4, -2}, {-1, 1}, {1, 0}, {3, -1}, {5, -2}, {0, 1}}
 
-    local custom_key_sig_config = {
-        number_of_steps = standard_key_number_of_steps,
-        diatonic_steps = standard_key_major_diatonic_steps,
-    }
+    local custom_key_sig_config = {number_of_steps = standard_key_number_of_steps, diatonic_steps = standard_key_major_diatonic_steps}
 
     configuration.get_parameters("custom_key_sig.config.txt", custom_key_sig_config)
 
@@ -354,7 +356,7 @@ __imports["library.transposition"] = function()
     local get_key_info = function(key)
         local number_of_steps = standard_key_number_of_steps
         local diatonic_steps = standard_key_major_diatonic_steps
-        if finenv.IsRGPLua and key.CalcTotalChromaticSteps then -- if this version of RGP Lua supports custom key sigs
+        if client.supports_custom_key_signatures() then
             number_of_steps = key:CalcTotalChromaticSteps()
             diatonic_steps = key:CalcDiatonicStepsMap()
         else
@@ -384,8 +386,7 @@ __imports["library.transposition"] = function()
         local number_of_steps_in_key, diatonic_steps = get_key_info(key)
         local first_scale_degree = calc_scale_degree(first_disp, #diatonic_steps)
         local second_scale_degree = calc_scale_degree(second_disp, #diatonic_steps)
-        local number_of_steps = sign(second_disp - first_disp) *
-                                    (diatonic_steps[second_scale_degree + 1] - diatonic_steps[first_scale_degree + 1])
+        local number_of_steps = sign(second_disp - first_disp) * (diatonic_steps[second_scale_degree + 1] - diatonic_steps[first_scale_degree + 1])
         if number_of_steps < 0 then
             number_of_steps = number_of_steps + number_of_steps_in_key
         end
@@ -404,8 +405,7 @@ __imports["library.transposition"] = function()
         local number_of_steps_in_key, _, fifth_steps = get_key_info(key)
         local plus_fifths = diatonic_interval_adjustments[math.abs(interval_normalized) + 1][1] -- number of fifths to add for interval
         local minus_octaves = diatonic_interval_adjustments[math.abs(interval_normalized) + 1][2] -- number of octaves to subtract for alteration
-        local number_of_steps_in_interval = sign(interval_normalized) *
-                                                ((plus_fifths * fifth_steps) + (minus_octaves * number_of_steps_in_key))
+        local number_of_steps_in_interval = sign(interval_normalized) * ((plus_fifths * fifth_steps) + (minus_octaves * number_of_steps_in_key))
         return number_of_steps_in_interval
     end
 
@@ -476,8 +476,7 @@ __imports["library.transposition"] = function()
         local curr_disp = note.Displacement
         local curr_alt = note.RaiseLower
         local key = get_key(note)
-        local key_step_enharmonic = calc_steps_between_scale_degrees(
-                                        key, note.Displacement, note.Displacement + sign(direction))
+        local key_step_enharmonic = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + sign(direction))
         transposition.diatonic_transpose(note, sign(direction))
         note.RaiseLower = note.RaiseLower - sign(direction) * key_step_enharmonic
         if ignore_error then
@@ -521,8 +520,7 @@ __imports["library.transposition"] = function()
         local interval_normalized = signed_modulus(interval, #diatonic_steps)
         local steps_in_alteration = calc_steps_in_alteration(key, interval, alteration)
         local steps_in_interval = calc_steps_in_normalized_interval(key, interval_normalized)
-        local steps_in_diatonic_interval = calc_steps_between_scale_degrees(
-                                               key, note.Displacement, note.Displacement + interval_normalized)
+        local steps_in_diatonic_interval = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + interval_normalized)
         local effective_alteration = steps_in_alteration + steps_in_interval - sign(interval) * steps_in_diatonic_interval
         transposition.diatonic_transpose(note, interval)
         note.RaiseLower = note.RaiseLower + effective_alteration
@@ -4196,30 +4194,130 @@ __imports["mixin.FCMPage"] = function()
 
 end
 
-__imports["library.general_library"] = function()
+__imports["library.client"] = function()
     --[[
-    $module Library
+    $module Client
+
+    Get information about the current client. For the purposes of Finale Lua, the client is
+    the Finale application that's running on someones machine. Therefore, the client has
+    details about the user's setup, such as their Finale version, plugin version, and
+    operating system.
+
+    One of the main uses of using client details is to check its capabilities. As such,
+    the bulk of this library is helper functions to determine what the client supports.
+    All functions to check a client's capabilities should start with `client.supports_`.
+    These functions don't accept any arguments, and should always return a boolean.
     ]] --
-    local library = {}
+    local client = {}
 
     --[[
-    % finale_version
-
+    % get_raw_finale_version
     Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
     this is the internal major Finale version, not the year.
 
     @ major (number) Major Finale version
     @ minor (number) Minor Finale version
     @ [build] (number) zero if omitted
+
     : (number)
     ]]
-    function library.finale_version(major, minor, build)
+    function client.get_raw_finale_version(major, minor, build)
         local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
         if build then
             retval = bit32.bor(retval, math.floor(build))
         end
         return retval
     end
+
+    --[[
+    % supports_smufl_fonts()
+
+    Returns true if the current client supports SMuFL fonts.
+
+    : (boolean)
+    ]]
+    function client.supports_smufl_fonts()
+        return finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1)
+    end
+
+    --[[
+    % supports_category_save_with_new_type()
+
+    Returns true if the current client supports FCCategory::SaveWithNewType().
+
+    : (boolean)
+    ]]
+    function client.supports_category_save_with_new_type()
+        return finenv.StringVersion >= "0.58"
+    end
+
+    --[[
+    % supports_finenv_query_invoked_modifier_keys()
+
+    Returns true if the current client supports finenv.QueryInvokedModifierKeys().
+
+    : (boolean)
+    ]]
+    function client.supports_finenv_query_invoked_modifier_keys()
+        return finenv.IsRGPLua and finenv.QueryInvokedModifierKeys
+    end
+
+    --[[
+    % supports_retained_state()
+
+    Returns true if the current client supports retaining state between runs.
+
+    : (boolean)
+    ]]
+    function client.supports_retained_state()
+        return finenv.IsRGPLua and finenv.RetainLuaState ~= nil
+    end
+
+    --[[
+    % supports_modeless_dialog()
+
+    Returns true if the current client supports modeless dialogs.
+
+    : (boolean)
+    ]]
+    function client.supports_modeless_dialog()
+        return finenv.IsRGPLua
+    end
+
+    --[[
+    % supports_clef_changes()
+
+    Returns true if the current client supports changing clefs.
+
+    : (boolean)
+    ]]
+    function client.supports_clef_changes()
+        return finenv.IsRGPLua or finenv.StringVersion >= "0.60"
+    end
+
+    --[[
+    % supports_custom_key_signatures()
+
+    Returns true if the current client supports changing clefs.
+
+    : (boolean)
+    ]]
+    function client.supports_custom_key_signatures()
+        local key = finale.FCKeySignature()
+        return finenv.IsRGPLua and key.CalcTotalChromaticSteps
+    end
+
+    return client
+
+end
+
+__imports["library.general_library"] = function()
+    --[[
+    $module Library
+    ]] --
+    local library = {}
+
+    local client = require("library.client")
 
     --[[
     % group_overlaps_region
@@ -4399,6 +4497,25 @@ __imports["library.general_library"] = function()
     end
 
     --[[
+    % calc_parts_boolean_for_measure_number_region
+
+    Returns the correct boolean value to use when requesting information about a measure number region.
+
+    @ meas_num_region (FCMeasureNumberRegion)
+    @ [for_part] (boolean) true if requesting values for a linked part, otherwise false. If omitted, this value is calculated.
+    : (boolean) the value to pass to FCMeasureNumberRegion methods with a parts boolean
+    ]]
+    function library.calc_parts_boolean_for_measure_number_region(meas_num_region, for_part)
+        if meas_num_region.UseScoreInfoForParts then
+            return false
+        end
+        if nil == for_part then
+            return finenv.UI():IsPartView()
+        end
+        return for_part
+    end
+
+    --[[
     % is_default_number_visible_and_left_aligned
 
     Returns true if measure number for the input cell is visible and left-aligned.
@@ -4410,11 +4527,8 @@ __imports["library.general_library"] = function()
     @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
     : (boolean)
     ]]
-    function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part,
-                                                                is_for_multimeasure_rest)
-        if meas_num_region.UseScoreInfoForParts then
-            current_is_part = false
-        end
+    function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+        current_is_part = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
         if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
             if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultiMeasureAlignment(current_is_part)) then
                 return false
@@ -4488,7 +4602,7 @@ __imports["library.general_library"] = function()
 
     local calc_smufl_directory = function(for_user)
         local is_on_windows = finenv.UI():IsOnWindows()
-        local do_getenv = function (win_var, mac_var)
+        local do_getenv = function(win_var, mac_var)
             if finenv.UI():IsOnWindows() then
                 return win_var and os.getenv(win_var) or ""
             else
@@ -4522,9 +4636,9 @@ __imports["library.general_library"] = function()
             local smufl_directory = calc_smufl_directory(for_user)
             local get_dirs = function()
                 if finenv.UI():IsOnWindows() then
-                    return io.popen('dir "'..smufl_directory..'" /b /ad')
+                    return io.popen("dir \"" .. smufl_directory .. "\" /b /ad")
                 else
-                    return io.popen('ls "'..smufl_directory..'"')
+                    return io.popen("ls \"" .. smufl_directory .. "\"")
                 end
             end
             local is_font_available = function(dir)
@@ -4586,7 +4700,7 @@ __imports["library.general_library"] = function()
             font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
         end
 
-        if finenv.RawFinaleVersion >= library.finale_version(27, 1) then
+        if client.supports_smufl_fonts() then
             if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
                 return font_info.IsSMuFLFont
             end
@@ -4694,7 +4808,6 @@ __imports["library.general_library"] = function()
         return system:Save()
     end
 
-
     --[[
     % calc_script_name
 
@@ -4724,7 +4837,6 @@ __imports["library.general_library"] = function()
         end
         return retval
     end
-
 
     return library
 

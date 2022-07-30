@@ -3,6 +3,9 @@
     "name": "Remove Duplicate Articulations",
     "undoText": "Remove Duplicate Articulations",
     "shortDescription": "Remove Duplicate Articulations",
+    "menuItems": ["Remove Duplicate Articulations"],
+    "scriptGroupName": "",
+    "scriptGroupDescription": "",
     "requireSelection": true,
     "requireScore": true,
     "noStore": true,
@@ -17,5 +20,9 @@
     "date": "2021-07-27",
     "notes": "",
     "revisionNotes": [],
-    "id": "abc123"
+    "id": "abc123",
+    "minJWLuaVersion": "",
+    "maxJWLuaVersion": "",
+    "minFinaleVersion": "",
+    "maxFinaleVersion": ""
 }

@@ -1,8 +1,11 @@
 {
     "fileName": "06-notes.lua",
     "name": "Script",
+    "scriptGroupName": "",
+    "scriptGroupDescription": "",
     "undoText": "Script",
     "shortDescription": "Script",
+    "menuItems": ["Script"],
     "requireSelection": false,
     "requireScore": false,
     "noStore": false,
@@ -17,5 +20,9 @@
     "date": "",
     "notes": "This is a test note.\nThis is a second line.\nAnd this is a third line.\n\nNew paragraph.\n\nParagraph with a  \nline break in the middle. Note the two spaces before the line break.",
     "revisionNotes": [],
-    "id": ""
+    "id": "",
+    "minJWLuaVersion": "",
+    "maxJWLuaVersion": "",
+    "minFinaleVersion": "",
+    "maxFinaleVersion": ""
 }

@@ -1,0 +1,28 @@
+{
+    "fileName": "11-software-versions.lua",
+    "name": "Hairpin create crescendo",
+    "undoText": "Hairpin create crescendo",
+    "shortDescription": "Hairpin create crescendo",
+    "menuItems": ["Hairpin create crescendo"],
+    "scriptGroupName": "",
+    "scriptGroupDescription": "",
+    "requireSelection": false,
+    "requireScore": false,
+    "noStore": false,
+    "author": {
+        "name": "",
+        "website": "",
+        "email": ""
+    },
+    "copyright": "",
+    "version": "",
+    "categories": [],
+    "date": "",
+    "notes": "",
+    "revisionNotes": [],
+    "id": "",
+    "minJWLuaVersion": "0.61",
+    "maxJWLuaVersion": "0.61",
+    "minFinaleVersion": "2014.5",
+    "maxFinaleVersion": "2014.5"
+}

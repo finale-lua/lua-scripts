@@ -2,7 +2,6 @@
 
 ## Functions
 
-- [finale_version(major, minor, build)](#finale_version)
 - [group_overlaps_region(staff_group, region)](#group_overlaps_region)
 - [group_is_contained_in_region(staff_group, region)](#group_is_contained_in_region)
 - [staff_group_is_multistaff_instrument(staff_group)](#staff_group_is_multistaff_instrument)
@@ -11,6 +10,7 @@
 - [get_top_left_visible_cell()](#get_top_left_visible_cell)
 - [get_top_left_selected_or_visible_cell()](#get_top_left_selected_or_visible_cell)
 - [is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)](#is_default_measure_number_visible_on_cell)
+- [calc_parts_boolean_for_measure_number_region(meas_num_region, for_part)](#calc_parts_boolean_for_measure_number_region)
 - [is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)](#is_default_number_visible_and_left_aligned)
 - [update_layout(from_page, unfreeze_measures)](#update_layout)
 - [get_current_part()](#get_current_part)
@@ -23,30 +23,13 @@
 - [system_indent_set_to_prefs(system, page_format_prefs)](#system_indent_set_to_prefs)
 - [calc_script_name(include_extension)](#calc_script_name)
 
-### finale_version
-
-```lua
-library.finale_version(major, minor, build)
-```
-
-Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
-this is the internal major Finale version, not the year.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `major` | `number` | Major Finale version |
-| `minor` | `number` | Minor Finale version |
-| `build` (optional) | `number` | zero if omitted |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `number` |  |
-
 ### group_overlaps_region
 
 ```lua
 library.group_overlaps_region(staff_group, region)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L17)
 
 Returns true if the input staff group overlaps with the input music region, otherwise false.
 
@@ -64,6 +47,8 @@ Returns true if the input staff group overlaps with the input music region, othe
 ```lua
 library.group_is_contained_in_region(staff_group, region)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L49)
 
 Returns true if the entire input staff group is contained within the input music region.
 If the start or end staff are not visible in the region, it returns false.
@@ -83,6 +68,8 @@ If the start or end staff are not visible in the region, it returns false.
 library.staff_group_is_multistaff_instrument(staff_group)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L67)
+
 Returns true if the entire input staff group is a multistaff instrument.
 
 | Input | Type | Description |
@@ -99,6 +86,8 @@ Returns true if the entire input staff group is a multistaff instrument.
 library.get_selected_region_or_whole_doc()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L86)
+
 Returns a region that contains the selected region if there is a selection or the whole document if there isn't.
 SIDE-EFFECT WARNING: If there is no selected region, this function also changes finenv.Region() to the whole document.
 
@@ -111,6 +100,8 @@ SIDE-EFFECT WARNING: If there is no selected region, this function also changes 
 ```lua
 library.get_first_cell_on_or_after_page(page_num)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L102)
 
 Returns the first FCCell at the top of the input page. If the page is blank, it returns the first cell after the input page.
 
@@ -128,6 +119,8 @@ Returns the first FCCell at the top of the input page. If the page is blank, it 
 library.get_top_left_visible_cell()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L132)
+
 Returns the topmost, leftmost visible FCCell on the screen, or the closest possible estimate of it.
 
 | Return type | Description |
@@ -139,6 +132,8 @@ Returns the topmost, leftmost visible FCCell on the screen, or the closest possi
 ```lua
 library.get_top_left_selected_or_visible_cell()
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L149)
 
 If there is a selection, returns the topmost, leftmost cell in the selected region.
 Otherwise returns the best estimate for the topmost, leftmost currently visible cell.
@@ -153,6 +148,8 @@ Otherwise returns the best estimate for the topmost, leftmost currently visible 
 library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L168)
+
 Returns true if measure numbers for the input region are visible on the input cell for the staff system.
 
 | Input | Type | Description |
@@ -166,11 +163,32 @@ Returns true if measure numbers for the input region are visible on the input ce
 | ----------- | ----------- |
 | `boolean` |  |
 
+### calc_parts_boolean_for_measure_number_region
+
+```lua
+library.calc_parts_boolean_for_measure_number_region(meas_num_region, for_part)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L194)
+
+Returns the correct boolean value to use when requesting information about a measure number region.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `meas_num_region` | `FCMeasureNumberRegion` |  |
+| `for_part` (optional) | `boolean` | true if requesting values for a linked part, otherwise false. If omitted, this value is calculated. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` | the value to pass to FCMeasureNumberRegion methods with a parts boolean |
+
 ### is_default_number_visible_and_left_aligned
 
 ```lua
 library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L216)
 
 Returns true if measure number for the input cell is visible and left-aligned.
 
@@ -192,6 +210,8 @@ Returns true if measure number for the input cell is visible and left-aligned.
 library.update_layout(from_page, unfreeze_measures)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L248)
+
 Updates the page layout.
 
 | Input | Type | Description |
@@ -205,6 +225,8 @@ Updates the page layout.
 library.get_current_part()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L264)
+
 Returns the currently selected part or score.
 
 | Return type | Description |
@@ -217,6 +239,8 @@ Returns the currently selected part or score.
 library.get_page_format_prefs()
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L277)
+
 Returns the default page format prefs for score or parts based on which is currently selected.
 
 | Return type | Description |
@@ -228,6 +252,8 @@ Returns the default page format prefs for score or parts based on which is curre
 ```lua
 library.get_smufl_font_list()
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L319)
 
 Returns table of installed SMuFL font names by searching the directory that contains
 the .json files for each font. The table is in the format:
@@ -246,6 +272,8 @@ the .json files for each font. The table is in the format:
 library.get_smufl_metadata_file(font_info)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L358)
+
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `font_info` (optional) | `FCFontInfo` | if non-nil, the font to search for; if nil, search for the Default Music Font |
@@ -260,6 +288,8 @@ library.get_smufl_metadata_file(font_info)
 library.is_font_smufl_font(font_info)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L383)
+
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `font_info` (optional) | `FCFontInfo` | if non-nil, the font to check; if nil, check the Default Music Font |
@@ -273,6 +303,8 @@ library.is_font_smufl_font(font_info)
 ```lua
 library.simple_input(title, text)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L412)
 
 Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
 
@@ -289,6 +321,8 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 library.is_finale_object(object)
 ```
 
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L465)
+
 Attempts to determine if an object is a Finale object through ducktyping
 
 | Input | Type | Description |
@@ -304,6 +338,8 @@ Attempts to determine if an object is a Finale object through ducktyping
 ```lua
 library.system_indent_set_to_prefs(system, page_format_prefs)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L480)
 
 Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
 The page preferences may be provided optionally to avoid loading them for each call.
@@ -322,6 +358,8 @@ The page preferences may be provided optionally to avoid loading them for each c
 ```lua
 library.calc_script_name(include_extension)
 ```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L505)
 
 Returns the running script name, with or without extension.
 

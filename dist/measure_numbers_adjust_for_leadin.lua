@@ -1,7 +1,128 @@
 local __imports = {}
 
 function require(item)
-    return __imports[item]()
+    if __imports[item] then
+        return __imports[item]()
+    else
+        error("module '" .. item .. "' not found")
+    end
+end
+
+__imports["library.client"] = function()
+    --[[
+    $module Client
+
+    Get information about the current client. For the purposes of Finale Lua, the client is
+    the Finale application that's running on someones machine. Therefore, the client has
+    details about the user's setup, such as their Finale version, plugin version, and
+    operating system.
+
+    One of the main uses of using client details is to check its capabilities. As such,
+    the bulk of this library is helper functions to determine what the client supports.
+    All functions to check a client's capabilities should start with `client.supports_`.
+    These functions don't accept any arguments, and should always return a boolean.
+    ]] --
+    local client = {}
+
+    --[[
+    % get_raw_finale_version
+    Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
+    this is the internal major Finale version, not the year.
+
+    @ major (number) Major Finale version
+    @ minor (number) Minor Finale version
+    @ [build] (number) zero if omitted
+
+    : (number)
+    ]]
+    function client.get_raw_finale_version(major, minor, build)
+        local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
+        if build then
+            retval = bit32.bor(retval, math.floor(build))
+        end
+        return retval
+    end
+
+    --[[
+    % supports_smufl_fonts()
+
+    Returns true if the current client supports SMuFL fonts.
+
+    : (boolean)
+    ]]
+    function client.supports_smufl_fonts()
+        return finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1)
+    end
+
+    --[[
+    % supports_category_save_with_new_type()
+
+    Returns true if the current client supports FCCategory::SaveWithNewType().
+
+    : (boolean)
+    ]]
+    function client.supports_category_save_with_new_type()
+        return finenv.StringVersion >= "0.58"
+    end
+
+    --[[
+    % supports_finenv_query_invoked_modifier_keys()
+
+    Returns true if the current client supports finenv.QueryInvokedModifierKeys().
+
+    : (boolean)
+    ]]
+    function client.supports_finenv_query_invoked_modifier_keys()
+        return finenv.IsRGPLua and finenv.QueryInvokedModifierKeys
+    end
+
+    --[[
+    % supports_retained_state()
+
+    Returns true if the current client supports retaining state between runs.
+
+    : (boolean)
+    ]]
+    function client.supports_retained_state()
+        return finenv.IsRGPLua and finenv.RetainLuaState ~= nil
+    end
+
+    --[[
+    % supports_modeless_dialog()
+
+    Returns true if the current client supports modeless dialogs.
+
+    : (boolean)
+    ]]
+    function client.supports_modeless_dialog()
+        return finenv.IsRGPLua
+    end
+
+    --[[
+    % supports_clef_changes()
+
+    Returns true if the current client supports changing clefs.
+
+    : (boolean)
+    ]]
+    function client.supports_clef_changes()
+        return finenv.IsRGPLua or finenv.StringVersion >= "0.60"
+    end
+
+    --[[
+    % supports_custom_key_signatures()
+
+    Returns true if the current client supports changing clefs.
+
+    : (boolean)
+    ]]
+    function client.supports_custom_key_signatures()
+        local key = finale.FCKeySignature()
+        return finenv.IsRGPLua and key.CalcTotalChromaticSteps
+    end
+
+    return client
+
 end
 
 __imports["library.general_library"] = function()
@@ -10,24 +131,7 @@ __imports["library.general_library"] = function()
     ]] --
     local library = {}
 
-    --[[
-    % finale_version
-
-    Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
-    this is the internal major Finale version, not the year.
-
-    @ major (number) Major Finale version
-    @ minor (number) Minor Finale version
-    @ [build] (number) zero if omitted
-    : (number)
-    ]]
-    function library.finale_version(major, minor, build)
-        local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
-        if build then
-            retval = bit32.bor(retval, math.floor(build))
-        end
-        return retval
-    end
+    local client = require("library.client")
 
     --[[
     % group_overlaps_region
@@ -207,6 +311,25 @@ __imports["library.general_library"] = function()
     end
 
     --[[
+    % calc_parts_boolean_for_measure_number_region
+
+    Returns the correct boolean value to use when requesting information about a measure number region.
+
+    @ meas_num_region (FCMeasureNumberRegion)
+    @ [for_part] (boolean) true if requesting values for a linked part, otherwise false. If omitted, this value is calculated.
+    : (boolean) the value to pass to FCMeasureNumberRegion methods with a parts boolean
+    ]]
+    function library.calc_parts_boolean_for_measure_number_region(meas_num_region, for_part)
+        if meas_num_region.UseScoreInfoForParts then
+            return false
+        end
+        if nil == for_part then
+            return finenv.UI():IsPartView()
+        end
+        return for_part
+    end
+
+    --[[
     % is_default_number_visible_and_left_aligned
 
     Returns true if measure number for the input cell is visible and left-aligned.
@@ -218,11 +341,8 @@ __imports["library.general_library"] = function()
     @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
     : (boolean)
     ]]
-    function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part,
-                                                                is_for_multimeasure_rest)
-        if meas_num_region.UseScoreInfoForParts then
-            current_is_part = false
-        end
+    function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+        current_is_part = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
         if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
             if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultiMeasureAlignment(current_is_part)) then
                 return false
@@ -296,7 +416,7 @@ __imports["library.general_library"] = function()
 
     local calc_smufl_directory = function(for_user)
         local is_on_windows = finenv.UI():IsOnWindows()
-        local do_getenv = function (win_var, mac_var)
+        local do_getenv = function(win_var, mac_var)
             if finenv.UI():IsOnWindows() then
                 return win_var and os.getenv(win_var) or ""
             else
@@ -330,9 +450,9 @@ __imports["library.general_library"] = function()
             local smufl_directory = calc_smufl_directory(for_user)
             local get_dirs = function()
                 if finenv.UI():IsOnWindows() then
-                    return io.popen('dir "'..smufl_directory..'" /b /ad')
+                    return io.popen("dir \"" .. smufl_directory .. "\" /b /ad")
                 else
-                    return io.popen('ls "'..smufl_directory..'"')
+                    return io.popen("ls \"" .. smufl_directory .. "\"")
                 end
             end
             local is_font_available = function(dir)
@@ -394,7 +514,7 @@ __imports["library.general_library"] = function()
             font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
         end
 
-        if finenv.RawFinaleVersion >= library.finale_version(27, 1) then
+        if client.supports_smufl_fonts() then
             if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
                 return font_info.IsSMuFLFont
             end
@@ -502,7 +622,6 @@ __imports["library.general_library"] = function()
         return system:Save()
     end
 
-
     --[[
     % calc_script_name
 
@@ -532,7 +651,6 @@ __imports["library.general_library"] = function()
         end
         return retval
     end
-
 
     return library
 
@@ -583,6 +701,7 @@ function measure_numbers_adjust_for_leadin()
                 if meas_num > skip_past_meas_num then
                     local meas_num_region = meas_num_regions:FindMeasure(meas_num)
                     if nil ~= meas_num_region then
+                        local parts_val = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
                         multimeasure_rest = finale.FCMultiMeasureRest()
                         local is_for_multimeasure_rest = multimeasure_rest:Load(meas_num)
                         if is_for_multimeasure_rest then
@@ -602,7 +721,7 @@ function measure_numbers_adjust_for_leadin()
                                                 -- FCCellMetrics did not provide the barline width before v0.59.
                                                 -- Use the value derived from document settings above if we can't get the real width.
                                                 local barline_thickness = default_barline_thickness
-                                                if nil ~= cell_metrics.GetRightBarlineWidth then -- if the property getter exists, then we are at 0.59+
+                                                if cell_metrics.GetRightBarlineWidth then -- if the property getter exists, then we are at 0.59+
                                                     local previous_cell_metrics = finale.FCCellMetrics()
                                                     if previous_cell_metrics:LoadAtCell(finale.FCCell(previous_meas_num, staff)) then
                                                         barline_thickness = previous_cell_metrics.RightBarlineWidth
@@ -610,8 +729,10 @@ function measure_numbers_adjust_for_leadin()
                                                     end
                                                 end
                                                 lead_in = lead_in - barline_thickness
+                                                if meas_num_region:GetMultipleJustification(parts_val) == finale.MNJUSTIFY_CENTER then
+                                                    lead_in = lead_in + math.floor(barline_thickness/2.0 + 0.5)
+                                                end
                                                 if (0 ~= lead_in) then
-                                                    lead_in = lead_in - additional_offset
                                                     -- Finale scales the lead_in by the staff percent, so remove that if any
                                                     local staff_percent = (cell_metrics.StaffScaling / 10000.0) / (cell_metrics.SystemScaling / 10000.0)
                                                     lead_in = math.floor(lead_in/staff_percent + 0.5)
@@ -619,6 +740,7 @@ function measure_numbers_adjust_for_leadin()
                                                     local horz_percent = cell_metrics.HorizontalStretch / 10000.0
                                                     lead_in = math.floor(lead_in/horz_percent + 0.5)
                                                 end
+                                                lead_in = lead_in + meas_num_region:GetMultipleHorizontalPosition(parts_val)
                                             end
                                             cell_metrics:FreeMetrics() -- not sure if this is needed, but it can't hurt
                                         end
@@ -626,14 +748,14 @@ function measure_numbers_adjust_for_leadin()
                                         sep_nums:LoadAllInCell(cell)
                                         if (sep_nums.Count > 0) then
                                             for sep_num in each(sep_nums) do
-                                                sep_num.HorizontalPosition = -lead_in
+                                                sep_num.HorizontalPosition = -lead_in + additional_offset
                                                 sep_num:Save()
                                             end
                                         elseif (0 ~= lead_in) then
                                             local sep_num = finale.FCSeparateMeasureNumber()
                                             sep_num:ConnectCell(cell)
                                             sep_num:AssignMeasureNumberRegion(meas_num_region)
-                                            sep_num.HorizontalPosition = -lead_in
+                                            sep_num.HorizontalPosition = -lead_in + additional_offset
                                             --sep_num:SetShowOverride(true) -- enable this line if you want to force show the number. otherwise it will show or hide based on the measure number region
                                             if sep_num:SaveNew() then
                                                 local measure = finale.FCMeasure()
