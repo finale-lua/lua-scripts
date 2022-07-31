@@ -4589,6 +4589,22 @@ __imports["library.general_library"] = function()
         return retval
     end
 
+    --[[
+    % get_default_music_font_name
+
+    Fetches the default music font from document options and processes the name into a usable format.
+
+    : (string) The name of the defalt music font.
+    ]]
+    function library.get_default_music_font_name()
+        local fontinfo = finale.FCFontInfo()
+        local default_music_font_name = finale.FCString()
+        if fontinfo:LoadFontPrefs(finale.FONTPREF_MUSIC) then
+            fontinfo:GetNameString(default_music_font_name)
+            return default_music_font_name.LuaString
+        end
+    end
+
     return library
 
 end
