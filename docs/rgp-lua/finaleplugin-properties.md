@@ -342,20 +342,20 @@ finaleplugin.AdditionalPrefixes = [[
 
 If you use additional menu properties, you'll often want to categorize your script as a group script. That way, users trying to find and download your script on this website will see a title and description that represents the group of menu items, not just one of the individual menu items.
 
-#### GroupScriptName (string)
+#### ScriptGroupName (string)
 
 The name of the group script. Example:
 
 ```lua
-finaleplugin.GroupScriptName = "Hairpin creator"
+finaleplugin.ScriptGroupName = "Hairpin creator"
 ```
 
-#### GroupScriptDescription (string)
+#### ScriptGroupDescription (string)
 
 The description of the group script. Example:
 
 ```lua
-finaleplugin.GroupScriptDescription = "Creates hairpins of all varieties"
+finaleplugin.ScriptGroupDescription = "Creates hairpins of all varieties"
 ```
 
 ## Parameters (Deprecated)
