@@ -3,7 +3,39 @@ $module SmartShape
 ]]
 local smartshape = {}
 
-
+    local smartshape_type = {
+        "slurauto" = finale.SMARTSHAPE_SLURAUTO, 
+        "slur_auto" = finale.SMARTSHAPE_SLURAUTO, 
+        "autoslur" = finale.SMARTSHAPE_SLURAUTO, 
+        "auto_slur" = finale.SMARTSHAPE_SLURAUTO, 
+        "slur" = finale.SMARTSHAPE_SLURAUTO, 
+        "slurdown" = finale.SMARTSHAPE_SLURDOWN, 
+        "slur_down" = finale.SMARTSHAPE_SLURDOWN, 
+        "slurup" = finale.SMARTSHAPE_SLURUP, 
+        "slur_up" = finale.SMARTSHAPE_SLURUP,
+        "dashed" = finale.SMARTSHAPE_DASHEDSLURAUTO, 
+        "dashedslur" = finale.SMARTSHAPE_DASHEDSLURAUTO, 
+        "dashed_slur" = finale.SMARTSHAPE_DASHEDSLURAUTO,
+        "dashedslurdown" = finale.SMARTSHAPE_DASHEDSLURDOWN, 
+        "dashedslurup" = finale.SMARTSHAPE_DASHEDSLURDOWN, 
+        "dashedcurve" = finale.SMARTSHAPE_DASHCURVEAUTO, 
+        "dashed_curve" = finale.SMARTSHAPE_DASHCURVEAUTO,
+        "curve" = finale.SMARTSHAPE_DASHCURVEAUTO,
+        "dashedcurvedown", finale.SMARTSHAPE_DASHCURVEDOWN, 
+        "dashedcurveup"finale.SMARTSHAPE_DASHCURVEUP, 
+        "tabslide" = finale.SMARTSHAPE_TABSLIDE, 
+        "tab" = finale.SMARTSHAPE_TABSLIDE, 
+        "slide" = finale.SMARTSHAPE_TABSLIDE, 
+        "glissando" = finale.SMARTSHAPE_GLISSANDO, 
+        "gliss" = finale.SMARTSHAPE_GLISSANDO, 
+        "bendhat" = finale.SMARTSHAPE_BEND_HAT, 
+        "bend_hat" = finale.SMARTSHAPE_BEND_HAT,
+        "hat" = finale.SMARTSHAPE_BEND_HAT, 
+        "bend" = finale.SMARTSHAPE_BEND_HAT, 
+        "bendcurve" = finale.SMARTSHAPE_BEND_CURVE, 
+        "bend_curve" = finale.SMARTSHAPE_BEND_CURVE
+    }
+    
 --[[
 % smartshape_entrybased
 
@@ -16,16 +48,11 @@ Creates an entry based SmartShape based on two input notes. If a type is not spe
 function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
     local smartshape = finale.FCSmartShape()
     smartshape:SetEntryAttachedFlags(true)
-    -- Folks: Let me know if this is just too much... or not enough...
-    local types = {"slurauto" = finale.SMARTSHAPE_SLURAUTO, "slur_auto" = finale.SMARTSHAPE_SLURAUTO, "autoslur" = finale.SMARTSHAPE_SLURAUTO, "auto_slur" = finale.SMARTSHAPE_SLURAUTO, 
-"slur" = finale.SMARTSHAPE_SLURAUTO, "slurdown" = finale.SMARTSHAPE_SLURDOWN, "slur_down" = finale.SMARTSHAPE_SLURDOWN, "slurup" = finale.SMARTSHAPE_SLURUP, "slur_up" = finale.SMARTSHAPE_SLURUP,"dashed" = finale.SMARTSHAPE_DASHEDSLURAUTO, "dashedslur" = finale.SMARTSHAPE_DASHEDSLURAUTO, "dashed_slur" = finale.SMARTSHAPE_DASHEDSLURAUTO,"dashedslurdown" = finale.SMARTSHAPE_DASHEDSLURDOWN, "dashedslurup" = finale.SMARTSHAPE_DASHEDSLURDOWN, "dashedcurve" = finale.SMARTSHAPE_DASHCURVEAUTO, "dashed_curve" = finale.SMARTSHAPE_DASHCURVEAUTO,"curve" = finale.SMARTSHAPE_DASHCURVEAUTO,"dashedcurvedown", finale.SMARTSHAPE_DASHCURVEDOWN, "dashedcurveup"finale.SMARTSHAPE_DASHCURVEUP, "tabslide" = finale.SMARTSHAPE_TABSLIDE, "tab" = finale.SMARTSHAPE_TABSLIDE, "slide" = finale.SMARTSHAPE_TABSLIDE, "glissando" = finale.SMARTSHAPE_GLISSANDO, "gliss" = finale.SMARTSHAPE_GLISSANDO, "bendhat" = finale.SMARTSHAPE_BEND_HAT, "bend_hat" = finale.SMARTSHAPE_BEND_HAT,"hat" = finale.SMARTSHAPE_BEND_HAT, "bend" = finale.SMARTSHAPE_BEND_HAT, "bendcurve" = finale.SMARTSHAPE_BEND_CURVE, "bend_curve" = finale.SMARTSHAPE_BEND_CURVE}
-    --
-    if not shape_type then
-        shape_type = "slur"
-    end
+
+    shape_type = shape_type or "slur"
     --
     shape_type = string.lower(shape_type)
-    local shape = types[shape_type]
+    local shape = smartshape_type[shape_type]
     smartshape:SetShapeType(shape)
     smartshape.PresetShape = true
     if smartshape:IsAutoSlur() then
@@ -33,16 +60,17 @@ function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
         smartshape:SetEngraverSlur(finale.SS_AUTOSTATE)
     end
     --
-    local leftseg = smartshape:GetTerminateSegmentLeft()
-    local rightseg = smartshape:GetTerminateSegmentRight()
+    local left_segment = smartshape:GetTerminateSegmentLeft()
+    local right_segment = smartshape:GetTerminateSegmentRight()
     --
-    leftseg:SetEntry(start_note)
-    leftseg:SetStaff(start_note.Staff)
-    leftseg:SetMeasure(start_note.Measure)
+    left_segment:SetEntry(start_note)
+    left_segment:SetStaff(start_note.Staff)
+    left_segment:SetMeasure(start_note.Measure)
 --
-    rightseg:SetEntry(end_note)
-    rightseg:SetStaff(end_note.Staff)
-    rightseg:SetMeasure(end_note.Measure)
+    right_segment:SetEntry(end_note)
+    right_segment:SetStaff(end_note.Staff)
+    right_segment:SetMeasure(end_note.Measure)
+
 
     if (shape == finale.SMARTSHAPE_TABSLIDE) or (shape == finale.SMARTSHAPE_GLISSANDO) then
         if shape == finale.SMARTSHAPE_GLISSANDO then
@@ -51,9 +79,10 @@ function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
             smartshape.LineID = 2
         end
 --    smartshape:SetAvoidAccidentals(finale.SS_ONSTATE) -- Actually appears to do nothing :/
-        leftseg.NoteID = 1 -- If there is more than 1 note in the entry, shape will be attached to the first one entered
-        rightseg.NoteID = 1
-        rightseg:SetCustomOffset(true)
+        left_segment.NoteID = 1 -- If there is more than 1 note in the entry, shape will be attached to the first one entered
+        right_segment.NoteID = 1
+        right_segment:SetCustomOffset(true)
+
         local accidentals = 0
         local start_note_staff_pos = 0
         local end_note_staff_pos = 0
@@ -77,8 +106,8 @@ function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
         if accidentals > 0 then 
             offset_x_add = offset_x_add + 28
         end
-        rightseg:SetEndpointOffsetX(rightseg.EndpointOffsetX - offset_x_add)
-        rightseg:SetEndpointOffsetY(rightseg.EndpointOffsetY + offset_y_add + (staff_pos_difference/2))
+        right_segment:SetEndpointOffsetX(right_segment.EndpointOffsetX - offset_x_add)
+        right_segment:SetEndpointOffsetY(right_segment.EndpointOffsetY + offset_y_add + (staff_pos_difference/2))
     end
     smartshape:SaveNewEverything(start_note, end_note)
 end
