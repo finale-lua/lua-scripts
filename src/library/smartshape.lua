@@ -34,8 +34,8 @@ local smartshape = {}
         "bend" = finale.SMARTSHAPE_BEND_HAT, 
         "bendcurve" = finale.SMARTSHAPE_BEND_CURVE, 
         "bend_curve" = finale.SMARTSHAPE_BEND_CURVE
-        }
-
+    }
+    
 --[[
 % smartshape_entrybased
 
@@ -71,6 +71,7 @@ function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
     right_segment:SetStaff(end_note.Staff)
     right_segment:SetMeasure(end_note.Measure)
 
+
     if (shape == finale.SMARTSHAPE_TABSLIDE) or (shape == finale.SMARTSHAPE_GLISSANDO) then
         if shape == finale.SMARTSHAPE_GLISSANDO then
             smartshape.LineID = 1
@@ -81,6 +82,7 @@ function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
         left_segment.NoteID = 1 -- If there is more than 1 note in the entry, shape will be attached to the first one entered
         right_segment.NoteID = 1
         right_segment:SetCustomOffset(true)
+
         local accidentals = 0
         local start_note_staff_pos = 0
         local end_note_staff_pos = 0
