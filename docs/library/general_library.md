@@ -22,6 +22,7 @@
 - [is_finale_object(object)](#is_finale_object)
 - [system_indent_set_to_prefs(system, page_format_prefs)](#system_indent_set_to_prefs)
 - [calc_script_name(include_extension)](#calc_script_name)
+- [get_default_music_font_name()](#get_default_music_font_name)
 
 ### group_overlaps_region
 
@@ -370,3 +371,17 @@ Returns the running script name, with or without extension.
 | Return type | Description |
 | ----------- | ----------- |
 | `string` | The name of the current running script. |
+
+### get_default_music_font_name
+
+```lua
+library.get_default_music_font_name()
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L534)
+
+Fetches the default music font from document options and processes the name into a usable format.
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` | The name of the defalt music font. |
