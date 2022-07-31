@@ -1,5 +1,4 @@
-finaleplugin properties
-=======================
+# finaleplugin properties
 
 This page contains a detailed description of the `finaleplugin` properties that can be set in the `plugindef()` function. For _RGP Lua_ use a text editor to set them. For _JW Lua_ you can use the _Plug-in Def_ dialog box in _JW Lua_ to set many of them.
 
@@ -12,6 +11,7 @@ If this is set to `true`, the script will not execute if a selection region isn'
 ```lua
 finaleplugin.RequireSelection = true
 ```
+
 Default is `false`.
 
 #### RequireScore (boolean)
@@ -21,16 +21,17 @@ If this is set to `true`, the script will not execute if a part is viewed for th
 ```lua
 finaleplugin.RequireScore = true
 ```
+
 Default is `false`.
 
 #### RequireDocument\* (boolean)
-
 
 If this is set to `false`, the script will be available in _RGP Lua_ even if no documents are open in Finale. _JW Lua_ ignores this value.  Example:
 
 ```lua
 finaleplugin.RequireDocument = false
 ```
+
 Default is `true`.
 
 #### NoStore (boolean)
@@ -40,6 +41,7 @@ If this is set to `true`, the script will run in “sandbox mode”. After the s
 ```lua
 finaleplugin.NoStore = true
 ```
+
 Default is `false`.
 
 #### HandlesUndo\* (boolean)
@@ -49,6 +51,7 @@ Both _JW Lua_ and _RGP Lua_ (by default) automatically run scripts within an und
 ```lua
 finaleplugin.HandlesUndo = true
 ```
+
 Default is `false`.
 
 #### LoadAsString\* (boolean)
@@ -58,15 +61,17 @@ Setting this value to `true` tells _RGP Lua_ to load the script into an internal
 ```lua
 finaleplugin.LoadAsString = true
 ```
+
 Default is the script's “Load As String” setting in the _RGP Lua_ configuration dialog.
 
 #### LoadLuaSocket\* (boolean)
 
-Setting this value to `true` tells _RGP Lua_ to load `luasocket` into global variable `socket`, even if **Enable Debugging** is not selected in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration). If debugging *is* enabled, this value is ignored and `luasocket` is loaded. Example:
+Setting this value to `true` tells _RGP Lua_ to load `luasocket` into global variable `socket`, even if **Enable Debugging** is not selected in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration). If debugging _is_ enabled, this value is ignored and `luasocket` is loaded. Example:
 
 ```lua
 finaleplugin.LoadLuaSocket = true
 ```
+
 Default is `false`.
 
 #### MinFinaleVersion (number)
@@ -76,11 +81,13 @@ The minimum version of Finale that can run the script. The number should match t
 ```lua
 finaleplugin.MinFinaleVersion = 2014 -- Finale 2014 (recognized by both RGP Lua and JW Lua)
 ```
+
 or
 
 ```lua
 finaleplugin.MinFinaleVersion = 10026 -- Finale 26 (recognized by RGP Lua but not JW Lua)
 ```
+
 Note that _JW Lua_ sees all versions of Finale starting with Finale 26 as being version 9999. Therefore the above example of 10026 for `MinFinaleVersion` will prevent _JW Lua_ from running the script at all. It will produce a somewhat confusing error message, however, so it is recommended to use `MinFinaleVersionRaw` along with `MinJWLuaVersion` to prevent _JW Lua_ from running a script that requires Finale 26. (Or handle it yourself in the script.) This produces a better error message in _JW Lua_.
 
 #### MaxFinaleVersion (number)
@@ -90,6 +97,7 @@ The minimum version of Finale that can run the script. The number should match t
 ```lua
 finaleplugin.MaxFinaleVersion = 2012 -- Finale 2012 (recognized by both RGP Lua and JW Lua)
 ```
+
 or
 
 ```lua
@@ -105,6 +113,7 @@ The minimum raw version of Finale that can run the script. Example:
 ```lua
 finaleplugin.MinFinaleVersionRaw = 0x1a200000 -- Finale 26.2: 0x1a == 26 in hexadecimal
 ```
+
 #### MaxFinaleVersionRaw\* (number)
 
 The maximum raw version of Finale that can run the script. Example:
@@ -112,6 +121,7 @@ The maximum raw version of Finale that can run the script. Example:
 ```lua
 finaleplugin.MaxFinaleVersionRaw = 0x1b100000 -- Finale 27.1: 0x1b == 27 in hexadecimal
 ```
+
 #### MinJWLuaVersion (number)
 
 The minimum version of _JW/RGP Lua_ that can run the script. This is a decimal number of the form `<major>.<minor>`. The highest _JW Lua_ version is 0.54 and the lowest _RGP Lua_ version is 0.55. _JW Lua_ reads this value every time a script runs and displays an error message if the running _JW Lua_ version is too low. _RGP Lua_ reads the value once and omits it from Finale's Plugin menu if the running _RGP Lua_ version is too low. Example:
@@ -119,6 +129,7 @@ The minimum version of _JW/RGP Lua_ that can run the script. This is a decimal n
 ```lua
 finaleplugin. MinJWLuaVersion = 0.55
 ```
+
 #### MaxJWLuaVersion (number)
 
 The maximum version of _JW/RGP Lua_ that can run the script. This is a decimal number of the form `<major>.<minor>`. The highest _JW Lua_ version is 0.54 and the lowest _RGP Lua_ version is 0.55. _JW Lua_ reads this value every time a script runs and displays an error message if the running _JW Lua_ version is too high. _RGP Lua_ reads the value once and omits it from Finale's Plugin menu if the running _RGP Lua_ version is too high. Example:
@@ -126,6 +137,7 @@ The maximum version of _JW/RGP Lua_ that can run the script. This is a decimal n
 ```lua
 finaleplugin. MaxJWLuaVersion = 0.54
 ```
+
 #### Author (string)
 
 The full name of the author. Example:
@@ -228,7 +240,7 @@ Revision history text that might be of interest to an end user. The string can c
 ```lua
 finaleplugin.RevisionNotes = [[
 July 26, 2013: Version 1.00
-July 28, 2013: Version 1.01 
+July 28, 2013: Version 1.01
 ]]
 ```
 
@@ -262,10 +274,9 @@ or
 finaleplugin.Id = "742d0ea0-c109-4b81-87ae-d059f27cb028"
 ```
 
-Additional Menu Options
-=======================
+## Additional Menu Options
 
-Frequently you may wish to have shortcuts to functions that differ from each other by only one or a few variables. For example, you might wish to have a script that transposes a selected music region up an octave. If you then wanted another script to transpose a region *down* an octave, you might duplicate the up-octave script and change a single value in it. You could instead reuse the first script by defining the interval value in a variable. This would allow for separate configurations of the script in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration), but it still would require end-users to set up the configurations for themselves. And they would have to be somewhat knowledgable of Lua syntax to do it.
+Frequently you may wish to have shortcuts to functions that differ from each other by only one or a few variables. For example, you might wish to have a script that transposes a selected music region up an octave. If you then wanted another script to transpose a region _down_ an octave, you might duplicate the up-octave script and change a single value in it. You could instead reuse the first script by defining the interval value in a variable. This would allow for separate configurations of the script in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration), but it still would require end-users to set up the configurations for themselves. And they would have to be somewhat knowledgable of Lua syntax to do it.
 
 _RGP Lua_ version 0.62 introduces the concept of **Additional Menu Options**. These allow a script to configure multiple versions of itself to appear in Finale's Plug-ins menu. The setup of Additional Menu Options is similar to the setup of the deprecated [Parameters](parameters-deprecated) fields in _JW Lua_. Each of the necessary fields (menu option text, undo text, description, and prefix) appear in parallel lists delimited by line breaks. Each list is a multiline string value in the `finaleplugin` namespace.
 
@@ -317,7 +328,7 @@ var_a = 1 var_b = true var_c = "EVPU"
 
 Since each prefix can be any Lua code you wish, the sky is pretty much the limit on what you can do with it. In the example below it is a simple variable assignment, but it could instead (or in addition) be a string that the script then `requires` or that contains a function name to execute. Or if there are so many variables to assign that a single line of Lua is confusing, you could define a configuration table inside the script and use the prefix to supply an index into the configuration table.
 
-Each additional prefix executes *in addition to* and *after* any prefix defined in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration). (Note, however, that _RGP Lua_ ignores the `AdditionalMenuOptions` fields if the configuration includes Optional Menu Text.) Each additional prefix also executes after any System Prefix, if defined.
+Each additional prefix executes _in addition to_ and _after_ any prefix defined in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration). (Note, however, that _RGP Lua_ ignores the `AdditionalMenuOptions` fields if the configuration includes Optional Menu Text.) Each additional prefix also executes after any System Prefix, if defined.
 
 ```lua
 finaleplugin.AdditionalPrefixes = [[
@@ -327,8 +338,27 @@ finaleplugin.AdditionalPrefixes = [[
 ]]
 ```
 
-Parameters (Deprecated)
-=======================
+## Group scripts
+
+If you use additional menu properties, you'll often want to categorize your script as a group script. That way, users trying to find and download your script on this website will see a title and description that represents the group of menu items, not just one of the individual menu items.
+
+#### GroupScriptName (string)
+
+The name of the group script. Example:
+
+```lua
+finaleplugin.GroupScriptName = "Hairpin creator"
+```
+
+#### GroupScriptDescription (string)
+
+The description of the group script. Example:
+
+```lua
+finaleplugin.GroupScriptDescription = "Creates hairpins of all varieties"
+```
+
+## Parameters (Deprecated)
 
 **NOTE:** Parameters are not well supported by _JW Lua_ and not supported at all by _RGP Lua_. For _RGP Lua_ you can have a similar type of flexibility with a **prefix** and/or [Additional Menu Options](additional-menu-options). The parameter properties described here are **deprecated** and ignored by _RGP Lua_.
 
