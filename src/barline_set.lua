@@ -24,18 +24,21 @@ function plugindef()
 		new_barline = finale.BARLINE_NONE
 		new_barline = finale.BARLINE_DASHED		
 	]]
+	finaleplugin.ScriptGroupName = "Barline set"
+	finaleplugin.ScriptGroupDescription = "Set all selected barlines to one of five styles"
 	finaleplugin.Notes = [[
-		Change all selected barlines to the normal "single" barline. 
-		Under RGPLua (0.62 and above) additional menu items are 
-		created offering four other barline types:
+		Creates five menu items to change all selected barlines
+		to one of these barline styles:
+		
 		```
-			Barline Set Double
-			Barline Set Final
-			Barline Set None
-			Barline Set Dashed
+		Barline Set Normal
+		Barline Set Double
+		Barline Set Final
+		Barline Set None 
+		Barline Set Dashed
 		```
 	]]
-	return "Barline Set Normal", "Barline Set Normal", "Set barlines to one of five styles"
+	return "Barline Set Normal", "Barline Set Normal", "Set all selected barlines to one of five styles"
 end
 
 -- default to "SINGLE" barline for "normal" operation
