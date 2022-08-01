@@ -1,8 +1,8 @@
 function plugindef()
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "3/18/2022"
+    finaleplugin.Version = "1.1"
+    finaleplugin.Date = "8/1/2022"
     finaleplugin.Notes = [[
         USING THE 'BARIOLAGE' SCRIPT
 
@@ -28,13 +28,13 @@ local note_entry = require("library.note_entry")
 function bariolage()
     local region = finenv.Region()
     layer.copy(region, 1, 2)
-    local oddlayer_ct = 1
-    local evenlayer_ct = 1
+    local odd_layer_ct = 1
+    local even_layer_ct = 1
     local odd_layer = 1
     local even_layer = 2
     for entry in eachentrysaved(finenv.Region()) do
         if entry:IsNote() then
-            if oddlayer_ct == 1 and evenlayer_ct == 1 then
+            if odd_layer_ct == 1 and even_layer_ct == 1 then
                 local next = note_entry.get_next_same_v(entry)
                 if next and next:IsNote() and entry.Measure == next.Measure then
                     if entry:CalcHighestStaffPosition() < next:CalcHighestStaffPosition() then
@@ -47,19 +47,19 @@ function bariolage()
                 if entry:CalcBeamedGroupEnd() then
                     entry.Visible = false
                 end
-                if oddlayer_ct % 2 == 0 then
+                if odd_layer_ct % 2 == 0 then
                     note_entry.hide_stem(entry)
                 end
-                oddlayer_ct = oddlayer_ct + 1
+                odd_layer_ct = odd_layer_ct + 1
             elseif entry.LayerNumber == even_layer then
                 if entry:GetBeamBeat() then
                     entry.Visible = false
                 end
-                if evenlayer_ct % 2 == 1 then
+                if even_layer_ct % 2 == 1 then
                     note_entry.hide_stem(entry)
                 end
                 entry:SetPlayback(false)
-                evenlayer_ct = evenlayer_ct + 1
+                even_layer_ct = even_layer_ct + 1
             end
         end
     end
