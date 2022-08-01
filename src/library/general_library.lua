@@ -386,7 +386,7 @@ function library.is_font_smufl_font(font_info)
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
 
-    if client.supports_smufl_fonts() then
+    if client.supports("smufl") then
         if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
             return font_info.IsSMuFLFont
         end

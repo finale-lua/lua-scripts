@@ -64,9 +64,7 @@ Restores the default clef for any staff for a specific region.
 @ staff_number (number) The staff number for the cell
 ]]
 function clef.restore_default_clef(first_measure, last_measure, staff_number)
-    if not client.supports_clef_changes() then
-        return
-    end
+    client.assert_supports("clef_change")
 
     local default_clef = clef.get_default_clef(first_measure, last_measure, staff_number)
 
