@@ -3,6 +3,9 @@
     "name": "Script",
     "undoText": "Script",
     "shortDescription": "Script",
+    "menuItems": ["Script"],
+    "scriptGroupName": "",
+    "scriptGroupDescription": "",
     "requireSelection": false,
     "requireScore": false,
     "noStore": false,
@@ -17,5 +20,9 @@
     "date": "",
     "notes": "",
     "revisionNotes": ["July 26, 2013: Version 1.00", "July 28, 2013: Version 1.01"],
-    "id": ""
+    "id": "",
+    "minJWLuaVersion": "",
+    "maxJWLuaVersion": "",
+    "minFinaleVersion": "",
+    "maxFinaleVersion": ""
 }

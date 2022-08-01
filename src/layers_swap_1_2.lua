@@ -8,7 +8,7 @@ function plugindef()
     finaleplugin.Notes = [[
         Swaps layers 1 and 2 for the selected region.
     ]]
-    return "Swap layers 1 and 2", "Swap layers 1 and 2", "Swaps layers 1 and 2"
+    return "Layer: Swap 1 & 2", "Layer: Swap 1 & 2", "Swaps layers 1 and 2"
 end
 
 local layers = require("library.layer")
