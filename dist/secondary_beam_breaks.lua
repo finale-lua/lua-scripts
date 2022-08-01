@@ -3,17 +3,31 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Jari Williamsson"
     finaleplugin.AuthorURL = "http://carlvine.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdobreak_beams/zero/1.0/"
-    finaleplugin.Version = "v1.2"
-    finaleplugin.Date = "2022/06/06"
-    finaleplugin.AdditionalMenuOptions = [[ Clear secondary beam breaks ]]
-    finaleplugin.AdditionalUndoText = [[ Clear secondary beam breaks ]]
-    finaleplugin.AdditionalPrefixes = [[ clear_breaks = true ]]
-    finaleplugin.AdditionalDescriptions = [[ Clear all secondary beam breaks in the selected region ]]
+    finaleplugin.Version = "v1.21"
+    finaleplugin.Date = "2022/08/01"
+    finaleplugin.AdditionalMenuOptions = [[
+        Clear secondary beam breaks
+    ]]
+    finaleplugin.AdditionalUndoText = [[
+        Clear secondary beam breaks
+    ]]
+    finaleplugin.AdditionalPrefixes = [[
+        clear_breaks = true
+    ]]
+    finaleplugin.AdditionalDescriptions = [[
+        Clear all secondary beam breaks in the selected region
+    ]]
+    finaleplugin.ScriptGroupName = "Secondary beam breaks"
+    finaleplugin.ScriptGroupDescription = "Create or remove secondary beam breaks"
+    finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[ 
-        A stream of many short beamed notes (say 32nd notes) are easier to read if the secondary beam is broken in the middle of a beat. 
-        This script is designed to break secondary beams in simple meters (2/4, 3/4, 4/4 etc) in the middle of each beat. 
+        A stream of many short beamed notes (say 32nd notes) are easier to read 
+        if the secondary beam is broken in the middle of a beat. 
+        This script breaks secondary beams in simple meters (2/4, 3/4, 4/4 etc) 
+        in the middle of each beat. 
         If the meter is compound (6/8, 9/8 etc) then the beat is divided into three sections. 
-        RGPLua (0.62 and above) creates a companion menu item, "Clear secondary beam breaks".
+        Two menus are created, `Break secondary beams` and 
+        `Clear secondary beam breaks`.
         ]]
     return "Break secondary beams", "Break secondary beams", "Break secondary beams with compound consideration"
 end
