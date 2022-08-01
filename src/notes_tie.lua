@@ -2,18 +2,28 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine and Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.75"
-    finaleplugin.Date = "2022/06/06"
-    finaleplugin.AdditionalMenuOptions = [[ Untie Notes ]]
-    finaleplugin.AdditionalUndoText = [[ Untie Notes ]]
-    finaleplugin.AdditionalPrefixes = [[ untie_notes = true ]]
-    finaleplugin.AdditionalDescriptions = [[ Untie all notes in the selected region ]]
+    finaleplugin.Version = "v0.76"
+    finaleplugin.Date = "2022/08/01"
+    finaleplugin.AdditionalMenuOptions = [[
+        Untie Notes
+    ]]
+    finaleplugin.AdditionalUndoText = [[
+        Untie Notes
+    ]]
+    finaleplugin.AdditionalPrefixes = [[
+        untie_notes = true
+    ]]
+    finaleplugin.AdditionalDescriptions = [[
+        Untie all notes in the selected region
+    ]]
     finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.ScriptGroupName = "Tie/untie notes"
+    finaleplugin.ScriptGroupDescription = "Tie or untie suitable notes in the current selection"
     finaleplugin.Notes = [[ 
     Ties notes in adjacent entries if matching pitches are available. 
-    RGPLua (0.62 and above) creates a companion menu item, UNTIE Notes.
+    A companion menu item is also created to `Untie` all notes in the selection.
     ]]
-    return "Tie Notes", "Tie Notes", "Tie suitable notes in the selected region, with matching Untie option"
+    return "Tie Notes", "Tie Notes", "Tie suitable notes in the selected region"
 end
 
 -- default to "tie" notes for normal operation
