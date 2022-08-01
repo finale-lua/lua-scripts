@@ -64,7 +64,7 @@ end
 local get_key_info = function(key)
     local number_of_steps = standard_key_number_of_steps
     local diatonic_steps = standard_key_major_diatonic_steps
-    if client.supports_custom_key_signatures() then
+    if client.supports("FCKeySignature::CalcTotalChromaticSteps") then
         number_of_steps = key:CalcTotalChromaticSteps()
         diatonic_steps = key:CalcDiatonicStepsMap()
     else

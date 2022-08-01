@@ -7,19 +7,12 @@ operating system.
 
 One of the main uses of using client details is to check its capabilities. As such,
 the bulk of this library is helper functions to determine what the client supports.
-All functions to check a client's capabilities should start with `client.supports_`.
-These functions don't accept any arguments, and should always return a boolean.
 
 ## Functions
 
 - [get_raw_finale_version(major, minor, build)](#get_raw_finale_version)
-- [supports_smufl_fonts()](#supports_smufl_fonts)
-- [supports_category_save_with_new_type()](#supports_category_save_with_new_type)
-- [supports_finenv_query_invoked_modifier_keys()](#supports_finenv_query_invoked_modifier_keys)
-- [supports_retained_state()](#supports_retained_state)
-- [supports_modeless_dialog()](#supports_modeless_dialog)
-- [supports_clef_changes()](#supports_clef_changes)
-- [supports_custom_key_signatures()](#supports_custom_key_signatures)
+- [supports(feature)](#supports)
+- [assert_supports(feature)](#assert_supports)
 
 ### get_raw_finale_version
 
@@ -27,7 +20,7 @@ These functions don't accept any arguments, and should always return a boolean.
 client.get_raw_finale_version(major, minor, build)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L27)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L92)
 
 Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
 this is the internal major Finale version, not the year.
@@ -42,99 +35,48 @@ this is the internal major Finale version, not the year.
 | ----------- | ----------- |
 | `number` |  |
 
-### supports_smufl_fonts
+### supports
 
 ```lua
-client.supports_smufl_fonts()
+client.supports(feature)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L42)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L113)
 
-Returns true if the current client supports SMuFL fonts.
+Checks the client supports a given feature. Returns true if the client
+supports the feature, false otherwise.
+
+To assert the client must support a feature, use `client.assert_supports`.
+
+For a list of valid features, see the [`features` table in the codebase](https://github.com/finale-lua/lua-scripts/blob/master/src/library/client.lua#L52).
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `feature` | `string` | The feature the client should support. |
 
 | Return type | Description |
 | ----------- | ----------- |
 | `boolean` |  |
 
-### supports_category_save_with_new_type
+### assert_supports
 
 ```lua
-client.supports_category_save_with_new_type()
+client.assert_supports(feature)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L53)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L134)
 
-Returns true if the current client supports FCCategory::SaveWithNewType().
+Asserts that the client supports a given feature. If the client doesn't
+support the feature, this function will throw an friendly error then
+exit the program.
 
-| Return type | Description |
-| ----------- | ----------- |
-| `boolean` |  |
+To simply check if a client supports a feature, use `client.supports`.
 
-### supports_finenv_query_invoked_modifier_keys
+For a list of valid features, see the [`features` table in the codebase](https://github.com/finale-lua/lua-scripts/blob/master/src/library/client.lua#L52).
 
-```lua
-client.supports_finenv_query_invoked_modifier_keys()
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L64)
-
-Returns true if the current client supports finenv.QueryInvokedModifierKeys().
-
-| Return type | Description |
-| ----------- | ----------- |
-| `boolean` |  |
-
-### supports_retained_state
-
-```lua
-client.supports_retained_state()
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L75)
-
-Returns true if the current client supports retaining state between runs.
-
-| Return type | Description |
-| ----------- | ----------- |
-| `boolean` |  |
-
-### supports_modeless_dialog
-
-```lua
-client.supports_modeless_dialog()
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L86)
-
-Returns true if the current client supports modeless dialogs.
-
-| Return type | Description |
-| ----------- | ----------- |
-| `boolean` |  |
-
-### supports_clef_changes
-
-```lua
-client.supports_clef_changes()
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L97)
-
-Returns true if the current client supports changing clefs.
-
-| Return type | Description |
-| ----------- | ----------- |
-| `boolean` |  |
-
-### supports_custom_key_signatures
-
-```lua
-client.supports_custom_key_signatures()
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L108)
-
-Returns true if the current client supports changing clefs.
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `feature` | `string` | The feature the client should support. |
 
 | Return type | Description |
 | ----------- | ----------- |
