@@ -11,6 +11,7 @@ the bulk of this library is helper functions to determine what the client suppor
 ## Functions
 
 - [get_raw_finale_version(major, minor, build)](#get_raw_finale_version)
+- [get_lua_plugin_version()](#get_lua_plugin_version)
 - [supports(feature)](#supports)
 - [assert_supports(feature)](#assert_supports)
 
@@ -20,7 +21,7 @@ the bulk of this library is helper functions to determine what the client suppor
 client.get_raw_finale_version(major, minor, build)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L92)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L61)
 
 Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
 this is the internal major Finale version, not the year.
@@ -35,13 +36,29 @@ this is the internal major Finale version, not the year.
 | ----------- | ----------- |
 | `number` |  |
 
+### get_lua_plugin_version
+
+```lua
+client.get_lua_plugin_version()
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L77)
+
+Returns a number constructed from `finenv.MajorVersion` and `finenv.MinorVersion`. The reason not
+to use `finenv.StringVersion` is that `StringVersion` can contain letters if it is a pre-release
+version.
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` |  |
+
 ### supports
 
 ```lua
 client.supports(feature)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L113)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L126)
 
 Checks the client supports a given feature. Returns true if the client
 supports the feature, false otherwise.
@@ -64,7 +81,7 @@ For a list of valid features, see the [`features` table in the codebase](https:/
 client.assert_supports(feature)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L134)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/client.lua#L147)
 
 Asserts that the client supports a given feature. If the client doesn't
 support the feature, this function will throw an friendly error then
