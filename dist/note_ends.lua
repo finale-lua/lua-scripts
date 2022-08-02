@@ -1,21 +1,31 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com"
+    finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.53"
-    finaleplugin.Date = "2022/06/03"
-    finaleplugin.AdditionalMenuOptions = [[ Note Ends Eighths ]]
-    finaleplugin.AdditionalUndoText = [[    Note Ends Eighths ]]
-    finaleplugin.AdditionalPrefixes = [[    eighth_notes = true ]]
-    finaleplugin.AdditionalDescriptions = [[ Change smaller notes followed by rests into eighth notes ]]
+    finaleplugin.Version = "v0.54"
+    finaleplugin.Date = "2022/08/02"
+    finaleplugin.AdditionalMenuOptions = [[
+        Note ends eighths
+    ]]
+    finaleplugin.AdditionalUndoText = [[
+        Note ends eighths
+    ]]
+    finaleplugin.AdditionalPrefixes = [[
+        eighth_notes = true
+    ]]
+    finaleplugin.AdditionalDescriptions = [[
+        Change smaller notes followed by rests into eighth notes
+    ]]
     finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.ScriptGroupName = "Change note endings"
+    finaleplugin.ScriptGroupDescription = "Align the ends of notes followed by a rest to specific duration boundaries"
     finaleplugin.Notes = [[
         This plug-in aligns the ends of notes followed by a rest to a specific "duration boundary". 
-        Helps improve readability of music with lots of short notes and rests. 
-        It has 2 modes: Eighth Notes and Quarter Notes.
+        It helps improve readability of music with lots of short notes and rests. 
+        It creates two menu items, `Note ends eighths` and `Note ends quarters`.
 ]]
-    return "Note Ends Quarters", "Note Ends Quarters", "Change smaller notes followed by rests into quarter notes"
+    return "Note ends quarters", "Note ends quarters", "Change smaller notes followed by rests into quarter notes"
 end
 
 -- default to quarter notes for normal operation
@@ -45,12 +55,15 @@ function expand_note_ends()
 			entry.Duration = 0 -- so delete this rest
 			should_delete_next = false -- and start over
             -- OTHERWISE
-		elseif entry:IsNote() -- this is a note
+        elseif entry:IsNote() -- is a note
             and entry:Next() -- with a following entry
             and entry:Next():IsRest() -- that is a rest
             and entry.Duration < note_value -- this note is too short
-            and ((note_boundary == 0 and (beat_duration >= (position_in_beat + note_value)))
-                or (not is_compound_meter and not eighth_notes and note_boundary == 0 and start_beat % 2 == 0))
+            and note_boundary == 0 -- on a beat or half-beat
+            and
+            (    (beat_duration >= position_in_beat + note_value) -- enough space for expanded endpoint
+             or  (not is_compound_meter and not eighth_notes and start_beat % 2 == 0) -- special case quarter note on an odd beat
+            )
         then
             local duration_with_rest = entry.Duration + entry:Next().Duration
             entry.Duration = note_value	-- expand target note
