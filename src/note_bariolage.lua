@@ -1,8 +1,8 @@
 function plugindef()
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "3/18/2022"
+    finaleplugin.Version = "1.1"
+    finaleplugin.Date = "8/1/2022"
     finaleplugin.Notes = [[
         USING THE 'BARIOLAGE' SCRIPT
 
@@ -15,6 +15,8 @@ function plugindef()
         - Any note in layer 1 that is the last note of a beamed group is hidden.
         - Iterates through the notes in layer 2 and changes the stems of the odd-numbered notes.
         - Any note in layer 2 that is the beginning of a beamed group is hidden.
+
+        This script works best when Layer 1 is set to be upstem in multi-layer settings and Layer 2 is set to be downstem.
     ]]
     return "Bariolage", "Bariolage",
            "Bariolage: Creates alternating layer pattern from layer 1. Doesn't play nicely with odd numbered groups!"
@@ -26,29 +28,38 @@ local note_entry = require("library.note_entry")
 function bariolage()
     local region = finenv.Region()
     layer.copy(region, 1, 2)
-    local layer1_ct = 1
-    local layer2_ct = 1
+    local odd_layer_ct = 1
+    local even_layer_ct = 1
+    local odd_layer = 1
+    local even_layer = 2
     for entry in eachentrysaved(finenv.Region()) do
         if entry:IsNote() then
-            if entry.LayerNumber == 1 then
+            if odd_layer_ct == 1 and even_layer_ct == 1 then
+                local next = note_entry.get_next_same_v(entry)
+                if next and next:IsNote() and entry.Measure == next.Measure then
+                    if entry:CalcHighestStaffPosition() < next:CalcHighestStaffPosition() then
+                        odd_layer = 2
+                        even_layer = 1
+                    end
+                end
+            end
+            if entry.LayerNumber == odd_layer then
                 if entry:CalcBeamedGroupEnd() then
                     entry.Visible = false
                 end
-                if layer1_ct % 2 == 0 then
-                    print()
+                if odd_layer_ct % 2 == 0 then
                     note_entry.hide_stem(entry)
                 end
-                layer1_ct = layer1_ct + 1
-            elseif entry.LayerNumber == 2 then
+                odd_layer_ct = odd_layer_ct + 1
+            elseif entry.LayerNumber == even_layer then
                 if entry:GetBeamBeat() then
                     entry.Visible = false
                 end
-                if layer2_ct % 2 == 1 then
-                    print()
+                if even_layer_ct % 2 == 1 then
                     note_entry.hide_stem(entry)
                 end
                 entry:SetPlayback(false)
-                layer2_ct = layer2_ct + 1
+                even_layer_ct = even_layer_ct + 1
             end
         end
     end
