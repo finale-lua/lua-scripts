@@ -60,6 +60,7 @@ function expand_note_ends()
             and entry:Next():IsRest() -- that is a rest
             and entry.Duration < note_value -- this note is too short
             and note_boundary == 0 -- on a beat or half-beat
+            and entry.Duration + entry:Next().Duration >= note_value
             and
             (    (beat_duration >= position_in_beat + note_value) -- enough space for expanded endpoint
              or  (not is_compound_meter and not eighth_notes and start_beat % 2 == 0) -- special case quarter note on an odd beat
