@@ -30,7 +30,7 @@ local function requires_rgp_lua(feature)
 end
 
 local function requires_plugin_version(version, feature)
-    if version <= 0.54 then
+    if tonumber(version) <= 0.54 then
         if feature then
             return "This script uses " .. to_human_string(feature) .. " which requires RGP Lua or JW Lua version " .. version ..
                        " or later. Please update your plugin to use this script."
@@ -45,6 +45,25 @@ end
 
 local function requires_finale_version(version, feature)
     return "This script uses " .. to_human_string(feature) .. ", which is only available on Finale " .. version .. " or later"
+end
+
+--[[
+% get_raw_finale_version
+Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
+this is the internal major Finale version, not the year.
+
+@ major (number) Major Finale version
+@ minor (number) Minor Finale version
+@ [build] (number) zero if omitted
+
+: (number)
+]]
+function client.get_raw_finale_version(major, minor, build)
+    local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
+    if build then
+        retval = bit32.bor(retval, math.floor(build))
+    end
+    return retval
 end
 
 local features = {
@@ -77,25 +96,6 @@ local features = {
         error = requires_finale_version("27.1", "a SMUFL font"),
     },
 }
-
---[[
-% get_raw_finale_version
-Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
-this is the internal major Finale version, not the year.
-
-@ major (number) Major Finale version
-@ minor (number) Minor Finale version
-@ [build] (number) zero if omitted
-
-: (number)
-]]
-function client.get_raw_finale_version(major, minor, build)
-    local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
-    if build then
-        retval = bit32.bor(retval, math.floor(build))
-    end
-    return retval
-end
 
 --[[
 % supports
