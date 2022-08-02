@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.05"
+    finaleplugin.Version = "v1.06"
     finaleplugin.Date = "2022/08/02"
     finaleplugin.CategoryTags = "Note"
     finaleplugin.Notes = [[
@@ -38,12 +38,13 @@ function user_chooses_layer()
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterHandleOkButtonPressed(function()
-            dialog:StorePosition()
-            config.pos_x = global_dialog.StoredX
-            config.pos_y = global_dialog.StoredY
-            config.layer = layer_choice:GetInteger()
-        end
-    )
+        config.layer = layer_choice:GetInteger()
+    end)
+    dialog:RegisterCloseWindow(function()
+        dialog:StorePosition()
+        config.pos_x = global_dialog.StoredX
+        config.pos_y = global_dialog.StoredY
+    end)
     return dialog
 end
 
