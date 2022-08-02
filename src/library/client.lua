@@ -66,9 +66,22 @@ function client.get_raw_finale_version(major, minor, build)
     return retval
 end
 
+--[[
+% get_lua_plugin_version
+Returns a number constructed from `finenv.MajorVersion` and `finenv.MinorVersion`. The reason not
+to use `finenv.StringVersion` is that `StringVersion` can contain letters if it is a pre-release
+version.
+
+: (number)
+]]
+function client.get_lua_plugin_version()
+    local num_string = tostring(finenv.MajorVersion) .. "." .. tostring(finenv.MinorVersion)
+    return tonumber(num_string)
+end
+
 local features = {
     clef_change = {
-        test = finenv.StringVersion >= "0.60",
+        test = client.get_lua_plugin_version() >= 0.60,
         error = requires_plugin_version("0.58", "a clef change"),
     },
     ["FCKeySignature::CalcTotalChromaticSteps"] = {
@@ -76,7 +89,7 @@ local features = {
         error = requires_later_plugin_version("a custom key signature"),
     },
     ["FCCategory::SaveWithNewType"] = {
-        test = finenv.StringVersion >= "0.58",
+        test = client.get_lua_plugin_version() >= 0.58,
         error = requires_plugin_version("0.58"),
     },
     ["finenv.QueryInvokedModifierKeys"] = {
