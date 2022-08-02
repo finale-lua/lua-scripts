@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.06"
+    finaleplugin.Version = "v1.07"
     finaleplugin.Date = "2022/08/02"
     finaleplugin.CategoryTags = "Note"
     finaleplugin.Notes = [[
@@ -42,22 +42,22 @@ function user_chooses_layer()
     end)
     dialog:RegisterCloseWindow(function()
         dialog:StorePosition()
-        config.pos_x = global_dialog.StoredX
-        config.pos_y = global_dialog.StoredY
+        config.pos_x = dialog.StoredX
+        config.pos_y = dialog.StoredY
     end)
     return dialog
 end
 
 function clear_layer()
     config = config or { layer = nil, pos_x = false, pos_y = false }
-    global_dialog = user_chooses_layer()
+    local dialog = user_chooses_layer()
 
     if config.pos_x and config.pos_y then
-        global_dialog:StorePosition()
-        global_dialog:SetRestorePositionOnlyData(config.pos_x, config.pos_y)
-        global_dialog:RestorePosition()
+        dialog:StorePosition()
+        dialog:SetRestorePositionOnlyData(config.pos_x, config.pos_y)
+        dialog:RestorePosition()
     end
-    if global_dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK then
+    if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK then
         return -- user cancelled
     end
     if not config.layer or config.layer < 1 or config.layer > 4 then
