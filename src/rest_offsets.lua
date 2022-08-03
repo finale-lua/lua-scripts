@@ -91,7 +91,7 @@ function make_the_change()
     local rest_type = { "OtherRestPosition", "HalfRestPosition", "WholeRestPosition", "DoubleWholeRestPosition" }
 
     for entry in eachentrysaved(finenv.Region(), config.layer) do
-         if entry:IsRest() then
+        if entry:IsRest() then
             if config.offset == 0 then
                 entry:SetFloatingRest(true)
             else
@@ -114,8 +114,8 @@ function make_the_change()
                 local curr_pos = rest:CalcStaffPosition()
                 entry:SetRestDisplacement(entry:GetRestDisplacement() + config.offset - curr_pos - rest_type_offset)
             end
-         end
-	end
+        end
+    end
 end
 
 function change_rest_offset()
