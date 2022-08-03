@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Version = "v1.33"
+    finaleplugin.Version = "v1.35"
     finaleplugin.Date = "2022/08/03"
     finaleplugin.Notes = [[
     Several situations including cross-staff notation (rests should be centred between the staves) 
@@ -55,9 +55,10 @@ function user_choices()
     end
 
     texts = { -- offset number / horizontal offset / description /  vertical position
-        { "0", 5, "= top staff line", 0},
-        { "-4", 0, "= middle staff line", 15 },
-        { "-8", 0, "= bottom staff line", 30 },
+        {  "4", 5, "= top staff line", 0},
+        {  "0", 5, "= middle staff line", 15 },
+        { "-4", 0, "= bottom staff line", 30 },
+        { "", 0, "(for 5-line staff)", 45 },
     }
     for _, v in ipairs(texts) do -- static text information lines
         str.LuaString = v[1]
@@ -83,21 +84,17 @@ function user_choices()
 end
 
 function make_the_change()
+    local staff_spec = finale.FCCurrentStaffSpec()
     if finenv.RetainLuaState ~= nil then
         finenv.RetainLuaState = true
     end
-    local current_staff = nil
-    local staff_spec = finale.FCCurrentStaffSpec()
 
     for entry in eachentrysaved(finenv.Region(), config.layer) do
         if entry:IsRest() then
-            --if config.offset == 0 then
-            --    entry:SetFloatingRest(true)
-            --else
-                if current_staff ~= entry.staff then -- need a new staff spec
-                    current_staff = entry.staff
-                    staff_spec:LoadForEntry(entry)
-                end
+            if config.offset == 0 then
+                entry:SetFloatingRest(true)
+            else
+                staff_spec:LoadForEntry(entry)
                 local rest_prop = "OtherRestPosition"
                 local duration = entry.Duration
                 if duration >= finale.BREVE then
@@ -112,7 +109,7 @@ function make_the_change()
                 local rest = entry:GetItemAt(0)
                 local curr_staffpos = rest:CalcStaffPosition()
                 entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset - curr_staffpos)
-            --end
+            end
         end
 	end
 end
