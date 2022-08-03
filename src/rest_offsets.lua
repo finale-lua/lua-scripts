@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Version = "v1.35"
+    finaleplugin.Version = "v1.36"
     finaleplugin.Date = "2022/08/03"
     finaleplugin.Notes = [[
     Several situations including cross-staff notation (rests should be centred between the staves) 
@@ -11,7 +11,7 @@ function plugindef()
     It is also an easy way to reset rest offsets to zero in every layer, the default setting. 
     (An offest of zero centres on the middle staff line.)
 ]]
-   return "Rest offsets", "Rest offsets", "Rest vertical offsets"
+   return "Rest Offsets", "Rest Offsets", "Rest vertical offsets"
 end
 
 -- RetainLuaState retains one global:
@@ -94,7 +94,6 @@ function make_the_change()
             if config.offset == 0 then
                 entry:SetFloatingRest(true)
             else
-                staff_spec:LoadForEntry(entry)
                 local rest_prop = "OtherRestPosition"
                 local duration = entry.Duration
                 if duration >= finale.BREVE then
@@ -104,6 +103,7 @@ function make_the_change()
                 elseif duration >= finale.HALF_NOTE then
                     rest_prop = "HalfRestPosition"
                 end
+                staff_spec:LoadForEntry(entry)
                 local total_offset = staff_spec[rest_prop] + config.offset
                 entry:MakeMovableRest()
                 local rest = entry:GetItemAt(0)
