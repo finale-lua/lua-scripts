@@ -32,11 +32,11 @@ end
 eighth_notes = eighth_notes or false
 
 function expand_note_ends()
-	local should_delete_next = false
+    local should_delete_next = false
     local note_value = eighth_notes and finale.NOTE_8TH or finale.NOTE_QUARTER -- [ 512 / 1024 ]
     local beat_duration = note_value
-	local measure_number = 0
-	local measure = finale.FCMeasure()
+    local measure_number = 0
+    local measure = finale.FCMeasure()
     local is_compound_meter = false
 
     for entry in eachentrysaved(finenv.Region()) do
