@@ -38,15 +38,15 @@ function expand_note_ends()
 	local measure_number = 0
 	local measure = finale.FCMeasure()
     local is_compound_meter = false
-	
-	for entry in eachentrysaved(finenv.Region()) do
-	    if measure_number ~= entry.Measure then -- calculate beat duration for each new measure
-	        measure_number = entry.Measure
-	        measure:Load(measure_number)
-	        local time_sig = measure:GetTimeSignature()
-	        beat_duration = time_sig:CalcLargestBeatDuration()
+
+    for entry in eachentrysaved(finenv.Region()) do
+        if measure_number ~= entry.Measure then -- calculate beat duration for each new measure
+            measure_number = entry.Measure
+            measure:Load(measure_number)
+            local time_sig = measure:GetTimeSignature()
+            beat_duration = time_sig:CalcLargestBeatDuration()
             is_compound_meter = (beat_duration % 3 == 0)
-	    end
+        end
         local position_in_beat = entry.MeasurePos % beat_duration
         local note_boundary = entry.MeasurePos % (note_value / 2)
         local start_beat = math.floor(entry.MeasurePos / beat_duration)
@@ -65,15 +65,15 @@ function expand_note_ends()
             (    (beat_duration >= position_in_beat + note_value) -- enough space for expanded endpoint
                 or  (not is_compound_meter and not eighth_notes and start_beat % 2 == 0) -- special case quarter note on an odd beat
             )
-                then
-                local duration_with_rest = entry.Duration + entry:Next().Duration
-                entry.Duration = note_value	-- expand target note
-                if duration_with_rest == note_value then
-                    should_delete_next = true -- just delete the following rest
-                elseif duration_with_rest > note_value then -- some duration left over
-                    entry:Next().Duration = duration_with_rest - note_value -- make rest smaller
-                    should_delete_next = false -- and don't delete it
-                end
+            then
+            local duration_with_rest = entry.Duration + entry:Next().Duration
+            entry.Duration = note_value	-- expand target note
+            if duration_with_rest == note_value then
+                should_delete_next = true -- just delete the following rest
+            elseif duration_with_rest > note_value then -- some duration left over
+                entry:Next().Duration = duration_with_rest - note_value -- make rest smaller
+                should_delete_next = false -- and don't delete it
+            end
         end
     end
 end
