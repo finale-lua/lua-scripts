@@ -322,7 +322,7 @@ __imports["library.client"] = function()
     end
 
     local function requires_plugin_version(version, feature)
-        if version <= 0.54 then
+        if tonumber(version) <= 0.54 then
             if feature then
                 return "This script uses " .. to_human_string(feature) .. " which requires RGP Lua or JW Lua version " .. version ..
                            " or later. Please update your plugin to use this script."
@@ -338,37 +338,6 @@ __imports["library.client"] = function()
     local function requires_finale_version(version, feature)
         return "This script uses " .. to_human_string(feature) .. ", which is only available on Finale " .. version .. " or later"
     end
-
-    local features = {
-        clef_change = {
-            test = finenv.StringVersion >= "0.60",
-            error = requires_plugin_version("0.58", "a clef change"),
-        },
-        ["FCKeySignature::CalcTotalChromaticSteps"] = {
-            test = finenv.IsRGPLua and finale.FCKeySignature.__class.CalcTotalChromaticSteps,
-            error = requires_later_plugin_version("a custom key signature"),
-        },
-        ["FCCategory::SaveWithNewType"] = {
-            test = finenv.StringVersion >= "0.58",
-            error = requires_plugin_version("0.58"),
-        },
-        ["finenv.QueryInvokedModifierKeys"] = {
-            test = finenv.IsRGPLua and finenv.QueryInvokedModifierKeys,
-            error = requires_later_plugin_version(),
-        },
-        ["FCCustomLuaWindow::ShowModeless"] = {
-            test = finenv.IsRGPLua,
-            error = requires_rgp_lua("a modeless dialog")
-        },
-        ["finenv.RetainLuaState"] = {
-            test = finenv.IsRGPLua and finenv.RetainLuaState ~= nil,
-            error = requires_later_plugin_version(),
-        },
-        smufl = {
-            test = finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1),
-            error = requires_finale_version("27.1", "a SMUFL font"),
-        },
-    }
 
     --[[
     % get_raw_finale_version
@@ -388,6 +357,50 @@ __imports["library.client"] = function()
         end
         return retval
     end
+
+    --[[
+    % get_lua_plugin_version
+    Returns a number constructed from `finenv.MajorVersion` and `finenv.MinorVersion`. The reason not
+    to use `finenv.StringVersion` is that `StringVersion` can contain letters if it is a pre-release
+    version.
+
+    : (number)
+    ]]
+    function client.get_lua_plugin_version()
+        local num_string = tostring(finenv.MajorVersion) .. "." .. tostring(finenv.MinorVersion)
+        return tonumber(num_string)
+    end
+
+    local features = {
+        clef_change = {
+            test = client.get_lua_plugin_version() >= 0.60,
+            error = requires_plugin_version("0.58", "a clef change"),
+        },
+        ["FCKeySignature::CalcTotalChromaticSteps"] = {
+            test = finenv.IsRGPLua and finale.FCKeySignature.__class.CalcTotalChromaticSteps,
+            error = requires_later_plugin_version("a custom key signature"),
+        },
+        ["FCCategory::SaveWithNewType"] = {
+            test = client.get_lua_plugin_version() >= 0.58,
+            error = requires_plugin_version("0.58"),
+        },
+        ["finenv.QueryInvokedModifierKeys"] = {
+            test = finenv.IsRGPLua and finenv.QueryInvokedModifierKeys,
+            error = requires_later_plugin_version(),
+        },
+        ["FCCustomLuaWindow::ShowModeless"] = {
+            test = finenv.IsRGPLua,
+            error = requires_rgp_lua("a modeless dialog")
+        },
+        ["finenv.RetainLuaState"] = {
+            test = finenv.IsRGPLua and finenv.RetainLuaState ~= nil,
+            error = requires_later_plugin_version(),
+        },
+        smufl = {
+            test = finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1),
+            error = requires_finale_version("27.1", "a SMUFL font"),
+        },
+    }
 
     --[[
     % supports
