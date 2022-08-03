@@ -111,7 +111,7 @@ function make_the_change()
                 entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset - curr_staffpos)
             end
         end
-	end
+    end
 end
 
 function change_rest_offset()
