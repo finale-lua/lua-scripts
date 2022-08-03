@@ -66,14 +66,14 @@ function expand_note_ends()
                 or  (not is_compound_meter and not eighth_notes and start_beat % 2 == 0) -- special case quarter note on an odd beat
             )
             then
-            local duration_with_rest = entry.Duration + entry:Next().Duration
-            entry.Duration = note_value	-- expand target note
-            if duration_with_rest == note_value then
-                should_delete_next = true -- just delete the following rest
-            elseif duration_with_rest > note_value then -- some duration left over
-                entry:Next().Duration = duration_with_rest - note_value -- make rest smaller
-                should_delete_next = false -- and don't delete it
-            end
+                local duration_with_rest = entry.Duration + entry:Next().Duration
+                entry.Duration = note_value	-- expand target note
+                if duration_with_rest == note_value then
+                    should_delete_next = true -- just delete the following rest
+                elseif duration_with_rest > note_value then -- some duration left over
+                    entry:Next().Duration = duration_with_rest - note_value -- make rest smaller
+                    should_delete_next = false -- and don't delete it
+                end
         end
     end
 end
