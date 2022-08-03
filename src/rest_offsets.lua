@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Version = "v1.31"
+    finaleplugin.Version = "v1.32"
     finaleplugin.Date = "2022/08/03"
     finaleplugin.Notes = [[
     Several situations including cross-staff notation (rests should be centred between the staves) 
@@ -21,8 +21,7 @@ function is_error()
     local msg = ""
     if math.abs(config.offset) > 20 then
         msg = "Offset level must be reasonable,\nsay -20 to 20\n(not " .. config.offset .. ")"
-    end
-    if config.layer < 0 or config.layer > 4 then
+    elseif config.layer < 0 or config.layer > 4 then
         msg = "Layer number must be an\ninteger between zero and 4\n(not " .. config.layer .. ")"
     end
     if msg ~= "" then
@@ -87,15 +86,33 @@ function make_the_change()
     if finenv.RetainLuaState ~= nil then
         finenv.RetainLuaState = true
     end
+    local current_staff = nil
+    local staff_spec = finale.FCCurrentStaffSpec()
+    local rest_type = { "OtherRestPosition", "HalfRestPosition", "WholeRestPosition", "DoubleWholeRestPosition" }
+
     for entry in eachentrysaved(finenv.Region(), config.layer) do
          if entry:IsRest() then
             if config.offset == 0 then
                 entry:SetFloatingRest(true)
             else
+                if current_staff ~= entry.staff then -- need a new staff spec
+                    current_staff = entry.staff
+                    staff_spec:LoadForEntry(entry)
+                end
+                local duration = entry.Duration
+                if duration % 3 == 0 then -- it's dotted
+                    duration = duration * 2 / 3 -- get the un-dotted version
+                end
+                local power_count = 1
+                while duration > 1024 and power_count <= #rest_type do
+                    duration = duration / 2
+                    power_count = power_count + 1
+                end
+                local rest_type_offset = staff_spec[rest_type[power_count]] + 4 -- adjusted for middle line
                 entry:MakeMovableRest()
                 local rest = entry:GetItemAt(0)
-                local curr_staffpos = rest:CalcStaffPosition()
-                entry:SetRestDisplacement(entry:GetRestDisplacement() + config.offset - curr_staffpos - 4)
+                local curr_pos = rest:CalcStaffPosition()
+                entry:SetRestDisplacement(entry:GetRestDisplacement() + config.offset - curr_pos - rest_type_offset)
             end
          end
 	end
@@ -103,7 +120,6 @@ end
 
 function change_rest_offset()
     local dialog = user_choices()
-
     if config.pos_x and config.pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.pos_x, config.pos_y)
