@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Version = "v1.32"
+    finaleplugin.Version = "v1.33"
     finaleplugin.Date = "2022/08/03"
     finaleplugin.Notes = [[
     Several situations including cross-staff notation (rests should be centred between the staves) 
@@ -55,9 +55,9 @@ function user_choices()
     end
 
     texts = { -- offset number / horizontal offset / description /  vertical position
-        { "4", 5, "= top staff line", 0},
-        { "0", 5, "= middle staff line", 15 },
-        { "-4", 0, "= bottom staff line", 30 },
+        { "0", 5, "= top staff line", 0},
+        { "-4", 0, "= middle staff line", 15 },
+        { "-8", 0, "= bottom staff line", 30 },
     }
     for _, v in ipairs(texts) do -- static text information lines
         str.LuaString = v[1]
@@ -88,34 +88,33 @@ function make_the_change()
     end
     local current_staff = nil
     local staff_spec = finale.FCCurrentStaffSpec()
-    local rest_type = { "OtherRestPosition", "HalfRestPosition", "WholeRestPosition", "DoubleWholeRestPosition" }
 
     for entry in eachentrysaved(finenv.Region(), config.layer) do
         if entry:IsRest() then
-            if config.offset == 0 then
-                entry:SetFloatingRest(true)
-            else
+            --if config.offset == 0 then
+            --    entry:SetFloatingRest(true)
+            --else
                 if current_staff ~= entry.staff then -- need a new staff spec
                     current_staff = entry.staff
                     staff_spec:LoadForEntry(entry)
                 end
+                local rest_prop = "OtherRestPosition"
                 local duration = entry.Duration
-                if duration % 3 == 0 then -- it's dotted
-                    duration = duration * 2 / 3 -- get the un-dotted version
+                if duration >= finale.BREVE then
+                    rest_prop = "DoubleWholeRestPosition"
+                elseif duration >= finale.WHOLE_NOTE then
+                    rest_prop = "WholeRestPosition"
+                elseif duration >= finale.HALF_NOTE then
+                    rest_prop = "HalfRestPosition"
                 end
-                local power_count = 1
-                while duration > 1024 and power_count <= #rest_type do
-                    duration = duration / 2
-                    power_count = power_count + 1
-                end
-                local rest_type_offset = staff_spec[rest_type[power_count]] + 4 -- adjusted for middle line
+                local total_offset = staff_spec[rest_prop] + config.offset
                 entry:MakeMovableRest()
                 local rest = entry:GetItemAt(0)
-                local curr_pos = rest:CalcStaffPosition()
-                entry:SetRestDisplacement(entry:GetRestDisplacement() + config.offset - curr_pos - rest_type_offset)
-            end
+                local curr_staffpos = rest:CalcStaffPosition()
+                entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset - curr_staffpos)
+            --end
         end
-    end
+	end
 end
 
 function change_rest_offset()
