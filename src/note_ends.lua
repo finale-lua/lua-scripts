@@ -3,13 +3,13 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.54"
+    finaleplugin.Version = "v0.55"
     finaleplugin.Date = "2022/08/02"
     finaleplugin.AdditionalMenuOptions = [[
-        Note ends eighths
+        Note Ends Eighths
     ]]
     finaleplugin.AdditionalUndoText = [[
-        Note ends eighths
+        Note Ends Eighths
     ]]
     finaleplugin.AdditionalPrefixes = [[
         eighth_notes = true
@@ -25,7 +25,7 @@ function plugindef()
         It helps improve readability of music with lots of short notes and rests. 
         It creates two menu items, `Note ends eighths` and `Note ends quarters`.
 ]]
-    return "Note ends quarters", "Note ends quarters", "Change smaller notes followed by rests into quarter notes"
+    return "Note Ends Quarters", "Note Ends Quarters", "Change smaller notes followed by rests into quarter notes"
 end
 
 -- default to quarter notes for normal operation
