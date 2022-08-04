@@ -269,22 +269,38 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         elseif finale.EXPRJUSTIFY_RIGHT == dyn_def.HorizontalJustification then
             dyn_width = 0
         end
-        local total_offset = expression.calc_handle_offset_for_smart_shape(dyn_exp)
+        local handle_offset_from_edupos = expression.calc_handle_offset_for_smart_shape(dyn_exp)
         if left_or_right == "left" then
-            local total_x = dyn_width + config.left_dynamic_cushion + total_offset
+            local total_x = dyn_width + config.left_dynamic_cushion + handle_offset_from_edupos
             the_seg:SetEndpointOffsetX(total_x)
         elseif left_or_right == "right" then
-            local edu_gap_spacing = 0
+            local next_measure_gap = 0
             if the_seg.Measure < dyn_exp.Measure and dyn_exp.MeasurePos == 0 then
-                require('mobdebug').start()
+                finale.FCCellMetrics.MarkMetricsForRebuild() -- have to rebuild because the cushion_bool could have changed things
                 local seg_point = finale.FCPoint(0, 0)
                 hairpin:CalcRightCellMetricPos(seg_point)
+                local exp_point = finale.FCPoint(0, 0)
+                dyn_exp:CalcMetricPos(exp_point)
+                local cell_metrics = finale.FCCellMetrics()
+                cell_metrics:LoadAtCell(finale.FCCell(the_seg.Measure, the_seg.Staff))
                 local next_cell_metrics = finale.FCCellMetrics()
                 next_cell_metrics:LoadAtCell(finale.FCCell(dyn_exp.Measure, dyn_exp.Staff))
-                edu_gap_spacing = next_cell_metrics.MusicStartPos + distance_prefs.SpaceBefore - seg_point.X
+                local remove_horz_stretch = function(metrics, value)
+                    local horz_stretch = metrics.HorizontalStretch / 10000
+                    return math.floor(value/horz_stretch + 0.5)
+                end
+                local a_segx = seg_point.X
+                local a_expx = exp_point.X
+                local a_horzpos = dyn_exp.HorizontalPos
+                local a_segpos = the_seg.EndpointOffsetX
+--require('mobdebug').start()
+                --next_measure_gap = remove_horz_stretch(next_cell_metrics, exp_point.X) - dyn_exp.HorizontalPos - remove_horz_stretch(cell_metrics, seg_point.X) + the_seg.EndpointOffsetX
+                --next_measure_gap = exp_point.X - dyn_exp.HorizontalPos - seg_point.X
+                --next_measure_gap = remove_horz_stretch(cell_metrics, exp_point.X) - dyn_exp.HorizontalPos - (seg_point.X - the_seg.EndpointOffsetX))
+                next_measure_gap = (exp_point.X - handle_offset_from_edupos) - (seg_point.X - the_seg.EndpointOffsetX)
             end
             cushion_bool = false
-            local total_x = (0 - dyn_width) + config.right_dynamic_cushion + edu_gap_spacing + total_offset
+            local total_x = (0 - dyn_width) + config.right_dynamic_cushion + next_measure_gap + handle_offset_from_edupos
             the_seg:SetEndpointOffsetX(total_x)
         end
     end
