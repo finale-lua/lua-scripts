@@ -80,16 +80,16 @@ function make_the_change()
     for entry in eachentrysaved(finenv.Region(), config.layer) do
         local perf_mod = finale.FCPerformanceMod()
         if entry:IsNote() then
-    		perf_mod:SetNoteEntry(entry)
-    		for note in each(entry) do
-    		    perf_mod:LoadAt(note)     -- don't change durations of tied notes!
-    		    if not note.TieBackwards then
+            perf_mod:SetNoteEntry(entry)
+            for note in each(entry) do
+                perf_mod:LoadAt(note)     -- don't change durations of tied notes!
+                if not note.TieBackwards then
                     perf_mod.StartOffset = config.start_offset
                 end
-        		if not note.Tie then
+                if not note.Tie then
                     perf_mod.EndOffset = config.stop_offset
                 end
-    		    perf_mod:SaveAt(note)
+                perf_mod:SaveAt(note)
             end
         end
     end
