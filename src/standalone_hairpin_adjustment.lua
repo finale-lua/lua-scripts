@@ -47,9 +47,6 @@ end
 local staff_systems = finale.FCStaffSystems()
 staff_systems:LoadAll()
 
-local distance_prefs = finale.FCDistancePrefs()
-distance_prefs:Load(1)
-
 function calc_cell_relative_vertical_position(fccell, page_offset)
     local relative_position = page_offset
     local cell_metrics = fccell:CreateCellMetrics()
