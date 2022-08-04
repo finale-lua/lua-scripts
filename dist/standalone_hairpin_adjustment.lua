@@ -442,6 +442,19 @@ __imports["library.general_library"] = function()
     end
 
     --[[
+    % get_score
+
+    Returns an `FCPart` instance that represents the score.
+
+    : (FCPart)
+    ]]
+    function library.get_score()
+        local part = finale.FCPart(finale.PARTID_SCORE)
+        part:Load(part.ID)
+        return part
+    end
+
+    --[[
     % get_page_format_prefs
 
     Returns the default page format prefs for score or parts based on which is currently selected.
@@ -1865,7 +1878,7 @@ function vertical_dynamic_adjustment(region, direction)
     ssmm:LoadAllForRegion(region, true)
     for mark in each(ssmm) do
         local smart_shape = mark:CreateSmartShape()
-        if smart_shape:IsHairpin() then
+        if smart_shape and smart_shape:IsHairpin() then
             has_hairpins = true
             local success, staff_offset = smartshape_calc_relative_vertical_position(smart_shape)
             if success then
@@ -1931,7 +1944,7 @@ function vertical_dynamic_adjustment(region, direction)
         ssmm:LoadAllForRegion(region, true)
         for mark in each(ssmm) do
             local smart_shape = mark:CreateSmartShape()
-            if smart_shape:IsHairpin() then
+            if smart_shape and smart_shape:IsHairpin() then
                 local success, staff_offset = smartshape_calc_relative_vertical_position(smart_shape)
                 if success then
                     local left_seg = smart_shape:GetTerminateSegmentLeft()
@@ -2056,7 +2069,7 @@ function hairpin_adjustments(range_settings)
     ssmm:LoadAllForRegion(music_reg, true)
     for mark in each(ssmm) do
         local smartshape = mark:CreateSmartShape()
-        if smartshape:IsHairpin() then
+        if smartshape and smartshape:IsHairpin() then
             table.insert(hairpin_list, smartshape)
         end
     end
