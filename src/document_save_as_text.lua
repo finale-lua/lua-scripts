@@ -35,6 +35,8 @@ function plugindef()
     return "Save Document As Text File...", "", "Write current document to text file."
 end
 
+local library = require("library.general_library")
+
 local text_extension = ".txt"
 
 local note_entry = require('library.note_entry')
@@ -359,6 +361,13 @@ function document_save_as_text()
         finenv.UI():AlertError("Unable to open " .. file_to_write .. ". Please check folder permissions.", "")
         return
     end
+    local score_part = nil
+    if not library.get_current_part():IsScore() then
+        score_part = library.get_score()
+        score_part:SwitchTo()
+    end
+    -- no more return statements allowed in this function until
+    -- scort_part checked below
     local document_path = finale.FCString()
     document:GetPath(document_path)
     file:write("Script document_save_as_text.lua version ", finaleplugin.Version, "\n")
@@ -370,6 +379,9 @@ function document_save_as_text()
         write_measure(file, measure, measure_number_regions)
     end
     file:close()
+    if score_part then
+        score_part:SwitchBack()
+    end
 end
 
 document_save_as_text()
