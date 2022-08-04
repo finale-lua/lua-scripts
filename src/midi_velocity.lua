@@ -86,9 +86,9 @@ function make_the_change(basekey)
     		    pm:LoadAt(note)
     		    pm.VelocityDelta = config.velocity - basekey
     		    pm:SaveAt(note)
-    		end
-    	end
-	end
+            end
+        end
+    end
 end
 
 function change_velocity()

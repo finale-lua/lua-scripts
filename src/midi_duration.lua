@@ -90,9 +90,9 @@ function make_the_change()
                     perf_mod.EndOffset = config.stop_offset
                 end
     		    perf_mod:SaveAt(note)
-    		end
-    	end
-	end
+            end
+        end
+    end
 end
 
 function change_midi_duration()
