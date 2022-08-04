@@ -80,12 +80,12 @@ function make_the_change(basekey)
     end
     for entry in eachentrysaved(finenv.Region(), config.layer) do
         local pm = finale.FCPerformanceMod()
-		if entry:IsNote() then    
-		    pm:SetNoteEntry(entry)
-    		for note in each(entry) do
-    		    pm:LoadAt(note)
-    		    pm.VelocityDelta = config.velocity - basekey
-    		    pm:SaveAt(note)
+        if entry:IsNote() then
+            pm:SetNoteEntry(entry)
+            for note in each(entry) do
+                pm:LoadAt(note)
+                pm.VelocityDelta = config.velocity - basekey
+                pm:SaveAt(note)
             end
         end
     end

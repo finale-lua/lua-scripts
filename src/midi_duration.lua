@@ -79,7 +79,7 @@ function make_the_change()
     end
     for entry in eachentrysaved(finenv.Region(), config.layer) do
         local perf_mod = finale.FCPerformanceMod()
-		if entry:IsNote() then
+        if entry:IsNote() then
     		perf_mod:SetNoteEntry(entry)
     		for note in each(entry) do
     		    perf_mod:LoadAt(note)     -- don't change durations of tied notes!
