@@ -22,7 +22,8 @@ local config = {
     limit_to_hairpins_on_notes = true,          -- if true, only hairpins attached to notes are considered
     vertical_adjustment_type = "far",           -- possible values: "near", "far", "none"
     horizontal_adjustment_type = "both",        -- possible values: "both", "left", "right", "none"
-    vertical_displacement_for_hairpins = 12     -- alignment displacement for hairpins relative to dynamics handle (evpu)
+    vertical_displacement_for_hairpins = 12,    -- alignment displacement for hairpins relative to dynamics handle (evpu)
+    extend_to_expression_in_next_bar = false    -- if true, extends to an expression at the beginning of the next bar    
 }
 
 configuration.get_parameters("standalone_hairpin_adjustment.config.txt", config)
@@ -40,6 +41,14 @@ if finenv.IsRGPLua and finenv.QueryInvokedModifierKeys then
 end
 
 -- end of parameters
+
+-- globally needed document information
+
+local staff_systems = finale.FCStaffSystems()
+staff_systems:LoadAll()
+
+local distance_prefs = finale.FCDistancePrefs()
+distance_prefs:Load(1)
 
 function calc_cell_relative_vertical_position(fccell, page_offset)
     local relative_position = page_offset
@@ -226,6 +235,19 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         the_seg:SetMeasurePos(region_settings[3])
     end
 
+    if config.extend_to_expression_in_next_bar then
+        if left_or_right == "right" and finenv.Region():IsMeasureIncluded(the_seg.Measure + 1) then
+            local cell = finale.FCCell(the_seg.Measure, the_seg.Staff)
+            if the_seg.MeasurePos >= cell:CalcDuration() then
+                local this_system = staff_systems:FindMeasureNumber(the_seg.Measure)
+                if this_system and this_system:ContainsMeasure(the_seg.Measure + 1) then
+                    region:SetEndMeasure(the_seg.Measure + 1)
+                    region:SetEndMeasurePos(0)
+                end
+            end
+        end
+    end
+
     local expressions = finale.FCExpressions()
     expressions:LoadAllForRegion(region)
     local expression_list = {}
@@ -252,8 +274,17 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
             local total_x = dyn_width + config.left_dynamic_cushion + total_offset
             the_seg:SetEndpointOffsetX(total_x)
         elseif left_or_right == "right" then
+            local edu_gap_spacing = 0
+            if the_seg.Measure < dyn_exp.Measure and dyn_exp.MeasurePos == 0 then
+                require('mobdebug').start()
+                local seg_point = finale.FCPoint(0, 0)
+                hairpin:CalcRightCellMetricPos(seg_point)
+                local next_cell_metrics = finale.FCCellMetrics()
+                next_cell_metrics:LoadAtCell(finale.FCCell(dyn_exp.Measure, dyn_exp.Staff))
+                edu_gap_spacing = next_cell_metrics.MusicStartPos + distance_prefs.SpaceBefore - seg_point.X
+            end
             cushion_bool = false
-            local total_x = (0 - dyn_width) + config.right_dynamic_cushion + total_offset
+            local total_x = (0 - dyn_width) + config.right_dynamic_cushion + edu_gap_spacing + total_offset
             the_seg:SetEndpointOffsetX(total_x)
         end
     end
