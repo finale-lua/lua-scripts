@@ -84,7 +84,6 @@ function user_choices()
 end
 
 function make_the_change()
-    local staff_spec = finale.FCCurrentStaffSpec()
     if finenv.RetainLuaState ~= nil then
         finenv.RetainLuaState = true
     end
@@ -103,6 +102,7 @@ function make_the_change()
                 elseif duration >= finale.HALF_NOTE then
                     rest_prop = "HalfRestPosition"
                 end
+                local staff_spec = finale.FCCurrentStaffSpec()
                 staff_spec:LoadForEntry(entry)
                 local total_offset = staff_spec[rest_prop] + config.offset
                 entry:MakeMovableRest()
