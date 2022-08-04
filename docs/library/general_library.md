@@ -14,6 +14,7 @@
 - [is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)](#is_default_number_visible_and_left_aligned)
 - [update_layout(from_page, unfreeze_measures)](#update_layout)
 - [get_current_part()](#get_current_part)
+- [get_score()](#get_score)
 - [get_page_format_prefs()](#get_page_format_prefs)
 - [get_smufl_font_list()](#get_smufl_font_list)
 - [get_smufl_metadata_file(font_info)](#get_smufl_metadata_file)
@@ -234,13 +235,27 @@ Returns the currently selected part or score.
 | ----------- | ----------- |
 | `FCPart` |  |
 
+### get_score
+
+```lua
+library.get_score()
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L277)
+
+Returns an `FCPart` instance that represents the score.
+
+| Return type | Description |
+| ----------- | ----------- |
+| `FCPart` |  |
+
 ### get_page_format_prefs
 
 ```lua
 library.get_page_format_prefs()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L277)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L290)
 
 Returns the default page format prefs for score or parts based on which is currently selected.
 
@@ -254,7 +269,7 @@ Returns the default page format prefs for score or parts based on which is curre
 library.get_smufl_font_list()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L319)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L332)
 
 Returns table of installed SMuFL font names by searching the directory that contains
 the .json files for each font. The table is in the format:
@@ -273,7 +288,7 @@ the .json files for each font. The table is in the format:
 library.get_smufl_metadata_file(font_info)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L358)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L371)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -289,7 +304,7 @@ library.get_smufl_metadata_file(font_info)
 library.is_font_smufl_font(font_info)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L383)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L396)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -305,7 +320,7 @@ library.is_font_smufl_font(font_info)
 library.simple_input(title, text)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L412)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L425)
 
 Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
 
@@ -322,7 +337,7 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 library.is_finale_object(object)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L465)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L478)
 
 Attempts to determine if an object is a Finale object through ducktyping
 
@@ -340,7 +355,7 @@ Attempts to determine if an object is a Finale object through ducktyping
 library.system_indent_set_to_prefs(system, page_format_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L480)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L493)
 
 Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
 The page preferences may be provided optionally to avoid loading them for each call.
@@ -360,7 +375,7 @@ The page preferences may be provided optionally to avoid loading them for each c
 library.calc_script_name(include_extension)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L505)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L518)
 
 Returns the running script name, with or without extension.
 
@@ -378,7 +393,7 @@ Returns the running script name, with or without extension.
 library.get_default_music_font_name()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L534)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L547)
 
 Fetches the default music font from document options and processes the name into a usable format.
 

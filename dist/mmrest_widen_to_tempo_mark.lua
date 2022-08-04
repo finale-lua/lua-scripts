@@ -723,6 +723,19 @@ __imports["library.general_library"] = function()
     end
 
     --[[
+    % get_score
+
+    Returns an `FCPart` instance that represents the score.
+
+    : (FCPart)
+    ]]
+    function library.get_score()
+        local part = finale.FCPart(finale.PARTID_SCORE)
+        part:Load(part.ID)
+        return part
+    end
+
+    --[[
     % get_page_format_prefs
 
     Returns the default page format prefs for score or parts based on which is currently selected.
