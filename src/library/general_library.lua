@@ -268,6 +268,19 @@ function library.get_current_part()
 end
 
 --[[
+% get_score
+
+Returns an `FCPart` instance that represents the score.
+
+: (FCPart)
+]]
+function library.get_score()
+    local part = finale.FCPart(finale.PARTID_SCORE)
+    part:Load(part.ID)
+    return part
+end
+
+--[[
 % get_page_format_prefs
 
 Returns the default page format prefs for score or parts based on which is currently selected.
@@ -386,7 +399,7 @@ function library.is_font_smufl_font(font_info)
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
 
-    if client.supports_smufl_fonts() then
+    if client.supports("smufl") then
         if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
             return font_info.IsSMuFLFont
         end
