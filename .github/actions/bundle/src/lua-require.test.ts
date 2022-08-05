@@ -5,13 +5,21 @@ describe('generateLuaRequire', () => {
         expect(generateLuaRequire()).toBe(
             [
                 'local __imports = {}',
+                'local __import_results = {}',
                 '',
                 'function require(item)',
-                '    if __imports[item] then',
-                '        return __imports[item]()',
-                '    else',
+                '    if not __imports[item] then',
                 '        error("module \'" .. item .. "\' not found")',
                 '    end',
+                '',
+                '    if __import_results[item] == nil then',
+                '        __import_results[item] = __imports[item]()',
+                '        if __import_results[item] == nil then',
+                '            __import_results[item] = true',
+                '        end',
+                '    end',
+                '',
+                '    return __import_results[item]',
                 'end',
             ].join('\n')
         )
