@@ -22,6 +22,7 @@
 - [add_augmentation_dot(entry)](#add_augmentation_dot)
 - [get_next_same_v(entry)](#get_next_same_v)
 - [hide_stem(entry)](#hide_stem)
+- [rest_offset(entry, offset)](#rest_offset)
 
 ### get_music_region
 
@@ -376,3 +377,22 @@ Hides the stem of the entry by replacing it with Shape 0.
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `entry` | `FCNoteEntry` | the entry to process |
+
+### rest_offset
+
+```lua
+note_entry.rest_offset(entry, offset)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L429)
+
+Confirms the entry is a rest then offsets it from the staff rest "center" position. 
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `entry` | `FCNoteEntry` | the entry to process |
+| `offset` | `number` | offset in half spaces |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` | true if success |
