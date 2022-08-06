@@ -37,18 +37,17 @@ local smartshape_type = {
 }
 
 --[[
-% smartshape_entrybased
+% add_entry_based_smartshape
 
 Creates an entry based SmartShape based on two input notes. If a type is not specified, creates a slur.
 
 @ start_note (FCNoteEntry) Starting note for SmartShape.
 @ end_note (FCNoteEntry) Ending note for SmartShape.
-@ type (SMARTSHAPE_TYPES or string)
+@ shape_type (string) The type of shape to add, pulled from table.
 ]]
 function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
     local smartshape = finale.FCSmartShape()
     smartshape:SetEntryAttachedFlags(true)
-
     shape_type = shape_type or "slur"
     --
     shape_type = string.lower(shape_type)
@@ -110,6 +109,32 @@ function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
         right_segment:SetEndpointOffsetY(right_segment.EndpointOffsetY + offset_y_add + (staff_pos_difference/2))
     end
     smartshape:SaveNewEverything(start_note, end_note)
+end
+
+--[[
+% delete_entry_based_smartshape
+
+Creates an entry based SmartShape based on two input notes. If a type is not specified, creates a slur.
+
+@ music_region (FCMusicregion) The region to process.
+@ shape_type (string) The type of shape to add, pulled from table.
+]]
+function smartshape.delete_entry_based_smartshape(music_region, shape_type)
+    local shape = smartshape_type[shape_type]
+    for noteentry in eachentrysaved(music_region) do
+        local smartshape_entry_marks = finale.FCSmartShapeEntryMarks(noteentry)
+        smartshape_entry_marks:LoadAll(music_region)
+        for ss_entry_mark in each(smartshape_entry_marks) do
+            local smartshape = ss_entry_mark:CreateSmartShape()
+            if smartshape ~= nil then
+                if ss_entry_mark:CalcLeftMark() or (ss_entry_mark:CalcRightMark()) then
+                    if smartshape.ShapeType == shape then
+                        smartshape:DeleteData()
+                    end
+                end
+            end
+        end
+    end
 end
 
 return smartshape
