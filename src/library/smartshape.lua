@@ -111,3 +111,5 @@ function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
     end
     smartshape:SaveNewEverything(start_note, end_note)
 end
+
+return smartshape
