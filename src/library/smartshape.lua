@@ -137,4 +137,26 @@ function smartshape.delete_entry_based_smartshape(music_region, shape_type)
     end
 end
 
+--[[
+% delete_all_slurs
+
+Deletes all slurs, dashed slurs, and dashed curves.
+]]
+function smartshape.delete_all_slurs(music_region)
+    local slurs = {
+        "slurauto", 
+        "slurdown", 
+        "slurup", 
+        "dashed", 
+        "dashedslurdown",
+        "dashedslurup", 
+        "dashedcurve",
+        "dashedcurvedown",
+        "dashedcurveup"
+    }
+    for key, val in pairs(slurs) do
+        smartshape.delete_entry_based_smartshape(music_region, val)
+    end
+end
+
 return smartshape
