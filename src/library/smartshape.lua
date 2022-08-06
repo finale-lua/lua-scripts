@@ -3,52 +3,51 @@ $module SmartShape
 ]]
 local smartshape = {}
 
-    local smartshape_type = {
-        "slurauto" = finale.SMARTSHAPE_SLURAUTO, 
-        "slur_auto" = finale.SMARTSHAPE_SLURAUTO, 
-        "autoslur" = finale.SMARTSHAPE_SLURAUTO, 
-        "auto_slur" = finale.SMARTSHAPE_SLURAUTO, 
-        "slur" = finale.SMARTSHAPE_SLURAUTO, 
-        "slurdown" = finale.SMARTSHAPE_SLURDOWN, 
-        "slur_down" = finale.SMARTSHAPE_SLURDOWN, 
-        "slurup" = finale.SMARTSHAPE_SLURUP, 
-        "slur_up" = finale.SMARTSHAPE_SLURUP,
-        "dashed" = finale.SMARTSHAPE_DASHEDSLURAUTO, 
-        "dashedslur" = finale.SMARTSHAPE_DASHEDSLURAUTO, 
-        "dashed_slur" = finale.SMARTSHAPE_DASHEDSLURAUTO,
-        "dashedslurdown" = finale.SMARTSHAPE_DASHEDSLURDOWN, 
-        "dashedslurup" = finale.SMARTSHAPE_DASHEDSLURDOWN, 
-        "dashedcurve" = finale.SMARTSHAPE_DASHCURVEAUTO, 
-        "dashed_curve" = finale.SMARTSHAPE_DASHCURVEAUTO,
-        "curve" = finale.SMARTSHAPE_DASHCURVEAUTO,
-        "dashedcurvedown", finale.SMARTSHAPE_DASHCURVEDOWN, 
-        "dashedcurveup"finale.SMARTSHAPE_DASHCURVEUP, 
-        "tabslide" = finale.SMARTSHAPE_TABSLIDE, 
-        "tab" = finale.SMARTSHAPE_TABSLIDE, 
-        "slide" = finale.SMARTSHAPE_TABSLIDE, 
-        "glissando" = finale.SMARTSHAPE_GLISSANDO, 
-        "gliss" = finale.SMARTSHAPE_GLISSANDO, 
-        "bendhat" = finale.SMARTSHAPE_BEND_HAT, 
-        "bend_hat" = finale.SMARTSHAPE_BEND_HAT,
-        "hat" = finale.SMARTSHAPE_BEND_HAT, 
-        "bend" = finale.SMARTSHAPE_BEND_HAT, 
-        "bendcurve" = finale.SMARTSHAPE_BEND_CURVE, 
-        "bend_curve" = finale.SMARTSHAPE_BEND_CURVE
-    }
-    
+local smartshape_type = {
+    ["slurauto"] = finale.SMARTSHAPE_SLURAUTO,
+    ["slur_auto"] = finale.SMARTSHAPE_SLURAUTO, 
+    ["autoslur"] = finale.SMARTSHAPE_SLURAUTO, 
+    ["auto_slur"] = finale.SMARTSHAPE_SLURAUTO, 
+    ["slur"] = finale.SMARTSHAPE_SLURAUTO, 
+    ["slurdown"] = finale.SMARTSHAPE_SLURDOWN, 
+    ["slur_down"] = finale.SMARTSHAPE_SLURDOWN, 
+    ["slurup"] = finale.SMARTSHAPE_SLURUP, 
+    ["slur_up"] = finale.SMARTSHAPE_SLURUP,
+    ["dashed"] = finale.SMARTSHAPE_DASHEDSLURAUTO, 
+    ["dashedslur"] = finale.SMARTSHAPE_DASHEDSLURAUTO, 
+    ["dashed_slur"] = finale.SMARTSHAPE_DASHEDSLURAUTO,
+    ["dashedslurdown"] = finale.SMARTSHAPE_DASHEDSLURDOWN, 
+    ["dashedslurup"] = finale.SMARTSHAPE_DASHEDSLURDOWN, 
+    ["dashedcurve"] = finale.SMARTSHAPE_DASHCURVEAUTO, 
+    ["dashed_curve"] = finale.SMARTSHAPE_DASHCURVEAUTO,
+    ["curve"] = finale.SMARTSHAPE_DASHCURVEAUTO,
+    ["dashedcurvedown"] = finale.SMARTSHAPE_DASHCURVEDOWN, 
+    ["dashedcurveup"] = finale.SMARTSHAPE_DASHCURVEUP, 
+    ["tabslide"] = finale.SMARTSHAPE_TABSLIDE, 
+    ["tab"] = finale.SMARTSHAPE_TABSLIDE, 
+    ["slide"] = finale.SMARTSHAPE_TABSLIDE, 
+    ["glissando"] = finale.SMARTSHAPE_GLISSANDO, 
+    ["gliss"] = finale.SMARTSHAPE_GLISSANDO, 
+    ["bendhat"] = finale.SMARTSHAPE_BEND_HAT, 
+    ["bend_hat"] = finale.SMARTSHAPE_BEND_HAT,
+    ["hat"] = finale.SMARTSHAPE_BEND_HAT, 
+    ["bend"] = finale.SMARTSHAPE_BEND_HAT, 
+    ["bendcurve"] = finale.SMARTSHAPE_BEND_CURVE, 
+    ["bend_curve"] = finale.SMARTSHAPE_BEND_CURVE
+}
+
 --[[
-% smartshape_entrybased
+% add_entry_based_smartshape
 
 Creates an entry based SmartShape based on two input notes. If a type is not specified, creates a slur.
 
 @ start_note (FCNoteEntry) Starting note for SmartShape.
 @ end_note (FCNoteEntry) Ending note for SmartShape.
-@ type (SMARTSHAPE_TYPES or string)
+@ shape_type (string) The type of shape to add, pulled from table.
 ]]
 function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
     local smartshape = finale.FCSmartShape()
     smartshape:SetEntryAttachedFlags(true)
-
     shape_type = shape_type or "slur"
     --
     shape_type = string.lower(shape_type)
@@ -111,3 +110,53 @@ function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
     end
     smartshape:SaveNewEverything(start_note, end_note)
 end
+
+--[[
+% delete_entry_based_smartshape
+
+Creates an entry based SmartShape based on two input notes. If a type is not specified, creates a slur.
+
+@ music_region (FCMusicregion) The region to process.
+@ shape_type (string) The type of shape to add, pulled from table.
+]]
+function smartshape.delete_entry_based_smartshape(music_region, shape_type)
+    local shape = smartshape_type[shape_type]
+    for noteentry in eachentrysaved(music_region) do
+        local smartshape_entry_marks = finale.FCSmartShapeEntryMarks(noteentry)
+        smartshape_entry_marks:LoadAll(music_region)
+        for ss_entry_mark in each(smartshape_entry_marks) do
+            local smartshape = ss_entry_mark:CreateSmartShape()
+            if smartshape ~= nil then
+                if ss_entry_mark:CalcLeftMark() or (ss_entry_mark:CalcRightMark()) then
+                    if smartshape.ShapeType == shape then
+                        smartshape:DeleteData()
+                    end
+                end
+            end
+        end
+    end
+end
+
+--[[
+% delete_all_slurs
+
+Deletes all slurs, dashed slurs, and dashed curves.
+]]
+function smartshape.delete_all_slurs(music_region)
+    local slurs = {
+        "slurauto", 
+        "slurdown", 
+        "slurup", 
+        "dashed", 
+        "dashedslurdown",
+        "dashedslurup", 
+        "dashedcurve",
+        "dashedcurvedown",
+        "dashedcurveup"
+    }
+    for key, val in pairs(slurs) do
+        smartshape.delete_entry_based_smartshape(music_region, val)
+    end
+end
+
+return smartshape
