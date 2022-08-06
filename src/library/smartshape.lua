@@ -3,39 +3,39 @@ $module SmartShape
 ]]
 local smartshape = {}
 
-    local smartshape_type = {
-        "slurauto" = finale.SMARTSHAPE_SLURAUTO, 
-        "slur_auto" = finale.SMARTSHAPE_SLURAUTO, 
-        "autoslur" = finale.SMARTSHAPE_SLURAUTO, 
-        "auto_slur" = finale.SMARTSHAPE_SLURAUTO, 
-        "slur" = finale.SMARTSHAPE_SLURAUTO, 
-        "slurdown" = finale.SMARTSHAPE_SLURDOWN, 
-        "slur_down" = finale.SMARTSHAPE_SLURDOWN, 
-        "slurup" = finale.SMARTSHAPE_SLURUP, 
-        "slur_up" = finale.SMARTSHAPE_SLURUP,
-        "dashed" = finale.SMARTSHAPE_DASHEDSLURAUTO, 
-        "dashedslur" = finale.SMARTSHAPE_DASHEDSLURAUTO, 
-        "dashed_slur" = finale.SMARTSHAPE_DASHEDSLURAUTO,
-        "dashedslurdown" = finale.SMARTSHAPE_DASHEDSLURDOWN, 
-        "dashedslurup" = finale.SMARTSHAPE_DASHEDSLURDOWN, 
-        "dashedcurve" = finale.SMARTSHAPE_DASHCURVEAUTO, 
-        "dashed_curve" = finale.SMARTSHAPE_DASHCURVEAUTO,
-        "curve" = finale.SMARTSHAPE_DASHCURVEAUTO,
-        "dashedcurvedown", finale.SMARTSHAPE_DASHCURVEDOWN, 
-        "dashedcurveup"finale.SMARTSHAPE_DASHCURVEUP, 
-        "tabslide" = finale.SMARTSHAPE_TABSLIDE, 
-        "tab" = finale.SMARTSHAPE_TABSLIDE, 
-        "slide" = finale.SMARTSHAPE_TABSLIDE, 
-        "glissando" = finale.SMARTSHAPE_GLISSANDO, 
-        "gliss" = finale.SMARTSHAPE_GLISSANDO, 
-        "bendhat" = finale.SMARTSHAPE_BEND_HAT, 
-        "bend_hat" = finale.SMARTSHAPE_BEND_HAT,
-        "hat" = finale.SMARTSHAPE_BEND_HAT, 
-        "bend" = finale.SMARTSHAPE_BEND_HAT, 
-        "bendcurve" = finale.SMARTSHAPE_BEND_CURVE, 
-        "bend_curve" = finale.SMARTSHAPE_BEND_CURVE
-    }
-    
+local smartshape_type = {
+    ["slurauto"] = finale.SMARTSHAPE_SLURAUTO,
+    ["slur_auto"] = finale.SMARTSHAPE_SLURAUTO, 
+    ["autoslur"] = finale.SMARTSHAPE_SLURAUTO, 
+    ["auto_slur"] = finale.SMARTSHAPE_SLURAUTO, 
+    ["slur"] = finale.SMARTSHAPE_SLURAUTO, 
+    ["slurdown"] = finale.SMARTSHAPE_SLURDOWN, 
+    ["slur_down"] = finale.SMARTSHAPE_SLURDOWN, 
+    ["slurup"] = finale.SMARTSHAPE_SLURUP, 
+    ["slur_up"] = finale.SMARTSHAPE_SLURUP,
+    ["dashed"] = finale.SMARTSHAPE_DASHEDSLURAUTO, 
+    ["dashedslur"] = finale.SMARTSHAPE_DASHEDSLURAUTO, 
+    ["dashed_slur"] = finale.SMARTSHAPE_DASHEDSLURAUTO,
+    ["dashedslurdown"] = finale.SMARTSHAPE_DASHEDSLURDOWN, 
+    ["dashedslurup"] = finale.SMARTSHAPE_DASHEDSLURDOWN, 
+    ["dashedcurve"] = finale.SMARTSHAPE_DASHCURVEAUTO, 
+    ["dashed_curve"] = finale.SMARTSHAPE_DASHCURVEAUTO,
+    ["curve"] = finale.SMARTSHAPE_DASHCURVEAUTO,
+    ["dashedcurvedown"] = finale.SMARTSHAPE_DASHCURVEDOWN, 
+    ["dashedcurveup"] = finale.SMARTSHAPE_DASHCURVEUP, 
+    ["tabslide"] = finale.SMARTSHAPE_TABSLIDE, 
+    ["tab"] = finale.SMARTSHAPE_TABSLIDE, 
+    ["slide"] = finale.SMARTSHAPE_TABSLIDE, 
+    ["glissando"] = finale.SMARTSHAPE_GLISSANDO, 
+    ["gliss"] = finale.SMARTSHAPE_GLISSANDO, 
+    ["bendhat"] = finale.SMARTSHAPE_BEND_HAT, 
+    ["bend_hat"] = finale.SMARTSHAPE_BEND_HAT,
+    ["hat"] = finale.SMARTSHAPE_BEND_HAT, 
+    ["bend"] = finale.SMARTSHAPE_BEND_HAT, 
+    ["bendcurve"] = finale.SMARTSHAPE_BEND_CURVE, 
+    ["bend_curve"] = finale.SMARTSHAPE_BEND_CURVE
+}
+
 --[[
 % smartshape_entrybased
 
