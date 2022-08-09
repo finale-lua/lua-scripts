@@ -2,15 +2,17 @@
 
 ## Functions
 
-- [smartshape_entrybased(start_note, end_note, type)](#smartshape_entrybased)
+- [add_entry_based_smartshape(start_note, end_note, shape_type)](#add_entry_based_smartshape)
+- [delete_entry_based_smartshape(music_region, shape_type)](#delete_entry_based_smartshape)
+- [delete_all_slurs()](#delete_all_slurs)
 
-### smartshape_entrybased
+### add_entry_based_smartshape
 
 ```lua
-smartshape.smartshape_entrybased(start_note, end_note, type)
+smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/smartshape.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/smartshape.lua#L48)
 
 Creates an entry based SmartShape based on two input notes. If a type is not specified, creates a slur.
 
@@ -18,4 +20,29 @@ Creates an entry based SmartShape based on two input notes. If a type is not spe
 | ----- | ---- | ----------- |
 | `start_note` | `FCNoteEntry` | Starting note for SmartShape. |
 | `end_note` | `FCNoteEntry` | Ending note for SmartShape. |
-| `type` | `SMARTSHAPE_TYPES or string` |  |
+| `shape_type` | `string` | The type of shape to add, pulled from table. |
+
+### delete_entry_based_smartshape
+
+```lua
+smartshape.delete_entry_based_smartshape(music_region, shape_type)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/smartshape.lua#L122)
+
+Creates an entry based SmartShape based on two input notes. If a type is not specified, creates a slur.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `music_region` | `FCMusicregion` | The region to process. |
+| `shape_type` | `string` | The type of shape to add, pulled from table. |
+
+### delete_all_slurs
+
+```lua
+smartshape.delete_all_slurs()
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/smartshape.lua#L145)
+
+Deletes all slurs, dashed slurs, and dashed curves.

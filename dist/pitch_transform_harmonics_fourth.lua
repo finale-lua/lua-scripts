@@ -1,11 +1,19 @@
 local __imports = {}
+local __import_results = {}
 
 function require(item)
-    if __imports[item] then
-        return __imports[item]()
-    else
+    if not __imports[item] then
         error("module '" .. item .. "' not found")
     end
+
+    if __import_results[item] == nil then
+        __import_results[item] = __imports[item]()
+        if __import_results[item] == nil then
+            __import_results[item] = true
+        end
+    end
+
+    return __import_results[item]
 end
 
 __imports["library.articulation"] = function()
@@ -1886,6 +1894,41 @@ __imports["library.note_entry"] = function()
             stem.ShapeID = 0
             stem:SaveNew()
         end
+    end
+
+    --[[
+    % rest_offset
+
+    Confirms the entry is a rest then offsets it from the staff rest "center" position. 
+
+    @ entry (FCNoteEntry) the entry to process
+    @ offset (number) offset in half spaces
+    : (boolean) true if success
+    ]]
+    function note_entry.rest_offset(entry, offset)
+        if entry:IsNote() then
+            return false
+        end
+        if offset == 0 then
+            entry:SetFloatingRest(true)
+        else
+            local rest_prop = "OtherRestPosition"
+            if entry.Duration >= finale.BREVE then
+                rest_prop = "DoubleWholeRestPosition"
+            elseif entry.Duration >= finale.WHOLE_NOTE then
+                rest_prop = "WholeRestPosition"
+            elseif entry.Duration >= finale.HALF_NOTE then
+                rest_prop = "HalfRestPosition"
+            end
+            entry:MakeMovableRest()
+            local rest = entry:GetItemAt(0)
+            local curr_staffpos = rest:CalcStaffPosition()
+            local staff_spec = finale.FCCurrentStaffSpec()
+            staff_spec:LoadForEntry(entry)
+            local total_offset = staff_spec[rest_prop] + offset - curr_staffpos
+            entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset)
+        end
+        return true
     end
 
     return note_entry

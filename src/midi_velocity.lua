@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.2"
-    finaleplugin.Date = "2022/06/14"
+    finaleplugin.Version = "v1.21"
+    finaleplugin.Date = "2022/08/04"
     finaleplugin.CategoryTags = "MIDI, Playback"
     finaleplugin.Notes = [[
     Change the playback Key Velocity for every note in the selected area in one or all layers. 
@@ -12,37 +12,43 @@ function plugindef()
     Note that key velocity will not affect every type of playback especially if Human Playback is active. 
 
     Side-note: selecting the MIDI tool, choosing "Velocity" then "Set to" is moderately convenient 
-    but doesn't offer setting key velocity on a single chosen layer. 
+    but doesn't allow setting key velocity on a single chosen layer. 
     This script also remembers your choices between invocations.
-]]
+    ]]
     return "MIDI Velocity", "MIDI Velocity", "Change MIDI Velocity"
 end
 
--- RetainLuaState will return global variables:
--- key_velocity and layer_number
+-- RetainLuaState retains one global:
+config = config or {}
 
-function show_error(error_type, actual_value)
-    local errors = {
-        bad_velocity = "Velocity must be an\ninteger between 0 and 127\n(not ",
-        bad_layer_number = "Layer number must be an\ninteger between zero and 4\n(not ",
-    }
-    finenv.UI():AlertNeutral("script: " .. plugindef(), errors[error_type] .. actual_value .. ")")
+function is_error()
+    local msg = ""
+    if config.velocity < 0 or config.velocity > 127 then
+        msg = "Velocity must be an\ninteger between 0 and 127\n(not " .. config.velocity .. ")"
+    elseif config.layer < 0 or config.layer > 4 then
+        msg = "Layer number must be an\ninteger between zero and 4\n(not " .. config.layer .. ")"
+    end
+    if msg ~= "" then
+        finenv.UI():AlertNeutral("script: " .. plugindef(), msg)
+        return true
+    end
+    return false
 end
 
-function get_user_choices(basekey)
+function user_choices(basekey)
     local current_vert, vert_step = 10, 25
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
-    local edit_horiz = 120
+    local edit_horiz = 110
 
-    local dialog = finale.FCCustomWindow()
+    local dialog = finale.FCCustomLuaWindow()
     local str = finale.FCString()
     str.LuaString = plugindef()
     dialog:SetTitle(str)
 
     local answer = {}
     local texts = { -- static text, default value
-        { "Key Velocity (0-127):", key_velocity or basekey },
-        { "Layer 1-4 (0 = all):", layer_number or 0 },
+        { "Key Velocity (0-127):", config.velocity or basekey },
+        { "Layer 1-4 (0 = all):", config.layer or 0 },
     }
     for i,v in ipairs(texts) do
         str.LuaString = v[1]
@@ -56,7 +62,33 @@ function get_user_choices(basekey)
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), answer[1]:GetInteger(), answer[2]:GetInteger()
+    dialog:RegisterHandleOkButtonPressed(function()
+        config.velocity = answer[1]:GetInteger()
+        config.layer = answer[2]:GetInteger()
+    end)
+    dialog:RegisterCloseWindow(function()
+        dialog:StorePosition()
+        config.pos_x = dialog.StoredX
+        config.pos_y = dialog.StoredY
+    end)
+    return dialog
+end
+
+function make_the_change(basekey)
+    if finenv.RetainLuaState ~= nil then
+        finenv.RetainLuaState = true
+    end
+    for entry in eachentrysaved(finenv.Region(), config.layer) do
+        local pm = finale.FCPerformanceMod()
+        if entry:IsNote() then
+            pm:SetNoteEntry(entry)
+            for note in each(entry) do
+                pm:LoadAt(note)
+                pm.VelocityDelta = config.velocity - basekey
+                pm:SaveAt(note)
+            end
+        end
+    end
 end
 
 function change_velocity()
@@ -64,35 +96,19 @@ function change_velocity()
     prefs:Load(1)
     local basekey = prefs:GetBaseKeyVelocity()
 
-    local is_ok = false -- key_velocity and layer_number are globals
-    is_ok, key_velocity, layer_number = get_user_choices(basekey)
-    if not is_ok then -- user cancelled
+    local dialog = user_choices(basekey)
+    if config.pos_x and config.pos_y then
+        dialog:StorePosition()
+        dialog:SetRestorePositionOnlyData(config.pos_x, config.pos_y)
+        dialog:RestorePosition()
+    end
+    if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK then
+        return -- user cancelled
+    end
+    if is_error() then
         return
     end
-    if key_velocity < 0 or key_velocity > 127 then
-        show_error("bad_velocity", key_velocity)
-        return
-    end
-    if layer_number < 0 or layer_number > 4 then 
-        show_error("bad_layer_number", layer_number)
-        return
-    end
-    if finenv.RetainLuaState ~= nil then
-        finenv.RetainLuaState = true
-    end
-
-    -- don't forget to offset velocity to playback "base" velocity
-    for entry in eachentrysaved(finenv.Region(), layer_number) do
-        local pm = finale.FCPerformanceMod()
-		if entry:IsNote() then    
-		    pm:SetNoteEntry(entry)
-    		for note in each(entry) do
-    		    pm:LoadAt(note)
-    		    pm.VelocityDelta = key_velocity - basekey
-    		    pm:SaveAt(note)
-    		end
-    	end
-	end
+    make_the_change(basekey)
 end
 
 change_velocity()

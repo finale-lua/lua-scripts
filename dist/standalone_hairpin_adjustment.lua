@@ -1,11 +1,19 @@
 local __imports = {}
+local __import_results = {}
 
 function require(item)
-    if __imports[item] then
-        return __imports[item]()
-    else
+    if not __imports[item] then
         error("module '" .. item .. "' not found")
     end
+
+    if __import_results[item] == nil then
+        __import_results[item] = __imports[item]()
+        if __import_results[item] == nil then
+            __import_results[item] = true
+        end
+    end
+
+    return __import_results[item]
 end
 
 __imports["library.client"] = function()
@@ -1492,6 +1500,41 @@ __imports["library.note_entry"] = function()
         end
     end
 
+    --[[
+    % rest_offset
+
+    Confirms the entry is a rest then offsets it from the staff rest "center" position. 
+
+    @ entry (FCNoteEntry) the entry to process
+    @ offset (number) offset in half spaces
+    : (boolean) true if success
+    ]]
+    function note_entry.rest_offset(entry, offset)
+        if entry:IsNote() then
+            return false
+        end
+        if offset == 0 then
+            entry:SetFloatingRest(true)
+        else
+            local rest_prop = "OtherRestPosition"
+            if entry.Duration >= finale.BREVE then
+                rest_prop = "DoubleWholeRestPosition"
+            elseif entry.Duration >= finale.WHOLE_NOTE then
+                rest_prop = "WholeRestPosition"
+            elseif entry.Duration >= finale.HALF_NOTE then
+                rest_prop = "HalfRestPosition"
+            end
+            entry:MakeMovableRest()
+            local rest = entry:GetItemAt(0)
+            local curr_staffpos = rest:CalcStaffPosition()
+            local staff_spec = finale.FCCurrentStaffSpec()
+            staff_spec:LoadForEntry(entry)
+            local total_offset = staff_spec[rest_prop] + offset - curr_staffpos
+            entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset)
+        end
+        return true
+    end
+
     return note_entry
 
 end
@@ -1781,8 +1824,8 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "CJ Garcia"
     finaleplugin.Copyright = "© 2021 CJ Garcia Music"
-    finaleplugin.Version = "1.2"
-    finaleplugin.Date = "2/29/2021"
+    finaleplugin.Version = "1.3"
+    finaleplugin.Date = "8/4/2022"
     return "Hairpin and Dynamic Adjustments", "Hairpin and Dynamic Adjustments", "Adjusts hairpins to remove collisions with dynamics and aligns hairpins with dynamics."
 end
 
@@ -1801,7 +1844,8 @@ local config = {
     limit_to_hairpins_on_notes = true,          -- if true, only hairpins attached to notes are considered
     vertical_adjustment_type = "far",           -- possible values: "near", "far", "none"
     horizontal_adjustment_type = "both",        -- possible values: "both", "left", "right", "none"
-    vertical_displacement_for_hairpins = 12     -- alignment displacement for hairpins relative to dynamics handle (evpu)
+    vertical_displacement_for_hairpins = 12,    -- alignment displacement for hairpins relative to dynamics handle (evpu)
+    extend_to_expression_in_next_bar = false    -- if true, extends to an expression at the beginning of the next bar    
 }
 
 configuration.get_parameters("standalone_hairpin_adjustment.config.txt", config)
@@ -1819,6 +1863,11 @@ if finenv.IsRGPLua and finenv.QueryInvokedModifierKeys then
 end
 
 -- end of parameters
+
+-- globally needed document information
+
+local staff_systems = finale.FCStaffSystems()
+staff_systems:LoadAll()
 
 function calc_cell_relative_vertical_position(fccell, page_offset)
     local relative_position = page_offset
@@ -2005,6 +2054,19 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         the_seg:SetMeasurePos(region_settings[3])
     end
 
+    if config.extend_to_expression_in_next_bar then
+        if left_or_right == "right" and finenv.Region():IsMeasureIncluded(the_seg.Measure + 1) then
+            local cell = finale.FCCell(the_seg.Measure, the_seg.Staff)
+            if the_seg.MeasurePos >= cell:CalcDuration() then
+                local this_system = staff_systems:FindMeasureNumber(the_seg.Measure)
+                if this_system and this_system:ContainsMeasure(the_seg.Measure + 1) then
+                    region:SetEndMeasure(the_seg.Measure + 1)
+                    region:SetEndMeasurePos(0)
+                end
+            end
+        end
+    end
+
     local expressions = finale.FCExpressions()
     expressions:LoadAllForRegion(region)
     local expression_list = {}
@@ -2026,13 +2088,22 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         elseif finale.EXPRJUSTIFY_RIGHT == dyn_def.HorizontalJustification then
             dyn_width = 0
         end
-        local total_offset = expression.calc_handle_offset_for_smart_shape(dyn_exp)
+        local handle_offset_from_edupos = expression.calc_handle_offset_for_smart_shape(dyn_exp)
         if left_or_right == "left" then
-            local total_x = dyn_width + config.left_dynamic_cushion + total_offset
+            local total_x = dyn_width + config.left_dynamic_cushion + handle_offset_from_edupos
             the_seg:SetEndpointOffsetX(total_x)
         elseif left_or_right == "right" then
+            local next_measure_gap = 0
+            if the_seg.Measure < dyn_exp.Measure and dyn_exp.MeasurePos == 0 then
+                finale.FCCellMetrics.MarkMetricsForRebuild() -- have to rebuild because the cushion_bool could have changed things on the "left" pass
+                local seg_point = finale.FCPoint(0, 0)
+                hairpin:CalcRightCellMetricPos(seg_point)
+                local exp_point = finale.FCPoint(0, 0)
+                dyn_exp:CalcMetricPos(exp_point)
+                next_measure_gap = (exp_point.X - handle_offset_from_edupos) - (seg_point.X - the_seg.EndpointOffsetX)
+            end
             cushion_bool = false
-            local total_x = (0 - dyn_width) + config.right_dynamic_cushion + total_offset
+            local total_x = (0 - dyn_width) + config.right_dynamic_cushion + next_measure_gap + handle_offset_from_edupos
             the_seg:SetEndpointOffsetX(total_x)
         end
     end
