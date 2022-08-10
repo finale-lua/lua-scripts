@@ -15,6 +15,14 @@ All scripts must have at least some minimal details in their [PluginDef](http://
 
 Of course, the more complete the PluginDef, the better. This info is also used to generate the script's documentation, and it's what's shown to users when the download the script.
 
+### Naming scripts
+
+A script's name as returned by plugindef() should be in title case. [Windows and macOS use title case for their menu items](https://github.com/finale-lua/lua-scripts/issues/313), so we should be consistent with that. If you aren't familiar with Title case, here's a relevant description from [this Grammarly blog post](https://www.grammarly.com/blog/capitalization-rules/):
+
+> The capitalization rules for titles of books, movies, and other works vary a little between style guides. In general, you should capitalize the first word, all nouns, all verbs (even short ones, like is), all adjectives, and all proper nouns. That means you should lowercase articles, conjunctions, and prepositions—however, some style guides say to capitalize conjunctions and prepositions that are longer than five letters.
+
+Additionally, if you're creating a [script group](../rgp-lua/finaleplugin-properties.md#group-scripts), the start of each menu item should be the same. Menu bar items are sorted alphabetically. So that way when a user tries to find the different menu items in their menu bar, they are listed together.
+
 ## 2. Use a consistent file name
 
 Let's follow a unified syntax for the file name. Use snake case:
