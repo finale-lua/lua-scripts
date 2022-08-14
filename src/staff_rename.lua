@@ -5,6 +5,7 @@ function plugindef()
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "2.0"
     finaleplugin.Date = "8/13/2022"
+    finale.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     finaleplugin.Notes = [[
 USING THE 'STAFF RENAME' SCRIPT
 
@@ -21,17 +22,17 @@ Speaking of the Bb Clarinet... Accidentals are displayed with square brackets, s
     return "Rename Staves", "Rename Staves", "Renames selected staves"
 end
 
--- taken from https://exercism.org/tracks/lua/exercises/roman-numerals/solutions/Nia11 on 2022-08-13
+-- adapted from https://exercism.org/tracks/lua/exercises/roman-numerals/solutions/Nia11 on 2022-08-13
 function calc_roman_numeral(n)
-    local tnd = {'M','MM','MMM'}
-    local hun = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
-    local ten = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
-    local one = {'I','II','III','IV','V','VI','VII','VIII','IX'}
+    local thousands = {'M','MM','MMM'}
+    local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
+    local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
+    local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
     local roman_numeral = ''
-    if math.floor(n/1000)>0 then roman_numeral = roman_numeral..tnd[math.floor(n/1000)] end
-    if math.floor((n%1000)/100)>0 then roman_numeral=roman_numeral..hun[math.floor((n%1000)/100)] end
-    if math.floor((n%100)/10)>0 then roman_numeral=roman_numeral..ten[math.floor((n%100)/10)] end
-    if n%10>0 then roman_numeral = roman_numeral..one[n%10] end
+    if math.floor(n/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(n/1000)] end
+    if math.floor((n%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((n%1000)/100)] end
+    if math.floor((n%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((n%100)/10)] end
+    if n%10>0 then roman_numeral = roman_numeral..ones[n%10] end
     return roman_numeral
 end
 
