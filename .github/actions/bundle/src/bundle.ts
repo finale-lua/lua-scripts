@@ -59,13 +59,11 @@ export const bundleFileBase = (
     }
 
     if (fileStack.length > 1) fileStack.push(generateLuaRequire())
-    return fileStack.reverse().join('\n\n')
+    return fileStack.reverse().map(removeComments).join('\n\n')
 }
 
 export const bundleFile = (name: string, sourcePath: string, mixins: string[]): string => {
-    return removeComments(
-        bundleFileBase(name, files, mixins, (fileName: string) =>
-            fs.readFileSync(path.join(sourcePath, fileName)).toString()
-        )
+    return bundleFileBase(name, files, mixins, (fileName: string) =>
+        fs.readFileSync(path.join(sourcePath, fileName)).toString()
     )
 }

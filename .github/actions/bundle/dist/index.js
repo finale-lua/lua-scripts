@@ -4548,11 +4548,11 @@ const bundleFileBase = (name, importedFiles, mixins, fetcher) => {
     }
     if (fileStack.length > 1)
         fileStack.push((0, lua_require_1.generateLuaRequire)());
-    return fileStack.reverse().join('\n\n');
+    return fileStack.reverse().map(remove_comments_1.removeComments).join('\n\n');
 };
 exports.bundleFileBase = bundleFileBase;
 const bundleFile = (name, sourcePath, mixins) => {
-    return (0, remove_comments_1.removeComments)((0, exports.bundleFileBase)(name, exports.files, mixins, (fileName) => fs_1.default.readFileSync(path_1.default.join(sourcePath, fileName)).toString()));
+    return (0, exports.bundleFileBase)(name, exports.files, mixins, (fileName) => fs_1.default.readFileSync(path_1.default.join(sourcePath, fileName)).toString());
 };
 exports.bundleFile = bundleFile;
 
