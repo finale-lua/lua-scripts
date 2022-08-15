@@ -1,36 +1,53 @@
 local __imports = {}
 local __import_results = {}
+
 function require(item)
     if not __imports[item] then
         error("module '" .. item .. "' not found")
     end
+
     if __import_results[item] == nil then
         __import_results[item] = __imports[item]()
         if __import_results[item] == nil then
             __import_results[item] = true
         end
     end
+
     return __import_results[item]
 end
 
 __imports["library.client"] = function()
+    --[[
+    $module Client
 
+    Get information about the current client. For the purposes of Finale Lua, the client is
+    the Finale application that's running on someones machine. Therefore, the client has
+    details about the user's setup, such as their Finale version, plugin version, and
+    operating system.
+
+    One of the main uses of using client details is to check its capabilities. As such,
+    the bulk of this library is helper functions to determine what the client supports.
+    ]] --
     local client = {}
+
     local function to_human_string(feature)
         return string.gsub(feature, "_", " ")
     end
+
     local function requires_later_plugin_version(feature)
         if feature then
             return "This script uses " .. to_human_string(feature) .. "which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
         end
         return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
     end
+
     local function requires_rgp_lua(feature)
         if feature then
             return "This script uses " .. to_human_string(feature) .. " which is not available on JW Lua. Please use RGP Lua instead to use this script."
         end
         return "This script requires RGP Lua, the successor of JW Lua. Please use RGP Lua instead to use this script."
     end
+
     local function requires_plugin_version(version, feature)
         if tonumber(version) <= 0.54 then
             if feature then
@@ -44,16 +61,20 @@ __imports["library.client"] = function()
         end
         return "This script requires RGP Lua version " .. version .. " or later. Please update your plugin to use this script."
     end
+
     local function requires_finale_version(version, feature)
         return "This script uses " .. to_human_string(feature) .. ", which is only available on Finale " .. version .. " or later"
     end
 
+    --[[
     % get_raw_finale_version
     Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
     this is the internal major Finale version, not the year.
+
     @ major (number) Major Finale version
     @ minor (number) Minor Finale version
     @ [build] (number) zero if omitted
+
     : (number)
     ]]
     function client.get_raw_finale_version(major, minor, build)
@@ -64,10 +85,19 @@ __imports["library.client"] = function()
         return retval
     end
 
+    --[[
+    % get_lua_plugin_version
+    Returns a number constructed from `finenv.MajorVersion` and `finenv.MinorVersion`. The reason not
+    to use `finenv.StringVersion` is that `StringVersion` can contain letters if it is a pre-release
+    version.
+
+    : (number)
+    ]]
     function client.get_lua_plugin_version()
         local num_string = tostring(finenv.MajorVersion) .. "." .. tostring(finenv.MinorVersion)
         return tonumber(num_string)
     end
+
     local features = {
         clef_change = {
             test = client.get_lua_plugin_version() >= 0.60,
@@ -99,11 +129,16 @@ __imports["library.client"] = function()
         },
     }
 
+    --[[
     % supports
+
     Checks the client supports a given feature. Returns true if the client
     supports the feature, false otherwise.
+
     To assert the client must support a feature, use `client.assert_supports`.
+
     For a list of valid features, see the [`features` table in the codebase](https://github.com/finale-lua/lua-scripts/blob/master/src/library/client.lua#L52).
+
     @ feature (string) The feature the client should support.
     : (boolean)
     ]]
@@ -114,12 +149,17 @@ __imports["library.client"] = function()
         return features[feature].test
     end
 
+    --[[
     % assert_supports
+
     Asserts that the client supports a given feature. If the client doesn't
     support the feature, this function will throw an friendly error then
     exit the program.
+
     To simply check if a client supports a feature, use `client.supports`.
+
     For a list of valid features, see the [`features` table in the codebase](https://github.com/finale-lua/lua-scripts/blob/master/src/library/client.lua#L52).
+
     @ feature (string) The feature the client should support.
     : (boolean)
     ]]
@@ -129,19 +169,33 @@ __imports["library.client"] = function()
             if features[feature].error then
                 error(features[feature].error, error_level)
             end
-
+            -- Generic error message
             error("Your Finale version does not support " .. to_human_string(feature), error_level)
         end
         return true
     end
+
     return client
+
 end
 
 __imports["library.general_library"] = function()
-
+    --[[
+    $module Library
+    ]] --
     local library = {}
+
     local client = require("library.client")
 
+    --[[
+    % group_overlaps_region
+
+    Returns true if the input staff group overlaps with the input music region, otherwise false.
+
+    @ staff_group (FCGroup)
+    @ region (FCMusicRegion)
+    : (boolean)
+    ]]
     function library.group_overlaps_region(staff_group, region)
         if region:IsFullDocumentSpan() then
             return true
@@ -164,6 +218,16 @@ __imports["library.general_library"] = function()
         return true
     end
 
+    --[[
+    % group_is_contained_in_region
+
+    Returns true if the entire input staff group is contained within the input music region.
+    If the start or end staff are not visible in the region, it returns false.
+
+    @ staff_group (FCGroup)
+    @ region (FCMusicRegion)
+    : (boolean)
+    ]]
     function library.group_is_contained_in_region(staff_group, region)
         if not region:IsStaffIncluded(staff_group.StartStaff) then
             return false
@@ -174,6 +238,14 @@ __imports["library.general_library"] = function()
         return true
     end
 
+    --[[
+    % staff_group_is_multistaff_instrument
+
+    Returns true if the entire input staff group is a multistaff instrument.
+
+    @ staff_group (FCGroup)
+    : (boolean)
+    ]]
     function library.staff_group_is_multistaff_instrument(staff_group)
         local multistaff_instruments = finale.FCMultiStaffInstruments()
         multistaff_instruments:LoadAll()
@@ -185,6 +257,14 @@ __imports["library.general_library"] = function()
         return false
     end
 
+    --[[
+    % get_selected_region_or_whole_doc
+
+    Returns a region that contains the selected region if there is a selection or the whole document if there isn't.
+    SIDE-EFFECT WARNING: If there is no selected region, this function also changes finenv.Region() to the whole document.
+
+    : (FCMusicRegion)
+    ]]
     function library.get_selected_region_or_whole_doc()
         local sel_region = finenv.Region()
         if sel_region:IsEmpty() then
@@ -193,11 +273,19 @@ __imports["library.general_library"] = function()
         return sel_region
     end
 
+    --[[
+    % get_first_cell_on_or_after_page
+
+    Returns the first FCCell at the top of the input page. If the page is blank, it returns the first cell after the input page.
+
+    @ page_num (number)
+    : (FCCell)
+    ]]
     function library.get_first_cell_on_or_after_page(page_num)
         local curr_page_num = page_num
         local curr_page = finale.FCPage()
         local got1 = false
-
+        -- skip over any blank pages
         while curr_page:Load(curr_page_num) do
             if curr_page:GetFirstSystem() > 0 then
                 got1 = true
@@ -210,12 +298,19 @@ __imports["library.general_library"] = function()
             staff_sys:Load(curr_page:GetFirstSystem())
             return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
         end
-
+        -- if we got here there were nothing but blank pages left at the end
         local end_region = finale.FCMusicRegion()
         end_region:SetFullDocument()
         return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
     end
 
+    --[[
+    % get_top_left_visible_cell
+
+    Returns the topmost, leftmost visible FCCell on the screen, or the closest possible estimate of it.
+
+    : (FCCell)
+    ]]
     function library.get_top_left_visible_cell()
         if not finenv.UI():IsPageView() then
             local all_region = finale.FCMusicRegion()
@@ -225,6 +320,14 @@ __imports["library.general_library"] = function()
         return library.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())
     end
 
+    --[[
+    % get_top_left_selected_or_visible_cell
+
+    If there is a selection, returns the topmost, leftmost cell in the selected region.
+    Otherwise returns the best estimate for the topmost, leftmost currently visible cell.
+
+    : (FCCell)
+    ]]
     function library.get_top_left_selected_or_visible_cell()
         local sel_region = finenv.Region()
         if not sel_region:IsEmpty() then
@@ -233,6 +336,17 @@ __imports["library.general_library"] = function()
         return library.get_top_left_visible_cell()
     end
 
+    --[[
+    % is_default_measure_number_visible_on_cell
+
+    Returns true if measure numbers for the input region are visible on the input cell for the staff system.
+
+    @ meas_num_region (FCMeasureNumberRegion)
+    @ cell (FCCell)
+    @ staff_system (FCStaffSystem)
+    @ current_is_part (boolean) true if the current view is a linked part, otherwise false
+    : (boolean)
+    ]]
     function library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
         local staff = finale.FCCurrentStaffSpec()
         if not staff:LoadForCell(cell, 0) then
@@ -250,8 +364,11 @@ __imports["library.general_library"] = function()
         return false
     end
 
+    --[[
     % calc_parts_boolean_for_measure_number_region
+
     Returns the correct boolean value to use when requesting information about a measure number region.
+
     @ meas_num_region (FCMeasureNumberRegion)
     @ [for_part] (boolean) true if requesting values for a linked part, otherwise false. If omitted, this value is calculated.
     : (boolean) the value to pass to FCMeasureNumberRegion methods with a parts boolean
@@ -266,6 +383,18 @@ __imports["library.general_library"] = function()
         return for_part
     end
 
+    --[[
+    % is_default_number_visible_and_left_aligned
+
+    Returns true if measure number for the input cell is visible and left-aligned.
+
+    @ meas_num_region (FCMeasureNumberRegion)
+    @ cell (FCCell)
+    @ system (FCStaffSystem)
+    @ current_is_part (boolean) true if the current view is a linked part, otherwise false
+    @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
+    : (boolean)
+    ]]
     function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
         current_is_part = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
         if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
@@ -290,8 +419,11 @@ __imports["library.general_library"] = function()
         return library.is_default_measure_number_visible_on_cell(meas_num_region, cell, system, current_is_part)
     end
 
+    --[[
     % update_layout
+
     Updates the page layout.
+
     @ [from_page] (number) page to update from, defaults to 1
     @ [unfreeze_measures] (boolean) defaults to false
     ]]
@@ -304,18 +436,39 @@ __imports["library.general_library"] = function()
         end
     end
 
+    --[[
+    % get_current_part
+
+    Returns the currently selected part or score.
+
+    : (FCPart)
+    ]]
     function library.get_current_part()
         local part = finale.FCPart(finale.PARTID_CURRENT)
         part:Load(part.ID)
         return part
     end
 
+    --[[
+    % get_score
+
+    Returns an `FCPart` instance that represents the score.
+
+    : (FCPart)
+    ]]
     function library.get_score()
         local part = finale.FCPart(finale.PARTID_SCORE)
         part:Load(part.ID)
         return part
     end
 
+    --[[
+    % get_page_format_prefs
+
+    Returns the default page format prefs for score or parts based on which is currently selected.
+
+    : (FCPageFormatPrefs)
+    ]]
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
@@ -327,6 +480,7 @@ __imports["library.general_library"] = function()
         end
         return page_format_prefs, success
     end
+
     local calc_smufl_directory = function(for_user)
         local is_on_windows = finenv.UI():IsOnWindows()
         local do_getenv = function(win_var, mac_var)
@@ -343,6 +497,19 @@ __imports["library.general_library"] = function()
         smufl_directory = smufl_directory .. "/SMuFL/Fonts/"
         return smufl_directory
     end
+
+    --[[
+    % get_smufl_font_list
+
+    Returns table of installed SMuFL font names by searching the directory that contains
+    the .json files for each font. The table is in the format:
+
+    ```lua
+    <font-name> = "user" | "system"
+    ```
+
+    : (table) an table with SMuFL font names as keys and values "user" or "system"
+    ]]
 
     function library.get_smufl_font_list()
         local font_names = {}
@@ -377,7 +544,9 @@ __imports["library.general_library"] = function()
         return font_names
     end
 
+    --[[
     % get_smufl_metadata_file
+
     @ [font_info] (FCFontInfo) if non-nil, the font to search for; if nil, search for the Default Music Font
     : (file handle|nil)
     ]]
@@ -386,18 +555,23 @@ __imports["library.general_library"] = function()
             font_info = finale.FCFontInfo()
             font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
         end
+
         local try_prefix = function(prefix, font_info)
             local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
             return io.open(file_path, "r")
         end
+
         local user_file = try_prefix(calc_smufl_directory(true), font_info)
         if user_file then
             return user_file
         end
+
         return try_prefix(calc_smufl_directory(false), font_info)
     end
 
+    --[[
     % is_font_smufl_font
+
     @ [font_info] (FCFontInfo) if non-nil, the font to check; if nil, check the Default Music Font
     : (boolean)
     ]]
@@ -406,11 +580,13 @@ __imports["library.general_library"] = function()
             font_info = finale.FCFontInfo()
             font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
         end
+
         if client.supports("smufl") then
-            if nil ~= font_info.IsSMuFLFont then
+            if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
                 return font_info.IsSMuFLFont
             end
         end
+
         local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
         if nil ~= smufl_metadata_file then
             io.close(smufl_metadata_file)
@@ -419,8 +595,11 @@ __imports["library.general_library"] = function()
         return false
     end
 
+    --[[
     % simple_input
+
     Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
+
     @ [title] (string) the title of the input dialog box
     @ [text] (string) descriptive text above the edit field
     : string
@@ -430,14 +609,14 @@ __imports["library.general_library"] = function()
         return_value.LuaString = ""
         local str = finale.FCString()
         local min_width = 160
-
+        --
         function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             str.LuaString = st
             ctrl:SetText(str)
-        end
-
+        end -- function format_ctrl
+        --
         title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
@@ -446,38 +625,49 @@ __imports["library.general_library"] = function()
         if text_width > min_width then
             min_width = text_width
         end
-
+        --
         str.LuaString = title
         local dialog = finale.FCCustomLuaWindow()
         dialog:SetTitle(str)
         local descr = dialog:CreateStatic(0, 0)
         format_ctrl(descr, 16, min_width, text)
         local input = dialog:CreateEdit(0, 20)
-        format_ctrl(input, 20, min_width, "")
+        format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
         dialog:CreateOkButton()
         dialog:CreateCancelButton()
-
+        --
         function callback(ctrl)
-        end
-
+        end -- callback
+        --
         dialog:RegisterHandleCommand(callback)
-
+        --
         if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
             return_value.LuaString = input:GetText(return_value)
-
+            -- print(return_value.LuaString)
             return return_value.LuaString
-
+            -- OK button was pressed
         end
-    end
+    end -- function simple_input
 
+    --[[
+    % is_finale_object
+
+    Attempts to determine if an object is a Finale object through ducktyping
+
+    @ object (__FCBase)
+    : (bool)
+    ]]
     function library.is_finale_object(object)
-
+        -- All finale objects implement __FCBase, so just check for the existence of __FCBase methods
         return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
     end
 
+    --[[
     % system_indent_set_to_prefs
+
     Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
     The page preferences may be provided optionally to avoid loading them for each call.
+
     @ system (FCStaffSystem)
     @ [page_format_prefs] (FCPageFormatPrefs) page format preferences to use, if supplied.
     : (boolean) `true` if the system was successfully updated.
@@ -499,19 +689,22 @@ __imports["library.general_library"] = function()
         return system:Save()
     end
 
+    --[[
     % calc_script_name
+
     Returns the running script name, with or without extension.
+
     @ [include_extension] (boolean) Whether to include the file extension in the return value: `false` if omitted
     : (string) The name of the current running script.
     ]]
     function library.calc_script_name(include_extension)
         local fc_string = finale.FCString()
         if finenv.RunningLuaFilePath then
-
+            -- Use finenv.RunningLuaFilePath() if available because it doesn't ever get overwritten when retaining state.
             fc_string.LuaString = finenv.RunningLuaFilePath()
         else
-
-
+            -- This code path is only taken by JW Lua (and very early versions of RGP Lua).
+            -- SetRunningLuaFilePath is not reliable when retaining state, so later versions use finenv.RunningLuaFilePath.
             fc_string:SetRunningLuaFilePath()
         end
         local filename_string = finale.FCString()
@@ -526,6 +719,13 @@ __imports["library.general_library"] = function()
         return retval
     end
 
+    --[[
+    % get_default_music_font_name
+
+    Fetches the default music font from document options and processes the name into a usable format.
+
+    : (string) The name of the defalt music font.
+    ]]
     function library.get_default_music_font_name()
         local fontinfo = finale.FCFontInfo()
         local default_music_font_name = finale.FCString()
@@ -534,16 +734,28 @@ __imports["library.general_library"] = function()
             return default_music_font_name.LuaString
         end
     end
+
     return library
+
 end
 
 __imports["library.note_entry"] = function()
-
+    --[[
+    $module Note Entry
+    ]] --
     local note_entry = {}
 
+    --[[
+    % get_music_region
+
+    Returns an intance of `FCMusicRegion` that corresponds to the metric location of the input note entry.
+
+    @ entry (FCNoteEntry)
+    : (FCMusicRegion)
+    ]]
     function note_entry.get_music_region(entry)
         local exp_region = finale.FCMusicRegion()
-        exp_region:SetCurrentSelection()
+        exp_region:SetCurrentSelection() -- called to match the selected IU list (e.g., if using Staff Sets)
         exp_region.StartStaff = entry.Staff
         exp_region.EndStaff = entry.Staff
         exp_region.StartMeasure = entry.Measure
@@ -553,7 +765,8 @@ __imports["library.note_entry"] = function()
         return exp_region
     end
 
-
+    -- entry_metrics can be omitted, in which case they are constructed and released here
+    -- return entry_metrics, loaded_here
     local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
         if entry_metrics then
             return entry_metrics, false
@@ -565,15 +778,27 @@ __imports["library.note_entry"] = function()
         return nil, false
     end
 
+    --[[
+    % get_evpu_notehead_height
+
+    Returns the calculated height of the notehead rectangle.
+
+    @ entry (FCNoteEntry)
+
+    : (number) the EVPU height
+    ]]
     function note_entry.get_evpu_notehead_height(entry)
         local highest_note = entry:CalcHighestNote(nil)
         local lowest_note = entry:CalcLowestNote(nil)
-        local evpu_height = (2 + highest_note:CalcStaffPosition() - lowest_note:CalcStaffPosition()) * 12
+        local evpu_height = (2 + highest_note:CalcStaffPosition() - lowest_note:CalcStaffPosition()) * 12 -- 12 evpu per staff step; add 2 staff steps to accommodate for notehead height at top and bottom
         return evpu_height
     end
 
+    --[[
     % get_top_note_position
+
     Returns the vertical page coordinate of the top of the notehead rectangle, not including the stem.
+
     @ entry (FCNoteEntry)
     @ [entry_metrics] (FCEntryMetrics) entry metrics may be supplied by the caller if they are already available
     : (number)
@@ -602,8 +827,11 @@ __imports["library.note_entry"] = function()
         return retval
     end
 
+    --[[
     % get_bottom_note_position
+
     Returns the vertical page coordinate of the bottom of the notehead rectangle, not including the stem.
+
     @ entry (FCNoteEntry)
     @ [entry_metrics] (FCEntryMetrics) entry metrics may be supplied by the caller if they are already available
     : (number)
@@ -632,6 +860,14 @@ __imports["library.note_entry"] = function()
         return retval
     end
 
+    --[[
+    % calc_widths
+
+    Get the widest left-side notehead width and widest right-side notehead width.
+
+    @ entry (FCNoteEntry)
+    : (number, number) widest left-side notehead width and widest right-side notehead width
+    ]]
     function note_entry.calc_widths(entry)
         local left_width = 0
         local right_width = 0
@@ -652,9 +888,18 @@ __imports["library.note_entry"] = function()
         return left_width, right_width
     end
 
+    -- These functions return the offset for an expression handle.
+    -- Expression handles are vertical when they are left-aligned
+    -- with the primary notehead rectangle.
 
+    --[[
+    % calc_left_of_all_noteheads
 
+    Calculates the handle offset for an expression with "Left of All Noteheads" horizontal positioning.
 
+    @ entry (FCNoteEntry) the entry to calculate from
+    : (number) offset from left side of primary notehead rectangle
+    ]]
     function note_entry.calc_left_of_all_noteheads(entry)
         if entry:CalcStemUp() then
             return 0
@@ -663,10 +908,26 @@ __imports["library.note_entry"] = function()
         return -left
     end
 
+    --[[
+    % calc_left_of_primary_notehead
+
+    Calculates the handle offset for an expression with "Left of Primary Notehead" horizontal positioning.
+
+    @ entry (FCNoteEntry) the entry to calculate from
+    : (number) offset from left side of primary notehead rectangle
+    ]]
     function note_entry.calc_left_of_primary_notehead(entry)
         return 0
     end
 
+    --[[
+    % calc_center_of_all_noteheads
+
+    Calculates the handle offset for an expression with "Center of All Noteheads" horizontal positioning.
+
+    @ entry (FCNoteEntry) the entry to calculate from
+    : (number) offset from left side of primary notehead rectangle
+    ]]
     function note_entry.calc_center_of_all_noteheads(entry)
         local left, right = note_entry.calc_widths(entry)
         local width_centered = (left + right) / 2
@@ -676,6 +937,14 @@ __imports["library.note_entry"] = function()
         return width_centered
     end
 
+    --[[
+    % calc_center_of_primary_notehead
+
+    Calculates the handle offset for an expression with "Center of Primary Notehead" horizontal positioning.
+
+    @ entry (FCNoteEntry) the entry to calculate from
+    : (number) offset from left side of primary notehead rectangle
+    ]]
     function note_entry.calc_center_of_primary_notehead(entry)
         local left, right = note_entry.calc_widths(entry)
         if entry:CalcStemUp() then
@@ -684,6 +953,14 @@ __imports["library.note_entry"] = function()
         return right / 2
     end
 
+    --[[
+    % calc_stem_offset
+
+    Calculates the offset of the stem from the left edge of the notehead rectangle. Eventually the PDK Framework may be able to provide this instead.
+
+    @ entry (FCNoteEntry) the entry to calculate from
+    : (number) offset of stem from the left edge of the notehead rectangle.
+    ]]
     function note_entry.calc_stem_offset(entry)
         if not entry:CalcStemUp() then
             return 0
@@ -692,6 +969,14 @@ __imports["library.note_entry"] = function()
         return left
     end
 
+    --[[
+    % calc_right_of_all_noteheads
+
+    Calculates the handle offset for an expression with "Right of All Noteheads" horizontal positioning.
+
+    @ entry (FCNoteEntry) the entry to calculate from
+    : (number) offset from left side of primary notehead rectangle
+    ]]
     function note_entry.calc_right_of_all_noteheads(entry)
         local left, right = note_entry.calc_widths(entry)
         if entry:CalcStemUp() then
@@ -700,6 +985,16 @@ __imports["library.note_entry"] = function()
         return right
     end
 
+    --[[
+    % calc_note_at_index
+
+    This function assumes `for note in each(note_entry)` always iterates in the same direction.
+    (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
+    Currently the PDK Framework does not seem to offer a better option.
+
+    @ entry (FCNoteEntry)
+    @ note_index (number) the zero-based index
+    ]]
     function note_entry.calc_note_at_index(entry, note_index)
         local x = 0
         for note in each(entry) do
@@ -711,6 +1006,15 @@ __imports["library.note_entry"] = function()
         return nil
     end
 
+    --[[
+    % stem_sign
+
+    This is useful for many x,y positioning fields in Finale that mirror +/-
+    based on stem direction.
+
+    @ entry (FCNoteEntry)
+    : (number) 1 if upstem, -1 otherwise
+    ]]
     function note_entry.stem_sign(entry)
         if entry:CalcStemUp() then
             return 1
@@ -718,6 +1022,12 @@ __imports["library.note_entry"] = function()
         return -1
     end
 
+    --[[
+    % duplicate_note
+
+    @ note (FCNote)
+    : (FCNote | nil) reference to added FCNote or `nil` if not success
+    ]]
     function note_entry.duplicate_note(note)
         local new_note = note.Entry:AddNewNote()
         if nil ~= new_note then
@@ -729,24 +1039,43 @@ __imports["library.note_entry"] = function()
         return new_note
     end
 
+    --[[
+    % delete_note
+
+    Removes the specified FCNote from its associated FCNoteEntry.
+
+    @ note (FCNote)
+    : (boolean) true if success
+    ]]
     function note_entry.delete_note(note)
         local entry = note.Entry
         if nil == entry then
             return false
         end
 
+        -- attempt to delete all associated entry-detail mods, but ignore any failures
         finale.FCAccidentalMod():EraseAt(note)
         finale.FCCrossStaffMod():EraseAt(note)
         finale.FCDotMod():EraseAt(note)
         finale.FCNoteheadMod():EraseAt(note)
         finale.FCPercussionNoteMod():EraseAt(note)
         finale.FCTablatureNoteMod():EraseAt(note)
-        if finale.FCTieMod then
+        if finale.FCTieMod then -- added in RGP Lua 0.62
             finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
             finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
         end
+
         return entry:DeleteNote(note)
     end
+
+    --[[
+    % calc_pitch_string
+
+    Calculates the pitch string of a note for display purposes.
+
+    @ note (FCNote)
+    : (string) display string for note
+    ]]
 
     function note_entry.calc_pitch_string(note)
         local pitch_string = finale.FCString()
@@ -756,6 +1085,14 @@ __imports["library.note_entry"] = function()
         return pitch_string
     end
 
+    --[[
+    % calc_spans_number_of_octaves
+
+    Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).
+
+    @ entry (FCNoteEntry) the entry to calculate from
+    : (number) of octaves spanned
+    ]]
     function note_entry.calc_spans_number_of_octaves(entry)
         local top_note = entry:CalcHighestNote(nil)
         local bottom_note = entry:CalcLowestNote(nil)
@@ -764,11 +1101,28 @@ __imports["library.note_entry"] = function()
         return num_octaves
     end
 
-    function note_entry.add_augmentation_dot(entry)
+    --[[
+    % add_augmentation_dot
 
+    Adds an augentation dot to the entry. This works even if the entry already has one or more augmentation dots.
+
+    @ entry (FCNoteEntry) the entry to which to add the augmentation dot
+    ]]
+    function note_entry.add_augmentation_dot(entry)
+        -- entry.Duration = entry.Duration | (entry.Duration >> 1) -- For Lua 5.3 and higher
         entry.Duration = bit32.bor(entry.Duration, bit32.rshift(entry.Duration, 1))
     end
 
+    --[[
+    % get_next_same_v
+
+    Returns the next entry in the same V1 or V2 as the input entry.
+    If the input entry is V2, only the current V2 launch is searched.
+    If the input entry is V1, only the current measure and layer is searched.
+
+    @ entry (FCNoteEntry) the entry to process
+    : (FCNoteEntry) the next entry or `nil` in none
+    ]]
     function note_entry.get_next_same_v(entry)
         local next_entry = entry:Next()
         if entry.Voice2 then
@@ -785,6 +1139,13 @@ __imports["library.note_entry"] = function()
         return next_entry
     end
 
+    --[[
+    % hide_stem
+
+    Hides the stem of the entry by replacing it with Shape 0.
+
+    @ entry (FCNoteEntry) the entry to process
+    ]]
     function note_entry.hide_stem(entry)
         local stem = finale.FCCustomStemMod()
         stem:SetNoteEntry(entry)
@@ -798,6 +1159,15 @@ __imports["library.note_entry"] = function()
         end
     end
 
+    --[[
+    % rest_offset
+
+    Confirms the entry is a rest then offsets it from the staff rest "center" position. 
+
+    @ entry (FCNoteEntry) the entry to process
+    @ offset (number) offset in half spaces
+    : (boolean) true if success
+    ]]
     function note_entry.rest_offset(entry, offset)
         if entry:IsNote() then
             return false
@@ -823,11 +1193,15 @@ __imports["library.note_entry"] = function()
         end
         return true
     end
+
     return note_entry
+
 end
 
 __imports["library.enigma_string"] = function()
-
+    --[[
+    $module Enigma String
+    ]] --
     local enigma_string = {}
     local starts_with_font_command = function(string)
         local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
@@ -839,7 +1213,23 @@ __imports["library.enigma_string"] = function()
         return false
     end
 
+    --[[
+    The following implements a hypothetical FCString.TrimFirstEnigmaFontTags() function
+    that would preferably be in the PDK Framework. Trimming only first allows us to
+    preserve style changes within the rest of the string, such as changes from plain to
+    italic. Ultimately this seems more useful than trimming out all font tags.
+    If the PDK Framework is ever changed, it might be even better to create replace font
+    functions that can replace only font, only size, only style, or all three together.
+    ]]
 
+    --[[
+    % trim_first_enigma_font_tags
+
+    Trims the first font tags and returns the result as an instance of FCFontInfo.
+
+    @ string (FCString) this is both the input and the trimmed output result
+    : (FCFontInfo | nil) the first font info that was stripped or `nil` if none
+    ]]
     function enigma_string.trim_first_enigma_font_tags(string)
         local font_info = finale.FCFontInfo()
         local found_tag = false
@@ -864,6 +1254,15 @@ __imports["library.enigma_string"] = function()
         return nil
     end
 
+    --[[
+    % change_first_string_font
+
+    Replaces the first enigma font tags of the input enigma string.
+
+    @ string (FCString) this is both the input and the modified output result
+    @ font_info (FCFontInfo) replacement font info
+    : (boolean) true if success
+    ]]
     function enigma_string.change_first_string_font(string, font_info)
         local final_text = font_info:CreateEnigmaString(nil)
         local current_font_info = enigma_string.trim_first_enigma_font_tags(string)
@@ -875,6 +1274,15 @@ __imports["library.enigma_string"] = function()
         return false
     end
 
+    --[[
+    % change_first_text_block_font
+
+    Replaces the first enigma font tags of input text block.
+
+    @ text_block (FCTextBlock) this is both the input and the modified output result
+    @ font_info (FCFontInfo) replacement font info
+    : (boolean) true if success
+    ]]
     function enigma_string.change_first_text_block_font(text_block, font_info)
         local new_text = text_block:CreateRawTextString()
         if enigma_string.change_first_string_font(new_text, font_info) then
@@ -884,8 +1292,17 @@ __imports["library.enigma_string"] = function()
         return false
     end
 
+    -- These implement a complete font replacement using the PDK Framework's
+    -- built-in TrimEnigmaFontTags() function.
 
+    --[[
+    % change_string_font
 
+    Changes the entire enigma string to have the input font info.
+
+    @ string (FCString) this is both the input and the modified output result
+    @ font_info (FCFontInfo) replacement font info
+    ]]
     function enigma_string.change_string_font(string, font_info)
         local final_text = font_info:CreateEnigmaString(nil)
         string:TrimEnigmaFontTags()
@@ -893,22 +1310,38 @@ __imports["library.enigma_string"] = function()
         string:SetString(final_text)
     end
 
+    --[[
+    % change_text_block_font
+
+    Changes the entire text block to have the input font info.
+
+    @ text_block (FCTextBlock) this is both the input and the modified output result
+    @ font_info (FCFontInfo) replacement font info
+    ]]
     function enigma_string.change_text_block_font(text_block, font_info)
         local new_text = text_block:CreateRawTextString()
         enigma_string.change_string_font(new_text, font_info)
         text_block:SaveRawTextString(new_text)
     end
 
+    --[[
+    % remove_inserts
+
+    Removes text inserts other than font commands and replaces them with
+
+    @ fcstring (FCString) this is both the input and the modified output result
+    @ replace_with_generic (boolean) if true, replace the insert with the text of the enigma command
+    ]]
     function enigma_string.remove_inserts(fcstring, replace_with_generic)
-
-
+        -- so far this just supports page-level inserts. if this ever needs to work with expressions, we'll need to
+        -- add the last three items in the (Finale 26) text insert menu, which are playback inserts not available to page text
         local text_cmds = {
             "^arranger", "^composer", "^copyright", "^date", "^description", "^fdate", "^filename", "^lyricist", "^page",
             "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages",
         }
         local lua_string = fcstring.LuaString
         for i, text_cmd in ipairs(text_cmds) do
-            local starts_at = string.find(lua_string, text_cmd, 1, true)
+            local starts_at = string.find(lua_string, text_cmd, 1, true) -- true: do a plain search
             while nil ~= starts_at do
                 local replace_with = ""
                 if replace_with_generic then
@@ -928,18 +1361,34 @@ __imports["library.enigma_string"] = function()
         fcstring.LuaString = lua_string
     end
 
+    --[[
+    % expand_value_tag
+
+    Expands the value tag to the input value_num.
+
+    @ fcstring (FCString) this is both the input and the modified output result
+    @ value_num (number) the value number to replace the tag with
+    ]]
     function enigma_string.expand_value_tag(fcstring, value_num)
-        value_num = math.floor(value_num + 0.5)
+        value_num = math.floor(value_num + 0.5) -- in case value_num is not an integer
         fcstring.LuaString = fcstring.LuaString:gsub("%^value%(%)", tostring(value_num))
     end
 
+    --[[
+    % calc_text_advance_width
+
+    Calculates the advance width of the input string taking into account all font and style changes within the string.
+
+    @ inp_string (FCString) this is an input-only value and is not modified
+    : (number) the width of the string
+    ]]
     function enigma_string.calc_text_advance_width(inp_string)
         local accumulated_string = ""
         local accumulated_width = 0
-        local enigma_strings = inp_string:CreateEnigmaStrings(true)
+        local enigma_strings = inp_string:CreateEnigmaStrings(true) -- true: include non-commands
         for str in each(enigma_strings) do
             accumulated_string = accumulated_string .. str.LuaString
-            if string.sub(str.LuaString, 1, 1) ~= "^" then
+            if string.sub(str.LuaString, 1, 1) ~= "^" then -- if this string segment is not a command, calculate its width
                 local fcstring = finale.FCString()
                 local text_met = finale.FCTextMetrics()
                 fcstring.LuaString = accumulated_string
@@ -952,22 +1401,35 @@ __imports["library.enigma_string"] = function()
         end
         return accumulated_width
     end
+
     return enigma_string
+
 end
 
 __imports["library.expression"] = function()
-
+    --[[
+    $module Expression
+    ]] --
     local expression = {}
+
     local library = require("library.general_library")
     local note_entry = require("library.note_entry")
     local enigma_string = require("library.enigma_string")
 
+    --[[
+    % get_music_region
+
+    Returns a music region corresponding to the input expression assignment.
+
+    @ exp_assign (FCExpression)
+    : (FCMusicRegion)
+    ]]
     function expression.get_music_region(exp_assign)
         if not exp_assign:IsSingleStaffAssigned() then
             return nil
         end
         local exp_region = finale.FCMusicRegion()
-        exp_region:SetCurrentSelection()
+        exp_region:SetCurrentSelection() -- called to match the selected IU list (e.g., if using Staff Sets)
         exp_region.StartStaff = exp_assign.Staff
         exp_region.EndStaff = exp_assign.Staff
         exp_region.StartMeasure = exp_assign.Measure
@@ -977,6 +1439,14 @@ __imports["library.expression"] = function()
         return exp_region
     end
 
+    --[[
+    % get_associated_entry
+
+    Returns the note entry associated with the input expression assignment, if any.
+
+    @ exp_assign (FCExpression)
+    : (FCNoteEntry) associated entry or nil if none
+    ]]
     function expression.get_associated_entry(exp_assign)
         local exp_region = expression.get_music_region(exp_assign)
         if nil == exp_region then
@@ -984,7 +1454,7 @@ __imports["library.expression"] = function()
         end
         for entry in eachentry(exp_region) do
             if (0 == exp_assign.LayerAssignment) or (entry.LayerNumber == exp_assign.LayerAssignment) then
-                if not entry:GetGraceNote() then
+                if not entry:GetGraceNote() then -- for now skip all grace notes: we can revisit this if need be
                     return entry
                 end
             end
@@ -992,6 +1462,14 @@ __imports["library.expression"] = function()
         return nil
     end
 
+    --[[
+    % calc_handle_offset_for_smart_shape
+
+    Returns the horizontal EVPU offset for a smart shape endpoint to align exactly with the handle of the input expression, given that they both have the same EDU position.
+
+    @ exp_assign (FCExpression)
+    : (number)
+    ]]
     function expression.calc_handle_offset_for_smart_shape(exp_assign)
         local manual_horizontal = exp_assign.HorizontalPos
         local def_horizontal = 0
@@ -1019,8 +1497,11 @@ __imports["library.expression"] = function()
         return (manual_horizontal + def_horizontal + alignment_offset)
     end
 
+    --[[
     % calc_text_width
+
     Returns the text advance width of the input expression definition.
+
     @ expression_def (FCTextExpessionDef)
     @ [expand_tags] (boolean) defaults to false, currently only supports `^value()`
     : (number)
@@ -1035,8 +1516,11 @@ __imports["library.expression"] = function()
         return retval
     end
 
+    --[[
     % is_for_current_part
+
     Returns true if the expression assignment is assigned to the current part or score.
+
     @ exp_assign (FCExpression)
     @ [current_part] (FCPart) defaults to current part, but it can be supplied if the caller has already calculated it.
     : (boolean)
@@ -1050,12 +1534,14 @@ __imports["library.expression"] = function()
         end
         return false
     end
+
     return expression
+
 end
 
 function plugindef()
-
-
+   -- This function and the 'finaleplugin' namespace
+   -- are both reserved for the plug-in definition.
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -1064,9 +1550,20 @@ function plugindef()
     finaleplugin.CategoryTags = "Expression"
     return "Expression Add Opaque Background", "Expression Add Opaque Background", "Add an opaque background to any single-staff text expression in the currenly selected region."
 end
+
 local library = require("library.general_library")
 local expression = require("library.expression")
+
+-- note: if an expression already has an enclosure, this routine simply makes it opaque
+
+-- As of June 22, 2020 the PDK Framework does not export the constructor for FCEnclosure into JW Lua, so we have to
+-- find an existing enclosure to copy. Hopefully we can dispense with this hack at some point,
+-- hence it is not in the main routine.
+
+-- RGP Lua v0.60 added the ability to create FCEnclosure instances.
+
 local can_create_enclosures = finenv.MajorVersion > 0 or finenv.MinorVersion >= 60
+
 local found_enclosure = nil
 if not can_create_enclosures then
     local text_expression_defs = finale.FCTextExpressionDefs()
@@ -1084,6 +1581,7 @@ if not can_create_enclosures then
         return
     end
 end
+
 function expression_add_opaque_background()
     local current_part = library.get_current_part()
     local expression_assignments = finale.FCExpressions()
@@ -1093,7 +1591,7 @@ function expression_add_opaque_background()
             if expression.is_for_current_part(expression_assignment, current_part) then
                 local expression_def = finale.FCTextExpressionDef()
                 if expression_def:Load(expression_assignment.ID) then
-                    if not expression_def.UseEnclosure then
+                    if not expression_def.UseEnclosure then -- this prevents us from modifying existing enclosures
                         local enclosure = found_enclosure
                         if can_create_enclosures then
                             enclosure = finale.FCEnclosure()
@@ -1125,4 +1623,5 @@ function expression_add_opaque_background()
         end
     end
 end
+
 expression_add_opaque_background()

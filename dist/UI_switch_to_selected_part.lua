@@ -1,36 +1,53 @@
 local __imports = {}
 local __import_results = {}
+
 function require(item)
     if not __imports[item] then
         error("module '" .. item .. "' not found")
     end
+
     if __import_results[item] == nil then
         __import_results[item] = __imports[item]()
         if __import_results[item] == nil then
             __import_results[item] = true
         end
     end
+
     return __import_results[item]
 end
 
 __imports["library.client"] = function()
+    --[[
+    $module Client
 
+    Get information about the current client. For the purposes of Finale Lua, the client is
+    the Finale application that's running on someones machine. Therefore, the client has
+    details about the user's setup, such as their Finale version, plugin version, and
+    operating system.
+
+    One of the main uses of using client details is to check its capabilities. As such,
+    the bulk of this library is helper functions to determine what the client supports.
+    ]] --
     local client = {}
+
     local function to_human_string(feature)
         return string.gsub(feature, "_", " ")
     end
+
     local function requires_later_plugin_version(feature)
         if feature then
             return "This script uses " .. to_human_string(feature) .. "which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
         end
         return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
     end
+
     local function requires_rgp_lua(feature)
         if feature then
             return "This script uses " .. to_human_string(feature) .. " which is not available on JW Lua. Please use RGP Lua instead to use this script."
         end
         return "This script requires RGP Lua, the successor of JW Lua. Please use RGP Lua instead to use this script."
     end
+
     local function requires_plugin_version(version, feature)
         if tonumber(version) <= 0.54 then
             if feature then
@@ -44,16 +61,20 @@ __imports["library.client"] = function()
         end
         return "This script requires RGP Lua version " .. version .. " or later. Please update your plugin to use this script."
     end
+
     local function requires_finale_version(version, feature)
         return "This script uses " .. to_human_string(feature) .. ", which is only available on Finale " .. version .. " or later"
     end
 
+    --[[
     % get_raw_finale_version
     Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
     this is the internal major Finale version, not the year.
+
     @ major (number) Major Finale version
     @ minor (number) Minor Finale version
     @ [build] (number) zero if omitted
+
     : (number)
     ]]
     function client.get_raw_finale_version(major, minor, build)
@@ -64,10 +85,19 @@ __imports["library.client"] = function()
         return retval
     end
 
+    --[[
+    % get_lua_plugin_version
+    Returns a number constructed from `finenv.MajorVersion` and `finenv.MinorVersion`. The reason not
+    to use `finenv.StringVersion` is that `StringVersion` can contain letters if it is a pre-release
+    version.
+
+    : (number)
+    ]]
     function client.get_lua_plugin_version()
         local num_string = tostring(finenv.MajorVersion) .. "." .. tostring(finenv.MinorVersion)
         return tonumber(num_string)
     end
+
     local features = {
         clef_change = {
             test = client.get_lua_plugin_version() >= 0.60,
@@ -99,11 +129,16 @@ __imports["library.client"] = function()
         },
     }
 
+    --[[
     % supports
+
     Checks the client supports a given feature. Returns true if the client
     supports the feature, false otherwise.
+
     To assert the client must support a feature, use `client.assert_supports`.
+
     For a list of valid features, see the [`features` table in the codebase](https://github.com/finale-lua/lua-scripts/blob/master/src/library/client.lua#L52).
+
     @ feature (string) The feature the client should support.
     : (boolean)
     ]]
@@ -114,12 +149,17 @@ __imports["library.client"] = function()
         return features[feature].test
     end
 
+    --[[
     % assert_supports
+
     Asserts that the client supports a given feature. If the client doesn't
     support the feature, this function will throw an friendly error then
     exit the program.
+
     To simply check if a client supports a feature, use `client.supports`.
+
     For a list of valid features, see the [`features` table in the codebase](https://github.com/finale-lua/lua-scripts/blob/master/src/library/client.lua#L52).
+
     @ feature (string) The feature the client should support.
     : (boolean)
     ]]
@@ -129,19 +169,33 @@ __imports["library.client"] = function()
             if features[feature].error then
                 error(features[feature].error, error_level)
             end
-
+            -- Generic error message
             error("Your Finale version does not support " .. to_human_string(feature), error_level)
         end
         return true
     end
+
     return client
+
 end
 
 __imports["library.general_library"] = function()
-
+    --[[
+    $module Library
+    ]] --
     local library = {}
+
     local client = require("library.client")
 
+    --[[
+    % group_overlaps_region
+
+    Returns true if the input staff group overlaps with the input music region, otherwise false.
+
+    @ staff_group (FCGroup)
+    @ region (FCMusicRegion)
+    : (boolean)
+    ]]
     function library.group_overlaps_region(staff_group, region)
         if region:IsFullDocumentSpan() then
             return true
@@ -164,6 +218,16 @@ __imports["library.general_library"] = function()
         return true
     end
 
+    --[[
+    % group_is_contained_in_region
+
+    Returns true if the entire input staff group is contained within the input music region.
+    If the start or end staff are not visible in the region, it returns false.
+
+    @ staff_group (FCGroup)
+    @ region (FCMusicRegion)
+    : (boolean)
+    ]]
     function library.group_is_contained_in_region(staff_group, region)
         if not region:IsStaffIncluded(staff_group.StartStaff) then
             return false
@@ -174,6 +238,14 @@ __imports["library.general_library"] = function()
         return true
     end
 
+    --[[
+    % staff_group_is_multistaff_instrument
+
+    Returns true if the entire input staff group is a multistaff instrument.
+
+    @ staff_group (FCGroup)
+    : (boolean)
+    ]]
     function library.staff_group_is_multistaff_instrument(staff_group)
         local multistaff_instruments = finale.FCMultiStaffInstruments()
         multistaff_instruments:LoadAll()
@@ -185,6 +257,14 @@ __imports["library.general_library"] = function()
         return false
     end
 
+    --[[
+    % get_selected_region_or_whole_doc
+
+    Returns a region that contains the selected region if there is a selection or the whole document if there isn't.
+    SIDE-EFFECT WARNING: If there is no selected region, this function also changes finenv.Region() to the whole document.
+
+    : (FCMusicRegion)
+    ]]
     function library.get_selected_region_or_whole_doc()
         local sel_region = finenv.Region()
         if sel_region:IsEmpty() then
@@ -193,11 +273,19 @@ __imports["library.general_library"] = function()
         return sel_region
     end
 
+    --[[
+    % get_first_cell_on_or_after_page
+
+    Returns the first FCCell at the top of the input page. If the page is blank, it returns the first cell after the input page.
+
+    @ page_num (number)
+    : (FCCell)
+    ]]
     function library.get_first_cell_on_or_after_page(page_num)
         local curr_page_num = page_num
         local curr_page = finale.FCPage()
         local got1 = false
-
+        -- skip over any blank pages
         while curr_page:Load(curr_page_num) do
             if curr_page:GetFirstSystem() > 0 then
                 got1 = true
@@ -210,12 +298,19 @@ __imports["library.general_library"] = function()
             staff_sys:Load(curr_page:GetFirstSystem())
             return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
         end
-
+        -- if we got here there were nothing but blank pages left at the end
         local end_region = finale.FCMusicRegion()
         end_region:SetFullDocument()
         return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
     end
 
+    --[[
+    % get_top_left_visible_cell
+
+    Returns the topmost, leftmost visible FCCell on the screen, or the closest possible estimate of it.
+
+    : (FCCell)
+    ]]
     function library.get_top_left_visible_cell()
         if not finenv.UI():IsPageView() then
             local all_region = finale.FCMusicRegion()
@@ -225,6 +320,14 @@ __imports["library.general_library"] = function()
         return library.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())
     end
 
+    --[[
+    % get_top_left_selected_or_visible_cell
+
+    If there is a selection, returns the topmost, leftmost cell in the selected region.
+    Otherwise returns the best estimate for the topmost, leftmost currently visible cell.
+
+    : (FCCell)
+    ]]
     function library.get_top_left_selected_or_visible_cell()
         local sel_region = finenv.Region()
         if not sel_region:IsEmpty() then
@@ -233,6 +336,17 @@ __imports["library.general_library"] = function()
         return library.get_top_left_visible_cell()
     end
 
+    --[[
+    % is_default_measure_number_visible_on_cell
+
+    Returns true if measure numbers for the input region are visible on the input cell for the staff system.
+
+    @ meas_num_region (FCMeasureNumberRegion)
+    @ cell (FCCell)
+    @ staff_system (FCStaffSystem)
+    @ current_is_part (boolean) true if the current view is a linked part, otherwise false
+    : (boolean)
+    ]]
     function library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
         local staff = finale.FCCurrentStaffSpec()
         if not staff:LoadForCell(cell, 0) then
@@ -250,8 +364,11 @@ __imports["library.general_library"] = function()
         return false
     end
 
+    --[[
     % calc_parts_boolean_for_measure_number_region
+
     Returns the correct boolean value to use when requesting information about a measure number region.
+
     @ meas_num_region (FCMeasureNumberRegion)
     @ [for_part] (boolean) true if requesting values for a linked part, otherwise false. If omitted, this value is calculated.
     : (boolean) the value to pass to FCMeasureNumberRegion methods with a parts boolean
@@ -266,6 +383,18 @@ __imports["library.general_library"] = function()
         return for_part
     end
 
+    --[[
+    % is_default_number_visible_and_left_aligned
+
+    Returns true if measure number for the input cell is visible and left-aligned.
+
+    @ meas_num_region (FCMeasureNumberRegion)
+    @ cell (FCCell)
+    @ system (FCStaffSystem)
+    @ current_is_part (boolean) true if the current view is a linked part, otherwise false
+    @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
+    : (boolean)
+    ]]
     function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
         current_is_part = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
         if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
@@ -290,8 +419,11 @@ __imports["library.general_library"] = function()
         return library.is_default_measure_number_visible_on_cell(meas_num_region, cell, system, current_is_part)
     end
 
+    --[[
     % update_layout
+
     Updates the page layout.
+
     @ [from_page] (number) page to update from, defaults to 1
     @ [unfreeze_measures] (boolean) defaults to false
     ]]
@@ -304,18 +436,39 @@ __imports["library.general_library"] = function()
         end
     end
 
+    --[[
+    % get_current_part
+
+    Returns the currently selected part or score.
+
+    : (FCPart)
+    ]]
     function library.get_current_part()
         local part = finale.FCPart(finale.PARTID_CURRENT)
         part:Load(part.ID)
         return part
     end
 
+    --[[
+    % get_score
+
+    Returns an `FCPart` instance that represents the score.
+
+    : (FCPart)
+    ]]
     function library.get_score()
         local part = finale.FCPart(finale.PARTID_SCORE)
         part:Load(part.ID)
         return part
     end
 
+    --[[
+    % get_page_format_prefs
+
+    Returns the default page format prefs for score or parts based on which is currently selected.
+
+    : (FCPageFormatPrefs)
+    ]]
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
@@ -327,6 +480,7 @@ __imports["library.general_library"] = function()
         end
         return page_format_prefs, success
     end
+
     local calc_smufl_directory = function(for_user)
         local is_on_windows = finenv.UI():IsOnWindows()
         local do_getenv = function(win_var, mac_var)
@@ -343,6 +497,19 @@ __imports["library.general_library"] = function()
         smufl_directory = smufl_directory .. "/SMuFL/Fonts/"
         return smufl_directory
     end
+
+    --[[
+    % get_smufl_font_list
+
+    Returns table of installed SMuFL font names by searching the directory that contains
+    the .json files for each font. The table is in the format:
+
+    ```lua
+    <font-name> = "user" | "system"
+    ```
+
+    : (table) an table with SMuFL font names as keys and values "user" or "system"
+    ]]
 
     function library.get_smufl_font_list()
         local font_names = {}
@@ -377,7 +544,9 @@ __imports["library.general_library"] = function()
         return font_names
     end
 
+    --[[
     % get_smufl_metadata_file
+
     @ [font_info] (FCFontInfo) if non-nil, the font to search for; if nil, search for the Default Music Font
     : (file handle|nil)
     ]]
@@ -386,18 +555,23 @@ __imports["library.general_library"] = function()
             font_info = finale.FCFontInfo()
             font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
         end
+
         local try_prefix = function(prefix, font_info)
             local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
             return io.open(file_path, "r")
         end
+
         local user_file = try_prefix(calc_smufl_directory(true), font_info)
         if user_file then
             return user_file
         end
+
         return try_prefix(calc_smufl_directory(false), font_info)
     end
 
+    --[[
     % is_font_smufl_font
+
     @ [font_info] (FCFontInfo) if non-nil, the font to check; if nil, check the Default Music Font
     : (boolean)
     ]]
@@ -406,11 +580,13 @@ __imports["library.general_library"] = function()
             font_info = finale.FCFontInfo()
             font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
         end
+
         if client.supports("smufl") then
-            if nil ~= font_info.IsSMuFLFont then
+            if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
                 return font_info.IsSMuFLFont
             end
         end
+
         local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
         if nil ~= smufl_metadata_file then
             io.close(smufl_metadata_file)
@@ -419,8 +595,11 @@ __imports["library.general_library"] = function()
         return false
     end
 
+    --[[
     % simple_input
+
     Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
+
     @ [title] (string) the title of the input dialog box
     @ [text] (string) descriptive text above the edit field
     : string
@@ -430,14 +609,14 @@ __imports["library.general_library"] = function()
         return_value.LuaString = ""
         local str = finale.FCString()
         local min_width = 160
-
+        --
         function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             str.LuaString = st
             ctrl:SetText(str)
-        end
-
+        end -- function format_ctrl
+        --
         title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
@@ -446,38 +625,49 @@ __imports["library.general_library"] = function()
         if text_width > min_width then
             min_width = text_width
         end
-
+        --
         str.LuaString = title
         local dialog = finale.FCCustomLuaWindow()
         dialog:SetTitle(str)
         local descr = dialog:CreateStatic(0, 0)
         format_ctrl(descr, 16, min_width, text)
         local input = dialog:CreateEdit(0, 20)
-        format_ctrl(input, 20, min_width, "")
+        format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
         dialog:CreateOkButton()
         dialog:CreateCancelButton()
-
+        --
         function callback(ctrl)
-        end
-
+        end -- callback
+        --
         dialog:RegisterHandleCommand(callback)
-
+        --
         if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
             return_value.LuaString = input:GetText(return_value)
-
+            -- print(return_value.LuaString)
             return return_value.LuaString
-
+            -- OK button was pressed
         end
-    end
+    end -- function simple_input
 
+    --[[
+    % is_finale_object
+
+    Attempts to determine if an object is a Finale object through ducktyping
+
+    @ object (__FCBase)
+    : (bool)
+    ]]
     function library.is_finale_object(object)
-
+        -- All finale objects implement __FCBase, so just check for the existence of __FCBase methods
         return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
     end
 
+    --[[
     % system_indent_set_to_prefs
+
     Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
     The page preferences may be provided optionally to avoid loading them for each call.
+
     @ system (FCStaffSystem)
     @ [page_format_prefs] (FCPageFormatPrefs) page format preferences to use, if supplied.
     : (boolean) `true` if the system was successfully updated.
@@ -499,19 +689,22 @@ __imports["library.general_library"] = function()
         return system:Save()
     end
 
+    --[[
     % calc_script_name
+
     Returns the running script name, with or without extension.
+
     @ [include_extension] (boolean) Whether to include the file extension in the return value: `false` if omitted
     : (string) The name of the current running script.
     ]]
     function library.calc_script_name(include_extension)
         local fc_string = finale.FCString()
         if finenv.RunningLuaFilePath then
-
+            -- Use finenv.RunningLuaFilePath() if available because it doesn't ever get overwritten when retaining state.
             fc_string.LuaString = finenv.RunningLuaFilePath()
         else
-
-
+            -- This code path is only taken by JW Lua (and very early versions of RGP Lua).
+            -- SetRunningLuaFilePath is not reliable when retaining state, so later versions use finenv.RunningLuaFilePath.
             fc_string:SetRunningLuaFilePath()
         end
         local filename_string = finale.FCString()
@@ -526,6 +719,13 @@ __imports["library.general_library"] = function()
         return retval
     end
 
+    --[[
+    % get_default_music_font_name
+
+    Fetches the default music font from document options and processes the name into a usable format.
+
+    : (string) The name of the defalt music font.
+    ]]
     function library.get_default_music_font_name()
         local fontinfo = finale.FCFontInfo()
         local default_music_font_name = finale.FCString()
@@ -534,7 +734,9 @@ __imports["library.general_library"] = function()
             return default_music_font_name.LuaString
         end
     end
+
     return library
+
 end
 
 function plugindef()
@@ -547,11 +749,15 @@ function plugindef()
     return "Switch To Selected Part", "Switch To Selected Part",
            "Switches to the first part of the top staff in a selected region in a score. Switches back to the score if viewing a part."
 end
+
 local library = require("library.general_library")
+
 function ui_switch_to_selected_part()
+
     local music_region = finenv.Region()
     local selection_exists = not music_region:IsEmpty()
     local ui = finenv.UI()
+
     local top_cell = library.get_top_left_selected_or_visible_cell()
     local parts = finale.FCParts()
     parts:LoadAll()
@@ -568,14 +774,14 @@ function ui_switch_to_selected_part()
         if part_ID ~= nil then
             local part = finale.FCPart(part_ID)
             part:ViewInDocument()
-
+            -- Finale does not always calculate the selected region correctly for the part, leading to an invalid selection state, so fix it when switching to parts
             if selection_exists then
                 music_region:SetInstrumentList(0)
                 music_region:SetStartStaff(top_cell.Staff)
                 music_region:SetEndStaff(top_cell.Staff)
                 music_region:SetInDocument()
             end
-
+            -- scroll the selected region into view, because Finale sometimes loses track of it
             ui:MoveToMeasure(top_cell.Measure, music_region.StartStaff)
         else
             finenv.UI():AlertInfo("Hmm, this part doesn't seem to be generated.\nTry generating parts and try again", "No Part Detected")
@@ -583,10 +789,12 @@ function ui_switch_to_selected_part()
     else
         local score_ID = parts:GetScore()
         local part = finale.FCPart(score_ID:GetID())
-
+        -- Finale manages to keep the selected region displayed when switching back to score, so nothing needs to be done here
         part:ViewInDocument()
-
+        -- scroll the selected region into view, because Finale sometimes loses track of it
         ui:MoveToMeasure(top_cell.Measure, top_cell.Staff)
     end
+
 end
+
 ui_switch_to_selected_part()

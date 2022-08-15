@@ -1,6 +1,6 @@
 function plugindef()
-
-
+    -- This function and the 'finaleplugin' namespace
+    -- are both reserved for the plug-in definition.
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "1.1"
@@ -42,12 +42,12 @@ function staff_rename()
     local full_fonts = {}
     local abb_fonts = {}
     local staves = {}
-
+    --  tables for dialog controls
     local static_staff = {}
     local edit_fullname = {}
     local edit_abbname = {}
     local copy_button = {}
-
+    -- Transposing instruments (Finale 27)
     local form0_names = {"Clarinet in B[b]", "Clarinet in A", "Clarinet in E[b]","Horn in F", "Trumpet in B[b]", "Trumpet in C", "Horn in E[b]", "Piccolo Trumpet in A", "Trumpet in D", "Cornet in E[b]", "Pennywhistle in D", "Pennywhistle in G", "Tin Whistle in B[b]", "Melody Sax in C"}
     local form1_names = {"B[b] Clarinet", "A Clarinet", "E[b] Clarinet", "F Horn", "B[b] Trumpet", "C Trumpet", "E[b] Horn", "A Piccolo Trumpet", "D Trumpet", "E[b] Cornet", "D Pennywhistle", "G Pennywhistle", "B[b] Tin Whistle", "C Melody Sax"}
 
@@ -78,7 +78,7 @@ function staff_rename()
         local font_enigma = finale.FCString()
         font_enigma = font:CreateEnigmaString(nil)
         table.insert(multi_full_fonts, font_enigma.LuaString)
-
+        --
         str = grp:CreateAbbreviatedNameString()
         font = str:CreateLastFontInfo()
         font_enigma = font:CreateEnigmaString(nil)
@@ -107,7 +107,7 @@ function staff_rename()
     sysstaves:LoadAllForRegion(region)
 
     for sysstaff in each(sysstaves) do
-
+        -- Process multi-staff instruments
         for i,j in pairs(multi_staves) do
 
             for k,l in pairs(multi_staves[i]) do
@@ -132,7 +132,7 @@ function staff_rename()
             end
         end
 
-
+        -- Process single-staff instruments
         local staff = finale.FCStaff()
         staff:Load(sysstaff.Staff)
         local str = staff:CreateFullNameString()
@@ -166,13 +166,13 @@ function staff_rename()
         for i = 1, 100 do
             row[i] = (i -1) * row_h
         end
-
+--
         local col = {}
         for i = 1, 11 do
             col[i] = (i - 1) * col_w
             col[i] = col[i] + 40
         end
-
+--
 
         function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)
             str.LuaString = text
@@ -210,8 +210,8 @@ function staff_rename()
         local staff_name_full_static = add_ctrl(dialog, "static", "Full Name", col[1], row[1], row_h, col_w, 0, 0)
         local staff_name_abb_static = add_ctrl(dialog, "static", "Abbr. Name", col[2], row[1], row_h, col_w, 0, 0)
         local copy_all = add_ctrl(dialog, "button", "→", col[2] - col_gap + 2, row[1], row_h-4, 16, 0, 0)
-
-
+        --local h_line = add_ctrl(dialog, "horizontalline", 0, row[1], 1, col_w * 3, 0, 0)
+        --
         for i, j in pairs(staves) do
             static_staff[i] = add_ctrl(dialog, "static", staves[i], 10, row[i + 1], row_h, col_w, 0, 0)
             edit_fullname[i] = add_ctrl(dialog, "edit", fullnames[i], col[1], row[i + 1], row_h, col_w, 0, 0)
@@ -219,17 +219,17 @@ function staff_rename()
             copy_button[i] = add_ctrl(dialog, "button", "→", col[2] - col_gap + 2, row[i + 1], row_h-4, 16, 0, 0)
             row_count = row_count + 1
         end
-
+        --
         local form_select = add_ctrl(dialog, "popup", "", col[1], row[row_count + 1] + row_h/2, row_h, col_w - col_gap, 0, 0)
         local forms = {"Inst. in Tr.","Tr. Inst."}
         for i,j in pairs(forms) do
             str.LuaString = forms[i]
             form_select:AddString(str)
         end
-
+        --
         dialog:CreateOkButton()
         dialog:CreateCancelButton()
-
+        --
         function callback(ctrl)
             if ctrl:GetControlID() == form_select:GetControlID() then
                 local form = form_select:GetSelectedItem()
@@ -253,13 +253,13 @@ function staff_rename()
                     edit_fullname[i]:GetText(str)
                     for k,l in pairs(search) do
                         str.LuaString = string.gsub(str.LuaString, search[k], replace[k])
-                    end
+                    end                    
                     edit_fullname[i]:SetText(str)
-
+                    --
                     edit_abbname[i]:GetText(str)
                     for k,l in pairs(search) do
                         str.LuaString = string.gsub(str.LuaString, search[k], replace[k])
-                    end
+                    end                    
                     edit_abbname[i]:SetText(str)
                 end
             end
@@ -277,14 +277,14 @@ function staff_rename()
                     edit_abbname[i]:SetText(str)
                 end
             end
-        end
-
+        end -- callback
+        --
         dialog:RegisterHandleCommand(callback)
-
+        --
         if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
             local str = finale.FCString()
             for i, j in pairs(staves) do
-                for k, l in pairs(multi_staves) do
+                for k, l in pairs(multi_staves) do 
                     for m, n in pairs(multi_staves[k]) do
                         if staves[i] == multi_staves[k][m] then
                             local grp = finale.FCGroup()
@@ -322,10 +322,10 @@ function staff_rename()
             end
         end
 
-    end
+    end -- function
 
     dialog("Rename Staves")
 
-end
+end -- rename_staves()
 
 staff_rename()

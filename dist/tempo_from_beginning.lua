@@ -10,10 +10,11 @@ function plugindef()
 ]]
     return "Tempo From Beginning", "Tempo From Beginning", "Set tempo markings to start playback at the BEGINNING of each measure"
 end
+
 function set_tempo_to_beginning()
     local measures = finale.FCMeasures()
     measures:LoadRegion(finenv.Region())
-
+    
     for measure in each(measures) do
         for expression in each(measure:CreateExpressions()) do
             local exp_def = expression:CreateTextExpressionDef()
@@ -27,4 +28,5 @@ function set_tempo_to_beginning()
         end
     end
 end
+
 set_tempo_to_beginning()

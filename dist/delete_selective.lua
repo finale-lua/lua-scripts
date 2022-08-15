@@ -54,18 +54,20 @@ function plugindef()
         delete_type = "shape_all"
 	]]
 	finaleplugin.Notes = [[
-        Deletes nominated items from the selected region,
-        defaulting to a primary menu item: "Delete all expressions".
-        Under RGPLua (0.62+) nine additional menu items are created
-        to independently delete other items of these types:
-        dynamics / expressions (not dynamics) / expressions (measure-attached) / articulations /
-        hairpins / slurs / custom lines / glissandos / smart shapes (beat aligned) / all smart shapes
+        Deletes nominated items from the selected region, 
+        defaulting to a primary menu item: "Delete all expressions".  
+        Under RGPLua (0.62+) nine additional menu items are created 
+        to independently delete other items of these types: 
+        dynamics / expressions (not dynamics) / expressions (measure-attached) / articulations / 
+        hairpins / slurs / custom lines / glissandos / smart shapes (beat aligned) / all smart shapes 
     ]]
     return "Delete all expressions", "Delete all expressions", "Delete all expressions from the selected region"
 end
+
 delete_type = delete_type or "expression_all"
+
 function delete_selected()
-    if string.find(delete_type, "shape") then
+    if string.find(delete_type, "shape") then -- SMART SHAPE
         local marks = finale.FCSmartShapeMeasureMarks()
         marks:LoadAllForRegion(finenv.Region(), true)
         for mark in each(marks) do
@@ -80,11 +82,11 @@ function delete_selected()
                 shape:DeleteData()
             end
         end
-    elseif string.find(delete_type, "express") then
+    elseif string.find(delete_type, "express") then -- EXPRESSION type
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(finenv.Region())
         for exp in eachbackwards(expressions) do
-            local def_id = exp:CreateTextExpressionDef().CategoryID
+            local def_id = exp:CreateTextExpressionDef().CategoryID -- test for DYNAMICS
             if not exp:IsShape() and exp.StaffGroupID == 0 and
               (    (delete_type == "expression_all")
                 or (delete_type == "expression_not_dynamic" and def_id ~= finale.DEFAULTCATID_DYNAMICS)
@@ -94,7 +96,7 @@ function delete_selected()
                 exp:DeleteData()
             end
         end
-    elseif delete_type == "measure_attached" then
+    elseif delete_type == "measure_attached" then -- MEASURE-ATTACHED EXPRESSIONS type
         local measures = finale.FCMeasures()
         measures:LoadRegion(finenv.Region())
         local try = finale.FCExpression()
@@ -105,11 +107,11 @@ function delete_selected()
                 end
             end
             if not try:Load(measure.ItemNo, 0) then
-                measure.ExpressionFlag = false
+                measure.ExpressionFlag = false -- no expressions left
                 measure:Save()
             end
         end
-    elseif delete_type == "articulation" then
+    elseif delete_type == "articulation" then -- ARTICULATION type
         for entry in eachentrysaved(finenv.Region()) do
             if entry:GetArticulationFlag() then
                 for articulation in eachbackwards(entry:CreateArticulations()) do
@@ -120,4 +122,5 @@ function delete_selected()
         end
     end
 end
+
 delete_selected()

@@ -17,4 +17,5 @@ function rest_remove_default_whole_rests()
         staff:Save()
     end
 end
+
 rest_remove_default_whole_rests()

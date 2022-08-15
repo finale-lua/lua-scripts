@@ -8,11 +8,14 @@ function plugindef()
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     return "Mute Cue Notes", "Mute Cue Notes", "Mutes notes that are 85% normal size or smaller"
 end
+
 function playback_cues_mute()
     local notesize_limit = 85
+
     for entry in eachentrysaved(finenv.Region()) do
         local playback = false
         local notehead_mod = finale.FCNoteheadMod()
+
         if entry:CalcResize() > notesize_limit then
             for note in each(entry) do
                 notehead_mod:LoadAt(note)
@@ -24,4 +27,5 @@ function playback_cues_mute()
         entry.Playback = playback
     end
 end
+
 playback_cues_mute()

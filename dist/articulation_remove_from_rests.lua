@@ -9,6 +9,7 @@ function plugindef()
     return "Remove Articulations from Rests", "Remove Articulations from Rests",
            "If a rest has an articulation, it removes it (except breath marks, caesuras, or fermatas"
 end
+
 function articulation_remove_from_rests()
     for entry in eachentrysaved(finenv.Region()) do
         if entry:IsRest() and entry:GetArticulationFlag() then
@@ -27,4 +28,5 @@ function articulation_remove_from_rests()
         end
     end
 end
+
 articulation_remove_from_rests()

@@ -6,6 +6,7 @@ function plugindef()
     finaleplugin.CategoryTags = "Articulation"
     return "Remove Duplicate Articulations", "Remove Duplicate Articulations", "Remove Duplicate Articulations"
 end
+
 function articulation_delete_duplicates()
     for note_entry in eachentrysaved(finenv.Region()) do
         local art_list = {}
@@ -33,4 +34,5 @@ function articulation_delete_duplicates()
         end
     end
 end
+
 articulation_delete_duplicates()

@@ -34,13 +34,16 @@ function plugindef()
 		Barline Set Normal
 		Barline Set Double
 		Barline Set Final
-		Barline Set None
+		Barline Set None 
 		Barline Set Dashed
 		```
 	]]
 	return "Barline Set Normal", "Barline Set Normal", "Set all selected barlines to one of five styles"
 end
+
+-- default to "SINGLE" barline for "normal" operation
 new_barline = new_barline or finale.BARLINE_NORMAL
+
 function change_barline()
 	local region = finenv.Region()
 	region.StartMeasurePos = 0
@@ -53,4 +56,5 @@ function change_barline()
 	end
 	measures:SaveAll()
 end
+
 change_barline()

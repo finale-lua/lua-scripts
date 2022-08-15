@@ -10,10 +10,13 @@ function plugindef()
     ]]
     return "Solo selected staves", "Solo selected staves", "Solos selected staves"
 end
+
 function playback_solo_selected_staves()
     local full_doc_region = finale.FCMusicRegion()
     full_doc_region:SetFullDocument()
+
     local region = finenv.Region()
+
     for slot = full_doc_region.StartSlot, full_doc_region.EndSlot do
         local staff_number = region:CalcStaffNumber(slot)
         local staff = finale.FCStaff()
@@ -26,4 +29,5 @@ function playback_solo_selected_staves()
         playback_data:Save()
     end
 end
+
 playback_solo_selected_staves()
