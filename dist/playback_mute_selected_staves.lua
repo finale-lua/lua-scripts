@@ -10,13 +10,10 @@ function plugindef()
     ]]
     return "Mute selected staves", "Mute selected staves", "Mutes selected staves"
 end
-
 function playback_mute_selected_staves()
     local full_doc_region = finale.FCMusicRegion()
     full_doc_region:SetFullDocument()
-
     local region = finenv.Region()
-
     for slot = full_doc_region.StartSlot, full_doc_region.EndSlot do
         local staff_number = region:CalcStaffNumber(slot)
         local staff = finale.FCStaff()
@@ -29,5 +26,4 @@ function playback_mute_selected_staves()
         playback_data:Save()
     end
 end
-
 playback_mute_selected_staves()

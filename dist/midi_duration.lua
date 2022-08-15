@@ -7,19 +7,16 @@ function plugindef()
     finaleplugin.Date = "2022/08/04"
     finaleplugin.CategoryTags = "MIDI, Playback"
     finaleplugin.Notes = [[
-    Change the playback START and STOP times for every note in the selected area in one or all layers. 
+    Change the playback START and STOP times for every note in the selected area in one or all layers.
     To affect playback "Note Durations" must be enabled under "Playback/Record Options".
     ]]
     return "MIDI Duration", "MIDI Duration", "Change MIDI note start and stop times"
 end
-
--- RetainLuaState retains one global:
 config = config or {}
-
 function is_error()
     local msg = ""
     if math.abs(config.start_offset) > 9999 or math.abs(config.stop_offset) > 9999 then
-        msg = "Offset levels must be reasonable,\nsay -9999 to 9999\n(not " .. 
+        msg = "Offset levels must be reasonable,\nsay -9999 to 9999\n(not " ..
             config.start_offset .. "/" .. config.stop_offset .. ")"
     elseif config.layer < 0 or config.layer > 4 then
         msg = "Layer number must be an\ninteger between zero and 4\n(not " .. config.layer .. ")"
@@ -30,24 +27,21 @@ function is_error()
     end
     return false
 end
-
 function user_choices()
     local current_vert, vert_step = 10, 25
-    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
+    local mac_offset = finenv.UI():IsOnMac() and 3 or 0
     local edit_horiz = 110
-    
+
     local dialog = finale.FCCustomLuaWindow()
     local str = finale.FCString()
     str.LuaString = plugindef()
     dialog:SetTitle(str)
-
     local answer = {}
-    local texts = { -- static text, default value
+    local texts = {
         { "Start time (EDU):", config.start_offset or 0 },
         { "Stop time (EDU):", config.stop_offset or 0 },
         { "Layer 1-4 (0 = all):", config.layer or 0 },
     }
-
     for i,v in ipairs(texts) do
         str.LuaString = v[1]
         local static = dialog:CreateStatic(0, current_vert)
@@ -57,7 +51,6 @@ function user_choices()
         answer[i]:SetInteger(v[2])
         current_vert = current_vert + vert_step
     end
-
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterHandleOkButtonPressed(function()
@@ -72,7 +65,6 @@ function user_choices()
     end)
     return dialog
 end
-
 function make_the_change()
     if finenv.RetainLuaState ~= nil then
         finenv.RetainLuaState = true
@@ -82,7 +74,7 @@ function make_the_change()
         if entry:IsNote() then
             perf_mod:SetNoteEntry(entry)
             for note in each(entry) do
-                perf_mod:LoadAt(note)     -- don't change durations of tied notes!
+                perf_mod:LoadAt(note)
                 if not note.TieBackwards then
                     perf_mod.StartOffset = config.start_offset
                 end
@@ -94,7 +86,6 @@ function make_the_change()
         end
     end
 end
-
 function change_midi_duration()
     local dialog = user_choices()
     if config.pos_x and config.pos_y then
@@ -103,12 +94,11 @@ function change_midi_duration()
         dialog:RestorePosition()
     end
     if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK then
-        return -- user cancelled
+        return
     end
     if is_error() then
         return
     end
     make_the_change()
 end
-
 change_midi_duration()

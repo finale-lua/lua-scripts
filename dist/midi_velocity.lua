@@ -7,20 +7,16 @@ function plugindef()
     finaleplugin.Date = "2022/08/04"
     finaleplugin.CategoryTags = "MIDI, Playback"
     finaleplugin.Notes = [[
-    Change the playback Key Velocity for every note in the selected area in one or all layers. 
-    "Key Velocities" must be enabled under "Playback/Record Options" to affect playback. 
-    Note that key velocity will not affect every type of playback especially if Human Playback is active. 
-
-    Side-note: selecting the MIDI tool, choosing "Velocity" then "Set to" is moderately convenient 
-    but doesn't allow setting key velocity on a single chosen layer. 
+    Change the playback Key Velocity for every note in the selected area in one or all layers.
+    "Key Velocities" must be enabled under "Playback/Record Options" to affect playback.
+    Note that key velocity will not affect every type of playback especially if Human Playback is active.
+    Side-note: selecting the MIDI tool, choosing "Velocity" then "Set to" is moderately convenient
+    but doesn't allow setting key velocity on a single chosen layer.
     This script also remembers your choices between invocations.
     ]]
     return "MIDI Velocity", "MIDI Velocity", "Change MIDI Velocity"
 end
-
--- RetainLuaState retains one global:
 config = config or {}
-
 function is_error()
     local msg = ""
     if config.velocity < 0 or config.velocity > 127 then
@@ -34,19 +30,16 @@ function is_error()
     end
     return false
 end
-
 function user_choices(basekey)
     local current_vert, vert_step = 10, 25
-    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
+    local mac_offset = finenv.UI():IsOnMac() and 3 or 0
     local edit_horiz = 110
-
     local dialog = finale.FCCustomLuaWindow()
     local str = finale.FCString()
     str.LuaString = plugindef()
     dialog:SetTitle(str)
-
     local answer = {}
-    local texts = { -- static text, default value
+    local texts = {
         { "Key Velocity (0-127):", config.velocity or basekey },
         { "Layer 1-4 (0 = all):", config.layer or 0 },
     }
@@ -59,7 +52,6 @@ function user_choices(basekey)
         answer[i]:SetInteger(v[2])
         current_vert = current_vert + vert_step
     end
-
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterHandleOkButtonPressed(function()
@@ -73,7 +65,6 @@ function user_choices(basekey)
     end)
     return dialog
 end
-
 function make_the_change(basekey)
     if finenv.RetainLuaState ~= nil then
         finenv.RetainLuaState = true
@@ -90,12 +81,10 @@ function make_the_change(basekey)
         end
     end
 end
-
 function change_velocity()
     local prefs = finale.FCPlaybackPrefs()
     prefs:Load(1)
     local basekey = prefs:GetBaseKeyVelocity()
-
     local dialog = user_choices(basekey)
     if config.pos_x and config.pos_y then
         dialog:StorePosition()
@@ -103,12 +92,11 @@ function change_velocity()
         dialog:RestorePosition()
     end
     if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK then
-        return -- user cancelled
+        return
     end
     if is_error() then
         return
     end
     make_the_change(basekey)
 end
-
 change_velocity()

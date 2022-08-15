@@ -8,7 +8,6 @@ function plugindef()
     return "Delete Hidden V2 Notes", "Delete Hidden V2 Notes",
            "Removes V2 notes if all are hidden and no rests. Useful when Finale adds unwanted playback notes, e.g., after Score Merge."
 end
-
 function note_delete_hidden_v2_notes()
     for entry in eachentrysaved(finenv.Region()) do
         if entry.Voice2Launch then
@@ -34,5 +33,4 @@ function note_delete_hidden_v2_notes()
         end
     end
 end
-
 note_delete_hidden_v2_notes()

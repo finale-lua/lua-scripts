@@ -13,44 +13,36 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
         layer_visibility = true
     ]]
-    finaleplugin.AdditionalDescriptions = [[ 
+    finaleplugin.AdditionalDescriptions = [[
         Unhide selected layer in the current selection
     ]]
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.ScriptGroupName = "Layers hide or unhide"
     finaleplugin.ScriptGroupDescription = "Hide or unhide chosen layers in the current selection"
 	finaleplugin.Notes = [[
-		Hide or unhide chosen layers in the current selection. 
-		This script creates two menu item, `Layer hide` and `Layer unhide`. 
+		Hide or unhide chosen layers in the current selection.
+		This script creates two menu item, `Layer hide` and `Layer unhide`.
 	]]
     return "Layer hide", "Layer hide", "Hide selected layer in the current selection"
 end
-
--- default to "hide" layer for "normal" operation
 layer_visibility = layer_visibility or false
--- RetainLuaState retains one global:
 config = config or {}
-
 function user_chooses_layer()
     local y_offset = 10
     local x_offset = 120
     local edit_width = 50
-    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
-
+    local mac_offset = finenv.UI():IsOnMac() and 3 or 0
     local dialog = finale.FCCustomLuaWindow()
     local str = finale.FCString()
     str.LuaString = layer_visibility and "Layer unhide" or "Layer hide"
     dialog:SetTitle(str)
-
     str.LuaString = "Layer# 1-4 (0 = all):"
     local static = dialog:CreateStatic(0, y_offset)
     static:SetText(str)
     static:SetWidth(x_offset)
-
     local layer_choice = dialog:CreateEdit(x_offset, y_offset - mac_offset)
-    layer_choice:SetInteger(config.layer or 1)  -- default layer 1
+    layer_choice:SetInteger(config.layer or 1)
     layer_choice:SetWidth(edit_width)
-
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterHandleOkButtonPressed(function()
@@ -63,17 +55,15 @@ function user_chooses_layer()
     end)
     return dialog
 end
-
 function change_state()
     local dialog = user_chooses_layer()
-
     if config.pos_x and config.pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.pos_x, config.pos_y)
         dialog:RestorePosition()
     end
     if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK then
-        return -- user cancelled
+        return
     end
     if not config.layer or config.layer < 0 or config.layer > 4 then
         finenv.UI():AlertNeutral("script: " .. plugindef(),
@@ -87,5 +77,4 @@ function change_state()
         entry.Visible = layer_visibility
     end
 end
-
 change_state()
