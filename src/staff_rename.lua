@@ -5,7 +5,7 @@ function plugindef()
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "2.0"
     finaleplugin.Date = "8/13/2022"
-    finale.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
+    finaleplugin.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     finaleplugin.Notes = [[
 USING THE 'STAFF RENAME' SCRIPT
 
