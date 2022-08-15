@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.measurement"] = function()
 
     local measurement = {}
@@ -106,6 +107,7 @@ __imports["library.measurement"] = function()
     end
     return measurement
 end
+
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk"

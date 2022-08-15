@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.client"] = function()
 
     local client = {}
@@ -135,6 +136,7 @@ __imports["library.client"] = function()
     end
     return client
 end
+
 __imports["library.general_library"] = function()
 
     local library = {}
@@ -534,6 +536,7 @@ __imports["library.general_library"] = function()
     end
     return library
 end
+
 __imports["library.enigma_string"] = function()
 
     local enigma_string = {}
@@ -662,6 +665,7 @@ __imports["library.enigma_string"] = function()
     end
     return enigma_string
 end
+
 __imports["library.expression"] = function()
 
     local expression = {}
@@ -759,6 +763,7 @@ __imports["library.expression"] = function()
     end
     return expression
 end
+
 __imports["library.note_entry"] = function()
 
     local note_entry = {}
@@ -1047,6 +1052,7 @@ __imports["library.note_entry"] = function()
     end
     return note_entry
 end
+
 __imports["library.configuration"] = function()
 
 
@@ -1190,6 +1196,7 @@ __imports["library.configuration"] = function()
     end
     return configuration
 end
+
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "CJ Garcia"

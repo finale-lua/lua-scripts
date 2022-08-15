@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.note_entry"] = function()
 
     local note_entry = {}
@@ -300,6 +301,7 @@ __imports["library.note_entry"] = function()
     end
     return note_entry
 end
+
 __imports["library.tie"] = function()
 
     local tie = {}
@@ -1142,6 +1144,7 @@ __imports["library.tie"] = function()
 
     return tie
 end
+
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine and Robert Patterson"

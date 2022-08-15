@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.configuration"] = function()
 
 
@@ -155,6 +156,7 @@ __imports["library.configuration"] = function()
     end
     return configuration
 end
+
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.HandlesUndo = true

@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.layer"] = function()
 
     local layer = {}
@@ -90,6 +91,7 @@ __imports["library.layer"] = function()
 
     return layer
 end
+
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"

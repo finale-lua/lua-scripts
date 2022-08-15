@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.client"] = function()
 
     local client = {}
@@ -135,6 +136,7 @@ __imports["library.client"] = function()
     end
     return client
 end
+
 __imports["library.general_library"] = function()
 
     local library = {}
@@ -534,6 +536,7 @@ __imports["library.general_library"] = function()
     end
     return library
 end
+
 __imports["library.measurement"] = function()
 
     local measurement = {}
@@ -628,6 +631,7 @@ __imports["library.measurement"] = function()
     end
     return measurement
 end
+
 __imports["library.score"] = function()
 
     local library = require("library.general_library")
@@ -1207,6 +1211,7 @@ __imports["library.score"] = function()
     end
     return score
 end
+
 __imports["library.configuration"] = function()
 
 
@@ -1350,6 +1355,7 @@ __imports["library.configuration"] = function()
     end
     return configuration
 end
+
 function plugindef()
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"

@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.layer"] = function()
 
     local layer = {}
@@ -90,6 +91,7 @@ __imports["library.layer"] = function()
 
     return layer
 end
+
 __imports["library.note_entry"] = function()
 
     local note_entry = {}
@@ -378,6 +380,7 @@ __imports["library.note_entry"] = function()
     end
     return note_entry
 end
+
 function plugindef()
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"

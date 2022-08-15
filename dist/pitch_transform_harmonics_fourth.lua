@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.articulation"] = function()
 
     local articulation = {}
@@ -66,6 +67,7 @@ __imports["library.articulation"] = function()
     end
     return articulation
 end
+
 __imports["library.transposition"] = function()
 
 
@@ -284,6 +286,7 @@ __imports["library.transposition"] = function()
     end
     return transposition
 end
+
 __imports["library.configuration"] = function()
 
 
@@ -427,6 +430,7 @@ __imports["library.configuration"] = function()
     end
     return configuration
 end
+
 __imports["library.client"] = function()
 
     local client = {}
@@ -550,6 +554,7 @@ __imports["library.client"] = function()
     end
     return client
 end
+
 __imports["library.general_library"] = function()
 
     local library = {}
@@ -949,6 +954,7 @@ __imports["library.general_library"] = function()
     end
     return library
 end
+
 __imports["library.notehead"] = function()
 
     local notehead = {}
@@ -996,6 +1002,7 @@ __imports["library.notehead"] = function()
     end
     return notehead
 end
+
 __imports["library.note_entry"] = function()
 
     local note_entry = {}
@@ -1284,6 +1291,7 @@ __imports["library.note_entry"] = function()
     end
     return note_entry
 end
+
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk"

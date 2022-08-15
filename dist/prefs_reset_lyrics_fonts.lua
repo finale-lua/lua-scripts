@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.enigma_string"] = function()
 
     local enigma_string = {}
@@ -140,6 +141,7 @@ __imports["library.enigma_string"] = function()
     end
     return enigma_string
 end
+
 function plugindef()
 
 

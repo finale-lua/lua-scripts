@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.configuration"] = function()
 
 
@@ -155,6 +156,7 @@ __imports["library.configuration"] = function()
     end
     return configuration
 end
+
 __imports["library.client"] = function()
 
     local client = {}
@@ -278,6 +280,7 @@ __imports["library.client"] = function()
     end
     return client
 end
+
 __imports["library.clef"] = function()
 
     local clef = {}
@@ -326,6 +329,7 @@ __imports["library.clef"] = function()
     end
     return clef
 end
+
 __imports["library.layer"] = function()
 
     local layer = {}
@@ -404,6 +408,7 @@ __imports["library.layer"] = function()
 
     return layer
 end
+
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"

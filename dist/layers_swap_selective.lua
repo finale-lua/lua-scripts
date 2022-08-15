@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.layer"] = function()
 
     local layer = {}
@@ -90,6 +91,7 @@ __imports["library.layer"] = function()
 
     return layer
 end
+
 __imports["mixin.FCMControl"] = function()
 
 
@@ -174,6 +176,7 @@ __imports["mixin.FCMControl"] = function()
     props.AddHandleCommand, props.RemoveHandleCommand = mixin_helper.create_standard_control_event("HandleCommand")
     return props
 end
+
 __imports["mixin.FCMCtrlButton"] = function()
 
 
@@ -183,6 +186,7 @@ __imports["mixin.FCMCtrlButton"] = function()
     mixin_helper.disable_methods(props, "AddHandleCheckChange", "RemoveHandleCheckChange")
     return props
 end
+
 __imports["mixin.FCMCtrlCheckbox"] = function()
 
 
@@ -235,6 +239,7 @@ __imports["mixin.FCMCtrlCheckbox"] = function()
             {name = "last_check", get = "GetCheck_", initial = 0})
     return props
 end
+
 __imports["mixin.FCMCtrlDataList"] = function()
 
 
@@ -309,6 +314,7 @@ __imports["mixin.FCMCtrlDataList"] = function()
     props.AddHandleSelect, props.RemoveHandleSelect = mixin_helper.create_standard_control_event("HandleDataListSelect")
     return props
 end
+
 __imports["mixin.FCMCtrlEdit"] = function()
 
 
@@ -425,6 +431,7 @@ __imports["mixin.FCMCtrlEdit"] = function()
             {name = "last_value", get = mixin.FCMControl.GetText, initial = ""})
     return props
 end
+
 __imports["mixin.FCMCtrlListBox"] = function()
 
 
@@ -781,6 +788,7 @@ __imports["mixin.FCMCtrlListBox"] = function()
             })
     return props
 end
+
 __imports["mixin.FCMCtrlPopup"] = function()
 
 
@@ -1144,6 +1152,7 @@ __imports["mixin.FCMCtrlPopup"] = function()
             })
     return props
 end
+
 __imports["mixin.FCMCtrlSlider"] = function()
 
 
@@ -1254,6 +1263,7 @@ __imports["mixin.FCMCtrlSlider"] = function()
             {name = "last_position", get = "GetThumbPosition_", initial = -1})
     return props
 end
+
 __imports["mixin.FCMCtrlSwitcher"] = function()
 
 
@@ -1425,6 +1435,7 @@ __imports["mixin.FCMCtrlSwitcher"] = function()
         )
     return props
 end
+
 __imports["mixin.FCMCtrlTree"] = function()
 
 
@@ -1454,6 +1465,7 @@ __imports["mixin.FCMCtrlTree"] = function()
     end
     return props
 end
+
 __imports["mixin.FCMCtrlUpDown"] = function()
 
 
@@ -1535,6 +1547,7 @@ __imports["mixin.FCMCtrlUpDown"] = function()
     props.AddHandlePress, props.RemoveHandlePress = mixin_helper.create_standard_control_event("HandleUpDownPressed")
     return props
 end
+
 __imports["mixin.FCMCustomLuaWindow"] = function()
 
 
@@ -2029,6 +2042,7 @@ __imports["mixin.FCMCustomLuaWindow"] = function()
     end
     return props
 end
+
 __imports["mixin.FCMCustomWindow"] = function()
 
 
@@ -2352,6 +2366,7 @@ __imports["mixin.FCMCustomWindow"] = function()
     end
     return props
 end
+
 __imports["mixin.FCMPage"] = function()
 
 
@@ -2381,6 +2396,7 @@ __imports["mixin.FCMPage"] = function()
     end
     return props
 end
+
 __imports["library.client"] = function()
 
     local client = {}
@@ -2504,6 +2520,7 @@ __imports["library.client"] = function()
     end
     return client
 end
+
 __imports["library.general_library"] = function()
 
     local library = {}
@@ -2903,6 +2920,7 @@ __imports["library.general_library"] = function()
     end
     return library
 end
+
 __imports["mixin.FCMStrings"] = function()
 
 
@@ -3070,6 +3088,7 @@ __imports["mixin.FCMStrings"] = function()
     end
     return props
 end
+
 __imports["mixin.FCMTreeNode"] = function()
 
 
@@ -3110,6 +3129,7 @@ __imports["mixin.FCMTreeNode"] = function()
     end
     return props
 end
+
 __imports["mixin.FCMUI"] = function()
 
 
@@ -3135,6 +3155,7 @@ __imports["mixin.FCMUI"] = function()
     end
     return props
 end
+
 __imports["mixin.FCXCtrlMeasurementEdit"] = function()
 
 
@@ -3432,6 +3453,7 @@ __imports["mixin.FCXCtrlMeasurementEdit"] = function()
             })
     return props
 end
+
 __imports["mixin.FCXCtrlMeasurementUnitPopup"] = function()
 
 
@@ -3486,6 +3508,7 @@ __imports["mixin.FCXCtrlMeasurementUnitPopup"] = function()
     end
     return props
 end
+
 __imports["library.page_size"] = function()
 
 
@@ -3573,6 +3596,7 @@ __imports["library.page_size"] = function()
     end
     return page_size
 end
+
 __imports["mixin.FCXCtrlPageSizePopup"] = function()
 
 
@@ -3696,6 +3720,7 @@ __imports["mixin.FCXCtrlPageSizePopup"] = function()
             })
     return props
 end
+
 __imports["mixin.FCXCtrlStatic"] = function()
 
 
@@ -3848,6 +3873,7 @@ __imports["mixin.FCXCtrlStatic"] = function()
     end
     return props
 end
+
 __imports["mixin.FCXCtrlUpDown"] = function()
 
 
@@ -4208,6 +4234,7 @@ __imports["mixin.FCXCtrlUpDown"] = function()
     end
     return props
 end
+
 __imports["library.utils"] = function()
 
     local utils = {}
@@ -4247,6 +4274,7 @@ __imports["library.utils"] = function()
     end
     return utils
 end
+
 __imports["library.mixin_helper"] = function()
 
 
@@ -4518,6 +4546,7 @@ __imports["library.mixin_helper"] = function()
     end
     return mixin_helper
 end
+
 __imports["library.measurement"] = function()
 
     local measurement = {}
@@ -4612,6 +4641,7 @@ __imports["library.measurement"] = function()
     end
     return measurement
 end
+
 __imports["mixin.FCXCustomLuaWindow"] = function()
 
 
@@ -4986,6 +5016,7 @@ __imports["mixin.FCXCustomLuaWindow"] = function()
             })
     return props
 end
+
 __imports["mixin.__FCMUserWindow"] = function()
 
 
@@ -5026,6 +5057,7 @@ __imports["mixin.__FCMUserWindow"] = function()
     end
     return props
 end
+
 __imports["library.mixin"] = function()
 
 
@@ -5877,6 +5909,7 @@ __imports["library.mixin"] = function()
         end
     })
 end
+
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"

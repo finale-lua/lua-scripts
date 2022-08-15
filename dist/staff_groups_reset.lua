@@ -12,6 +12,7 @@ function require(item)
     end
     return __import_results[item]
 end
+
 __imports["library.client"] = function()
 
     local client = {}
@@ -135,6 +136,7 @@ __imports["library.client"] = function()
     end
     return client
 end
+
 __imports["library.general_library"] = function()
 
     local library = {}
@@ -534,6 +536,7 @@ __imports["library.general_library"] = function()
     end
     return library
 end
+
 function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
