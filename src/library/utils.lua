@@ -73,7 +73,7 @@ function utils.round(num)
 end
 
 --[[ 
-% calc roman numeral
+% calc_roman_numeral
 
 Calculates the roman numeral for the input number. Adapted from https://exercism.org/tracks/lua/exercises/roman-numerals/solutions/Nia11 on 2022-08-13
 
@@ -94,7 +94,7 @@ function utils.calc_roman_numeral(num)
 end
 
 --[[ 
-% calc ordinal
+% calc_ordinal
 
 Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
 
@@ -102,23 +102,21 @@ Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
 : (string)
 ]]
 function utils.calc_ordinal(num)
-    local ordinal = ""
-    if num >= 4 and num <= 20 then
-        ordinal = num.."th"
-    elseif string.sub(tostring(n), -1) == "1" then
-        ordinal = num.."st"
-    elseif string.sub(tostring(n), -1) == "2" then
-        ordinal = num.."nd"
-    elseif string.sub(tostring(n), -1) == "3" then
-        ordinal = num.."rd"
-    else
-        ordinal = num.."th"
+    local units = num % 10
+    local tens = num % 100
+    if units == 1 and tens ~= 11 then
+        return num .. "st"
+    elseif units == 2 and tens ~= 12 then
+        return num .. "nd"
+    elseif units == 3 and tens ~= 13 then
+        return num .. "rd"
     end
-    return ordinal
+
+    return num .. "th"
 end
 
 --[[ 
-% calc alphabet
+% calc_alphabet
 
 This returns one of the ways that Finale handles numbering things alphabetically, such as rehearsal marks or measure numbers.
 
@@ -131,16 +129,10 @@ Email me at jacob.winkler at mac dot com!
 : (string)
 ]]
 function utils.calc_alphabet(num)
-    local alpha = ""
-    local factor = 0
-    if num <= 26 then
-        alpha = string.char(n + 64)
-    else
-        factor = math.floor(n/26)
-        num = num - (26 * factor)
-        alpha = string.char(n + 64)..factor
-    end
-    return alpha
+    local letter = ((num - 1) % 26) + 1
+    local n = math.floor((num - 1) / 26)
+
+    return string.char(64 + letter) .. (n > 0 and n or "")
 end
 
 return utils
