@@ -2,7 +2,6 @@ import fs from 'fs'
 import path from 'path'
 import { getAllImports } from './helpers'
 import { generateLuaRequire, resolveRequiredFile } from './lua-require'
-import { removeComments } from './remove-comments'
 import { wrapImport } from './wrap-import'
 
 export type ImportedFile = {
@@ -59,7 +58,7 @@ export const bundleFileBase = (
     }
 
     if (fileStack.length > 1) fileStack.push(generateLuaRequire())
-    return fileStack.reverse().map(removeComments).join('\n\n')
+    return fileStack.reverse().join('\n\n')
 }
 
 export const bundleFile = (name: string, sourcePath: string, mixins: string[]): string => {

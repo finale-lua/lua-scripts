@@ -4501,7 +4501,6 @@ const fs_1 = __importDefault(__nccwpck_require__(7147));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const helpers_1 = __nccwpck_require__(8092);
 const lua_require_1 = __nccwpck_require__(9083);
-const remove_comments_1 = __nccwpck_require__(6236);
 const wrap_import_1 = __nccwpck_require__(3494);
 exports.files = {};
 const importFileBase = (name, importedFiles, fetcher) => {
@@ -4548,7 +4547,7 @@ const bundleFileBase = (name, importedFiles, mixins, fetcher) => {
     }
     if (fileStack.length > 1)
         fileStack.push((0, lua_require_1.generateLuaRequire)());
-    return fileStack.reverse().map(remove_comments_1.removeComments).join('\n\n');
+    return fileStack.reverse().join('\n\n');
 };
 exports.bundleFileBase = bundleFileBase;
 const bundleFile = (name, sourcePath, mixins) => {
@@ -4675,25 +4674,6 @@ const resolveRequiredFile = (name) => {
     return path_1.default.join(...splitName) + '.lua';
 };
 exports.resolveRequiredFile = resolveRequiredFile;
-
-
-/***/ }),
-
-/***/ 6236:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.removeComments = void 0;
-const removeComments = (contents) => {
-    return contents
-        .replace(/--\[\[[^\]]*\]\]/giu, '')
-        .replace(/--.*$/gimu, '')
-        .replace(/\n\n+/gimu, '\n')
-        .replace(/ *$/gimu, '');
-};
-exports.removeComments = removeComments;
 
 
 /***/ }),
