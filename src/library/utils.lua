@@ -94,7 +94,7 @@ function utils.calc_roman_numeral(num)
 end
 
 --[[ 
-% calc orindal
+% calc ordinal
 
 Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
 
