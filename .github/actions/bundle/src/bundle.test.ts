@@ -1,5 +1,6 @@
 import { bundleFileBase, ImportedFiles, importFileBase } from './bundle'
 import { generateLuaRequire } from './lua-require'
+import { removeComments } from './remove-comments'
 
 describe('importFile', () => {
     it('files can be imported', () => {
@@ -40,7 +41,7 @@ describe('bundle', () => {
         const bundle = bundleFileBase('a.lua', {}, [], fetcher)
         expect(bundle).toBe(
             [
-                generateLuaRequire(),
+                removeComments(generateLuaRequire()),
                 '',
                 '__imports["b"] = function()',
                 "    local b = require('b')",
@@ -70,7 +71,7 @@ describe('bundle', () => {
         const bundle = bundleFileBase('mixin.lua', {}, ['mixin.FCMControl', 'mixin.FCMString'], fetcher)
         expect(bundle).toBe(
             [
-                generateLuaRequire(),
+                removeComments(generateLuaRequire()),
                 '',
                 '__imports["mixin.FCMControl"] = function()',
                 '    return {}',
