@@ -72,4 +72,76 @@ function utils.round(num)
     return math.floor(num + 0.5)
 end
 
+--[[ 
+% calc roman numeral
+
+Calculates the roman numeral for the input number. Adapted from https://exercism.org/tracks/lua/exercises/roman-numerals/solutions/Nia11 on 2022-08-13
+
+@ num (number)
+: (string)
+]]
+function utils.calc_roman_numeral(num)
+    local thousands = {'M','MM','MMM'}
+    local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
+    local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
+    local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
+    local roman_numeral = ''
+    if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
+    if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
+    if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
+    if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
+    return roman_numeral
+end
+
+--[[ 
+% calc orindal
+
+Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
+
+@ num (number)
+: (string)
+]]
+function utils.calc_ordinal(num)
+    local ordinal = ""
+    if num >= 4 and num <= 20 then
+        ordinal = num.."th"
+    elseif string.sub(tostring(n), -1) == "1" then
+        ordinal = num.."st"
+    elseif string.sub(tostring(n), -1) == "2" then
+        ordinal = num.."nd"
+    elseif string.sub(tostring(n), -1) == "3" then
+        ordinal = num.."rd"
+    else
+        ordinal = num.."th"
+    end
+    return ordinal
+end
+
+--[[ 
+% calc alphabet
+
+This returns one of the ways that Finale handles numbering things alphabetically, such as rehearsal marks or measure numbers.
+
+This function was written to emulate the way Finale numbers saves when Autonumber is set to A, B, C... When the end of the alphabet is reached it goes to A1, B1, C1, then presumably to A2, B2, C2. 
+
+If anyone wants to take the time to figure out what Finale does once you reach Z9 staves I'd love to know!  
+Email me at jacob.winkler at mac dot com!
+
+@ num (number)
+: (string)
+]]
+function utils.calc_alphabet(num)
+    local alpha = ""
+    local factor = 0
+    if num <= 26 then
+        alpha = string.char(n + 64)
+    else
+        factor = math.floor(n/26)
+        num = num - (26 * factor)
+        alpha = string.char(n + 64)..factor
+    end
+    return alpha
+end
+
 return utils
+
