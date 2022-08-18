@@ -275,10 +275,10 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
             if the_seg.Measure < dyn_exp.Measure and dyn_exp.MeasurePos == 0 then
                 finale.FCCellMetrics.MarkMetricsForRebuild() -- have to rebuild because the cushion_bool could have changed things on the "left" pass
                 local seg_point = finale.FCPoint(0, 0)
-                hairpin:CalcRightCellMetricPos(seg_point)
                 local exp_point = finale.FCPoint(0, 0)
-                dyn_exp:CalcMetricPos(exp_point)
-                next_measure_gap = (exp_point.X - handle_offset_from_edupos) - (seg_point.X - the_seg.EndpointOffsetX)
+                if hairpin:CalcRightCellMetricPos(seg_point) and dyn_exp:CalcMetricPos(exp_point) then
+                    next_measure_gap = (exp_point.X - handle_offset_from_edupos) - (seg_point.X - the_seg.EndpointOffsetX)
+                end
             end
             cushion_bool = false
             local total_x = (0 - dyn_width) + config.right_dynamic_cushion + next_measure_gap + handle_offset_from_edupos
