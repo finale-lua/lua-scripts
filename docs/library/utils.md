@@ -8,6 +8,9 @@ A library of general Lua utility functions.
 - [table_remove_first(t, value)](#table_remove_first)
 - [iterate_keys(t)](#iterate_keys)
 - [round(num)](#round)
+- [calc_roman_numeral(num)](#calc_roman_numeral)
+- [calc_ordinal(num)](#calc_ordinal)
+- [calc_alphabet(num)](#calc_alphabet)
 
 ### copy_table
 
@@ -77,3 +80,62 @@ Rounds a number to the nearest whole integer.
 | Return type | Description |
 | ----------- | ----------- |
 | `number` |  |
+
+### calc_roman_numeral
+
+```lua
+utility_functions.calc_roman_numeral(num)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L83)
+
+Calculates the roman numeral for the input number. Adapted from https://exercism.org/tracks/lua/exercises/roman-numerals/solutions/Nia11 on 2022-08-13
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `num` | `number` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` |  |
+
+### calc_ordinal
+
+```lua
+utility_functions.calc_ordinal(num)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L104)
+
+Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `num` | `number` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` |  |
+
+### calc_alphabet
+
+```lua
+utility_functions.calc_alphabet(num)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L131)
+
+This returns one of the ways that Finale handles numbering things alphabetically, such as rehearsal marks or measure numbers.
+
+This function was written to emulate the way Finale numbers saves when Autonumber is set to A, B, C... When the end of the alphabet is reached it goes to A1, B1, C1, then presumably to A2, B2, C2. 
+
+If anyone wants to take the time to figure out what Finale does once you reach Z9 staves I'd love to know!  
+Email me at jacob.winkler at mac dot com!
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `num` | `number` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` |  |

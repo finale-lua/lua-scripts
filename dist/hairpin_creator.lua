@@ -6926,7 +6926,71 @@ __imports["library.utils"] = function()
         return math.floor(num + 0.5)
     end
 
+    --[[ 
+    % calc_roman_numeral
+
+    Calculates the roman numeral for the input number. Adapted from https://exercism.org/tracks/lua/exercises/roman-numerals/solutions/Nia11 on 2022-08-13
+
+    @ num (number)
+    : (string)
+    ]]
+    function utils.calc_roman_numeral(num)
+        local thousands = {'M','MM','MMM'}
+        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
+        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
+        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
+        local roman_numeral = ''
+        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
+        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
+        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
+        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
+        return roman_numeral
+    end
+
+    --[[ 
+    % calc_ordinal
+
+    Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
+
+    @ num (number)
+    : (string)
+    ]]
+    function utils.calc_ordinal(num)
+        local units = num % 10
+        local tens = num % 100
+        if units == 1 and tens ~= 11 then
+            return num .. "st"
+        elseif units == 2 and tens ~= 12 then
+            return num .. "nd"
+        elseif units == 3 and tens ~= 13 then
+            return num .. "rd"
+        end
+
+        return num .. "th"
+    end
+
+    --[[ 
+    % calc_alphabet
+
+    This returns one of the ways that Finale handles numbering things alphabetically, such as rehearsal marks or measure numbers.
+
+    This function was written to emulate the way Finale numbers saves when Autonumber is set to A, B, C... When the end of the alphabet is reached it goes to A1, B1, C1, then presumably to A2, B2, C2. 
+
+    If anyone wants to take the time to figure out what Finale does once you reach Z9 staves I'd love to know!  
+    Email me at jacob.winkler at mac dot com!
+
+    @ num (number)
+    : (string)
+    ]]
+    function utils.calc_alphabet(num)
+        local letter = ((num - 1) % 26) + 1
+        local n = math.floor((num - 1) / 26)
+
+        return string.char(64 + letter) .. (n > 0 and n or "")
+    end
+
     return utils
+
 
 end
 
@@ -8957,19 +9021,19 @@ end
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine after CJ Garcia"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua"
+    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.60"
-    finaleplugin.Date = "2022/07/25"
+    finaleplugin.Version = "v0.61"
+    finaleplugin.Date = "2022/08/07"
     finaleplugin.AdditionalMenuOptions = [[
-        Hairpin create diminuendo
-        Hairpin create swell
-        Hairpin create unswell
+        Hairpin Create Diminuendo
+        Hairpin Create Swell
+        Hairpin Create Unswell
     ]]
     finaleplugin.AdditionalUndoText = [[
-        Hairpin create diminuendo
-        Hairpin create swell
-        Hairpin create unswell
+        Hairpin Create Diminuendo
+        Hairpin Create Swell
+        Hairpin Create Unswell
     ]]
     finaleplugin.AdditionalDescriptions = [[
         Create diminuendo spanning the selected region
@@ -8982,7 +9046,8 @@ function plugindef()
         hairpin_type = -2 -- "unswell"
     ]]
     finaleplugin.MinJWLuaVersion = 0.63
-    finaleplugin.ScriptGroupName = "Hairpin creator"
+    finaleplugin.ScriptGroupName = "Hairpin Creator"
+    finaleplugin.ScriptGroupDescription = "Create four different types of hairpin spanning the currently selected music region"
     finaleplugin.Notes = [[
         This script creates hairpins spanning the currently selected music region. 
         The default hairpin type is `CRESCENDO`, with three additional menu items provided to create:  
@@ -9011,7 +9076,7 @@ function plugindef()
         For simple hairpins that don't mess around with trailing barlines and dynamics try selecting 
         `dynamics_match_hairpin` and de-selecting the other options.
     ]]
-    return "Hairpin create crescendo", "Hairpin create crescendo", "Create crescendo spanning the selected region"
+    return "Hairpin Create Crescendo", "Hairpin Create Crescendo", "Create crescendo spanning the selected region"
 end
 
 hairpin_type = hairpin_type or finale.SMARTSHAPE_CRESCENDO
@@ -9031,18 +9096,15 @@ local dialog_options = { -- key value in config, explanation
     { "left_dynamic_cushion",  "gap between first dynamic and start of hairpin" },
     { "right_dynamic_cushion",  "gap between end of the hairpin and ending dynamic" },
 }
-
 local boolean_options = {
     dynamics_match_hairpin = true,
     include_trailing_items = true,
     attach_over_end_barline = true,
     attach_over_system_break = true,
 }
-
 local integer_options = {
     inclusions_EDU_margin = true,
 }
-
 local config = {
     dynamics_match_hairpin = true,
     include_trailing_items = true,
@@ -9054,9 +9116,9 @@ local config = {
     downstem_cushion = 44,
     below_artic_cushion = 40,
     left_horiz_offset = 16,
-    right_horiz_offset = -14,
+    right_horiz_offset = -16,
     left_dynamic_cushion = 18,
-    right_dynamic_cushion = -16,
+    right_dynamic_cushion = -18,
     measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
     window_pos_x = false,
     window_pos_y = false,
@@ -9335,6 +9397,7 @@ local function design_staff_swell(rgn, hairpin_shape, lowest_vert)
     local new_end_measure, new_end_postion = nil, nil -- assume they're nil for now
     local dynamic_list = simple_dynamic_scan(rgn)
     if #dynamic_list > 0 then -- check horizontal alignments + positions
+
         local first_dyn = dynamic_list[1]
         if duration_gap(rgn.StartMeasure, rgn.StartMeasurePos, first_dyn.Measure, first_dyn.MeasurePos) < config.inclusions_EDU_margin then
             local offset = dynamic_horiz_offset(first_dyn, "left")
@@ -9503,16 +9566,8 @@ local function create_hairpin(shape_type)
     end
 end
 
-function activity_selector()
-    if hairpin_type < 0 then -- SWELL / UNSWELL
-        create_swell(hairpin_type == -1) -- true for SWELL, otherwise UNSWELL
-    else
-        create_hairpin(hairpin_type) -- preset CRESC / DIM
-    end
-end
-
-function create_user_dialog() -- attempting MODELESS operation
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle("HAIRPIN CREATOR CONFIGURATION")
+function create_dialog_box()
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Hairpin Creator Configuration")
     local y_step = 20
     local max_text_width = 385
     local x_offset = {0, 130, 155, 190}
@@ -9521,7 +9576,7 @@ function create_user_dialog() -- attempting MODELESS operation
         local function make_static(msg, horiz, vert, width, sepia)
             local static = dialog:CreateStatic(horiz, vert):SetText(msg):SetWidth(width)
             if sepia and static.SetTextColor then
-                static:SetTextColor(102, 0, 0)
+                static:SetTextColor(153, 51, 0)
             end
         end
 
@@ -9534,7 +9589,8 @@ function create_user_dialog() -- attempting MODELESS operation
         else  -- integer or measurement value
             y_current = y_current + 10 -- gap before the integer variables
             make_static(msg .. ":", x_offset[1], y_current, x_offset[2], false) -- parameter name
-            dialog["Create" .. (integer_options[v[1]] and "" or "Measurement") .. "Edit"](dialog, x_offset[2], y_current - mac_offset, v[1]):SetWidth(50)
+            local control_type = integer_options[v[1]] and "CreateEdit" or "CreateMeasurementEdit"
+            dialog[control_type](dialog, x_offset[2], y_current - mac_offset, v[1]):SetWidth(50)
             make_static(v[2], x_offset[4], y_current, max_text_width, true) -- parameter explanation
         end
     end
@@ -9561,7 +9617,7 @@ function create_user_dialog() -- attempting MODELESS operation
     dialog:CreateCancelButton()
     dialog:RegisterHandleOkButtonPressed(function(self)
         for _, v in ipairs(dialog_options) do
-            if boolean_options[v[1]] then
+            if boolean_options[v[1]] then   -- set config values in dialog
                 config[v[1]] = (self:GetControl(v[1]):GetCheck() == 1)
             elseif integer_options[v[1]] then
                 config[v[1]] = self:GetControl(v[1]):GetInteger()
@@ -9569,40 +9625,35 @@ function create_user_dialog() -- attempting MODELESS operation
                 config[v[1]] = self:GetControl(v[1]):GetMeasurementInteger()
             end
         end
-        -- save user choices in user_settings
         config.measurement_unit = self:GetMeasurementUnit()
         self:StorePosition()
         config.window_pos_x = self.StoredX
         config.window_pos_y = self.StoredY
         configuration.save_user_settings("hairpin_creator", config)
-        finenv.StartNewUndoBlock("Hairpin Creator", false)
-        activity_selector() -- **** THE WORK IS DONE HERE! ****
-        if finenv.EndUndoBlock then
-            finenv.EndUndoBlock(true)
-            finenv.Region():Redraw()
-        else
-            finenv.StartNewUndoBlock("Hairpin creator", true)
-        end
     end)
     return dialog
 end
 
-function action_type()
-    configuration.get_user_settings("hairpin_creator", config) -- overwrite default preferences
-    if finenv.QueryInvokedModifierKeys and
-        (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-        then -- USER wants to change their preferences
-        global_dialog = create_user_dialog()
+function hairpin_selector()
+    configuration.get_user_settings("hairpin_creator", config) -- get last saved user preferences
+    local mod_down = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
+    if mod_down then -- user wants to change their preferences
+        local dialog = create_dialog_box()
         if config.window_pos_x and config.window_pos_y then
-            global_dialog:StorePosition()
-            global_dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
-            global_dialog:RestorePosition()
+            dialog:StorePosition()
+            dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
+            dialog:RestorePosition()
         end
-        global_dialog.OkButtonCanClose = true
-        global_dialog:ShowModeless()
+        if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK then
+            return -- user cancelled
+        end
+    end
+    -- do the work!!!
+    if hairpin_type < 0 then -- SWELL / UNSWELL
+        create_swell(hairpin_type == -1) -- true for SWELL, otherwise UNSWELL
     else
-        activity_selector() -- just go do the work
+        create_hairpin(hairpin_type) -- finale CRESC / DIM enums
     end
 end
 
-action_type()
+hairpin_selector()
