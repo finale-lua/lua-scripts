@@ -141,9 +141,6 @@ __imports["library.utils"] = function()
 
     This function was written to emulate the way Finale numbers saves when Autonumber is set to A, B, C... When the end of the alphabet is reached it goes to A1, B1, C1, then presumably to A2, B2, C2. 
 
-    If anyone wants to take the time to figure out what Finale does once you reach Z9 staves I'd love to know!  
-    Email me at jacob.winkler at mac dot com!
-
     @ num (number)
     : (string)
     ]]
