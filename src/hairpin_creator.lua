@@ -3,35 +3,40 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after CJ Garcia"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.61"
-    finaleplugin.Date = "2022/08/07"
+    finaleplugin.Version = "v0.62"
+    finaleplugin.Date = "2022/08/21"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin Create Diminuendo
         Hairpin Create Swell
         Hairpin Create Unswell
+        Hairpin Creator Configuration
     ]]
     finaleplugin.AdditionalUndoText = [[
         Hairpin Create Diminuendo
         Hairpin Create Swell
         Hairpin Create Unswell
+        Hairpin Creator Configuration
     ]]
     finaleplugin.AdditionalDescriptions = [[
         Create diminuendo spanning the selected region
         Create a swell (messa di voce) spanning the selected region
         Create an unswell (inverse messa di voce) spanning the selected region
+        Configure hairpin_creator default settings
     ]]
     finaleplugin.AdditionalPrefixes = [[
         hairpin_type = finale.SMARTSHAPE_DIMINUENDO
         hairpin_type = -1 -- "swell"
         hairpin_type = -2 -- "unswell"
+        hairpin_type = -3 -- "configure"
     ]]
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.ScriptGroupName = "Hairpin Creator"
     finaleplugin.ScriptGroupDescription = "Create four different types of hairpin spanning the currently selected music region"
     finaleplugin.Notes = [[
         This script creates hairpins spanning the currently selected music region. 
-        The default hairpin type is `CRESCENDO`, with three additional menu items provided to create:  
-        `DIMINUENDO`, `SWELL` (messa di voce) and `UNSWELL` (inverse messa di voce). 
+        It provides four menu items to create: `Crescendo`, `Diminuendo`, `Swell` (messa di voce) 
+        and `Unswell` (inverse messa di voce) hairpin types. 
+        An extra `Configuration` menu item is provided to change the script's default settings. 
 
         Hairpins are positioned vertically to avoid colliding with the lowest notes, down-stem tails, 
         articulations and dynamics on each staff in the selection. 
@@ -44,19 +49,19 @@ function plugindef()
         Hairpin positions in Finale are more accurate when attached to these "trailing" notes and dynamics, 
         but this can be a problem if trailing items fall across a barline and especially if they are 
         on a different system from the end of the hairpin. 
-        (Elaine Gould - "Behind Bars" pp.103-106 - outlines multiple hairpin scenarios in which they  
-        should or shouldn't "attach" across barlines. Your preferences may differ.)
+        (Elaine Gould, "Behind Bars" pp.103-106, outlines multiple hairpin scenarios in which they either 
+        should or shouldn't "attach" across barlines. Individual preferences may differ.)
 
-        You should get the best results by entering dynamic markings before running the script. 
-        It will find the lowest acceptable vertical offset for the hairpin, but if you want it lower than that then 
-        first move one or more dynamic to the lowest point you need. 
+        This script normally works better if dynamic markings are added first. 
+        This will find the lowest matching vertical offset for the hairpin, but if you want the hairpin 
+        lower than that then first move a dynamic to the lowest point you want. 
         
-        To change the script's default settings hold down the `shift` or `alt` (option) key when selecting the menu item. 
-        (This might need special treatment when using a keystroke macro program like KeyboardMaestro). 
+        Configuring script defaults can also be accessed by holding down the `shift` or `alt` (option) key 
+        when selecting any `hairpin_creator` menu item. 
         For simple hairpins that don't mess around with trailing barlines and dynamics try selecting 
         `dynamics_match_hairpin` and de-selecting the other options.
     ]]
-    return "Hairpin Create Crescendo", "Hairpin Create Crescendo", "Create crescendo spanning the selected region"
+    return "Hairpin Create Crescendo", "Hairpin Create Crescendo", "Create crescendo hairpin spanning the selected region"
 end
 
 hairpin_type = hairpin_type or finale.SMARTSHAPE_CRESCENDO
@@ -617,7 +622,7 @@ end
 function hairpin_selector()
     configuration.get_user_settings("hairpin_creator", config) -- get last saved user preferences
     local mod_down = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-    if mod_down then -- user wants to change their preferences
+    if mod_down or (hairpin_type == -3) then -- user wants to change their preferences
         local dialog = create_dialog_box()
         if config.window_pos_x and config.window_pos_y then
             dialog:StorePosition()
@@ -629,8 +634,10 @@ function hairpin_selector()
         end
     end
     -- do the work!!!
-    if hairpin_type < 0 then -- SWELL / UNSWELL
-        create_swell(hairpin_type == -1) -- true for SWELL, otherwise UNSWELL
+    if hairpin_type < 0 then -- SWELL / UNSWELL / CONFIGURE
+        if hairpin_type > -3 then -- SWELL / UNSWELL
+            create_swell(hairpin_type == -1) -- true for SWELL, otherwise UNSWELL
+        end
     else
         create_hairpin(hairpin_type) -- finale CRESC / DIM enums
     end
