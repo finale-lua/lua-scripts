@@ -131,6 +131,16 @@ function note_entry.get_evpu_notehead_height(entry)
     return evpu_height
 end`,
     ],
+    [
+        `--[[
+% is_note_side
+Uses \`FCArticulation.CalcMetricPos\` to determine if the input articulation is on the note-side.
+@ artic (FCArticulation)
+@ [curr_pos] (FCPoint) current position of articulation that will be calculated if not supplied
+: (boolean) true if on note-side, otherwise false
+]]`,
+        ''
+    ],
 ]
 
 it.each(tests)(`removeComments(%p)`, (input, expected) => {
