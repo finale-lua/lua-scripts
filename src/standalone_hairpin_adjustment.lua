@@ -4,6 +4,25 @@ function plugindef()
     finaleplugin.Copyright = "© 2021 CJ Garcia Music"
     finaleplugin.Version = "1.3"
     finaleplugin.Date = "8/4/2022"
+    finaleplugin.Notes = [[
+        This plugin has several configuration options. To set the options, create a plain text file called
+        standalone_hairpin_adjustment.config.txt in a folder called `script_settings` within the same
+        folder as the script. It can contain any or all of the following configuration parameters.
+        (The default values are shown.)
+
+        ```
+        left_dynamic_cushion = 9                    -- space between a dynamic and a hairpin on the left (evpu)
+        right_dynamic_cushion = -9                  -- space between a dynamic and a haripin on the right (evpu)
+        left_selection_cushion = 0                  -- currently not used
+        right_selection_cushion = 0                 -- additional space between a hairpin and the end of its beat region (evpu)
+        extend_to_end_of_right_entry = true         -- if true, extend hairpins through the end of their right note entries
+        limit_to_hairpins_on_notes = true           -- if true, only hairpins attached to notes are considered
+        vertical_adjustment_type = "far"            -- possible values: "near", "far", "none"
+        horizontal_adjustment_type = "both"         -- possible values: "both", "left", "right", "none"
+        vertical_displacement_for_hairpins = 12     -- alignment displacement for hairpins relative to dynamics handle (evpu)
+        extend_to_expression_in_next_bar = false    -- if true, extends to an expression at the beginning of the next bar
+        ```
+    ]]
     return "Hairpin and Dynamic Adjustments", "Hairpin and Dynamic Adjustments", "Adjusts hairpins to remove collisions with dynamics and aligns hairpins with dynamics."
 end
 
