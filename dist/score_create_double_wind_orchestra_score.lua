@@ -916,7 +916,7 @@ __imports["library.score"] = function()
 
     local score = {}
 
-    local CLEF_MAP = {treble = 0, alto = 1, tenor = 2, bass = 3, percussion = 12}
+    local CLEF_MAP = {treble = 0, alto = 1, tenor = 2, bass = 3, treble_8ba = 5, tenor_vocal = 5, percussion = 12}
     local BRACE_MAP = {
         none = finale.GRBRAC_NONE,
         plain = finale.GRBRAC_PLAIN,

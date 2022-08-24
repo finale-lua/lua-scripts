@@ -123,14 +123,11 @@ Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
 utility_functions.calc_alphabet(num)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L131)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L128)
 
 This returns one of the ways that Finale handles numbering things alphabetically, such as rehearsal marks or measure numbers.
 
 This function was written to emulate the way Finale numbers saves when Autonumber is set to A, B, C... When the end of the alphabet is reached it goes to A1, B1, C1, then presumably to A2, B2, C2. 
-
-If anyone wants to take the time to figure out what Finale does once you reach Z9 staves I'd love to know!  
-Email me at jacob.winkler at mac dot com!
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
