@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after CJ Garcia"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.62"
-    finaleplugin.Date = "2022/08/21"
+    finaleplugin.Version = "v0.63"
+    finaleplugin.Date = "2022/08/24"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin Create Diminuendo
         Hairpin Create Swell
@@ -21,7 +21,7 @@ function plugindef()
         Create diminuendo spanning the selected region
         Create a swell (messa di voce) spanning the selected region
         Create an unswell (inverse messa di voce) spanning the selected region
-        Configure hairpin_creator default settings
+        Configure Hairpin Creator default settings
     ]]
     finaleplugin.AdditionalPrefixes = [[
         hairpin_type = finale.SMARTSHAPE_DIMINUENDO
@@ -36,7 +36,7 @@ function plugindef()
         This script creates hairpins spanning the currently selected music region. 
         It provides four menu items to create: `Crescendo`, `Diminuendo`, `Swell` (messa di voce) 
         and `Unswell` (inverse messa di voce) hairpin types. 
-        An extra `Configuration` menu item is provided to change the script's default settings. 
+        A `Configuration` menu item is also provided to change the script's default settings. 
 
         Hairpins are positioned vertically to avoid colliding with the lowest notes, down-stem tails, 
         articulations and dynamics on each staff in the selection. 
@@ -49,17 +49,17 @@ function plugindef()
         Hairpin positions in Finale are more accurate when attached to these "trailing" notes and dynamics, 
         but this can be a problem if trailing items fall across a barline and especially if they are 
         on a different system from the end of the hairpin. 
-        (Elaine Gould, "Behind Bars" pp.103-106, outlines multiple hairpin scenarios in which they either 
+        (Elaine Gould, "Behind Bars" pp.103-106, outlines multiple scenarios in which hairpins either 
         should or shouldn't "attach" across barlines. Individual preferences may differ.)
 
         This script normally works better if dynamic markings are added first. 
-        This will find the lowest matching vertical offset for the hairpin, but if you want the hairpin 
+        The script will find the lowest matching vertical offset for the hairpin, but if you want the hairpin 
         lower than that then first move a dynamic to the lowest point you want. 
         
         Configuring script defaults can also be accessed by holding down the `shift` or `alt` (option) key 
         when selecting any `hairpin_creator` menu item. 
         For simple hairpins that don't mess around with trailing barlines and dynamics try selecting 
-        `dynamics_match_hairpin` and de-selecting the other options.
+        `dynamics match hairpin` and de-selecting the other options.
     ]]
     return "Hairpin Create Crescendo", "Hairpin Create Crescendo", "Create crescendo hairpin spanning the selected region"
 end
@@ -568,35 +568,26 @@ function create_dialog_box()
     for i, v in ipairs(dialog_options) do -- run through config parameters
         local y_current = y_step * i
         local msg = string.gsub(v[1], "_", " ")
-        if boolean_options[v[1]] then -- boolean checkboxes
-            dialog:CreateCheckbox(x_offset[1], y_current, v[1]):SetText(msg):SetWidth(x_offset[3])
+        if boolean_options[v[1]] then -- checkboxes
+            dialog:CreateCheckbox(x_offset[1], y_current, v[1]):SetText(msg):SetWidth(x_offset[3]):SetCheck(config[v[1]] and 1 or 0)
             make_static(v[2], x_offset[3], y_current, max_text_width, true) -- parameter explanation
         else  -- integer or measurement value
-            y_current = y_current + 10 -- gap before the integer variables
+            y_current = y_current + 10 -- gap before numeric variables
             make_static(msg .. ":", x_offset[1], y_current, x_offset[2], false) -- parameter name
-            local control_type = integer_options[v[1]] and "CreateEdit" or "CreateMeasurementEdit"
-            dialog[control_type](dialog, x_offset[2], y_current - mac_offset, v[1]):SetWidth(50)
-            make_static(v[2], x_offset[4], y_current, max_text_width, true) -- parameter explanation
-        end
-    end
-    -- measurement unit options
-    local y_current = (#dialog_options + 1.6) * y_step
-    dialog:CreateStatic(x_offset[2] - 40, y_current ):SetText("Units:") -- + mac_offset
-    dialog:SetMeasurementUnit(config.measurement_unit)
-    dialog:CreateMeasurementUnitPopup(x_offset[2], y_current)
-
-    -- InitWindow: set config values
-    dialog:RegisterInitWindow(function(self)
-        for _, v in ipairs(dialog_options) do
-            if boolean_options[v[1]] then
-                self:GetControl(v[1]):SetCheck(config[v[1]] and 1 or 0)
-            elseif integer_options[v[1]] then
-                self:GetControl(v[1]):SetInteger(config[v[1]])
+            make_static(v[2], x_offset[4], y_current, max_text_width, true) -- text explanation
+            if integer_options[v[1]] then
+                dialog.CreateEdit(dialog, x_offset[2], y_current - mac_offset, v[1]):SetWidth(50):SetInteger(config[v[1]])
             else
-                self:GetControl(v[1]):SetMeasurementInteger(config[v[1]])
+                dialog.CreateMeasurementEdit(dialog, x_offset[2], y_current - mac_offset, v[1]):SetWidth(50):SetMeasurementInteger(config[v[1]])
             end
         end
-    end)
+    end
+
+    -- measurement unit options
+    local y_current = (#dialog_options + 1.6) * y_step
+    dialog:CreateStatic(x_offset[2] - 40, y_current):SetText("Units:")
+    dialog:SetMeasurementUnit(config.measurement_unit)
+    dialog:CreateMeasurementUnitPopup(x_offset[2], y_current)
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
@@ -635,7 +626,7 @@ function hairpin_selector()
     end
     -- do the work!!!
     if hairpin_type < 0 then -- SWELL / UNSWELL / CONFIGURE
-        if hairpin_type > -3 then -- SWELL / UNSWELL
+        if hairpin_type > -3 then
             create_swell(hairpin_type == -1) -- true for SWELL, otherwise UNSWELL
         end
     else
