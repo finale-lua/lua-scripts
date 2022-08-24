@@ -14,23 +14,16 @@ local library = require("library.general_library")
 local configuration = require("library.configuration")
 
 --------------------------------------
--- borrowed JetStream functions - will replace later with repo equivalents!
-function get_used_font_name(standard_name)
+-- borrowed JetStream function
+function remove_spaces_in_windows_os(standard_name)
     local font_name = standard_name
-    if string.find(os.tmpname(), "/") then
-        font_name = standard_name
-    elseif string.find(os.tmpname(), "\\") then
+    local ui = finenv.UI()
+    if ui:IsOnWindows() then
         font_name = string.gsub(standard_name, "%s", "")
     end
     return font_name
 end
 
-function get_def_mus_font()
-    local fontinfo = finale.FCFontInfo()
-    if fontinfo:LoadFontPrefs(finale.FONTPREF_MUSIC) then
-        return get_used_font_name(fontinfo:GetName())
-    end
-end
 --------------------------------------
 function harp_pedal_wizard()
     local script_name = "harp_pedal_wizard"
@@ -53,7 +46,7 @@ function harp_pedal_wizard()
     description = finale.FCString()
     local changes_str = finale.FCString()
     changes_str.LuaString = ""
-    local default_music_font = get_def_mus_font()
+    local default_music_font = library.get_default_music_font_name()
     local diagram_font = "^fontTxt("..default_music_font..")"
     --
     local flat_char = utf8.char(0xe680) -- SMuFL: Harp pedal raised (flat)
