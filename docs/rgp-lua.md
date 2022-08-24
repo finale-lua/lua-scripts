@@ -60,46 +60,7 @@ Both _RGP Lua_ and _JW Lua_ include all the standard Lua 5.2 modules (`string`, 
 print (math.random(1, 10))
 ```
 
-The 'utf8' namespace
---------------------
-
-Lua 5.3 added a standard `utf8` library for parsing utf8-encoded strings. Especially with the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ (beginning in version 0.63) embeds the utf8 library from Lua 5.3 back-ported into Lua 5.2. The [Lua 5.3 Reference Manual](https://www.lua.org/manual/5.3/manual.html) describes how to use these functions. Any code you write for this utf8 is compatible with Lua 5.3 and beyond.
-
-The 'socket' namespace
-----------------------
-
-_RGP Lua_ contains an embedded version of [`luasocket`](https://aiq0.github.io/luasocket/index.html). You can elect for it to be available in the `socket` namespace in one of two ways.
-
-- Select **Enable Debugging** when you [configure](/docs/rgp-lua//docs/rgp-lua/rgp-lua-configuration) your script.
-- Add `finaleplugin.LoadLuaSocket = true` or `finaleplugin.Debug = true` to your `plugindef` function.
-
-When you request the `socket` namespace, _RGP Lua_ takes the following actions.
-
-- Preloads `socket.core` and `socket` and places them together in the `socket` namespace.
-- Preloads `mime.core` but does not include it in any namespace. You can access it with
-
-```lua
-local mime = require 'mime.core'
-```
-
-- Replaces the built-in `require` function with a function that strips the text `socket.` from the beginning of any library name that starts with it. For example:
-
-```lua
-local url = require 'socket.url'
-```
-
-is converted to
-
-```lua
-local url = require 'url'
-```
-
-This allows you to manage all the lua sources for `luasocket` in a single flat directory of your choosing. For example, you could require them straight from the `src` directory in a local copy of the [luasocket repository](https://github.com/lunarmodules/luasocket). Or you could easily include them in a distribution package with your script(s).
-
-One of the primary uses of `luasocket` in _RGP Lua_ is debugging scripts. For this purpose, the embedded version is completely seamless. If you wish to use the standard installation and directory-layout of `luasocket`, you may be better off disabling the embedded version in _RGP Lua_.
-
-The 'finale' namespace
-----------------------
+### The 'finale' namespace
 
 All functionality that accesses Finale through the Lua/PDK Framework resides within the `finale` namespace (namespaces use the dot separator).
 
@@ -109,8 +70,7 @@ For example:
 page = finale.FCPage()
 ```
 
-The 'finenv' namespace
-----------------------
+### The 'finenv' namespace
 
 The `finenv` namespace has been created to provide “programming shortcuts” to some objects that are often needed for a Finale Lua scripts. `finenv` currently contains these functions:
 
@@ -141,6 +101,53 @@ The `finenv` namespace has been created to provide “programming shortcuts” t
 
 \*Items with an asterisk are available in _RGP Lua_ but not _JW Lua_.
 
+### The 'socket' namespace
+
+_RGP Lua_ contains an embedded version of [`luasocket`](https://aiq0.github.io/luasocket/index.html). You can elect for it to be available in the `socket` namespace in one of the following ways.
+
+- Select **Enable Debugging** when you [configure](/docs/rgp-lua//docs/rgp-lua/rgp-lua-configuration) your script.
+- Add `finaleplugin.LoadLuaSocket = true` to your `plugindef` function.
+
+When you request the `socket` namespace, _RGP Lua_ takes the following actions.
+
+- Preloads `socket.core`.
+- Preloads `socket.lua`.
+- References ("requires") them together in the `socket` namespace.
+
+If you have only requested debugging, no further action is taken. If you have selected `finaleplugin.LoadLuaSocket = true`, then _RGP Lua_ takes the following additional actions.
+
+- Preloads `mime.core` but does not include it in any namespace. You can access it with
+
+```lua
+local mime = require 'mime.core'
+```
+
+- Copies the built-in `require` function to a function called `__original_require`.
+- Replaces the built-in `require` function with a [new version](https://github.com/finale-lua/lua-source/blob/master/built-in-functions/require_for_socket.lua) that strips the text `socket.` from the beginning of any library name that starts with it. For example:
+
+```lua
+local url = require 'socket.url'
+```
+
+is converted to
+
+```lua
+local url = require 'url'
+```
+
+This allows you to manage all the lua sources for `luasocket` in a single flat directory of your choosing. For example, you could require them straight from the `src` directory in a local copy of the [luasocket repository](https://github.com/lunarmodules/luasocket). Or you could easily include them in a distribution package with your script(s).
+
+If you prefer to keep the original `require` function, simply include this line of code before any require statements:
+
+```lua
+require = __original_require or require
+```
+
+If you are planning to use the standard installation of `luasocket`, you may be better off disabling the embedded version in _RGP Lua_ altogether.
+
+### The 'utf8' namespace
+
+Lua 5.3 added a standard `utf8` library for parsing utf8-encoded strings. Especially with the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ (beginning in version 0.63) embeds the utf8 library from Lua 5.3 back-ported into Lua 5.2. The [Lua 5.3 Reference Manual](https://www.lua.org/manual/5.3/manual.html) describes how to use these functions. Any code you write for this utf8 is compatible with Lua 5.3 and beyond.
 
 Dialog Boxes
 ------------

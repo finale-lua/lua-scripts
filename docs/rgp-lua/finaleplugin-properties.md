@@ -66,7 +66,7 @@ Default is the script's “Load As String” setting in the _RGP Lua_ configurat
 
 #### LoadLuaSocket\* (boolean)
 
-Setting this value to `true` tells _RGP Lua_ to load `luasocket` into global variable `socket`, even if **Enable Debugging** is not selected in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration). If debugging _is_ enabled, this value is ignored and `luasocket` is loaded. Example:
+Setting this value to `true` tells _RGP Lua_ to load the complete embedded `luasocket` package and change the `require` function to allow for easy loading of external lua files from the `luasocket` package. This happens even if **Enable Debugging** is not selected in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration). See the [this link](/docs/rgp-lua#the-socket-namespace) for more information.
 
 ```lua
 finaleplugin.LoadLuaSocket = true
