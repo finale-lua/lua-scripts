@@ -9,7 +9,7 @@ function plugindef()
         Hairpin Create Diminuendo
         Hairpin Create Swell
         Hairpin Create Unswell
-        Hairpin Creator Configuration
+        Hairpin Creator Configuration...
     ]]
     finaleplugin.AdditionalUndoText = [[
         Hairpin Create Diminuendo
