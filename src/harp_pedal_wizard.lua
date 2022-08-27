@@ -47,7 +47,7 @@ function harp_pedal_wizard()
     local changes_str = finale.FCString()
     changes_str.LuaString = ""
     local default_music_font = library.get_default_music_font_name()
-    local diagram_font = "^fontTxt("..default_music_font..")"
+    local diagram_font = "^fontTxt(" .. default_music_font .. ")"
     --
     local flat_char = utf8.char(0xe680) -- SMuFL: Harp pedal raised (flat)
     local nat_char = utf8.char(0xe681) -- SMuFL: Harp pedal centered (natural)
@@ -61,7 +61,7 @@ function harp_pedal_wizard()
 
     function split(s, delimiter)
         result = {};
-        for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+        for match in (s .. delimiter):gmatch("(.-)" .. delimiter) do
             table.insert(result, match);
         end
         return result;
@@ -72,7 +72,7 @@ function harp_pedal_wizard()
     end
 
     function process_return(harpnotes)
-        local error = false
+        local is_error = false
         direct_notes = {0, 0, 0, 0, 0, 0, 0}
         --
         local harp_tbl = split(harpnotes, ",")
@@ -81,8 +81,8 @@ function harp_pedal_wizard()
         for i,k in pairs(harp_tbl) do
             harp_tbl[i] = trim(harp_tbl[i])
             if string.len(harp_tbl[i]) > 2 then
-                error = true
---                goto error            
+                is_error = true
+--                goto on_error            
             end
             harp_tbl[i] = string.lower(harp_tbl[i])
             local first = harp_tbl[i]:sub(1,1)
@@ -91,18 +91,18 @@ function harp_pedal_wizard()
             if second == "s" then second = "#" end
             if second == "n" then second = "" end
             local first_upper = string.upper(first)
-            harp_tbl[i] = first_upper..second
+            harp_tbl[i] = first_upper .. second
             if string.len(harp_tbl[i]) == 2 then
                 if string.sub(harp_tbl[i], -1) == "b" 
                 or string.sub(harp_tbl[i], -1) == "#" 
                 or string.sub(harp_tbl[i], -1) == "n" then
                     -- then nothing!!!
                 else
-                    error = true
-                    --goto error     
+                    is_error = true
+                    --goto on_error     
                 end
-            end -- if length is 2...
-            ---- Assign to strings...
+            end -- if length is 2 .. .
+            ---- Assign to strings .. .
             if harp_tbl[i]:sub(1,1) == "A" then 
                 harpstrings[7] = harp_tbl[i]
                 direct_notes[7] = harp_tbl[i]
@@ -125,8 +125,8 @@ function harp_pedal_wizard()
                 harpstrings[6] = harp_tbl[i]
                 direct_notes[6] = harp_tbl[i]
             else
---                error = true
---                goto error1               
+--                is_error = true
+--                goto on_error           
             end -- End string assignments
             count = i        
         end -- for i,j
@@ -151,7 +151,7 @@ function harp_pedal_wizard()
                 if changes_str.LuaString == "" then
                     changes_str.LuaString = "New: "
                 end
-                changes_str.LuaString = changes_str.LuaString..harpstrings[i]..", "
+                changes_str.LuaString = changes_str.LuaString .. harpstrings[i] .. ", "
                 changes_temp = true
             end
         end
@@ -213,7 +213,7 @@ function harp_pedal_wizard()
             harp_tbl[i] = trim(harp_tbl[i])
             if string.len(harp_tbl[i]) > 2 then
                 harp_error = true
-                goto error1            
+                goto on_error          
             end
             harp_tbl[i] = string.lower(harp_tbl[i])
             local first = harp_tbl[i]:sub(1,1)
@@ -222,7 +222,7 @@ function harp_pedal_wizard()
             if second == "s" then second = "#" end
             if second == "n" then second = "" end
             local first_upper = string.upper(first)
-            harp_tbl[i] = first_upper..second
+            harp_tbl[i] = first_upper .. second
             if string.len(harp_tbl[i]) == 2 then
                 if string.sub(harp_tbl[i], -1) == "b" 
                 or string.sub(harp_tbl[i], -1) == "#" 
@@ -230,11 +230,11 @@ function harp_pedal_wizard()
                     -- then nothing!!!
                 else
                     harp_error = true
-                    goto error1     
+                    goto on_error    
                 end
-            end -- if length is 2...
+            end -- if length is 2 .. .
 
-            ---- Assign to strings...
+            ---- Assign to strings .. .
             if harp_tbl[i]:sub(1,1) == "A" then 
                 A = harp_tbl[i]
             elseif harp_tbl[i]:sub(1,1) == "B" then 
@@ -251,7 +251,7 @@ function harp_pedal_wizard()
                 G = harp_tbl[i]
             else
                 harp_error = true
-                goto error1               
+                goto on_error             
             end -- End string assignments
             count = i        
         end -- for i,j
@@ -261,7 +261,7 @@ function harp_pedal_wizard()
 
         if count > 7 then
             harp_error = true
-            goto error1
+            goto on_error
         end
 
         if partial then
@@ -279,10 +279,10 @@ function harp_pedal_wizard()
 
         if not changes and partial then
             if direct then
-                local yesno = ui:AlertYesNo("There are no pedal changes required.\rAdd anyway?", nil)
-                if yesno == 3 then
+                local alert = ui:AlertYesNo("There are no pedal changes required.\rAdd anyway?", nil)
+                if alert == 3 then
                     override = true
-                elseif yesno == 2 then
+                elseif alert == 2 then
                     new_pedals = direct_notes
                     changes = true
                 end
@@ -292,76 +292,76 @@ function harp_pedal_wizard()
         changes_update()
         for i = 1, 7, 1 do
             if use_diagram then
-                description.LuaString = description.LuaString..harpstrings[i]
+                description.LuaString = description.LuaString .. harpstrings[i]
                 if string.len(harpstrings[i]) == 1 then
-                    diagram_string.LuaString = diagram_string.LuaString..nat_char
+                    diagram_string.LuaString = diagram_string.LuaString .. nat_char
                 elseif string.len(harpstrings[i]) == 2 then
                     if string.sub(harpstrings[i], -1) == "b" then
-                        diagram_string.LuaString = diagram_string.LuaString..flat_char
+                        diagram_string.LuaString = diagram_string.LuaString .. flat_char
                     elseif string.sub(harpstrings[i], -1) == "#" then
-                        diagram_string.LuaString = diagram_string.LuaString..sharp_char
+                        diagram_string.LuaString = diagram_string.LuaString .. sharp_char
                     elseif string.sub(harpstrings[i], -1) == "n" then
-                        diagram_string.LuaString = diagram_string.LuaString..nat_char
+                        diagram_string.LuaString = diagram_string.LuaString .. nat_char
                     end
                 end
                 if i == 3 then
-                    diagram_string.LuaString = diagram_string.LuaString..divider_char
-                    description.LuaString = description.LuaString.." | "
+                    diagram_string.LuaString = diagram_string.LuaString .. divider_char
+                    description.LuaString = description.LuaString .. " | "
                 elseif i < 7 then
-                    description.LuaString = description.LuaString.." "
+                    description.LuaString = description.LuaString .. " "
                 end
             elseif not use_diagram then -- Settings for 'Note names'
                 if i < 3 then
                     if new_pedals[i] ~= 0 then
-                        description.LuaString = description.LuaString..harpstrings[i].." "
-                        left_strings.LuaString = left_strings.LuaString..harpstrings[i]
+                        description.LuaString = description.LuaString .. harpstrings[i] .. " "
+                        left_strings.LuaString = left_strings.LuaString .. harpstrings[i]
                         if string.len(harpstrings[i]) == 1 then
-                            left_strings.LuaString = left_strings.LuaString.."n"
+                            left_strings.LuaString = left_strings.LuaString .. "n"
                         end
-                        left_strings.LuaString = left_strings.LuaString.." "
+                        left_strings.LuaString = left_strings.LuaString .. " "
                     end
                 elseif i == 3 then
                     if new_pedals[i] ~= 0 then
-                        description.LuaString = description.LuaString..harpstrings[i].." "
-                        left_strings.LuaString = left_strings.LuaString..harpstrings[i]
+                        description.LuaString = description.LuaString .. harpstrings[i] .. " "
+                        left_strings.LuaString = left_strings.LuaString .. harpstrings[i]
                         if string.len(harpstrings[i]) == 1 then
-                            left_strings.LuaString = left_strings.LuaString.."n"
+                            left_strings.LuaString = left_strings.LuaString .. "n"
                         end
                     end
                     if new_pedals[i + 1] ~= 0 then
-                        description.LuaString = description.LuaString.."| "
+                        description.LuaString = description.LuaString .. "| "
                     end
                 elseif i > 3 and i ~= 7 then
                     if new_pedals[i] ~= 0 then
-                        description.LuaString = description.LuaString..harpstrings[i].." "
-                        diagram_string.LuaString = diagram_string.LuaString..harpstrings[i]
+                        description.LuaString = description.LuaString .. harpstrings[i] .. " "
+                        diagram_string.LuaString = diagram_string.LuaString .. harpstrings[i]
                         if string.len(harpstrings[i]) == 1 then
-                            diagram_string.LuaString = diagram_string.LuaString.."n"
+                            diagram_string.LuaString = diagram_string.LuaString .. "n"
                         end
-                        diagram_string.LuaString = diagram_string.LuaString.." "
+                        diagram_string.LuaString = diagram_string.LuaString .. " "
                     end    
                 elseif i == 7 then
                     if new_pedals[i] ~= 0 then
-                        description.LuaString = description.LuaString..harpstrings[i]
-                        diagram_string.LuaString = diagram_string.LuaString..harpstrings[i]  
+                        description.LuaString = description.LuaString .. harpstrings[i]
+                        diagram_string.LuaString = diagram_string.LuaString .. harpstrings[i]  
                         if string.len(harpstrings[i]) == 1 then
-                            diagram_string.LuaString = diagram_string.LuaString.."n"
+                            diagram_string.LuaString = diagram_string.LuaString .. "n"
                         end
                     end
                 end
-            end -- if use_diagram...
+            end -- if use_diagram .. .
         end -- i 1 to 7
 --
         if not use_diagram then 
             if not stack then
                 if diagram_string.LuaString ~= "" then
-                    left_strings.LuaString = left_strings.LuaString.." "
+                    left_strings.LuaString = left_strings.LuaString .. " "
                 end
-                diagram_string.LuaString = left_strings.LuaString..diagram_string.LuaString
+                diagram_string.LuaString = left_strings.LuaString .. diagram_string.LuaString
             elseif stack and (diagram_string.LuaString ~= ""and not config.pedal_lanes)
             or stack and not partial
             or pedal_lanes and partial then
-                diagram_string.LuaString = diagram_string.LuaString.."\r"..left_strings.LuaString
+                diagram_string.LuaString = diagram_string.LuaString .. "\r" .. left_strings.LuaString
             elseif (partial and diagram_string.LuaString == "" and not pedal_lanes) then
                 diagram_string.LuaString = left_strings.LuaString
             end
@@ -370,16 +370,16 @@ function harp_pedal_wizard()
             diagram_string.LuaString = string.gsub(diagram_string.LuaString, "#", "^sharp()")
             diagram_string.LuaString = string.gsub(diagram_string.LuaString, " %\13", "\r")
         end
-        if scaleinfo then description.LuaString = description.LuaString.." ("..scaleinfo..")" end
-        ::error1::
+        if scaleinfo then description.LuaString = description.LuaString .. " (" .. scaleinfo .. ")" end
+        ::on_error::
         if harp_error then
-            local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", NULL)
+            local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", nil)
             if result == 2 then 
                 config.last_notes = "D, C, B, E, F, G, A" -- reset the last notes in case there is a problem with them
             end
         end -- error
         if diag_asn then
-            ui:AlertInfo("There is already a harp diagram assigned to this region.", NULL)
+            ui:AlertInfo("There is already a harp diagram assigned to this region.", nil)
         end
     end
 
@@ -429,7 +429,7 @@ function harp_pedal_wizard()
                 print("Found Harp Pedals category")
                 diagrams = cat.ID
                 diagrams_cat = cat
-            end -- if cat...
+            end -- if cat .. .
         end -- for cat
 -----
         -- find an existing diagram 
@@ -440,15 +440,15 @@ function harp_pedal_wizard()
                 print ("Diagram found at",ted.ItemNo)
                 diag_ted = ted.ItemNo
             end -- if ted.CategoryID
-        end -- for ted...
+        end -- for ted .. .
         --
-        -- if there is no existing diagram...', create one
+        -- if there is no existing diagram .. .', create one
         if diag_ted == 0 then
             local ex_ted = finale.FCTextExpressionDef()
             local ted_text = finale.FCString()
             if use_diagram then
                 local text_font = diagram_font
-                ted_text.LuaString = text_font..diagram_string.LuaString
+                ted_text.LuaString = text_font .. diagram_string.LuaString
             else 
                 ted_text.LuaString = diagram_string.LuaString
             end -- if use_diagram
@@ -468,16 +468,16 @@ function harp_pedal_wizard()
             diag_ted = ex_ted.ItemNo
         end -- if diag_ted == 0
 
--- Test to see if diagram is there already...
+-- Test to see if diagram is there already .. .
         expressions:LoadAllForRegion(region)
         for e in each(expressions) do
             local ted = e:CreateTextExpressionDef()
             local ted_desc = ted:CreateDescription()
             if ted_desc:ContainsLuaString(desc_prefix.LuaString) then
                 diag_asn = true
-                goto error1
+                goto on_error
             end 
-            end -- for e in expressions... ]]
+            end -- for e in expressions .. . ]]
 
 -- add the harp diagram
 
@@ -487,15 +487,15 @@ function harp_pedal_wizard()
             add_expression:SaveNewToCell(and_cell)
 
 -------
-            ::error1::
+            ::on_error::
             finenv.EndUndoBlock(true)
             if harp_error then
                 print("There seems to be a problem with your harp diagram.")
-                local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", NULL)
+                local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", nil)
 --                if result == 2 then harp_dialog() end
             end -- error
             if diag_asn then
-                ui:AlertInfo("There is already a harp diagram assigned to this region.", NULL)
+                ui:AlertInfo("There is already a harp diagram assigned to this region.", nil)
             end
         end -- function add_pedals
 
@@ -503,8 +503,8 @@ function harp_pedal_wizard()
         function harp_scale(root, scale, use_diagram, use_chord, partial)
             local scale_error = false
             local enharmonic = finale.FCString()
-            local scaleinfo = root.." "..scale
-            if use_chord then scaleinfo = root..scale end
+            local scaleinfo = root .. " " .. scale
+            if use_chord then scaleinfo = root .. scale end
             -------------------
             ---- Set up tables for all strings, as both numbers (C = 0) and letters. 
             local C_num = {11, 0, 1}
@@ -541,7 +541,7 @@ function harp_pedal_wizard()
                 if all_ltr[a] == root then
                     root_off = all_num[a]
                 end -- if
-            end -- for a, b...
+            end -- for a, b .. .
 ----
 -- 2) Find scale and transpose it
             scale = string.lower(scale)
@@ -576,19 +576,19 @@ function harp_pedal_wizard()
             local scale_ltrs = root  -- This is where we will build scale (as string of letter-names)
             local root_string = string.sub(root, 1, 1) -- the base string, A-G
             local last = root_string -- the last string added to the list
-            local scale_deg = 2 -- will advance through scale. Root was already added, so we will start at 2...
+            local scale_deg = 2 -- will advance through scale. Root was already added, so we will start at 2 .. .
 ----
             if scale == "whole tone" or scale == "major pentatonic" or scale == "minor pentatonic" then
                 use_chord = true
             end -- temporary change for exotic scales!
 
             if not use_chord then
-                for i = 1, 2, 1 do --- run through this twice...
+                for i = 1, 2, 1 do --- run through this twice .. .
                     if last == "A"  and scale_deg <= 7 then
                         local is_found = false
                         for j = 1, 3, 1 do
                             if B_num[j] == scale_new[scale_deg] then
-                                scale_ltrs = scale_ltrs..", "..B_ltr[j]
+                                scale_ltrs = scale_ltrs .. ", " .. B_ltr[j]
                                 is_found = true
                             end
                         end -- for j
@@ -603,7 +603,7 @@ function harp_pedal_wizard()
                         local is_found = false
                         for j = 1, 3, 1 do
                             if C_num[j] == scale_new[scale_deg] then
-                                scale_ltrs = scale_ltrs..", "..C_ltr[j]
+                                scale_ltrs = scale_ltrs .. ", " .. C_ltr[j]
                                 is_found = true
                             end
                         end -- for j
@@ -618,7 +618,7 @@ function harp_pedal_wizard()
                         local is_found = false
                         for j = 1, 3, 1 do
                             if D_num[j] == scale_new[scale_deg] then
-                                scale_ltrs = scale_ltrs..", "..D_ltr[j]
+                                scale_ltrs = scale_ltrs .. ", " .. D_ltr[j]
                                 is_found = true
                             end
                         end -- for j
@@ -633,7 +633,7 @@ function harp_pedal_wizard()
                         local is_found = false
                         for j = 1, 3, 1 do
                             if E_num[j] == scale_new[scale_deg] then
-                                scale_ltrs = scale_ltrs..", "..E_ltr[j]
+                                scale_ltrs = scale_ltrs .. ", " .. E_ltr[j]
                                 is_found = true
                             end
                         end -- for j
@@ -648,7 +648,7 @@ function harp_pedal_wizard()
                         local is_found = false
                         for j = 1, 3, 1 do
                             if F_num[j] == scale_new[scale_deg] then
-                                scale_ltrs = scale_ltrs..", "..F_ltr[j]
+                                scale_ltrs = scale_ltrs .. ", " .. F_ltr[j]
                                 is_found = true
                             end 
                         end -- for j
@@ -663,7 +663,7 @@ function harp_pedal_wizard()
                         local is_found = false
                         for j = 1, 3, 1 do
                             if G_num[j] == scale_new[scale_deg] then
-                                scale_ltrs = scale_ltrs..", "..G_ltr[j]
+                                scale_ltrs = scale_ltrs .. ", " .. G_ltr[j]
                                 is_found = true
                             end
                         end -- for j
@@ -678,7 +678,7 @@ function harp_pedal_wizard()
                         local is_found = false
                         for j = 1, 3, 1 do
                             if A_num[j] == scale_new[scale_deg] then
-                                scale_ltrs = scale_ltrs..", "..A_ltr[j]
+                                scale_ltrs = scale_ltrs .. ", " .. A_ltr[j]
                                 is_found = true
                             end
                         end -- for j
@@ -689,7 +689,7 @@ function harp_pedal_wizard()
                         scale_deg = scale_deg + 1
                         last = "A"
                     end
-                end -- for i...
+                end -- for i .. .
             elseif use_chord then
                 local ind_string_ltrs = {A_ltr, B_ltr, C_ltr, D_ltr, E_ltr, F_ltr, G_ltr}
                 local ind_string_nums = {A_num, B_num, C_num, D_num, E_num, F_num, G_num}
@@ -701,7 +701,7 @@ function harp_pedal_wizard()
                             for scale_key, l in pairs(scale_new) do
                                 for string_num_key,n in pairs(ind_string_nums[string_key]) do
                                     if ind_string_nums[string_key][string_num_key] == scale_new[scale_key] then
-                                        scale_ltrs = scale_ltrs..", "..ind_string_ltrs[string_key][string_num_key]
+                                        scale_ltrs = scale_ltrs .. ", " .. ind_string_ltrs[string_key][string_num_key]
                                         match = true
                                         local update_scale = false
                                         if scale == "major pentatonic" and scale_key == 2 then
@@ -710,7 +710,7 @@ function harp_pedal_wizard()
                                         elseif scale == "minor pentatonic" and scale_key == 3 then
                                             scale_new = {0, 3, 7, 5, 10}
                                             update_scale = true                                        
-                                            elseif scale == "whole tone" and scale_key == 2 then
+                                        elseif scale == "whole tone" and scale_key == 2 then
                                             scale_new = {0, 4, 2, 6, 8, 10}
                                             update_scale = true
                                         end
@@ -726,14 +726,14 @@ function harp_pedal_wizard()
                             end
                             count = count + 1
                             if count == 25 then
-                                print("Something clearly went wrong...")
+                                print("Something clearly went wrong .. .")
                                 match = true
                             end
                             ::continue::
                         until ( match == true )
-                    end -- if ind_string_ltrs[i][2]...
-                end -- for i, j...
-            end -- if use_chord...
+                    end -- if ind_string_ltrs[i][2] .. .
+                end -- for i, j .. .
+            end -- if use_chord .. .
 
             if scale == "whole tone" or scale == "major pentatonic" or scale == "minor pentatonic" then
                 use_chord = false
@@ -744,8 +744,8 @@ function harp_pedal_wizard()
             ::scale_error::
             if scale_error then
                 local str = finale.FCString()
-                str.LuaString = "That scale won't work, sorry. \n Try again using "..enharmonic.LuaString.." "..scale.."?"
-                local result = ui:AlertYesNo(str.LuaString, NULL)
+                str.LuaString = "That scale won't work, sorry. \n Try again using " .. enharmonic.LuaString .. " " .. scale .. "?"
+                local result = ui:AlertYesNo(str.LuaString, nil)
                 if result == 2 then
                     sel_acc:SetSelectedItem(1)
                     for i, k in pairs(roots) do
@@ -811,7 +811,7 @@ or a chord from the drop down lists.]])
                     sel_root:AddString(str)
                 end
                 sel_root:SetSelectedItem(config.root)
-                local accidentals = {"b", "♮", "#"} -- unicode symbols... natural at least displays as 'n' on Windows
+                local accidentals = {"b", "♮", "#"} -- unicode symbols .. . natural at least displays as 'n' on Windows
 --      local accidentals = {"♭", "♮", "♯"} -- unicode symbols
                 sel_acc = dialog:CreatePopup(42, row_y)
                 format_ctrl(sel_acc, 20, 32, "Accidental")
@@ -1398,7 +1398,7 @@ or a chord from the drop down lists.]])
 
                 function root_calc()
                     local root_calc = finale.FCString()
-                    root_calc.LuaString = roots[sel_root:GetSelectedItem()+1]..accidentals[sel_acc:GetSelectedItem()+1]
+                    root_calc.LuaString = roots[sel_root:GetSelectedItem()+1] .. accidentals[sel_acc:GetSelectedItem()+1]
                     root_calc.LuaString = string.gsub(root_calc.LuaString, "♮", "")
                     root_calc.LuaString = string.gsub(root_calc.LuaString, "♭", "b") 
                     root_calc.LuaString = string.gsub(root_calc.LuaString, "♯", "#")
@@ -1436,9 +1436,9 @@ or a chord from the drop down lists.]])
                 function strings_read()
                     str.LuaString = ""
                     for i = 1, 6, 1 do
-                        str.LuaString = str.LuaString..harpstrings[i]..", "
+                        str.LuaString = str.LuaString .. harpstrings[i] .. ", "
                     end
-                    str.LuaString = str.LuaString..harpstrings[7]
+                    str.LuaString = str.LuaString .. harpstrings[7]
                 end
 
                 function on_close()
@@ -1464,9 +1464,9 @@ or a chord from the drop down lists.]])
                         strings_read()
                     else
                         if scale_check:GetCheck() == 1 then 
-                            scaleinfo = root.LuaString.." "..scales[sel_scale:GetSelectedItem() + 1]
+                            scaleinfo = root.LuaString .. " " .. scales[sel_scale:GetSelectedItem() + 1]
                         elseif chord_check:GetCheck() == 1 then 
-                            scaleinfo = root.LuaString..chords[sel_chord:GetSelectedItem() + 1]
+                            scaleinfo = root.LuaString .. chords[sel_chord:GetSelectedItem() + 1]
                         end
                     end
 
@@ -1483,7 +1483,7 @@ or a chord from the drop down lists.]])
                     str.LuaString = ""
                     harp_notes:SetText(str)
                     changes_static:SetText(str)
-                    str.LuaString = harpstrings[1]..", "..harpstrings[2]..", "..harpstrings[3]..", "..harpstrings[4]..", "..harpstrings[5]..", "..harpstrings[6]..", "..harpstrings[7]
+                    str.LuaString = harpstrings[1] .. ", " .. harpstrings[2] .. ", " .. harpstrings[3] .. ", " .. harpstrings[4] .. ", " .. harpstrings[5] .. ", " .. harpstrings[6] .. ", " .. harpstrings[7]
                     config.last_notes = str.LuaString
                     configuration.save_user_settings(script_name, config)
                     finenv.Region():Redraw()
@@ -1515,7 +1515,7 @@ or a chord from the drop down lists.]])
                 end
 
 --                if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
---                end -- if dialog:Execute...
+--                end -- if dialog:Execute .. .
 
             end -- 
             harp_dialog()
