@@ -62,7 +62,7 @@ print (math.random(1, 10))
 
 ### The 'finale' namespace
 
-All functionality that accesses Finale through the Lua/PDK Framework resides within the `finale` namespace (namespaces use the dot separator).
+All functionality that accesses Finale through the [Lua/PDK Framework](https://pdk.finalelua.com/) resides within the `finale` namespace. (Namespaces use the dot separator.)
 
 For example:
 
@@ -72,34 +72,13 @@ page = finale.FCPage()
 
 ### The 'finenv' namespace
 
-The `finenv` namespace has been created to provide “programming shortcuts” to some objects that are often needed for a Finale Lua scripts. `finenv` currently contains these functions:
+The `finenv` namespace provides “programming shortcuts” to some objects that are often needed for a Finale Lua scripts. For example, you can get the current selection in Finale as follows:
 
-|Member|Description|
-|----------|---------------|
-|finenv.Region()|Returns an object with the currently selected region (in the document/part currently in editing scope), without the need for any other method calls. When running a modeless dialog in _RGP Lua_, this value is reinitialized to the current selected region every time you call the function. This could have side-effects if you have assigned it to a Lua variable, because the assigned variable will change as well.|
-|finenv.UI()|Returns the global “user interface” object (of the [`FCUI`](https://pdk.finalelua.com/class_f_c_u_i.html) class). The `FCUI` class contains Finale and system-global tasks, such as displaying alert boxes, sounding a system beep, or getting the width of the screen, etc.|
-|finenv.UserValueInput()|**Not supported** in _RGP Lua_. Instead, it displays an error message box and returns `nil`. See comments below for how it works in _JW Lua_.|
-|finenv.StartNewUndoBlock(string, bool)|Ends the currently active Undo/Redo block in Finale (if any) and starts a new one with a new undo text. The first parameter (a Lua string) is the name of the new Undo/Redo block. The second parameter (optional, default is true) is a boolean, indicating if the edits in the previous Undo/Redo block should be stored (=true) or canceled (=false). Finale will only store Undo/Redo blocks that contain edit changes to the documents. These calls cannot be nested. If your script has set `finaleplugin.NoStore = true`, then this function has no effect and any changes to the document are rolled back.|
-|finenv.EndUndoBlock(bool)*|Ends the currently active Undo/Redo block in Finale (if any). The parameter indicates if the edits in the previous Undo/Redo block should be stored (=true) or canceled (=false). Finale will only store Undo/Redo blocks that contain edit changes to the documents. These calls cannot be nested. If your script will make further changes to the document after this call, it should call `StartNewUndoBlock()` again before making them. Otherwise, Finale's Undo stack could become corrupted.|
-|finenv.RunningLuaFilePath()\*|A function that returns a Lua string containing the full path and filename of the current running script.|
-|finenv.RunningLuaFolderPath()\*|A function that returns a Lua string containing the full folder path of the current running script.|
-|finenv.QueryInvokedModifierKeys(value)\*|A function that returns `true` if the input modifier key(s) were pressed when the menu item was invoked that started the script. The input value is any combination of [COMMAND\_MOD\_KEYS](https://pdk.finalelua.com/class_____f_c_user_window.html#af07ed05132bac987ff3acab63a001e47).|
-|finenv.RegisterModelessDialog(dialog)\*|Registers a newly created [`FCCustomLuaWindow`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html) dialog box with _RGP Lua_ so that you can then display it as a modeless window with [`ShowModeless`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html#a002f165377f6191657f809a30e42b0ad). You can register more than one dialog. The script terminates when all its modeless windows close.|
-|finenv.CreateLuaScriptItems()\*|Returns an instance of `FCLuaScriptItems` containing a collection of every menu item configured for the current running instance of _RGP Lua_. You can launch these items from within your script, and they will behave as if you selected them from the menu. More information can be found at `FCLuaScriptItem`. You do not have to maintain your reference to the collection for the launched script(s) to keep running, nor does your script have to keep running. Invoking these items is launch-and-forget.|
-|finenv.CreateLuaScriptItemsFromFilePath(file_path)\*|Returns an instance of `FCLuaScriptItems` that can be used to launch ad-hoc scripts. The `file_path` is a string containing the fully qualified path to the script file. The returned collection includes one item for the script file and one item for each additional menu item specified in the `plugindef` function, if it has any. The items are also initialized with other properties from the `plugindef` function as appropriate, but you may modify them.|
-|finenv.ExecuteLuaScriptItem(item)\*|Accepts an instance of `FCLuaScriptItem` and launches it in a separate Lua state. If the item is an ad-hoc script, you must maintain your reference to the script item until the ad-hoc script terminates. If you allow your reference to be garbage collected, or if your script terminates, the separate executing ad-hoc script will terminate immediately. Returns `true` on success.|
-|finenv.FinaleVersion|A read-only property with the running Finale “year” version, such as 2011, 2012, etc. For Finale 25 and later, _JW Lua_ returns this value as 9999. However, _RGP Lua_ (starting with v0.56) returns the major version + 10000. So Finale 25 returns 10025, Finale 26 returns 10026, etc.|
-|finenv.RawFinaleVersion|A read-only property with the full Finale version number. It's constructed as 4 bytes with different version info. The highest byte is the major version, the next is subversion, etc. Use this only if you need the revision number of a specific major Finale version.|
-|finenv.MajorVersion|A read-only property with the major version number of _RGP/JW Lua_. Beta versions return 0, version 1.xx gives 1, etc.|
-|finenv.MinorVersion|A read-only property with the minor version number of _RGP/JW Lua_. A version 1.07 would give 7, etc.|
-|finenv.StringVersion|A read-only property that returns the full _RGP/JW Lua_ version. This string can potentially contain non-numeric characters, but normally it is just `<major>.<minor>`, i.e., "1.07".|
-|finenv.ConsoleIsAvailable|A read-only property that will return true if there is a console available for `print()` statements. Scripts that run from the Finale menu do not have a console. _RGP Lua_ always returns this value as `false`.|
-|finenv.DebugEnabled\*|A read-only property that returns the setting of “Enable Debugging” in _RGP Lua’s_ configuration dialog. You could use this to add debug-only code to your script.|
-|finenv.IsRGPLua\*|A read-only property that always returns `true` in _RGP Lua_. In _JW Lua_ it returns `nil`, which is the syntactically the equivalent to `false` in nearly every situation.|
-|finenv.LoadedAsString\*|A read-only property that returns the setting of “Load As String”, either from _RGP Lua’s_ sconfiguration dialog or from the `plugindef()` function, whichever is in effect.
-|finenv.RetainLuaState\*|A writable property that starts out as `false` in _RGP Lua_. If a script sets the value to `true` before exiting, the next time it is invoked it receives the same Lua state as before, including all global variables, require statements, etc. If there is an error, the Lua state is not retained, regardless of the setting. A script can change the value back to `false` at any time if it needs a fresh Lua state on the next invocation.|
+```lua
+local sel_rgn = finenv.Region()
+```
 
-\*Items with an asterisk are available in _RGP Lua_ but not _JW Lua_.
+It also allows for direct interaction with the Lua plugin itself. A full description of available functions and properties can be found on the [finenv properties](/docs/rgp-lua/finenv-properties) page.
 
 ### The 'socket' namespace
 
