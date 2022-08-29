@@ -57,7 +57,7 @@ function harp_pedal_wizard()
     desc_prefix.LuaString = ""
     local ui = finenv.UI()
     local direct_notes = {0, 0, 0, 0, 0, 0, 0}
-    configuration.get_user_settings(script_name, config, create_automatically)
+    configuration.get_user_settings(script_name, config, true)
 
     function split(s, delimiter)
         result = {};
@@ -164,15 +164,15 @@ function harp_pedal_wizard()
         changes_static:SetText(changes_str)
     end
 
-    function harp_diagram(harpnotes, use_diagram, scaleinfo, partial)
+    function harp_diagram(harpnotes, use_diagram, scale_info, partial)
         if use_diagram then
             desc_prefix.LuaString = "Hp. Diagram: "
         else
             desc_prefix.LuaString = "Hp. Pedals: "
         end
-        if partial then scaleinfo = nil end
+        if partial then scale_info = nil end
         local region = finenv.Region()
-        local harp_error = false
+        harp_error = false
         local use_tech = false
         local sysstaves = finale.FCSystemStaves()
         sysstaves:LoadScrollView()
@@ -370,7 +370,7 @@ function harp_pedal_wizard()
             diagram_string.LuaString = string.gsub(diagram_string.LuaString, "#", "^sharp()")
             diagram_string.LuaString = string.gsub(diagram_string.LuaString, " %\13", "\r")
         end
-        if scaleinfo then description.LuaString = description.LuaString .. " (" .. scaleinfo .. ")" end
+        if scale_info then description.LuaString = description.LuaString .. " (" .. scale_info .. ")" end
         ::on_error::
         if harp_error then
             local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", nil)
@@ -378,7 +378,7 @@ function harp_pedal_wizard()
                 config.last_notes = "D, C, B, E, F, G, A" -- reset the last notes in case there is a problem with them
             end
         end -- error
-        if diag_asn then
+        if is_dialog_assigned then
             ui:AlertInfo("There is already a harp diagram assigned to this region.", nil)
         end
     end
@@ -402,7 +402,7 @@ function harp_pedal_wizard()
         textexpressiondefs:LoadAll()
         local add_expression = finale.FCExpression()
         local diag_ted = 0
-        local diag_asn = false
+        is_dialog_assigned = false
         local expressions = finale.FCExpressions()
         local measure_num = region.StartMeasure
         local measure_pos = region.StartMeasurePos
@@ -474,7 +474,7 @@ function harp_pedal_wizard()
             local ted = e:CreateTextExpressionDef()
             local ted_desc = ted:CreateDescription()
             if ted_desc:ContainsLuaString(desc_prefix.LuaString) then
-                diag_asn = true
+                is_dialog_assigned = true
                 goto on_error
             end 
             end -- for e in expressions .. . ]]
@@ -494,7 +494,7 @@ function harp_pedal_wizard()
                 local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", nil)
 --                if result == 2 then harp_dialog() end
             end -- error
-            if diag_asn then
+            if is_dialog_assigned then
                 ui:AlertInfo("There is already a harp diagram assigned to this region.", nil)
             end
         end -- function add_pedals
@@ -503,8 +503,8 @@ function harp_pedal_wizard()
         function harp_scale(root, scale, use_diagram, use_chord, partial)
             local scale_error = false
             local enharmonic = finale.FCString()
-            local scaleinfo = root .. " " .. scale
-            if use_chord then scaleinfo = root .. scale end
+            local scale_info = root .. " " .. scale
+            if use_chord then scale_info = root .. scale end
             -------------------
             ---- Set up tables for all strings, as both numbers (C = 0) and letters. 
             local C_num = {11, 0, 1}
@@ -739,7 +739,7 @@ function harp_pedal_wizard()
                 use_chord = false
             end -- temporary change for exotic scales!
 
-            harp_diagram(scale_ltrs, use_diagram, scaleinfo, partial)
+            harp_diagram(scale_ltrs, use_diagram, scale_info, partial)
 ---
             ::scale_error::
             if scale_error then
@@ -770,6 +770,7 @@ function harp_pedal_wizard()
             local str = finale.FCString()
             local use_diagram = true
             local use_chord = false
+            local scale_info = ""
 
             if config.chord_check == 0  or config.chord_check == "0" then use_chord = false 
             elseif config.chord_check == 1 or config.chord_check == "1" then use_chord = true end
@@ -1457,20 +1458,20 @@ or a chord from the drop down lists.]])
                     if diagram_checkbox:GetCheck() == 1 then use_diagram = true
                     else use_diagram = false end
                     local root = root_calc()
-                    local scaleinfo = ""
+                    local scale_info = ""
                     if return_string.LuaString ~= "" then
                         direct = true
                         process_return(return_string.LuaString)
                         strings_read()
                     else
                         if scale_check:GetCheck() == 1 then 
-                            scaleinfo = root.LuaString .. " " .. scales[sel_scale:GetSelectedItem() + 1]
+                            scale_info = root.LuaString .. " " .. scales[sel_scale:GetSelectedItem() + 1]
                         elseif chord_check:GetCheck() == 1 then 
-                            scaleinfo = root.LuaString .. chords[sel_chord:GetSelectedItem() + 1]
+                            scale_info = root.LuaString .. chords[sel_chord:GetSelectedItem() + 1]
                         end
                     end
 
-                    harp_diagram(str.LuaString, use_diagram, scaleinfo, partial)
+                    harp_diagram(str.LuaString, use_diagram, scale_info, partial)
 
                     if partial and not changes then
                         if not override then
@@ -1500,8 +1501,8 @@ or a chord from the drop down lists.]])
                     dialog:RegisterCloseWindow(on_close)
                 end
                 -- initialize pedals
-                partial = false 
-                harp_diagram(config.last_notes, use_diagram, scaleinfo, partial)
+                partial = false
+                harp_diagram(config.last_notes, use_diagram, scale_info, partial)
                 update_variables()
 
                 if partial_checkbox:GetCheck() == 1 then partial = true end
