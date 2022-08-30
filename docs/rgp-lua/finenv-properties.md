@@ -12,15 +12,15 @@ Example:
 
 ```lua
 if finenv.ConsoleIsAvailable then
-   print("Message")
+   print("Hello World")
 else
-   finenv.UI():AlertInfo(message, "")
+   finenv.UI():AlertInfo("Hello World", "")
 end
 ```
 
 #### CreateLuaScriptItems\* (function)
 
-Returns an instance of `FCLuaScriptItems` containing a collection of every menu item configured for the current running instance of _RGP Lua_. You can launch these items from within your script, and they will behave as if you had selected them from the menu. More information can be found at `FCLuaScriptItem`. You do not have to maintain your reference to the collection for the launched script(s) to keep running, nor does your script have to keep running. Invoking these items is launch-and-forget.
+Returns an instance of `FCLuaScriptItems` containing a collection of every menu item configured for the current running instance of _RGP Lua_. You can execute these items from within your script, and they will behave as if you had selected them from the menu. More information can be found at [`FCLuaScriptItem`](https://pdk.finalelua.com/class_f_c_lua_script_item.html). You do not have to maintain your reference to the collection for the executed script(s) to keep running, nor does your script have to keep running. Invoking these items is launch-and-forget.
 
 
 |Input Type|Description|
@@ -29,7 +29,7 @@ Returns an instance of `FCLuaScriptItems` containing a collection of every menu 
 
 |Output Type|Description|
 |------|------|
-|FCLuaScriptItems|A collection of all configured menu items in the running instance of _RGP Lua_|
+|FCLuaScriptItems|A collection of all configured menu items in the current running instance of _RGP Lua_|
 
 Example:
 
@@ -57,7 +57,7 @@ Example:
 local script_items = finenv.CreateLuaScriptItemsFromFilePath("/Users/Me/MyScripts/script.lua")
 ```
 
-See comments about executing ad-hoc scripts [below](executeluascriptitemfunction).
+See comments about executing ad-hoc scripts [below](#executeluascriptitemfunction).
 
 #### DebugEnabled\* (read-only property)
 
@@ -92,7 +92,7 @@ finenv.StartNewUndoBlock(false)
 
 #### ExecuteLuaScriptItem\* (function)
 
-Accepts an instance of `FCLuaScriptItem` and launches it in a separate Lua state. If the item is an ad-hoc script, you must maintain your reference to the script item until the ad-hoc script terminates. If you allow your reference to be garbage collected, or if your script terminates, the separate executing ad-hoc script terminates immediately. The function returns either a single value or three values if the executed item returns a message.
+Accepts an instance of [`FCLuaScriptItem`](https://pdk.finalelua.com/class_f_c_lua_script_item.html) and launches it in a separate Lua state. If the item is an ad-hoc script (created with [CreateLuaScriptItemsFromFilePath](#CreateLuaScriptItemsFromFilePathfunction)), you must maintain your reference to the script item until the ad-hoc script terminates. If you allow your reference to be garbage collected, or if your script terminates, the separate executing ad-hoc script terminates immediately. The function returns either a single value or three values if the executed item returns a message.
 
 
 |Input Type|Description|
@@ -138,7 +138,7 @@ end
 
 #### IsRGPLua\* (read-only property)
 
-Always returns `true` in _RGP Lua_. In _JW Lua_ it returns `nil`, which is the syntactically the equivalent to `false` in nearly every situation.
+Always returns `true` in _RGP Lua_. In _JW Lua_ it returns `nil`, which is syntactically the equivalent of `false` in nearly every situation.
 
 Example:
 
@@ -162,11 +162,11 @@ end
 
 #### MessageResultType\* (constants)
 
-A list of constants that define the type of message returned by `finenv.ExecuteLuaScriptItem` (if any)
+A list of constants that define the type of message returned by `finenv.ExecuteLuaScriptItem` (if any).
 
 |Value|Description|
 |-----|-----|
-|**SCRIPT\_RESULT**|The message was returned by Lua. It could be either an error or a value returned by the script. If it is not an error, the first value returned by `ExecuteLuaScriptItem` is true.|
+|**SCRIPT\_RESULT**|The message was returned by Lua. It could be either an error or a value returned by the script. If it is an error, the first value returned by `ExecuteLuaScriptItem` is false.|
 |**DOCUMENT\_REQUIRED**|The script was not executed because it specified `finaleplugin.RequireDocument = true` but no document was open.|
 |**SELECTION\_REQUIRED**|The script was not executed because it specified `finaleplugin.RequireSelection = true` but there was no selection.|
 |**SCORE\_REQUIRED**|The script was not executed because it specified `finaleplugin.RequireScore = true` but the document was viewing a part.|
@@ -195,7 +195,7 @@ A function that returns `true` if the input modifier key(s) were pressed when th
 
 |Output Type|Description|
 |------|------|
-|boolean|True if all of the input modifier keys were pressed.|
+|boolean|True if all of the specified modifier keys were pressed.|
 
 Example:
 
@@ -252,7 +252,7 @@ end
 
 #### RegisterModelessDialog\* (function)
 
-Registers a newly created [`FCCustomLuaWindow`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html) dialog box with _RGP Lua_ so that you can then display it as a modeless window with [`ShowModeless`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html#a002f165377f6191657f809a30e42b0ad). You can register more than one dialog. The script terminates when all its modeless windows close.
+Registers a newly created [`FCCustomLuaWindow`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html) dialog box with _RGP Lua_ so that you can then display it as a modeless window with [`ShowModeless`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html#a002f165377f6191657f809a30e42b0ad). You can register more than one dialog. The script terminates when all its modeless windows close unless `finenv.RetainLuaState = true` is specified.
 
 |Input Type|Description|
 |------|------|
@@ -271,7 +271,7 @@ finenv.RegisterModelessDialog(dialog)
 dialog:ShowModeless()
 ```
 
-#### RetainLuaState (read/write property)
+#### RetainLuaState\* (read/write property)
 
 A writable property that starts out as `false` in _RGP Lua_. If a script sets the value to `true` before exiting, the next time it is invoked it receives the same Lua state as before, including all global variables, required modules, etc. If there is an error, the Lua state is not retained, regardless of the setting. A script can change the value back to `false` at any time if it needs a fresh Lua state on the next invocation.
 
@@ -341,7 +341,7 @@ finenv.StartNewUndoBlock("Merge Layers", true)
 ```
 #### StringVersion (read-only property)
 
-Returns the full _RGP Lua_ or _JW Lua_ version. This string can potentially contain non-numeric characters, but normally it is just `<major>.<minor>`, i.e., "1.07".
+Returns the full _RGP Lua_ or _JW Lua_ version. This string can potentially contain non-numeric characters, but normally it is just `<major>.<minor>`, e.g., "1.07".
 
 Example:
 
@@ -380,7 +380,7 @@ _JW Lua_ supports dialog boxes to the user through the `finenv.UserValueInput()`
 
 |Output Type|Description|
 |------|------|
-|UserValueInput|An instance of the deprecated `UserValueInput` class.|
+|UserValueInput|An instance of the deprecated `UserValueInput` class (_JW Lua_) or `nil` (_RGP Lua_).|
 
 Example:
 

@@ -67,7 +67,7 @@ All functionality that accesses Finale through the [Lua/PDK Framework](https://p
 For example:
 
 ```lua
-page = finale.FCPage()
+local page = finale.FCPage()
 ```
 
 ### The 'finenv' namespace
@@ -93,7 +93,7 @@ When you request the `socket` namespace, _RGP Lua_ takes the following actions.
 - Preloads `socket.lua`.
 - References ("requires") them together in the `socket` namespace.
 
-If you have only requested debugging, no further action is taken. If you have selected `finaleplugin.LoadLuaSocket = true`, then _RGP Lua_ takes the following additional actions.
+If you have only requested debugging, no further action is taken. If you have specified `finaleplugin.LoadLuaSocket = true` in your `plugindef` function, then _RGP Lua_ takes the following additional actions.
 
 - Preloads `mime.core` but does not include it in any namespace. You can access it with
 
@@ -111,7 +111,7 @@ local url = require 'socket.url'
 is converted to
 
 ```lua
-local url = require 'url'
+local url = __original_require 'url'
 ```
 
 This allows you to manage all the lua sources for `luasocket` in a single flat directory of your choosing. For example, you could require them straight from the `src` directory in a local copy of the [luasocket repository](https://github.com/lunarmodules/luasocket). Or you could easily include them in a distribution package with your script(s).
@@ -126,7 +126,7 @@ If you are planning to use the standard installation of `luasocket`, you may be 
 
 ### The 'utf8' namespace
 
-Lua 5.3 added a standard `utf8` library for parsing utf8-encoded strings. Especially with the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ (beginning in version 0.63) embeds the utf8 library from Lua 5.3 back-ported into Lua 5.2. The [Lua 5.3 Reference Manual](https://www.lua.org/manual/5.3/manual.html) describes how to use these functions. Any code you write for this utf8 is compatible with Lua 5.3 and beyond.
+Lua 5.3 added a standard `utf8` library for parsing utf8-encoded strings. Especially with the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ (beginning in version 0.63) embeds the utf8 library from Lua 5.3 back-ported into Lua 5.2. The [Lua 5.3 Reference Manual](https://www.lua.org/manual/5.3/manual.html) describes how to use these functions. Any code you write for this version of `utf8` is source-compatible with Lua 5.3 and beyond.
 
 Dialog Boxes
 ------------
@@ -147,6 +147,8 @@ Some data (such as the “page spec” record, which describes a page with its w
 ### TGF Entry Frame
 
 Note entries however, are not accessed through Finale's usual database calls. They are accessed through a concept called the **TGF entry frame**, where all note entries in a single measure+staff+layer are accessed through one variable-sized data record. The TGF frame can actually be browsed directly in Finale, using Finale's _Edit Frame_ dialog box (in the _Speedy Entry Tool_).
+
+The PDK Framework has no direct representation of the TGF Entry Frame. Container classes such as `FCNoteEntryLayer` and `FCNoteEntryCell` manage the TGFs for you. You must keep in mind that when an instance of one of these container classes goes out of scope and is garbage collected, the TGFs they were maintaining are destroyed as well. If you access any dangling entry instance from a destroyed container, you can crash Finale. This is particularly a risk with the built-in iterators [`eachentry`](https://github.com/finale-lua/lua-source/blob/master/built-in-functions/rgplua_built_in_functions.lua) and [`eachentrysaved`](https://github.com/finale-lua/lua-source/blob/master/built-in-functions/rgplua_built_in_functions.lua). They create and destroy instances of `FCNoteEntryCell` from which they feed entries to the loop. It is very risky to assign one of those entry instances to an external variable and then access it outside the loop.
 
 A note entry can contain multiple notes (which are the different pitches in a chord), but the notes are just sub-data in the note entry.
 
@@ -207,7 +209,7 @@ function plugindef()
 end
 ```
 
-`plugindef()` is considered to be a reserved name in the global namespace. If the script has a function named `plugindef()`, _RGP/JW Lua_ may call it at any time (not only during script execution) to gather information about the plug-in. The `plugindef()` function can **NOT** have dependencies outside the function itself.
+`plugindef()` is considered to be a reserved name in the global namespace. If the script has a function named `plugindef()`, the Lua plugin may call it at any time (not only during script execution) to gather information about the plug-in. The `plugindef()` function can **NOT** have dependencies outside the function itself.
 
 All aspects of the `plugindef()` are optional, but for a plug-in script that is going to be used repeatedly, the minimum should be to return a plug-in name, undo string, and short description.
 
