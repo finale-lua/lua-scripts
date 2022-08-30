@@ -157,6 +157,9 @@ function clef.clef_change(clef, region)
                         if region.StartMeasure ~= region.EndMeasure then
                             if (cell_frame_hold.Measure == region.StartMeasure) then
                                 if mid_clef.MeasurePos <= region.StartMeasurePos then
+                                    if mid_clef.MeasurePos ~= region.StartMeasurePos then
+                                        last_clef = mid_clef.ClefIndex
+                                    end
                                     new_mid_measure_clefs:InsertCellClefChange(mid_clef)
                                     new_mid_measure_clefs:SaveAllAsNew()
                                 end
@@ -219,14 +222,21 @@ function clef.clef_change(clef, region)
                         new_mid_measure_clefs:SaveAllAsNew()
                         last_clef_added = true
                     end
+
                     -- Removes duplicate clefs:
                     for i = new_mid_measure_clefs.Count - 1, 1, -1 do
                         local later_clef_change = new_mid_measure_clefs:GetItemAt(i)
                         local earlier_clef_change = new_mid_measure_clefs:GetItemAt(i - 1)
+                        if later_clef_change.MeasurePos < 0 then
+                            new_mid_measure_clefs:ClearItemAt(i)
+                            new_mid_measure_clefs:SaveAll()
+                            goto continue
+                        end
                         if earlier_clef_change.ClefIndex == later_clef_change.ClefIndex then
                             new_mid_measure_clefs:ClearItemAt(i)
                             new_mid_measure_clefs:SaveAll()
                         end
+                        ::continue::
                     end
                     --
                     cell_frame_hold:SetCellClefChanges(new_mid_measure_clefs)
