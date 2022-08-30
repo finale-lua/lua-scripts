@@ -54,52 +54,79 @@ Lua is case sensitive. The basic Lua syntax is very similar to other computer la
 
 However, to really take advantage of the full power of Lua, there are other very powerful tools (such as iterators, closures and coroutines) to explore.
 
-Both _RGP Lua_ and _JW Lua_ include all the standard Lua modules (`string`, `math`, `file`, etc). _RGP Lua_ (starting with version 0.63) embeds a back-ported version of the `utf8` library from Lua 5.3 that is fully compatible with Lua 5.3 and higher. Additionally, _RGP Lua_ embeds [`luasocket`](https://aiq0.github.io/luasocket/index.html) if you select the **Enable Debugging** option when you [configure](/docs/rgp-lua//docs/rgp-lua/rgp-lua-configuration) it (or with the `finaleplugin.LoadLuaSocket` option). These modules can be used in any Finale Lua script, such as :
+Both _RGP Lua_ and _JW Lua_ include all the standard Lua 5.2 modules (`string`, `math`, `file`, etc). These modules can be used in any Finale Lua script, such as :
 
 ```lua
 print (math.random(1, 10))
 ```
 
-The 'finale' namespace
-----------------------
+### The 'finale' namespace
 
-All functionality that accesses Finale through the Lua/PDK Framework resides within the `finale` namespace (namespaces use the dot separator).
+All functionality that accesses Finale through the [Lua/PDK Framework](https://pdk.finalelua.com/) resides within the `finale` namespace. (Namespaces use the dot separator.)
 
 For example:
 
 ```lua
-page = finale.FCPage()
+local page = finale.FCPage()
 ```
 
-The 'finenv' namespace
-----------------------
+### The 'finenv' namespace
 
-The `finenv` namespace has been created to provide “programming shortcuts” to some objects that are often needed for a Finale Lua scripts. `finenv` currently contains these functions:
+The `finenv` namespace provides “programming shortcuts” to some objects that are often needed for a Finale Lua scripts. For example, you can get the current selection in Finale as follows:
 
-|Member|Description|
-|----------|---------------|
-|finenv.Region()|Returns an object with the currently selected region (in the document/part currently in editing scope), without the need for any other method calls. When running a modeless dialog in _RGP Lua_, this value is reinitialized to the current selected region every time you call the function. This could have side-effects if you have assigned it to a Lua variable, because the assigned variable will change as well.|
-|finenv.UI()|Returns the global “user interface” object (of the [`FCUI`](https://pdk.finalelua.com/class_f_c_u_i.html) class). The `FCUI` class contains Finale and system-global tasks, such as displaying alert boxes, sounding a system beep, or getting the width of the screen, etc.|
-|finenv.UserValueInput()|**Not supported** in _RGP Lua_. Instead, it displays an error message box and returns `nil`. See comments below for how it works in _JW Lua_.|
-|finenv.StartNewUndoBlock(string, bool)|Ends the currently active Undo/Redo block in Finale (if any) and starts a new one with a new undo text. The first parameter (a Lua string) is the name of the new Undo/Redo block. The second parameter (optional, default is true) is a boolean, indicating if the edits in the previous Undo/Redo block should be stored (=true) or canceled (=false). Finale will only store Undo/Redo blocks that contain edit changes to the documents. These calls cannot be nested. If your script has set `finaleplugin.NoStore = true`, then this function has no effect and any changes to the document are rolled back.|
-|finenv.EndUndoBlock(bool)*|Ends the currently active Undo/Redo block in Finale (if any). The parameter indicates if the edits in the previous Undo/Redo block should be stored (=true) or canceled (=false). Finale will only store Undo/Redo blocks that contain edit changes to the documents. These calls cannot be nested. If your script will make further changes to the document after this call, it should call `StartNewUndoBlock()` again before making them. Otherwise, Finale's Undo stack could become corrupted.|
-|finenv.RunningLuaFilePath()\*|A function that returns a Lua string containing the full path and filename of the current running script.|
-|finenv.RunningLuaFolderPath()\*|A function that returns a Lua string containing the full folder path of the current running script.|
-|finenv.QueryInvokedModifierKeys(value)\*|A function that returns `true` if the input modifier key(s) were pressed when the menu item was invoked that started the script. The input value is any combination of [COMMAND\_MOD\_KEYS](https://pdk.finalelua.com/class_____f_c_user_window.html#af07ed05132bac987ff3acab63a001e47).|
-|finenv.RegisterModelessDialog(dialog)\*|Registers a newly created [`FCCustomLuaWindow`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html) dialog box with _RGP Lua_ so that you can then display it as a modeless window with [`ShowModeless`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html#a002f165377f6191657f809a30e42b0ad). You can register more than one dialog. The script terminates when all its modeless windows close.|
-|finenv.FinaleVersion|A read-only property with the running Finale “year” version, such as 2011, 2012, etc. For Finale 25 and later, _JW Lua_ returns this value as 9999. However, _RGP Lua_ (starting with v0.56) returns the major version + 10000. So Finale 25 returns 10025, Finale 26 returns 10026, etc.|
-|finenv.RawFinaleVersion|A read-only property with the full Finale version number. It's constructed as 4 bytes with different version info. The highest byte is the major version, the next is subversion, etc. Use this only if you need the revision number of a specific major Finale version.|
-|finenv.MajorVersion|A read-only property with the major version number of _RGP/JW Lua_. Beta versions return 0, version 1.xx gives 1, etc.|
-|finenv.MinorVersion|A read-only property with the minor version number of _RGP/JW Lua_. A version 1.07 would give 7, etc.|
-|finenv.StringVersion|A read-only property that returns the full _RGP/JW Lua_ version. This string can potentially contain non-numeric characters, but normally it is just `<major>.<minor>`, i.e., "1.07".|
-|finenv.ConsoleIsAvailable|A read-only property that will return true if there is a console available for `print()` statements. Scripts that run from the Finale menu do not have a console. _RGP Lua_ always returns this value as `false`.|
-|finenv.DebugEnabled\*|A read-only property that returns the setting of “Enable Debugging” in _RGP Lua’s_ configuration dialog. You could use this to add debug-only code to your script.|
-|finenv.IsRGPLua\*|A read-only property that always returns `true` in _RGP Lua_. In _JW Lua_ it returns `nil`, which is the syntactically the equivalent to `false` in nearly every situation.|
-|finenv.LoadedAsString\*|A read-only property that returns the setting of “Load As String”, either from _RGP Lua’s_ sconfiguration dialog or from the `plugindef()` function, whichever is in effect.
-|finenv.RetainLuaState\*|A read-write property that starts out as `false` in _RGP Lua_. If a script sets the value to `true` before exiting, the next time it is invoked it receives the same Lua state as before, including all global variables, require statements, etc. If there is an error, the Lua state is not retained, regardless of the setting. A script can change the value back to `false` at any time if it needs a fresh Lua state on the next invocation.|
+```lua
+local sel_rgn = finenv.Region()
+```
 
-\*Items with an asterisk are available in _RGP Lua_ but not _JW Lua_.
+It also allows for direct interaction with the Lua plugin itself. A full description of available functions and properties can be found on the [finenv properties](/docs/rgp-lua/finenv-properties) page.
 
+### The 'socket' namespace
+
+_RGP Lua_ contains an embedded version of [`luasocket`](https://aiq0.github.io/luasocket/index.html). You can elect for it to be available in the `socket` namespace in one of the following ways.
+
+- Select **Enable Debugging** when you [configure](/docs/rgp-lua//docs/rgp-lua/rgp-lua-configuration) your script.
+- Add `finaleplugin.LoadLuaSocket = true` to your `plugindef` function.
+
+When you request the `socket` namespace, _RGP Lua_ takes the following actions.
+
+- Preloads `socket.core`.
+- Preloads `socket.lua`.
+- References ("requires") them together in the `socket` namespace.
+
+If you have only requested debugging, no further action is taken. If you have specified `finaleplugin.LoadLuaSocket = true` in your `plugindef` function, then _RGP Lua_ takes the following additional actions.
+
+- Preloads `mime.core` but does not include it in any namespace. You can access it with
+
+```lua
+local mime = require 'mime.core'
+```
+
+- Copies the built-in `require` function to a function called `__original_require`.
+- Replaces the built-in `require` function with a [new version](https://github.com/finale-lua/lua-source/blob/master/built-in-functions/require_for_socket.lua) that strips the text `socket.` from the beginning of any library name that starts with it. For example:
+
+```lua
+local url = require 'socket.url'
+```
+
+is converted to
+
+```lua
+local url = __original_require 'url'
+```
+
+This allows you to manage all the lua sources for `luasocket` in a single flat directory of your choosing. For example, you could require them straight from the `src` directory in a local copy of the [luasocket repository](https://github.com/lunarmodules/luasocket). Or you could easily include them in a distribution package with your script(s).
+
+If you prefer to keep the original `require` function, simply include this line of code before any require statements:
+
+```lua
+require = __original_require or require
+```
+
+If you are planning to use the standard installation of `luasocket`, you may be better off disabling the embedded version in _RGP Lua_ altogether.
+
+### The 'utf8' namespace
+
+Lua 5.3 added a standard `utf8` library for parsing utf8-encoded strings. Especially with the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ (beginning in version 0.63) embeds the utf8 library from Lua 5.3 back-ported into Lua 5.2. The [Lua 5.3 Reference Manual](https://www.lua.org/manual/5.3/manual.html) describes how to use these functions. Any code you write for this version of `utf8` is source-compatible with Lua 5.3 and beyond.
 
 Dialog Boxes
 ------------
@@ -120,6 +147,8 @@ Some data (such as the “page spec” record, which describes a page with its w
 ### TGF Entry Frame
 
 Note entries however, are not accessed through Finale's usual database calls. They are accessed through a concept called the **TGF entry frame**, where all note entries in a single measure+staff+layer are accessed through one variable-sized data record. The TGF frame can actually be browsed directly in Finale, using Finale's _Edit Frame_ dialog box (in the _Speedy Entry Tool_).
+
+The PDK Framework has no direct representation of the TGF Entry Frame. Container classes such as `FCNoteEntryLayer` and `FCNoteEntryCell` manage the TGFs for you. You must keep in mind that when an instance of one of these container classes goes out of scope and is garbage collected, the TGFs they were maintaining are destroyed as well. If you access any dangling entry instance from a destroyed container, you can crash Finale. This is particularly a risk with the built-in iterators [`eachentry`](https://github.com/finale-lua/lua-source/blob/master/built-in-functions/rgplua_built_in_functions.lua) and [`eachentrysaved`](https://github.com/finale-lua/lua-source/blob/master/built-in-functions/rgplua_built_in_functions.lua). They create and destroy instances of `FCNoteEntryCell` from which they feed entries to the loop. It is very risky to assign one of those entry instances to an external variable and then access it outside the loop.
 
 A note entry can contain multiple notes (which are the different pitches in a chord), but the notes are just sub-data in the note entry.
 
@@ -180,7 +209,7 @@ function plugindef()
 end
 ```
 
-`plugindef()` is considered to be a reserved name in the global namespace. If the script has a function named `plugindef()`, _RGP/JW Lua_ may call it at any time (not only during script execution) to gather information about the plug-in. The `plugindef()` function can **NOT** have dependencies outside the function itself.
+`plugindef()` is considered to be a reserved name in the global namespace. If the script has a function named `plugindef()`, the Lua plugin may call it at any time (not only during script execution) to gather information about the plug-in. The `plugindef()` function can **NOT** have dependencies outside the function itself.
 
 All aspects of the `plugindef()` are optional, but for a plug-in script that is going to be used repeatedly, the minimum should be to return a plug-in name, undo string, and short description.
 
