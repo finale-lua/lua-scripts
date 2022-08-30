@@ -57,7 +57,7 @@ Example:
 local script_items = finenv.CreateLuaScriptItemsFromFilePath("/Users/Me/MyScripts/script.lua")
 ```
 
-See comments about executing ad-hoc scripts [below](#executeluascriptitemfunction).
+See comments about executing ad-hoc scripts [below](#executeluascriptitem-function).
 
 #### DebugEnabled\* (read-only property)
 
@@ -92,7 +92,7 @@ finenv.StartNewUndoBlock(false)
 
 #### ExecuteLuaScriptItem\* (function)
 
-Accepts an instance of [`FCLuaScriptItem`](https://pdk.finalelua.com/class_f_c_lua_script_item.html) and launches it in a separate Lua state. If the item is an ad-hoc script (created with [CreateLuaScriptItemsFromFilePath](#CreateLuaScriptItemsFromFilePathfunction)), you must maintain your reference to the script item until the ad-hoc script terminates. If you allow your reference to be garbage collected, or if your script terminates, the separate executing ad-hoc script terminates immediately. The function returns either a single value or three values if the executed item returns a message.
+Accepts an instance of [`FCLuaScriptItem`](https://pdk.finalelua.com/class_f_c_lua_script_item.html) and launches it in a separate Lua state. If the item is an ad-hoc script (created with [CreateLuaScriptItemsFromFilePath](#CreateLuaScriptItemsFromFilePath-function)), you must maintain your reference to the script item until the ad-hoc script terminates. If you allow your reference to be garbage collected, or if your script terminates, the separate executing ad-hoc script terminates immediately. The function returns either a single value or three values if the executed item returns a message.
 
 
 |Input Type|Description|
