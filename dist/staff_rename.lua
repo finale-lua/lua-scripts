@@ -274,6 +274,8 @@ function staff_rename()
 
             for k,l in pairs(multi_staves[i]) do
                 if multi_staves[i][k] == sysstaff.Staff and multi_staves[i][k] ~= 0 then
+                    local staff = finale.FCStaff()
+                    staff:Load(sysstaff.Staff)
                     if multi_added[i] == false then
                         table.insert(fullnames, multi_fullnames[i])
                         staff_count = staff_count + 1
@@ -281,8 +283,8 @@ function staff_rename()
                         table.insert(full_fonts, multi_full_fonts[i])
                         table.insert(abb_fonts, multi_abb_fonts[i])
                         table.insert(staves, sysstaff.Staff)
-                        table.insert(autonumber_bool, sysstaff.UseAutoNumberingStyle) -- ?
-                        table.insert(autonumber_style, sysstaff.AutoNumberingStyle) -- ?
+                        table.insert(autonumber_bool, staff.UseAutoNumberingStyle) -- ?
+                        table.insert(autonumber_style, staff.AutoNumberingStyle) -- ?
                         multi_added[i] = true
                         goto done
                     elseif multi_added == true then
@@ -415,13 +417,15 @@ function staff_rename()
             row_count = row_count + 1
         end
         --
-        local form_select = add_ctrl(dialog, "popup", "", col[1], row[row_count + 2] + row_h/2, row_h, col_w - col_gap, 0, 0)
+        add_ctrl(dialog, "horizontalline", "", 0, row[row_count + 2] + 8, 0, col_w * 3.5 + 20, 0, 0)
+        --
+        local form_select = add_ctrl(dialog, "popup", "", col[1], row[row_count + 3], row_h, col_w - col_gap, 0, 0)
         local forms = {"Instrument in Trn.","Trn. Instrument"}
         for i,j in pairs(forms) do
             str.LuaString = forms[i]
             form_select:AddString(str)
         end   
-        local hardcode_autonumber_btn = add_ctrl(dialog, "button", "Hardcode Autonumbers", col[3] + auto_x_width, row[row_count + 2], row_h, col_w, 0, 0)
+        local hardcode_autonumber_btn = add_ctrl(dialog, "button", "Hardcode Autonumbers", col[3] + auto_x_width, row[row_count + 3], row_h, col_w, 0, 0)
         --
         dialog:CreateOkButton()
         dialog:CreateCancelButton()
@@ -444,8 +448,10 @@ function staff_rename()
                 end
             end
             for i,k in pairs(staves) do
+                local str_two = finale.FCString()
                 local is_match = false
                 edit_fullname[i]:GetText(str)
+                edit_abbname[i]:GetText(str_two)
                 for j, l in pairs(staff_name) do
                     if (staff_name[j] == str.LuaString) and (autonumber_check[i]:GetCheck() == 1) then
                         is_match = true
@@ -456,17 +462,23 @@ function staff_rename()
                 if is_match and (autonumber_check[i]:GetCheck() == 1) then
                     if autonumber_popup[i]:GetSelectedItem() == 0 then
                         str.LuaString = str.LuaString.." "..inst_num
+                        str_two.LuaString = str_two.LuaString.." "..inst_num
                     elseif autonumber_popup[i]:GetSelectedItem() == 1 then
                         str.LuaString = str.LuaString.." "..utils.calc_roman_numeral(inst_num)
+                        str_two.LuaString = str_two.LuaString.." "..utils.calc_roman_numeral(inst_num)
                     elseif autonumber_popup[i]:GetSelectedItem() == 2 then
                         str.LuaString = utils.calc_ordinal(inst_num).." "..str.LuaString
+                        str_two.LuaString = utils.calc_ordinal(inst_num).." "..str_two.LuaString
                     elseif autonumber_popup[i]:GetSelectedItem() == 3 then
                         str.LuaString = str.LuaString.." "..utils.calc_alphabet(inst_num)
+                        str_two.LuaString = str_two.LuaString.." "..utils.calc_alphabet(inst_num)
                     elseif autonumber_popup[i]:GetSelectedItem() == 4 then
                         str.LuaString = inst_num..". "..str.LuaString
+                        str_two.LuaString = inst_num..". "..str_two.LuaString
                     end
                 end
                 edit_fullname[i]:SetText(str)
+                edit_abbname[i]:SetText(str_two)
                 autonumber_check[i]:SetCheck(0)
                 autonumber_popup[i]:SetEnable(false)
                 is_match = false
@@ -578,22 +590,8 @@ function staff_rename()
                         end
                     end
                 end
-                for k, l in pairs(omit_staves) do
-                    if staves[i] == omit_staves[k] then
-                        goto done2
-                    end
-                end
                 local staff = finale.FCStaff()
                 staff:Load(staves[i])
-                edit_fullname[i]:GetText(str)
-                accidental_to_enigma(str)
-                str.LuaString = full_fonts[i]..str.LuaString
-                staff:SaveNewFullNameString(str)
-                edit_abbname[i]:GetText(str)
-                accidental_to_enigma(str)
-
-                str.LuaString = abb_fonts[i]..str.LuaString
-                staff:SaveNewAbbreviatedNameString(str)
                 if autonumber_check[i]:GetCheck() == 1 then
                     staff.UseAutoNumberingStyle = true
                 else
@@ -601,7 +599,21 @@ function staff_rename()
                 end
                 staff.AutoNumberingStyle = autonumber_popup[i]:GetSelectedItem()
                 staff:Save()
-                ::done2::
+                for k, l in pairs(omit_staves) do
+                    if staves[i] == omit_staves[k] then
+                        goto done_with_staff
+                    end
+                end
+                edit_fullname[i]:GetText(str)
+                accidental_to_enigma(str)
+                str.LuaString = full_fonts[i]..str.LuaString
+                staff:SaveNewFullNameString(str)
+                edit_abbname[i]:GetText(str)
+                accidental_to_enigma(str)
+                str.LuaString = abb_fonts[i]..str.LuaString
+                staff:SaveNewAbbreviatedNameString(str)
+                staff:Save()
+                ::done_with_staff::
             end
         end
     end -- function
