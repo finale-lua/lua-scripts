@@ -252,7 +252,7 @@ function create_measure_table(measure_region, measure)
     if smart_shape_marks:LoadAllForRegion(measure_region) then
         for mark in each(smart_shape_marks) do
             local smart_shape = mark:CreateSmartShape()
-            if not already_processed[smart_shape.ShapeNumber] and not smart_shape.EntryBased and not smart_shape:CalcLyricBased() then
+            if smart_shape and not already_processed[smart_shape.ShapeNumber] and not smart_shape.EntryBased and not smart_shape:CalcLyricBased() then
                 already_processed[mark.ShapeNumber] = true
                 local lterm = smart_shape:GetTerminateSegmentLeft()
                 local rterm = smart_shape:GetTerminateSegmentRight()
