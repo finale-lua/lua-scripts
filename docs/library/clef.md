@@ -7,6 +7,7 @@ A library of general clef utility functions.
 - [get_cell_clef(measure, staff_number)](#get_cell_clef)
 - [get_default_clef(first_measure, last_measure, staff_number)](#get_default_clef)
 - [restore_default_clef(first_measure, last_measure, staff_number)](#restore_default_clef)
+- [clef_change(clef)](#clef_change)
 
 ### get_cell_clef
 
@@ -14,7 +15,7 @@ A library of general clef utility functions.
 clef.get_cell_clef(measure, staff_number)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L19)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L46)
 
 Gets the clef for any cell.
 
@@ -33,7 +34,7 @@ Gets the clef for any cell.
 clef.get_default_clef(first_measure, last_measure, staff_number)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L45)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L72)
 
 Gets the default clef for any staff for a specific region.
 
@@ -53,7 +54,7 @@ Gets the default clef for any staff for a specific region.
 clef.restore_default_clef(first_measure, last_measure, staff_number)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L66)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L93)
 
 Restores the default clef for any staff for a specific region.
 
@@ -62,3 +63,19 @@ Restores the default clef for any staff for a specific region.
 | `first_measure` | `number` | The first measure of the region |
 | `last_measure` | `number` | The last measure of the region |
 | `staff_number` | `number` | The staff number for the cell |
+
+### clef_change
+
+```lua
+clef.clef_change(clef)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L118)
+
+Inserts a clef change in the selected region.
+
+@ region FCMusicRegion The region to change.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `clef` | `string` | The clef to change to. |
