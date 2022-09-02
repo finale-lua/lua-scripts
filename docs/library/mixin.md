@@ -8,32 +8,32 @@ The Fluid Mixins library does the following:
 - As an added convenience, all methods that return zero values have a fluid interface enabled (aka method chaining)
 
 
-## finalemix Namespace
-To utilise the new namespace, simply include the library, which also gives access to he helper functions:
+## mixin Namespace
+To utilise the new namespace, simply include the library, which also gives access to the helper functions:
 ```lua
-local finalemix = require("library.mixin")
+local mixin = require("library.mixin")
 ```
 
-All defined mixins can be accessed through the `finalemix` namespace in the same way as the `finale` namespace. All constructors have the same signature as their `FC` originals.
+All defined mixins can be accessed through the `mixin` namespace in the same way as the `finale` namespace. All constructors have the same signature as their `FC` originals.
 
 ```lua
 local fcstr = finale.FCString()
 
 -- Base mixin-enabled FCString object
-local fcmstr = finalemix.FCMString()
+local fcmstr = mixin.FCMString()
 
 -- Customised mixin that extends FCMString
-local fcxstr = finalemix.FCXString()
+local fcxstr = mixin.FCXString()
 
 -- Customised mixin that extends FCXString. Still has the same constructor signature as FCString
-local fcxcstr = finalemix.FCXMyCustomString()
+local fcxcstr = mixin.FCXMyCustomString()
 ```
 For more information about naming conventions and the different types of mixins, see the 'FCM Mixins' and 'FCX Mixins' sections.
 
 
 Static copies of `FCM` and `FCX` methods and properties can also be accessed through the namespace like so:
 ```lua
-local func = finalemix.FCXMyMixin.MyMethod
+local func = mixin.FCXMyMixin.MyMethod
 ```
 Note that static access includes inherited methods and properties.
 
@@ -62,9 +62,9 @@ There are also some additional global mixin properties and methods that have spe
 The name of an `FCM` class corresponds to its underlying 'FC' class, with the addition of an 'M' after the 'FC'.
 For example, the following will create a mixin-enabled `FCCustomLuaWindow` object:
 ```lua
-local finalemix = require("library.mixin")
+local mixin = require("library.mixin")
 
-local dialog = finalemix.FCMCustomLuaWindow()
+local dialog = mixin.FCMCustomLuaWindow()
 ```
 
 In addition to creating a mixin-enabled finale object, `FCM` objects also automatically load any `FCM` mixins that apply to the class or its parents. These may contain additional methods or overrides for existing methods (eg allowing a method that expects an `FCString` object to accept a regular Lua string as an alternative). The usual principles of inheritance apply (children override parents, etc).
@@ -78,7 +78,7 @@ The following is an example of how to define an `FCM` mixin for `FCMControl`.
 ```lua
 -- Include the mixin namespace and helper functions
 local library = require("library.general_library")
-local finalemix = require("library.mixin")
+local mixin = require("library.mixin")
 
 local props = {
 
@@ -90,14 +90,14 @@ local props = {
     -- This method is an override for the SetText method 
     -- It allows the method to accept a regular Lua string, which means that plugin authors don't need to worry anout creating an FCString objectq
     SetText = function(self, str)
-        finalemix.assert_argument(str, {"string", "number", "FCString"}, 2)
+        mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
 
         -- Check if the argument is a finale object. If not, turn it into an FCString
         if not library.is_finale_object(str)
             local tmp = str
 
             -- Use a mixin object so that we can take advantage of the fluid interface
-            str = finalemix.FCMString():SetLuaString(tostring(str))
+            str = mixin.FCMString():SetLuaString(tostring(str))
         end
 
         -- Use a trailing underscore to reference the original method from FCControl
@@ -114,9 +114,9 @@ Since the underlying class `FCControl` has a number of child classes, the `FCMCo
 
 An example of utilizing the above mixin:
 ```lua
-local finalemix = require("library.mixin")
+local mixin = require("library.mixin")
 
-local dialog = finalemix.FCMCustomLuaWindow()
+local dialog = mixin.FCMCustomLuaWindow()
 
 -- Fluid interface means that self is returned from SetText instead of nothing
 local label = dialog:CreateStatic(10, 10):SetText("Hello World")
@@ -131,7 +131,7 @@ dialog:ExecuteModal(nil)
 
 While `FCM` class names are directly tied to their underlying `FC` object, their is no such requirement for an `FCX` mixin. As long as it the class name is prefixed with `FCX` and is immediately followed with another uppercase letter, they can be named anything. If an `FCX` mixin is not defined, the namespace will return `nil`.
 
-When constructing an `FCX` mixin (eg `local dialog = finalemix.FCXMyDialog()`, the library first creates the underlying `FCM` object and then adds each parent (if any) `FCX` mixin until arriving at the requested class.
+When constructing an `FCX` mixin (eg `local dialog = mixin.FCXMyDialog()`, the library first creates the underlying `FCM` object and then adds each parent (if any) `FCX` mixin until arriving at the requested class.
 
 
 Here is an example `FCX` mixin definition:
@@ -139,7 +139,7 @@ Here is an example `FCX` mixin definition:
 `src/mixin/FCXMyStaticCounter.lua`
 ```lua
 -- Include the mixin namespace and helper functions
-local finalemix = require("library.mixin")
+local mixin = require("library.mixin")
 
 -- Since mixins can't have private properties, we can store them in a table
 local private = {}
@@ -155,7 +155,7 @@ local props = {
         -- Set up private storage for the counter value
         if not private[self] then
             private[self] = 0
-            finalemix.FCMControl.SetText(self, tostring(private[self]))
+            mixin.FCMControl.SetText(self, tostring(private[self]))
         end
     end,
 
@@ -167,8 +167,8 @@ local props = {
     Increment = function(self)
         private[self] = private[self] + 1
 
-        -- We need the SetText method, but we've already overridden it! Fortunately we can take a static copy from the finalemix namespace
-        finalemix.FCMControl.SetText(self, tostring(private[self]))
+        -- We need the SetText method, but we've already overridden it! Fortunately we can take a static copy from the mixin namespace
+        mixin.FCMControl.SetText(self, tostring(private[self]))
     end
 }
 
@@ -178,14 +178,14 @@ return props
 `src/mixin/FCXMyCustomDialog.lua`
 ```lua
 -- Include the mixin namespace and helper functions
-local finalemix = require("library.mixin")
+local mixin = require("library.mixin")
 
 local props = {
     MixinParent = "FCMCustomLuaWindow",
 
     CreateStaticCounter = function(self, x, y)
         -- Create an FCMCtrlStatic and then use the subclass function to apply the FCX mixin
-        return finalemix.subclass(self:CreateStatic(x, y), "FCXMyStaticCounter")
+        return mixin_private.subclass(self:CreateStatic(x, y), "FCXMyStaticCounter")
     end
 }
 
@@ -195,9 +195,9 @@ return props
 
 Example usage:
 ```lua
-local finalemix = require("library.mixin")
+local mixin = require("library.mixin")
 
-local dialog = finalemix.FCXMyCustomDialog()
+local dialog = mixin.FCXMyCustomDialog()
 
 local counter = dialog:CreateStaticCounter(10, 10)
 
@@ -216,6 +216,7 @@ dialog:ExecuteModal(nil)
 - [assert(condition, message, no_level)](#assert)
 - [force_assert(condition, message, no_level)](#force_assert)
 - [UI()](#ui)
+- [eachentry(region, layer)](#eachentry)
 
 ### subclass
 
@@ -223,7 +224,7 @@ dialog:ExecuteModal(nil)
 fluid_mixins.subclass(object, class_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L611)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L746)
 
 
 Takes a mixin-enabled finale object and migrates it to an `FCX` subclass. Any conflicting property or method names will be overwritten.
@@ -247,7 +248,7 @@ If the current `MixinClass` is the same as `class_name`, this function will do n
 fluid_mixins.is_instance_of(object, class_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L721)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L762)
 
 
 Checks if an object is an instance of a class.
@@ -273,7 +274,7 @@ Conditions:
 fluid_mixins.assert_argument(value, expected_type, argument_number)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L792)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L833)
 
 
 Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
@@ -301,7 +302,7 @@ If the expected type is `FCMString`, an `FCXString` object will pass the test bu
 fluid_mixins.force_assert_argument(value, expected_type, argument_number)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L828)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L869)
 
 
 The same as `assert_argument` except this function always asserts, regardless of whether debug mode is enabled.
@@ -319,7 +320,7 @@ The same as `assert_argument` except this function always asserts, regardless of
 fluid_mixins.assert(condition, message, no_level)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L840)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L881)
 
 
 Asserts a condition in a mixin method. If the condition is false, an error is thrown one level above where this function is called.
@@ -338,7 +339,7 @@ Only asserts when in debug mode. If assertion is required on all executions, use
 fluid_mixins.force_assert(condition, message, no_level)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L855)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L896)
 
 
 The same as `assert` except this function always asserts, regardless of whether debug mode is enabled.
@@ -356,7 +357,7 @@ The same as `assert` except this function always asserts, regardless of whether 
 fluid_mixins.UI()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L871)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L911)
 
 
 Returns a mixin enabled UI object from `finenv.UI`
@@ -365,3 +366,24 @@ Returns a mixin enabled UI object from `finenv.UI`
 | Return type | Description |
 | ----------- | ----------- |
 | `FCMUI` |  |
+
+### eachentry
+
+```lua
+fluid_mixins.eachentry(region, layer)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L924)
+
+
+A modified version of the JW/RGPLua `eachentry` function that allows items to be stored and used outside of a loop.
+
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `region` | `FCMusicRegion` |  |
+| `layer` (optional) | `number` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `function` | A generator which returns `FCMNoteEntry`s |
