@@ -2,24 +2,22 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Version = "v1.38"
-    finaleplugin.Date = "2022/08/27"
+    finaleplugin.Version = "v1.39"
+    finaleplugin.Date = "2022/09/05"
     finaleplugin.Notes = [[
         Several situations including cross-staff notation (rests should be centred between the staves) 
         require adjusting the vertical position (offset) of rests. 
         This script duplicates the action of Finale's inbuilt "Move rests..." plug-in but needs no mouse activity. 
         It is also an easy way to reset rest offsets to zero in every layer, the default setting. 
 
-        By default an offest of ZERO centres rests on the middle staff line. 
-        If you instead want zero to set a FLOATING rest, to respect the `Floating Rests` setting 
-        under Document Options... -> Layer, then select the "Zero = Floating Rest" checkbox.
+        Newly created rests are "floating" and will avoid entries in other layers (if present) 
+        using the setting for "Adjust Floating Rests by..." in `Document Options...` -> `Layers`.  
+        This script stops them "floating", instead "fixing" them to a specific offset from the middle staff line. 
+        To return them to "floating", select the "Zero = Floating Rest" checkbox and set the offset to zero.
     ]]
    return "Rest Offsets", "Rest Offsets", "Rest vertical offsets"
 end
 
-local mixin = require("library.mixin")
-
--- ================= SCRIPT BEGINS =================================
 -- RetainLuaState retains one global:
 config = config or {}
 
@@ -40,21 +38,25 @@ end
 function make_dialog()
     local horizontal = 110
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac Edit box
-    local answer = {}
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle( plugindef() )
+    local answer, static = {}, nil
+    local str = finale.FCString()
+    str.LuaString = plugindef()
+    local dialog = finale.FCCustomLuaWindow()
+    dialog:SetTitle(str)
 
     local texts = { -- text, default value, vertical_position
         { "Vertical offset:", config.offset or 0, 15 },
-        { "Layer# 1-4 (0 = all):", config.layer or 0, 50  },
+        { "Layer# 1-4 (0 = all):", config.layer or 0, 45  },
     }
     for i, v in ipairs(texts) do -- create labels and edit boxes
-        dialog:CreateStatic(0, v[3]):SetText(v[1]):SetWidth(horizontal)
-        answer[i] = dialog:CreateEdit(horizontal, v[3] - mac_offset):SetInteger(v[2]):SetWidth(50)
+        str.LuaString = v[1]
+        static = dialog:CreateStatic(0, v[3])
+        static:SetText(str)
+        static:SetWidth(horizontal)
+        answer[i] = dialog:CreateEdit(horizontal, v[3] - mac_offset)
+        answer[i]:SetInteger(v[2])
+        answer[i]:SetWidth(50)
     end
-    local msg = "(obey \"Floating Rests\" setting in Document Options -> Layer)"
-    answer[3] = dialog:CreateCheckbox(0, texts[2][3] + 30):SetText("Zero = Floating Rest"):SetWidth(horizontal * 2):SetCheck(config.zero_floating and 1 or 0)
-    dialog:CreateStatic(0, texts[2][3] + 48):SetText(msg):SetWidth(horizontal * 3):SetTextColor(153, 51, 0)
-
     texts = { -- offset number / horizontal offset / description /  vertical position
         {  "4", 5, "= top staff line", 0},
         {  "0", 5, "= middle staff line", 15 },
@@ -62,9 +64,34 @@ function make_dialog()
         { "", 0, "(for 5-line staff)", 45 },
     }
     for _, v in ipairs(texts) do -- static text information lines
-        dialog:CreateStatic(horizontal + 60 + v[2], v[4]):SetText(v[1]):SetTextColor(153, 51, 0)
-        dialog:CreateStatic(horizontal + 75, v[4]):SetText(v[3]):SetWidth(horizontal):SetTextColor(153, 51, 0)
+        static = dialog:CreateStatic(horizontal + 60 + v[2], v[4])
+        str.LuaString = v[1]
+        static:SetText(str)
+        static = dialog:CreateStatic(horizontal + 75, v[4])
+        str.LuaString = v[3]
+        static:SetText(str)
+        static:SetWidth(horizontal)
     end
+
+    local info_button = dialog:CreateButton(128, 75)
+    info_button:SetWidth(20)
+    str.LuaString = "?"
+    info_button:SetText(str)
+    answer[3] = dialog:CreateCheckbox(0, 75)
+    str.LuaString = "Zero = Floating Rest"
+    answer[3]:SetText(str)
+    answer[3]:SetWidth(140)
+    answer[3]:SetCheck(config.zero_floating and 1 or 0)
+
+    dialog:RegisterHandleControlEvent ( info_button,
+        function() -- (control)
+            local msg = "Newly created rests are \"floating\" and will avoid entries in other layers (if present) "
+            .. "using the setting for \"Adjust Floating Rests by...\" in \"Document Options...\" -> \"Layers\". \n\n"
+            .. "This script stops rests \"floating\", instead \"fixing\" them to a specific offset from the middle staff line. "
+            .. "To return them to \"floating\", select the \"Zero = Floating Rest\" option and set the offset to zero."
+            finenv.UI():AlertInfo(msg, "Rest Offsets Info")
+        end
+    )
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
