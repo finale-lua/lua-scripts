@@ -118,23 +118,23 @@ function make_the_change()
             else
                 local rest_prop = "OtherRestPosition"
                 local duration = entry.Duration
-                if duration >= finale.BREVE then
-                    rest_prop = "DoubleWholeRestPosition"
-                elseif duration >= finale.WHOLE_NOTE then
-                    rest_prop = "WholeRestPosition"
-                elseif duration >= finale.HALF_NOTE then
-                    rest_prop = "HalfRestPosition"
-                end
-                local staff_spec = finale.FCCurrentStaffSpec()
-                staff_spec:LoadForEntry(entry)
-                local total_offset = staff_spec[rest_prop] + config.offset
-                entry:MakeMovableRest()
-                local rest = entry:GetItemAt(0)
-                local curr_staffpos = rest:CalcStaffPosition()
-                entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset - curr_staffpos)
+            if duration >= finale.BREVE then
+                rest_prop = "DoubleWholeRestPosition"
+            elseif duration >= finale.WHOLE_NOTE then
+                rest_prop = "WholeRestPosition"
+            elseif duration >= finale.HALF_NOTE then
+                rest_prop = "HalfRestPosition"
+            end
+            local staff_spec = finale.FCCurrentStaffSpec()
+            staff_spec:LoadForEntry(entry)
+            local total_offset = staff_spec[rest_prop] + config.offset
+            entry:MakeMovableRest()
+            local rest = entry:GetItemAt(0)
+            local curr_staffpos = rest:CalcStaffPosition()
+            entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset - curr_staffpos)
             end
         end
-	end
+    end
 end
 
 function change_rest_offset()
