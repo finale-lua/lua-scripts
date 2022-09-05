@@ -2,18 +2,25 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Version = "v1.36"
-    finaleplugin.Date = "2022/08/03"
+    finaleplugin.Version = "v1.40"
+    finaleplugin.Date = "2022/09/05"
     finaleplugin.Notes = [[
-    Several situations including cross-staff notation (rests should be centred between the staves) 
-    require adjusting the vertical position (offset) of rests. 
-    This script duplicates the action of Finale's inbuilt "Move rests..." plug-in but needs no mouse activity. 
-    It is also an easy way to reset rest offsets to zero in every layer, the default setting. 
-    (An offest of zero centres on the middle staff line.)
-]]
+        Several situations including cross-staff notation (rests should be centred between the staves) 
+        require adjusting the vertical position (offset) of rests. 
+        This script duplicates the action of Finale's inbuilt "Move rests..." plug-in but needs no mouse activity. 
+        It is also an easy way to reset rest offsets to zero in every layer, the default setting. 
+
+        Newly created rests are "floating" and will avoid entries in other layers (if present) 
+        using the setting for "Adjust Floating Rests by..." in `Document Options...` -> `Layers`.  
+        This script stops them "floating", instead "fixing" them to a specific offset from the middle staff line. 
+        To return them to "floating", select the "Zero = Floating Rest" checkbox and set the offset to zero.
+    ]]
    return "Rest Offsets", "Rest Offsets", "Rest vertical offsets"
 end
 
+local mixin = require("library.mixin")
+
+-- ================= SCRIPT BEGINS =================================
 -- RetainLuaState retains one global:
 config = config or {}
 
@@ -31,51 +38,49 @@ function is_error()
     return false
 end
 
-function user_choices()
+function make_dialog()
     local horizontal = 110
-    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
+    local y_level = {15, 45, 75}
+    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac Edit box
     local answer = {}
-    local dialog = finale.FCCustomLuaWindow()
-    local str = finale.FCString()
-    str.LuaString = plugindef()
-    dialog:SetTitle(str)
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle( plugindef() )
 
     local texts = { -- text, default value, vertical_position
-        { "Vertical offset:", config.offset or 0, 15 },
-        { "Layer# 1-4 (0 = all):", config.layer or 0, 50  },
+        { "Vertical offset:", config.offset or 0, y_level[1] },
+        { "Layer# 1-4 (0 = all):", config.layer or 0, y_level[2]  },
     }
     for i, v in ipairs(texts) do -- create labels and edit boxes
-        str.LuaString = v[1]
-        local static = dialog:CreateStatic(0, v[3])
-        static:SetText(str)
-        static:SetWidth(horizontal)
-        answer[i] = dialog:CreateEdit(horizontal, v[3] - mac_offset)
-        answer[i]:SetInteger(v[2])
-        answer[i]:SetWidth(50)
+        dialog:CreateStatic(0, v[3]):SetText(v[1]):SetWidth(horizontal)
+        answer[i] = dialog:CreateEdit(horizontal, v[3] - mac_offset):SetInteger(v[2]):SetWidth(50)
     end
+    local checked = config.zero_floating and 1 or 0
+    answer[3] = dialog:CreateCheckbox(0, texts[2][3] + 30):SetText("Zero = Floating Rest"):SetWidth(horizontal * 2):SetCheck(checked)
 
     texts = { -- offset number / horizontal offset / description /  vertical position
-        {  "4", 5, "= top staff line", 0},
+        {  "4", 5, "= top staff line", 0 },
         {  "0", 5, "= middle staff line", 15 },
         { "-4", 0, "= bottom staff line", 30 },
         { "", 0, "(for 5-line staff)", 45 },
     }
     for _, v in ipairs(texts) do -- static text information lines
-        str.LuaString = v[1]
-        dialog:CreateStatic(horizontal + 60 + v[2], v[4]):SetText(str)
-        local static = dialog:CreateStatic(horizontal + 75, v[4])
-        str.LuaString = v[3]
-        static:SetText(str)
-        static:SetWidth(horizontal)
+        dialog:CreateStatic(horizontal + 60 + v[2], v[4]):SetText(v[1])
+        dialog:CreateStatic(horizontal + 75, v[4]):SetText(v[3]):SetWidth(horizontal)
     end
+
+    dialog:CreateButton(128, y_level[3]):SetText("?"):SetWidth(20):AddHandleCommand(function(self)
+        local msg = "Newly created rests are \"floating\" and will avoid entries in other layers (if present) "
+        .. "using the setting for \"Adjust Floating Rests by...\" in \"Document Options...\" -> \"Layers\". \n\n"
+        .. "This script stops rests \"floating\", instead \"fixing\" them to a specific offset from the middle staff line. "
+        .. "To return them to \"floating\", select the \"Zero = Floating Rest\" option and set the offset to zero."
+        finenv.UI():AlertNeutral(msg, "Rest Offsets Info")
+    end)
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterHandleOkButtonPressed(function()
         config.offset = answer[1]:GetInteger()
         config.layer = answer[2]:GetInteger()
-    end)
-    dialog:RegisterCloseWindow(function()
+        config.zero_floating = (answer[3]:GetCheck() == 1)
         dialog:StorePosition()
         config.pos_x = dialog.StoredX
         config.pos_y = dialog.StoredY
@@ -90,7 +95,7 @@ function make_the_change()
 
     for entry in eachentrysaved(finenv.Region(), config.layer) do
         if entry:IsRest() then
-            if config.offset == 0 then
+            if config.offset == 0 and config.zero_floating then
                 entry:SetFloatingRest(true)
             else
                 local rest_prop = "OtherRestPosition"
@@ -115,17 +120,14 @@ function make_the_change()
 end
 
 function change_rest_offset()
-    local dialog = user_choices()
+    local dialog = make_dialog()
     if config.pos_x and config.pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.pos_x, config.pos_y)
         dialog:RestorePosition()
     end
-    if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK then
-        return -- user cancelled
-    end
-    if is_error() then
-        return
+    if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK or is_error() then
+        return -- user cancelled OR data error
     end
     make_the_change()
 end
