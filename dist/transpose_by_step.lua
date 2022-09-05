@@ -617,15 +617,28 @@ __imports["mixin.FCMControl"] = function()
     - In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
     - Ported `GetParent` from PDK to allow the parent window to be accessed from a control.
     - Handlers for the `Command` event can now be set on a control.
+    - Added methods for storing and restoring control state, which allows controls to correctly maintain their values across multiple script executions
     ]] --
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
 
     -- So as not to prevent the window (and by extension the controls) from being garbage collected in the normal way, use weak keys and values for storing the parent window
     local parent = setmetatable({}, {__mode = "kv"})
+    local private = setmetatable({}, {__mode = "k"})
     local props = {}
 
     local temp_str = finale.FCString()
+
+    --[[
+    % Init
+
+    **[Internal]**
+
+    @ self (FCMControl)
+    ]]
+    function props:Init()
+        private[self] = private[self] or {}
+    end
 
     --[[
     % GetParent
@@ -662,10 +675,164 @@ __imports["mixin.FCMControl"] = function()
     end
 
     --[[
+    % GetEnable
+
+    **[Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    : (boolean)
+    ]]
+
+    --[[
+    % SetEnable
+
+    **[Fluid] [Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    @ enable (boolean)
+    ]]
+
+    --[[
+    % GetVisible
+
+    **[Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    : (boolean)
+    ]]
+
+    --[[
+    % SetVisible
+
+    **[Fluid] [Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    @ visible (boolean)
+    ]]
+
+    --[[
+    % GetLeft
+
+    **[Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    : (number)
+    ]]
+
+    --[[
+    % SetLeft
+
+    **[Fluid] [Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    @ left (number)
+    ]]
+
+    --[[
+    % GetTop
+
+    **[Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    : (number)
+    ]]
+
+    --[[
+    % SetTop
+
+    **[Fluid] [Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    @ top (number)
+    ]]
+
+    --[[
+    % GetHeight
+
+    **[Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    : (number)
+    ]]
+
+    --[[
+    % SetHeight
+
+    **[Fluid] [Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    @ height (number)
+    ]]
+
+    --[[
+    % GetWidth
+
+    **[Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    : (number)
+    ]]
+
+    --[[
+    % SetWidth
+
+    **[Fluid] [Override]**
+    Hooks into control state restoration.
+
+    @ self (FCMControl)
+    @ width (number)
+    ]]
+    for method, valid_types in pairs({
+        Enable = {"boolean", "nil"},
+        Visible = {"boolean", "nil"},
+        Left = "number",
+        Top = "number",
+        Height = "number",
+        Width = "number",
+    }) do
+        props["Get" .. method] = function(self)
+            if mixin.FCMControl.UseStoredState(self) then
+                return private[self][method]
+            end
+
+            return self["Get" .. method .. "_"](self)
+        end
+
+        props["Set" .. method] = function(self, value)
+            mixin.assert_argument(value, valid_types, 2)
+
+            if mixin.FCMControl.UseStoredState(self) then
+                private[self][method] = value
+            else
+                -- Fix bug with text box content being cleared on Mac when Enabled or Visible state is changed
+                if (method == "Enable" or method == "Visible") and finenv.UI():IsOnMac() and finenv.MajorVersion == 0 and finenv.MinorVersion < 63 then
+                    self:GetText_(temp_str)
+                    self:SetText_(temp_str)
+                end
+
+                self["Set" .. method .. "_"](self, value)
+            end
+        end
+    end
+
+
+    --[[
     % GetText
 
     **[Override]**
     Returns a Lua `string` and makes passing an `FCString` optional.
+    Also hooks into control state restoration.
 
     @ self (FCMControl)
     @ [str] (FCString)
@@ -678,7 +845,11 @@ __imports["mixin.FCMControl"] = function()
             str = temp_str
         end
 
-        self:GetText_(str)
+        if mixin.FCMControl.UseStoredState(self) then
+            str.LuaString = private[self].Text
+        else
+            self:GetText_(str)
+        end
 
         return str.LuaString
     end
@@ -688,6 +859,7 @@ __imports["mixin.FCMControl"] = function()
 
     **[Fluid] [Override]**
     Accepts Lua `string` and `number` in addition to `FCString`.
+    Also hooks into control state restoration.
 
     @ self (FCMControl)
     @ str (FCString|string|number)
@@ -700,7 +872,68 @@ __imports["mixin.FCMControl"] = function()
             str = temp_str
         end
 
-        self:SetText_(str)
+        if mixin.FCMControl.UseStoredState(self) then
+            private[self].Text = str.LuaString
+        else
+            self:SetText_(str)
+        end
+    end
+
+    --[[
+    % UseStoredState
+
+    **[Internal]**
+    Checks if this control should use its stored state instead of the live state from the control.
+    Do not override or disable this method.
+
+    @ self (FCMControl)
+    : (boolean)
+    ]]
+    function props:UseStoredState()
+        local parent = self:GetParent()
+        return mixin.is_instance_of(parent, "FCMCustomLuaWindow") and parent:GetRestoreControlState() and not parent:WindowExists() and parent:HasBeenShown()
+    end
+
+    --[[
+    % StoreState
+
+    **[Fluid] [Internal]**
+    Stores the control's current state.
+    Do not disable this method. Override as needed but call the parent first.
+
+    @ self (FCMControl)
+    ]]
+    function props:StoreState()
+        self:GetText_(temp_str)
+        private[self].Text = temp_str.LuaString
+        private[self].Enable = self:GetEnable_()
+        private[self].Visible = self:GetVisible_()
+        private[self].Left = self:GetLeft_()
+        private[self].Top = self:GetTop_()
+        private[self].Height = self:GetHeight_()
+        private[self].Width = self:GetWidth_()
+    end
+
+    --[[
+    % RestoreState
+
+    **[Fluid] [Internal]**
+    Restores the control's stored state.
+    Do not disable this method. Override as needed but call the parent first.
+
+    @ self (FCMControl)
+    ]]
+    function props:RestoreState()
+        self:SetEnable_(private[self].Enable)
+        self:SetVisible_(private[self].Visible)
+        self:SetLeft_(private[self].Left)
+        self:SetTop_(private[self].Top)
+        self:SetHeight_(private[self].Height)
+        self:SetWidth_(private[self].Width)
+
+        -- Call SetText last to work around the Mac text box issue described above
+        temp_str.LuaString = private[self].Text
+        self:SetText_(temp_str)
     end
 
     --[[
@@ -2659,13 +2892,11 @@ __imports["mixin.FCMCustomLuaWindow"] = function()
     ]]
     function props:Init()
         private[self] = private[self] or {
-            NextTimerID = 1,
-            HandleTimer = {},
             HandleCustomQueue = {},
             HasBeenShown = false,
             EnableDebugClose = false,
+            RestoreControlState = false,
             AutoRestorePosition = false,
-            AutoRestoreSize = false,
             StoredX = nil,
             StoredY = nil,
         }
@@ -2734,23 +2965,45 @@ __imports["mixin.FCMCustomLuaWindow"] = function()
                     end
                 end
 
-                if f == "CloseWindow" then
-                    self["Register" .. f .. "_"](
-                        self, function()
-                            if private[self].EnableDebugClose and finenv.RetainLuaState ~= nil then
-                                if finenv.DebugEnabled and (self:QueryLastCommandModifierKeys(finale.CMDMODKEY_ALT) or self:QueryLastCommandModifierKeys(finale.CMDMODKEY_SHIFT)) then
-                                    finenv.RetainLuaState = false
-                                end
+                if f == "InitWindow" then
+                    self["Register" .. f .. "_"](self, function()
+                        if private[self].HasBeenShown and private[self].RestoreControlState then
+                            for control in each(self) do
+                                control:RestoreState()
                             end
+                        end
 
-                            cb()
-
-                            if self.StorePosition then
-                                self:StorePosition(false)
-                                private[self].StoredX = self.StoredX
-                                private[self].StoredY = self.StoredY
+                        cb()
+                    end)
+                elseif f == "CloseWindow" then
+                    self["Register" .. f .. "_"](self, function()
+                        if private[self].EnableDebugClose and finenv.RetainLuaState ~= nil then
+                            if finenv.DebugEnabled and (self:QueryLastCommandModifierKeys(finale.CMDMODKEY_ALT) or self:QueryLastCommandModifierKeys(finale.CMDMODKEY_SHIFT)) then
+                                finenv.RetainLuaState = false
                             end
-                        end)
+                        end
+
+                        -- Catch any errors so they don't disrupt storing window position and control state
+                        local is_error, error_msg = pcall(cb)
+
+                        if self.StorePosition then
+                            self:StorePosition(false)
+                            private[self].StoredX = self.StoredX
+                            private[self].StoredY = self.StoredY
+                        end
+
+                        if private[self].RestoreControlState then
+                            for control in each(self) do
+                                control:StoreState()
+                            end
+                        end
+
+                        private[self].HasBeenShown = true
+
+                        if is_error then
+                            error(error_msg, 0)
+                        end
+                    end)
                 else
                     self["Register" .. f .. "_"](self, cb)
                 end
@@ -3133,7 +3386,7 @@ __imports["mixin.FCMCustomLuaWindow"] = function()
     --[[
     % HasBeenShown
 
-    Checks if the window has been shown, either as a modal or modeless.
+    Checks if the window has been shown at least once prior, either as a modal or modeless.
 
     @ self (FCMCustomLuaWindow)
     : (boolean) `true` if it has been shown, `false` if not
@@ -3192,7 +3445,7 @@ __imports["mixin.FCMCustomLuaWindow"] = function()
 
             self:SetRestorePositionOnlyData_(x, y, width, height)
 
-            if self:HasBeenShown() and not self:WindowExists() then
+            if private[self].HasBeenShown and not self:WindowExists() then
                 private[self].StoredX = x
                 private[self].StoredY = y
             end
@@ -3214,7 +3467,7 @@ __imports["mixin.FCMCustomLuaWindow"] = function()
 
             self:SetRestorePositionOnlyData_(x, y)
 
-            if self:HasBeenShown() and not self:WindowExists() then
+            if private[self].HasBeenShown and not self:WindowExists() then
                 private[self].StoredX = x
                 private[self].StoredY = y
             end
@@ -3251,17 +3504,44 @@ __imports["mixin.FCMCustomLuaWindow"] = function()
     end
 
     --[[
+    % SetRestoreControlState
+
+    **[Fluid]**
+    Enables or disables the automatic restoration of control state on subsequent showings of the window.
+    This is disabled by default.
+
+    @ self (FCMCustomLuaWindow)
+    @ enabled (boolean) `true` to enable, `false` to disable.
+    ]]
+    function props:SetRestoreControlState(enabled)
+        mixin.assert_argument(enabled, "boolean", 2)
+
+        private[self].RestoreControlState = enabled and true or false
+    end
+
+    --[[
+    % GetRestoreControlState
+
+    Checks if control state restoration is enabled.
+
+    @ self (FCMCustomLuaWindow)
+    : (boolean) `true` if enabled, `false` if disabled.
+    ]]
+    function props:GetRestoreControlState()
+        return private[self].RestoreControlState
+    end
+
+    --[[
     % ExecuteModal
 
     **[Override]**
-    Sets the `HasBeenShown` flag and restores the previous position if auto restore is on.
+    Restores the previous position if auto restore is on.
 
     @ self (FCMCustomLuaWindow)
     : (number)
     ]]
     function props:ExecuteModal(parent)
         restore_position(self)
-        private[self].HasBeenShown = true
         return mixin.FCMCustomWindow.ExecuteModal(self, parent)
     end
 
@@ -3269,14 +3549,13 @@ __imports["mixin.FCMCustomLuaWindow"] = function()
     % ShowModeless
 
     **[Override]**
-    Sets the `HasBeenShown` flag and restores the previous position if auto restore is on.
+    Restores the previous position if auto restore is on.
 
     @ self (FCMCustomLuaWindow)
     : (boolean)
     ]]
     function props:ShowModeless()
         restore_position(self)
-        private[self].HasBeenShown = true
         return self:ShowModeless_()
     end
 
@@ -3308,7 +3587,10 @@ __imports["mixin.FCMCustomWindow"] = function()
     @ self (FCMCustomWindow)
     ]]
     function props:Init()
-        private[self] = private[self] or {Controls = {}, NamedControls = {}}
+        private[self] = private[self] or {
+            Controls = {},
+            NamedControls = {},
+        }
     end
 
     --[[
@@ -7180,16 +7462,17 @@ __imports["mixin.FCXCustomLuaWindow"] = function()
     ]]
     function props:Init()
         private[self] = private[self] or {
-                MeasurementUnit = measurement.get_real_default_unit(),
-                UseParentMeasurementUnit = true,
-                HandleTimer = {},
-                RunModelessDefaultAction = nil,
-            }
+            MeasurementUnit = measurement.get_real_default_unit(),
+            UseParentMeasurementUnit = true,
+            HandleTimer = {},
+            RunModelessDefaultAction = nil,
+        }
 
         if self.SetAutoRestorePosition then
             self:SetAutoRestorePosition(true)
         end
 
+        self:SetRestoreControlState(true)
         self:SetEnableDebugClose(true)
 
         -- Register proxy for HandlerTimer if it's available in this RGPLua version.
