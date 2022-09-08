@@ -11,6 +11,7 @@ A library of general Lua utility functions.
 - [calc_roman_numeral(num)](#calc_roman_numeral)
 - [calc_ordinal(num)](#calc_ordinal)
 - [calc_alphabet(num)](#calc_alphabet)
+- [clamp(num, minimum, maximum)](#clamp)
 
 ### copy_table
 
@@ -136,3 +137,23 @@ This function was written to emulate the way Finale numbers saves when Autonumbe
 | Return type | Description |
 | ----------- | ----------- |
 | `string` |  |
+
+### clamp
+
+```lua
+utility_functions.clamp(num, minimum, maximum)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L145)
+
+Clamps a number between two values.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `num` | `number` | The number to clamp. |
+| `minimum` | `number` | The minimum value. |
+| `maximum` | `number` | The maximum value. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` |  |
