@@ -92,7 +92,7 @@ finenv.StartNewUndoBlock(false)
 
 #### ExecuteLuaScriptItem\* (function)
 
-Accepts an instance of [`FCLuaScriptItem`](https://pdk.finalelua.com/class_f_c_lua_script_item.html) and launches it in a separate Lua state. If the item is an ad-hoc script (created with [CreateLuaScriptItemsFromFilePath](#CreateLuaScriptItemsFromFilePath-function)), you must maintain your reference to the script item until the ad-hoc script terminates. If you allow your reference to be garbage collected, or if your script terminates, the separate executing ad-hoc script terminates immediately. The function returns either a single value or three values if the executed item returns a message.
+Accepts an instance of [`FCLuaScriptItem`](https://pdk.finalelua.com/class_f_c_lua_script_item.html) and launches it in a separate Lua state. If the item is an ad-hoc script (created with [CreateLuaScriptItemsFromFilePath](#createluascriptitemsfromfilepath-function)), you must maintain your reference to the script item until the ad-hoc script terminates. If you allow your reference to be garbage collected, or if your script terminates, the separate executing ad-hoc script terminates immediately. The function returns either a single value or three values if the executed item returns a message.
 
 
 |Input Type|Description|
@@ -111,6 +111,8 @@ Example:
 local scripts = finenv.CreateLuaScriptItems()
 local success, error_msg, msg_type = finenv.ExecuteLuaScriptItem(scripts:GetItemAt(0))
 ```
+
+A script cannot execute itself from the list returned by [CreateLuaScriptItems](#createluascriptitems-function). If you attempt it, `ExecuteLuaScriptItem` returns an error message and takes no other action.
 
 #### FinaleVersion (read-only property)
 
@@ -172,6 +174,7 @@ A list of constants that define the type of message returned by `finenv.ExecuteL
 |**SCORE\_REQUIRED**|The script was not executed because it specified `finaleplugin.RequireScore = true` but the document was viewing a part.|
 |**FINALE\_VERSION\_MISMATCH**|The script was not executed because it specified a minimum or maximum Finale version and the current running version of Finale does not meet the requirement.|
 |**LUA\_PLUGIN\_VERSION\_MISMATCH**|The script was not executed because it specified a minimum or maximum Lua plugin version and the current running version of _RGP Lua_ does not meet the requirement.|
+|**MISCELLANEOUS**|Other types of error messages that do not fit any of the other categories.|
 
 Example:
 
