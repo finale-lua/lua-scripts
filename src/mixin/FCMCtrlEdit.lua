@@ -5,30 +5,17 @@ $module FCMCtrlEdit
 
 Summary of modifications:
 - Added `Change` custom control event.
+- Added hooks for restoring control state
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
+local utils = require("library.utils")
 
 local props = {}
 
 local trigger_change
 local each_last_change
-
---[[
-% SetInteger
-
-**[Fluid] [Override]**
-Ensures that `Change` event is triggered.
-
-@ self (FCMCtrlEdit)
-@ anint (number)
-]]
-function props:SetInteger(anint)
-    mixin.assert_argument(anint, "number", 2)
-
-    self:SetInteger_(anint)
-    trigger_change(self)
-end
+local temp_str = mixin.FCMString()
 
 --[[
 % SetText
@@ -47,73 +34,231 @@ function props:SetText(str)
 end
 
 --[[
-% SetMeasurement
+% GetInteger
 
-**[Fluid] [Override]**
-Ensures that `Change` event is triggered.
+**[Override]**
+Hooks into control state restoration.
 
 @ self (FCMCtrlEdit)
-@ value (number)
-@ measurementunit (number)
+: (number)
 ]]
-function props:SetMeasurement(value, measurementunit)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert_argument(measurementunit, "number", 3)
-
-    self:SetMeasurement_(value, measurementunit)
-    trigger_change(self)
-end
 
 --[[
-% SetMeasurementEfix
+% SetInteger
 
 **[Fluid] [Override]**
 Ensures that `Change` event is triggered.
+Also hooks into control state restoration.
 
 @ self (FCMCtrlEdit)
-@ value (number)
-@ measurementunit (number)
+@ anint (number)
 ]]
-function props:SetMeasurementEfix(value, measurementunit)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert_argument(measurementunit, "number", 3)
-
-    self:SetMeasurementEfix_(value, measurementunit)
-    trigger_change(self)
-end
 
 --[[
-% SetMeasurementInteger
+% GetFloat
 
-**[Fluid] [Override]**
-Ensures that `Change` event is triggered.
+**[Override]**
+Hooks into control state restoration.
 
 @ self (FCMCtrlEdit)
-@ value (number)
-@ measurementunit (number)
+: (number)
 ]]
-function props:SetMeasurementInteger(value, measurementunit)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert_argument(measurementunit, "number", 3)
-
-    self:SetMeasurementInteger_(value, measurementunit)
-    trigger_change(self)
-end
 
 --[[
 % SetFloat
 
 **[Fluid] [Override]**
 Ensures that `Change` event is triggered.
+Also hooks into control state restoration.
 
 @ self (FCMCtrlEdit)
 @ value (number)
 ]]
-function props:SetFloat(value)
-    mixin.assert_argument(value, "number", 2)
+for method, valid_types in pairs({
+    Integer = "number",
+    Float = "number",
+}) do
+    props["Get" .. method] = function(self)
+        -- This is the long way around, but it ensures that the correct control value is used
+        mixin.FCMControl.GetText(self, temp_str)
+        return temp_str["Get" .. method](temp_str)
+    end
 
-    self:SetFloat_(value)
-    trigger_change(self)
+    props["Set" .. method] = function(self, value)
+        mixin.assert_argument(value, valid_types, 2)
+
+        temp_str["Set" .. method](temp_str, value)
+        mixin.FCMControl.SetText(self, temp_str)
+        trigger_change(self)
+    end
+end
+
+--[[
+% GetMeasurement
+
+**[Override]**
+Hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+: (number)
+]]
+
+--[[
+% SetMeasurement
+
+**[Fluid] [Override]**
+Ensures that `Change` event is triggered.
+Also hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ value (number)
+@ measurementunit (number)
+]]
+
+--[[
+% GetMeasurementEfix
+
+**[Override]**
+Hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+: (number)
+]]
+
+--[[
+% SetMeasurementEfix
+
+**[Fluid] [Override]**
+Ensures that `Change` event is triggered.
+Also hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ value (number)
+@ measurementunit (number)
+]]
+
+--[[
+% GetMeasurementInteger
+
+**[Override]**
+Hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+: (number)
+]]
+
+--[[
+% SetMeasurementInteger
+
+**[Fluid] [Override]**
+Ensures that `Change` event is triggered.
+Also hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ value (number)
+@ measurementunit (number)
+]]
+for method, valid_types in pairs({
+    Measurement = "number",
+    MeasurementEfix = "number",
+    MeasurementInteger = "number",
+}) do
+    props["Get" .. method] = function(self, measurementunit)
+        mixin.assert_argument(measurementunit, "number", 2)
+
+        mixin.FCMControl.GetText(self, temp_str)
+        return temp_str["Get" .. method](temp_str, measurementunit)
+    end
+
+    props["Set" .. method] = function(self, value, measurementunit)
+        mixin.assert_argument(value, valid_types, 2)
+        mixin.assert_argument(measurementunit, "number", 3)
+
+        temp_str["Set" .. method](temp_str, value, measurementunit)
+        mixin.FCMControl.SetText(self, temp_str)
+        trigger_change(self)
+    end
+end
+
+--[[
+% GetRangeInteger
+
+**[Override]**
+Hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ minimum (number)
+@ maximum (number)
+: (number)
+]]
+function props:GetRangeInteger(minimum, maximum)
+    mixin.assert_argument(minimum, "number", 2)
+    mixin.assert_argument(maximum, "number", 3)
+
+    return utils.clamp(mixin.FCMCtrlEdit.GetInteger(self), math.floor(minimum), math.floor(maximum))
+end
+
+--[[
+% GetRangeMeasurement
+
+**[Override]**
+Hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+@ minimum (number)
+@ maximum (number)
+: (number)
+]]
+function props:GetRangeMeasurement(measurementunit, minimum, maximum)
+    mixin.assert_argument(measurementunit, "number", 2)
+    mixin.assert_argument(minimum, "number", 3)
+    mixin.assert_argument(maximum, "number", 4)
+
+    return utils.clamp(mixin.FCMCtrlEdit.GetMeasurement(self, measurementunit), minimum, maximum)
+end
+
+--[[
+% GetRangeMeasurementEfix
+
+**[Override]**
+Hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+@ minimum (number)
+@ maximum (number)
+: (number)
+]]
+function props:GetRangeMeasurementEfix(measurementunit, minimum, maximum)
+    mixin.assert_argument(measurementunit, "number", 2)
+    mixin.assert_argument(minimum, "number", 3)
+    mixin.assert_argument(maximum, "number", 4)
+
+    return utils.clamp(mixin.FCMCtrlEdit.GetMeasurementEfix(self, measurementunit), minimum, maximum)
+end
+
+--[[
+% GetRangeMeasurementInteger
+
+**[Override]**
+Hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+@ minimum (number)
+@ maximum (number)
+: (number)
+]]
+function props:GetRangeMeasurementInteger(measurementunit, minimum, maximum)
+    mixin.assert_argument(measurementunit, "number", 2)
+    mixin.assert_argument(minimum, "number", 3)
+    mixin.assert_argument(maximum, "number", 4)
+
+    return utils.clamp(mixin.FCMCtrlEdit.GetMeasurementInteger(self, measurementunit), math.floor(minimum), math.floor(maximum))
 end
 
 --[[
@@ -148,8 +293,12 @@ Removes a handler added with `AddHandleChange`.
 @ self (FCMCtrlEdit)
 @ callback (function)
 ]]
-props.AddHandleChange, props.RemoveHandleChange, trigger_change, each_last_change =
-    mixin_helper.create_custom_control_change_event(
-        {name = "last_value", get = mixin.FCMControl.GetText, initial = ""})
+props.AddHandleChange, props.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
+    {
+        name = "last_value",
+        get = mixin.FCMControl.GetText,
+        initial = ""
+    }
+)
 
 return props

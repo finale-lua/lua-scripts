@@ -151,8 +151,21 @@ __imports["library.utils"] = function()
         return string.char(64 + letter) .. (n > 0 and n or "")
     end
 
-    return utils
+    --[[
+    % clamp
 
+    Clamps a number between two values.
+
+    @ num (number) The number to clamp.
+    @ minimum (number) The minimum value.
+    @ maximum (number) The maximum value.
+    : (number)
+    ]]
+    function utils.clamp(num, minimum, maximum)
+        return math.min(math.max(num, minimum), maximum)
+    end
+
+    return utils
 
 end
 

@@ -8,6 +8,7 @@ Summary of modifications:
 - Measurement edits can be set to one of three types which correspond to the `GetMeasurement*`, `SetMeasurement*` and *GetRangeMeasurement*` methods. The type affects which methods are used for changing measurement units, for events, and for interacting with an `FCXCtrlUpDown` control.
 - All measurement get and set methods no longer accept a measurement unit as this is taken from the parent window.
 - `Change` event has been overridden to pass a measurement.
+- Added hooks for restoring control state
 
 ## Functions
 
@@ -16,20 +17,21 @@ Summary of modifications:
 - [SetInteger(self, anint)](#setinteger)
 - [SetFloat(self, value)](#setfloat)
 - [GetMeasurement(self)](#getmeasurement)
+- [GetRangeMeasurement(self, minimum, maximum)](#getrangemeasurement)
 - [SetMeasurement(self, value)](#setmeasurement)
 - [GetMeasurementInteger(self)](#getmeasurementinteger)
+- [GetRangeMeasurementInteger(self, minimum, maximum)](#getrangemeasurementinteger)
 - [SetMeasurementInteger(self, value)](#setmeasurementinteger)
 - [GetMeasurementEfix(self)](#getmeasurementefix)
-- [SetMeasurementEfix(self, value)](#setmeasurementefix)
-- [GetRangeMeasurement(self, minimum, maximum)](#getrangemeasurement)
-- [GetRangeMeasurementInteger(self, minimum, maximum)](#getrangemeasurementinteger)
 - [GetRangeMeasurementEfix(self, minimum, maximum)](#getrangemeasurementefix)
-- [SetTypeMeasurement(self)](#settypemeasurement)
-- [SetTypeMeasurementInteger(self)](#settypemeasurementinteger)
-- [SetTypeMeasurementEfix(self)](#settypemeasurementefix)
+- [SetMeasurementEfix(self, value)](#setmeasurementefix)
+- [GetType(self)](#gettype)
 - [IsTypeMeasurement(self)](#istypemeasurement)
 - [IsTypeMeasurementInteger(self)](#istypemeasurementinteger)
 - [IsTypeMeasurementEfix(self)](#istypemeasurementefix)
+- [SetTypeMeasurement(self)](#settypemeasurement)
+- [SetTypeMeasurementInteger(self)](#settypemeasurementinteger)
+- [SetTypeMeasurementEfix(self)](#settypemeasurementefix)
 - [UpdateMeasurementUnit(self)](#updatemeasurementunit)
 - [HandleChange(control, last_value)](#handlechange)
 - [AddHandleChange(self, callback)](#addhandlechange)
@@ -41,7 +43,7 @@ Summary of modifications:
 fcxctrlmeasurementedit.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L32)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L33)
 
 **[Internal]**
 
@@ -55,7 +57,7 @@ fcxctrlmeasurementedit.Init(self)
 fcxctrlmeasurementedit.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L51)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 **[Fluid] [Override]**
 Ensures that the overridden `Change` event is triggered.
@@ -71,7 +73,7 @@ Ensures that the overridden `Change` event is triggered.
 fcxctrlmeasurementedit.SetInteger(self, anint)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L67)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 **[Fluid] [Override]**
 Ensures that the overridden `Change` event is triggered.
@@ -87,7 +89,7 @@ Ensures that the overridden `Change` event is triggered.
 fcxctrlmeasurementedit.SetFloat(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L83)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 **[Fluid] [Override]**
 Ensures that the overridden `Change` event is triggered.
@@ -103,7 +105,7 @@ Ensures that the overridden `Change` event is triggered.
 fcxctrlmeasurementedit.GetMeasurement(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L99)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L121)
 
 **[Override]**
 Removes the measurement unit parameter, taking it instead from the parent window.
@@ -116,17 +118,37 @@ Removes the measurement unit parameter, taking it instead from the parent window
 | ----------- | ----------- |
 | `number` |  |
 
+### GetRangeMeasurement
+
+```lua
+fcxctrlmeasurementedit.GetRangeMeasurement(self, minimum, maximum)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L131)
+
+**[Override]**
+Removes the measurement unit parameter, taking it instead from the parent window.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCXCtrlMeasurementEdit` |  |
+| `minimum` | `number` |  |
+| `maximum` | `number` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` |  |
+
 ### SetMeasurement
 
 ```lua
 fcxctrlmeasurementedit.SetMeasurement(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L114)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L143)
 
 **[Fluid] [Override]**
 Removes the measurement unit parameter, taking it instead from the parent window.
-
 Also ensures that the overridden `Change` event is triggered.
 
 | Input | Type | Description |
@@ -140,7 +162,7 @@ Also ensures that the overridden `Change` event is triggered.
 fcxctrlmeasurementedit.GetMeasurementInteger(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L130)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L281)
 
 **[Override]**
 Removes the measurement unit parameter, taking it instead from the parent window.
@@ -153,17 +175,37 @@ Removes the measurement unit parameter, taking it instead from the parent window
 | ----------- | ----------- |
 | `number` |  |
 
+### GetRangeMeasurementInteger
+
+```lua
+fcxctrlmeasurementedit.GetRangeMeasurementInteger(self, minimum, maximum)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L281)
+
+**[Override]**
+Removes the measurement unit parameter, taking it instead from the parent window.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCXCtrlMeasurementEdit` |  |
+| `minimum` | `number` |  |
+| `maximum` | `number` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` |  |
+
 ### SetMeasurementInteger
 
 ```lua
 fcxctrlmeasurementedit.SetMeasurementInteger(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L145)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L281)
 
 **[Fluid] [Override]**
 Removes the measurement unit parameter, taking it instead from the parent window.
-
 Also ensures that the overridden `Change` event is triggered.
 
 | Input | Type | Description |
@@ -177,7 +219,7 @@ Also ensures that the overridden `Change` event is triggered.
 fcxctrlmeasurementedit.GetMeasurementEfix(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L161)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L308)
 
 **[Override]**
 Removes the measurement unit parameter, taking it instead from the parent window.
@@ -185,66 +227,6 @@ Removes the measurement unit parameter, taking it instead from the parent window
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCXCtrlMeasurementEdit` |  |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `number` |  |
-
-### SetMeasurementEfix
-
-```lua
-fcxctrlmeasurementedit.SetMeasurementEfix(self, value)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L176)
-
-**[Fluid] [Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
-
-Also ensures that the overridden `Change` event is triggered.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `self` | `FCXCtrlMeasurementEdit` |  |
-| `value` | `number` |  |
-
-### GetRangeMeasurement
-
-```lua
-fcxctrlmeasurementedit.GetRangeMeasurement(self, minimum, maximum)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L194)
-
-**[Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `self` | `FCXCtrlMeasurementEdit` |  |
-| `minimum` | `number` |  |
-| `maximum` | `number` |  |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `number` |  |
-
-### GetRangeMeasurementInteger
-
-```lua
-fcxctrlmeasurementedit.GetRangeMeasurementInteger(self, minimum, maximum)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L212)
-
-**[Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `self` | `FCXCtrlMeasurementEdit` |  |
-| `minimum` | `number` |  |
-| `maximum` | `number` |  |
 
 | Return type | Description |
 | ----------- | ----------- |
@@ -256,7 +238,7 @@ Removes the measurement unit parameter, taking it instead from the parent window
 fcxctrlmeasurementedit.GetRangeMeasurementEfix(self, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L230)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L308)
 
 **[Override]**
 Removes the measurement unit parameter, taking it instead from the parent window.
@@ -271,53 +253,40 @@ Removes the measurement unit parameter, taking it instead from the parent window
 | ----------- | ----------- |
 | `number` |  |
 
-### SetTypeMeasurement
+### SetMeasurementEfix
 
 ```lua
-fcxctrlmeasurementedit.SetTypeMeasurement(self)
+fcxctrlmeasurementedit.SetMeasurementEfix(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L246)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L308)
 
-**[Fluid]**
-Sets the type to `"Measurement"`.
-This means that the setters & getters used in events, measurement unit changes, and up down controls are `GetMeasurement`, `GetRangeMeasurement`, and `SetMeasurement`.
+**[Fluid] [Override]**
+Removes the measurement unit parameter, taking it instead from the parent window.
+Also ensures that the overridden `Change` event is triggered.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCXCtrlMeasurementEdit` |  |
+| `value` | `number` |  |
+
+### GetType
+
+```lua
+fcxctrlmeasurementedit.GetType(self)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L222)
+
+Returns the measurement edit's type. Can also be appended to `"Get"`, `"GetRange"`, or `"Set"` to use type-specific methods.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCXCtrlMeasurementEdit` |  |
 
-### SetTypeMeasurementInteger
-
-```lua
-fcxctrlmeasurementedit.SetTypeMeasurementInteger(self)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L269)
-
-**[Fluid]**
-Sets the type to `"MeasurementInteger"`. This is the default type.
-This means that the setters & getters used in events, measurement unit changes, and up down controls are `GetMeasurementInteger`, `GetRangeMeasurementInteger`, and `SetMeasurementInteger`.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `self` | `FCXCtrlMeasurementEdit` |  |
-
-### SetTypeMeasurementEfix
-
-```lua
-fcxctrlmeasurementedit.SetTypeMeasurementEfix(self)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L296)
-
-**[Fluid]**
-Sets the type to `"MeasurementEfix"`.
-This means that the setters & getters used in events, measurement unit changes, and up down controls are `GetMeasurementEfix`, `GetRangeMeasurementEfix`, and `SetMeasurementEfix`.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `self` | `FCXCtrlMeasurementEdit` |  |
+| Return type | Description |
+| ----------- | ----------- |
+| `string` | `"Measurement"`, `"MeasurementInteger"`, or `"MeasurementEfix"` |
 
 ### IsTypeMeasurement
 
@@ -325,7 +294,7 @@ This means that the setters & getters used in events, measurement unit changes, 
 fcxctrlmeasurementedit.IsTypeMeasurement(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L326)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L236)
 
 Checks if the type is `"Measurement"`.
 
@@ -343,7 +312,7 @@ Checks if the type is `"Measurement"`.
 fcxctrlmeasurementedit.IsTypeMeasurementInteger(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L338)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 Checks if the type is `"MeasurementInteger"`.
 
@@ -361,7 +330,7 @@ Checks if the type is `"MeasurementInteger"`.
 fcxctrlmeasurementedit.IsTypeMeasurementEfix(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L350)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 Checks if the type is `"MeasurementEfix"`.
 
@@ -373,13 +342,61 @@ Checks if the type is `"MeasurementEfix"`.
 | ----------- | ----------- |
 | `boolean` |  |
 
+### SetTypeMeasurement
+
+```lua
+fcxctrlmeasurementedit.SetTypeMeasurement(self)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L262)
+
+**[Fluid]**
+Sets the type to `"Measurement"`.
+This means that the setters & getters used in events, measurement unit changes, and up down controls are `GetMeasurement`, `GetRangeMeasurement`, and `SetMeasurement`.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCXCtrlMeasurementEdit` |  |
+
+### SetTypeMeasurementInteger
+
+```lua
+fcxctrlmeasurementedit.SetTypeMeasurementInteger(self)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L285)
+
+**[Fluid]**
+Sets the type to `"MeasurementInteger"`. This is the default type.
+This means that the setters & getters used in events, measurement unit changes, and up down controls are `GetMeasurementInteger`, `GetRangeMeasurementInteger`, and `SetMeasurementInteger`.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCXCtrlMeasurementEdit` |  |
+
+### SetTypeMeasurementEfix
+
+```lua
+fcxctrlmeasurementedit.SetTypeMeasurementEfix(self)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L312)
+
+**[Fluid]**
+Sets the type to `"MeasurementEfix"`.
+This means that the setters & getters used in events, measurement unit changes, and up down controls are `GetMeasurementEfix`, `GetRangeMeasurementEfix`, and `SetMeasurementEfix`.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCXCtrlMeasurementEdit` |  |
+
 ### UpdateMeasurementUnit
 
 ```lua
 fcxctrlmeasurementedit.UpdateMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L362)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L332)
 
 **[Fluid] [Internal]**
 Checks the parent window for a change in measurement unit and updates the control if needed.
@@ -394,7 +411,7 @@ Checks the parent window for a change in measurement unit and updates the contro
 fcxctrlmeasurementedit.HandleChange(control, last_value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L386)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L356)
 
 **[Callback Template] [Override]**
 The type and unit of `last_value` will change depending on the measurement edit's type. The possibilities are:
@@ -413,7 +430,7 @@ The type and unit of `last_value` will change depending on the measurement edit'
 fcxctrlmeasurementedit.AddHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L404)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L374)
 
 **[Fluid] [Override]**
 Adds a handler for when the value of the control changes.
@@ -434,7 +451,7 @@ The even will fire when:
 fcxctrlmeasurementedit.RemoveHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L409)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementEdit.lua#L379)
 
 **[Fluid] [Override]**
 Removes a handler added with `AddHandleChange`.
