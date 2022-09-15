@@ -2,8 +2,8 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Version = "v1.40"
-    finaleplugin.Date = "2022/09/05"
+    finaleplugin.Version = "v1.41 NO MIXIN"
+    finaleplugin.Date = "2022/09/16"
     finaleplugin.Notes = [[
         Several situations including cross-staff notation (rests should be centred between the staves) 
         require adjusting the vertical position (offset) of rests. 
@@ -17,8 +17,6 @@ function plugindef()
     ]]
    return "Rest Offsets", "Rest Offsets", "Rest vertical offsets"
 end
-
-local mixin = require("library.mixin")
 
 -- ================= SCRIPT BEGINS =================================
 -- RetainLuaState retains one global:
@@ -42,19 +40,32 @@ function make_dialog()
     local horizontal = 110
     local y_level = {15, 45, 75}
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac Edit box
-    local answer = {}
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle( plugindef() )
+    local answer, static = {}, nil
+    local str = finale.FCString()
+    str.LuaString = plugindef()
+    local dialog = finale.FCCustomLuaWindow()
+    dialog:SetTitle(str)
 
     local texts = { -- text, default value, vertical_position
         { "Vertical offset:", config.offset or 0, y_level[1] },
         { "Layer# 1-4 (0 = all):", config.layer or 0, y_level[2]  },
     }
     for i, v in ipairs(texts) do -- create labels and edit boxes
-        dialog:CreateStatic(0, v[3]):SetText(v[1]):SetWidth(horizontal)
-        answer[i] = dialog:CreateEdit(horizontal, v[3] - mac_offset):SetInteger(v[2]):SetWidth(50)
+        str.LuaString = v[1]
+        static = dialog:CreateStatic(0, v[3])
+        static:SetText(str)
+        static:SetWidth(horizontal)
+        answer[i] = dialog:CreateEdit(horizontal, v[3] - mac_offset)
+        answer[i]:SetInteger(v[2])
+        answer[i]:SetWidth(50)
     end
+
     local checked = config.zero_floating and 1 or 0
-    answer[3] = dialog:CreateCheckbox(0, texts[2][3] + 30):SetText("Zero = Floating Rest"):SetWidth(horizontal * 2):SetCheck(checked)
+    answer[3] = dialog:CreateCheckbox(0, texts[2][3] + 30)
+    str.LuaString = "Zero = Floating Rest"
+    answer[3]:SetText(str)
+    answer[3]:SetWidth(horizontal * 2)
+    answer[3]:SetCheck(checked)
 
     texts = { -- offset number / horizontal offset / description /  vertical position
         {  "4", 5, "= top staff line", 0 },
@@ -63,11 +74,20 @@ function make_dialog()
         { "", 0, "(for 5-line staff)", 45 },
     }
     for _, v in ipairs(texts) do -- static text information lines
-        dialog:CreateStatic(horizontal + 60 + v[2], v[4]):SetText(v[1])
-        dialog:CreateStatic(horizontal + 75, v[4]):SetText(v[3]):SetWidth(horizontal)
+        static = dialog:CreateStatic(horizontal + 60 + v[2], v[4])
+        str.LuaString = v[1]
+        static:SetText(str)
+        static = dialog:CreateStatic(horizontal + 75, v[4])
+        str.LuaString = v[3]
+        static:SetText(str)
+        static:SetWidth(horizontal)
     end
 
-    dialog:CreateButton(128, y_level[3]):SetText("?"):SetWidth(20):AddHandleCommand(function(self)
+    local q_button = dialog:CreateButton(128, y_level[3])
+    str.LuaString = "?"
+    q_button:SetText(str)
+    q_button:SetWidth(20)
+    dialog:RegisterHandleControlEvent(q_button, function()
         local msg = "Newly created rests are \"floating\" and will avoid entries in other layers (if present) "
         .. "using the setting for \"Adjust Floating Rests by...\" in \"Document Options...\" -> \"Layers\". \n\n"
         .. "This script stops rests \"floating\", instead \"fixing\" them to a specific offset from the middle staff line. "
