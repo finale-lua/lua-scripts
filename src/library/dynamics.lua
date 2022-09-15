@@ -306,7 +306,10 @@ function dynamics.nudge_hairpins(region, nudge_by)
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAll()
 
-    marks:KeepStaffOnly(region.StartStaff)
+     local sys_staves = finale.FCSystemStaves()
+    sys_staves:LoadAllForRegion(region)
+
+    marks:KeepSystemStavesOnly(sys_staves)
     marks:KeepHairpinsOnly()
 
     for mark in each(marks) do
