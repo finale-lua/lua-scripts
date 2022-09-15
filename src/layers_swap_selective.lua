@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.56"
+    finaleplugin.Version = "v0.58 NO MIXIN"
     finaleplugin.Date = "2022/08/07"
     finaleplugin.Notes = [[
         Swaps notes in the selected region between two chosen layers
@@ -12,9 +12,8 @@ function plugindef()
 end
 
 -- RetainLuaState retains one global:
-config = config or { layer_a = 1, layer_b = 2, pos_x = false, pos_y = false }
+config = config or {}
 local layer = require("library.layer")
-local mixin = require("library.mixin")
 
 function any_errors()
     local error_message = ""
@@ -30,44 +29,38 @@ function any_errors()
     return false
 end
 
-function swap_layers()
-    if finenv.RetainLuaState ~= nil then
-        finenv.RetainLuaState = true
-    end
-    finenv.StartNewUndoBlock("Swap Layers Selective", false)
-    layer.swap(finenv.Region(), config.layer_a, config.layer_b)
-    if finenv.EndUndoBlock then
-        finenv.EndUndoBlock(true)
-        finenv.Region():Redraw()
-    else
-        finenv.StartNewUndoBlock("Swap Layers Selective", true)
-    end
-end
-
 function create_dialog_box()
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Swap Layers Selective")
+    local str = finale.FCString()
+    local dialog = finale.FCCustomLuaWindow()
+    str.LuaString = plugindef()
+    dialog:SetTitle(str)
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra horizontal offset for Mac edit box
-    local offset_x = 105
-    local offset_y = 22
+    local offset_x, offset_y = 105, 22
+    local edit_boxes = {}
 
-    dialog:CreateStatic(0, mac_offset):SetText("swap layer# (1-4):"):SetWidth(offset_x)
-    dialog:CreateEdit(offset_x, 0, "edit_a"):SetInteger(config.layer_a or 1)
-
-    dialog:CreateStatic(5, offset_y + mac_offset):SetText("with layer# (1-4):"):SetWidth(offset_x)
-    dialog:CreateEdit(offset_x, offset_y, "edit_b"):SetInteger(config.layer_b or 2)
+    local texts = { -- text, default value
+        { "swap layer# (1-4):", config.layer_a or 1 },
+        { "with layer# (1-4):", config.layer_b or 2 }
+    }
+    for i, v in ipairs(texts) do
+        local vertical = offset_y * (i - 1)
+        str.LuaString = v[1]
+        local static = dialog:CreateStatic(0, vertical)
+        static:SetText(str)
+        static:SetWidth(offset_x)
+        edit_boxes[i] = dialog:CreateEdit(offset_x, vertical - mac_offset)
+        edit_boxes[i]:SetInteger(v[2])
+    end
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    dialog:RegisterHandleOkButtonPressed(function(self)
-        config.layer_a = self:GetControl("edit_a"):GetInteger()
-        config.layer_b = self:GetControl("edit_b"):GetInteger()
-    end)
-    dialog:RegisterCloseWindow(function()
+    dialog:RegisterHandleOkButtonPressed(function()
+        config.layer_a = edit_boxes[1]:GetInteger()
+        config.layer_b = edit_boxes[2]:GetInteger()
         dialog:StorePosition()
         config.pos_x = dialog.StoredX
         config.pos_y = dialog.StoredY
     end)
-
     return dialog
 end
 
@@ -78,13 +71,13 @@ function layers_swap_selective()
         dialog:SetRestorePositionOnlyData(config.pos_x, config.pos_y)
         dialog:RestorePosition()
     end
-    if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK then
-        return -- user cancelled
-    end
-    if any_errors() then
+    if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK or any_errors() then
         return
     end
-    swap_layers()
+    if finenv.RetainLuaState ~= nil then
+        finenv.RetainLuaState = true
+    end
+    layer.swap(finenv.Region(), config.layer_a, config.layer_b)
 end
 
 layers_swap_selective()
