@@ -1460,7 +1460,7 @@ __imports["mixin.FCMCtrlEdit"] = __imports["mixin.FCMCtrlEdit"] or function()
         props["Get" .. method] = function(self)
             -- This is the long way around, but it ensures that the correct control value is used
             mixin.FCMControl.GetText(self, temp_str)
-            return temp_str["Get" .. method](temp_str)
+            return temp_str["Get" .. method](temp_str, 0)
         end
 
         props["Set" .. method] = function(self, value)
@@ -8606,11 +8606,12 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
     local utils = require("library.utils")
     local library = require("library.general_library")
     
-    -- mixin_public: public methods and mixin constructors, stored separately to keep the mixin namespace read-only.
-    -- mixin_private: private methods
-    -- mixin_classes: fully resolved FCM and FCX mixin class definitions
-    local mixin_public, mixin_private, mixin_classes = {}, {}, {}
-    
+    -- Public methods and mixin constructors, stored separately to keep the mixin namespace read-only.
+    local mixin_public = {}
+    -- Private methods
+    local mixin_private = {}
+    -- Fully resolved FCM and FCX mixin class definitions
+    local mixin_classes = {}
     -- Weak table for mixin instance properties / methods
     local mixin_props = setmetatable({}, {__mode = "k"})
     
@@ -8839,22 +8840,37 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
     
     -- Catches an error and throws it at the specified level (relative to where this function was called)
     -- First argument is called tryfunczzz for uniqueness
-    -- Tail calls where the arguments are passed back unmodified aren't counted as levels in the call stack. Adding an additional argument (in this case, 1) level forces this level to be included 
+    -- Tail calls aren't counted as levels in the call stack. Adding an additional return value (in this case, 1) forces this level to be included, which enables the error to be accurately captured
     local pcall_line = debug.getinfo(1, "l").currentline + 2 -- This MUST refer to the pcall 2 lines below
     local function catch_and_rethrow(tryfunczzz, levels, ...)
         return mixin_private.pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
     end
     
+    -- Get the name of this file.
+    local mixin_file_name = debug.getinfo(1, "S").source
+    mixin_file_name = mixin_file_name:sub(1, 1) == "@" and mixin_file_name:sub(2) or nil
+    
     -- Processes the results from the pcall in catch_and_rethrow
     function mixin_private.pcall_wrapper(levels, success, result, ...)
         if not success then
+            local file
+            local line
+            local msg
             file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
             msg = msg or result
+    
+            local file_is_truncated = file:sub(1, 3) == "..."
+            file = file_is_truncated and file:sub(4) or file
     
             -- Conditions for rethrowing at a higher level:
             -- Ignore errors thrown with no level info (ie. level = 0), as we can't make any assumptions
             -- Both the file and line number indicate that it was thrown at this level
-            if file and line and file:sub(-9) == "mixin.lua" and tonumber(line) == pcall_line then
+            if file
+                and line
+                and mixin_file_name
+                and (file_is_truncated and mixin_file_name:sub(-1 * file:len()) == file or file == mixin_file_name)
+                and tonumber(line) == pcall_line
+            then
                 local d = debug.getinfo(levels, "n")
     
                 -- Replace the method name with the correct one, for bad argument errors etc

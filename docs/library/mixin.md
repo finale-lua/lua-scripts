@@ -224,7 +224,7 @@ dialog:ExecuteModal(nil)
 fluid_mixins.subclass(object, class_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L746)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L762)
 
 
 Takes a mixin-enabled finale object and migrates it to an `FCX` subclass. Any conflicting property or method names will be overwritten.
@@ -248,7 +248,7 @@ If the current `MixinClass` is the same as `class_name`, this function will do n
 fluid_mixins.is_instance_of(object, class_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L762)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L778)
 
 
 Checks if an object is an instance of a class.
@@ -274,7 +274,7 @@ Conditions:
 fluid_mixins.assert_argument(value, expected_type, argument_number)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L833)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L849)
 
 
 Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
@@ -302,7 +302,7 @@ If the expected type is `FCMString`, an `FCXString` object will pass the test bu
 fluid_mixins.force_assert_argument(value, expected_type, argument_number)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L869)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L885)
 
 
 The same as `assert_argument` except this function always asserts, regardless of whether debug mode is enabled.
@@ -320,7 +320,7 @@ The same as `assert_argument` except this function always asserts, regardless of
 fluid_mixins.assert(condition, message, no_level)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L881)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L897)
 
 
 Asserts a condition in a mixin method. If the condition is false, an error is thrown one level above where this function is called.
@@ -339,7 +339,7 @@ Only asserts when in debug mode. If assertion is required on all executions, use
 fluid_mixins.force_assert(condition, message, no_level)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L896)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L912)
 
 
 The same as `assert` except this function always asserts, regardless of whether debug mode is enabled.
@@ -357,7 +357,7 @@ The same as `assert` except this function always asserts, regardless of whether 
 fluid_mixins.UI()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L911)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L927)
 
 
 Returns a mixin enabled UI object from `finenv.UI`
@@ -373,7 +373,7 @@ Returns a mixin enabled UI object from `finenv.UI`
 fluid_mixins.eachentry(region, layer)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L924)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L940)
 
 
 A modified version of the JW/RGPLua `eachentry` function that allows items to be stored and used outside of a loop.
