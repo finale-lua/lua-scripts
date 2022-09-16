@@ -1,5 +1,5 @@
-local __imports = {}
-local __import_results = {}
+__imports = __imports or {}
+__import_results = __import_results or {}
 
 function require(item)
     if not __imports[item] then
@@ -16,7 +16,7 @@ function require(item)
     return __import_results[item]
 end
 
-__imports["library.configuration"] = function()
+__imports["library.configuration"] = __imports["library.configuration"] or function()
     --  Author: Robert Patterson
     --  Date: March 5, 2021
     --[[
@@ -297,7 +297,7 @@ __imports["library.configuration"] = function()
 
 end
 
-__imports["library.client"] = function()
+__imports["library.client"] = __imports["library.client"] or function()
     --[[
     $module Client
 
@@ -460,7 +460,7 @@ __imports["library.client"] = function()
 
 end
 
-__imports["library.clef"] = function()
+__imports["library.clef"] = __imports["library.clef"] or function()
     --[[
     $module Clef
 
@@ -772,7 +772,7 @@ __imports["library.clef"] = function()
 
 end
 
-__imports["library.layer"] = function()
+__imports["library.layer"] = __imports["library.layer"] or function()
     --[[
     $module Layer
     ]] --

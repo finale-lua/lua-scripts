@@ -1,5 +1,5 @@
-local __imports = {}
-local __import_results = {}
+__imports = __imports or {}
+__import_results = __import_results or {}
 
 function require(item)
     if not __imports[item] then
@@ -16,7 +16,7 @@ function require(item)
     return __import_results[item]
 end
 
-__imports["lunajson.decoder"] = function()
+__imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     local setmetatable, tonumber, tostring =
           setmetatable, tonumber, tostring
     local floor, inf =
@@ -535,7 +535,7 @@ __imports["lunajson.decoder"] = function()
 
 end
 
-__imports["lunajson.encoder"] = function()
+__imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     local error = error
     local byte, find, format, gsub, match = string.byte, string.find, string.format,  string.gsub, string.match
     local concat = table.concat
@@ -724,7 +724,7 @@ __imports["lunajson.encoder"] = function()
 
 end
 
-__imports["lunajson.sax"] = function()
+__imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     local setmetatable, tonumber, tostring =
           setmetatable, tonumber, tostring
     local floor, inf =
@@ -1447,7 +1447,7 @@ __imports["lunajson.sax"] = function()
 
 end
 
-__imports["lunajson.lunajson"] = function()
+__imports["lunajson.lunajson"] = __imports["lunajson.lunajson"] or function()
     local newdecoder = require('lunajson.decoder')
     local newencoder = require('lunajson.encoder')
     local sax = require('lunajson.sax')
@@ -1462,7 +1462,7 @@ __imports["lunajson.lunajson"] = function()
 
 end
 
-__imports["library.client"] = function()
+__imports["library.client"] = __imports["library.client"] or function()
     --[[
     $module Client
 
@@ -1625,7 +1625,7 @@ __imports["library.client"] = function()
 
 end
 
-__imports["library.general_library"] = function()
+__imports["library.general_library"] = __imports["library.general_library"] or function()
     --[[
     $module Library
     ]] --

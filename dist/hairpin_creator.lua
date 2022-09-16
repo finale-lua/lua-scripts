@@ -1,5 +1,5 @@
-local __imports = {}
-local __import_results = {}
+__imports = __imports or {}
+__import_results = __import_results or {}
 
 function require(item)
     if not __imports[item] then
@@ -16,7 +16,7 @@ function require(item)
     return __import_results[item]
 end
 
-__imports["library.configuration"] = function()
+__imports["library.configuration"] = __imports["library.configuration"] or function()
     --  Author: Robert Patterson
     --  Date: March 5, 2021
     --[[
@@ -297,7 +297,7 @@ __imports["library.configuration"] = function()
 
 end
 
-__imports["library.note_entry"] = function()
+__imports["library.note_entry"] = __imports["library.note_entry"] or function()
     --[[
     $module Note Entry
     ]] --
@@ -756,7 +756,7 @@ __imports["library.note_entry"] = function()
 
 end
 
-__imports["library.enigma_string"] = function()
+__imports["library.enigma_string"] = __imports["library.enigma_string"] or function()
     --[[
     $module Enigma String
     ]] --
@@ -964,7 +964,7 @@ __imports["library.enigma_string"] = function()
 
 end
 
-__imports["library.expression"] = function()
+__imports["library.expression"] = __imports["library.expression"] or function()
     --[[
     $module Expression
     ]] --
@@ -1097,7 +1097,7 @@ __imports["library.expression"] = function()
 
 end
 
-__imports["mixin.FCMControl"] = function()
+__imports["mixin.FCMControl"] = __imports["mixin.FCMControl"] or function()
     --  Author: Edward Koltun
     --  Date: March 3, 2022
     --[[
@@ -1452,7 +1452,7 @@ __imports["mixin.FCMControl"] = function()
 
 end
 
-__imports["mixin.FCMCtrlButton"] = function()
+__imports["mixin.FCMCtrlButton"] = __imports["mixin.FCMCtrlButton"] or function()
     --  Author: Edward Koltun
     --  Date: April 3, 2022
     --[[
@@ -1474,7 +1474,7 @@ __imports["mixin.FCMCtrlButton"] = function()
 
 end
 
-__imports["mixin.FCMCtrlCheckbox"] = function()
+__imports["mixin.FCMCtrlCheckbox"] = __imports["mixin.FCMCtrlCheckbox"] or function()
     --  Author: Edward Koltun
     --  Date: April 2, 2022
     --[[
@@ -1550,7 +1550,7 @@ __imports["mixin.FCMCtrlCheckbox"] = function()
 
 end
 
-__imports["mixin.FCMCtrlDataList"] = function()
+__imports["mixin.FCMCtrlDataList"] = __imports["mixin.FCMCtrlDataList"] or function()
     --  Author: Edward Koltun
     --  Date: March 3, 2022
     --[[
@@ -1657,7 +1657,7 @@ __imports["mixin.FCMCtrlDataList"] = function()
 
 end
 
-__imports["mixin.FCMCtrlEdit"] = function()
+__imports["mixin.FCMCtrlEdit"] = __imports["mixin.FCMCtrlEdit"] or function()
     --  Author: Edward Koltun
     --  Date: March 3, 2022
     --[[
@@ -1965,7 +1965,7 @@ __imports["mixin.FCMCtrlEdit"] = function()
 
 end
 
-__imports["mixin.FCMCtrlListBox"] = function()
+__imports["mixin.FCMCtrlListBox"] = __imports["mixin.FCMCtrlListBox"] or function()
     --  Author: Edward Koltun
     --  Date: April 4, 2022
     --[[
@@ -2430,7 +2430,7 @@ __imports["mixin.FCMCtrlListBox"] = function()
 
 end
 
-__imports["mixin.FCMCtrlPopup"] = function()
+__imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
     --  Author: Edward Koltun
     --  Date: March 3, 2022
     --[[
@@ -2921,7 +2921,7 @@ __imports["mixin.FCMCtrlPopup"] = function()
 
 end
 
-__imports["mixin.FCMCtrlSlider"] = function()
+__imports["mixin.FCMCtrlSlider"] = __imports["mixin.FCMCtrlSlider"] or function()
     --  Author: Edward Koltun
     --  Date: April 3, 2022
     --[[
@@ -3082,7 +3082,7 @@ __imports["mixin.FCMCtrlSlider"] = function()
 
 end
 
-__imports["mixin.FCMCtrlSwitcher"] = function()
+__imports["mixin.FCMCtrlSwitcher"] = __imports["mixin.FCMCtrlSwitcher"] or function()
     --  Author: Edward Koltun
     --  Date: March 3, 2022
     --[[
@@ -3323,7 +3323,7 @@ __imports["mixin.FCMCtrlSwitcher"] = function()
 
 end
 
-__imports["mixin.FCMCtrlTree"] = function()
+__imports["mixin.FCMCtrlTree"] = __imports["mixin.FCMCtrlTree"] or function()
     --  Author: Edward Koltun
     --  Date: April 6, 2022
     --[[
@@ -3367,7 +3367,7 @@ __imports["mixin.FCMCtrlTree"] = function()
 
 end
 
-__imports["mixin.FCMCtrlUpDown"] = function()
+__imports["mixin.FCMCtrlUpDown"] = __imports["mixin.FCMCtrlUpDown"] or function()
     --  Author: Edward Koltun
     --  Date: March 3, 2022
     --[[
@@ -3482,7 +3482,7 @@ __imports["mixin.FCMCtrlUpDown"] = function()
 
 end
 
-__imports["mixin.FCMCustomLuaWindow"] = function()
+__imports["mixin.FCMCustomLuaWindow"] = __imports["mixin.FCMCustomLuaWindow"] or function()
     --  Author: Edward Koltun
     --  Date: March 3, 2022
     --[[
@@ -4203,7 +4203,7 @@ __imports["mixin.FCMCustomLuaWindow"] = function()
 
 end
 
-__imports["mixin.FCMCustomWindow"] = function()
+__imports["mixin.FCMCustomWindow"] = __imports["mixin.FCMCustomWindow"] or function()
     --  Author: Edward Koltun
     --  Date: March 3, 2022
     --[[
@@ -4641,7 +4641,7 @@ __imports["mixin.FCMCustomWindow"] = function()
 
 end
 
-__imports["mixin.FCMNoteEntry"] = function()
+__imports["mixin.FCMNoteEntry"] = __imports["mixin.FCMNoteEntry"] or function()
     -- Author: Edward Koltun
     -- Date: August 26, 2022
     --[[
@@ -4699,7 +4699,7 @@ __imports["mixin.FCMNoteEntry"] = function()
 
 end
 
-__imports["mixin.FCMNoteEntryCell"] = function()
+__imports["mixin.FCMNoteEntryCell"] = __imports["mixin.FCMNoteEntryCell"] or function()
     -- Author: Edward Koltun
     -- Date: August 26, 2022
     --[[
@@ -4739,7 +4739,7 @@ __imports["mixin.FCMNoteEntryCell"] = function()
 
 end
 
-__imports["mixin.FCMPage"] = function()
+__imports["mixin.FCMPage"] = __imports["mixin.FCMPage"] or function()
     --  Author: Edward Koltun
     --  Date: April 13, 2021
     --[[
@@ -4798,7 +4798,7 @@ __imports["mixin.FCMPage"] = function()
 
 end
 
-__imports["mixin.FCMString"] = function()
+__imports["mixin.FCMString"] = __imports["mixin.FCMString"] or function()
     --  Author: Edward Koltun
     --  Date: August 8, 2022
     --[[
@@ -4848,7 +4848,7 @@ __imports["mixin.FCMString"] = function()
 
 end
 
-__imports["library.client"] = function()
+__imports["library.client"] = __imports["library.client"] or function()
     --[[
     $module Client
 
@@ -5011,7 +5011,7 @@ __imports["library.client"] = function()
 
 end
 
-__imports["library.general_library"] = function()
+__imports["library.general_library"] = __imports["library.general_library"] or function()
     --[[
     $module Library
     ]] --
@@ -5571,7 +5571,7 @@ __imports["library.general_library"] = function()
 
 end
 
-__imports["mixin.FCMStrings"] = function()
+__imports["mixin.FCMStrings"] = __imports["mixin.FCMStrings"] or function()
     --  Author: Edward Koltun
     --  Date: March 3, 2022
     --[[
@@ -5790,7 +5790,7 @@ __imports["mixin.FCMStrings"] = function()
 
 end
 
-__imports["mixin.FCMTreeNode"] = function()
+__imports["mixin.FCMTreeNode"] = __imports["mixin.FCMTreeNode"] or function()
     --  Author: Edward Koltun
     --  Date: April 6, 2022
     --[[
@@ -5852,7 +5852,7 @@ __imports["mixin.FCMTreeNode"] = function()
 
 end
 
-__imports["mixin.FCMUI"] = function()
+__imports["mixin.FCMUI"] = __imports["mixin.FCMUI"] or function()
     --  Author: Edward Koltun
     --  Date: April 13, 2021
     --[[
@@ -5893,7 +5893,7 @@ __imports["mixin.FCMUI"] = function()
 
 end
 
-__imports["mixin.FCXCtrlMeasurementEdit"] = function()
+__imports["mixin.FCXCtrlMeasurementEdit"] = __imports["mixin.FCXCtrlMeasurementEdit"] or function()
     --  Author: Edward Koltun
     --  Date: April 11, 2022
     --[[
@@ -6286,7 +6286,7 @@ __imports["mixin.FCXCtrlMeasurementEdit"] = function()
 
 end
 
-__imports["mixin.FCXCtrlMeasurementUnitPopup"] = function()
+__imports["mixin.FCXCtrlMeasurementUnitPopup"] = __imports["mixin.FCXCtrlMeasurementUnitPopup"] or function()
     --  Author: Edward Koltun
     --  Date: April 5, 2022
     --[[
@@ -6382,7 +6382,7 @@ __imports["mixin.FCXCtrlMeasurementUnitPopup"] = function()
 
 end
 
-__imports["library.page_size"] = function()
+__imports["library.page_size"] = __imports["library.page_size"] or function()
     --  Author: Edward Koltun
     --  Date: April 13, 2021
     --[[
@@ -6535,7 +6535,7 @@ __imports["library.page_size"] = function()
 
 end
 
-__imports["mixin.FCXCtrlPageSizePopup"] = function()
+__imports["mixin.FCXCtrlPageSizePopup"] = __imports["mixin.FCXCtrlPageSizePopup"] or function()
     --  Author: Edward Koltun
     --  Date: April 13, 2021
     --[[
@@ -6730,7 +6730,7 @@ __imports["mixin.FCXCtrlPageSizePopup"] = function()
 
 end
 
-__imports["mixin.FCXCtrlStatic"] = function()
+__imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function()
     --  Author: Edward Koltun
     --  Date: April 15, 2022
     --[[
@@ -6939,7 +6939,7 @@ __imports["mixin.FCXCtrlStatic"] = function()
 
 end
 
-__imports["mixin.FCXCtrlUpDown"] = function()
+__imports["mixin.FCXCtrlUpDown"] = __imports["mixin.FCXCtrlUpDown"] or function()
     --  Author: Edward Koltun
     --  Date: April 10, 2022
     --[[
@@ -7400,7 +7400,7 @@ __imports["mixin.FCXCtrlUpDown"] = function()
 
 end
 
-__imports["library.utils"] = function()
+__imports["library.utils"] = __imports["library.utils"] or function()
     --[[
     $module Utility Functions
 
@@ -7553,7 +7553,7 @@ __imports["library.utils"] = function()
 
 end
 
-__imports["library.mixin_helper"] = function()
+__imports["library.mixin_helper"] = __imports["library.mixin_helper"] or function()
     --  Author: Edward Koltun
     --  Date: April 3, 2022
     --[[
@@ -7933,7 +7933,7 @@ __imports["library.mixin_helper"] = function()
 
 end
 
-__imports["library.measurement"] = function()
+__imports["library.measurement"] = __imports["library.measurement"] or function()
     --[[
     $module measurement
     ]] --
@@ -8096,7 +8096,7 @@ __imports["library.measurement"] = function()
 
 end
 
-__imports["mixin.FCXCustomLuaWindow"] = function()
+__imports["mixin.FCXCustomLuaWindow"] = __imports["mixin.FCXCustomLuaWindow"] or function()
     --  Author: Edward Koltun
     --  Date: April 10, 2022
     --[[
@@ -8607,7 +8607,7 @@ __imports["mixin.FCXCustomLuaWindow"] = function()
 
 end
 
-__imports["mixin.__FCMUserWindow"] = function()
+__imports["mixin.__FCMUserWindow"] = __imports["mixin.__FCMUserWindow"] or function()
     --  Author: Edward Koltun
     --  Date: March 3, 2022
     --[[
@@ -8669,7 +8669,7 @@ __imports["mixin.__FCMUserWindow"] = function()
 
 end
 
-__imports["library.mixin"] = function()
+__imports["library.mixin"] = __imports["library.mixin"] or function()
     --  Author: Edward Koltun
     --  Date: November 3, 2021
     

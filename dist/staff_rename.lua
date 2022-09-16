@@ -1,5 +1,5 @@
-local __imports = {}
-local __import_results = {}
+__imports = __imports or {}
+__import_results = __import_results or {}
 
 function require(item)
     if not __imports[item] then
@@ -16,7 +16,7 @@ function require(item)
     return __import_results[item]
 end
 
-__imports["library.utils"] = function()
+__imports["library.utils"] = __imports["library.utils"] or function()
     --[[
     $module Utility Functions
 

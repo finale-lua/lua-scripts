@@ -1,5 +1,5 @@
-local __imports = {}
-local __import_results = {}
+__imports = __imports or {}
+__import_results = __import_results or {}
 
 function require(item)
     if not __imports[item] then
@@ -16,7 +16,7 @@ function require(item)
     return __import_results[item]
 end
 
-__imports["library.note_entry"] = function()
+__imports["library.note_entry"] = __imports["library.note_entry"] or function()
     --[[
     $module Note Entry
     ]] --
@@ -475,7 +475,7 @@ __imports["library.note_entry"] = function()
 
 end
 
-__imports["library.articulation"] = function()
+__imports["library.articulation"] = __imports["library.articulation"] or function()
     --[[
     $module Articulation
     ]] --
@@ -554,7 +554,7 @@ __imports["library.articulation"] = function()
 
 end
 
-__imports["library.configuration"] = function()
+__imports["library.configuration"] = __imports["library.configuration"] or function()
     --  Author: Robert Patterson
     --  Date: March 5, 2021
     --[[
@@ -835,7 +835,7 @@ __imports["library.configuration"] = function()
 
 end
 
-__imports["library.client"] = function()
+__imports["library.client"] = __imports["library.client"] or function()
     --[[
     $module Client
 
@@ -998,7 +998,7 @@ __imports["library.client"] = function()
 
 end
 
-__imports["library.general_library"] = function()
+__imports["library.general_library"] = __imports["library.general_library"] or function()
     --[[
     $module Library
     ]] --
