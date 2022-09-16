@@ -4,8 +4,8 @@ describe('generateLuaRequire', () => {
     it('lua-require', () => {
         expect(generateLuaRequire()).toBe(
             [
-                'local __imports = {}',
-                'local __import_results = {}',
+                '__imports = __imports or {}',
+                '__import_results = __import_results or {}',
                 '',
                 'function require(item)',
                 '    if not __imports[item] then',

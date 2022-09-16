@@ -4647,8 +4647,8 @@ exports.resolveRequiredFile = exports.generateLuaRequire = void 0;
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const generateLuaRequire = () => {
     return [
-        'local __imports = {}',
-        'local __import_results = {}',
+        '__imports = __imports or {}',
+        '__import_results = __import_results or {}',
         '',
         'function require(item)',
         '    if not __imports[item] then',
@@ -4686,7 +4686,7 @@ exports.resolveRequiredFile = resolveRequiredFile;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.wrapImport = void 0;
 const wrapImport = (name, contents) => {
-    const output = [`__imports["${name}"] = function()`];
+    const output = [`__imports["${name}"] = __imports["${name}"] or function()`];
     for (const line of contents.split('\n')) {
         if (line === '')
             output.push(line);

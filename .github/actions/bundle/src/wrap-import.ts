@@ -1,5 +1,5 @@
 export const wrapImport = (name: string, contents: string) => {
-    const output = [`__imports["${name}"] = function()`]
+    const output = [`__imports["${name}"] = __imports["${name}"] or function()`]
     for (const line of contents.split('\n')) {
         if (line === '') output.push(line)
         else output.push('    ' + line)
