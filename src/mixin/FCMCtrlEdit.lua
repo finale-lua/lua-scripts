@@ -81,7 +81,7 @@ for method, valid_types in pairs({
     props["Get" .. method] = function(self)
         -- This is the long way around, but it ensures that the correct control value is used
         mixin.FCMControl.GetText(self, temp_str)
-        return temp_str["Get" .. method](temp_str)
+        return temp_str["Get" .. method](temp_str, 0)
     end
 
     props["Set" .. method] = function(self, value)
