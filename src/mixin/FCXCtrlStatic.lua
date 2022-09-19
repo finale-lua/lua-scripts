@@ -36,11 +36,12 @@ end
 @ self (FCXCtrlStatic)
 ]]
 function props:Init()
-    mixin.assert(
-        mixin.is_instance_of(self:GetParent(), "FCXCustomLuaWindow"),
-        "FCXCtrlStatic must have a parent window that is an instance of FCXCustomLuaWindow")
+    mixin.assert(mixin.is_instance_of(self:GetParent(), "FCXCustomLuaWindow"), "FCXCtrlStatic must have a parent window that is an instance of FCXCustomLuaWindow")
 
-    private[self] = private[self] or {ShowMeasurementSuffix = true, MeasurementSuffixType = 2}
+    private[self] = private[self] or {
+        ShowMeasurementSuffix = true,
+        MeasurementSuffixType = 2,
+    }
 end
 
 --[[
@@ -55,7 +56,7 @@ Switches the control's measurement status off.
 function props:SetText(str)
     mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
 
-    mixin.FCMControl.SetText(self, str)
+    mixin.FCMCtrlStatic.SetText(self, str)
 
     private[self].Measurement = nil
     private[self].MeasurementType = nil
@@ -75,10 +76,9 @@ function props:SetMeasurement(value)
 
     local unit = self:GetParent():GetMeasurementUnit()
     temp_str:SetMeasurement(value, unit)
-    temp_str:AppendLuaString(
-        private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
+    temp_str:AppendLuaString(private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
 
-    self:SetText_(temp_str)
+    mixin.FCMCtrlStatic.SetText(self, temp_str)
 
     private[self].Measurement = value
     private[self].MeasurementType = "Measurement"
@@ -99,10 +99,9 @@ function props:SetMeasurementInteger(value)
     value = utils.round(value)
     local unit = self:GetParent():GetMeasurementUnit()
     temp_str:SetMeasurement(value, unit)
-    temp_str:AppendLuaString(
-        private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
+    temp_str:AppendLuaString(private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
 
-    self:SetText_(temp_str)
+    mixin.FCMCtrlStatic.SetText(self, temp_str)
 
     private[self].Measurement = value
     private[self].MeasurementType = "MeasurementInteger"
@@ -123,10 +122,9 @@ function props:SetMeasurementEfix(value)
     local evpu = value / 64
     local unit = self:GetParent():GetMeasurementUnit()
     temp_str:SetMeasurement(evpu, unit)
-    temp_str:AppendLuaString(
-        private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
+    temp_str:AppendLuaString(private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
 
-    self:SetText_(temp_str)
+    mixin.FCMCtrlStatic.SetText(self, temp_str)
 
     private[self].Measurement = value
     private[self].MeasurementType = "MeasurementEfix"
@@ -139,13 +137,13 @@ end
 Sets whether to show a suffix at the end of a measurement (eg `cm` in `2.54cm`). This is on by default.
 
 @ self (FCXCtrlStatic)
-@ on (boolean)
+@ enabled (boolean)
 ]]
-function props:SetShowMeasurementSuffix(on)
-    mixin.assert_argument(on, "boolean", 2)
+function props:SetShowMeasurementSuffix(enabled)
+    mixin.assert_argument(enabled, "boolean", 2)
 
-    private[self].ShowMeasurementSuffix = on
-    self:UpdateMeasurementUnit()
+    private[self].ShowMeasurementSuffix = enabled and true or false
+    mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
 end
 
 --[[
@@ -158,7 +156,7 @@ Sets the measurement suffix to the short style used by Finale's internals (eg `e
 ]]
 function props:SetMeasurementSuffixShort()
     private[self].MeasurementSuffixType = 1
-    self:UpdateMeasurementUnit()
+    mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
 end
 
 --[[
@@ -172,7 +170,7 @@ This is the default style.
 ]]
 function props:SetMeasurementSuffixAbbreviated()
     private[self].MeasurementSuffixType = 2
-    self:UpdateMeasurementUnit()
+    mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
 end
 
 --[[
@@ -185,7 +183,7 @@ Sets the measurement suffix to the full unit name. (eg `inches`, `centimeters`, 
 ]]
 function props:SetMeasurementSuffixFull()
     private[self].MeasurementSuffixType = 3
-    self:UpdateMeasurementUnit()
+    mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
 end
 
 --[[
@@ -198,7 +196,7 @@ Updates the displayed measurement unit in line with the parent window.
 ]]
 function props:UpdateMeasurementUnit()
     if private[self].Measurement then
-        self["Set" .. private[self].MeasurementType](self, private[self].Measurement)
+        mixin.FCXCtrlStatic["Set" .. private[self].MeasurementType](self, private[self].Measurement)
     end
 end
 
