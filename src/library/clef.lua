@@ -199,14 +199,34 @@ Inserts a clef change in the selected region.
 function clef.clef_change(clef_type, region)
     local clef_index = clef_map[clef_type]
     local cell_frame_hold = finale.FCCellFrameHold()
+    local last_clef
+    local last_staff = -1
+
     for cell_measure, cell_staff in eachcell(region) do
-        local cell = finale.FCCell(cell_measure, cell_staff)
+        local cell = finale.FCCell(region.EndMeasure, cell_staff)
+        if cell_staff ~= last_staff then
+            last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)
+            last_staff = cell_staff
+        end
+        cell = finale.FCCell(cell_measure, cell_staff)
         cell_frame_hold:ConnectCell(cell)
         if cell_frame_hold:Load() then -- Loads... but only if it can, preventing crashes.
         end
 
         if  region:IsFullMeasureIncluded(cell_measure) then
             clef.set_measure_clef(cell_measure, cell_measure, cell_staff, clef_index)
+            if not region:IsLastEndMeasure() then
+                cell = finale.FCCell(cell_measure + 1, cell_staff)
+                cell_frame_hold:ConnectCell(cell)
+                if cell_frame_hold:Load() then
+                    cell_frame_hold:SetClefIndex(last_clef)
+                    cell_frame_hold:Save()
+                else
+                    cell_frame_hold:SetClefIndex(last_clef)
+                    cell_frame_hold:SaveNew()
+                end
+            end
+
 
         else -- Process partial measures
             local mid_measure_clefs = cell_frame_hold:CreateCellClefChanges()
@@ -239,7 +259,7 @@ function clef.clef_change(clef_type, region)
             end
 
             if cell_frame_hold.Measure == region.EndMeasure and region.StartMeasure ~= region.EndMeasure then
-                local last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)
+--                local last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)
 
                 for mid_clef in each(mid_measure_clefs) do
                     if mid_clef.MeasurePos == 0 then
