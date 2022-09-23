@@ -5,17 +5,18 @@ function plugindef()
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "2022-07-02"
-    finaleplugin.Notes = [[
-The default beheavior of this script makes all lyrics types (verse, section, chorus) use the same settings.
-This is easily toggled off, but to make the types indendent by default, add the following code to the
-'Optional prefix' field in the RGP Lua setup interface:
-
-all_lyrics = false
-    ]]
     return "Lyrics - Space Baselines", "Lyrics - Space Baselines", "Lyrics - Space Baselines"
 end
 
-all_lyrics = all_lyrics or true
+
+
+local configuration = require("library.configuration")
+
+config = {all_lyrics = "true"}
+
+local script_name = "lyrics_baseline_spacing"
+
+configuration.get_user_settings(script_name, config, true)
 
 function lyrics_spacing(title)
     local independent_lyrics = false
@@ -59,43 +60,15 @@ function lyrics_spacing(title)
     function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)
         str.LuaString = text
         local ctrl = ""
-        if ctrl_type == "button" then
-            ctrl = dialog:CreateButton(x, y)
-        elseif ctrl_type == "checkbox" then
+        if ctrl_type == "checkbox" then
             ctrl = dialog:CreateCheckbox(x, y)
-        elseif ctrl_type == "datalist" then
-            ctrl = dialog:CreateDataList(x, y)
         elseif ctrl_type == "edit" then
             ctrl = dialog:CreateEdit(x, y - 2)
-        elseif ctrl_type == "horizontalline" then
-            ctrl = dialog:CreateHorizontalLine(x, y, w)
-        elseif ctrl_type == "listbox" then
-            ctrl = dialog:CreateListBox(x, y)
-        elseif ctrl_type == "popup" then
-            ctrl = dialog:CreatePopup(x, y)
-        elseif ctrl_type == "slider" then
-            ctrl = dialog:CreateSlider(x, y)
-            ctrl:SetMaxValue(max)
-            ctrl:SetMinValue(min)
         elseif ctrl_type == "static" then
             ctrl = dialog:CreateStatic(x, y)
-        elseif ctrl_type == "switcher" then
-            ctrl = dialog:CreateSwitcher(x, y)
-        elseif ctrl_type == "tree" then
-            ctrl = dialog:CreateTree(x, y)
-        elseif ctrl_type == "updown" then
-            ctrl = dialog:CreateUpDown(x, y)
-        elseif ctrl_type == "verticalline" then
-            ctrl = dialog:CreateVerticalLine(x, y, h)
         end
         if ctrl_type == "edit" then
             ctrl:SetHeight(h-2)
-            ctrl:SetWidth(w - col_gap)
-        elseif ctrl_type == "horizontalline" then
-            ctrl:SetHeight(h + h/2)
-            ctrl:SetWidth(w)
-        elseif ctrl_type == "popup" then
-            ctrl:SetHeight(h)
             ctrl:SetWidth(w - col_gap)
         else
             ctrl:SetHeight(h)
@@ -104,8 +77,6 @@ function lyrics_spacing(title)
         ctrl:SetText(str)
         return ctrl
     end
-
-
 
 --    local control = add_ctrl(dialog, "static", "TESTING!", col[1], row[2], row_h, col_w, 0, 0)
     local verse_static = add_ctrl(dialog, "static", "All Lyrics", col[3], row[1], row_h, col_w, 0, 0)
@@ -124,17 +95,12 @@ function lyrics_spacing(title)
     --
         local all_lyrics_static = add_ctrl(dialog, "static", "Edit all:", col[2] + 14, row[4], row_h, col_w, 0, 0)
     local all_lyrics_check = add_ctrl(dialog, "checkbox", "", col[3], row[4], row_h, col_w * 2, 0, 0) 
-    if all_lyrics == true then
-        all_lyrics_check:SetCheck(1)
-    else
-        all_lyrics_check:SetCheck(0)
-    end
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     --
     function apply()
-        if all_lyrics == true then
+        if config.all_lyrics == true then
             verse1_edit:GetText(str)
             chorus1_edit:SetText(str)
             section1_edit:SetText(str)
@@ -177,9 +143,9 @@ function lyrics_spacing(title)
         if ctrl:GetControlID() == all_lyrics_check:GetControlID()  then
 
             if all_lyrics_check:GetCheck() == 1 then
-                all_lyrics = true
+                config.all_lyrics = true
             else
-                all_lyrics = false
+                config.all_lyrics = false
             end
             update()
         end
@@ -188,7 +154,7 @@ function lyrics_spacing(title)
     dialog:RegisterHandleCommand(callback)
     --
     function update()
-        if all_lyrics == false then
+        if not config.all_lyrics then
             independent_lyrics = true
             str.LuaString = "Verse"
             verse_static:SetText(str)
@@ -196,6 +162,7 @@ function lyrics_spacing(title)
             chorus_static:SetText(str)
             str.LuaString = "Section"
             section_static:SetText(str)
+            all_lyrics_check:SetCheck(0)
         else
             independent_lyrics = false
             str.LuaString = "All Lyrics"
@@ -203,22 +170,20 @@ function lyrics_spacing(title)
             str.LuaString = ""
             chorus_static:SetText(str)
             section_static:SetText(str)
+            all_lyrics_check:SetCheck(1)
         end
         chorus1_edit:SetEnable(independent_lyrics)
         section1_edit:SetEnable(independent_lyrics)
         chorus_gap_edit:SetEnable(independent_lyrics)
         section_gap_edit:SetEnable(independent_lyrics)
         --
---        chorus1_edit:SetVisible(independent_lyrics)
---        section1_edit:SetVisible(independent_lyrics)
---        chorus_gap_edit:SetVisible(independent_lyrics)
---        section_gap_edit:SetVisible(independent_lyrics)
     end
 
     update()
     if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
         apply()
+        configuration.save_user_settings(script_name, config)
     end
-end -- function
+end -- lyrics_spacing()
 
 lyrics_spacing("Lyrics - Space Baselines")
