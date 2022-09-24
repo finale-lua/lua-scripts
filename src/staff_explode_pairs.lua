@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.49"
-    finaleplugin.Date = "2022/09/22"
+    finaleplugin.Version = "v1.50"
+    finaleplugin.Date = "2022/09/24"
     finaleplugin.AdditionalMenuOptions = [[
         Staff Explode Pairs Up
     ]]
@@ -17,15 +17,15 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
         split_type = "upwards"
     ]]
+    finaleplugin.ScriptGroupName = "Staff Explode Pairs"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         This script explodes a set of chords from one staff into pairs of notes, top to bottom, on subsequent staves. 
         Chords may contain different numbers of notes, the number of destination staves determined by the chord with the largest number of notes.
         It duplicates all markings from the original, resets the current clef for each destination staff 
         and warns if pre-existing music in the destination will be erased. 
-        A second menu item offers `Explode Pairs Up`, meaning that notes missing from chords containing fewer total notes 
-        will be omitted from the topmost staff instead of the lowest one. Three-note chords, for instance, will be split 
-        so that the topmost staff contains single-note chords and chords in the lower staff will contain two notes.
+        This script explodes "top-down" so that any uneven or missing notes in a chord are omitted from the bottom staff. 
+        A second menu item offers `Explode Pairs Up` for "bottom-up" action so that uneven or missing notes are instead omitted from the top staff. 
 
         By default this script doesn't respace the selected music after it completes. 
         If you want automatic respacing, hold down the `shift` or `alt` (option) key when selecting the script's menu item. 
