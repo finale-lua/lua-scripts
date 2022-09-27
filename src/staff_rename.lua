@@ -23,8 +23,12 @@ Speaking of the Bb Clarinet... Accidentals are displayed with square brackets, s
 end
 
 local utils = require("library.utils")
+local configuration = require("library.configuration")
 
 function staff_rename()
+    local script_name = "rename_staves"
+    local config = {use_doc_fonts = 1}
+    configuration.get_user_settings(script_name, config, true)
     local staff_count = 0
     local multi_inst = finale.FCMultiStaffInstruments()
     multi_inst:LoadAll()
@@ -44,6 +48,15 @@ function staff_rename()
     local staves = {}
     local autonumber_bool = {}
     local autonumber_style = {}
+    --
+    local fullname_font_info = finale.FCFontInfo()
+    fullname_font_info:LoadFontPrefs(finale.FONTPREF_STAFFNAME)
+    local abrev_font_info = finale.FCFontInfo()
+    abrev_font_info:LoadFontPrefs(finale.FONTPREF_ABRVSTAFFNAME)
+    local fullgroup_font_info = finale.FCFontInfo()
+    fullgroup_font_info:LoadFontPrefs(finale.FONTPREF_GROUPNAME)
+    local abbrevgroup_font_info = finale.FCFontInfo()
+    abbrevgroup_font_info:LoadFontPrefs(finale.FONTPREF_ABRVGROUPNAME)
     --  tables for dialog controls
     local static_staff = {}
     local edit_fullname = {}
@@ -52,8 +65,8 @@ function staff_rename()
     local autonumber_check = {}
     local autonumber_popup = {}
     -- Transposing instruments (Finale 27)
-    local form0_names = {"Clarinet in B[b]", "Clarinet in A", "Clarinet in E[b]","Horn in F", "Trumpet in B[b]", "Trumpet in C", "Horn in E[b]", "Piccolo Trumpet in A", "Trumpet in D", "Cornet in E[b]", "Pennywhistle in D", "Pennywhistle in G", "Tin Whistle in B[b]", "Melody Sax in C"}
-    local form1_names = {"B[b] Clarinet", "A Clarinet", "E[b] Clarinet", "F Horn", "B[b] Trumpet", "C Trumpet", "E[b] Horn", "A Piccolo Trumpet", "D Trumpet", "E[b] Cornet", "D Pennywhistle", "G Pennywhistle", "B[b] Tin Whistle", "C Melody Sax"}
+    local form_0_names = {"Clarinet in B[b]", "Clarinet in A", "Clarinet in E[b]","Horn in F", "Trumpet in B[b]", "Trumpet in C", "Horn in E[b]", "Piccolo Trumpet in A", "Trumpet in D", "Cornet in E[b]", "Pennywhistle in D", "Pennywhistle in G", "Tin Whistle in B[b]", "Melody Sax in C"}
+    local form_1_names = {"B[b] Clarinet", "A Clarinet", "E[b] Clarinet", "F Horn", "B[b] Trumpet", "C Trumpet", "E[b] Horn", "A Piccolo Trumpet", "D Trumpet", "E[b] Cornet", "D Pennywhistle", "G Pennywhistle", "B[b] Tin Whistle", "C Melody Sax"}
 
     function enigma_to_accidental(str)
         str.LuaString = string.gsub(str.LuaString, "%^flat%(%)", "[b]")
@@ -266,7 +279,11 @@ function staff_rename()
         for i,j in pairs(forms) do
             str.LuaString = forms[i]
             form_select:AddString(str)
-        end   
+        end
+
+        local doc_fonts_check = add_ctrl(dialog, "checkbox", "Use Document Fonts", col[2], row[row_count + 3], row_h, col_w, 0, 0)
+        doc_fonts_check:SetCheck(config.use_doc_fonts)
+
         local hardcode_autonumber_btn = add_ctrl(dialog, "button", "Hardcode Autonumbers", col[3] + auto_x_width, row[row_count + 3], row_h, col_w, 0, 0)
         --
         dialog:CreateOkButton()
@@ -326,6 +343,7 @@ function staff_rename()
                 is_match = false
             end
         end
+
         --
         function callback(ctrl)
             if ctrl:GetControlID() == form_select:GetControlID() then
@@ -333,11 +351,11 @@ function staff_rename()
                 local search = {}
                 local replace = {}
                 if form == 0 then
-                    search = form1_names
-                    replace = form0_names
+                    search = form_1_names
+                    replace = form_0_names
                 elseif form == 1 then
-                    search = form0_names
-                    replace = form1_names
+                    search = form_0_names
+                    replace = form_1_names
                 end
 
                 for a,b in pairs(search) do
@@ -413,7 +431,10 @@ function staff_rename()
         dialog:RegisterHandleCommand(callback)
 
         if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
+            config.use_doc_fonts = doc_fonts_check:GetCheck()
+            configuration.save_user_settings(script_name, config)
             local str = finale.FCString()
+            local font_str = finale.FCString()
             for i, j in pairs(staves) do
                 for k, l in pairs(multi_staves) do 
                     for m, n in pairs(multi_staves[k]) do
@@ -422,11 +443,21 @@ function staff_rename()
                             grp:Load(0, multi_inst_grp[k])
                             edit_fullname[i]:GetText(str)
                             accidental_to_enigma(str)
-                            str.LuaString = full_fonts[i]..str.LuaString
+                            if config.use_doc_fonts == 1 then
+                                font_str = fullgroup_font_info:CreateEnigmaString(nil)
+                                str.LuaString = font_str.LuaString..str.LuaString
+                            else
+                                str.LuaString = full_fonts[i]..str.LuaString
+                            end
                             grp:SaveNewFullNameBlock(str)
                             edit_abbname[i]:GetText(str)
                             accidental_to_enigma(str)
-                            str.LuaString = abb_fonts[i]..str.LuaString
+                            if config.use_doc_fonts == 1 then
+                                font_str = abbrevgroup_font_info:CreateEnigmaString(nil)
+                                str.LuaString = font_str.LuaString..str.LuaString
+                            else
+                                str.LuaString = abb_fonts[i]..str.LuaString
+                            end
                             grp:SaveNewAbbreviatedNameBlock(str)
                             grp:Save()
                         end
@@ -448,11 +479,21 @@ function staff_rename()
                 end
                 edit_fullname[i]:GetText(str)
                 accidental_to_enigma(str)
-                str.LuaString = full_fonts[i]..str.LuaString
+                if config.use_doc_fonts == 1 then
+                    font_str = fullname_font_info:CreateEnigmaString(nil)
+                    str.LuaString = font_str.LuaString..str.LuaString
+                else
+                    str.LuaString = full_fonts[i]..str.LuaString
+                end
                 staff:SaveNewFullNameString(str)
                 edit_abbname[i]:GetText(str)
                 accidental_to_enigma(str)
-                str.LuaString = abb_fonts[i]..str.LuaString
+                if config.use_doc_fonts == 1 then
+                    font_str = abrev_font_info:CreateEnigmaString(nil)
+                    str.LuaString = font_str.LuaString..str.LuaString
+                else
+                    str.LuaString = abb_fonts[i]..str.LuaString
+                end
                 staff:SaveNewAbbreviatedNameString(str)
                 staff:Save()
                 ::done_with_staff::
