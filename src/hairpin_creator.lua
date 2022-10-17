@@ -1,10 +1,10 @@
 function plugindef()
     finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Carl Vine after CJ Garcia"
+    finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.63"
-    finaleplugin.Date = "2022/08/24"
+    finaleplugin.Version = "v0.66" -- update from original "stable" version 0.63
+    finaleplugin.Date = "2022/10/17"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin Create Diminuendo
         Hairpin Create Swell
@@ -116,20 +116,28 @@ local mixin = require("library.mixin")
 -- ================= HAIRPIN CREATOR BEGINS =================================
 local function measure_width(measure_number)
     local m = finale.FCMeasure()
-    m:Load(measure_number)
-    return m:GetDuration()
+    local duration = m:Load(measure_number) and m:GetDuration() or 0
+    return duration
 end
 
 local function add_to_position(measure_number, end_position, add_duration)
     local m_width = measure_width(measure_number)
+    if m_width == 0 then -- measure didn't load
+        return measure_number, 0
+    end
     if end_position > m_width then
         end_position = m_width
     end
     local remaining_to_add = end_position + add_duration
     while remaining_to_add > m_width do
         remaining_to_add = remaining_to_add - m_width
-        measure_number = measure_number + 1 -- next measure
-        m_width = measure_width(measure_number) -- how long?
+        local next_width = measure_width(measure_number + 1) -- another measure?
+        if next_width == 0 then -- no more measures
+            remaining_to_add = m_width -- finished calculating
+        else
+            measure_number = measure_number + 1 -- next measure
+            m_width = next_width
+        end
     end
     return measure_number, remaining_to_add
 end
@@ -209,8 +217,8 @@ local function draw_staff_hairpin(rgn, vert_offset, left_offset, right_offset, s
     smartshape:SaveNewEverything(nil, nil)
 end
 
-local function calc_top_of_staff(measure, staff)
-    local fccell = finale.FCCell(measure, staff)
+local function calc_top_of_staff(measure, staff_number)
+    local fccell = finale.FCCell(measure, staff_number)
     local staff_top = 0
     local cell_metrics = fccell:CreateCellMetrics()
     if cell_metrics then
@@ -311,7 +319,7 @@ local function lowest_dynamic_in_region(rgn)
     local dynamics_list = {}
 
     local dynamic_rgn = finale.FCMusicRegion()
-    dynamic_rgn:SetRegion(rgn) -- make a copy of region
+    dynamic_rgn:SetRegion(rgn) -- make a copy of the given region
     if config.include_trailing_items then -- extend it
         extend_region_by_EDU(dynamic_rgn, config.inclusions_EDU_margin)
     end
@@ -319,7 +327,7 @@ local function lowest_dynamic_in_region(rgn)
     dynamics:LoadAllForRegion(dynamic_rgn)
 
     for dyn in each(dynamics) do -- find lowest dynamic expression
-        if not dyn:IsShape() and dyn.StaffGroupID == 0 and expression_is_dynamic(dyn) then
+        if expression_is_dynamic(dyn) then
             if current_measure ~= dyn.Measure then
                 current_measure = dyn.Measure -- new measure, new top of cell staff
                 top_of_staff = calc_top_of_staff(current_measure, rgn.StartStaff)
@@ -339,7 +347,7 @@ end
 local function simple_dynamic_scan(rgn)
     local dynamic_list = {}
     local dynamic_rgn = finale.FCMusicRegion()
-    dynamic_rgn:SetRegion(rgn) -- make a copy of region for DYNAMICS, expanded to the RIGHT
+    dynamic_rgn:SetRegion(rgn) -- make a copy of given region
     if config.include_trailing_items then -- extend it
         extend_region_by_EDU(dynamic_rgn, config.inclusions_EDU_margin)
     end
@@ -373,6 +381,15 @@ local function dynamic_horiz_offset(dyn_exp, left_or_right)
     end
     total_offset = total_offset + expression.calc_handle_offset_for_smart_shape(dyn_exp)
     return total_offset
+end
+
+function region_contains_notes(rgn)
+    for entry in eachentry(rgn) do
+        if entry.Count > 0 then
+            return true
+        end
+    end
+    return false
 end
 
 local function design_staff_swell(rgn, hairpin_shape, lowest_vert)
@@ -477,7 +494,6 @@ end
 
 local function create_swell(swell_type)
     local selection = finenv.Region()
-    delete_hairpins(selection)
     local staff_rgn = finale.FCMusicRegion()
     staff_rgn:SetRegion(selection)
     -- make sure "full" final measure has a valid duration
@@ -485,7 +501,6 @@ local function create_swell(swell_type)
     if staff_rgn.EndMeasurePos > m_width then
         staff_rgn.EndMeasurePos = m_width
     end
-    delete_hairpins(staff_rgn)
     -- get midpoint of full region span
     local total_duration = duration_gap(staff_rgn.StartMeasure, staff_rgn.StartMeasurePos, staff_rgn.EndMeasure, staff_rgn.EndMeasurePos)
     local midpoint_measure, midpoint_position = add_to_position(staff_rgn.StartMeasure, staff_rgn.StartMeasurePos, total_duration / 2)
@@ -494,47 +509,48 @@ local function create_swell(swell_type)
         local staff_number = selection:CalcStaffNumber(slot)
         staff_rgn:SetStartStaff(staff_number)
         staff_rgn:SetEndStaff(staff_number)
-    
-        -- check vertical dynamic alignments for FULL REGION
-        local lowest_vertical = lowest_note_element(staff_rgn)
-        local lowest_dynamic, dynamics_list = lowest_dynamic_in_region(staff_rgn)
-        if lowest_vertical > lowest_dynamic then
-            lowest_vertical = lowest_dynamic
-        end
-        -- any dynamics in selection?
-        if #dynamics_list > 0 and config.dynamics_match_hairpin then
-            for i, v in ipairs(dynamics_list) do
-                local vert_difference = v[2] - lowest_vertical
-                v[1].VerticalPos = v[1].VerticalPos - vert_difference
-                v[1]:Save()
+        if region_contains_notes(staff_rgn) then
+            delete_hairpins(staff_rgn)
+            -- check vertical dynamic alignments for FULL REGION
+            local lowest_vertical = lowest_note_element(staff_rgn)
+            local lowest_dynamic, dynamics_list = lowest_dynamic_in_region(staff_rgn)
+            if lowest_vertical > lowest_dynamic then
+                lowest_vertical = lowest_dynamic
             end
-        end
+            -- any dynamics in selection?
+            if #dynamics_list > 0 and config.dynamics_match_hairpin then
+                for i, v in ipairs(dynamics_list) do
+                    local vert_difference = v[2] - lowest_vertical
+                    v[1].VerticalPos = v[1].VerticalPos - vert_difference
+                    v[1]:Save()
+                end
+            end
 
-        -- LH hairpin half
-        local half_rgn = finale.FCMusicRegion()
-        half_rgn:SetRegion(staff_rgn)
-        half_rgn.EndMeasure = midpoint_measure
-        half_rgn.EndMeasurePos = midpoint_position
-        local this_shape = (swell_type) and finale.SMARTSHAPE_CRESCENDO or finale.SMARTSHAPE_DIMINUENDO
-        design_staff_swell(half_rgn, this_shape, lowest_vertical)
+            -- LH hairpin half
+            local half_rgn = finale.FCMusicRegion()
+            half_rgn:SetRegion(staff_rgn)
+            half_rgn.EndMeasure = midpoint_measure
+            half_rgn.EndMeasurePos = midpoint_position
+            local this_shape = (swell_type) and finale.SMARTSHAPE_CRESCENDO or finale.SMARTSHAPE_DIMINUENDO
+            design_staff_swell(half_rgn, this_shape, lowest_vertical)
 
-        -- RH hairpin half
-        if midpoint_position == measure_width(midpoint_measure) then -- very end of first half of span
-            midpoint_measure = midpoint_measure + 1 -- so move to start of next measure
-            midpoint_position = 0
+            -- RH hairpin half
+            if midpoint_position == measure_width(midpoint_measure) then -- very end of first half of span
+                midpoint_measure = midpoint_measure + 1 -- so move to start of next measure
+                midpoint_position = 0
+            end
+            half_rgn.StartMeasure = midpoint_measure
+            half_rgn.StartMeasurePos = midpoint_position
+            half_rgn.EndMeasure = staff_rgn.EndMeasure
+            half_rgn.EndMeasurePos = staff_rgn.EndMeasurePos
+            this_shape = (swell_type) and finale.SMARTSHAPE_DIMINUENDO or finale.SMARTSHAPE_CRESCENDO
+            design_staff_swell(half_rgn, this_shape, lowest_vertical)
         end
-        half_rgn.StartMeasure = midpoint_measure
-        half_rgn.StartMeasurePos = midpoint_position
-        half_rgn.EndMeasure = staff_rgn.EndMeasure
-        half_rgn.EndMeasurePos = staff_rgn.EndMeasurePos
-        this_shape = (swell_type) and finale.SMARTSHAPE_DIMINUENDO or finale.SMARTSHAPE_CRESCENDO
-        design_staff_swell(half_rgn, this_shape, lowest_vertical)
     end
 end
 
 local function create_hairpin(shape_type)
     local selection = finenv.Region()
-    delete_hairpins(selection)
     local staff_rgn = finale.FCMusicRegion()
     staff_rgn:SetRegion(selection)
     -- make sure "full" final measure has a valid duration
@@ -547,7 +563,10 @@ local function create_hairpin(shape_type)
         local staff_number = selection:CalcStaffNumber(slot)
         staff_rgn:SetStartStaff(staff_number)
         staff_rgn:SetEndStaff(staff_number)
-        design_staff_hairpin(staff_rgn, shape_type)
+        if region_contains_notes(staff_rgn) then
+            delete_hairpins(staff_rgn)
+            design_staff_hairpin(staff_rgn, shape_type)
+        end
     end
 end
 
