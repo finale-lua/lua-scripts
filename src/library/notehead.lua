@@ -11,13 +11,18 @@ local config = {
     diamond_closed = 79, -- per Elaine Gould, use open diamond even on closed regular notes, but allow it to be overridden
     diamond_resize = 110,
     diamond_whole_offset = 5,
-    diamond_breve_offset = 14
+    diamond_breve_offset = 14,
+    x = 192,
+    x_resize = 100,
+    x_whole_offset = 5,
+    x_breve_offset = 14,
 }
 
 -- Default to SMuFL characters for SMuFL font (without needing a config file)
 if library.is_font_smufl_font() then
     config.diamond_open = 0xe0e1
     config.diamond_closed = 0xe0e1 -- (in config) override to 0xe0e2 for closest matching closed diamond if you want to disregard Elain Gould and use a closed notehead
+    config.x = 0xe0a9
 end
 
 configuration.get_parameters("notehead.config.txt", config)
@@ -35,10 +40,13 @@ Changes the given notehead to a specified notehead descriptor string. Currently 
 function notehead.change_shape(note, shape)
     local notehead = finale.FCNoteheadMod()
     notehead:EraseAt(note)
+    local entry = note:GetEntry()
+    local offset = 0
 
-    if shape == "diamond" then
-        local entry = note:GetEntry()
-        local offset = 0
+    if shape == "default" then
+        notehead:ClearChar()
+    --  --------
+    elseif shape == "diamond" then
         local notehead_char = config.diamond_open
         if entry.Duration >= finale.BREVE then
             offset = config.diamond_breve_offset
@@ -47,7 +55,7 @@ function notehead.change_shape(note, shape)
         elseif entry.Duration < finale.HALF_NOTE then
             notehead_char = config.diamond_closed
         end
-        if (0 ~= offset) then
+        if (offset ~= 0) then
             if entry:CalcStemUp() then
                 notehead.HorizontalPos = -1 * offset
             else
@@ -56,6 +64,23 @@ function notehead.change_shape(note, shape)
         end
         notehead.CustomChar = notehead_char
         notehead.Resize = config.diamond_resize
+    --  --------
+    elseif shape == "x" then
+        local notehead_char = config.x
+        if entry.Duration >= finale.BREVE then
+            offset = config.x_breve_offset
+        elseif entry.Duration >= finale.WHOLE_NOTE then
+            offset = config.x_whole_offset
+        end
+        if (offset ~= 0) then
+            if entry:CalcStemUp() then
+                notehead.HorizontalPos = -1 * offset
+            else
+                notehead.HorizontalPos = offset
+            end
+        end
+        notehead.CustomChar = notehead_char
+        notehead.Resize = config.x_resize
     end
 
     notehead:SaveAt(note)
