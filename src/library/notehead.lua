@@ -42,6 +42,7 @@ function notehead.change_shape(note, shape)
     notehead:EraseAt(note)
     local entry = note:GetEntry()
     local offset = 0
+    shape = config[shape] and shape or "default"
 
     if shape == "default" then
         notehead:ClearChar()
