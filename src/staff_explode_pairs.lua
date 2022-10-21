@@ -3,29 +3,47 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.48"
-    finaleplugin.Date = "2022/07/14"
+    finaleplugin.Version = "v1.50"
+    finaleplugin.Date = "2022/09/24"
+    finaleplugin.AdditionalMenuOptions = [[
+        Staff Explode Pairs Up
+    ]]
+    finaleplugin.AdditionalUndoText = [[
+        Staff Explode Pairs Up
+    ]]
+    finaleplugin.AdditionalDescriptions = [[
+        Explode chords from one staff into pairs of notes on consecutive single staves, favouring lowest staff"
+    ]]
+    finaleplugin.AdditionalPrefixes = [[
+        split_type = "upwards"
+    ]]
+    finaleplugin.ScriptGroupName = "Staff Explode Pairs"
+    finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         This script explodes a set of chords from one staff into pairs of notes, top to bottom, on subsequent staves. 
         Chords may contain different numbers of notes, the number of destination staves determined by the chord with the largest number of notes.
-        It duplicates all markings from the original, and resets the current clef for each destination staff.
-        It warns if pre-existing music in the destination will be erased. 
+        It duplicates all markings from the original, resets the current clef for each destination staff 
+        and warns if pre-existing music in the destination will be erased. 
+        This script explodes "top-down" so that any uneven or missing notes in a chord are omitted from the bottom staff. 
+        A second menu item offers `Explode Pairs Up` for "bottom-up" action so that uneven or missing notes are instead omitted from the top staff. 
 
         By default this script doesn't respace the selected music after it completes. 
         If you want automatic respacing, hold down the `shift` or `alt` (option) key when selecting the script's menu item. 
 
         Alternatively, if you want the default behaviour to include spacing then create a `configuration` file:  
         If it does not exist, create a subfolder called `script_settings` in the folder containing this script. 
-        In that folder create a plain text file  called `staff_explode_pairs.config.txt` containing the line: 
+        In that folder create a plain text file  called `staff_explode_pairs.config.txt` containing the line:
 
         ```
         fix_note_spacing = true -- respace music when the script finishes
         ```
+
         If you subsequently hold down the `shift` or `alt` (option) key, spacing will not be included.
     ]]
     return "Staff Explode Pairs", "Staff Explode Pairs", "Explode chords from one staff into pairs of notes on consecutive single staves"
 end
 
+split_type = split_type or "downwards"
 local configuration = require("library.configuration")
 local clef = require("library.clef")
 local config = { fix_note_spacing = false }
@@ -131,10 +149,14 @@ function staff_explode()
                 clef.restore_default_clef(start_measure, end_measure, regions[slot].StartStaff)
             end
 
-            local from_top = (slot - 1) * 2 -- delete how many notes from the top of the chord?
             for entry in eachentrysaved(regions[slot]) do -- check each note in the entry
                 if entry:IsNote() then
+                    local from_top = (slot - 1) * 2 -- delete how many notes from the top of the chord?
                     local from_bottom = entry.Count - (slot * 2) -- how many from the bottom?
+                    if split_type == "upwards" then -- strip missing notes from topmost staff
+                        from_bottom = (staff_count - slot) * 2
+                        from_top = entry.Count - from_bottom - 2
+                    end
                     if from_top > 0 then
                         for i = 1, from_top do
                             entry:DeleteNote(entry:CalcHighestNote(nil))
