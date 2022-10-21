@@ -41,9 +41,10 @@ __imports["library.layer"] = __imports["library.layer"] or function()
         for sysstaff in each(sysstaves) do
             staffNum = sysstaff.Staff
             local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
+            noteentry_source_layer:SetUseVisibleLayer(false)
             noteentry_source_layer:Load()
             local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
-                                                    destination_layer, staffNum, start)
+                destination_layer, staffNum, start)
             noteentry_destination_layer:Save()
             noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
             noteentry_destination_layer:Save()
@@ -66,9 +67,10 @@ __imports["library.layer"] = __imports["library.layer"] or function()
         sysstaves:LoadAllForRegion(region)
         for sysstaff in each(sysstaves) do
             staffNum = sysstaff.Staff
-            local noteentrylayer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
-            noteentrylayer:Load()
-            noteentrylayer:ClearAllEntries()
+            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            noteentry_layer:SetUseVisibleLayer(false)
+            noteentry_layer:Load()
+            noteentry_layer:ClearAllEntries()
         end
     end
     
@@ -90,15 +92,17 @@ __imports["library.layer"] = __imports["library.layer"] or function()
             cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
             local loaded = cell_frame_hold:Load()
             local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
-            local noteentrylayer_1 = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
-            noteentrylayer_1:Load()
-            noteentrylayer_1.LayerIndex = swap_b
+            local  noteentry_layer_one = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
+            noteentry_layer_one:SetUseVisibleLayer(false)
+            noteentry_layer_one:Load()
+            noteentry_layer_one.LayerIndex = swap_b
             --
-            local noteentrylayer_2 = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
-            noteentrylayer_2:Load()
-            noteentrylayer_2.LayerIndex = swap_a
-            noteentrylayer_1:Save()
-            noteentrylayer_2:Save()
+            local  noteentry_layer_two = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
+            noteentry_layer_two:SetUseVisibleLayer(false)
+            noteentry_layer_two:Load()
+            noteentry_layer_two.LayerIndex = swap_a
+            noteentry_layer_one:Save()
+            noteentry_layer_two:Save()
             if loaded then
                 local new_cell_frame_hold = finale.FCCellFrameHold()
                 new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))

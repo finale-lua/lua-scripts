@@ -463,13 +463,13 @@ end
 __imports["library.clef"] = __imports["library.clef"] or function()
     --[[
     $module Clef
-
+    
     A library of general clef utility functions.
     ]] --
     local clef = {}
-
+    
     local client = require("library.client")
-
+    
     local clef_map = {
         treble = 0,
         alto = 1,
@@ -495,13 +495,13 @@ __imports["library.clef"] = __imports["library.clef"] or function()
         tab_sans = 16,
         tab_serif = 17
     }
-
-
+    
+    
     --[[
     % get_cell_clef
-
+    
     Gets the clef for any cell.
-
+    
     @ measure (number) The measure number for the cell
     @ staff_number (number) The staff number for the cell
     : (number) The clef for the cell
@@ -510,10 +510,10 @@ __imports["library.clef"] = __imports["library.clef"] or function()
         local cell_clef = -1
         local cell = finale.FCCell(measure, staff_number)
         local cell_frame_hold = finale.FCCellFrameHold()
-
+    
         cell_frame_hold:ConnectCell(cell)
         if cell_frame_hold:Load() then
-
+    
             if cell_frame_hold.IsClefList then
                 cell_clef = cell_frame_hold:CreateFirstCellClefChange().ClefIndex
             else
@@ -522,12 +522,12 @@ __imports["library.clef"] = __imports["library.clef"] or function()
         end
         return cell_clef
     end
-
+    
     --[[
     % get_default_clef
-
+    
     Gets the default clef for any staff for a specific region.
-
+    
     @ first_measure (number) The first measure of the region
     @ last_measure (number) The last measure of the region
     @ staff_number (number) The staff number for the cell
@@ -544,12 +544,12 @@ __imports["library.clef"] = __imports["library.clef"] or function()
         end
         return cell_clef
     end
-
+    
     --[[
     % set_measure_clef
-
+    
     Sets the clefs of of a range measures.
-
+    
     @ first_measure (number) The first measure of the region
     @ last_measure (number) The last measure of the region
     @ staff_number (number) The staff number for the cell
@@ -557,7 +557,7 @@ __imports["library.clef"] = __imports["library.clef"] or function()
     ]]
     function clef.set_measure_clef(first_measure, last_measure, staff_number, clef_index)
         client.assert_supports("clef_change")
-
+    
         for measure = first_measure, last_measure do
             local cell = finale.FCCell(measure, staff_number)
             local cell_frame_hold = finale.FCCellFrameHold()
@@ -575,29 +575,29 @@ __imports["library.clef"] = __imports["library.clef"] or function()
             end
         end
     end
-
+    
     --[[
     % restore_default_clef
-
+    
     Restores the default clef for any staff for a specific region.
-
+    
     @ first_measure (number) The first measure of the region
     @ last_measure (number) The last measure of the region
     @ staff_number (number) The staff number for the cell
     ]]
     function clef.restore_default_clef(first_measure, last_measure, staff_number)
         client.assert_supports("clef_change")
-
+    
         local default_clef = clef.get_default_clef(first_measure, last_measure, staff_number)
-
+    
         clef.set_measure_clef(first_measure, last_measure, staff_number, default_clef)
-
+    
         --[[The following section of code has been replaced by the new library function above,
         which should theoretically also be a little more robust than this.
         
         I am leaving this intact, though, in case it needs to be restored for some reason.
         - Jake, Sept 9 2022
-
+    
         for measure = first_measure, last_measure do
             local cell = finale.FCCell(measure, staff_number)
             local cell_frame_hold = finale.FCCellFrameHold()
@@ -610,12 +610,12 @@ __imports["library.clef"] = __imports["library.clef"] or function()
         end
         ]]
     end
-
+    
     --[[
     % process_clefs
-
+    
     Processes a table of clef changes and returns them in order, without duplicates.
-
+    
     @ mid_clefs (FCCellClefChanges)
     :(FCCellClefChanges) 
     ]]
@@ -626,12 +626,12 @@ __imports["library.clef"] = __imports["library.clef"] or function()
             table.insert(clefs, mid_clef)
         end
         table.sort(clefs, function (k1, k2) return k1.MeasurePos < k2.MeasurePos end)
-
+    
         for k, mid_clef in ipairs(clefs) do
             new_mid_clefs:InsertCellClefChange(mid_clef)
             new_mid_clefs:SaveAllAsNew()
         end
-
+    
         -- Removes duplicate clefs:
         for i = new_mid_clefs.Count - 1, 1, -1 do
             local later_clef_change = new_mid_clefs:GetItemAt(i)
@@ -647,35 +647,55 @@ __imports["library.clef"] = __imports["library.clef"] or function()
             end
             ::continue::
         end
-
+    
         return new_mid_clefs
     end
-
+    
     --[[
     % clef_change
-
+    
     Inserts a clef change in the selected region.
-
+    
     @ clef (string) The clef to change to.
     @ region FCMusicRegion The region to change.
     ]]
     function clef.clef_change(clef_type, region)
         local clef_index = clef_map[clef_type]
         local cell_frame_hold = finale.FCCellFrameHold()
+        local last_clef
+        local last_staff = -1
+    
         for cell_measure, cell_staff in eachcell(region) do
-            local cell = finale.FCCell(cell_measure, cell_staff)
+            local cell = finale.FCCell(region.EndMeasure, cell_staff)
+            if cell_staff ~= last_staff then
+                last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)
+                last_staff = cell_staff
+            end
+            cell = finale.FCCell(cell_measure, cell_staff)
             cell_frame_hold:ConnectCell(cell)
             if cell_frame_hold:Load() then -- Loads... but only if it can, preventing crashes.
             end
-
+    
             if  region:IsFullMeasureIncluded(cell_measure) then
                 clef.set_measure_clef(cell_measure, cell_measure, cell_staff, clef_index)
-
+                if not region:IsLastEndMeasure() then
+                    cell = finale.FCCell(cell_measure + 1, cell_staff)
+                    cell_frame_hold:ConnectCell(cell)
+                    if cell_frame_hold:Load() then
+                        cell_frame_hold:SetClefIndex(last_clef)
+                        cell_frame_hold:Save()
+                    else
+                        cell_frame_hold:SetClefIndex(last_clef)
+                        cell_frame_hold:SaveNew()
+                    end
+                end
+    
+    
             else -- Process partial measures
                 local mid_measure_clefs = cell_frame_hold:CreateCellClefChanges()
                 local new_mid_measure_clefs = finale.FCCellClefChanges()
                 local mid_measure_clef = finale.FCCellClefChange()
-
+    
                 if not mid_measure_clefs then
                     mid_measure_clefs = finale.FCCellClefChanges()
                     mid_measure_clef:SetClefIndex(cell_frame_hold.ClefIndex)
@@ -684,7 +704,7 @@ __imports["library.clef"] = __imports["library.clef"] or function()
                     mid_measure_clefs:InsertCellClefChange(mid_measure_clef)
                     mid_measure_clefs:SaveAllAsNew()
                 end
-
+    
                 if cell_frame_hold.Measure == region.StartMeasure and region.StartMeasure ~= region.EndMeasure then
                     -- first copy the clef changes before the region
                     for mid_clef in each(mid_measure_clefs) do
@@ -700,10 +720,10 @@ __imports["library.clef"] = __imports["library.clef"] or function()
                     new_mid_measure_clefs:InsertCellClefChange(mid_measure_clef)
                     new_mid_measure_clefs:SaveAllAsNew()
                 end
-
+    
                 if cell_frame_hold.Measure == region.EndMeasure and region.StartMeasure ~= region.EndMeasure then
-                    local last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)
-
+    --                local last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)
+    
                     for mid_clef in each(mid_measure_clefs) do
                         if mid_clef.MeasurePos == 0 then
                             mid_clef:SetClefIndex(clef_index)
@@ -715,7 +735,7 @@ __imports["library.clef"] = __imports["library.clef"] or function()
                             new_mid_measure_clefs:SaveAllAsNew()
                         end
                     end
-
+    
                     -- then insert the last clef change
                     mid_measure_clef:SetClefIndex(last_clef)
                     mid_measure_clef:SetMeasurePos(region.EndMeasurePos)
@@ -723,10 +743,10 @@ __imports["library.clef"] = __imports["library.clef"] or function()
                     new_mid_measure_clefs:InsertCellClefChange(mid_measure_clef)
                     new_mid_measure_clefs:SaveAllAsNew()
                 end
-
+    
                 if cell_frame_hold.Measure == region.StartMeasure and region.StartMeasure == region.EndMeasure then
                     local last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)
-
+    
                     for mid_clef in each(mid_measure_clefs) do
                         if mid_clef.MeasurePos == 0 then
                             if region.StartMeasurePos == 0 then
@@ -767,9 +787,8 @@ __imports["library.clef"] = __imports["library.clef"] or function()
             end
         end
     end
-
+    
     return clef
-
 end
 
 __imports["library.layer"] = __imports["library.layer"] or function()
@@ -797,9 +816,10 @@ __imports["library.layer"] = __imports["library.layer"] or function()
         for sysstaff in each(sysstaves) do
             staffNum = sysstaff.Staff
             local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
+            noteentry_source_layer:SetUseVisibleLayer(false)
             noteentry_source_layer:Load()
             local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
-                                                    destination_layer, staffNum, start)
+                destination_layer, staffNum, start)
             noteentry_destination_layer:Save()
             noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
             noteentry_destination_layer:Save()
@@ -822,9 +842,10 @@ __imports["library.layer"] = __imports["library.layer"] or function()
         sysstaves:LoadAllForRegion(region)
         for sysstaff in each(sysstaves) do
             staffNum = sysstaff.Staff
-            local noteentrylayer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
-            noteentrylayer:Load()
-            noteentrylayer:ClearAllEntries()
+            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            noteentry_layer:SetUseVisibleLayer(false)
+            noteentry_layer:Load()
+            noteentry_layer:ClearAllEntries()
         end
     end
     
@@ -846,15 +867,17 @@ __imports["library.layer"] = __imports["library.layer"] or function()
             cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
             local loaded = cell_frame_hold:Load()
             local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
-            local noteentrylayer_1 = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
-            noteentrylayer_1:Load()
-            noteentrylayer_1.LayerIndex = swap_b
+            local  noteentry_layer_one = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
+            noteentry_layer_one:SetUseVisibleLayer(false)
+            noteentry_layer_one:Load()
+            noteentry_layer_one.LayerIndex = swap_b
             --
-            local noteentrylayer_2 = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
-            noteentrylayer_2:Load()
-            noteentrylayer_2.LayerIndex = swap_a
-            noteentrylayer_1:Save()
-            noteentrylayer_2:Save()
+            local  noteentry_layer_two = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
+            noteentry_layer_two:SetUseVisibleLayer(false)
+            noteentry_layer_two:Load()
+            noteentry_layer_two.LayerIndex = swap_a
+            noteentry_layer_one:Save()
+            noteentry_layer_two:Save()
             if loaded then
                 local new_cell_frame_hold = finale.FCCellFrameHold()
                 new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
