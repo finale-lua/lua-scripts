@@ -15,7 +15,8 @@ local config = {
     diamond_whole_offset = 5,
     diamond_breve_offset = 14,
     x_normal = 192,
-    x_circled = 192, -- Maestro has no option for the "long" crossed notehead
+    x_circled = 192, -- Maestro lacks "long" crossed noteheads
+    x_breve = 192,
     default_notehead = 207,
 }
 
@@ -34,6 +35,7 @@ if library.is_font_smufl_font() then
     config.diamond_breve = 0xe0d7
     config.x_normal = 0xe0a9
     config.x_circled = 0xe0ec
+    config.x_breve = 0xe0b4 -- not perfect but best in Finale Maestro
     config.default_notehead = 0xe0a4
 end
 
@@ -58,6 +60,7 @@ function notehead.change_shape(note, shape)
         notehead:ClearChar()
     else
         local entry = note:GetEntry()
+        local duration = entry.Duration
         local offset = 0
         local resize = 100
         local notehead_char = config.default_notehead
@@ -66,18 +69,22 @@ function notehead.change_shape(note, shape)
         if string.find(shape, "diamond") then
             notehead_char = config.diamond_open
             resize = config.diamond_resize
-            if entry.Duration >= finale.BREVE then
+            if duration >= finale.BREVE then
                 offset = config.diamond_breve_offset
                 notehead_char = config.diamond_breve
-            elseif entry.Duration >= finale.WHOLE_NOTE then
+            elseif duration >= finale.WHOLE_NOTE then
                 offset = config.diamond_whole_offset
                 notehead_char = config.diamond_whole
-            elseif entry.Duration < finale.HALF_NOTE and string.find(shape, "guitar") then
+            elseif duration < finale.HALF_NOTE and string.find(shape, "guitar") then
                 notehead_char = config.diamond_closed
             end
         --  --------
         elseif shape == "x" then
-            notehead_char = (entry.Duration >= finale.HALF_NOTE) and config.x_circled or config.x_normal
+            notehead_char = (duration >= finale.HALF_NOTE) and config.x_circled or config.x_normal
+            if duration >= finale.BREVE then
+                notehead_char = config.x_breve
+                resize = 120
+            end
         end
         --  ALL DONE --
         notehead.CustomChar = notehead_char
@@ -85,14 +92,10 @@ function notehead.change_shape(note, shape)
             notehead.Resize = resize
         end
         if offset ~= 0 then
-            if entry:CalcStemUp() then
-                notehead.HorizontalPos = -1 * offset
-            else
-                notehead.HorizontalPos = offset
-            end
+            notehead.HorizontalPos = (entry:CalcStemUp()) and (-1 * offset) or offset
         end
-        notehead:SaveAt(note)
     end
+    notehead:SaveAt(note)
 end
 
 return notehead
