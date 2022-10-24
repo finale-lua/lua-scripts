@@ -12,6 +12,7 @@ function plugindef()
         Noteheads Change to Square
         Noteheads Change to Triangle
         Noteheads Change to Slash
+        Noteheads Change to Wedge
         Noteheads Change to Hidden
         Noteheads Change to Number
         Noteheads Revert to Default
@@ -22,16 +23,18 @@ function plugindef()
         Noteheads Change to Square
         Noteheads Change to Triangle
         Noteheads Change to Slash
+        Noteheads Change to Wedge
         Noteheads Change to Hidden
         Noteheads Change to Number
         Noteheads Revert to Default
 	]]
      finaleplugin.AdditionalDescriptions = [[
         Change all noteheads in the selection to Diamonds
-        Change all noteheads in the selection to Diamonds (Guitar: short notes filled)
+        Change all noteheads in the selection to Diamonds (Guitar - short notes filled)
         Change all noteheads in the selection to Squares
         Change all noteheads in the selection to Triangles
         Change all noteheads in the selection to Slashes
+        Change all noteheads in the selection to Wedges
         Change all noteheads in the selection to Hidden
         Change all noteheads in the selection to specific number (glyph)
         Return all noteheads in the selection to Default
@@ -42,6 +45,7 @@ function plugindef()
         new_shape = "square"
         new_shape = "triangle"
         new_shape = "slash"
+        new_shape = "wedge"
         new_shape = "hidden"
         new_shape = "number"
         new_shape = "default"
@@ -58,6 +62,7 @@ function plugindef()
         Square
         Triangle
         Slash
+        Wedge
         Hidden
         Number -- a specific character number (glyph)
         Default -- revert to normal (default) noteheads
@@ -94,7 +99,7 @@ function user_chooses_glyph()
     dlg:CreateCancelButton()
     local ok = dlg:ExecuteModal(nil)
     answer:GetText(str)
-    return ok, str.LuaString
+    return ok, tonumber(str.LuaString)
 end
 
 function change_notehead()
@@ -102,11 +107,11 @@ function change_notehead()
     if mod_down then new_shape = "default" end
 
     if new_shape == "number" then
-        local ok, user_choice = user_chooses_glyph()
+        local ok
+        ok, new_shape = user_chooses_glyph() -- get user's numeric choice in var. new_shape
         if ok ~= finale.EXECMODAL_OK then
             return -- user cancelled
         end
-        new_shape = tonumber(user_choice)
     end
 
     for entry in eachentrysaved(finenv.Region()) do
