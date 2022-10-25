@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.54"
-    finaleplugin.Date = "2022/10/23"
+    finaleplugin.Version = "v0.56"
+    finaleplugin.Date = "2022/10/26"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.AdditionalMenuOptions = [[
         Noteheads Change to Diamond
@@ -14,10 +14,10 @@ function plugindef()
         Noteheads Change to Slash
         Noteheads Change to Wedge
         Noteheads Change to Hidden
-        Noteheads Change to Number
+        Noteheads Change to Number...
         Noteheads Revert to Default
-    ]]
-    finaleplugin.AdditionalUndoText = [[
+     ]]
+     finaleplugin.AdditionalUndoText = [[
         Noteheads Change to Diamond
         Noteheads Change to Diamond (Guitar)
         Noteheads Change to Square
@@ -27,8 +27,8 @@ function plugindef()
         Noteheads Change to Hidden
         Noteheads Change to Number
         Noteheads Revert to Default
-    ]]
-    finaleplugin.AdditionalDescriptions = [[
+	]]
+     finaleplugin.AdditionalDescriptions = [[
         Change all noteheads in the selection to Diamonds
         Change all noteheads in the selection to Diamonds (Guitar - short notes filled)
         Change all noteheads in the selection to Squares
@@ -41,7 +41,7 @@ function plugindef()
     ]]
     finaleplugin.AdditionalPrefixes = [[
         new_shape = "diamond"
-        new_shape = "guitar_diamond"
+        new_shape = "diamond_guitar"
         new_shape = "square"
         new_shape = "triangle"
         new_shape = "slash"
@@ -49,7 +49,7 @@ function plugindef()
         new_shape = "hidden"
         new_shape = "number"
         new_shape = "default"
-    ]]
+	]]
     finaleplugin.ScriptGroupName = "Noteheads Change"
     finaleplugin.ScriptGroupDescription = "Change all noteheads in the selection to one of eight chosen shapes"
     finaleplugin.Notes = [[
@@ -77,9 +77,9 @@ new_shape = new_shape or "x"
 local notehead = require("library.notehead")
 
 function user_chooses_glyph()
+    local dlg = finale.FCCustomWindow()
     local x, y = 200, 10
     local y_diff = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
-    local dlg = finale.FCCustomWindow()
     local str = finale.FCString()
     str.LuaString = plugindef()
     dlg:SetTitle(str)
@@ -92,8 +92,9 @@ function user_chooses_glyph()
     _ = dlg:CreateStatic(0, y + 20)
     _:SetText(str)
     _:SetWidth(x + 100)
+
     local answer = dlg:CreateEdit(x, y - y_diff)
-    str.LuaString = "0x0100"
+    str.LuaString = "0"
     answer:SetText(str)
     dlg:CreateOkButton()
     dlg:CreateCancelButton()
