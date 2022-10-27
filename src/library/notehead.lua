@@ -1,7 +1,23 @@
 --[[
 $module Notehead
+
+User-created config file "notehead.config.txt" will overwrite any of the values in this file.
+Store the file in a folder called "script_settings" in the same location as the calling script.
+
+To change the shape (glyph) of a note, add to the config file a line of the form:
+    config.diamond.quarter.glyph = 0xea07 -- (SMuFL character)
+        OR
+    config.diamond.quarter.glyph = 173 -- (non-SMuFL character)
+
+To change the size of a specific shape add a line:
+    config.diamond.half.size = 120
+And for offset (horizontal - left/right):
+    config.diamond.whole.offset = -5 -- (offset 5 EVPU to the left)
+
+Note that many of the shapes assumed in this file don't exist in Maestro but only in proper SMuFL fonts.
+
+version cv0.53 2022/10/27
 ]] --
--- version cv0.51 2022/10/26
 
 local notehead = {}
 local configuration = require("library.configuration")
@@ -26,17 +42,26 @@ local config = {
         whole = { glyph = 192 },
         breve = { glyph = 192, size = 120 },
     },
-    triangle = {     -- triangle "up" glyphs
+    triangle = {
+        -- change_shape() defaults to use "triangle_down" glyphs on "triangle" up-stems
+        -- use shape = "triangle_up" to force all up glyphs
+        -- use shape = "triangle_down" to force all down glyphs
         quarter = { glyph = 209 },
         half  = { glyph = 177 },
         whole = { glyph = 177 },
         breve = { glyph = 177 },
     },
-    triangle_down = { -- special case!
+    triangle_down = {
         quarter = { glyph = 224 },
         half  = { glyph = 198 },
         whole = { glyph = 198 },
         breve = { glyph = 198 },
+    },
+    triangle_up = {
+        quarter = { glyph = 209 },
+        half  = { glyph = 177 },
+        whole = { glyph = 177 },
+        breve = { glyph = 177 },
     },
     slash = {
         quarter = { glyph = 243 },
@@ -56,15 +81,30 @@ local config = {
         whole = { glyph = 231, offset = -14 },
         breve = { glyph = 231, offset = -14 },
     },
+    strikethrough = {
+        quarter = { glyph = 191 }, -- doesn't exist in Maestro
+        half  = { glyph = 191 },
+        whole = { glyph = 191 },
+        breve = { glyph = 191 },
+    },
+    circled = {
+        quarter = { glyph = 76 }, -- doesn't exist in Maestro
+        half  = { glyph = 76 },
+        whole = { glyph = 76 },
+        breve = { glyph = 76 },
+    },
     hidden = {
         quarter = { glyph = 202 },
         half  = { glyph = 202 },
         whole = { glyph = 202 },
         breve = { glyph = 202 },
-    }
+    },
+    default = {
+        quarter = { glyph = 207 }
+    },
 }
 
--- Default to SMuFL characters for SMuFL font (without needing a config file)
+-- change to SMuFL characters for SMuFL font (without needing a config file)
 if library.is_font_smufl_font() then
     config = {
         diamond = {
@@ -85,17 +125,26 @@ if library.is_font_smufl_font() then
             whole = { glyph = 0xe0ec },
             breve = { glyph = 0xe0b4, size = 120 },
         },
-        triangle = {     -- triangle "up" glyphs
+        triangle = {
+        -- change_shape() defaults to use "triangle_down" glyphs on "triangle" up-stems
+        -- use shape = "triangle_up" to force all up glyphs
+        -- use shape = "triangle_down" to force all down glyphs
             quarter = { glyph = 0xe0be },
             half  = { glyph = 0xe0bd },
             whole = { glyph = 0xe0ef },
             breve = { glyph = 0xe0ed },
         },
-        triangle_down = { -- special case ... triangle "down" glyphs
+        triangle_down = {
             quarter = { glyph = 0xe0c7 },
             half  = { glyph = 0xe0c6 },
             whole = { glyph = 0xe0f3 },
             breve = { glyph = 0xe0f1 },
+        },
+        triangle_up = {
+            quarter = { glyph = 0xe0be },
+            half  = { glyph = 0xe0bd },
+            whole = { glyph = 0xe0ef },
+            breve = { glyph = 0xe0ed },
         },
         slash = {
             quarter = { glyph = 0xe100 },
@@ -115,11 +164,26 @@ if library.is_font_smufl_font() then
             whole = { glyph = 0xe1c4, size = 120, offset = -14 },
             breve = { glyph = 0xe1ca, size = 120, offset = -14 },
         },
+        strikethrough = {
+            quarter = { glyph = 0xe0cf },
+            half  = { glyph = 0xe0d1 },
+            whole = { glyph = 0xe0d3 },
+            breve = { glyph = 0xe0d5 },
+        },
+        circled = {
+            quarter = { glyph = 0xe0e4 },
+            half  = { glyph = 0xe0e5 },
+            whole = { glyph = 0xe0e6 },
+            breve = { glyph = 0xe0e7 },
+        },
         hidden = {
             quarter = { glyph = 0xe0a5 },
             half  = { glyph = 0xe0a5 },
             whole = { glyph = 0xe0a5 },
             breve = { glyph = 0xe0a5 },
+        },
+        default = {
+            quarter = { glyph = 0xe0a4 }
         },
     }
 end
@@ -139,7 +203,7 @@ Changes the given notehead to a specified notehead descriptor string.
 function notehead.change_shape(note, shape)
     local notehead = finale.FCNoteheadMod()
     notehead:EraseAt(note)
-    local notehead_char
+    local notehead_char = config.default.quarter.glyph
 
     if type(shape) == "number" then -- specific character GLYPH requested, not notehead "family"
         notehead_char = shape
@@ -170,7 +234,7 @@ function notehead.change_shape(note, shape)
             if shape == "triangle" and entry:CalcStemUp() then
                 ref_table = config["triangle_down"][note_type]
             end
-            notehead_char = ref_table.glyph
+            notehead_char = ref_table.glyph or config.default.quarter.glyph
             if ref_table.size then
                 resize = ref_table.size
             end
@@ -181,7 +245,7 @@ function notehead.change_shape(note, shape)
 
         --  finished testing notehead family --
         notehead.CustomChar = notehead_char
-        if resize ~= 100 then
+        if resize > 0 and resize ~= 100 then
             notehead.Resize = resize
         end
         if offset ~= 0 then
