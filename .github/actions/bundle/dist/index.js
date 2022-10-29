@@ -4564,12 +4564,20 @@ exports.bundleFile = bundleFile;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getAllImports = exports.getImport = void 0;
+exports.getAllImports = exports.getImport = exports.requireRegex = void 0;
+exports.requireRegex = new RegExp([
+    /(?:^|[\W])/,
+    /(?:__original_)?require/,
+    /[\s]*/,
+    // Module. Match one single- or double-quoted string, optionally enclosed in parentheses, capturing only its contents
+    /(?:"([\w.]+?)"|'([\w.]+?)'|\("([\w.]+?)"\)|\('([\w.]+?)'\))/,
+].map(r => r.source).join(''), 'iu'); // Flags
 const getImport = (line) => {
-    const matches = line.match(/require\(["']([A-Z_a-z.]+)["']\)/iu);
-    if (!matches)
-        return { importedFile: '', isImport: false };
-    return { importedFile: matches[1], isImport: true };
+    const matches = line.match(exports.requireRegex);
+    return {
+        importedFile: matches ? matches[1] || matches[2] || matches[3] || matches[4] : '',
+        isImport: !!matches,
+    };
 };
 exports.getImport = getImport;
 const getAllImports = (file) => {

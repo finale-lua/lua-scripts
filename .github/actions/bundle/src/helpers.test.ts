@@ -15,6 +15,12 @@ describe('detects valid imports', () => {
         ['local library = import("library.file_name")', ''],
         ['local library = require("library.")', 'library.'],
         ['local library = require("file_name")', 'file_name'],
+        ['local library = require"library.articulation"', 'library.articulation'],
+        ['local library = require\'library.articulation\'', 'library.articulation'],
+        ['local library = require "library.articulation"', 'library.articulation'],
+        ['local library = require \'library.articulation\'', 'library.articulation'],
+        ['local library = __original_require("library.file_name")', 'library.file_name'],
+        ['local library = my_require("library.file_name")', ''],
     ]
 
     it.each(lines)('line "%s" imports "%s"', (line, importFile) => {

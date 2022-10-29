@@ -1,7 +1,18 @@
+export const requireRegex = new RegExp([
+    /(?:^|[\W])/, // Begin at either the start of a line or the start of an identifier
+    /(?:__original_)?require/, // Match require or __original_require (introduced in RGPLua 0.64)
+    /[\s]*/, // Any number of whitespace characters are allowed between a function name and its arguments
+    // Module. Match one single- or double-quoted string, optionally enclosed in parentheses, capturing only its contents
+    /(?:"([\w.]+?)"|'([\w.]+?)'|\("([\w.]+?)"\)|\('([\w.]+?)'\))/,
+    ].map(r => r.source).join(''),
+    'iu'); // Flags
+
 export const getImport = (line: string): { importedFile: string; isImport: boolean } => {
-    const matches = line.match(/require\(["']([A-Z_a-z.]+)["']\)/iu)
-    if (!matches) return { importedFile: '', isImport: false }
-    return { importedFile: matches[1], isImport: true }
+    const matches = line.match(requireRegex);
+    return {
+        importedFile: matches ? matches[1] || matches[2] || matches[3] || matches[4] : '',
+        isImport: !!matches,
+    };
 }
 
 export const getAllImports = (file: string): string[] => {
