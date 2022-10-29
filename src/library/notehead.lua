@@ -16,7 +16,7 @@ And for offset (horizontal - left/right):
 
 Note that many of the shapes assumed in this file don't exist in Maestro but only in proper SMuFL fonts.
 
-version cv0.53 2022/10/27
+version cv0.54 2022/10/29
 ]] --
 
 local notehead = {}
@@ -201,8 +201,8 @@ Changes the given notehead to a specified notehead descriptor string.
 : (FCNoteheadMod) the new notehead mod record created
 ]]
 function notehead.change_shape(note, shape)
-    local notehead = finale.FCNoteheadMod()
-    notehead:EraseAt(note)
+    local notehead_mod = finale.FCNoteheadMod()
+    notehead_mod:EraseAt(note)
     local notehead_char = config.default.quarter.glyph
 
     if type(shape) == "number" then -- specific character GLYPH requested, not notehead "family"
@@ -213,7 +213,7 @@ function notehead.change_shape(note, shape)
     end
 
     if shape == "default" then
-        notehead:ClearChar()
+        notehead_mod:ClearChar()
     else
         local entry = note:GetEntry()
         local duration = entry.Duration
@@ -234,7 +234,9 @@ function notehead.change_shape(note, shape)
             if shape == "triangle" and entry:CalcStemUp() then
                 ref_table = config["triangle_down"][note_type]
             end
-            notehead_char = ref_table.glyph or config.default.quarter.glyph
+            if ref_table.glyph then
+                notehead_char = ref_table.glyph
+            end
             if ref_table.size then
                 resize = ref_table.size
             end
@@ -244,15 +246,16 @@ function notehead.change_shape(note, shape)
         end
 
         --  finished testing notehead family --
-        notehead.CustomChar = notehead_char
+        notehead_mod.CustomChar = notehead_char
         if resize > 0 and resize ~= 100 then
-            notehead.Resize = resize
+            notehead_mod.Resize = resize
         end
         if offset ~= 0 then
-            notehead.HorizontalPos = (entry:CalcStemUp()) and (-1 * offset) or offset
+            notehead_mod.HorizontalPos = (entry:CalcStemUp()) and (-1 * offset) or offset
         end
     end
-    notehead:SaveAt(note)
+    notehead_mod:SaveAt(note)
+    return notehead_mod
 end
 
 return notehead
