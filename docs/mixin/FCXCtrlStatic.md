@@ -13,7 +13,7 @@ Summary of changes:
 - [SetMeasurement(self, value)](#setmeasurement)
 - [SetMeasurementInteger(self, value)](#setmeasurementinteger)
 - [SetMeasurementEfix(self, value)](#setmeasurementefix)
-- [SetShowMeasurementSuffix(self, on)](#setshowmeasurementsuffix)
+- [SetShowMeasurementSuffix(self, enabled)](#setshowmeasurementsuffix)
 - [SetMeasurementSuffixShort(self)](#setmeasurementsuffixshort)
 - [SetMeasurementSuffixAbbreviated(self)](#setmeasurementsuffixabbreviated)
 - [SetMeasurementSuffixFull(self)](#setmeasurementsuffixfull)
@@ -39,7 +39,7 @@ fcxctrlstatic.Init(self)
 fcxctrlstatic.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L55)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L56)
 
 **[Fluid] [Override]**
 Switches the control's measurement status off.
@@ -55,7 +55,7 @@ Switches the control's measurement status off.
 fcxctrlstatic.SetMeasurement(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L73)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L74)
 
 **[Fluid]**
 Sets a measurement in EVPUs which will be displayed in the parent window's current measurement unit. This will be automatically updated if the parent window's measurement unit changes.
@@ -87,7 +87,7 @@ Sets a measurement in whole EVPUs which will be displayed in the parent window's
 fcxctrlstatic.SetMeasurementEfix(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L120)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L119)
 
 **[Fluid]**
 Sets a measurement in EFIXes which will be displayed in the parent window's current measurement unit. This will be automatically updated if the parent window's measurement unit changes.
@@ -100,10 +100,10 @@ Sets a measurement in EFIXes which will be displayed in the parent window's curr
 ### SetShowMeasurementSuffix
 
 ```lua
-fcxctrlstatic.SetShowMeasurementSuffix(self, on)
+fcxctrlstatic.SetShowMeasurementSuffix(self, enabled)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L144)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L142)
 
 **[Fluid]**
 Sets whether to show a suffix at the end of a measurement (eg `cm` in `2.54cm`). This is on by default.
@@ -111,7 +111,7 @@ Sets whether to show a suffix at the end of a measurement (eg `cm` in `2.54cm`).
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCXCtrlStatic` |  |
-| `on` | `boolean` |  |
+| `enabled` | `boolean` |  |
 
 ### SetMeasurementSuffixShort
 
@@ -119,7 +119,7 @@ Sets whether to show a suffix at the end of a measurement (eg `cm` in `2.54cm`).
 fcxctrlstatic.SetMeasurementSuffixShort(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L159)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L157)
 
 **[Fluid]**
 Sets the measurement suffix to the short style used by Finale's internals (eg `e`, `i`, `c`, etc)
@@ -134,7 +134,7 @@ Sets the measurement suffix to the short style used by Finale's internals (eg `e
 fcxctrlstatic.SetMeasurementSuffixAbbreviated(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L173)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L171)
 
 **[Fluid]**
 Sets the measurement suffix to commonly known abbrevations (eg `in`, `cm`, `pt`, etc).
@@ -150,7 +150,7 @@ This is the default style.
 fcxctrlstatic.SetMeasurementSuffixFull(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L186)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L184)
 
 **[Fluid]**
 Sets the measurement suffix to the full unit name. (eg `inches`, `centimeters`, etc).
@@ -165,7 +165,7 @@ Sets the measurement suffix to the full unit name. (eg `inches`, `centimeters`, 
 fcxctrlstatic.UpdateMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L199)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlStatic.lua#L197)
 
 **[Fluid] [Internal]**
 Updates the displayed measurement unit in line with the parent window.

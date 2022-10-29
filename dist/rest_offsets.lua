@@ -2001,6 +2001,83 @@ __imports["mixin.FCMCtrlSlider"] = __imports["mixin.FCMCtrlSlider"] or function(
 
 end
 
+__imports["mixin.FCMCtrlStatic"] = __imports["mixin.FCMCtrlStatic"] or function()
+    --  Author: Edward Koltun
+    --  Date: September 18, 2022
+    --[[
+    $module FCMCtrlStatic
+
+    Summary of modifications:
+    - Added hooks for control state restoration
+    - SetTextColor updates visible color immediately if window is showing
+    ]] --
+    local mixin = require("library.mixin")
+    local utils = require("library.utils")
+
+    local private = setmetatable({}, {__mode = "k"})
+    local props = {}
+    local temp_str = finale.FCString()
+
+    --[[
+    % Init
+
+    **[Internal]**
+
+    @ self (FCMCtrlStatic)
+    ]]
+    function props:Init()
+        private[self] = private[self] or {}
+    end
+
+    --[[
+    % SetTextColor
+
+    **[Fluid] [Override]**
+    Displays the new text color immediately.
+    Also hooks into control state restoration.
+
+    @ self (FCMCtrlStatic)
+    @ red (number)
+    @ green (number)
+    @ blue (number)
+    ]]
+    function props:SetTextColor(red, green, blue)
+        mixin.assert_argument(red, "number", 2)
+        mixin.assert_argument(green, "number", 3)
+        mixin.assert_argument(blue, "number", 4)
+
+        private[self].TextColor = {red, green, blue}
+
+        if not mixin.FCMControl.UseStoredState(self) then
+            self:SetTextColor_(red, green, blue)
+
+            -- If a new text color is set after the window has been shown, the visible color will not change until new text is set
+            -- Getting and setting the text makes the new text color visible immediately
+            mixin.FCMControl.SetText(self, mixin.FCMControl.GetText(self))
+        end
+    end
+
+    --[[
+    % RestoreState
+
+    **[Fluid] [Internal]**
+    Restores the control's stored state.
+    Do not disable this method. Override as needed but call the parent first.
+
+    @ self (FCMCtrlStatic)
+    ]]
+    function props:RestoreState()
+        mixin.FCMControl.RestoreState(self)
+
+        if private[self].TextColor then
+            mixin.FCMCtrlStatic.SetTextColor(self, private[self].TextColor[1], private[self].TextColor[2], private[self].TextColor[3])
+        end
+    end
+
+    return props
+
+end
+
 __imports["mixin.FCMCtrlSwitcher"] = __imports["mixin.FCMCtrlSwitcher"] or function()
     --  Author: Edward Koltun
     --  Date: March 3, 2022
@@ -5688,11 +5765,12 @@ __imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function(
     @ self (FCXCtrlStatic)
     ]]
     function props:Init()
-        mixin.assert(
-            mixin.is_instance_of(self:GetParent(), "FCXCustomLuaWindow"),
-            "FCXCtrlStatic must have a parent window that is an instance of FCXCustomLuaWindow")
+        mixin.assert(mixin.is_instance_of(self:GetParent(), "FCXCustomLuaWindow"), "FCXCtrlStatic must have a parent window that is an instance of FCXCustomLuaWindow")
 
-        private[self] = private[self] or {ShowMeasurementSuffix = true, MeasurementSuffixType = 2}
+        private[self] = private[self] or {
+            ShowMeasurementSuffix = true,
+            MeasurementSuffixType = 2,
+        }
     end
 
     --[[
@@ -5707,7 +5785,7 @@ __imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function(
     function props:SetText(str)
         mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
 
-        mixin.FCMControl.SetText(self, str)
+        mixin.FCMCtrlStatic.SetText(self, str)
 
         private[self].Measurement = nil
         private[self].MeasurementType = nil
@@ -5727,10 +5805,9 @@ __imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function(
 
         local unit = self:GetParent():GetMeasurementUnit()
         temp_str:SetMeasurement(value, unit)
-        temp_str:AppendLuaString(
-            private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
+        temp_str:AppendLuaString(private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
 
-        self:SetText_(temp_str)
+        mixin.FCMCtrlStatic.SetText(self, temp_str)
 
         private[self].Measurement = value
         private[self].MeasurementType = "Measurement"
@@ -5751,10 +5828,9 @@ __imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function(
         value = utils.round(value)
         local unit = self:GetParent():GetMeasurementUnit()
         temp_str:SetMeasurement(value, unit)
-        temp_str:AppendLuaString(
-            private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
+        temp_str:AppendLuaString(private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
 
-        self:SetText_(temp_str)
+        mixin.FCMCtrlStatic.SetText(self, temp_str)
 
         private[self].Measurement = value
         private[self].MeasurementType = "MeasurementInteger"
@@ -5775,10 +5851,9 @@ __imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function(
         local evpu = value / 64
         local unit = self:GetParent():GetMeasurementUnit()
         temp_str:SetMeasurement(evpu, unit)
-        temp_str:AppendLuaString(
-            private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
+        temp_str:AppendLuaString(private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
 
-        self:SetText_(temp_str)
+        mixin.FCMCtrlStatic.SetText(self, temp_str)
 
         private[self].Measurement = value
         private[self].MeasurementType = "MeasurementEfix"
@@ -5791,13 +5866,13 @@ __imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function(
     Sets whether to show a suffix at the end of a measurement (eg `cm` in `2.54cm`). This is on by default.
 
     @ self (FCXCtrlStatic)
-    @ on (boolean)
+    @ enabled (boolean)
     ]]
-    function props:SetShowMeasurementSuffix(on)
-        mixin.assert_argument(on, "boolean", 2)
+    function props:SetShowMeasurementSuffix(enabled)
+        mixin.assert_argument(enabled, "boolean", 2)
 
-        private[self].ShowMeasurementSuffix = on
-        self:UpdateMeasurementUnit()
+        private[self].ShowMeasurementSuffix = enabled and true or false
+        mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
     end
 
     --[[
@@ -5810,7 +5885,7 @@ __imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function(
     ]]
     function props:SetMeasurementSuffixShort()
         private[self].MeasurementSuffixType = 1
-        self:UpdateMeasurementUnit()
+        mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
     end
 
     --[[
@@ -5824,7 +5899,7 @@ __imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function(
     ]]
     function props:SetMeasurementSuffixAbbreviated()
         private[self].MeasurementSuffixType = 2
-        self:UpdateMeasurementUnit()
+        mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
     end
 
     --[[
@@ -5837,7 +5912,7 @@ __imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function(
     ]]
     function props:SetMeasurementSuffixFull()
         private[self].MeasurementSuffixType = 3
-        self:UpdateMeasurementUnit()
+        mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
     end
 
     --[[
@@ -5850,7 +5925,7 @@ __imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function(
     ]]
     function props:UpdateMeasurementUnit()
         if private[self].Measurement then
-            self["Set" .. private[self].MeasurementType](self, private[self].Measurement)
+            mixin.FCXCtrlStatic["Set" .. private[self].MeasurementType](self, private[self].Measurement)
         end
     end
 
@@ -8059,7 +8134,7 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
             file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
             msg = msg or result
     
-            local file_is_truncated = file:sub(1, 3) == "..."
+            local file_is_truncated = file and file:sub(1, 3) == "..."
             file = file_is_truncated and file:sub(4) or file
     
             -- Conditions for rethrowing at a higher level:
