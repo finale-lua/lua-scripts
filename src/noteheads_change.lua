@@ -97,13 +97,13 @@ function user_chooses_glyph()
     dlg:SetTitle(str)
 
     str.LuaString = "Enter required character (glyph) number:"
-    _ = dlg:CreateStatic(0, y)
-    _:SetText(str)
-    _:SetWidth(x)
+    local static = dlg:CreateStatic(0, y)
+    static:SetText(str)
+    static:SetWidth(x)
     str.LuaString = "(as simple integer, or hex value like \"0xe0e1\")"
-    _ = dlg:CreateStatic(0, y + 20)
-    _:SetText(str)
-    _:SetWidth(x + 100)
+    static = dlg:CreateStatic(0, y + 20)
+    static:SetText(str)
+    static:SetWidth(x + 100)
 
     local answer = dlg:CreateEdit(x, y - y_diff)
     str.LuaString = "0xe0e1"
