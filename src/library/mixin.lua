@@ -468,7 +468,7 @@ function mixin_private.pcall_wrapper(levels, success, result, ...)
         file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
         msg = msg or result
 
-        local file_is_truncated = file:sub(1, 3) == "..."
+        local file_is_truncated = file and file:sub(1, 3) == "..."
         file = file_is_truncated and file:sub(4) or file
 
         -- Conditions for rethrowing at a higher level:
