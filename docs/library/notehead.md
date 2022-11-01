@@ -1,5 +1,22 @@
 # Notehead
 
+User-created config file "notehead.config.txt" will overwrite any of the values in this file.
+Store the file in a folder called "script_settings" in the same location as the calling script.
+
+To change the shape (glyph) of a note, add to the config file a line of the form:
+    config.diamond.quarter.glyph = 0xea07 -- (SMuFL character)
+        OR
+    config.diamond.quarter.glyph = 173 -- (non-SMuFL character)
+
+To change the size of a specific shape add a line:
+    config.diamond.half.size = 120
+And for offset (horizontal - left/right):
+    config.diamond.whole.offset = -5 -- (offset 5 EVPU to the left)
+
+Note that many of the shapes assumed in this file don't exist in Maestro but only in proper SMuFL fonts.
+
+version cv0.55 2022/11/01
+
 ## Functions
 
 - [change_shape(note, shape)](#change_shape)
@@ -10,14 +27,14 @@
 notehead.change_shape(note, shape)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/notehead.lua#L35)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/notehead.lua#L215)
 
-Changes the given notehead to a specified notehead descriptor string. Currently only supports "diamond".
+Changes the given notehead to a specified notehead descriptor string, or specified numeric character.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `note` | `FCNote` |  |
-| `shape` | `lua string` |  |
+| `shape` | `lua string` | or (number) |
 
 | Return type | Description |
 | ----------- | ----------- |
