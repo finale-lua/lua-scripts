@@ -16,7 +16,7 @@ And for offset (horizontal - left/right):
 
 Note that many of the shapes assumed in this file don't exist in Maestro but only in proper SMuFL fonts.
 
-version cv0.54 2022/10/29
+version cv0.55 2022/11/01
 ]] --
 
 local notehead = {}
@@ -93,6 +93,12 @@ local config = {
         whole = { glyph = 76 },
         breve = { glyph = 76 },
     },
+    round = {
+        quarter = { glyph = 76 },
+        half  = { glyph = 76 },
+        whole = { glyph = 191 },
+        breve = { glyph = 191 },
+    },
     hidden = {
         quarter = { glyph = 202 },
         half  = { glyph = 202 },
@@ -121,9 +127,9 @@ if library.is_font_smufl_font() then
         },
         x = {
             quarter = { glyph = 0xe0a9 },
-            half  = { glyph = 0xe0ec },
-            whole = { glyph = 0xe0ec },
-            breve = { glyph = 0xe0b4, size = 120 },
+            half  = { glyph = 0xe0a8 },
+            whole = { glyph = 0xe0a7 },
+            breve = { glyph = 0xe0a6 },
         },
         triangle = {
         -- change_shape() defaults to use "triangle_down" glyphs on "triangle" up-stems
@@ -131,20 +137,20 @@ if library.is_font_smufl_font() then
         -- use shape = "triangle_down" to force all down glyphs
             quarter = { glyph = 0xe0be },
             half  = { glyph = 0xe0bd },
-            whole = { glyph = 0xe0ef },
-            breve = { glyph = 0xe0ed },
+            whole = { glyph = 0xe0bc },
+            breve = { glyph = 0xe0bb },
         },
         triangle_down = {
             quarter = { glyph = 0xe0c7 },
             half  = { glyph = 0xe0c6 },
-            whole = { glyph = 0xe0f3 },
-            breve = { glyph = 0xe0f1 },
+            whole = { glyph = 0xe0c5 },
+            breve = { glyph = 0xe0c4 },
         },
         triangle_up = {
             quarter = { glyph = 0xe0be },
             half  = { glyph = 0xe0bd },
-            whole = { glyph = 0xe0ef },
-            breve = { glyph = 0xe0ed },
+            whole = { glyph = 0xe0bc },
+            breve = { glyph = 0xe0bb },
         },
         slash = {
             quarter = { glyph = 0xe100 },
@@ -176,6 +182,12 @@ if library.is_font_smufl_font() then
             whole = { glyph = 0xe0e6 },
             breve = { glyph = 0xe0e7 },
         },
+        round = {
+            quarter = { glyph = 0xe113 },
+            half  = { glyph = 0xe114 },
+            whole = { glyph = 0xe115 },
+            breve = { glyph = 0xe112 },
+        },
         hidden = {
             quarter = { glyph = 0xe0a5 },
             half  = { glyph = 0xe0a5 },
@@ -193,7 +205,7 @@ configuration.get_parameters("notehead.config.txt", config)
 --[[
 % change_shape
 
-Changes the given notehead to a specified notehead descriptor string. 
+Changes the given notehead to a specified notehead descriptor string, or specified numeric character.
 
 @ note (FCNote)
 @ shape (lua string) or (number)
@@ -216,6 +228,8 @@ function notehead.change_shape(note, shape)
         notehead_mod:ClearChar()
     else
         local entry = note:GetEntry()
+        if not entry then return end -- invalid note supplied
+
         local duration = entry.Duration
         local offset = 0
         local resize = 100
