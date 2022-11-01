@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.57"
-    finaleplugin.Date = "2022/10/27"
+    finaleplugin.Version = "v0.58"
+    finaleplugin.Date = "2022/11/01"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.AdditionalMenuOptions = [[
         Noteheads Change to Diamond
@@ -15,6 +15,7 @@ function plugindef()
         Noteheads Change to Wedge
         Noteheads Change to Strikethrough
         Noteheads Change to Circled
+        Noteheads Change to Round
         Noteheads Change to Hidden
         Noteheads Change to Number...
         Noteheads Revert to Default
@@ -28,6 +29,7 @@ function plugindef()
         Noteheads Change to Wedge
         Noteheads Change to Strikethrough
         Noteheads Change to Circled
+        Noteheads Change to Round
         Noteheads Change to Hidden
         Noteheads Change to Number
         Noteheads Revert to Default
@@ -41,6 +43,7 @@ function plugindef()
         Change all noteheads in the selection to Wedges
         Change all noteheads in the selection to Strikethrough
         Change all noteheads in the selection to Circled
+        Change all noteheads in the selection to Round
         Change all noteheads in the selection to Hidden
         Change all noteheads in the selection to specific number (glyph)
         Return all noteheads in the selection to Default
@@ -54,6 +57,7 @@ function plugindef()
         new_shape = "wedge"
         new_shape = "strikethrough"
         new_shape = "circled"
+        new_shape = "round"
         new_shape = "hidden"
         new_shape = "number"
         new_shape = "default"
@@ -61,7 +65,7 @@ function plugindef()
     finaleplugin.ScriptGroupName = "Noteheads Change"
     finaleplugin.ScriptGroupDescription = "Change all noteheads in the selection to one of eleven chosen shapes (SMuFL compliant)"
     finaleplugin.Notes = [[
-        Change all noteheads in the current selection to one of these eleven shapes (SMuFL compliant):
+        Change all noteheads in the current selection to one of these twelve shapes (SMuFL compliant):
 
         ```
         X
@@ -73,6 +77,7 @@ function plugindef()
         Wedge
         Strikethrough
         Circled
+        Round
         Hidden
         Number -- a specific character number (glyph)
         Default -- revert to normal (default) noteheads
@@ -93,7 +98,7 @@ function user_chooses_glyph()
     local x, y = 200, 10
     local y_diff = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
     local str = finale.FCString()
-    str.LuaString = plugindef()
+    str.LuaString = finaleplugin.ScriptGroupName or plugindef()
     dlg:SetTitle(str)
 
     str.LuaString = "Enter required character (glyph) number:"
@@ -121,7 +126,7 @@ function change_notehead()
 
     if new_shape == "number" then
         local ok
-        ok, new_shape = user_chooses_glyph() -- get user's numeric choice in var. new_shape
+        ok, new_shape = user_chooses_glyph() -- get user's numeric choice in new_shape
         if ok ~= finale.EXECMODAL_OK then
             return -- user cancelled
         end
