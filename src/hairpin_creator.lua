@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.66" -- update from original "stable" version 0.63
-    finaleplugin.Date = "2022/10/17"
+    finaleplugin.Version = "v0.67"
+    finaleplugin.Date = "2022/11/07"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin Create Diminuendo
         Hairpin Create Swell
@@ -66,7 +66,26 @@ end
 
 hairpin_type = hairpin_type or finale.SMARTSHAPE_CRESCENDO
 
-local dialog_options = { -- key value in config, explanation
+local config = {
+    dynamics_match_hairpin = true,
+    include_trailing_items = true,
+    attach_over_end_barline = true,
+    attach_over_system_break = false,
+    inclusions_EDU_margin = 256,
+    shape_vert_adjust = 13,
+    below_note_cushion = 56,
+    downstem_cushion = 44,
+    below_artic_cushion = 40,
+    left_horiz_offset = 16,
+    right_horiz_offset = -16,
+    left_dynamic_cushion = 18,
+    right_dynamic_cushion = -18,
+    measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
+    window_pos_x = false,
+    window_pos_y = false,
+}
+
+local dialog_options = { -- key value in config, text description
     { "dynamics_match_hairpin", "move dynamics vertically to match hairpin height" },
     { "include_trailing_items", "consider notes and dynamics past the end of selection" },
     { "attach_over_end_barline", "attach right end of hairpin across the final barline" },
@@ -89,24 +108,6 @@ local boolean_options = {
 }
 local integer_options = {
     inclusions_EDU_margin = true,
-}
-local config = {
-    dynamics_match_hairpin = true,
-    include_trailing_items = true,
-    attach_over_end_barline = true,
-    attach_over_system_break = false,
-    inclusions_EDU_margin = 256,
-    shape_vert_adjust = 13,
-    below_note_cushion = 56,
-    downstem_cushion = 44,
-    below_artic_cushion = 40,
-    left_horiz_offset = 16,
-    right_horiz_offset = -16,
-    left_dynamic_cushion = 18,
-    right_dynamic_cushion = -18,
-    measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
-    window_pos_x = false,
-    window_pos_y = false,
 }
 
 local configuration = require("library.configuration")
@@ -575,29 +576,23 @@ function create_dialog_box()
     local y_step = 20
     local max_text_width = 385
     local x_offset = {0, 130, 155, 190}
-    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra horizontal offset for Mac edit boxes
-
-        local function make_static(msg, horiz, vert, width, sepia)
-            local static = dialog:CreateStatic(horiz, vert):SetText(msg):SetWidth(width)
-            if sepia and static.SetTextColor then
-                static:SetTextColor(153, 51, 0)
-            end
-        end
+    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- horizontal offset for Mac Edit boxes
 
     for i, v in ipairs(dialog_options) do -- run through config parameters
         local y_current = y_step * i
         local msg = string.gsub(v[1], "_", " ")
         if boolean_options[v[1]] then -- checkboxes
             dialog:CreateCheckbox(x_offset[1], y_current, v[1]):SetText(msg):SetWidth(x_offset[3]):SetCheck(config[v[1]] and 1 or 0)
-            make_static(v[2], x_offset[3], y_current, max_text_width, true) -- parameter explanation
+            dialog:CreateStatic(x_offset[3], y_current):SetText("- " .. v[2]):SetWidth(max_text_width)
         else  -- integer or measurement value
             y_current = y_current + 10 -- gap before numeric variables
-            make_static(msg .. ":", x_offset[1], y_current, x_offset[2], false) -- parameter name
-            make_static(v[2], x_offset[4], y_current, max_text_width, true) -- text explanation
+            dialog:CreateStatic(x_offset[1], y_current):SetText(msg .. ":"):SetWidth(x_offset[2])
+            dialog:CreateStatic(x_offset[4], y_current):SetText(v[2]):SetWidth(max_text_width)
+            y_current = y_current - mac_offset -- Edit boxes higher for Mac
             if integer_options[v[1]] then
-                dialog.CreateEdit(dialog, x_offset[2], y_current - mac_offset, v[1]):SetWidth(50):SetInteger(config[v[1]])
+                dialog.CreateEdit(dialog, x_offset[2], y_current, v[1]):SetWidth(50):SetInteger(config[v[1]])
             else
-                dialog.CreateMeasurementEdit(dialog, x_offset[2], y_current - mac_offset, v[1]):SetWidth(50):SetMeasurementInteger(config[v[1]])
+                dialog.CreateMeasurementEdit(dialog, x_offset[2], y_current, v[1]):SetWidth(50):SetMeasurementInteger(config[v[1]])
             end
         end
     end
