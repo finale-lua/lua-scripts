@@ -5,6 +5,7 @@
 - [copy(region, source_layer, destination_layer)](#copy)
 - [clear(region, layer_to_clear)](#clear)
 - [swap(region, swap_a, swap_b)](#swap)
+- [max_layers()](#max_layers)
 
 ### copy
 
@@ -58,3 +59,19 @@ Swaps the entries from two different layers (e.g. 1-->2 and 2-->1).
 | `region` | `FCMusicRegion` | the region to be swapped |
 | `swap_a` | `number` | the number (1-4) of the first layer to be swapped |
 | `swap_b` | `number` | the number (1-4) of the second layer to be swapped |
+
+### max_layers
+
+```lua
+layer.max_layers()
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L113)
+
+
+Return the maximum number of layers available in the current document.
+
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` | maximum number of available layers |

@@ -896,6 +896,18 @@ __imports["library.layer"] = __imports["library.layer"] or function()
         end
     end
     
+    
+    --[[
+    % max_layers
+    
+    Return the maximum number of layers available in the current document.
+    
+    : (number) maximum number of available layers
+    ]]
+    function layer.max_layers()
+        return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
+    end
+    
     return layer
 
 end
