@@ -1,10 +1,10 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
+    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.47"
-    finaleplugin.Date = "2022/11/13"
+    finaleplugin.Version = "v1.48"
+    finaleplugin.Date = "2022/11/14"
     finaleplugin.Notes = [[
         Chords on layer 1 in the selected region are split into independent layers on the same staff. 
         Multiple measures and staves can be selected at once. 
@@ -27,7 +27,7 @@ function get_note_count(region)
     return note_count
 end
 
-function explode_one_slot(slot, max_layers)
+function explode_one_slot(slot)
     local region = finenv.Region()
     region.StartSlot = slot
     region.EndSlot = slot
@@ -47,7 +47,7 @@ function explode_one_slot(slot, max_layers)
     layers[1]:Load()
 
     for i = 2, (max_note_count + unison_doubling) do  -- copy to the other layers
-        if i > max_layers then break end -- observe maximum layers
+        if i > layer.max_layers() then break end -- observe maximum layers
         layer.copy(region, 1, i)
     end
 
@@ -67,7 +67,7 @@ function explode_one_slot(slot, max_layers)
                     entry:DeleteNote(entry:CalcHighestNote(nil))
                 end
             end
-            if from_bottom > 0 and this_layer < max_layers then -- delete BOTTOM notes
+            if from_bottom > 0 and this_layer < layer.max_layers() then -- delete BOTTOM notes
                 for i = 1, from_bottom do
                     entry:DeleteNote(entry:CalcLowestNote(nil))
                 end
@@ -83,9 +83,8 @@ function staff_layer_explode()
         finenv.UI():AlertNeutral("", "Please select a region\nwith some notes in it!")
         return
     end
-    local max_layers = layer.max_layers()
     for slot = region.StartSlot, region.EndSlot do
-        explode_one_slot(slot, max_layers)
+        explode_one_slot(slot)
     end
 end
 
