@@ -9,7 +9,7 @@ describe('importFile', () => {
 
         expect(importedFilesMock['my-lib']).toEqual({
             dependencies: ['hello'],
-            wrapped: ['__imports["my-lib"] = function()', "    local hello = require('hello')", 'end'].join('\n'),
+            wrapped: ['__imports["my-lib"] = __imports["my-lib"] or function()', "    local hello = require('hello')", 'end'].join('\n'),
         })
     })
     it('files are imported only once', () => {
@@ -42,11 +42,11 @@ describe('bundle', () => {
             [
                 generateLuaRequire(),
                 '',
-                '__imports["b"] = function()',
+                '__imports["b"] = __imports["b"] or function()',
                 "    local b = require('b')",
                 'end',
                 '',
-                '__imports["c"] = function()',
+                '__imports["c"] = __imports["c"] or function()',
                 '    return {}',
                 'end',
                 '',
@@ -72,15 +72,15 @@ describe('bundle', () => {
             [
                 generateLuaRequire(),
                 '',
-                '__imports["mixin.FCMControl"] = function()',
+                '__imports["mixin.FCMControl"] = __imports["mixin.FCMControl"] or function()',
                 '    return {}',
                 'end',
                 '',
-                '__imports["mixin.FCMString"] = function()',
+                '__imports["mixin.FCMString"] = __imports["mixin.FCMString"] or function()',
                 '    return {}',
                 'end',
                 '',
-                '__imports["library.mixin"] = function()',
+                '__imports["library.mixin"] = __imports["library.mixin"] or function()',
                 '    return {}',
                 'end',
                 '',
