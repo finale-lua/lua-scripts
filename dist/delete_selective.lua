@@ -65,19 +65,17 @@ function plugindef()
     finaleplugin.ScriptGroupName = "Delete selective"
     finaleplugin.ScriptGroupDescription = "Selectively delete thirteen different types of data from the currently selected music region"
 	finaleplugin.Notes = [[
-        Deletes nominated items from the selected region. 
-        Individual menu items are created to independently delete items of type:  
-        All Expressions / Dynamics / Expressions (Not Dynamics) / Expressions (Measure-Attached) /  
-        Articulations / Hairpins / Slurs / Custom Lines / Glissandos / Smart Shapes (Beat Aligned) /  
+        Deletes nominated items from the selected region.
+        Individual menu items are created to independently delete items of type:
+        All Expressions / Dynamics / Expressions (Not Dynamics) / Expressions (Measure-Attached) /
+        Articulations / Hairpins / Slurs / Custom Lines / Glissandos / Smart Shapes (Beat Aligned) /
         All Smart Shapes / Midi Note Data / Midi Continuous Data
     ]]
     return "Delete All Expressions", "Delete All Expressions", "Delete all expressions from the selected region"
 end
-
 delete_type = delete_type or "expression_all"
-
 function delete_selected()
-    if string.find(delete_type, "shape") then -- SMART SHAPE
+    if string.find(delete_type, "shape") then
         local marks = finale.FCSmartShapeMeasureMarks()
         marks:LoadAllForRegion(finenv.Region(), true)
         for mark in each(marks) do
@@ -92,11 +90,11 @@ function delete_selected()
                 shape:DeleteData()
             end
         end
-    elseif string.find(delete_type, "express") then -- EXPRESSION type
+    elseif string.find(delete_type, "express") then
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(finenv.Region())
         for exp in eachbackwards(expressions) do
-            local def_id = exp:CreateTextExpressionDef().CategoryID -- test for DYNAMICS
+            local def_id = exp:CreateTextExpressionDef().CategoryID
             if not exp:IsShape() and exp.StaffGroupID == 0 and
               (    (delete_type == "expression_all")
                 or (delete_type == "expression_not_dynamic" and def_id ~= finale.DEFAULTCATID_DYNAMICS)
@@ -106,13 +104,13 @@ function delete_selected()
                 exp:DeleteData()
             end
         end
-    elseif delete_type == "midi_continuous" then -- MIDI CONTINUOUS type
+    elseif delete_type == "midi_continuous" then
         local midi_ex = finale.FCMidiExpressions()
         midi_ex:LoadAllForRegion(finenv.Region())
         for exp in eachbackwards(midi_ex) do
             exp:DeleteData()
         end
-    elseif delete_type == "midi_note" then -- MIDI NOTE DATA type
+    elseif delete_type == "midi_note" then
         for entry in eachentrysaved(finenv.Region()) do
             if entry.PerformanceDataFlag then
                 local perf_mods = entry:CreatePerformanceMods()
@@ -124,7 +122,7 @@ function delete_selected()
                 entry.PerformanceDataFlag = false
             end
         end
-    elseif delete_type == "measure_attached" then -- MEASURE-ATTACHED EXPRESSIONS type
+    elseif delete_type == "measure_attached" then
         local measures = finale.FCMeasures()
         measures:LoadRegion(finenv.Region())
         for measure in each(measures) do
@@ -135,11 +133,11 @@ function delete_selected()
             end
             local expression = finale.FCExpression()
             if not expression:Load(measure.ItemNo, 0) then
-                measure.ExpressionFlag = false -- no expressions left
+                measure.ExpressionFlag = false
                 measure:Save()
             end
         end
-    elseif delete_type == "articulation" then -- ARTICULATION type
+    elseif delete_type == "articulation" then
         for entry in eachentrysaved(finenv.Region()) do
             if entry:GetArticulationFlag() then
                 for articulation in eachbackwards(entry:CreateArticulations()) do
@@ -150,5 +148,4 @@ function delete_selected()
         end
     end
 end
-
 delete_selected()

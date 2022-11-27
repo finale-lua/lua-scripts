@@ -8,7 +8,6 @@ function plugindef()
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     return "Toggle Chord Visibility 2", "Toggle Chord Visibility 2", "Toggles the chords' visibility"
 end
-
 function chord_toggle_visibility()
     local musicRegion = finenv.Region()
     musicRegion:SetCurrentSelection()
@@ -19,5 +18,4 @@ function chord_toggle_visibility()
         chord:Save()
     end
 end
-
 chord_toggle_visibility()

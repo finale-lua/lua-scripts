@@ -21,14 +21,12 @@ function plugindef()
     finaleplugin.ScriptGroupName = "Tuplet visibility"
     finaleplugin.ScriptGroupDescription = "Hide or unhide all tuplets in the selected region"
     finaleplugin.Notes = [[
-        This script creates two menu items that either `Hide` or `Unhide` 
+        This script creates two menu items that either `Hide` or `Unhide`
         all tuplets in the selected region.
 	]]
     return "Tuplets Hide", "Tuplets Hide", "Hide all tuplets in the current selection"
 end
-
 tuplets_unhide = tuplets_unhide or false
-
 function tuplet_state()
     for entry in eachentry(finenv.Region()) do
         if entry.TupletStartFlag then
@@ -39,5 +37,4 @@ function tuplet_state()
         end
     end
 end
-
 tuplet_state()

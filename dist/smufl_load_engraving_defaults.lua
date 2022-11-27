@@ -1,21 +1,17 @@
 __imports = __imports or {}
 __import_results = __import_results or {}
-
 function require(item)
     if not __imports[item] then
         error("module '" .. item .. "' not found")
     end
-
     if __import_results[item] == nil then
         __import_results[item] = __imports[item]()
         if __import_results[item] == nil then
             __import_results[item] = true
         end
     end
-
     return __import_results[item]
 end
-
 __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     local setmetatable, tonumber, tostring =
           setmetatable, tonumber, tostring
@@ -25,47 +21,32 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
           math.mininteger or nil, math.tointeger or nil
     local byte, char, find, gsub, match, sub =
           string.byte, string.char, string.find, string.gsub, string.match, string.sub
-
     local function _decode_error(pos, errmsg)
     	error("parse error at " .. pos .. ": " .. errmsg, 2)
     end
-
     local f_str_ctrl_pat
     if _VERSION == "Lua 5.1" then
-    	-- use the cluttered pattern because lua 5.1 does not handle \0 in a pattern correctly
+    	
     	f_str_ctrl_pat = '[^\32-\255]'
     else
     	f_str_ctrl_pat = '[\0-\31]'
     end
-
     local _ENV = nil
-
-
     local function newdecoder()
     	local json, pos, nullv, arraylen, rec_depth
-
-    	-- `f` is the temporary for dispatcher[c] and
-    	-- the dummy for the first return value of `find`
+    	
+    	
     	local dispatcher, f
-
-    	--[[
-    		Helper
-    	--]]
+    	
     	local function decode_error(errmsg)
     		return _decode_error(pos, errmsg)
     	end
-
-    	--[[
-    		Invalid
-    	--]]
+    	
     	local function f_err()
     		decode_error('invalid value')
     	end
-
-    	--[[
-    		Constants
-    	--]]
-    	-- null
+    	
+    	
     	local function f_nul()
     		if sub(json, pos, pos+2) == 'ull' then
     			pos = pos+3
@@ -73,8 +54,7 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     		end
     		decode_error('invalid value')
     	end
-
-    	-- false
+    	
     	local function f_fls()
     		if sub(json, pos, pos+3) == 'alse' then
     			pos = pos+4
@@ -82,8 +62,7 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     		end
     		decode_error('invalid value')
     	end
-
-    	-- true
+    	
     	local function f_tru()
     		if sub(json, pos, pos+2) == 'rue' then
     			pos = pos+3
@@ -91,13 +70,8 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     		end
     		decode_error('invalid value')
     	end
-
-    	--[[
-    		Numbers
-    		Conceptually, the longest prefix that matches to `[-+.0-9A-Za-z]+` (in regexp)
-    		is captured as a number and its conformance to the JSON spec is checked.
-    	--]]
-    	-- deal with non-standard locales
+    	
+    	
     	local radixmark = match(tostring(0.5), '[^0-9]')
     	local fixedtonumber = tonumber
     	if radixmark ~= '.' then
@@ -108,15 +82,12 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     			return tonumber(gsub(s, '.', radixmark))
     		end
     	end
-
     	local function number_error()
     		return decode_error('invalid number')
     	end
-
-    	-- `0(\.[0-9]*)?([eE][+-]?[0-9]*)?`
+    	
     	local function f_zro(mns)
-    		local num, c = match(json, '^(%.?[0-9]*)([-+.A-Za-z]?)', pos)  -- skipping 0
-
+    		local num, c = match(json, '^(%.?[0-9]*)([-+.A-Za-z]?)', pos)
     		if num == '' then
     			if c == '' then
     				if mns then
@@ -124,7 +95,6 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     				end
     				return 0
     			end
-
     			if c == 'e' or c == 'E' then
     				num, c = match(json, '^([^eE]*[eE][-+]?[0-9]+)([-+.A-Za-z]?)', pos)
     				if c == '' then
@@ -137,11 +107,9 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     			end
     			number_error()
     		end
-
     		if byte(num) ~= 0x2E or byte(num, -1) == 0x2E then
     			number_error()
     		end
-
     		if c ~= '' then
     			if c == 'e' or c == 'E' then
     				num, c = match(json, '^([^eE]*[eE][-+]?[0-9]+)([-+.A-Za-z]?)', pos)
@@ -150,24 +118,20 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     				number_error()
     			end
     		end
-
     		pos = pos + #num
     		c = fixedtonumber(num)
-
     		if mns then
     			c = -c
     		end
     		return c
     	end
-
-    	-- `[1-9][0-9]*(\.[0-9]*)?([eE][+-]?[0-9]*)?`
+    	
     	local function f_num(mns)
     		pos = pos-1
     		local num, c = match(json, '^([0-9]+%.?[0-9]*)([-+.A-Za-z]?)', pos)
-    		if byte(num, -1) == 0x2E then  -- error if ended with period
+    		if byte(num, -1) == 0x2E then
     			number_error()
     		end
-
     		if c ~= '' then
     			if c ~= 'e' and c ~= 'E' then
     				number_error()
@@ -177,10 +141,8 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     				number_error()
     			end
     		end
-
     		pos = pos + #num
     		c = fixedtonumber(num)
-
     		if mns then
     			c = -c
     			if c == mininteger and not find(num, '[^0-9]') then
@@ -189,8 +151,7 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     		end
     		return c
     	end
-
-    	-- skip minus sign
+    	
     	local function f_mns()
     		local c = byte(json, pos)
     		if c then
@@ -207,10 +168,7 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     		end
     		decode_error('invalid number')
     	end
-
-    	--[[
-    		Strings
-    	--]]
+    	
     	local f_str_hextbl = {
     		0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
     		0x8, 0x9, inf, inf, inf, inf, inf, inf,
@@ -224,7 +182,6 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     		end
     	}
     	setmetatable(f_str_hextbl, f_str_hextbl)
-
     	local f_str_escapetbl = {
     		['"']  = '"',
     		['\\'] = '\\',
@@ -239,11 +196,9 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     		end
     	}
     	setmetatable(f_str_escapetbl, f_str_escapetbl)
-
     	local function surrogate_first_error()
     		return decode_error("1st surrogate pair byte not continued by 2nd")
     	end
-
     	local f_str_surrogate_prev = 0
     	local function f_str_subst(ch, ucode)
     		if ch == 'u' then
@@ -253,12 +208,12 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     			        f_str_hextbl[c3-47] * 0x10 +
     			        f_str_hextbl[c4-47]
     			if ucode ~= inf then
-    				if ucode < 0x80 then  -- 1byte
+    				if ucode < 0x80 then
     					if rest then
     						return char(ucode, rest)
     					end
     					return char(ucode)
-    				elseif ucode < 0x800 then  -- 2bytes
+    				elseif ucode < 0x800 then
     					c1 = floor(ucode / 0x40)
     					c2 = ucode - c1 * 0x40
     					c1 = c1 + 0xC0
@@ -267,7 +222,7 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     						return char(c1, c2, rest)
     					end
     					return char(c1, c2)
-    				elseif ucode < 0xD800 or 0xE000 <= ucode then  -- 3bytes
+    				elseif ucode < 0xD800 or 0xE000 <= ucode then
     					c1 = floor(ucode / 0x1000)
     					ucode = ucode - c1 * 0x1000
     					c2 = floor(ucode / 0x40)
@@ -279,7 +234,7 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     						return char(c1, c2, c3, rest)
     					end
     					return char(c1, c2, c3)
-    				elseif 0xD800 <= ucode and ucode < 0xDC00 then  -- surrogate pair 1st
+    				elseif 0xD800 <= ucode and ucode < 0xDC00 then
     					if f_str_surrogate_prev == 0 then
     						f_str_surrogate_prev = ucode
     						if not rest then
@@ -289,7 +244,7 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     					end
     					f_str_surrogate_prev = 0
     					surrogate_first_error()
-    				else  -- surrogate pair 2nd
+    				else
     					if f_str_surrogate_prev ~= 0 then
     						ucode = 0x10000 +
     						        (f_str_surrogate_prev - 0xD800) * 0x400 +
@@ -321,126 +276,110 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     		end
     		return f_str_escapetbl[ch] .. ucode
     	end
-
-    	-- caching interpreted keys for speed
+    	
     	local f_str_keycache = setmetatable({}, {__mode="v"})
-
     	local function f_str(iskey)
     		local newpos = pos
     		local tmppos, c1, c2
     		repeat
-    			newpos = find(json, '"', newpos, true)  -- search '"'
+    			newpos = find(json, '"', newpos, true)
     			if not newpos then
     				decode_error("unterminated string")
     			end
     			tmppos = newpos-1
     			newpos = newpos+1
     			c1, c2 = byte(json, tmppos-1, tmppos)
-    			if c2 == 0x5C and c1 == 0x5C then  -- skip preceding '\\'s
+    			if c2 == 0x5C and c1 == 0x5C then
     				repeat
     					tmppos = tmppos-2
     					c1, c2 = byte(json, tmppos-1, tmppos)
     				until c2 ~= 0x5C or c1 ~= 0x5C
     				tmppos = newpos-2
     			end
-    		until c2 ~= 0x5C  -- leave if '"' is not preceded by '\'
-
+    		until c2 ~= 0x5C
     		local str = sub(json, pos, tmppos)
     		pos = newpos
-
-    		if iskey then  -- check key cache
-    			tmppos = f_str_keycache[str]  -- reuse tmppos for cache key/val
+    		if iskey then
+    			tmppos = f_str_keycache[str]
     			if tmppos then
     				return tmppos
     			end
     			tmppos = str
     		end
-
     		if find(str, f_str_ctrl_pat) then
     			decode_error("unescaped control string")
     		end
-    		if find(str, '\\', 1, true) then  -- check whether a backslash exists
-    			-- We need to grab 4 characters after the escape char,
-    			-- for encoding unicode codepoint to UTF-8.
-    			-- As we need to ensure that every first surrogate pair byte is
-    			-- immediately followed by second one, we grab upto 5 characters and
-    			-- check the last for this purpose.
+    		if find(str, '\\', 1, true) then
+    			
+    			
+    			
+    			
+    			
     			str = gsub(str, '\\(.)([^\\]?[^\\]?[^\\]?[^\\]?[^\\]?)', f_str_subst)
     			if f_str_surrogate_prev ~= 0 then
     				f_str_surrogate_prev = 0
     				decode_error("1st surrogate pair byte not continued by 2nd")
     			end
     		end
-    		if iskey then  -- commit key cache
+    		if iskey then
     			f_str_keycache[tmppos] = str
     		end
     		return str
     	end
-
-    	--[[
-    		Arrays, Objects
-    	--]]
-    	-- array
+    	
+    	
     	local function f_ary()
     		rec_depth = rec_depth + 1
     		if rec_depth > 1000 then
     			decode_error('too deeply nested json (> 1000)')
     		end
     		local ary = {}
-
     		pos = match(json, '^[ \n\r\t]*()', pos)
-
     		local i = 0
-    		if byte(json, pos) == 0x5D then  -- check closing bracket ']' which means the array empty
+    		if byte(json, pos) == 0x5D then
     			pos = pos+1
     		else
     			local newpos = pos
     			repeat
     				i = i+1
-    				f = dispatcher[byte(json,newpos)]  -- parse value
+    				f = dispatcher[byte(json,newpos)]
     				pos = newpos+1
     				ary[i] = f()
-    				newpos = match(json, '^[ \n\r\t]*,[ \n\r\t]*()', pos)  -- check comma
+    				newpos = match(json, '^[ \n\r\t]*,[ \n\r\t]*()', pos)
     			until not newpos
-
-    			newpos = match(json, '^[ \n\r\t]*%]()', pos)  -- check closing bracket
+    			newpos = match(json, '^[ \n\r\t]*%]()', pos)
     			if not newpos then
     				decode_error("no closing bracket of an array")
     			end
     			pos = newpos
     		end
-
-    		if arraylen then -- commit the length of the array if `arraylen` is set
+    		if arraylen then
     			ary[0] = i
     		end
     		rec_depth = rec_depth - 1
     		return ary
     	end
-
-    	-- objects
+    	
     	local function f_obj()
     		rec_depth = rec_depth + 1
     		if rec_depth > 1000 then
     			decode_error('too deeply nested json (> 1000)')
     		end
     		local obj = {}
-
     		pos = match(json, '^[ \n\r\t]*()', pos)
-    		if byte(json, pos) == 0x7D then  -- check closing bracket '}' which means the object empty
+    		if byte(json, pos) == 0x7D then
     			pos = pos+1
     		else
     			local newpos = pos
-
     			repeat
-    				if byte(json, newpos) ~= 0x22 then  -- check '"'
+    				if byte(json, newpos) ~= 0x22 then
     					decode_error("not key")
     				end
     				pos = newpos+1
-    				local key = f_str(true)  -- parse key
-
-    				-- optimized for compact json
-    				-- c1, c2 == ':', <the first char of the value> or
-    				-- c1, c2, c3 == ':', ' ', <the first char of the value>
+    				local key = f_str(true)
+    				
+    				
+    				
     				f = f_err
     				local c1, c2, c3 = byte(json, pos, pos+3)
     				if c1 == 0x3A then
@@ -452,7 +391,7 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     						newpos = pos+3
     					end
     				end
-    				if f == f_err then  -- read a colon and arbitrary number of spaces
+    				if f == f_err then
     					newpos = match(json, '^[ \n\r\t]*:[ \n\r\t]*()', pos)
     					if not newpos then
     						decode_error("no colon after a key")
@@ -461,26 +400,19 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     					newpos = newpos+1
     				end
     				pos = newpos
-    				obj[key] = f()  -- parse value
+    				obj[key] = f()
     				newpos = match(json, '^[ \n\r\t]*,[ \n\r\t]*()', pos)
     			until not newpos
-
     			newpos = match(json, '^[ \n\r\t]*}()', pos)
     			if not newpos then
     				decode_error("no closing bracket of an object")
     			end
     			pos = newpos
     		end
-
     		rec_depth = rec_depth - 1
     		return obj
     	end
-
-    	--[[
-    		The jump table to dispatch a parser for a value,
-    		indexed by the code of the value's first char.
-    		Nil key means the end of json.
-    	--]]
+    	
     	dispatcher = { [0] =
     		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
     		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
@@ -503,20 +435,14 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     		end
     	}
     	setmetatable(dispatcher, dispatcher)
-
-    	--[[
-    		run decoder
-    	--]]
+    	
     	local function decode(json_, pos_, nullv_, arraylen_)
     		json, pos, nullv, arraylen = json_, pos_, nullv_, arraylen_
     		rec_depth = 0
-
     		pos = match(json, '^[ \n\r\t]*()', pos)
-
     		f = dispatcher[byte(json, pos)]
     		pos = pos+1
     		local v = f()
-
     		if pos_ then
     			return v, pos
     		else
@@ -527,14 +453,10 @@ __imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
     			return v
     		end
     	end
-
     	return decode
     end
-
     return newdecoder
-
 end
-
 __imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     local error = error
     local byte, find, format, gsub, match = string.byte, string.find, string.format,  string.gsub, string.match
@@ -543,33 +465,26 @@ __imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     local pairs, type = pairs, type
     local setmetatable = setmetatable
     local huge, tiny = 1/0, -1/0
-
     local f_string_esc_pat
     if _VERSION == "Lua 5.1" then
-    	-- use the cluttered pattern because lua 5.1 does not handle \0 in a pattern correctly
+    	
     	f_string_esc_pat = '[^ -!#-[%]^-\255]'
     else
     	f_string_esc_pat = '[\0-\31"\\]'
     end
-
     local _ENV = nil
-
-
     local function newencoder()
     	local v, nullv
     	local i, builder, visited
-
     	local function f_tostring(v)
     		builder[i] = tostring(v)
     		i = i+1
     	end
-
     	local radixmark = match(tostring(0.5), '[^0-9]')
     	local delimmark = match(tostring(12345.12345), '[^0-9' .. radixmark .. ']')
     	if radixmark == '.' then
     		radixmark = nil
     	end
-
     	local radixordelim
     	if radixmark or delimmark then
     		radixordelim = true
@@ -580,7 +495,6 @@ __imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     			delimmark = '%' .. delimmark
     		end
     	end
-
     	local f_number = function(n)
     		if tiny < n and n < huge then
     			local s = format("%.17g", n)
@@ -598,9 +512,7 @@ __imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     		end
     		error('invalid number')
     	end
-
     	local doencode
-
     	local f_string_subst = {
     		['"'] = '\\"',
     		['\\'] = '\\\\',
@@ -614,7 +526,6 @@ __imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     		end
     	}
     	setmetatable(f_string_subst, f_string_subst)
-
     	local function f_string(s)
     		builder[i] = '"'
     		if find(s, f_string_esc_pat) then
@@ -624,15 +535,13 @@ __imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     		builder[i+2] = '"'
     		i = i+3
     	end
-
     	local function f_table(o)
     		if visited[o] then
     			error("loop detected")
     		end
     		visited[o] = true
-
     		local tmp = o[0]
-    		if type(tmp) == 'number' then -- arraylen available
+    		if type(tmp) == 'number' then
     			builder[i] = '['
     			i = i+1
     			for j = 1, tmp do
@@ -644,10 +553,9 @@ __imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     				i = i-1
     			end
     			builder[i] = ']'
-
     		else
     			tmp = o[1]
-    			if tmp ~= nil then -- detected as array
+    			if tmp ~= nil then
     				builder[i] = '['
     				i = i+1
     				local j = 2
@@ -662,8 +570,7 @@ __imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     					i = i+1
     				until false
     				builder[i] = ']'
-
-    			else -- detected as object
+    			else
     				builder[i] = '{'
     				i = i+1
     				local tmp = i
@@ -684,11 +591,9 @@ __imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     				builder[i] = '}'
     			end
     		end
-
     		i = i+1
     		visited[o] = nil
     	end
-
     	local dispatcher = {
     		boolean = f_tostring,
     		number = f_number,
@@ -699,7 +604,6 @@ __imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     		end
     	}
     	setmetatable(dispatcher, dispatcher)
-
     	function doencode(v)
     		if v == nullv then
     			builder[i] = 'null'
@@ -708,22 +612,16 @@ __imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
     		end
     		return dispatcher[type(v)](v)
     	end
-
     	local function encode(v_, nullv_)
     		v, nullv = v_, nullv_
     		i, builder, visited = 1, {}, {}
-
     		doencode(v)
     		return concat(builder)
     	end
-
     	return encode
     end
-
     return newencoder
-
 end
-
 __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     local setmetatable, tonumber, tostring =
           setmetatable, tonumber, tostring
@@ -733,36 +631,27 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
           math.mininteger or nil, math.tointeger or nil
     local byte, char, find, gsub, match, sub =
           string.byte, string.char, string.find, string.gsub, string.match, string.sub
-
     local function _parse_error(pos, errmsg)
     	error("parse error at " .. pos .. ": " .. errmsg, 2)
     end
-
     local f_str_ctrl_pat
     if _VERSION == "Lua 5.1" then
-    	-- use the cluttered pattern because lua 5.1 does not handle \0 in a pattern correctly
+    	
     	f_str_ctrl_pat = '[^\32-\255]'
     else
     	f_str_ctrl_pat = '[\0-\31]'
     end
-
     local type, unpack = type, table.unpack or unpack
     local open = io.open
-
     local _ENV = nil
-
-
     local function nop() end
-
     local function newparser(src, saxtbl)
     	local json, jsonnxt, rec_depth
     	local jsonlen, pos, acc = 0, 1, 0
-
-    	-- `f` is the temporary for dispatcher[c] and
-    	-- the dummy for the first return value of `find`
+    	
+    	
     	local dispatcher, f
-
-    	-- initialize
+    	
     	if type(src) == 'string' then
     		json = src
     		jsonlen = #json
@@ -788,7 +677,6 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     		jsonnxt()
     	end
-
     	local sax_startobject = saxtbl.startobject or nop
     	local sax_key = saxtbl.key or nop
     	local sax_endobject = saxtbl.endobject or nop
@@ -798,10 +686,7 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     	local sax_number = saxtbl.number or nop
     	local sax_boolean = saxtbl.boolean or nop
     	local sax_null = saxtbl.null or nop
-
-    	--[[
-    		Helper
-    	--]]
+    	
     	local function tryc()
     		local c = byte(json, pos)
     		if not c then
@@ -810,16 +695,13 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     		return c
     	end
-
     	local function parse_error(errmsg)
     		return _parse_error(acc + pos, errmsg)
     	end
-
     	local function tellc()
     		return tryc() or parse_error("unexpected termination")
     	end
-
-    	local function spaces()  -- skip spaces and prepare the next char
+    	local function spaces()
     		while true do
     			pos = match(json, '^[ \n\r\t]*()', pos)
     			if pos <= jsonlen then
@@ -831,18 +713,12 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     			jsonnxt()
     		end
     	end
-
-    	--[[
-    		Invalid
-    	--]]
+    	
     	local function f_err()
     		parse_error('invalid value')
     	end
-
-    	--[[
-    		Constants
-    	--]]
-    	-- fallback slow constants parser
+    	
+    	
     	local function generic_constant(target, targetlen, ret, sax_f)
     		for i = 1, targetlen do
     			local c = tellc()
@@ -853,8 +729,7 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     		return sax_f(ret)
     	end
-
-    	-- null
+    	
     	local function f_nul()
     		if sub(json, pos, pos+2) == 'ull' then
     			pos = pos+3
@@ -862,8 +737,7 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     		return generic_constant('ull', 3, nil, sax_null)
     	end
-
-    	-- false
+    	
     	local function f_fls()
     		if sub(json, pos, pos+3) == 'alse' then
     			pos = pos+4
@@ -871,8 +745,7 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     		return generic_constant('alse', 4, false, sax_boolean)
     	end
-
-    	-- true
+    	
     	local function f_tru()
     		if sub(json, pos, pos+2) == 'rue' then
     			pos = pos+3
@@ -880,13 +753,8 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     		return generic_constant('rue', 3, true, sax_boolean)
     	end
-
-    	--[[
-    		Numbers
-    		Conceptually, the longest prefix that matches to `[-+.0-9A-Za-z]+` (in regexp)
-    		is captured as a number and its conformance to the JSON spec is checked.
-    	--]]
-    	-- deal with non-standard locales
+    	
+    	
     	local radixmark = match(tostring(0.5), '[^0-9]')
     	local fixedtonumber = tonumber
     	if radixmark ~= '.' then
@@ -897,27 +765,22 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     			return tonumber(gsub(s, '.', radixmark))
     		end
     	end
-
     	local function number_error()
     		return parse_error('invalid number')
     	end
-
-    	-- fallback slow parser
+    	
     	local function generic_number(mns)
     		local buf = {}
     		local i = 1
     		local is_int = true
-
     		local c = byte(json, pos)
     		pos = pos+1
-
     		local function nxt()
     			buf[i] = c
     			i = i+1
     			c = tryc()
     			pos = pos+1
     		end
-
     		if c == 0x30 then
     			nxt()
     			if c and 0x30 <= c and c < 0x3A then
@@ -951,7 +814,6 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     			number_error()
     		end
     		pos = pos-1
-
     		local num = char(unpack(buf))
     		num = fixedtonumber(num)
     		if mns then
@@ -962,11 +824,9 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     		return sax_number(num)
     	end
-
-    	-- `0(\.[0-9]*)?([eE][+-]?[0-9]*)?`
+    	
     	local function f_zro(mns)
-    		local num, c = match(json, '^(%.?[0-9]*)([-+.A-Za-z]?)', pos)  -- skipping 0
-
+    		local num, c = match(json, '^(%.?[0-9]*)([-+.A-Za-z]?)', pos)
     		if num == '' then
     			if pos > jsonlen then
     				pos = pos - 1
@@ -978,7 +838,6 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     				end
     				return sax_number(0)
     			end
-
     			if c == 'e' or c == 'E' then
     				num, c = match(json, '^([^eE]*[eE][-+]?[0-9]+)([-+.A-Za-z]?)', pos)
     				if c == '' then
@@ -996,12 +855,10 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     			pos = pos-1
     			return generic_number(mns)
     		end
-
     		if byte(num) ~= 0x2E or byte(num, -1) == 0x2E then
     			pos = pos-1
     			return generic_number(mns)
     		end
-
     		if c ~= '' then
     			if c == 'e' or c == 'E' then
     				num, c = match(json, '^([^eE]*[eE][-+]?[0-9]+)([-+.A-Za-z]?)', pos)
@@ -1011,28 +868,24 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     				return generic_number(mns)
     			end
     		end
-
     		pos = pos + #num
     		if pos > jsonlen then
     			pos = pos - #num - 1
     			return generic_number(mns)
     		end
     		c = fixedtonumber(num)
-
     		if mns then
     			c = -c
     		end
     		return sax_number(c)
     	end
-
-    	-- `[1-9][0-9]*(\.[0-9]*)?([eE][+-]?[0-9]*)?`
+    	
     	local function f_num(mns)
     		pos = pos-1
     		local num, c = match(json, '^([0-9]+%.?[0-9]*)([-+.A-Za-z]?)', pos)
-    		if byte(num, -1) == 0x2E then  -- error if ended with period
+    		if byte(num, -1) == 0x2E then
     			return generic_number(mns)
     		end
-
     		if c ~= '' then
     			if c ~= 'e' and c ~= 'E' then
     				return generic_number(mns)
@@ -1042,14 +895,12 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     				return generic_number(mns)
     			end
     		end
-
     		pos = pos + #num
     		if pos > jsonlen then
     			pos = pos - #num
     			return generic_number(mns)
     		end
     		c = fixedtonumber(num)
-
     		if mns then
     			c = -c
     			if c == mininteger and not find(num, '[^0-9]') then
@@ -1058,8 +909,7 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     		return sax_number(c)
     	end
-
-    	-- skip minus sign
+    	
     	local function f_mns()
     		local c = byte(json, pos) or tellc()
     		if c then
@@ -1076,10 +926,7 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     		parse_error("invalid number")
     	end
-
-    	--[[
-    		Strings
-    	--]]
+    	
     	local f_str_hextbl = {
     		0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
     		0x8, 0x9, inf, inf, inf, inf, inf, inf,
@@ -1093,7 +940,6 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     	}
     	setmetatable(f_str_hextbl, f_str_hextbl)
-
     	local f_str_escapetbl = {
     		['"']  = '"',
     		['\\'] = '\\',
@@ -1108,11 +954,9 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     	}
     	setmetatable(f_str_escapetbl, f_str_escapetbl)
-
     	local function surrogate_first_error()
     		return parse_error("1st surrogate pair byte not continued by 2nd")
     	end
-
     	local f_str_surrogate_prev = 0
     	local function f_str_subst(ch, ucode)
     		if ch == 'u' then
@@ -1122,12 +966,12 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     			        f_str_hextbl[c3-47] * 0x10 +
     			        f_str_hextbl[c4-47]
     			if ucode ~= inf then
-    				if ucode < 0x80 then  -- 1byte
+    				if ucode < 0x80 then
     					if rest then
     						return char(ucode, rest)
     					end
     					return char(ucode)
-    				elseif ucode < 0x800 then  -- 2bytes
+    				elseif ucode < 0x800 then
     					c1 = floor(ucode / 0x40)
     					c2 = ucode - c1 * 0x40
     					c1 = c1 + 0xC0
@@ -1136,7 +980,7 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     						return char(c1, c2, rest)
     					end
     					return char(c1, c2)
-    				elseif ucode < 0xD800 or 0xE000 <= ucode then  -- 3bytes
+    				elseif ucode < 0xD800 or 0xE000 <= ucode then
     					c1 = floor(ucode / 0x1000)
     					ucode = ucode - c1 * 0x1000
     					c2 = floor(ucode / 0x40)
@@ -1148,7 +992,7 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     						return char(c1, c2, c3, rest)
     					end
     					return char(c1, c2, c3)
-    				elseif 0xD800 <= ucode and ucode < 0xDC00 then  -- surrogate pair 1st
+    				elseif 0xD800 <= ucode and ucode < 0xDC00 then
     					if f_str_surrogate_prev == 0 then
     						f_str_surrogate_prev = ucode
     						if not rest then
@@ -1158,7 +1002,7 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     					end
     					f_str_surrogate_prev = 0
     					surrogate_first_error()
-    				else  -- surrogate pair 2nd
+    				else
     					if f_str_surrogate_prev ~= 0 then
     						ucode = 0x10000 +
     						        (f_str_surrogate_prev - 0xD800) * 0x400 +
@@ -1190,14 +1034,13 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     		return f_str_escapetbl[ch] .. ucode
     	end
-
     	local function f_str(iskey)
     		local pos2 = pos
     		local newpos
     		local str = ''
     		local bs
     		while true do
-    			while true do  -- search '\' or '"'
+    			while true do
     				newpos = find(json, '[\\"]', pos2)
     				if newpos then
     					break
@@ -1213,72 +1056,66 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     					parse_error("unterminated string")
     				end
     			end
-    			if byte(json, newpos) == 0x22 then  -- break if '"'
+    			if byte(json, newpos) == 0x22 then
     				break
     			end
-    			pos2 = newpos+2  -- skip '\<char>'
-    			bs = true  -- mark the existence of a backslash
+    			pos2 = newpos+2
+    			bs = true
     		end
     		str = str .. sub(json, pos, newpos-1)
     		pos = newpos+1
-
     		if find(str, f_str_ctrl_pat) then
     			parse_error("unescaped control string")
     		end
-    		if bs then  -- a backslash exists
-    			-- We need to grab 4 characters after the escape char,
-    			-- for encoding unicode codepoint to UTF-8.
-    			-- As we need to ensure that every first surrogate pair byte is
-    			-- immediately followed by second one, we grab upto 5 characters and
-    			-- check the last for this purpose.
+    		if bs then
+    			
+    			
+    			
+    			
+    			
     			str = gsub(str, '\\(.)([^\\]?[^\\]?[^\\]?[^\\]?[^\\]?)', f_str_subst)
     			if f_str_surrogate_prev ~= 0 then
     				f_str_surrogate_prev = 0
     				parse_error("1st surrogate pair byte not continued by 2nd")
     			end
     		end
-
     		if iskey then
     			return sax_key(str)
     		end
     		return sax_string(str)
     	end
-
-    	--[[
-    		Arrays, Objects
-    	--]]
-    	-- arrays
+    	
+    	
     	local function f_ary()
     		rec_depth = rec_depth + 1
     		if rec_depth > 1000 then
     			parse_error('too deeply nested json (> 1000)')
     		end
     		sax_startarray()
-
     		spaces()
-    		if byte(json, pos) == 0x5D then  -- check closing bracket ']' which means the array empty
+    		if byte(json, pos) == 0x5D then
     			pos = pos+1
     		else
     			local newpos
     			while true do
-    				f = dispatcher[byte(json, pos)]  -- parse value
+    				f = dispatcher[byte(json, pos)]
     				pos = pos+1
     				f()
-    				newpos = match(json, '^[ \n\r\t]*,[ \n\r\t]*()', pos)  -- check comma
+    				newpos = match(json, '^[ \n\r\t]*,[ \n\r\t]*()', pos)
     				if newpos then
     					pos = newpos
     				else
-    					newpos = match(json, '^[ \n\r\t]*%]()', pos)  -- check closing bracket
+    					newpos = match(json, '^[ \n\r\t]*%]()', pos)
     					if newpos then
     						pos = newpos
     						break
     					end
-    					spaces()  -- since the current chunk can be ended, skip spaces toward following chunks
+    					spaces()
     					local c = byte(json, pos)
     					pos = pos+1
-    					if c == 0x2C then  -- check comma again
+    					if c == 0x2C then
     						spaces()
-    					elseif c == 0x5D then  -- check closing bracket again
+    					elseif c == 0x5D then
     						break
     					else
     						parse_error("no closing bracket of an array")
@@ -1289,21 +1126,18 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     				end
     			end
     		end
-
     		rec_depth = rec_depth - 1
     		return sax_endarray()
     	end
-
-    	-- objects
+    	
     	local function f_obj()
     		rec_depth = rec_depth + 1
     		if rec_depth > 1000 then
     			parse_error('too deeply nested json (> 1000)')
     		end
     		sax_startobject()
-
     		spaces()
-    		if byte(json, pos) == 0x7D then  -- check closing bracket '}' which means the object empty
+    		if byte(json, pos) == 0x7D then
     			pos = pos+1
     		else
     			local newpos
@@ -1312,13 +1146,13 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     					parse_error("not key")
     				end
     				pos = pos+1
-    				f_str(true)  -- parse key
-    				newpos = match(json, '^[ \n\r\t]*:[ \n\r\t]*()', pos)  -- check colon
+    				f_str(true)
+    				newpos = match(json, '^[ \n\r\t]*:[ \n\r\t]*()', pos)
     				if newpos then
     					pos = newpos
     				else
-    					spaces()  -- read spaces through chunks
-    					if byte(json, pos) ~= 0x3A then  -- check colon again
+    					spaces()
+    					if byte(json, pos) ~= 0x3A then
     						parse_error("no colon after a key")
     					end
     					pos = pos+1
@@ -1329,22 +1163,22 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     				end
     				f = dispatcher[byte(json, pos)]
     				pos = pos+1
-    				f()  -- parse value
-    				newpos = match(json, '^[ \n\r\t]*,[ \n\r\t]*()', pos)  -- check comma
+    				f()
+    				newpos = match(json, '^[ \n\r\t]*,[ \n\r\t]*()', pos)
     				if newpos then
     					pos = newpos
     				else
-    					newpos = match(json, '^[ \n\r\t]*}()', pos)  -- check closing bracket
+    					newpos = match(json, '^[ \n\r\t]*}()', pos)
     					if newpos then
     						pos = newpos
     						break
     					end
-    					spaces()  -- read spaces through chunks
+    					spaces()
     					local c = byte(json, pos)
     					pos = pos+1
-    					if c == 0x2C then  -- check comma again
+    					if c == 0x2C then
     						spaces()
-    					elseif c == 0x7D then  -- check closing bracket again
+    					elseif c == 0x7D then
     						break
     					else
     						parse_error("no closing bracket of an object")
@@ -1355,16 +1189,10 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     				end
     			end
     		end
-
     		rec_depth = rec_depth - 1
     		return sax_endobject()
     	end
-
-    	--[[
-    		The jump table to dispatch a parser for a value,
-    		indexed by the code of the value's first char.
-    		Key should be non-nil.
-    	--]]
+    	
     	dispatcher = { [0] =
     		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
     		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
@@ -1383,10 +1211,7 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		f_err, f_err, f_err, f_err, f_tru, f_err, f_err, f_err,
     		f_err, f_err, f_err, f_obj, f_err, f_err, f_err, f_err,
     	}
-
-    	--[[
-    		public funcitons
-    	--]]
+    	
     	local function run()
     		rec_depth = 0
     		spaces()
@@ -1394,7 +1219,6 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		pos = pos+1
     		f()
     	end
-
     	local function read(n)
     		if n < 0 then
     			error("the argument must be non-negative")
@@ -1411,11 +1235,9 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		end
     		return str
     	end
-
     	local function tellpos()
     		return acc + pos
     	end
-
     	return {
     		run = run,
     		tryc = tryc,
@@ -1423,7 +1245,6 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     		tellpos = tellpos,
     	}
     end
-
     local function newfileparser(fn, saxtbl)
     	local fp = open(fn)
     	local function gen()
@@ -1439,61 +1260,42 @@ __imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
     	end
     	return newparser(gen, saxtbl)
     end
-
     return {
     	newparser = newparser,
     	newfileparser = newfileparser
     }
-
 end
-
 __imports["lunajson.lunajson"] = __imports["lunajson.lunajson"] or function()
     local newdecoder = require('lunajson.decoder')
     local newencoder = require('lunajson.encoder')
     local sax = require('lunajson.sax')
-    -- If you need multiple contexts of decoder and/or encoder,
-    -- you can require lunajson.decoder and/or lunajson.encoder directly.
+
+
     return {
     	decode = newdecoder(),
     	encode = newencoder(),
     	newparser = sax.newparser,
     	newfileparser = sax.newfileparser,
     }
-
 end
-
 __imports["library.client"] = __imports["library.client"] or function()
-    --[[
-    $module Client
 
-    Get information about the current client. For the purposes of Finale Lua, the client is
-    the Finale application that's running on someones machine. Therefore, the client has
-    details about the user's setup, such as their Finale version, plugin version, and
-    operating system.
-
-    One of the main uses of using client details is to check its capabilities. As such,
-    the bulk of this library is helper functions to determine what the client supports.
-    ]] --
     local client = {}
-
     local function to_human_string(feature)
         return string.gsub(feature, "_", " ")
     end
-
     local function requires_later_plugin_version(feature)
         if feature then
             return "This script uses " .. to_human_string(feature) .. "which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
         end
         return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
     end
-
     local function requires_rgp_lua(feature)
         if feature then
             return "This script uses " .. to_human_string(feature) .. " which is not available on JW Lua. Please use RGP Lua instead to use this script."
         end
         return "This script requires RGP Lua, the successor of JW Lua. Please use RGP Lua instead to use this script."
     end
-
     local function requires_plugin_version(version, feature)
         if tonumber(version) <= 0.54 then
             if feature then
@@ -1507,22 +1309,10 @@ __imports["library.client"] = __imports["library.client"] or function()
         end
         return "This script requires RGP Lua version " .. version .. " or later. Please update your plugin to use this script."
     end
-
     local function requires_finale_version(version, feature)
         return "This script uses " .. to_human_string(feature) .. ", which is only available on Finale " .. version .. " or later"
     end
 
-    --[[
-    % get_raw_finale_version
-    Returns a raw Finale version from major, minor, and (optional) build parameters. For 32-bit Finale
-    this is the internal major Finale version, not the year.
-
-    @ major (number) Major Finale version
-    @ minor (number) Minor Finale version
-    @ [build] (number) zero if omitted
-
-    : (number)
-    ]]
     function client.get_raw_finale_version(major, minor, build)
         local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
         if build then
@@ -1531,19 +1321,10 @@ __imports["library.client"] = __imports["library.client"] or function()
         return retval
     end
 
-    --[[
-    % get_lua_plugin_version
-    Returns a number constructed from `finenv.MajorVersion` and `finenv.MinorVersion`. The reason not
-    to use `finenv.StringVersion` is that `StringVersion` can contain letters if it is a pre-release
-    version.
-
-    : (number)
-    ]]
     function client.get_lua_plugin_version()
         local num_string = tostring(finenv.MajorVersion) .. "." .. tostring(finenv.MinorVersion)
         return tonumber(num_string)
     end
-
     local features = {
         clef_change = {
             test = client.get_lua_plugin_version() >= 0.60,
@@ -1575,19 +1356,6 @@ __imports["library.client"] = __imports["library.client"] or function()
         },
     }
 
-    --[[
-    % supports
-
-    Checks the client supports a given feature. Returns true if the client
-    supports the feature, false otherwise.
-
-    To assert the client must support a feature, use `client.assert_supports`.
-
-    For a list of valid features, see the [`features` table in the codebase](https://github.com/finale-lua/lua-scripts/blob/master/src/library/client.lua#L52).
-
-    @ feature (string) The feature the client should support.
-    : (boolean)
-    ]]
     function client.supports(feature)
         if features[feature].test == nil then
             error("a test does not exist for feature " .. feature, 2)
@@ -1595,53 +1363,24 @@ __imports["library.client"] = __imports["library.client"] or function()
         return features[feature].test
     end
 
-    --[[
-    % assert_supports
-
-    Asserts that the client supports a given feature. If the client doesn't
-    support the feature, this function will throw an friendly error then
-    exit the program.
-
-    To simply check if a client supports a feature, use `client.supports`.
-
-    For a list of valid features, see the [`features` table in the codebase](https://github.com/finale-lua/lua-scripts/blob/master/src/library/client.lua#L52).
-
-    @ feature (string) The feature the client should support.
-    : (boolean)
-    ]]
     function client.assert_supports(feature)
         local error_level = finenv.DebugEnabled and 2 or 0
         if not client.supports(feature) then
             if features[feature].error then
                 error(features[feature].error, error_level)
             end
-            -- Generic error message
+
             error("Your Finale version does not support " .. to_human_string(feature), error_level)
         end
         return true
     end
-
     return client
-
 end
-
 __imports["library.general_library"] = __imports["library.general_library"] or function()
-    --[[
-    $module Library
-    ]] --
-    local library = {}
 
+    local library = {}
     local client = require("library.client")
 
-    --[[
-    % group_overlaps_region
-
-    Returns true if the input staff group overlaps with the input music region, otherwise false.
-
-    @ staff_group (FCGroup)
-    @ region (FCMusicRegion)
-    : (boolean)
-    ]]
     function library.group_overlaps_region(staff_group, region)
         if region:IsFullDocumentSpan() then
             return true
@@ -1664,16 +1403,6 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return true
     end
 
-    --[[
-    % group_is_contained_in_region
-
-    Returns true if the entire input staff group is contained within the input music region.
-    If the start or end staff are not visible in the region, it returns false.
-
-    @ staff_group (FCGroup)
-    @ region (FCMusicRegion)
-    : (boolean)
-    ]]
     function library.group_is_contained_in_region(staff_group, region)
         if not region:IsStaffIncluded(staff_group.StartStaff) then
             return false
@@ -1684,14 +1413,6 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return true
     end
 
-    --[[
-    % staff_group_is_multistaff_instrument
-
-    Returns true if the entire input staff group is a multistaff instrument.
-
-    @ staff_group (FCGroup)
-    : (boolean)
-    ]]
     function library.staff_group_is_multistaff_instrument(staff_group)
         local multistaff_instruments = finale.FCMultiStaffInstruments()
         multistaff_instruments:LoadAll()
@@ -1703,14 +1424,6 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return false
     end
 
-    --[[
-    % get_selected_region_or_whole_doc
-
-    Returns a region that contains the selected region if there is a selection or the whole document if there isn't.
-    SIDE-EFFECT WARNING: If there is no selected region, this function also changes finenv.Region() to the whole document.
-
-    : (FCMusicRegion)
-    ]]
     function library.get_selected_region_or_whole_doc()
         local sel_region = finenv.Region()
         if sel_region:IsEmpty() then
@@ -1719,19 +1432,11 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return sel_region
     end
 
-    --[[
-    % get_first_cell_on_or_after_page
-
-    Returns the first FCCell at the top of the input page. If the page is blank, it returns the first cell after the input page.
-
-    @ page_num (number)
-    : (FCCell)
-    ]]
     function library.get_first_cell_on_or_after_page(page_num)
         local curr_page_num = page_num
         local curr_page = finale.FCPage()
         local got1 = false
-        -- skip over any blank pages
+
         while curr_page:Load(curr_page_num) do
             if curr_page:GetFirstSystem() > 0 then
                 got1 = true
@@ -1744,19 +1449,12 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
             staff_sys:Load(curr_page:GetFirstSystem())
             return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
         end
-        -- if we got here there were nothing but blank pages left at the end
+
         local end_region = finale.FCMusicRegion()
         end_region:SetFullDocument()
         return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
     end
 
-    --[[
-    % get_top_left_visible_cell
-
-    Returns the topmost, leftmost visible FCCell on the screen, or the closest possible estimate of it.
-
-    : (FCCell)
-    ]]
     function library.get_top_left_visible_cell()
         if not finenv.UI():IsPageView() then
             local all_region = finale.FCMusicRegion()
@@ -1766,14 +1464,6 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return library.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())
     end
 
-    --[[
-    % get_top_left_selected_or_visible_cell
-
-    If there is a selection, returns the topmost, leftmost cell in the selected region.
-    Otherwise returns the best estimate for the topmost, leftmost currently visible cell.
-
-    : (FCCell)
-    ]]
     function library.get_top_left_selected_or_visible_cell()
         local sel_region = finenv.Region()
         if not sel_region:IsEmpty() then
@@ -1782,17 +1472,6 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return library.get_top_left_visible_cell()
     end
 
-    --[[
-    % is_default_measure_number_visible_on_cell
-
-    Returns true if measure numbers for the input region are visible on the input cell for the staff system.
-
-    @ meas_num_region (FCMeasureNumberRegion)
-    @ cell (FCCell)
-    @ staff_system (FCStaffSystem)
-    @ current_is_part (boolean) true if the current view is a linked part, otherwise false
-    : (boolean)
-    ]]
     function library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
         local staff = finale.FCCurrentStaffSpec()
         if not staff:LoadForCell(cell, 0) then
@@ -1810,15 +1489,6 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return false
     end
 
-    --[[
-    % calc_parts_boolean_for_measure_number_region
-
-    Returns the correct boolean value to use when requesting information about a measure number region.
-
-    @ meas_num_region (FCMeasureNumberRegion)
-    @ [for_part] (boolean) true if requesting values for a linked part, otherwise false. If omitted, this value is calculated.
-    : (boolean) the value to pass to FCMeasureNumberRegion methods with a parts boolean
-    ]]
     function library.calc_parts_boolean_for_measure_number_region(meas_num_region, for_part)
         if meas_num_region.UseScoreInfoForParts then
             return false
@@ -1829,18 +1499,6 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return for_part
     end
 
-    --[[
-    % is_default_number_visible_and_left_aligned
-
-    Returns true if measure number for the input cell is visible and left-aligned.
-
-    @ meas_num_region (FCMeasureNumberRegion)
-    @ cell (FCCell)
-    @ system (FCStaffSystem)
-    @ current_is_part (boolean) true if the current view is a linked part, otherwise false
-    @ is_for_multimeasure_rest (boolean) true if the current cell starts a multimeasure rest
-    : (boolean)
-    ]]
     function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
         current_is_part = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
         if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
@@ -1865,14 +1523,6 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return library.is_default_measure_number_visible_on_cell(meas_num_region, cell, system, current_is_part)
     end
 
-    --[[
-    % update_layout
-
-    Updates the page layout.
-
-    @ [from_page] (number) page to update from, defaults to 1
-    @ [unfreeze_measures] (boolean) defaults to false
-    ]]
     function library.update_layout(from_page, unfreeze_measures)
         from_page = from_page or 1
         unfreeze_measures = unfreeze_measures or false
@@ -1882,39 +1532,18 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         end
     end
 
-    --[[
-    % get_current_part
-
-    Returns the currently selected part or score.
-
-    : (FCPart)
-    ]]
     function library.get_current_part()
         local part = finale.FCPart(finale.PARTID_CURRENT)
         part:Load(part.ID)
         return part
     end
 
-    --[[
-    % get_score
-
-    Returns an `FCPart` instance that represents the score.
-
-    : (FCPart)
-    ]]
     function library.get_score()
         local part = finale.FCPart(finale.PARTID_SCORE)
         part:Load(part.ID)
         return part
     end
 
-    --[[
-    % get_page_format_prefs
-
-    Returns the default page format prefs for score or parts based on which is currently selected.
-
-    : (FCPageFormatPrefs)
-    ]]
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
@@ -1926,7 +1555,6 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         end
         return page_format_prefs, success
     end
-
     local calc_smufl_directory = function(for_user)
         local is_on_windows = finenv.UI():IsOnWindows()
         local do_getenv = function(win_var, mac_var)
@@ -1943,19 +1571,6 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         smufl_directory = smufl_directory .. "/SMuFL/Fonts/"
         return smufl_directory
     end
-
-    --[[
-    % get_smufl_font_list
-
-    Returns table of installed SMuFL font names by searching the directory that contains
-    the .json files for each font. The table is in the format:
-
-    ```lua
-    <font-name> = "user" | "system"
-    ```
-
-    : (table) an table with SMuFL font names as keys and values "user" or "system"
-    ]]
 
     function library.get_smufl_font_list()
         local font_names = {}
@@ -1990,49 +1605,32 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return font_names
     end
 
-    --[[
-    % get_smufl_metadata_file
-
-    @ [font_info] (FCFontInfo) if non-nil, the font to search for; if nil, search for the Default Music Font
-    : (file handle|nil)
-    ]]
     function library.get_smufl_metadata_file(font_info)
         if not font_info then
             font_info = finale.FCFontInfo()
             font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
         end
-
         local try_prefix = function(prefix, font_info)
             local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
             return io.open(file_path, "r")
         end
-
         local user_file = try_prefix(calc_smufl_directory(true), font_info)
         if user_file then
             return user_file
         end
-
         return try_prefix(calc_smufl_directory(false), font_info)
     end
 
-    --[[
-    % is_font_smufl_font
-
-    @ [font_info] (FCFontInfo) if non-nil, the font to check; if nil, check the Default Music Font
-    : (boolean)
-    ]]
     function library.is_font_smufl_font(font_info)
         if not font_info then
             font_info = finale.FCFontInfo()
             font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
         end
-
         if client.supports("smufl") then
-            if nil ~= font_info.IsSMuFLFont then -- if this version of the lua interpreter has the IsSMuFLFont property (i.e., RGP Lua 0.59+)
+            if nil ~= font_info.IsSMuFLFont then
                 return font_info.IsSMuFLFont
             end
         end
-
         local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
         if nil ~= smufl_metadata_file then
             io.close(smufl_metadata_file)
@@ -2041,28 +1639,19 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return false
     end
 
-    --[[
-    % simple_input
-
-    Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
-
-    @ [title] (string) the title of the input dialog box
-    @ [text] (string) descriptive text above the edit field
-    : string
-    ]]
     function library.simple_input(title, text)
         local return_value = finale.FCString()
         return_value.LuaString = ""
         local str = finale.FCString()
         local min_width = 160
-        --
+
         function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             str.LuaString = st
             ctrl:SetText(str)
-        end -- function format_ctrl
-        --
+        end
+
         title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
@@ -2071,53 +1660,35 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         if text_width > min_width then
             min_width = text_width
         end
-        --
+
         str.LuaString = title
         local dialog = finale.FCCustomLuaWindow()
         dialog:SetTitle(str)
         local descr = dialog:CreateStatic(0, 0)
         format_ctrl(descr, 16, min_width, text)
         local input = dialog:CreateEdit(0, 20)
-        format_ctrl(input, 20, min_width, "") -- edit "" for defualt value
+        format_ctrl(input, 20, min_width, "")
         dialog:CreateOkButton()
         dialog:CreateCancelButton()
-        --
+
         function callback(ctrl)
-        end -- callback
-        --
+        end
+
         dialog:RegisterHandleCommand(callback)
-        --
+
         if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
             return_value.LuaString = input:GetText(return_value)
-            -- print(return_value.LuaString)
+
             return return_value.LuaString
-            -- OK button was pressed
+
         end
-    end -- function simple_input
+    end
 
-    --[[
-    % is_finale_object
-
-    Attempts to determine if an object is a Finale object through ducktyping
-
-    @ object (__FCBase)
-    : (bool)
-    ]]
     function library.is_finale_object(object)
-        -- All finale objects implement __FCBase, so just check for the existence of __FCBase methods
+
         return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
     end
 
-    --[[
-    % system_indent_set_to_prefs
-
-    Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
-    The page preferences may be provided optionally to avoid loading them for each call.
-
-    @ system (FCStaffSystem)
-    @ [page_format_prefs] (FCPageFormatPrefs) page format preferences to use, if supplied.
-    : (boolean) `true` if the system was successfully updated.
-    ]]
     function library.system_indent_set_to_prefs(system, page_format_prefs)
         page_format_prefs = page_format_prefs or library.get_page_format_prefs()
         local first_meas = finale.FCMeasure()
@@ -2135,22 +1706,14 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return system:Save()
     end
 
-    --[[
-    % calc_script_name
-
-    Returns the running script name, with or without extension.
-
-    @ [include_extension] (boolean) Whether to include the file extension in the return value: `false` if omitted
-    : (string) The name of the current running script.
-    ]]
     function library.calc_script_name(include_extension)
         local fc_string = finale.FCString()
         if finenv.RunningLuaFilePath then
-            -- Use finenv.RunningLuaFilePath() if available because it doesn't ever get overwritten when retaining state.
+
             fc_string.LuaString = finenv.RunningLuaFilePath()
         else
-            -- This code path is only taken by JW Lua (and very early versions of RGP Lua).
-            -- SetRunningLuaFilePath is not reliable when retaining state, so later versions use finenv.RunningLuaFilePath.
+
+
             fc_string:SetRunningLuaFilePath()
         end
         local filename_string = finale.FCString()
@@ -2165,13 +1728,6 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return retval
     end
 
-    --[[
-    % get_default_music_font_name
-
-    Fetches the default music font from document options and processes the name into a usable format.
-
-    : (string) The name of the defalt music font.
-    ]]
     function library.get_default_music_font_name()
         local fontinfo = finale.FCFontInfo()
         local default_music_font_name = finale.FCString()
@@ -2180,11 +1736,8 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
             return default_music_font_name.LuaString
         end
     end
-
     return library
-
 end
-
 function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -2193,11 +1746,8 @@ function plugindef()
     finaleplugin.CategoryTags = "Layout"
     return "Load SMuFL Engraving Defaults", "Load SMuFL Engraving Defaults", "Loads engraving defaults for the current SMuFL Default Music Font."
 end
-
-
 local luna = require("lunajson.lunajson")
 local library = require("library.general_library")
-
 function smufl_load_engraving_defaults()
     local font_info = finale.FCFontInfo()
     font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
@@ -2209,12 +1759,10 @@ function smufl_load_engraving_defaults()
     local json = font_json_file:read("*all")
     io.close(font_json_file)
     local font_metadata = luna.decode(json)
-
     local evpuPerSpace = 24.0
     local efixPerEvpu = 64.0
     local efixPerSpace = evpuPerSpace * efixPerEvpu
 
-    -- read our current doc options
     local music_char_prefs = finale.FCMusicCharacterPrefs()
     music_char_prefs:Load(1)
     local distance_prefs = finale.FCDistancePrefs()
@@ -2232,12 +1780,10 @@ function smufl_load_engraving_defaults()
     local tuplet_prefs = finale.FCTupletPrefs()
     tuplet_prefs:Load(1)
 
-    -- Beam spacing has to be calculated in terms of beam thickness, because the json spec
-    -- calls for inner distance whereas Finale is top edge to top edge. So hold the value
+
     local beamSpacingFound = 0
     local beamWidthFound = math.floor(size_prefs.BeamThickness/efixPerEvpu + 0.5)
 
-    -- define actions for each of the fields of font_info.engravingDefaults
     local action = {
         staffLineThickness = function(v) size_prefs.StaffLineThickness = math.floor(efixPerSpace*v + 0.5) end,
         stemThickness = function(v) size_prefs.StemLineThickness = math.floor(efixPerSpace*v + 0.5) end,
@@ -2289,13 +1835,13 @@ function smufl_load_engraving_defaults()
                 repeat_prefs:SetForwardSpace(math.floor(newVal + 0.5))
                 repeat_prefs:SetBackwardSpace(math.floor(newVal + 0.5))
             end,
-        bracketThickness = function(v) end, -- Not supported. (Finale doesn't seem to have this pref setting.)
-        subBracketThickness = function(v) end, -- Not supported. (Finale doesn't seem to have this pref setting.)
+        bracketThickness = function(v) end,
+        subBracketThickness = function(v) end,
         hairpinThickness = function(v) smart_shape_prefs.HairpinLineWidth = math.floor(efixPerSpace*v + 0.5) end,
         octaveLineThickness = function(v) smart_shape_prefs.LineWidth = math.floor(efixPerSpace*v + 0.5) end,
-        pedalLineThickness = function(v) end, -- To Do: requires finding and editing Custom Lines
+        pedalLineThickness = function(v) end,
         repeatEndingLineThickness = function(v) repeat_prefs.EndingLineThickness = math.floor(efixPerSpace*v + 0.5) end,
-        arrowShaftThickness = function(v) end, -- To Do: requires finding and editing Custom Lines
+        arrowShaftThickness = function(v) end,
         lyricLineThickness = function(v) lyrics_prefs.WordExtLineThickness = math.floor(efixPerSpace*v + 0.5) end,
         textEnclosureThickness = function(v)
                 size_prefs.EnclosureThickness = math.floor(efixPerSpace*v + 0.5)
@@ -2349,24 +1895,20 @@ function smufl_load_engraving_defaults()
         tupletBracketThickness = function(v)
                 tuplet_prefs.BracketThickness = math.floor(efixPerSpace*v + 0.5)
             end,
-        hBarThickness = function(v) end -- Not supported. (Can't edit FCShape in Lua. Hard even in PDK.)
+        hBarThickness = function(v) end
     }
 
-    -- apply each action from the json file
     for k, v in pairs(font_metadata.engravingDefaults) do
         local action_function = action[k]
         if nil ~= action_function then
             action_function(tonumber(v))
         end
     end
-
     if 0 ~= beamSpacingFound then
         distance_prefs.SecondaryBeamSpace = beamSpacingFound + beamWidthFound
 
-        -- Currently, the json files for Finale measure beam separation from top edge to top edge
-        -- whereas the spec specifies that it be only the distance between the inner edges. This will
-        -- probably be corrected at some point, but for now hard-code around it. Hopefully this code will
-        -- get a Finale version check at some point.
+
+
 
         local finale_prefix = "Finale "
         if finale_prefix == font_info.Name:sub(1, #finale_prefix) then
@@ -2374,7 +1916,6 @@ function smufl_load_engraving_defaults()
         end
     end
 
-    -- save new preferences
     distance_prefs:Save()
     size_prefs:Save()
     lyrics_prefs:Save()
@@ -2383,5 +1924,4 @@ function smufl_load_engraving_defaults()
     tie_prefs:Save()
     tuplet_prefs:Save()
 end
-
 smufl_load_engraving_defaults()

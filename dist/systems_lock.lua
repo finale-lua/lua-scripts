@@ -21,9 +21,7 @@ function plugindef()
     ]]
     return "Lock Systems (All)", "Lock Systems (All)", "Lock All Systems (Score & Parts)"
 end
-
 lock = lock or "All"
-
 function systems_lock()
     local systems = finale.FCStaffSystems()
     systems:LoadAll()
@@ -38,7 +36,6 @@ function systems_lock()
         sys:Save()
     end
 end
-
 function parts_switch(lock_score, lock_parts)
     local part_current = finale.FCPart(1)
     part_current:SetCurrent()
@@ -56,20 +53,15 @@ function parts_switch(lock_score, lock_parts)
     end
     part_current:SwitchTo()
 end
-
 function formatting_systems_lock(lock)
     lock = lock or "All"
-
     local lock_score = true
     local lock_parts = true
-
     if lock == "Score" then
         lock_parts = false
     elseif lock == "Parts" then
         lock_score = false
     end
-
     parts_switch(lock_score, lock_parts)
 end
-
 formatting_systems_lock(lock)

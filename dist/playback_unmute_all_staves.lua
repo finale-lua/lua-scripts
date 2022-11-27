@@ -10,7 +10,6 @@ function plugindef()
     ]]
     return "Unmute all staves", "Unmute all staves", "Unmutes all staves"
 end
-
 function playback_unmute_all_staves()
     local full_doc_region = finale.FCMusicRegion()
     full_doc_region:SetFullDocument()
@@ -27,5 +26,4 @@ function playback_unmute_all_staves()
         playback_data:Save()
     end
 end
-
 playback_unmute_all_staves()

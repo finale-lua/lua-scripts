@@ -11,26 +11,20 @@ function plugindef()
     return "Note Duration Statistics", "Note Duration Statistics",
            "Counts the number of each note value in a given region"
 end
-
--- Set up an empty table for duration statistics
 local totalnotes = 0
 local durationstatistics = {}
 for e in eachentry(finenv.Region()) do
     if e:IsNote() then
         if durationstatistics[e.Duration] == nil then
-            -- No statistics exists for this duration - create a counter
+
             durationstatistics[e.Duration] = 1
         else
-            -- Increase the counter for this duration
+
             durationstatistics[e.Duration] = durationstatistics[e.Duration] + 1
         end
         totalnotes = totalnotes + 1
     end
 end
-
--- A look-up table for durations.
--- Add other values to the table if necessary (can be added as number values as well).
--- Quarter Note is 1024, Dotted Quarter Note is 1536, etc
 local durationtable = {
     [finale.NOTE_128TH] = "128th Notes",
     [finale.SIXTYFOURTH_NOTE] = "64th Notes",
@@ -51,16 +45,12 @@ local durationtable = {
     [6144] = "Dotted Whole Notes",
     [12288] = "Dotted Breve Notes",
 }
-
 userMessage = finale.FCString();
-
 print("Total Count : ", totalnotes)
 userMessage:AppendLuaString("Total Count : " .. totalnotes .. userMessage:GetEOL())
-
--- Report the statistics sorted by duration
 for key, value in pairsbykeys(durationstatistics) do
     if durationtable[key] == nil then
-        -- Not a duration with a known "text version" - output EDU value instead
+
         print("EDU duration", key, ":", value)
         userMessage:AppendLuaString("EDU duration " .. key .. " : " .. value .. userMessage:GetEOL())
     else
@@ -68,6 +58,5 @@ for key, value in pairsbykeys(durationstatistics) do
         userMessage:AppendLuaString(durationtable[key] .. " : " .. value .. userMessage:GetEOL())
     end
 end
-
 local ui = finenv.UI()
 ui:AlertInfo(userMessage.LuaString, "Note Durations Statistics")

@@ -1,6 +1,6 @@
 function plugindef()
-   -- This function and the 'finaleplugin' namespace
-   -- are both reserved for the plug-in definition.
+
+
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0"
@@ -15,15 +15,8 @@ function plugindef()
     return "Expression Find Orphans", "Expression Find Orphans",
            "Reports any orphaned expression definitions not visible in the Expression Selection Dialog."
 end
-
-
 local new_line_string = "\n"
-
--- :LoadAll() suffers from the same problem that the Expression Selection Dialog does. It stops looking once it hits a gap.
--- So search all possible values. (It turns out attempting to load non-existent values is not a noticable performance hit.)
-
 local max_value_to_search = 32767
-
 local get_report_string_for_orphans = function(orphaned_exps, is_for_shape)
     local type_string = "Text Expression"
     if is_for_shape then
@@ -58,7 +51,6 @@ local get_report_string_for_orphans = function(orphaned_exps, is_for_shape)
     end
     return report_string
 end
-
 local expression_find_orphans_for_type = function(is_for_shape)
     local exp_def = nil
     if is_for_shape then
@@ -83,7 +75,6 @@ local expression_find_orphans_for_type = function(is_for_shape)
     end
     return orphaned_exps, max_valid, max_found
 end
-
 function expression_find_orphaned_definitions()
     local orphaned_text_exps, text_max_valid, text_max_found = expression_find_orphans_for_type(false)
     local orphaned_shape_exps, shape_max_valid, shape_max_found = expression_find_orphans_for_type(true)
@@ -94,7 +85,7 @@ function expression_find_orphaned_definitions()
         report_string = report_string .. get_report_string_for_orphans(orphaned_text_exps, false)
     end
     if #orphaned_shape_exps > 0 then
-        if got_orphan then -- if we found text exps as well
+        if got_orphan then
             report_string = report_string .. new_line_string .. new_line_string
         else
             got_orphan = true
@@ -108,5 +99,4 @@ function expression_find_orphaned_definitions()
         finenv.UI():AlertInfo("", "No Orphaned Expressions Found")
     end
 end
-
 expression_find_orphaned_definitions()

@@ -1,6 +1,6 @@
 function plugindef()
-   -- This function and the 'finaleplugin' namespace
-   -- are both reserved for the plug-in definition.
+
+
        finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "1.0"
@@ -8,13 +8,10 @@ function plugindef()
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
    return "Reset Lyric Baselines (system specific)", "Reset Lyric Baselines (system specific)", "Resets Lyric Baselines on a system-by-system basis (3rd triangle)"
 end
-
-
 function lyrics_baseline_reset()
     local region = finenv.Region()
     local systems = finale.FCStaffSystems()
     systems:LoadAll()
-
     local start_measure = region:GetStartMeasure()
     local end_measure = region:GetEndMeasure()
     local system = systems:FindMeasureNumber(start_measure)
@@ -23,7 +20,6 @@ function lyrics_baseline_reset()
     local lastSys_number = lastSys:GetItemNo()
     local start_staff = region:GetStartStaff()
     local end_staff = region:GetEndStaff()
-
     for i = system_number, lastSys_number, 1 do
         local baselines_verse = finale.FCBaselines()
         local baselines_chorus = finale.FCBaselines()
@@ -37,11 +33,11 @@ function lyrics_baseline_reset()
                 baseline_verse = baselines_verse:AssureSavedLyricNumber(finale.BASELINEMODE_LYRICSVERSE, i, j, k)
                 baseline_verse.VerticalOffset = 0
                 baseline_verse:Save()
-                --
+
                 baseline_chorus = baselines_chorus:AssureSavedLyricNumber(finale.BASELINEMODE_LYRICSCHORUS, i, j, k)
                 baseline_chorus.VerticalOffset = 0
                 baseline_chorus:Save()
-                --
+
                 baseline_section = baselines_section:AssureSavedLyricNumber(finale.BASELINEMODE_LYRICSSECTION, i, j, k)
                 baseline_section.VerticalOffset = 0
                 baseline_section:Save()
@@ -49,5 +45,4 @@ function lyrics_baseline_reset()
         end
     end
 end
-
 lyrics_baseline_reset()

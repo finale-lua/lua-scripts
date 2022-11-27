@@ -1,38 +1,24 @@
 __imports = __imports or {}
 __import_results = __import_results or {}
-
 function require(item)
     if not __imports[item] then
         error("module '" .. item .. "' not found")
     end
-
     if __import_results[item] == nil then
         __import_results[item] = __imports[item]()
         if __import_results[item] == nil then
             __import_results[item] = true
         end
     end
-
     return __import_results[item]
 end
-
 __imports["library.note_entry"] = __imports["library.note_entry"] or function()
-    --[[
-    $module Note Entry
-    ]] --
+
     local note_entry = {}
 
-    --[[
-    % get_music_region
-
-    Returns an intance of `FCMusicRegion` that corresponds to the metric location of the input note entry.
-
-    @ entry (FCNoteEntry)
-    : (FCMusicRegion)
-    ]]
     function note_entry.get_music_region(entry)
         local exp_region = finale.FCMusicRegion()
-        exp_region:SetCurrentSelection() -- called to match the selected IU list (e.g., if using Staff Sets)
+        exp_region:SetCurrentSelection()
         exp_region.StartStaff = entry.Staff
         exp_region.EndStaff = entry.Staff
         exp_region.StartMeasure = entry.Measure
@@ -42,8 +28,7 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return exp_region
     end
 
-    -- entry_metrics can be omitted, in which case they are constructed and released here
-    -- return entry_metrics, loaded_here
+
     local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
         if entry_metrics then
             return entry_metrics, false
@@ -55,31 +40,13 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return nil, false
     end
 
-    --[[
-    % get_evpu_notehead_height
-
-    Returns the calculated height of the notehead rectangle.
-
-    @ entry (FCNoteEntry)
-
-    : (number) the EVPU height
-    ]]
     function note_entry.get_evpu_notehead_height(entry)
         local highest_note = entry:CalcHighestNote(nil)
         local lowest_note = entry:CalcLowestNote(nil)
-        local evpu_height = (2 + highest_note:CalcStaffPosition() - lowest_note:CalcStaffPosition()) * 12 -- 12 evpu per staff step; add 2 staff steps to accommodate for notehead height at top and bottom
+        local evpu_height = (2 + highest_note:CalcStaffPosition() - lowest_note:CalcStaffPosition()) * 12
         return evpu_height
     end
 
-    --[[
-    % get_top_note_position
-
-    Returns the vertical page coordinate of the top of the notehead rectangle, not including the stem.
-
-    @ entry (FCNoteEntry)
-    @ [entry_metrics] (FCEntryMetrics) entry metrics may be supplied by the caller if they are already available
-    : (number)
-    ]]
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
         local loaded_here = false
@@ -104,15 +71,6 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return retval
     end
 
-    --[[
-    % get_bottom_note_position
-
-    Returns the vertical page coordinate of the bottom of the notehead rectangle, not including the stem.
-
-    @ entry (FCNoteEntry)
-    @ [entry_metrics] (FCEntryMetrics) entry metrics may be supplied by the caller if they are already available
-    : (number)
-    ]]
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
         local loaded_here = false
@@ -137,14 +95,6 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return retval
     end
 
-    --[[
-    % calc_widths
-
-    Get the widest left-side notehead width and widest right-side notehead width.
-
-    @ entry (FCNoteEntry)
-    : (number, number) widest left-side notehead width and widest right-side notehead width
-    ]]
     function note_entry.calc_widths(entry)
         local left_width = 0
         local right_width = 0
@@ -165,18 +115,9 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return left_width, right_width
     end
 
-    -- These functions return the offset for an expression handle.
-    -- Expression handles are vertical when they are left-aligned
-    -- with the primary notehead rectangle.
 
-    --[[
-    % calc_left_of_all_noteheads
 
-    Calculates the handle offset for an expression with "Left of All Noteheads" horizontal positioning.
 
-    @ entry (FCNoteEntry) the entry to calculate from
-    : (number) offset from left side of primary notehead rectangle
-    ]]
     function note_entry.calc_left_of_all_noteheads(entry)
         if entry:CalcStemUp() then
             return 0
@@ -185,26 +126,10 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return -left
     end
 
-    --[[
-    % calc_left_of_primary_notehead
-
-    Calculates the handle offset for an expression with "Left of Primary Notehead" horizontal positioning.
-
-    @ entry (FCNoteEntry) the entry to calculate from
-    : (number) offset from left side of primary notehead rectangle
-    ]]
     function note_entry.calc_left_of_primary_notehead(entry)
         return 0
     end
 
-    --[[
-    % calc_center_of_all_noteheads
-
-    Calculates the handle offset for an expression with "Center of All Noteheads" horizontal positioning.
-
-    @ entry (FCNoteEntry) the entry to calculate from
-    : (number) offset from left side of primary notehead rectangle
-    ]]
     function note_entry.calc_center_of_all_noteheads(entry)
         local left, right = note_entry.calc_widths(entry)
         local width_centered = (left + right) / 2
@@ -214,14 +139,6 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return width_centered
     end
 
-    --[[
-    % calc_center_of_primary_notehead
-
-    Calculates the handle offset for an expression with "Center of Primary Notehead" horizontal positioning.
-
-    @ entry (FCNoteEntry) the entry to calculate from
-    : (number) offset from left side of primary notehead rectangle
-    ]]
     function note_entry.calc_center_of_primary_notehead(entry)
         local left, right = note_entry.calc_widths(entry)
         if entry:CalcStemUp() then
@@ -230,14 +147,6 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return right / 2
     end
 
-    --[[
-    % calc_stem_offset
-
-    Calculates the offset of the stem from the left edge of the notehead rectangle. Eventually the PDK Framework may be able to provide this instead.
-
-    @ entry (FCNoteEntry) the entry to calculate from
-    : (number) offset of stem from the left edge of the notehead rectangle.
-    ]]
     function note_entry.calc_stem_offset(entry)
         if not entry:CalcStemUp() then
             return 0
@@ -246,14 +155,6 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return left
     end
 
-    --[[
-    % calc_right_of_all_noteheads
-
-    Calculates the handle offset for an expression with "Right of All Noteheads" horizontal positioning.
-
-    @ entry (FCNoteEntry) the entry to calculate from
-    : (number) offset from left side of primary notehead rectangle
-    ]]
     function note_entry.calc_right_of_all_noteheads(entry)
         local left, right = note_entry.calc_widths(entry)
         if entry:CalcStemUp() then
@@ -262,16 +163,6 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return right
     end
 
-    --[[
-    % calc_note_at_index
-
-    This function assumes `for note in each(note_entry)` always iterates in the same direction.
-    (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
-    Currently the PDK Framework does not seem to offer a better option.
-
-    @ entry (FCNoteEntry)
-    @ note_index (number) the zero-based index
-    ]]
     function note_entry.calc_note_at_index(entry, note_index)
         local x = 0
         for note in each(entry) do
@@ -283,15 +174,6 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return nil
     end
 
-    --[[
-    % stem_sign
-
-    This is useful for many x,y positioning fields in Finale that mirror +/-
-    based on stem direction.
-
-    @ entry (FCNoteEntry)
-    : (number) 1 if upstem, -1 otherwise
-    ]]
     function note_entry.stem_sign(entry)
         if entry:CalcStemUp() then
             return 1
@@ -299,12 +181,6 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return -1
     end
 
-    --[[
-    % duplicate_note
-
-    @ note (FCNote)
-    : (FCNote | nil) reference to added FCNote or `nil` if not success
-    ]]
     function note_entry.duplicate_note(note)
         local new_note = note.Entry:AddNewNote()
         if nil ~= new_note then
@@ -316,43 +192,24 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return new_note
     end
 
-    --[[
-    % delete_note
-
-    Removes the specified FCNote from its associated FCNoteEntry.
-
-    @ note (FCNote)
-    : (boolean) true if success
-    ]]
     function note_entry.delete_note(note)
         local entry = note.Entry
         if nil == entry then
             return false
         end
 
-        -- attempt to delete all associated entry-detail mods, but ignore any failures
         finale.FCAccidentalMod():EraseAt(note)
         finale.FCCrossStaffMod():EraseAt(note)
         finale.FCDotMod():EraseAt(note)
         finale.FCNoteheadMod():EraseAt(note)
         finale.FCPercussionNoteMod():EraseAt(note)
         finale.FCTablatureNoteMod():EraseAt(note)
-        if finale.FCTieMod then -- added in RGP Lua 0.62
+        if finale.FCTieMod then
             finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
             finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
         end
-
         return entry:DeleteNote(note)
     end
-
-    --[[
-    % calc_pitch_string
-
-    Calculates the pitch string of a note for display purposes.
-
-    @ note (FCNote)
-    : (string) display string for note
-    ]]
 
     function note_entry.calc_pitch_string(note)
         local pitch_string = finale.FCString()
@@ -362,14 +219,6 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return pitch_string
     end
 
-    --[[
-    % calc_spans_number_of_octaves
-
-    Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).
-
-    @ entry (FCNoteEntry) the entry to calculate from
-    : (number) of octaves spanned
-    ]]
     function note_entry.calc_spans_number_of_octaves(entry)
         local top_note = entry:CalcHighestNote(nil)
         local bottom_note = entry:CalcLowestNote(nil)
@@ -378,28 +227,11 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return num_octaves
     end
 
-    --[[
-    % add_augmentation_dot
-
-    Adds an augentation dot to the entry. This works even if the entry already has one or more augmentation dots.
-
-    @ entry (FCNoteEntry) the entry to which to add the augmentation dot
-    ]]
     function note_entry.add_augmentation_dot(entry)
-        -- entry.Duration = entry.Duration | (entry.Duration >> 1) -- For Lua 5.3 and higher
+
         entry.Duration = bit32.bor(entry.Duration, bit32.rshift(entry.Duration, 1))
     end
 
-    --[[
-    % get_next_same_v
-
-    Returns the next entry in the same V1 or V2 as the input entry.
-    If the input entry is V2, only the current V2 launch is searched.
-    If the input entry is V1, only the current measure and layer is searched.
-
-    @ entry (FCNoteEntry) the entry to process
-    : (FCNoteEntry) the next entry or `nil` in none
-    ]]
     function note_entry.get_next_same_v(entry)
         local next_entry = entry:Next()
         if entry.Voice2 then
@@ -416,13 +248,6 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return next_entry
     end
 
-    --[[
-    % hide_stem
-
-    Hides the stem of the entry by replacing it with Shape 0.
-
-    @ entry (FCNoteEntry) the entry to process
-    ]]
     function note_entry.hide_stem(entry)
         local stem = finale.FCCustomStemMod()
         stem:SetNoteEntry(entry)
@@ -436,15 +261,6 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         end
     end
 
-    --[[
-    % rest_offset
-
-    Confirms the entry is a rest then offsets it from the staff rest "center" position. 
-
-    @ entry (FCNoteEntry) the entry to process
-    @ offset (number) offset in half spaces
-    : (boolean) true if success
-    ]]
     function note_entry.rest_offset(entry, offset)
         if entry:IsNote() then
             return false
@@ -470,14 +286,11 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         end
         return true
     end
-
     return note_entry
-
 end
-
 function plugindef()
     finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Jacob Winkler" -- With help & advice from CJ Garcia, Nick Mazuk, and Jan Angermüller. Thanks guys!
+    finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "©2019 Jacob Winkler"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Version = "1.0"
@@ -497,10 +310,10 @@ local measure = {}
 
 local horizontal_offset = -20
 
--- FUNCTION 1: Delete and Hide Notes
+
 local function process_notes(music_region)
     local stem_dir = {}
-    -- First build up a table of the initial stem direction information
+
     for entry in eachentrysaved(region) do
         entry.FreezeStem = false
         table.insert(stem_dir, entry:CalcStemUp())
@@ -509,8 +322,8 @@ local function process_notes(music_region)
     layer.copy(1, 2)
     layer.copy(1, 3)
 
-    local i = 1 -- To iterate stem direction table for Layer 1
-    local j = 1 -- To iterate stem direction table for Layer 2
+    local i = 1
+    local j = 1
 
     for note_entry in eachentrysaved(music_region) do
         local span = note_entry:CalcDisplacementRange(nil)
@@ -571,11 +384,11 @@ local function process_notes(music_region)
     end
 end
 
--- Function 2: Hide Stems (from JW's Harp Gliss script, modified)
+
 function hide_stems(entry, stem_direction)
     local stem = finale.FCCustomStemMod()
     stem:SetNoteEntry(entry)
-    if stem_direction then -- Reverse "stemDir"
+    if stem_direction then
         stem_direction = false
     else
         stem_direction = true
@@ -588,18 +401,18 @@ function hide_stems(entry, stem_direction)
         stem.ShapeID = 0
         stem:SaveNew()
     end
-    entry:SetBeamBeat(true) -- Since flags get hidden, use this instead of trying tro change beam width
+    entry:SetBeamBeat(true)
 end
 
--- Function 3 - Copy Layer "src" to Layer "dest"
-function layer.copy(source, destination) -- source and destination layer numbers, 1 based
+
+function layer.copy(source, destination)
     local region = finenv.Region()
     local start = region.StartMeasure
     local stop = region.EndMeasure
     local system_staves = finale.FCSystemStaves()
     system_staves:LoadAllForRegion(region)
 
-    -- Set variables for 0-based layers
+
     source = source - 1
     destination = destination - 1
     for system_staff in each(system_staves) do
@@ -613,7 +426,7 @@ function layer.copy(source, destination) -- source and destination layer numbers
     end
 end
 
--- Function 4 - Delete the bottom notes, leaving only the top
+
 function delete_bottom_notes(entry)
     while entry.Count > 1 do
         local lowest_note = entry:CalcLowestNote(nil)
@@ -621,7 +434,7 @@ function delete_bottom_notes(entry)
     end
 end
 
--- Function 5 - Delete the top notes, leaving only the bottom
+
 function delete_top_notes(entry)
     while entry.Count > 1 do
         local highest_note = entry:CalcHighestNote(nil)
@@ -629,7 +442,7 @@ function delete_top_notes(entry)
     end
 end
 
--- Function 6 - Delete the Top and Bottom Notes
+
 function delete_top_bottom_notes(entry)
     local highest_note = entry:CalcHighestNote(nil)
     note_entry.delete_note(highest_note)
@@ -637,7 +450,7 @@ function delete_top_bottom_notes(entry)
     note_entry.delete_note(lowest_note)
 end
 
--- Function 6.1 - Delete the middle notes
+
 function delete_middle_notes(entry)
     while entry.Count > 2 do
         local n = 1
@@ -653,17 +466,17 @@ function delete_middle_notes(entry)
     end
 end
 
--- Function 7: Create the custom line to use (or choose it if it already exists)
+
 local function create_cluster_line()
-    -- Check to see if the right line exists. If it does, get the line ID
+
     local line_exists = false
     local my_line = 0
-    local my_line_width = 64 * 24 * .5 -- 64 EFIXes * 24EVPUs * .5 = 1/2 space
+    local my_line_width = 64 * 24 * .5
     local custom_start_line_defs = finale.FCCustomSmartLineDefs()
     custom_start_line_defs:LoadAll()
     for csld in each(custom_start_line_defs) do
-        if csld.LineStyle == finale.CUSTOMLINE_SOLID and csld.LineWidth == my_line_width then -- 1st if: Solid line, 740
-            if csld.StartArrowheadStyle == finale.CLENDPOINT_NONE and csld.EndArrowheadStyle == finale.CLENDPOINT_NONE then -- 2nd if (arrowhead styles)
+        if csld.LineStyle == finale.CUSTOMLINE_SOLID and csld.LineWidth == my_line_width then
+            if csld.StartArrowheadStyle == finale.CLENDPOINT_NONE and csld.EndArrowheadStyle == finale.CLENDPOINT_NONE then
                 if csld.Horizontal == false then
                     my_line = csld.ItemNo
                     line_exists = true
@@ -672,7 +485,7 @@ local function create_cluster_line()
         end
     end
 
-    -- if the line does not exist, create it and get the line ID
+
     if line_exists == false then
         local csld = finale.FCCustomSmartLineDef()
         csld.Horizontal = false
@@ -686,17 +499,17 @@ local function create_cluster_line()
     return my_line
 end
 
--- Function 7.1: Create the short-span custom line to use (or choose it if it already exists)
+
 local function create_short_cluster_line()
-    -- Check to see if the right line exists. If it does, get the line ID
+
     local line_exists = false
     local my_line = 0
-    local my_line_width = 64 * 24 * .333 -- 64 EFIXes * 24EVPUs * .333 = 1/3 space
+    local my_line_width = 64 * 24 * .333
     local custom_smart_line_defs = finale.FCCustomSmartLineDefs()
     custom_smart_line_defs:LoadAll()
     for csld in each(custom_smart_line_defs) do
-        if csld.LineStyle == finale.CUSTOMLINE_SOLID and csld.LineWidth == my_line_width then -- 1st if: Solid line, 740
-            if csld.StartArrowheadStyle == finale.CLENDPOINT_NONE and csld.EndArrowheadStyle == finale.CLENDPOINT_NONE then -- 2nd if (arrowhead styles)
+        if csld.LineStyle == finale.CUSTOMLINE_SOLID and csld.LineWidth == my_line_width then
+            if csld.StartArrowheadStyle == finale.CLENDPOINT_NONE and csld.EndArrowheadStyle == finale.CLENDPOINT_NONE then
                 if csld.Horizontal == false then
                     my_line = csld.ItemNo
                     line_exists = true
@@ -705,7 +518,7 @@ local function create_short_cluster_line()
         end
     end
 
-    -- if the line does not exist, create it and get the line ID
+
     if line_exists == false then
         local csld = finale.FCCustomSmartLineDef()
         csld.Horizontal = false
@@ -719,7 +532,7 @@ local function create_short_cluster_line()
     return my_line
 end
 
--- Function 8: Attach the cluster line to the score
+
 function add_cluster_line(left_note, right_note, line_id)
     if left_note:IsNote() and left_note.Count == 1 and right_note:IsNote() then
         local smartshape = finale.FCSmartShape()
@@ -732,10 +545,10 @@ function add_cluster_line(left_note, right_note, line_id)
 
         local top_pad = 0
         local bottom_pad = 0
-        if left_note.Duration >= 2048 and left_note.Duration < 4096 then -- for half notes...
+        if left_note.Duration >= 2048 and left_note.Duration < 4096 then
             top_pad = 9
             bottom_pad = top_pad
-        elseif left_note.Duration >= 4096 then -- for whole notes and greater...
+        elseif left_note.Duration >= 4096 then
             top_pad = 10
             bottom_pad = 11.5
         end
@@ -768,7 +581,7 @@ function add_cluster_line(left_note, right_note, line_id)
     end
 end
 
--- Function 8.1: Attach the short cluster line to the score
+
 function add_short_cluster_line(entry, short_lineID)
     if entry:IsNote() and entry.Count > 1 then
         local smartshape = finale.FCSmartShape()
@@ -842,7 +655,7 @@ for add_staff = region:GetStartStaff(), region:GetEndStaff() do
     end
 end
 
--- separate move accidentals function for short clusters that encompass a 3rd
+
 for note_entry in eachentrysaved(finenv.Region()) do
     if note_entry:IsNote() and note_entry.Count > 1 then
         for note in each(note_entry) do

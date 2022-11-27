@@ -1,6 +1,6 @@
 function plugindef()
-   -- This function and the 'finaleplugin' namespace
-   -- are both reserved for the plug-in definition.
+
+
    finaleplugin.RequireScore = false
    finaleplugin.RequireSelection = true
    finaleplugin.Author = "Jacob Winkler"
@@ -9,7 +9,6 @@ function plugindef()
    return "Dynamics Above Staff", "Dynamics Above Staff", "Moves dynamics above staff"
 end
 
- 
 function dyn_above()
     local region = finenv.Region()
         local start_msr = region.StartMeasure
@@ -35,8 +34,7 @@ function dyn_above()
     local e_vert_target = 0
     local h_vert_target = 0
     local sys_ref_line = 0
-    local vocal_dynamic_offset = 36 -- Distance above reference line to place dynamics, in absence of other entries
-
+    local vocal_dynamic_offset = 36
 function metrics(sys_region)
     print("metrics function called")
     local highest = 0
@@ -46,25 +44,23 @@ function metrics(sys_region)
         print("Analyzing measure",msr.ItemNo)
             cell = finale.FCCell(msr.ItemNo, sys_region.StartStaff)
             cellmetrics = cell:CreateCellMetrics()
-            --**** May need to account for cellmetrics:GetStaffScaling()...
+
             staff_scale = cellmetrics:GetStaffScaling() / 10000
             if cellmetrics.ReferenceLinePos + vocal_dynamic_offset > highest then
                 highest = cellmetrics.ReferenceLinePos + vocal_dynamic_offset
             end
-    end -- for msr..
+    end
         for entry in eachentry(sys_region) do
             local e_metrics = finale.FCEntryMetrics()
             e_metrics:Load(entry)
                 local e_highest = e_metrics:GetTopPosition() / staff_scale
-                if e_highest + vocal_dynamic_offset > highest then 
+                if e_highest + vocal_dynamic_offset > highest then
                     highest = e_highest + vocal_dynamic_offset
                 end
         end
     hairpins = highest - cellmetrics.ReferenceLinePos +12
-
     return highest, hairpins
-end -- function metrics
-
+end
 function expr_move(staff_region, e_vert_target)
     local expressions = finale.FCExpressions()
     expressions:LoadAllForRegion(staff_region)
@@ -75,7 +71,7 @@ function expr_move(staff_region, e_vert_target)
         local cd = finale.FCCategoryDef()
         if cd:Load(cat_ID) then
             local cat_name = cd:CreateName()
-            --print(cat_name.LuaString)
+
             if cat_name.LuaString == "Dynamics" then
                 dynamic = true
             end
@@ -85,19 +81,17 @@ function expr_move(staff_region, e_vert_target)
             local e_metric = finale.FCPoint(0, 0)
             cell = finale.FCCell(e.Measure, e.Staff)
             cellmetrics = cell:CreateCellMetrics()
-            ---- CHANGE ME!
-            --e_vert_target = cellmetrics.ReferenceLinePos + baseline_off + move_by - 12 -- vert_target could be calculated somehwere else...
-            ----
+
+
+
             print("Vertical Target is",e_vert_target)
             e:CalcMetricPos(e_metric)
             print("Expression Y is",e_metric.Y)
             e:SetVerticalPos(e.VerticalPos + (e_vert_target - e_metric.Y))
             e:Save()
-        end -- if dynamic == true
-    end -- for e...
-end -- func expr_move
-
-
+        end
+    end
+end
 function hairpin_move(staff_region, h_vert_target)
         local ssmm = finale.FCSmartShapeMeasureMarks()
         ssmm:LoadAllForRegion(staff_region, true)
@@ -107,17 +101,14 @@ function hairpin_move(staff_region, h_vert_target)
                 print("found hairpin")
                     local left_seg = smart_shape:GetTerminateSegmentLeft()
                     local right_seg = smart_shape:GetTerminateSegmentRight()
---                            left_seg:SetEndpointOffsetY(baseline_off + move_by)
-  --                        right_seg:SetEndpointOffsetY(baseline_off + move_by)
+
                           left_seg:SetEndpointOffsetY(h_vert_target)
                           right_seg:SetEndpointOffsetY(h_vert_target)
-
                     smart_shape:Save()
-                
+
             end
         end
-end -- func hairpin_move
-
+end
 function analyze_staves()
     for i = start_staffsys.ItemNo, end_staffsys.ItemNo, 1 do
         print("Analyzing staffsys",i)
@@ -145,18 +136,9 @@ function analyze_staves()
                 print("vert_target for staff",j,"is",e_vert_target)
             expr_move(sys_region, e_vert_target)
             hairpin_move(sys_region, h_vert_target)
-            end -- for j = start_staff...
-
-    end -- for i...
-end -- function 
-
+            end
+    end
+end
 analyze_staves()
-
---[[
-        expr_move()
-        hairpin_move()
-]]
-
-end -- function
-
+end
 dyn_above()

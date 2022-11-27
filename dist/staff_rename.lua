@@ -1,37 +1,21 @@
 __imports = __imports or {}
 __import_results = __import_results or {}
-
 function require(item)
     if not __imports[item] then
         error("module '" .. item .. "' not found")
     end
-
     if __import_results[item] == nil then
         __import_results[item] = __imports[item]()
         if __import_results[item] == nil then
             __import_results[item] = true
         end
     end
-
     return __import_results[item]
 end
-
 __imports["library.utils"] = __imports["library.utils"] or function()
-    --[[
-    $module Utility Functions
 
-    A library of general Lua utility functions.
-    ]] --
     local utils = {}
 
-    --[[
-    % copy_table
-
-    If a table is passed, returns a copy, otherwise returns the passed value.
-
-    @ t (mixed)
-    : (mixed)
-    ]]
     function utils.copy_table(t)
         if type(t) == "table" then
             local new = {}
@@ -45,14 +29,6 @@ __imports["library.utils"] = __imports["library.utils"] or function()
         end
     end
 
-    --[[
-    % table_remove_first
-
-    Removes the first occurrence of a value from an array table.
-
-    @ t (table)
-    @ value (mixed)
-    ]]
     function utils.table_remove_first(t, value)
         for k = 1, #t do
             if t[k] == value then
@@ -62,43 +38,18 @@ __imports["library.utils"] = __imports["library.utils"] or function()
         end
     end
 
-    --[[
-    % iterate_keys
-
-    Returns an unordered iterator for the keys in a table.
-
-    @ t (table)
-    : (function)
-    ]]
     function utils.iterate_keys(t)
         local a, b, c = pairs(t)
-
         return function()
             c = a(b, c)
             return c
         end
     end
 
-    --[[
-    % round
-
-    Rounds a number to the nearest whole integer.
-
-    @ num (number)
-    : (number)
-    ]]
     function utils.round(num)
         return math.floor(num + 0.5)
     end
 
-    --[[ 
-    % calc_roman_numeral
-
-    Calculates the roman numeral for the input number. Adapted from https://exercism.org/tracks/lua/exercises/roman-numerals/solutions/Nia11 on 2022-08-13
-
-    @ num (number)
-    : (string)
-    ]]
     function utils.calc_roman_numeral(num)
         local thousands = {'M','MM','MMM'}
         local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
@@ -112,14 +63,6 @@ __imports["library.utils"] = __imports["library.utils"] or function()
         return roman_numeral
     end
 
-    --[[ 
-    % calc_ordinal
-
-    Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
-
-    @ num (number)
-    : (string)
-    ]]
     function utils.calc_ordinal(num)
         local units = num % 10
         local tens = num % 100
@@ -130,158 +73,29 @@ __imports["library.utils"] = __imports["library.utils"] or function()
         elseif units == 3 and tens ~= 13 then
             return num .. "rd"
         end
-
         return num .. "th"
     end
 
-    --[[ 
-    % calc_alphabet
-
-    This returns one of the ways that Finale handles numbering things alphabetically, such as rehearsal marks or measure numbers.
-
-    This function was written to emulate the way Finale numbers saves when Autonumber is set to A, B, C... When the end of the alphabet is reached it goes to A1, B1, C1, then presumably to A2, B2, C2. 
-
-    @ num (number)
-    : (string)
-    ]]
     function utils.calc_alphabet(num)
         local letter = ((num - 1) % 26) + 1
         local n = math.floor((num - 1) / 26)
-
         return string.char(64 + letter) .. (n > 0 and n or "")
     end
 
-    --[[
-    % clamp
-
-    Clamps a number between two values.
-
-    @ num (number) The number to clamp.
-    @ minimum (number) The minimum value.
-    @ maximum (number) The maximum value.
-    : (number)
-    ]]
     function utils.clamp(num, minimum, maximum)
         return math.min(math.max(num, minimum), maximum)
     end
-
     return utils
-
 end
-
 __imports["library.configuration"] = __imports["library.configuration"] or function()
-    --  Author: Robert Patterson
-    --  Date: March 5, 2021
-    --[[
-    $module Configuration
-
-    This library implements a UTF-8 text file scheme for configuration and user settings as follows:
-
-    - Comments start with `--`
-    - Leading, trailing, and extra whitespace is ignored
-    - Each parameter is named and delimited as follows:
-
-    ```
-    <parameter-name> = <parameter-value>
-    ```
-
-    Parameter values may be:
-
-    - Strings delimited with either single- or double-quotes
-    - Tables delimited with `{}` that may contain strings, booleans, or numbers
-    - Booleans (`true` or `false`)
-    - Numbers
-
-    Currently the following are not supported:
-
-    - Tables embedded within tables
-    - Tables containing strings that contain commas
-
-    A sample configuration file might be:
-
-    ```lua
-    -- Configuration File for "Hairpin and Dynamic Adjustments" script
-    --
-    left_dynamic_cushion 		= 12		--evpus
-    right_dynamic_cushion		= -6		--evpus
-    ```
-
-    ## Configuration Files
-
-    Configuration files provide a way for power users to modify script behavior without
-    having to modify the script itself. Some users track their changes to their configuration files,
-    so scripts should not create or modify them programmatically.
-
-    - The user creates each configuration file in a subfolder called `script_settings` within
-    the folder of the calling script.
-    - Each script that has a configuration file defines its own configuration file name.
-    - It is entirely appropriate over time for scripts to transition from configuration files to user settings,
-    but this requires implementing a user interface to modify the user settings from within the script.
-    (See below.)
-
-    ## User Settings Files
-
-    User settings are written by the scripts themselves and reside in the user's preferences folder
-    in an appropriately-named location for the operating system. (The naming convention is a detail that the
-    configuration library handles for the caller.) If the user settings are to be changed from their defaults,
-    the script itself should provide a means to change them. This could be a (preferably optional) dialog box
-    or any other mechanism the script author chooses.
-
-    User settings are saved in the user's preferences folder (on Mac) or AppData folder (on Windows).
-
-    ## Merge Process
-
-    Files are _merged_ into the passed-in list of default values. They do not _replace_ the list. Each calling script contains
-    a table of all the configurable parameters or settings it recognizes along with default values. An example:
-
-    `sample.lua:`
-
-    ```lua
-    parameters = {
-       x = 1,
-       y = 2,
-       z = 3
-    }
-
-    configuration.get_parameters(parameters, "script.config.txt")
-
-    for k, v in pairs(parameters) do
-       print(k, v)
-    end
-    ```
-
-    Suppose the `script.config.text` file is as follows:
-
-    ```
-    y = 4
-    q = 6
-    ```
-
-    The returned parameters list is:
 
 
-    ```lua
-    parameters = {
-       x = 1,       -- remains the default value passed in
-       y = 4,       -- replaced value from the config file
-       z = 3        -- remains the default value passed in
-    }
-    ```
-
-    The `q` parameter in the config file is ignored because the input paramater list
-    had no `q` parameter.
-
-    This approach allows total flexibility for the script add to or modify its list of parameters
-    without having to worry about older configuration files or user settings affecting it.
-    ]]
 
     local configuration = {}
-
-    local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
-    local comment_marker = "--"
+    local script_settings_dir = "script_settings"
+    local comment_marker = "
     local parameter_delimiter = "="
     local path_delimiter = "/"
-
     local file_exists = function(file_path)
         local f = io.open(file_path, "r")
         if nil ~= f then
@@ -290,25 +104,22 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
         end
         return false
     end
-
     local strip_leading_trailing_whitespace = function(str)
-        return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
+        return str:match("^%s*(.-)%s*$")
     end
-
     local parse_table = function(val_string)
         local ret_table = {}
-        for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
+        for element in val_string:gmatch("[^,%s]+") do
             local parsed_element = parse_parameter(element)
             table.insert(ret_table, parsed_element)
         end
         return ret_table
     end
-
     parse_parameter = function(val_string)
-        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
-            return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
-        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
-            return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
+        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "\"(.+)\"", "%1")
+        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "'(.+)'", "%1")
         elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
             return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
         elseif "true" == val_string then
@@ -318,16 +129,13 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
         end
         return tonumber(val_string)
     end
-
     local get_parameters_from_file = function(file_path, parameter_list)
         local file_parameters = {}
-
         if not file_exists(file_path) then
             return false
         end
-
         for line in io.lines(file_path) do
-            local comment_at = string.find(line, comment_marker, 1, true) -- true means find raw string rather than lua pattern
+            local comment_at = string.find(line, comment_marker, 1, true)
             if nil ~= comment_at then
                 line = string.sub(line, 1, comment_at - 1)
             end
@@ -338,27 +146,15 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
                 file_parameters[name] = parse_parameter(val_string)
             end
         end
-
         for param_name, _ in pairs(parameter_list) do
             local param_val = file_parameters[param_name]
             if nil ~= param_val then
                 parameter_list[param_name] = param_val
             end
         end
-
         return true
     end
 
-    --[[
-    % get_parameters
-
-    Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list`
-    with any that are found in the config file.
-
-    @ file_name (string) the file name of the config file (which will be prepended with the `script_settings` directory)
-    @ parameter_list (table) a table with the parameter name as key and the default value as value
-    : (boolean) true if the file exists
-    ]]
     function configuration.get_parameters(file_name, parameter_list)
         local path = ""
         if finenv.IsRGPLua then
@@ -372,15 +168,14 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
         return get_parameters_from_file(file_path, parameter_list)
     end
 
-    -- Calculates a filepath in the user's preferences folder using recommended naming conventions
-    --
+
     local calc_preferences_filepath = function(script_name)
         local str = finale.FCString()
         str:SetUserOptionsPath()
         local folder_name = str.LuaString
         if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
-            -- works around bug in SetUserOptionsPath() in JW Lua
-            folder_name = os.getenv("HOME") .. folder_name:sub(2) -- strip '~' and replace with actual folder
+
+            folder_name = os.getenv("HOME") .. folder_name:sub(2)
         end
         if finenv.UI():IsOnWindows() then
             folder_name = folder_name .. path_delimiter .. "FinaleLua"
@@ -393,27 +188,18 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
         return file_path, folder_name
     end
 
-    --[[
-    % save_user_settings
-
-    Saves the user's preferences for a script from the values provided in `parameter_list`.
-
-    @ script_name (string) the name of the script (without an extension)
-    @ parameter_list (table) a table with the parameter name as key and the default value as value
-    : (boolean) true on success
-    ]]
     function configuration.save_user_settings(script_name, parameter_list)
         local file_path, folder_path = calc_preferences_filepath(script_name)
         local file = io.open(file_path, "w")
-        if not file and finenv.UI():IsOnWindows() then -- file not found
-            os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder (windows only, since the folder is guaranteed to exist on mac)
-            file = io.open(file_path, "w") -- try the file again
+        if not file and finenv.UI():IsOnWindows() then
+            os.execute('mkdir "' .. folder_path ..'"')
+            file = io.open(file_path, "w")
         end
-        if not file then -- still couldn't find file
-            return false -- so give up
+        if not file then
+            return false
         end
-        file:write("-- User settings for " .. script_name .. ".lua\n\n")
-        for k,v in pairs(parameter_list) do -- only number, boolean, or string values
+        file:write("
+        for k,v in pairs(parameter_list) do
             if type(v) == "string" then
                 v = "\"" .. v .."\""
             else
@@ -422,21 +208,9 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
             file:write(k, " = ", v, "\n")
         end
         file:close()
-        return true -- success
+        return true
     end
 
-    --[[
-    % get_user_settings
-
-    Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
-    with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so
-    the input string should just be the script name (without an extension).
-
-    @ script_name (string) the name of the script (without an extension)
-    @ parameter_list (table) a table with the parameter name as key and the default value as value
-    @ [create_automatically] (boolean) if true, create the file automatically (default is `true`)
-    : (boolean) `true` if the file already existed, `false` if it did not or if it was created automatically
-    ]]
     function configuration.get_user_settings(script_name, parameter_list, create_automatically)
         if create_automatically == nil then create_automatically = true end
         local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
@@ -445,19 +219,16 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
         end
         return exists
     end
-
     return configuration
-
 end
-
 function plugindef()
-    -- This function and the 'finaleplugin' namespace
-    -- are both reserved for the plug-in definition.
+
+
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "2.0"
     finaleplugin.Date = "8/13/2022"
-    finaleplugin.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
+    finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.Notes = [[
 USING THE 'STAFF RENAME' SCRIPT
 
@@ -500,7 +271,7 @@ function staff_rename()
     local staves = {}
     local autonumber_bool = {}
     local autonumber_style = {}
-    --
+
     local fullname_font_info = finale.FCFontInfo()
     fullname_font_info:LoadFontPrefs(finale.FONTPREF_STAFFNAME)
     local abrev_font_info = finale.FCFontInfo()
@@ -509,14 +280,14 @@ function staff_rename()
     fullgroup_font_info:LoadFontPrefs(finale.FONTPREF_GROUPNAME)
     local abbrevgroup_font_info = finale.FCFontInfo()
     abbrevgroup_font_info:LoadFontPrefs(finale.FONTPREF_ABRVGROUPNAME)
-    --  tables for dialog controls
+
     local static_staff = {}
     local edit_fullname = {}
     local edit_abbname = {}
     local copy_button = {}
     local autonumber_check = {}
     local autonumber_popup = {}
-    -- Transposing instruments (Finale 27)
+
     local form_0_names = {"Clarinet in B[b]", "Clarinet in A", "Clarinet in E[b]","Horn in F", "Trumpet in B[b]", "Trumpet in C", "Horn in E[b]", "Piccolo Trumpet in A", "Trumpet in D", "Cornet in E[b]", "Pennywhistle in D", "Pennywhistle in G", "Tin Whistle in B[b]", "Melody Sax in C"}
     local form_1_names = {"B[b] Clarinet", "A Clarinet", "E[b] Clarinet", "F Horn", "B[b] Trumpet", "C Trumpet", "E[b] Horn", "A Piccolo Trumpet", "D Trumpet", "E[b] Cornet", "D Pennywhistle", "G Pennywhistle", "B[b] Tin Whistle", "C Melody Sax"}
 
@@ -547,7 +318,7 @@ function staff_rename()
         local font_enigma = finale.FCString()
         font_enigma = font:CreateEnigmaString(nil)
         table.insert(multi_full_fonts, font_enigma.LuaString)
-        --
+
         str = grp:CreateAbbreviatedNameString()
         font = str:CreateLastFontInfo()
         font_enigma = font:CreateEnigmaString(nil)
@@ -576,7 +347,7 @@ function staff_rename()
     sysstaves:LoadAllForRegion(region)
 
     for sysstaff in each(sysstaves) do
-        -- Process multi-staff instruments
+
         for i,j in pairs(multi_staves) do
 
             for k,l in pairs(multi_staves[i]) do
@@ -590,8 +361,8 @@ function staff_rename()
                         table.insert(full_fonts, multi_full_fonts[i])
                         table.insert(abb_fonts, multi_abb_fonts[i])
                         table.insert(staves, sysstaff.Staff)
-                        table.insert(autonumber_bool, staff.UseAutoNumberingStyle) -- ?
-                        table.insert(autonumber_style, staff.AutoNumberingStyle) -- ?
+                        table.insert(autonumber_bool, staff.UseAutoNumberingStyle)
+                        table.insert(autonumber_style, staff.AutoNumberingStyle)
                         multi_added[i] = true
                         goto done
                     elseif multi_added == true then
@@ -606,7 +377,7 @@ function staff_rename()
             end
         end
 
-        -- Process single-staff instruments
+
         local staff = finale.FCStaff()
         staff:Load(sysstaff.Staff)
         local str = staff:CreateFullNameString()
@@ -638,18 +409,18 @@ function staff_rename()
         str.LuaString = title
         local dialog = finale.FCCustomLuaWindow()
         dialog:SetTitle(str)
-        --
+
         local row = {}
         for i = 1, (staff_count + 5) do
             row[i] = (i -1) * row_h
         end
-        --
+
         local col = {}
         for i = 1, 5 do
             col[i] = (i - 1) * col_w
             col[i] = col[i] + 40
         end
-        --
+
         function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)
             str.LuaString = text
             local ctrl = ""
@@ -699,7 +470,7 @@ function staff_rename()
         add_ctrl(dialog, "horizontalline", "", 0, row[2] + 8, 0, col_w * 3.5 + 20, 0, 0)
         str.LuaString = "*Custom*"
         master_autonumber_popup:AddString(str)
-        --
+
         for i, j in pairs(staves) do
             static_staff[i] = add_ctrl(dialog, "static", staves[i], 10, row[i + 2], row_h, col_w, 0, 0)
             edit_fullname[i] = add_ctrl(dialog, "edit", fullnames[i], col[1], row[i + 2], row_h, col_w, 0, 0)
@@ -723,9 +494,9 @@ function staff_rename()
             autonumber_popup[i]:SetSelectedItem(autonumber_style[i])
             row_count = row_count + 1
         end
-        --
+
         add_ctrl(dialog, "horizontalline", "", 0, row[row_count + 2] + 8, 0, col_w * 3.5 + 20, 0, 0)
-        --
+
         local form_select = add_ctrl(dialog, "popup", "", col[1], row[row_count + 3], row_h, col_w - col_gap, 0, 0)
         local forms = {"Instrument in Trn.","Trn. Instrument"}
         for i,j in pairs(forms) do
@@ -737,10 +508,10 @@ function staff_rename()
         doc_fonts_check:SetCheck(config.use_doc_fonts)
 
         local hardcode_autonumber_btn = add_ctrl(dialog, "button", "Hardcode Autonumbers", col[3] + auto_x_width, row[row_count + 3], row_h, col_w, 0, 0)
-        --
+
         dialog:CreateOkButton()
         dialog:CreateCancelButton()
-        --
+
         function hardcode_autonumbers()
             local staff_name = {}
             local inst_nums = {}
@@ -796,7 +567,7 @@ function staff_rename()
             end
         end
 
-        --
+
         function callback(ctrl)
             if ctrl:GetControlID() == form_select:GetControlID() then
                 local form = form_select:GetSelectedItem()
@@ -820,13 +591,13 @@ function staff_rename()
                     edit_fullname[i]:GetText(str)
                     for k,l in pairs(search) do
                         str.LuaString = string.gsub(str.LuaString, search[k], replace[k])
-                    end                    
+                    end
                     edit_fullname[i]:SetText(str)
-                    --
+
                     edit_abbname[i]:GetText(str)
                     for k,l in pairs(search) do
                         str.LuaString = string.gsub(str.LuaString, search[k], replace[k])
-                    end                    
+                    end
                     edit_abbname[i]:SetText(str)
                 end
             end
@@ -844,7 +615,7 @@ function staff_rename()
                         autonumber_popup[i]:SetEnable(false)
                         master_autonumber_check:SetCheck(0)
                     end
-                elseif ctrl:GetControlID() == autonumber_popup[i]:GetControlID() then    
+                elseif ctrl:GetControlID() == autonumber_popup[i]:GetControlID() then
                     autonumber_style[i] = autonumber_popup[i]:GetSelectedItem()
                     master_autonumber_popup:SetSelectedItem(5)
                 end
@@ -878,7 +649,7 @@ function staff_rename()
             elseif ctrl:GetControlID() == hardcode_autonumber_btn:GetControlID() then
                 hardcode_autonumbers()
             end
-        end -- callback
+        end
 
         dialog:RegisterHandleCommand(callback)
 
@@ -888,7 +659,7 @@ function staff_rename()
             local str = finale.FCString()
             local font_str = finale.FCString()
             for i, j in pairs(staves) do
-                for k, l in pairs(multi_staves) do 
+                for k, l in pairs(multi_staves) do
                     for m, n in pairs(multi_staves[k]) do
                         if staves[i] == multi_staves[k][m] then
                             local grp = finale.FCGroup()
@@ -951,8 +722,8 @@ function staff_rename()
                 ::done_with_staff::
             end
         end
-    end -- function
+    end
     dialog("Rename Staves")
-end -- rename_staves()
+end
 
 staff_rename()
