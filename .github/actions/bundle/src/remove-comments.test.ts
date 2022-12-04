@@ -141,6 +141,7 @@ Uses \`FCArticulation.CalcMetricPos\` to determine if the input articulation is 
 ]]`,
         ''
     ],
+    [`local comment_marker = "--"`, `local comment_marker = "--"`],
 ]
 
 it.each(tests)(`removeComments(%p)`, (input, expected) => {

@@ -4697,7 +4697,7 @@ exports.removeComments = void 0;
 const removeComments = (contents) => {
     return contents
         .replace(/--\[\[[\s\S]*?\]\]/giu, '')
-        .replace(/--.*$/gimu, '')
+        .replace(/(?<!")--.*$/gimu, '')
         .replace(/\n\n+/gimu, '\n')
         .replace(/ *$/gimu, '');
 };
