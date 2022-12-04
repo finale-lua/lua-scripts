@@ -478,7 +478,7 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
 
     local configuration = {}
     local script_settings_dir = "script_settings"
-    local comment_marker = "
+    local comment_marker = "--"
     local parameter_delimiter = "="
     local path_delimiter = "/"
     local file_exists = function(file_path)
@@ -583,7 +583,7 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
         if not file then
             return false
         end
-        file:write("
+        file:write("-- User settings for " .. script_name .. ".lua\n\n")
         for k,v in pairs(parameter_list) do
             if type(v) == "string" then
                 v = "\"" .. v .."\""
