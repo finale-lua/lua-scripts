@@ -1783,7 +1783,7 @@ __imports["mixin.FCMCustomLuaWindow"] = __imports["mixin.FCMCustomLuaWindow"] or
                             end
                         end
 
-                        local is_error, error_msg = pcall(cb)
+                        local success, error_msg = pcall(cb)
                         if self.StorePosition then
                             self:StorePosition(false)
                             private[self].StoredX = self.StoredX
@@ -1795,7 +1795,7 @@ __imports["mixin.FCMCustomLuaWindow"] = __imports["mixin.FCMCustomLuaWindow"] or
                             end
                         end
                         private[self].HasBeenShown = true
-                        if is_error then
+                        if not success then
                             error(error_msg, 0)
                         end
                     end)
