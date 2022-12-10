@@ -139,7 +139,7 @@ function props:Init()
                     end
 
                     -- Catch any errors so they don't disrupt storing window position and control state
-                    local is_error, error_msg = pcall(cb)
+                    local success, error_msg = pcall(cb)
 
                     if self.StorePosition then
                         self:StorePosition(false)
@@ -155,7 +155,7 @@ function props:Init()
 
                     private[self].HasBeenShown = true
 
-                    if is_error then
+                    if not success then
                         error(error_msg, 0)
                     end
                 end)
