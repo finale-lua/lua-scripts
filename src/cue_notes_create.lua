@@ -171,15 +171,15 @@ function choose_destination_staff(source_staff)
     local static = dialog:CreateStatic(0, 0)
     str.LuaString = "Select destination staff:"
     static:SetText(str)
-	static:SetWidth(200)
-	
-	local list_box = dialog:CreateListBox(0, vert_step)
+    static:SetWidth(200)
+
+    local list_box = dialog:CreateListBox(0, vert_step)
     list_box.UseCheckboxes = true
-	list_box:SetWidth(200)
+    list_box:SetWidth(200)
     for i,v in ipairs(staff_list) do -- list all staff names
         str.LuaString = v[2]
-		list_box:AddString(str)
-	end
+        list_box:AddString(str)
+    end
     -- add user options
     str.LuaString = "Cue Options:"
     dialog:CreateStatic(horiz_grid[1], 0):SetText(str)
@@ -410,54 +410,55 @@ function create_cue_notes()
     
     cd = finale.FCCategoryDef()
     expression_defs = finale.FCTextExpressionDefs()
-	expression_defs:LoadAll()
+    expression_defs:LoadAll()
 
-	-- collate extant cue names
-	for text_def in each(expression_defs) do
-		cd:Load(text_def.CategoryID)
-		if string.find(cd:CreateName().LuaString, config.cue_category_name) then
-			cat_ID = text_def.CategoryID
-			local str = text_def:CreateTextString()
-			str:TrimEnigmaTags()
-			-- save expresion NAME and ItemNo
-			table.insert(cue_names, {str.LuaString, text_def.ItemNo} )
-	    end
-	end
-	-- test for pre-existing names
-	if #cue_names == 0 then
-	    -- create a new Text Expression Category
-	    ok, cat_ID = new_expression_category(config.cue_category_name)
-	    if not ok then -- creation failed
-            return show_error("first_make_expression_category")
+    -- collate extant cue names
+    for text_def in each(expression_defs) do
+        cd:Load(text_def.CategoryID)
+        if string.find(cd:CreateName().LuaString, config.cue_category_name) then
+            cat_ID = text_def.CategoryID
+            local str = text_def:CreateTextString()
+            str:TrimEnigmaTags()
+            -- save expresion NAME and ItemNo
+            table.insert(cue_names, {str.LuaString, text_def.ItemNo} )
         end
-	end
+    end
+    -- test for pre-existing names
+    if #cue_names == 0 then
+        -- create a new Text Expression Category
+        ok, cat_ID = new_expression_category(config.cue_category_name)
+        if not ok then -- creation failed
+        return show_error("first_make_expression_category")
+        end
+    end
 	-- choose cue name
 	ok, name_index = choose_name_index(cue_names)
     if not ok then
         return
     end
-	if name_index == 0 then	-- USER wants to provide a new cue name
-		ok, new_expression = new_cue_name(start_staff)
-		if not ok or new_expression == "" then
+
+    if name_index == 0 then	-- USER wants to provide a new cue name
+        ok, new_expression = new_cue_name(start_staff)
+        if not ok or new_expression == "" then
             return
         end
-		expression_ID = create_new_expression(new_expression, cat_ID)
-	else          -- otherwise get the ItemNo of chosen pre-existing expression
-	    expression_ID = cue_names[name_index][2] --([name_index][1] is the item name)
+        expression_ID = create_new_expression(new_expression, cat_ID)
+    else          -- otherwise get the ItemNo of chosen pre-existing expression
+        expression_ID = cue_names[name_index][2] --([name_index][1] is the item name)
     end
     -- choose destination staff
-	ok, destination_staff = choose_destination_staff(start_staff)
-	if not ok then
+    ok, destination_staff = choose_destination_staff(start_staff)
+    if not ok then
         return
     end
     -- save revised config file
     configuration.save_user_settings("cue_notes_create", config)
     -- make the cue copy
-	if not copy_to_destination(source_region, destination_staff) then
+    if not copy_to_destination(source_region, destination_staff) then
         return
     end
-	-- name the cue
-	assign_expression_to_staff(destination_staff, source_region.StartMeasure, 0, expression_ID)
+    -- name the cue
+    assign_expression_to_staff(destination_staff, source_region.StartMeasure, 0, expression_ID)
     -- reset visible selection to original staff
     source_region:SetInDocument()
 end
