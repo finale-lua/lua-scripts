@@ -13,10 +13,10 @@ function plugindef()
 
         Your choices are saved in your preferences folder after each script execution. 
         This script requires an expression category called "Cue Names". 
-        Under RGPLua (v0.58+) the category is created automatically if it does not exist.
-        Under JWLua you must create an Expression Category called "Cue Names" containing 
-        at least one text expression before running the script.
-    ]]
+        Under RGPLua (v0.58+) the category is created automatically if necessary. 
+        Under JWLua, before running the script you must create an Expression Category called 
+        "Cue Names" containing at least one text expression.
+        ]]
     return "Cue Notes Create...", "Cue Notes Create", "Copy as cue notes to another staff"
 end
 
@@ -52,8 +52,7 @@ end
 
 function should_overwrite_existing_music()
     local alert = finenv.UI():AlertOkCancel("script: " .. plugindef(), "Overwrite existing music?")
-    local should_overwrite = (alert == 0)
-    return should_overwrite
+    return (alert == finale.OKRETURN)
 end
 
 function region_is_empty(region)
@@ -73,14 +72,14 @@ function new_cue_name(source_staff)
 
     str.LuaString = "New cue name:"
     dialog:CreateStatic(0, 20):SetText(str)
-    
-	local the_name = dialog:CreateEdit(0, 40)
-	the_name:SetWidth(200)
-	-- copy default name from the source Staff Name
-	local staff = finale.FCStaff()
-	staff:Load(source_staff)
-	the_name:SetText( staff:CreateDisplayFullNameString() )
-	
+
+    local the_name = dialog:CreateEdit(0, 40)
+    the_name:SetWidth(200)
+    -- copy default name from the source Staff Name
+    local staff = finale.FCStaff()
+    staff:Load(source_staff)
+    the_name:SetText( staff:CreateDisplayFullNameString() )
+
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
@@ -96,17 +95,17 @@ function choose_name_index(name_list)
     str.LuaString = "Select cue name:"
     dialog:CreateStatic(0, 20):SetText(str)
 
-	local staff_list = dialog:CreateListBox(0, 40)
-	staff_list:SetWidth(200)
-	-- item "0" in the list is "*** new name ***"
+    local staff_list = dialog:CreateListBox(0, 40)
+    staff_list:SetWidth(200)
+    -- item "0" in the list is "*** new name ***"
     str.LuaString = "*** new name ***"
-	staff_list:AddString(str)
+    staff_list:AddString(str)
 
     -- add all names in the extant list
     for i,v in ipairs(name_list) do
         str.LuaString = v[1]  -- copy the name, not the ItemNo
-		staff_list:AddString(str)
-	end
+        staff_list:AddString(str)
+    end
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
@@ -132,7 +131,7 @@ function create_new_expression(exp_name, category_number)
 end
 
 function choose_destination_staff(source_staff)
-	local staff_list = {}    -- compile all staves in the score
+    local staff_list = {}    -- compile all staves in the score
     local rgn = finenv.Region()
     -- compile staff list by slot number
     local original_slot = rgn.StartSlot
@@ -242,6 +241,7 @@ function choose_destination_staff(source_staff)
             list_box:SetKeyboardFocus()
         end
     )
+
     -- run the dialog
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
@@ -309,7 +309,7 @@ function copy_to_destination(source_region, destination_staff)
         entry_mod:SetNoteEntry(entry)
         entry_mod:SetResize(config.cuenote_percent)
         entry_mod:Save()
-        
+
         if not config.copy_articulations and entry:GetArticulationFlag() then
             for articulation in each(entry:CreateArticulations()) do
                 articulation:DeleteData()
@@ -396,7 +396,7 @@ function assign_expression_to_staff(staff_number, measure_number, measure_positi
 end
 
 function create_cue_notes()
-	local cue_names = { }	-- compile NAME/ItemNo of all pre-existing CUE_NAME expressions
+    local cue_names = { }	-- compile NAME/ItemNo of all pre-existing CUE_NAME expressions
     local source_region = finenv.Region()
     local start_staff = source_region.StartStaff
     -- declare all other local variables
@@ -407,7 +407,7 @@ function create_cue_notes()
     elseif region_is_empty(source_region) then
         return show_error("empty_region")
     end
-    
+
     cd = finale.FCCategoryDef()
     expression_defs = finale.FCTextExpressionDefs()
     expression_defs:LoadAll()
@@ -428,29 +428,24 @@ function create_cue_notes()
         -- create a new Text Expression Category
         ok, cat_ID = new_expression_category(config.cue_category_name)
         if not ok then -- creation failed
-        return show_error("first_make_expression_category")
+            return show_error("first_make_expression_category")
         end
     end
-	-- choose cue name
-	ok, name_index = choose_name_index(cue_names)
-    if not ok then
-        return
-    end
+    -- choose cue name
+    ok, name_index = choose_name_index(cue_names)
+    if not ok then return end
 
     if name_index == 0 then	-- USER wants to provide a new cue name
         ok, new_expression = new_cue_name(start_staff)
-        if not ok or new_expression == "" then
-            return
-        end
+        if not ok or new_expression == "" then return end
         expression_ID = create_new_expression(new_expression, cat_ID)
-    else          -- otherwise get the ItemNo of chosen pre-existing expression
+    else  -- otherwise get the ItemNo of chosen pre-existing expression
         expression_ID = cue_names[name_index][2] --([name_index][1] is the item name)
     end
     -- choose destination staff
     ok, destination_staff = choose_destination_staff(start_staff)
-    if not ok then
-        return
-    end
+    if not ok then return end
+
     -- save revised config file
     configuration.save_user_settings("cue_notes_create", config)
     -- make the cue copy
