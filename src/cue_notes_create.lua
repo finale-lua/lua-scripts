@@ -1,23 +1,23 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com"
+    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.64"
-    finaleplugin.Date = "2022/07/11"
+    finaleplugin.Version = "v0.65"
+    finaleplugin.Date = "2022/12/13"
     finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action. 
         It takes music in Layer 1 from one staff in the selected region and creates a "Cue" version on another chosen staff. 
         The cue copy is reduced in size and muted, and can duplicate chosen markings from the original. 
         It is shifted to the chosen layer with a (real) whole-note rest placed in layer 1.
 
-        Your choices are saved after each script run in your user preferences folder. 
-        If using RGPLua (v0.58+) the script automatically creates a new expression category 
-        called "Cue Names" if it does not exist. 
-        If using JWLua, before running the script you must create an Expression Category 
-        called "Cue Names" containing at least one text expression.
+        Your choices are saved in your preferences folder after each script execution. 
+        This script requires an expression category called "Cue Names". 
+        Under RGPLua (v0.58+) the category is created automatically if it does not exist.
+        Under JWLua you must create an Expression Category called "Cue Names" containing 
+        at least one text expression before running the script.
     ]]
-    return "Cue Notes Create…", "Cue Notes Create", "Copy as cue notes to another staff"
+    return "Cue Notes Create...", "Cue Notes Create", "Copy as cue notes to another staff"
 end
 
 local config = { -- retained and over-written by the user's "settings" file
@@ -152,13 +152,16 @@ function choose_destination_staff(source_staff)
     local horiz_grid = { 210, 310, 360 }
     local vert_step = 20
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra horizontal offset for Mac edit boxes
-    local user_checks = { -- boolean config values - copy choices from CONFIG file
+    local user_checks = {
         "copy_articulations",   "copy_expressions",   "copy_smartshapes",
         "copy_slurs",           "copy_clef",          "mute_cuenotes",
-        -- integer config values - copy choices from CONFIG file
-        "cuenote_percent",      "cuenote_layer",       "freeze_up_down"
+        "cuenote_percent",      "cuenote_layer"
+        -- note that [config.freeze_up_down] is a special case
     }
-    local boolean_count = 6 -- higher than this number are integer config values, not checkboxes
+    local integer_options = { -- numeric, not boolean options
+        cuenote_percent = true,
+        cuenote_layer = true
+    }
     local user_selections = {}  -- an array of controls corresponding to user choices
 
     local str = finale.FCString()
@@ -181,24 +184,24 @@ function choose_destination_staff(source_staff)
     str.LuaString = "Cue Options:"
     dialog:CreateStatic(horiz_grid[1], 0):SetText(str)
 
-    for i,v in ipairs(user_checks) do -- run through config parameters
+    for i, v in ipairs(user_checks) do -- run through config parameter list
         str.LuaString = string.gsub(v, '_', ' ')
-        if i <= boolean_count then -- boolean checkbox
-            user_selections[i] = dialog:CreateCheckbox(horiz_grid[1], i * vert_step)
-            user_selections[i]:SetText(str)
-            user_selections[i]:SetWidth(120)
-            local checked = config[v] and 1 or 0
-            user_selections[i]:SetCheck(checked)
-        elseif i < #user_checks then    -- integer value (#user_checks = stem_direction_popup)
+        if integer_options[v] then
             str.LuaString = str.LuaString .. ":"
             dialog:CreateStatic(horiz_grid[1], i * vert_step):SetText(str)
-            user_selections[i] = dialog:CreateEdit(horiz_grid[2], (i * vert_step) - mac_offset)
-            user_selections[i]:SetInteger(config[v])
-            user_selections[i]:SetWidth(50)
+            user_selections[v] = dialog:CreateEdit(horiz_grid[2], (i * vert_step) - mac_offset)
+            user_selections[v]:SetInteger(config[v])
+            user_selections[v]:SetWidth(50)
+        else
+            user_selections[v] = dialog:CreateCheckbox(horiz_grid[1], i * vert_step)
+            user_selections[v]:SetText(str)
+            user_selections[v]:SetWidth(120)
+            local checked = config[v] and 1 or 0
+            user_selections[v]:SetCheck(checked)
         end
     end
-    -- popup for stem direction
-    local stem_direction_popup = dialog:CreatePopup(horiz_grid[1], (#user_checks * vert_step) + 5)
+    -- popup for stem direction -> config.freeze_up_down
+    local stem_direction_popup = dialog:CreatePopup(horiz_grid[1], ((#user_checks + 1) * vert_step + 5))
     str.LuaString = "Stems: normal"
     stem_direction_popup:AddString(str)  -- config.freeze_up_down == 0
     str.LuaString = "Stems: freeze up"
@@ -208,29 +211,33 @@ function choose_destination_staff(source_staff)
     stem_direction_popup:SetWidth(160)
     stem_direction_popup:SetSelectedItem(config.freeze_up_down) -- 0-based index
 
-    -- "CLEAR ALL" button to clear copy choices
+    -- "CLEAR ALL" button to CLEAR all booleans
     local clear_button = dialog:CreateButton(horiz_grid[3], vert_step * 2)
     str.LuaString = "Clear All"
     clear_button:SetWidth(80)
     clear_button:SetText(str)
     dialog:RegisterHandleControlEvent ( clear_button,
         function()
-            for i = 1, boolean_count do
-                user_selections[i]:SetCheck(0)
+            for _, v in ipairs(user_checks) do
+                if not integer_options[v] then
+                    user_selections[v]:SetCheck(0)
+                end
             end
             list_box:SetKeyboardFocus()
         end
     )
 
-    -- "SET ALL" button to set all copy choices
+    -- "SET ALL" button to SET all booleans
     local set_button = dialog:CreateButton(horiz_grid[3], vert_step * 4)
     str.LuaString = "Set All"
     set_button:SetWidth(80)
     set_button:SetText(str)
     dialog:RegisterHandleControlEvent ( set_button,
         function()
-            for i = 1, boolean_count do
-                user_selections[i]:SetCheck(1)
+            for _, v in ipairs(user_checks) do
+                if not integer_options[v] then
+                    user_selections[v]:SetCheck(1)
+                end
             end
             list_box:SetKeyboardFocus()
         end
@@ -242,19 +249,19 @@ function choose_destination_staff(source_staff)
     local selected_item = list_box:GetSelectedItem() -- retrieve user staff selection (index base 0)
     local chosen_staff_number = staff_list[selected_item + 1][1]
 
-    -- save User Pref changes
-    for i,v in ipairs(user_checks) do -- run through config parameters
-        if i <= boolean_count then
-            config[v] = (user_selections[i]:GetCheck() == 1) -- "true" for value 1, checked
-        elseif i < #user_checks then    -- integer value (#user_checks = stem_direction_popup)
-            local answer = user_selections[i]:GetInteger()
-            if i == #user_selections and (answer < 2 or answer > 4) then -- legitimate layer number choice?
-                answer = 4 -- make sure layer number is in range
+    if ok then -- save changed User Prefs
+        for i, v in ipairs(user_checks) do -- run through config parameters
+            if integer_options[v] then
+                config[v] = user_selections[v]:GetInteger()
+                if v == "cuenote_layer" and (config[v] < 1 or config[v] > 4) then -- legitimate layer choice?
+                    config[v] = 4 -- make sure layer number is in range
+                end
+            else
+                config[v] = (user_selections[v]:GetCheck() == 1) -- "true" for value 1, boolean checked
             end
-            config[v] = answer
         end
+        config.freeze_up_down = stem_direction_popup:GetSelectedItem() -- 0-based index
     end
-    config.freeze_up_down = stem_direction_popup:GetSelectedItem() -- 0-based index
     return ok, chosen_staff_number
 end
 
@@ -368,7 +375,7 @@ function new_expression_category(new_name)
     local tfi = new_category:CreateTextFontInfo()
     tfi.Size = tfi.Size - config.cue_font_smaller
     new_category:SetTextFontInfo(tfi)
-    
+
     ok = new_category:SaveNewWithType(finale.DEFAULTCATID_TECHNIQUETEXT)
     if ok then
         category_id = new_category:GetID()
