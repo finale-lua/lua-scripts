@@ -48,14 +48,14 @@ jobs:
             - run: 'rm -rf website/docs'
             - run: 'cp -R lua/docs website/docs'
             - name: Commit & Push docs to website
-              uses: actions-js/push@v1.3
+              uses: actions-js/push@v1.4
               with:
                   github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
                   directory: website
                   branch: main
                   repository: finale-lua/jw-lua-scripts-docs
             - name: Commit & Push docs to this repo
-              uses: actions-js/push@v1.3
+              uses: actions-js/push@v1.4
               with:
                   github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
                   directory: lua
