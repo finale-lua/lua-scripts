@@ -54,6 +54,16 @@ finaleplugin.HandlesUndo = true
 
 Default is `false`.
 
+#### IgnoreReturnValue\* (boolean)
+
+_RGP Lua_ displays to the user any non-nil value returned by a script, regardless of whether an error occurred. You can suppress this display when there is no error by setting this value to `true`. Example:
+
+```lua
+finaleplugin.IgnoreReturnValue = true
+```
+
+Default is `false`.
+
 #### LoadAsString\* (boolean)
 
 Setting this value to `true` tells _RGP Lua_ to load the script into an internal string and then send it to Lua. One reason to do this might be if the script file contains an embedded `NULL` character. This option would cause the Lua interpreter to stop at the `NULL`. It overrides the **Load As String** setting in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration).
