@@ -99,7 +99,7 @@ function add_slashes()
             art.VerticalPos = config[stem .. "artic_y_offset"]
             art:SaveNew()
         end
-	end
+    end
 end
 
 function change_parameters()
