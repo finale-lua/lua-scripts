@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.65"
-    finaleplugin.Date = "2022/12/13"
+    finaleplugin.Version = "v0.67"
+    finaleplugin.Date = "2023/01/07"
     finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action. 
         It takes music in Layer 1 from one staff in the selected region and creates a "Cue" version on another chosen staff. 
@@ -26,6 +26,7 @@ local config = { -- retained and over-written by the user's "settings" file
     copy_smartshapes    =   false,
     copy_slurs          =   true,
     copy_clef           =   false,
+    copy_lyrics         =   false,
     mute_cuenotes       =   true,
     cuenote_percent     =   70,    -- (75% too big, 66% too small)
     cuenote_layer       =   3,
@@ -46,7 +47,8 @@ function show_error(error_code)
         empty_region = "Please select a region\nwith some notes in it!",
         first_make_expression_category = "You must first create a new Text Expression Category called \""..config.cue_category_name.."\" containing at least one entry",
     }
-    finenv.UI():AlertNeutral("script: " .. plugindef(), errors[error_code])
+    local msg = errors[error_code] or "Unknown error condition"
+    finenv.UI():AlertNeutral("script: " .. plugindef(), msg)
     return -1
 end
 
@@ -78,7 +80,7 @@ function new_cue_name(source_staff)
     -- copy default name from the source Staff Name
     local staff = finale.FCStaff()
     staff:Load(source_staff)
-    the_name:SetText( staff:CreateDisplayFullNameString() )
+    the_name:SetText(staff:CreateDisplayFullNameString())
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
@@ -102,8 +104,8 @@ function choose_name_index(name_list)
     staff_list:AddString(str)
 
     -- add all names in the extant list
-    for i,v in ipairs(name_list) do
-        str.LuaString = v[1]  -- copy the name, not the ItemNo
+    for _, v in ipairs(name_list) do
+        str.LuaString = v[1]  -- add the name, not the ItemNo
         staff_list:AddString(str)
     end
     dialog:CreateOkButton()
@@ -150,11 +152,11 @@ function choose_destination_staff(source_staff)
     -- draw up the dialog box
     local horiz_grid = { 210, 310, 360 }
     local vert_step = 20
-    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra horizontal offset for Mac edit boxes
+    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- + vertical offset for Mac edit boxes
     local user_checks = {
         "copy_articulations",   "copy_expressions",   "copy_smartshapes",
-        "copy_slurs",           "copy_clef",          "mute_cuenotes",
-        "cuenote_percent",      "cuenote_layer"
+        "copy_slurs",           "copy_clef",          "copy_lyrics",
+        "mute_cuenotes",        "cuenote_percent",      "cuenote_layer"
         -- note that [config.freeze_up_down] is a special case
     }
     local integer_options = { -- numeric, not boolean options
@@ -175,7 +177,7 @@ function choose_destination_staff(source_staff)
     local list_box = dialog:CreateListBox(0, vert_step)
     list_box.UseCheckboxes = true
     list_box:SetWidth(200)
-    for i,v in ipairs(staff_list) do -- list all staff names
+    for _, v in ipairs(staff_list) do -- list all staff names
         str.LuaString = v[2]
         list_box:AddString(str)
     end
@@ -202,11 +204,11 @@ function choose_destination_staff(source_staff)
     -- popup for stem direction -> config.freeze_up_down
     local stem_direction_popup = dialog:CreatePopup(horiz_grid[1], ((#user_checks + 1) * vert_step + 5))
     str.LuaString = "Stems: normal"
-    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 0
+    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 0 (normal)
     str.LuaString = "Stems: freeze up"
-    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 1
+    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 1 (up)
     str.LuaString = "Stems: freeze down"
-    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 2
+    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 2 (down)
     stem_direction_popup:SetWidth(160)
     stem_direction_popup:SetSelectedItem(config.freeze_up_down) -- 0-based index
 
@@ -224,7 +226,7 @@ function choose_destination_staff(source_staff)
             end
             list_box:SetKeyboardFocus()
         end
-    )
+        )
 
     -- "SET ALL" button to SET all booleans
     local set_button = dialog:CreateButton(horiz_grid[3], vert_step * 4)
@@ -240,7 +242,7 @@ function choose_destination_staff(source_staff)
             end
             list_box:SetKeyboardFocus()
         end
-    )
+        )
 
     -- run the dialog
     dialog:CreateOkButton()
@@ -253,8 +255,8 @@ function choose_destination_staff(source_staff)
         for i, v in ipairs(user_checks) do -- run through config parameters
             if integer_options[v] then
                 config[v] = user_selections[v]:GetInteger()
-                if v == "cuenote_layer" and (config[v] < 1 or config[v] > 4) then -- legitimate layer choice?
-                    config[v] = 4 -- make sure layer number is in range
+                if v == "cuenote_layer" and (config[v] < 1 or config[v] > layer.max_layers()) then -- legitimate layer choice?
+                    config[v] = layer.max_layers() -- make sure layer number is in range
                 end
             else
                 config[v] = (user_selections[v]:GetCheck() == 1) -- "true" for value 1, boolean checked
@@ -310,11 +312,20 @@ function copy_to_destination(source_region, destination_staff)
         entry_mod:SetResize(config.cuenote_percent)
         entry_mod:Save()
 
-        if not config.copy_articulations and entry:GetArticulationFlag() then
+        if entry.ArticulationFlag and not config.copy_articulations then
             for articulation in each(entry:CreateArticulations()) do
                 articulation:DeleteData()
             end
-            entry:SetArticulationFlag(false)
+            entry.ArticulationFlag = false
+        end
+        if entry.LyricFlag and not config.copy_lyrics then -- delete lyrics from copy
+            local lyrics = { finale.FCChorusSyllable(), finale.FCSectionSyllable(), finale.FCVerseSyllable() }
+            for _, v in ipairs(lyrics) do
+                v:SetNoteEntry(entry)
+                while v:LoadFirst() do
+                    v:DeleteData()
+                end
+            end
         end
         if config.freeze_up_down > 0 then -- frozen stems requested
             entry.FreezeStem = true
