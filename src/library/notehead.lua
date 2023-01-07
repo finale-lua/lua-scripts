@@ -115,7 +115,7 @@ if library.is_font_smufl_font() then
     config = {
         diamond = {
             quarter = { glyph = 0xe0e1, size = 110 },
-            half  = { glyph = 0xe0e1, size = 110 },
+            half  = { glyph = 0xe0da, size = 110 }, -- or "0xe0e1" to match quarter notehead
             whole = { glyph = 0xe0d8, size = 110 },
             breve = { glyph = 0xe0d7, size = 110 },
         },
