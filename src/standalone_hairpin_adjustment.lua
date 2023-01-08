@@ -285,6 +285,10 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         elseif finale.EXPRJUSTIFY_RIGHT == dyn_def.HorizontalJustification then
             dyn_width = 0
         end
+        local cell_metrics = finale.FCCellMetrics()
+        cell_metrics:LoadAtCell(finale.FCCell(dyn_exp.Measure, dyn_exp.Staff))
+        local staff_percent = cell_metrics.StaffScaling / cell_metrics.SystemScaling
+        dyn_width = dyn_width * staff_percent
         local handle_offset_from_edupos = expression.calc_handle_offset_for_smart_shape(dyn_exp)
         if left_or_right == "left" then
             local total_x = dyn_width + config.left_dynamic_cushion + handle_offset_from_edupos
@@ -296,7 +300,8 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
                 local seg_point = finale.FCPoint(0, 0)
                 local exp_point = finale.FCPoint(0, 0)
                 if hairpin:CalcRightCellMetricPos(seg_point) and dyn_exp:CalcMetricPos(exp_point) then
-                    next_measure_gap = (exp_point.X - handle_offset_from_edupos) - (seg_point.X - the_seg.EndpointOffsetX)
+                    local end_x = math.floor((exp_point.X * staff_percent) + 0.5)
+                    next_measure_gap = (end_x - handle_offset_from_edupos) - (seg_point.X - the_seg.EndpointOffsetX)
                 end
             end
             cushion_bool = false
