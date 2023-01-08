@@ -82,11 +82,12 @@ delete_type = delete_type or "expression_all"
 
 function expression_is_dynamic(exp)
     if not exp:IsShape() and exp.Visible and exp.StaffGroupID == 0 then
-        local cd = finale.FCCategoryDef()
-        local text_def = exp:CreateTextExpressionDef()
-        if text_def.CategoryID == finale.DEFAULTCATID_DYNAMICS then
+        local cat_id = exp:CreateTextExpressionDef().CategoryID
+        if cat_id == finale.DEFAULTCATID_DYNAMICS then
             return true
         end
+        local cd = finale.FCCategoryDef()
+        cd:Load(cat_id)
         if cd.Type == finale.DEFAULTCATID_DYNAMICS then
             return true
         end
