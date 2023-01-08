@@ -20,6 +20,12 @@ Parameter values may be:
 - Booleans (`true` or `false`)
 - Numbers
 
+Parameter names may specify nested tables using dot-syntax:
+
+```lua
+diamond.quarter.glyph = 226
+```
+
 Currently the following are not supported:
 
 - Tables embedded within tables
@@ -30,8 +36,8 @@ A sample configuration file might be:
 ```lua
 -- Configuration File for "Hairpin and Dynamic Adjustments" script
 --
-left_dynamic_cushion 		= 12		--evpus
-right_dynamic_cushion		= -6		--evpus
+left_dynamic_cushion         = 12        --evpus
+right_dynamic_cushion        = -6        --evpus
 ```
 
 ## Configuration Files
@@ -149,7 +155,6 @@ end
 
 local get_parameters_from_file = function(file_path, parameter_list)
     local file_parameters = {}
-
     if not file_exists(file_path) then
         return false
     end
@@ -167,12 +172,20 @@ local get_parameters_from_file = function(file_path, parameter_list)
         end
     end
 
-    for param_name, _ in pairs(parameter_list) do
-        local param_val = file_parameters[param_name]
-        if nil ~= param_val then
-            parameter_list[param_name] = param_val
+    local function process_table(param_table, param_prefix)
+        param_prefix = param_prefix and param_prefix.."." or ""
+        for param_name, param_val in pairs(param_table) do
+            local file_param_name = param_prefix .. param_name
+            local file_param_val = file_parameters[file_param_name]
+            if nil ~= file_param_val then
+                param_table[param_name] = file_param_val
+            elseif type(param_val) == "table" then
+                    process_table(param_val, param_prefix..param_name)
+            end
         end
     end
+
+    process_table(parameter_list)
 
     return true
 end

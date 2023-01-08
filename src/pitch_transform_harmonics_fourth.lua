@@ -12,6 +12,7 @@ end
 
 local articulation = require("library.articulation")
 local transposition = require("library.transposition")
+require('mobdebug').start()
 local notehead = require("library.notehead")
 local note_entry = require("library.note_entry")
 
