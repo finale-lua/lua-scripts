@@ -15,10 +15,12 @@ This library implements a UTF-8 text file scheme for configuration and user sett
 
 Parameter values may be:
 
-- Strings delimited with either single- or double-quotes
-- Tables delimited with `{}` that may contain strings, booleans, or numbers
-- Booleans (`true` or `false`)
-- Numbers
+- Strings delimited with either single- or double-quotes.
+- Tables delimited with `{}` that may contain any Lua syntax for defining tables, including nested tables. (Be careful of syntax errors.)
+- Booleans (`true` or `false`).
+- Numbers.
+
+Note that parameter values, including nested tables, must fit on a single line of text with the parameter name.
 
 Parameter names may specify nested tables using dot-syntax:
 
@@ -26,10 +28,11 @@ Parameter names may specify nested tables using dot-syntax:
 diamond.quarter.glyph = 226
 ```
 
-Currently the following are not supported:
+or
 
-- Tables embedded within tables
-- Tables containing strings that contain commas
+```lua
+diamond.quarter = { glyph = 0xe0e2, size = 100 }
+```
 
 A sample configuration file might be:
 
@@ -62,6 +65,11 @@ the script itself should provide a means to change them. This could be a (prefer
 or any other mechanism the script author chooses.
 
 User settings are saved in the user's preferences folder (on Mac) or AppData folder (on Windows).
+
+Limitations for User Settings Files are
+
+- supported parameter types limited to numbers, strings, and booleans
+- no nested tables
 
 ## Merge Process
 
@@ -129,22 +137,13 @@ local strip_leading_trailing_whitespace = function(str)
     return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
 end
 
-local parse_table = function(val_string)
-    local ret_table = {}
-    for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
-        local parsed_element = parse_parameter(element)
-        table.insert(ret_table, parsed_element)
-    end
-    return ret_table
-end
-
 parse_parameter = function(val_string)
     if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
         return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
     elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
         return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
     elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-        return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
+        return load("return " .. val_string)()
     elseif "true" == val_string then
         return true
     elseif "false" == val_string then
