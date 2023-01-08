@@ -84,10 +84,14 @@ function expression_is_dynamic(exp)
     if not exp:IsShape() and exp.Visible and exp.StaffGroupID == 0 then
         local cd = finale.FCCategoryDef()
         local text_def = exp:CreateTextExpressionDef()
-        if text_def and cd:Load(text_def.CategoryID) then
-            if text_def.CategoryID == finale.DEFAULTCATID_DYNAMICS or string.find(cd:CreateName().LuaString, "Dynamic") then
-                return true
-            end
+        if text_def.CategoryID == finale.DEFAULTCATID_DYNAMICS then
+            return true
+        end
+        if cd.Type == finale.DEFAULTCATID_DYNAMICS then
+            return true
+        end
+        if string.find(cd:CreateName().LuaString, "Dynamic") then
+            return true
         end
     end
     return false
