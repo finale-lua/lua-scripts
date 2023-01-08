@@ -3,14 +3,15 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.56"
-    finaleplugin.Date = "2022/08/22"
+    finaleplugin.Version = "0.57"
+    finaleplugin.Date = "2023/01/07"
     finaleplugin.MinJWLuaVersion = 0.62
 	finaleplugin.AdditionalMenuOptions = [[
         Delete Dynamics
         Delete Expressions (Not Dynamics)
         Delete Expressions (Measure-Attached)
         Delete Articulations
+        Delete Lyrics
         Delete Hairpins
         Delete Slurs
         Delete Custom Lines
@@ -25,6 +26,7 @@ function plugindef()
         Delete Expressions (Not Dynamics)
         Delete Expressions (Measure-Attached)
         Delete Articulations
+        Delete Lyrics
         Delete Hairpins
         Delete Slurs
         Delete Custom Lines
@@ -39,6 +41,7 @@ function plugindef()
         Delete expressions (not dynamics) from the selected region
         Delete measure-assigned expressions from the selected region
         Delete articulations from the selected region
+        Delete lyrics from the selected region
         Delete hairpins from the selected region
         Delete slurs from the selected region
         Delete custom lines from the selected region
@@ -53,6 +56,7 @@ function plugindef()
         delete_type = "expression_not_dynamic"
         delete_type = "measure_attached"
         delete_type = "articulation"
+        delete_type = "lyrics"
         delete_type = "shape_hairpin"
         delete_type = "shape_slur"
         delete_type = "shape_custom"
@@ -68,13 +72,31 @@ function plugindef()
         Deletes nominated items from the selected region. 
         Individual menu items are created to independently delete items of type:  
         All Expressions / Dynamics / Expressions (Not Dynamics) / Expressions (Measure-Attached) /  
-        Articulations / Hairpins / Slurs / Custom Lines / Glissandos / Smart Shapes (Beat Aligned) /  
-        All Smart Shapes / Midi Note Data / Midi Continuous Data
+        Articulations / Lyrics / Hairpins / Slurs / Custom Lines / Glissandos /  
+        Smart Shapes (Beat Aligned) / All Smart Shapes / Midi Note Data / Midi Continuous Data  
     ]]
     return "Delete All Expressions", "Delete All Expressions", "Delete all expressions from the selected region"
 end
 
 delete_type = delete_type or "expression_all"
+
+function expression_is_dynamic(exp)
+    if not exp:IsShape() and exp.Visible and exp.StaffGroupID == 0 then
+        local cat_id = exp:CreateTextExpressionDef().CategoryID
+        if cat_id == finale.DEFAULTCATID_DYNAMICS then
+            return true
+        end
+        local cd = finale.FCCategoryDef()
+        cd:Load(cat_id)
+        if cd.Type == finale.DEFAULTCATID_DYNAMICS then
+            return true
+        end
+        if string.find(cd:CreateName().LuaString, "Dynamic") then
+            return true
+        end
+    end
+    return false
+end
 
 function delete_selected()
     if string.find(delete_type, "shape") then -- SMART SHAPE
@@ -96,11 +118,10 @@ function delete_selected()
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(finenv.Region())
         for exp in eachbackwards(expressions) do
-            local def_id = exp:CreateTextExpressionDef().CategoryID -- test for DYNAMICS
             if not exp:IsShape() and exp.StaffGroupID == 0 and
               (    (delete_type == "expression_all")
-                or (delete_type == "expression_not_dynamic" and def_id ~= finale.DEFAULTCATID_DYNAMICS)
-                or (delete_type == "expression_dynamic" and def_id == finale.DEFAULTCATID_DYNAMICS)
+                or (delete_type == "expression_not_dynamic" and not expression_is_dynamic(exp))
+                or (delete_type == "expression_dynamic" and expression_is_dynamic(exp))
               )
             then
                 exp:DeleteData()
@@ -146,6 +167,18 @@ function delete_selected()
                     articulation:DeleteData()
                 end
                 entry:SetArticulationFlag(false)
+            end
+        end
+    elseif delete_type == "lyrics" then -- LYRICS type
+        local lyrics = { finale.FCChorusSyllable(), finale.FCSectionSyllable(), finale.FCVerseSyllable() }
+        for entry in eachentrysaved(finenv.Region()) do
+            if entry.LyricFlag then
+                for _, v in ipairs(lyrics) do
+                    v:SetNoteEntry(entry)
+                    while v:LoadFirst() do
+                        v:DeleteData()
+                    end
+                end
             end
         end
     end
