@@ -981,21 +981,13 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
     local strip_leading_trailing_whitespace = function(str)
         return str:match("^%s*(.-)%s*$")
     end
-    local parse_table = function(val_string)
-        local ret_table = {}
-        for element in val_string:gmatch("[^,%s]+") do
-            local parsed_element = parse_parameter(element)
-            table.insert(ret_table, parsed_element)
-        end
-        return ret_table
-    end
     parse_parameter = function(val_string)
         if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
             return string.gsub(val_string, "\"(.+)\"", "%1")
         elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
             return string.gsub(val_string, "'(.+)'", "%1")
         elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-            return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
+            return load("return " .. val_string)()
         elseif "true" == val_string then
             return true
         elseif "false" == val_string then
@@ -1020,12 +1012,19 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
                 file_parameters[name] = parse_parameter(val_string)
             end
         end
-        for param_name, _ in pairs(parameter_list) do
-            local param_val = file_parameters[param_name]
-            if nil ~= param_val then
-                parameter_list[param_name] = param_val
+        local function process_table(param_table, param_prefix)
+            param_prefix = param_prefix and param_prefix.."." or ""
+            for param_name, param_val in pairs(param_table) do
+                local file_param_name = param_prefix .. param_name
+                local file_param_val = file_parameters[file_param_name]
+                if nil ~= file_param_val then
+                    param_table[param_name] = file_param_val
+                elseif type(param_val) == "table" then
+                        process_table(param_val, param_prefix..param_name)
+                end
             end
         end
+        process_table(parameter_list)
         return true
     end
 
@@ -1351,6 +1350,10 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
         elseif finale.EXPRJUSTIFY_RIGHT == dyn_def.HorizontalJustification then
             dyn_width = 0
         end
+        local cell_metrics = finale.FCCellMetrics()
+        cell_metrics:LoadAtCell(finale.FCCell(dyn_exp.Measure, dyn_exp.Staff))
+        local staff_percent = cell_metrics.StaffScaling / cell_metrics.SystemScaling
+        dyn_width = dyn_width * staff_percent
         local handle_offset_from_edupos = expression.calc_handle_offset_for_smart_shape(dyn_exp)
         if left_or_right == "left" then
             local total_x = dyn_width + config.left_dynamic_cushion + handle_offset_from_edupos
@@ -1362,7 +1365,8 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
                 local seg_point = finale.FCPoint(0, 0)
                 local exp_point = finale.FCPoint(0, 0)
                 if hairpin:CalcRightCellMetricPos(seg_point) and dyn_exp:CalcMetricPos(exp_point) then
-                    next_measure_gap = (exp_point.X - handle_offset_from_edupos) - (seg_point.X - the_seg.EndpointOffsetX)
+                    local end_x = math.floor((exp_point.X * staff_percent) + 0.5)
+                    next_measure_gap = (end_x - handle_offset_from_edupos) - (seg_point.X - the_seg.EndpointOffsetX)
                 end
             end
             cushion_bool = false

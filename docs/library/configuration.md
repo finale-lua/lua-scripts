@@ -12,23 +12,32 @@ This library implements a UTF-8 text file scheme for configuration and user sett
 
 Parameter values may be:
 
-- Strings delimited with either single- or double-quotes
-- Tables delimited with `{}` that may contain strings, booleans, or numbers
-- Booleans (`true` or `false`)
-- Numbers
+- Strings delimited with either single- or double-quotes.
+- Tables delimited with `{}` that may contain any Lua syntax for defining tables, including nested tables. (Be careful of syntax errors.)
+- Booleans (`true` or `false`).
+- Numbers.
 
-Currently the following are not supported:
+Note that parameter values, including nested tables, must fit on a single line of text with the parameter name.
 
-- Tables embedded within tables
-- Tables containing strings that contain commas
+Parameter names may specify nested tables using dot-syntax:
+
+```lua
+diamond.quarter.glyph = 226
+```
+
+or
+
+```lua
+diamond.quarter = { glyph = 0xe0e2, size = 100 }
+```
 
 A sample configuration file might be:
 
 ```lua
 -- Configuration File for "Hairpin and Dynamic Adjustments" script
 --
-left_dynamic_cushion 		= 12		--evpus
-right_dynamic_cushion		= -6		--evpus
+left_dynamic_cushion         = 12        --evpus
+right_dynamic_cushion        = -6        --evpus
 ```
 
 ## Configuration Files
@@ -53,6 +62,11 @@ the script itself should provide a means to change them. This could be a (prefer
 or any other mechanism the script author chooses.
 
 User settings are saved in the user's preferences folder (on Mac) or AppData folder (on Windows).
+
+Limitations for User Settings Files are
+
+- supported parameter types limited to numbers, strings, and booleans
+- no nested tables
 
 ## Merge Process
 
@@ -110,7 +124,7 @@ without having to worry about older configuration files or user settings affecti
 configuration.get_parameters(file_name, parameter_list)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua#L190)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua#L202)
 
 Searches for a file with the input filename in the `script_settings` directory and replaces the default values in `parameter_list`
 with any that are found in the config file.
@@ -130,7 +144,7 @@ with any that are found in the config file.
 configuration.save_user_settings(script_name, parameter_list)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua#L233)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua#L245)
 
 Saves the user's preferences for a script from the values provided in `parameter_list`.
 
@@ -149,7 +163,7 @@ Saves the user's preferences for a script from the values provided in `parameter
 configuration.get_user_settings(script_name, parameter_list, create_automatically)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua#L268)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/configuration.lua#L280)
 
 Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
 with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so

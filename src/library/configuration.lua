@@ -15,23 +15,32 @@ This library implements a UTF-8 text file scheme for configuration and user sett
 
 Parameter values may be:
 
-- Strings delimited with either single- or double-quotes
-- Tables delimited with `{}` that may contain strings, booleans, or numbers
-- Booleans (`true` or `false`)
-- Numbers
+- Strings delimited with either single- or double-quotes.
+- Tables delimited with `{}` that may contain any Lua syntax for defining tables, including nested tables. (Be careful of syntax errors.)
+- Booleans (`true` or `false`).
+- Numbers.
 
-Currently the following are not supported:
+Note that parameter values, including nested tables, must fit on a single line of text with the parameter name.
 
-- Tables embedded within tables
-- Tables containing strings that contain commas
+Parameter names may specify nested tables using dot-syntax:
+
+```lua
+diamond.quarter.glyph = 226
+```
+
+or
+
+```lua
+diamond.quarter = { glyph = 0xe0e2, size = 100 }
+```
 
 A sample configuration file might be:
 
 ```lua
 -- Configuration File for "Hairpin and Dynamic Adjustments" script
 --
-left_dynamic_cushion 		= 12		--evpus
-right_dynamic_cushion		= -6		--evpus
+left_dynamic_cushion         = 12        --evpus
+right_dynamic_cushion        = -6        --evpus
 ```
 
 ## Configuration Files
@@ -56,6 +65,11 @@ the script itself should provide a means to change them. This could be a (prefer
 or any other mechanism the script author chooses.
 
 User settings are saved in the user's preferences folder (on Mac) or AppData folder (on Windows).
+
+Limitations for User Settings Files are
+
+- supported parameter types limited to numbers, strings, and booleans
+- no nested tables
 
 ## Merge Process
 
@@ -123,22 +137,13 @@ local strip_leading_trailing_whitespace = function(str)
     return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
 end
 
-local parse_table = function(val_string)
-    local ret_table = {}
-    for element in val_string:gmatch("[^,%s]+") do -- lua pattern magic taken from the Internet
-        local parsed_element = parse_parameter(element)
-        table.insert(ret_table, parsed_element)
-    end
-    return ret_table
-end
-
 parse_parameter = function(val_string)
     if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then -- double-quote string
         return string.gsub(val_string, "\"(.+)\"", "%1") -- lua pattern magic: "(.+)" matches all characters between two double-quote marks (no escape chars)
     elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then -- single-quote string
         return string.gsub(val_string, "'(.+)'", "%1") -- lua pattern magic: '(.+)' matches all characters between two single-quote marks (no escape chars)
     elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-        return parse_table(string.gsub(val_string, "{(.+)}", "%1"))
+        return load("return " .. val_string)()
     elseif "true" == val_string then
         return true
     elseif "false" == val_string then
@@ -149,7 +154,6 @@ end
 
 local get_parameters_from_file = function(file_path, parameter_list)
     local file_parameters = {}
-
     if not file_exists(file_path) then
         return false
     end
@@ -167,12 +171,20 @@ local get_parameters_from_file = function(file_path, parameter_list)
         end
     end
 
-    for param_name, _ in pairs(parameter_list) do
-        local param_val = file_parameters[param_name]
-        if nil ~= param_val then
-            parameter_list[param_name] = param_val
+    local function process_table(param_table, param_prefix)
+        param_prefix = param_prefix and param_prefix.."." or ""
+        for param_name, param_val in pairs(param_table) do
+            local file_param_name = param_prefix .. param_name
+            local file_param_val = file_parameters[file_param_name]
+            if nil ~= file_param_val then
+                param_table[param_name] = file_param_val
+            elseif type(param_val) == "table" then
+                    process_table(param_val, param_prefix..param_name)
+            end
         end
     end
+
+    process_table(parameter_list)
 
     return true
 end
