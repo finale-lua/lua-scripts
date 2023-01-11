@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.48"
-    finaleplugin.Date = "2022/11/14"
+    finaleplugin.Version = "v1.49"
+    finaleplugin.Date = "2023/01/12"
     finaleplugin.Notes = [[
         Chords on layer 1 in the selected region are split into independent layers on the same staff. 
         Multiple measures and staves can be selected at once. 
@@ -16,6 +16,7 @@ function plugindef()
 end
 
 local layer = require("library.layer")
+local note_entry = require("library.note_entry")
 
 function get_note_count(region)
     local note_count = 0
@@ -64,12 +65,12 @@ function explode_one_slot(slot)
 
             if from_top > 0 then -- delete TOP notes
                 for i = 1, from_top do
-                    entry:DeleteNote(entry:CalcHighestNote(nil))
+                    note_entry.delete_note(entry:CalcHighestNote(nil))
                 end
             end
             if from_bottom > 0 and this_layer < layer.max_layers() then -- delete BOTTOM notes
                 for i = 1, from_bottom do
-                    entry:DeleteNote(entry:CalcLowestNote(nil))
+                    note_entry.delete_note(entry:CalcLowestNote(nil))
                 end
             end
         end
