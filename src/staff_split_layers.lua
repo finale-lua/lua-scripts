@@ -15,7 +15,7 @@ function plugindef()
         
         - From Layer (1-4): the source layer to split from (defaults to 1)
         - To Layer (1-4): the target layer to split to (defaults to 2)
-        - Split After (From Top): the number of chord tones to preserve in the source layer, counting from the top of each chord. All other notes are split to the target layer.
+        - Split At [ ] Notes From Top: the number of chord tones to preserve in the source layer, counting from the top of each chord. All other notes are split to the target layer.
         - Copy Articulations: if checked, copies articulations from the source to the target.
         
     ]]
@@ -81,7 +81,7 @@ function do_staff_split_layers()
         return
     end
     if split_from_top <= 0 then
-        finenv.UI():AlertError("Split After must be greater than zero.", "Split After")
+        finenv.UI():AlertError("Split At must be greater than zero.", "Split At")
         return
     end
     local region = finale.FCMusicRegion()
@@ -109,7 +109,7 @@ end
 function create_dialog_box()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Split Layers")
     local current_y = 0
-    local x_increment = 130
+    local x_increment = 110
     local y_increment = 22
     local edit_width = 30
     -- from layer
@@ -132,16 +132,19 @@ function create_dialog_box()
     current_y = current_y + y_increment
     -- notes to keep
     dialog:CreateStatic(0, current_y + 2)
-        :SetWidth(x_increment - 5)
-        :SetText("Split After (From Top):")
+        :SetWidth(100)
+        :SetText("Split At:")
     local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
     dialog:CreateEdit(edit_x, current_y, "split_after")
         :SetWidth(edit_width)
         :SetInteger(1)
+    dialog:CreateStatic(edit_x + edit_width + 5, current_y + 2)
+        :SetWidth(100)
+        :SetText("Notes From Top")
     current_y = current_y + y_increment
     -- clone articulations
     dialog:CreateCheckbox(0, current_y + 2, "clone_artics"):SetText("Copy Articulations")
-        :SetWidth(x_increment)
+        :SetWidth(x_increment + edit_width)
         :SetCheck(1)
     -- ok/cancel
     dialog:CreateOkButton()
