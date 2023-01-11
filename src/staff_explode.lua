@@ -1,10 +1,10 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com"
+    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.47"
-    finaleplugin.Date = "2022/07/11"
+    finaleplugin.Version = "v1.48"
+    finaleplugin.Date = "2023/01/12"
     finaleplugin.Notes = [[
         This script explodes a set of chords on one staff into single lines on subsequent staves. 
         The number of staves is determined by the largest number of notes in any chord.
@@ -21,6 +21,7 @@ function plugindef()
         ```
         fix_note_spacing = true -- respace music when the script finishes
         ```
+        
         If you subsequently hold down the `shift` or `alt` (option) key, spacing will not be included.
     ]]
     return "Staff Explode", "Staff Explode", "Explode chords from one staff into single notes on consecutive staves"
@@ -28,6 +29,7 @@ end
 
 local configuration = require("library.configuration")
 local clef = require("library.clef")
+local note_entry = require("library.note_entry")
 
 local config = { fix_note_spacing = false }
 configuration.get_parameters("staff_explode.config.txt", config)
@@ -45,7 +47,7 @@ end
 
 function should_overwrite_existing_music()
     local alert = finenv.UI():AlertOkCancel("script: " .. plugindef(), "Overwrite existing music?")
-    local should_overwrite = alert == 0
+    local should_overwrite = (alert == 0)
     return should_overwrite
 end
 
@@ -137,12 +139,12 @@ function staff_explode()
                     local from_bottom = entry.Count - slot -- how many from the bottom?
                     if from_top > 0 then -- delete TOP notes
                         for i = 1, from_top do
-                            entry:DeleteNote(entry:CalcHighestNote(nil))
+                            note_entry.delete_note(entry:CalcHighestNote(nil))
                         end
                     end
                     if from_bottom > 0 then -- delete BOTTOM notes
                         for i = 1, from_bottom do
-                            entry:DeleteNote(entry:CalcLowestNote(nil))
+                            note_entry.delete_note(entry:CalcLowestNote(nil))
                         end
                     end
                 end

@@ -1,7 +1,7 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
+    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "v1.48"
     finaleplugin.Date = "2022/07/14"
@@ -22,6 +22,7 @@ function plugindef()
         ```
         fix_note_spacing = true -- respace music when the script finishes
         ```
+        
         If you subsequently hold down the `shift` or `alt` (option) key, spacing will not be included.
     ]]
     return "Staff Explode Split Pairs", "Staff Explode Split Pairs", "Explode chords from one staff into split pairs of notes on consecutive single staves"
@@ -29,6 +30,8 @@ end
 
 local configuration = require("library.configuration")
 local clef = require("library.clef")
+local note_entry = require("library.note_entry")
+
 local config = { fix_note_spacing = false }
 configuration.get_parameters("staff_explode_split_pairs.config.txt", config)
 
@@ -159,7 +162,7 @@ function staff_explode()
                         for note in each(entry) do  -- check MIDI value
                             local pitch = note:CalcMIDIKey()
                             if pitch ~= pitches_to_keep[chord][hi_pitch] and pitch ~= pitches_to_keep[chord][lo_pitch] then
-                                entry:DeleteNote(note)  -- we don't want to keep this pitch
+                                note_entry.delete_note(note)
                                 break -- examine same entry again after note deletion
                             end
                         end

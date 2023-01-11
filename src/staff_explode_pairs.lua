@@ -1,10 +1,10 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
+    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.50"
-    finaleplugin.Date = "2022/09/24"
+    finaleplugin.Version = "v1.52"
+    finaleplugin.Date = "2023/01/12"
     finaleplugin.AdditionalMenuOptions = [[
         Staff Explode Pairs Up
     ]]
@@ -46,6 +46,8 @@ end
 split_type = split_type or "downwards"
 local configuration = require("library.configuration")
 local clef = require("library.clef")
+local note_entry = require("library.note_entry")
+
 local config = { fix_note_spacing = false }
 configuration.get_parameters("staff_explode_pairs.config.txt", config)
 
@@ -56,7 +58,9 @@ function show_error(error_code)
         empty_region = "Please select a region\nwith some notes in it!",
         three_or_more = "Explode Pairs needs\nthree or more notes per chord",
     }
-    finenv.UI():AlertNeutral("script: " .. plugindef(), errors[error_code])
+    if errors[error_code] then
+        finenv.UI():AlertNeutral("script: " .. plugindef(), errors[error_code])
+    end
     return -1
 end
 
@@ -130,7 +134,7 @@ function staff_explode()
         local this_slot = start_slot + slot - 1 -- "real" slot number, indexed[1]
         regions[slot].StartSlot = this_slot
         regions[slot].EndSlot = this_slot
-        
+
         if destination_is_empty then
             for entry in eachentry(regions[slot]) do
                 if entry.Count > 0 then
@@ -153,18 +157,18 @@ function staff_explode()
                 if entry:IsNote() then
                     local from_top = (slot - 1) * 2 -- delete how many notes from the top of the chord?
                     local from_bottom = entry.Count - (slot * 2) -- how many from the bottom?
-                    if split_type == "upwards" then -- strip missing notes from topmost staff
+                    if split_type == "upwards" then -- strip missing notes from top staff, not bottom
                         from_bottom = (staff_count - slot) * 2
                         from_top = entry.Count - from_bottom - 2
                     end
                     if from_top > 0 then
-                        for i = 1, from_top do
-                            entry:DeleteNote(entry:CalcHighestNote(nil))
+                        for _ = 1, from_top do
+                            note_entry.delete_note(entry:CalcHighestNote(nil))
                         end
                     end
                     if from_bottom > 0 then
-                        for i = 1, from_bottom do
-                            entry:DeleteNote(entry:CalcLowestNote(nil))
+                        for _ = 1, from_bottom do
+                            note_entry.delete_note(entry:CalcLowestNote(nil))
                         end
                     end
                 end
