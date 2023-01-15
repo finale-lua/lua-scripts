@@ -17,7 +17,7 @@ __imports["library.layer"] = __imports["library.layer"] or function()
     local layer = {}
 
 
-    function layer.copy(region, source_layer, destination_layer)
+    function layer.copy(region, source_layer, destination_layer, clone_articulations)
         local start = region.StartMeasure
         local stop = region.EndMeasure
         local sysstaves = finale.FCSystemStaves()
@@ -33,6 +33,18 @@ __imports["library.layer"] = __imports["library.layer"] or function()
                 destination_layer, staffNum, start)
             noteentry_destination_layer:Save()
             noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
+
+            if clone_articulations and noteentry_source_layer.Count == noteentry_destination_layer.Count then
+                for index = 0, noteentry_destination_layer.Count - 1 do
+                    local source_entry = noteentry_source_layer:GetItemAt(index)
+                    local destination_entry = noteentry_destination_layer:GetItemAt(index)
+                    local source_artics = source_entry:CreateArticulations()
+                    for articulation in each (source_artics) do
+                        articulation:SetNoteEntry(destination_entry)
+                        articulation:SaveNew()
+                    end
+                end
+            end
             noteentry_destination_layer:Save()
         end
     end

@@ -12,139 +12,6 @@ function require(item)
     end
     return __import_results[item]
 end
-__imports["library.configuration"] = __imports["library.configuration"] or function()
-
-
-
-    local configuration = {}
-    local script_settings_dir = "script_settings"
-    local comment_marker = "--"
-    local parameter_delimiter = "="
-    local path_delimiter = "/"
-    local file_exists = function(file_path)
-        local f = io.open(file_path, "r")
-        if nil ~= f then
-            io.close(f)
-            return true
-        end
-        return false
-    end
-    local strip_leading_trailing_whitespace = function(str)
-        return str:match("^%s*(.-)%s*$")
-    end
-    parse_parameter = function(val_string)
-        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "\"(.+)\"", "%1")
-        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "'(.+)'", "%1")
-        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-            return load("return " .. val_string)()
-        elseif "true" == val_string then
-            return true
-        elseif "false" == val_string then
-            return false
-        end
-        return tonumber(val_string)
-    end
-    local get_parameters_from_file = function(file_path, parameter_list)
-        local file_parameters = {}
-        if not file_exists(file_path) then
-            return false
-        end
-        for line in io.lines(file_path) do
-            local comment_at = string.find(line, comment_marker, 1, true)
-            if nil ~= comment_at then
-                line = string.sub(line, 1, comment_at - 1)
-            end
-            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
-            if nil ~= delimiter_at then
-                local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
-                local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
-                file_parameters[name] = parse_parameter(val_string)
-            end
-        end
-        local function process_table(param_table, param_prefix)
-            param_prefix = param_prefix and param_prefix.."." or ""
-            for param_name, param_val in pairs(param_table) do
-                local file_param_name = param_prefix .. param_name
-                local file_param_val = file_parameters[file_param_name]
-                if nil ~= file_param_val then
-                    param_table[param_name] = file_param_val
-                elseif type(param_val) == "table" then
-                        process_table(param_val, param_prefix..param_name)
-                end
-            end
-        end
-        process_table(parameter_list)
-        return true
-    end
-
-    function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
-        if finenv.IsRGPLua then
-            path = finenv.RunningLuaFolderPath()
-        else
-            local str = finale.FCString()
-            str:SetRunningLuaFolderPath()
-            path = str.LuaString
-        end
-        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
-        return get_parameters_from_file(file_path, parameter_list)
-    end
-
-
-    local calc_preferences_filepath = function(script_name)
-        local str = finale.FCString()
-        str:SetUserOptionsPath()
-        local folder_name = str.LuaString
-        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
-
-            folder_name = os.getenv("HOME") .. folder_name:sub(2)
-        end
-        if finenv.UI():IsOnWindows() then
-            folder_name = folder_name .. path_delimiter .. "FinaleLua"
-        end
-        local file_path = folder_name .. path_delimiter
-        if finenv.UI():IsOnMac() then
-            file_path = file_path .. "com.finalelua."
-        end
-        file_path = file_path .. script_name .. ".settings.txt"
-        return file_path, folder_name
-    end
-
-    function configuration.save_user_settings(script_name, parameter_list)
-        local file_path, folder_path = calc_preferences_filepath(script_name)
-        local file = io.open(file_path, "w")
-        if not file and finenv.UI():IsOnWindows() then
-            os.execute('mkdir "' .. folder_path ..'"')
-            file = io.open(file_path, "w")
-        end
-        if not file then
-            return false
-        end
-        file:write("-- User settings for " .. script_name .. ".lua\n\n")
-        for k,v in pairs(parameter_list) do
-            if type(v) == "string" then
-                v = "\"" .. v .."\""
-            else
-                v = tostring(v)
-            end
-            file:write(k, " = ", v, "\n")
-        end
-        file:close()
-        return true
-    end
-
-    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
-        if create_automatically == nil then create_automatically = true end
-        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
-        if not exists and create_automatically then
-            configuration.save_user_settings(script_name, parameter_list)
-        end
-        return exists
-    end
-    return configuration
-end
 __imports["library.note_entry"] = __imports["library.note_entry"] or function()
 
     local note_entry = {}
@@ -435,218 +302,105 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
     end
     return note_entry
 end
-__imports["library.enigma_string"] = __imports["library.enigma_string"] or function()
+__imports["library.layer"] = __imports["library.layer"] or function()
 
-    local enigma_string = {}
-    local starts_with_font_command = function(string)
-        local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
-        for i, text_cmd in ipairs(text_cmds) do
-            if string:StartsWith(text_cmd) then
-                return true
-            end
-        end
-        return false
-    end
+    local layer = {}
 
 
-    function enigma_string.trim_first_enigma_font_tags(string)
-        local font_info = finale.FCFontInfo()
-        local found_tag = false
-        while true do
-            if not starts_with_font_command(string) then
-                break
-            end
-            local end_of_tag = string:FindFirst(")")
-            if end_of_tag < 0 then
-                break
-            end
-            local font_tag = finale.FCString()
-            if string:SplitAt(end_of_tag, font_tag, nil, true) then
-                font_info:ParseEnigmaCommand(font_tag)
-            end
-            string:DeleteCharactersAt(0, end_of_tag + 1)
-            found_tag = true
-        end
-        if found_tag then
-            return font_info
-        end
-        return nil
-    end
+    function layer.copy(region, source_layer, destination_layer, clone_articulations)
+        local start = region.StartMeasure
+        local stop = region.EndMeasure
+        local sysstaves = finale.FCSystemStaves()
+        sysstaves:LoadAllForRegion(region)
+        source_layer = source_layer - 1
+        destination_layer = destination_layer - 1
+        for sysstaff in each(sysstaves) do
+            staffNum = sysstaff.Staff
+            local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
+            noteentry_source_layer:SetUseVisibleLayer(false)
+            noteentry_source_layer:Load()
+            local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
+                destination_layer, staffNum, start)
+            noteentry_destination_layer:Save()
+            noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
 
-    function enigma_string.change_first_string_font(string, font_info)
-        local final_text = font_info:CreateEnigmaString(nil)
-        local current_font_info = enigma_string.trim_first_enigma_font_tags(string)
-        if (current_font_info == nil) or not font_info:IsIdenticalTo(current_font_info) then
-            final_text:AppendString(string)
-            string:SetString(final_text)
-            return true
-        end
-        return false
-    end
-
-    function enigma_string.change_first_text_block_font(text_block, font_info)
-        local new_text = text_block:CreateRawTextString()
-        if enigma_string.change_first_string_font(new_text, font_info) then
-            text_block:SaveRawTextString(new_text)
-            return true
-        end
-        return false
-    end
-
-
-
-    function enigma_string.change_string_font(string, font_info)
-        local final_text = font_info:CreateEnigmaString(nil)
-        string:TrimEnigmaFontTags()
-        final_text:AppendString(string)
-        string:SetString(final_text)
-    end
-
-    function enigma_string.change_text_block_font(text_block, font_info)
-        local new_text = text_block:CreateRawTextString()
-        enigma_string.change_string_font(new_text, font_info)
-        text_block:SaveRawTextString(new_text)
-    end
-
-    function enigma_string.remove_inserts(fcstring, replace_with_generic)
-
-
-        local text_cmds = {
-            "^arranger", "^composer", "^copyright", "^date", "^description", "^fdate", "^filename", "^lyricist", "^page",
-            "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages",
-        }
-        local lua_string = fcstring.LuaString
-        for i, text_cmd in ipairs(text_cmds) do
-            local starts_at = string.find(lua_string, text_cmd, 1, true)
-            while nil ~= starts_at do
-                local replace_with = ""
-                if replace_with_generic then
-                    replace_with = string.sub(text_cmd, 2)
+            if clone_articulations and noteentry_source_layer.Count == noteentry_destination_layer.Count then
+                for index = 0, noteentry_destination_layer.Count - 1 do
+                    local source_entry = noteentry_source_layer:GetItemAt(index)
+                    local destination_entry = noteentry_destination_layer:GetItemAt(index)
+                    local source_artics = source_entry:CreateArticulations()
+                    for articulation in each (source_artics) do
+                        articulation:SetNoteEntry(destination_entry)
+                        articulation:SaveNew()
+                    end
                 end
-                local after_text_at = starts_at + string.len(text_cmd)
-                local next_at = string.find(lua_string, ")", after_text_at, true)
-                if nil ~= next_at then
-                    next_at = next_at + 1
-                else
-                    next_at = starts_at
-                end
-                lua_string = string.sub(lua_string, 1, starts_at - 1) .. replace_with .. string.sub(lua_string, next_at)
-                starts_at = string.find(lua_string, text_cmd, 1, true)
             end
+            noteentry_destination_layer:Save()
         end
-        fcstring.LuaString = lua_string
     end
 
-    function enigma_string.expand_value_tag(fcstring, value_num)
-        value_num = math.floor(value_num + 0.5)
-        fcstring.LuaString = fcstring.LuaString:gsub("%^value%(%)", tostring(value_num))
+
+    function layer.clear(region, layer_to_clear)
+        layer_to_clear = layer_to_clear - 1
+        local start = region.StartMeasure
+        local stop = region.EndMeasure
+        local sysstaves = finale.FCSystemStaves()
+        sysstaves:LoadAllForRegion(region)
+        for sysstaff in each(sysstaves) do
+            staffNum = sysstaff.Staff
+            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            noteentry_layer:SetUseVisibleLayer(false)
+            noteentry_layer:Load()
+            noteentry_layer:ClearAllEntries()
+        end
     end
 
-    function enigma_string.calc_text_advance_width(inp_string)
-        local accumulated_string = ""
-        local accumulated_width = 0
-        local enigma_strings = inp_string:CreateEnigmaStrings(true)
-        for str in each(enigma_strings) do
-            accumulated_string = accumulated_string .. str.LuaString
-            if string.sub(str.LuaString, 1, 1) ~= "^" then
-                local fcstring = finale.FCString()
-                local text_met = finale.FCTextMetrics()
-                fcstring.LuaString = accumulated_string
-                local font_info = fcstring:CreateLastFontInfo()
-                fcstring.LuaString = str.LuaString
-                fcstring:TrimEnigmaTags()
-                text_met:LoadString(fcstring, font_info, 100)
-                accumulated_width = accumulated_width + text_met:GetAdvanceWidthEVPUs()
-            end
-        end
-        return accumulated_width
-    end
-    return enigma_string
-end
-__imports["library.expression"] = __imports["library.expression"] or function()
 
-    local expression = {}
-    local library = require("library.general_library")
-    local note_entry = require("library.note_entry")
-    local enigma_string = require("library.enigma_string")
+    function layer.swap(region, swap_a, swap_b)
 
-    function expression.get_music_region(exp_assign)
-        if not exp_assign:IsSingleStaffAssigned() then
-            return nil
-        end
-        local exp_region = finale.FCMusicRegion()
-        exp_region:SetCurrentSelection()
-        exp_region.StartStaff = exp_assign.Staff
-        exp_region.EndStaff = exp_assign.Staff
-        exp_region.StartMeasure = exp_assign.Measure
-        exp_region.EndMeasure = exp_assign.Measure
-        exp_region.StartMeasurePos = exp_assign.MeasurePos
-        exp_region.EndMeasurePos = exp_assign.MeasurePos
-        return exp_region
-    end
+        swap_a = swap_a - 1
+        swap_b = swap_b - 1
+        for measure, staff_number in eachcell(region) do
+            local cell_frame_hold = finale.FCCellFrameHold()
+            cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+            local loaded = cell_frame_hold:Load()
+            local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
+            local  noteentry_layer_one = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
+            noteentry_layer_one:SetUseVisibleLayer(false)
+            noteentry_layer_one:Load()
+            noteentry_layer_one.LayerIndex = swap_b
 
-    function expression.get_associated_entry(exp_assign)
-        local exp_region = expression.get_music_region(exp_assign)
-        if nil == exp_region then
-            return nil
-        end
-        for entry in eachentry(exp_region) do
-            if (0 == exp_assign.LayerAssignment) or (entry.LayerNumber == exp_assign.LayerAssignment) then
-                if not entry:GetGraceNote() then
-                    return entry
+            local  noteentry_layer_two = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
+            noteentry_layer_two:SetUseVisibleLayer(false)
+            noteentry_layer_two:Load()
+            noteentry_layer_two.LayerIndex = swap_a
+            noteentry_layer_one:Save()
+            noteentry_layer_two:Save()
+            if loaded then
+                local new_cell_frame_hold = finale.FCCellFrameHold()
+                new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+                if new_cell_frame_hold:Load() then
+                    if cell_frame_hold.IsClefList then
+                        if new_cell_frame_hold.SetCellClefChanges then
+                            new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
+                        end
+
+                    else
+                        new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
+                    end
+                    new_cell_frame_hold:Save()
                 end
             end
         end
-        return nil
     end
 
-    function expression.calc_handle_offset_for_smart_shape(exp_assign)
-        local manual_horizontal = exp_assign.HorizontalPos
-        local def_horizontal = 0
-        local alignment_offset = 0
-        local exp_def = exp_assign:CreateTextExpressionDef()
-        if nil ~= exp_def then
-            def_horizontal = exp_def.HorizontalOffset
-        end
-        local exp_entry = expression.get_associated_entry(exp_assign)
-        if (nil ~= exp_entry) and (nil ~= exp_def) then
-            if finale.ALIGNHORIZ_LEFTOFALLNOTEHEAD == exp_def.HorizontalAlignmentPoint then
-                alignment_offset = note_entry.calc_left_of_all_noteheads(exp_entry)
-            elseif finale.ALIGNHORIZ_LEFTOFPRIMARYNOTEHEAD == exp_def.HorizontalAlignmentPoint then
-                alignment_offset = note_entry.calc_left_of_primary_notehead(exp_entry)
-            elseif finale.ALIGNHORIZ_STEM == exp_def.HorizontalAlignmentPoint then
-                alignment_offset = note_entry.calc_stem_offset(exp_entry)
-            elseif finale.ALIGNHORIZ_CENTERPRIMARYNOTEHEAD == exp_def.HorizontalAlignmentPoint then
-                alignment_offset = note_entry.calc_center_of_primary_notehead(exp_entry)
-            elseif finale.ALIGNHORIZ_CENTERALLNOTEHEADS == exp_def.HorizontalAlignmentPoint then
-                alignment_offset = note_entry.calc_center_of_all_noteheads(exp_entry)
-            elseif finale.ALIGNHORIZ_RIGHTALLNOTEHEADS == exp_def.HorizontalAlignmentPoint then
-                alignment_offset = note_entry.calc_right_of_all_noteheads(exp_entry)
-            end
-        end
-        return (manual_horizontal + def_horizontal + alignment_offset)
+
+
+    function layer.max_layers()
+        return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
     end
 
-    function expression.calc_text_width(expression_def, expand_tags)
-        expand_tags = expand_tags or false
-        local fcstring = expression_def:CreateTextString()
-        if expand_tags then
-            enigma_string.expand_value_tag(fcstring, expression_def:GetPlaybackTempoValue())
-        end
-        local retval = enigma_string.calc_text_advance_width(fcstring)
-        return retval
-    end
-
-    function expression.is_for_current_part(exp_assign, current_part)
-        current_part = current_part or library.get_current_part()
-        if current_part:IsScore() and exp_assign.ScoreAssignment then
-            return true
-        elseif current_part:IsPart() and exp_assign.PartAssignment then
-            return true
-        end
-        return false
-    end
-    return expression
+    return layer
 end
 __imports["mixin.FCMControl"] = __imports["mixin.FCMControl"] or function()
 
@@ -4877,607 +4631,156 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
     return mixin
 end
 function plugindef()
-    finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
+    finaleplugin.RequireSelection = false
+    finaleplugin.HandlesUndo = true
+    finaleplugin.Author = "Robert Patterson"
+    finaleplugin.AuthorURL = "https://www.robertgpatterson.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.67"
-    finaleplugin.Date = "2022/11/07"
-    finaleplugin.AdditionalMenuOptions = [[
-        Hairpin Create Diminuendo
-        Hairpin Create Swell
-        Hairpin Create Unswell
-        Hairpin Creator Configuration...
-    ]]
-    finaleplugin.AdditionalUndoText = [[
-        Hairpin Create Diminuendo
-        Hairpin Create Swell
-        Hairpin Create Unswell
-        Hairpin Creator Configuration
-    ]]
-    finaleplugin.AdditionalDescriptions = [[
-        Create diminuendo spanning the selected region
-        Create a swell (messa di voce) spanning the selected region
-        Create an unswell (inverse messa di voce) spanning the selected region
-        Configure Hairpin Creator default settings
-    ]]
-    finaleplugin.AdditionalPrefixes = [[
-        hairpin_type = finale.SMARTSHAPE_DIMINUENDO
-        hairpin_type = -1
-        hairpin_type = -2
-        hairpin_type = -3
-    ]]
-    finaleplugin.MinJWLuaVersion = 0.63
-    finaleplugin.ScriptGroupName = "Hairpin Creator"
-    finaleplugin.ScriptGroupDescription = "Create four different types of hairpin spanning the currently selected music region"
+    finaleplugin.Version = "v1.0"
+    finaleplugin.Date = "2023/1/11"
     finaleplugin.Notes = [[
-        This script creates hairpins spanning the currently selected music region.
-        It provides four menu items to create: `Crescendo`, `Diminuendo`, `Swell` (messa di voce)
-        and `Unswell` (inverse messa di voce) hairpin types.
-        A `Configuration` menu item is also provided to change the script's default settings.
-        Hairpins are positioned vertically to avoid colliding with the lowest notes, down-stem tails,
-        articulations and dynamics on each staff in the selection.
-        Dynamics are shifted vertically to match the calculated hairpin positions.
-        Dynamics in the middle of a hairpin will also be levelled, so
-        give them an opaque background to sit "above" the hairpin.
-        The script also considers `trailing` notes and dynamics, just beyond the end of the selected music,
-        since a hairpin is normally expected to end just before the note with the destination dynamic.
-        Hairpin positions in Finale are more accurate when attached to these "trailing" notes and dynamics,
-        but this can be a problem if trailing items fall across a barline and especially if they are
-        on a different system from the end of the hairpin.
-        (Elaine Gould, "Behind Bars" pp.103-106, outlines multiple scenarios in which hairpins either
-        should or shouldn't "attach" across barlines. Individual preferences may differ.)
-        This script normally works better if dynamic markings are added first.
-        The script will find the lowest matching vertical offset for the hairpin, but if you want the hairpin
-        lower than that then first move a dynamic to the lowest point you want.
+        Chords from the source layers in the selected region are split into another layer on the same staff based on a split point.
+        Multiple measures and staves can be selected at once.
+        Articulations on the original are optionally copied to the other layer.
 
-        Configuring script defaults can also be accessed by holding down the `shift` or `alt` (option) key
-        when selecting any `hairpin_creator` menu item.
-        For simple hairpins that don't mess around with trailing barlines and dynamics try selecting
-        `dynamics match hairpin` and de-selecting the other options.
+        The dialog box has the following options:
+
+        - From Layer (1-4): the source layer to split from (defaults to 1)
+        - To Layer (1-4): the target layer to split to (defaults to 2)
+        - Split At [ ] Notes From Top: the number of chord tones to preserve in the source layer, counting from the top of each chord. All other notes are split to the target layer.
+        - Copy Articulations: if checked, copies articulations from the source to the target.
+
     ]]
-    return "Hairpin Create Crescendo", "Hairpin Create Crescendo", "Create crescendo hairpin spanning the selected region"
+    return "Staff Split Layers...", "Staff Split Layers", "Split chords from one layer 1 into two independent layers, based on a split point."
 end
-hairpin_type = hairpin_type or finale.SMARTSHAPE_CRESCENDO
-local config = {
-    dynamics_match_hairpin = true,
-    include_trailing_items = true,
-    attach_over_end_barline = true,
-    attach_over_system_break = false,
-    inclusions_EDU_margin = 256,
-    shape_vert_adjust = 13,
-    below_note_cushion = 56,
-    downstem_cushion = 44,
-    below_artic_cushion = 40,
-    left_horiz_offset = 16,
-    right_horiz_offset = -16,
-    left_dynamic_cushion = 18,
-    right_dynamic_cushion = -18,
-    measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
-    window_pos_x = false,
-    window_pos_y = false,
-}
-local dialog_options = {
-    { "dynamics_match_hairpin", "move dynamics vertically to match hairpin height" },
-    { "include_trailing_items", "consider notes and dynamics past the end of selection" },
-    { "attach_over_end_barline", "attach right end of hairpin across the final barline" },
-    { "attach_over_system_break", "attach across final barline even over a system break" },
-    { "inclusions_EDU_margin", "(EDUs) the marginal duration for included trailing items" },
-    { "shape_vert_adjust",  "vertical adjustment for hairpin to match dynamics" },
-    { "below_note_cushion", "extra gap below notes" },
-    { "downstem_cushion", "extra gap below down-stems" },
-    { "below_artic_cushion", "extra gap below articulations" },
-    { "left_horiz_offset",  "gap between the start of selection and hairpin (no dynamics)" },
-    { "right_horiz_offset",  "gap between end of hairpin and end of selection (no dynamics)" },
-    { "left_dynamic_cushion",  "gap between first dynamic and start of hairpin" },
-    { "right_dynamic_cushion",  "gap between end of the hairpin and ending dynamic" },
-}
-local boolean_options = {
-    dynamics_match_hairpin = true,
-    include_trailing_items = true,
-    attach_over_end_barline = true,
-    attach_over_system_break = true,
-}
-local integer_options = {
-    inclusions_EDU_margin = true,
-}
-local configuration = require("library.configuration")
-local expression = require("library.expression")
+local note_entry = require("library.note_entry")
+local layer = require("library.layer")
 local mixin = require("library.mixin")
-local function measure_width(measure_number)
-    local m = finale.FCMeasure()
-    local duration = m:Load(measure_number) and m:GetDuration() or 0
-    return duration
-end
-local function add_to_position(measure_number, end_position, add_duration)
-    local m_width = measure_width(measure_number)
-    if m_width == 0 then
-        return measure_number, 0
-    end
-    if end_position > m_width then
-        end_position = m_width
-    end
-    local remaining_to_add = end_position + add_duration
-    while remaining_to_add > m_width do
-        remaining_to_add = remaining_to_add - m_width
-        local next_width = measure_width(measure_number + 1)
-        if next_width == 0 then
-            remaining_to_add = m_width
-        else
-            measure_number = measure_number + 1
-            m_width = next_width
-        end
-    end
-    return measure_number, remaining_to_add
-end
-local function extend_region_by_EDU(region, add_duration)
-    local new_end, new_position = add_to_position(region.EndMeasure, region.EndMeasurePos, add_duration)
-    region.EndMeasure = new_end
-    region.EndMeasurePos = new_position
-end
-local function duration_gap(measureA, positionA, measureB, positionB)
-    local diff, duration = 0, 0
-    if measureA == measureB then
-        diff = positionB - positionA
-    elseif measureB < measureA then
-        duration = - positionB
-        while measureB < measureA do
-            duration = duration + measure_width(measureB)
-            measureB = measureB + 1
-        end
-        diff = - duration - positionA
-    elseif measureA < measureB then
-        duration = - positionA
-        while measureA < measureB do
-            duration = duration + measure_width(measureA)
-            measureA = measureA + 1
-        end
-        diff = duration + positionB
-    end
-    return diff
-end
-function delete_hairpins(rgn)
-    local mark_rgn = finale.FCMusicRegion()
-    mark_rgn:SetRegion(rgn)
-    if config.include_trailing_items then
-        extend_region_by_EDU(mark_rgn, config.inclusions_EDU_margin)
-    end
-    local marks = finale.FCSmartShapeMeasureMarks()
-    marks:LoadAllForRegion(mark_rgn, true)
-    for mark in each(marks) do
-        local shape = mark:CreateSmartShape()
-        if shape:IsHairpin() then
-            shape:DeleteData()
-        end
-    end
-end
-local function draw_staff_hairpin(rgn, vert_offset, left_offset, right_offset, shape, end_measure, end_postion)
-    local smartshape = finale.FCSmartShape()
-    smartshape.ShapeType = shape
-    smartshape.EntryBased = false
-    smartshape.MakeHorizontal = true
-    smartshape.BeatAttached = true
-    smartshape.PresetShape = true
-    smartshape.Visible = true
-    smartshape.LineID = 3
-    local leftseg = smartshape:GetTerminateSegmentLeft()
-    leftseg:SetMeasure(rgn.StartMeasure)
-    leftseg.Staff = rgn.StartStaff
-    leftseg:SetCustomOffset(true)
-    leftseg:SetEndpointOffsetX(left_offset)
-    leftseg:SetEndpointOffsetY(vert_offset + config.shape_vert_adjust)
-    leftseg:SetMeasurePos(rgn.StartMeasurePos)
-    end_measure = end_measure or rgn.EndMeasure
-    end_postion = end_postion or rgn.EndMeasurePos
-    local rightseg = smartshape:GetTerminateSegmentRight()
-    rightseg:SetMeasure(end_measure)
-    rightseg.Staff = rgn.StartStaff
-    rightseg:SetCustomOffset(true)
-    rightseg:SetEndpointOffsetX(right_offset)
-    rightseg:SetEndpointOffsetY(vert_offset + config.shape_vert_adjust)
-    rightseg:SetMeasurePos(end_postion)
-    smartshape:SaveNewEverything(nil, nil)
-end
-local function calc_top_of_staff(measure, staff_number)
-    local fccell = finale.FCCell(measure, staff_number)
-    local staff_top = 0
-    local cell_metrics = fccell:CreateCellMetrics()
-    if cell_metrics then
-        staff_top = cell_metrics.ReferenceLinePos
-        cell_metrics:FreeMetrics()
-    end
-    return staff_top
-end
-local function calc_measure_system(measure, staff)
-    local fccell = finale.FCCell(measure, staff)
-    local system_number = 0
-    local cell_metrics = fccell:CreateCellMetrics()
-    if cell_metrics then
-        system_number = cell_metrics.StaffSystem
-        cell_metrics:FreeMetrics()
-    end
-    return system_number
-end
-local function articulation_metric_vertical(entry)
+function explode_one_slot(slot, split_from_top, source_layer, destination_layer, clone_artics)
+    local region = finale.FCMusicRegion()
+    region:SetCurrentSelection()
+    region.StartSlot = slot
+    region.EndSlot = slot
+    region:SetStartMeasurePosLeft()
+    region:SetEndMeasurePosRight()
+    local start_measure = region.StartMeasure
+    local end_measure = region.EndMeasure
+    local staff = region:CalcStaffNumber(slot)
+    layer.copy(region, source_layer, destination_layer, clone_artics)
 
-    local text_mets = finale.FCTextMetrics()
-    local arg_point = finale.FCPoint(0, 0)
-    local lowest = 999999
-    for articulation in eachbackwards(entry:CreateArticulations()) do
-        local vertical = 0
-        if articulation:CalcMetricPos(arg_point) then
-            vertical = arg_point.Y
-        end
-        local art_def = articulation:CreateArticulationDef()
-        if text_mets:LoadArticulation(art_def, false, 100) then
-            vertical = vertical - math.floor(text_mets:CalcHeightEVPUs() + 0.5)
-        end
-        if lowest > vertical then
-            lowest = vertical
-        end
-    end
-    return lowest
-end
-local function lowest_note_element(rgn)
-    local lowest_vert = -13 * 12
-    local current_measure, top_of_staff, bottom_pos = 0, 0, 0
-    for entry in eachentry(rgn) do
+    for entry in eachentrysaved(region) do
         if entry:IsNote() then
-            if current_measure ~= entry.Measure then
-                current_measure = entry.Measure
-                top_of_staff = calc_top_of_staff(current_measure, entry.Staff)
-            end
-            bottom_pos = (entry:CalcLowestStaffPosition() * 12) - config.below_note_cushion
-            if entry:CalcStemUp() then
-                if lowest_vert > bottom_pos then
-                    lowest_vert = bottom_pos
+            local this_layer = entry.LayerNumber
+            if this_layer == source_layer and entry.Count > split_from_top then
+                for index = 0, entry.Count - split_from_top - 1 do
+                    note_entry.delete_note(entry:GetItemAt(0))
                 end
-                if entry:GetArticulationFlag() then
-                    local articulation_offset = articulation_metric_vertical(entry) - top_of_staff - config.below_artic_cushion
-                    if lowest_vert > articulation_offset then
-                        lowest_vert = articulation_offset
+            end
+            if this_layer == destination_layer then
+                if entry.Count > split_from_top then
+                    for index = 0, split_from_top - 1 do
+                        note_entry.delete_note(entry:GetItemAt(entry.Count-1))
                     end
+                else
+                    note_entry.make_rest(entry)
                 end
-            else
-                local top_pos = entry:CalcHighestStaffPosition()
-                local this_stem = (top_pos * 12) - entry:CalcStemLength() - config.downstem_cushion
+            end
+        end
+    end
+end
+function do_staff_split_layers()
+    local split_from_top = global_dialog:GetControl("split_after"):GetInteger()
+    local source_layer = global_dialog:GetControl("from_layer"):GetInteger()
+    local destination_layer = global_dialog:GetControl("to_layer"):GetInteger()
+    local clone_artics = 0 ~= global_dialog:GetControl("clone_artics"):GetCheck()
 
-                if top_of_staff == 0 or (bottom_pos - 50) < this_stem then
-                    this_stem = bottom_pos - 50
-                end
-                if lowest_vert > this_stem then
-                    lowest_vert = this_stem
-                end
-            end
-        end
+    if source_layer < 1 or source_layer > layer.max_layers() then
+        finenv.UI():AlertError("Invalid From Layer.", "Layer Number")
+        return
     end
-    return lowest_vert
-end
-local function expression_is_dynamic(exp)
-    if not exp:IsShape() and exp.Visible and exp.StaffGroupID == 0 then
-        local cd = finale.FCCategoryDef()
-        local text_def = exp:CreateTextExpressionDef()
-        if text_def then
-            local font_info = text_def:CreateTextString():CreateLastFontInfo()
-            if cd:Load(text_def.CategoryID) and not font_info.Hidden then
-                if text_def.CategoryID == finale.DEFAULTCATID_DYNAMICS or string.find(cd:CreateName().LuaString, "Dynamic") then
-                    return true
-                end
-            end
-        end
+    if destination_layer < 1 or destination_layer > layer.max_layers() then
+        finenv.UI():AlertError("Invalid To Layer.", "Layer Number")
+        return
     end
-    return false
-end
-local function lowest_dynamic_in_region(rgn)
-    local arg_point = finale.FCPoint(0, 0)
-    local top_of_staff, current_measure, lowest_vert = 0, 0, 0
-    local dynamics_list = {}
-    local dynamic_rgn = finale.FCMusicRegion()
-    dynamic_rgn:SetRegion(rgn)
-    if config.include_trailing_items then
-        extend_region_by_EDU(dynamic_rgn, config.inclusions_EDU_margin)
+    if source_layer == destination_layer then
+        finenv.UI():AlertError("From and To layers must be different.", "Layer Number")
+        return
     end
-    local dynamics = finale.FCExpressions()
-    dynamics:LoadAllForRegion(dynamic_rgn)
-    for dyn in each(dynamics) do
-        if expression_is_dynamic(dyn) then
-            if current_measure ~= dyn.Measure then
-                current_measure = dyn.Measure
-                top_of_staff = calc_top_of_staff(current_measure, rgn.StartStaff)
-            end
-            if dyn:CalcMetricPos(arg_point) then
-                local exp_y = arg_point.Y - top_of_staff
-                table.insert(dynamics_list, { dyn, exp_y } )
-                if lowest_vert == 0 or exp_y < lowest_vert then
-                    lowest_vert = exp_y
-                end
-            end
-        end
+    if split_from_top <= 0 then
+        finenv.UI():AlertError("Split At must be greater than zero.", "Split At")
+        return
     end
-    return lowest_vert, dynamics_list
-end
-local function simple_dynamic_scan(rgn)
-    local dynamic_list = {}
-    local dynamic_rgn = finale.FCMusicRegion()
-    dynamic_rgn:SetRegion(rgn)
-    if config.include_trailing_items then
-        extend_region_by_EDU(dynamic_rgn, config.inclusions_EDU_margin)
+    local region = finale.FCMusicRegion()
+    if not region:SetCurrentSelection() then
+        finenv.UI():AlertError("Please select music before executing this script.", "No Selection")
+        return
     end
-    local dynamics = finale.FCExpressions()
-    dynamics:LoadAllForRegion(dynamic_rgn)
-    for dyn in each(dynamics) do
-        if expression_is_dynamic(dyn) then
-            table.insert(dynamic_list, dyn)
-        end
+    local undostr = "Split Layers " .. tostring(finenv.Region().StartMeasure)
+    if finenv.Region().StartMeasure ~= finenv.Region().EndMeasure then
+        undostr = undostr .. " - " .. tostring(finenv.Region().EndMeasure)
     end
-    return dynamic_list
-end
-local function dynamic_horiz_offset(dyn_exp, left_or_right)
-    local total_offset = 0
-    local dyn_def = dyn_exp:CreateTextExpressionDef()
-    local dyn_width = expression.calc_text_width(dyn_def)
-    local horiz_just = dyn_def.HorizontalJustification
-    if horiz_just == finale.EXPRJUSTIFY_CENTER then
-        dyn_width = dyn_width / 2
-    elseif
-        (left_or_right == "left" and horiz_just == finale.EXPRJUSTIFY_RIGHT) or
-        (left_or_right == "right" and horiz_just == finale.EXPRJUSTIFY_LEFT)
-        then
-        dyn_width = 0
+    finenv.StartNewUndoBlock(undostr, false)
+    for slot = region.StartSlot, region.EndSlot do
+        explode_one_slot(slot, split_from_top, source_layer, destination_layer, clone_artics)
     end
-    if left_or_right == "left" then
-        total_offset = config.left_dynamic_cushion + dyn_width
+    if finenv.EndUndoBlock then
+        finenv.EndUndoBlock(true)
+        finenv.Region():Redraw()
     else
-        total_offset = config.right_dynamic_cushion - dyn_width
-    end
-    total_offset = total_offset + expression.calc_handle_offset_for_smart_shape(dyn_exp)
-    return total_offset
-end
-function region_contains_notes(rgn)
-    for entry in eachentry(rgn) do
-        if entry.Count > 0 then
-            return true
-        end
-    end
-    return false
-end
-local function design_staff_swell(rgn, hairpin_shape, lowest_vert)
-    local left_offset = config.left_horiz_offset
-    local right_offset = config.right_horiz_offset
-    local new_end_measure, new_end_postion = nil, nil
-    local dynamic_list = simple_dynamic_scan(rgn)
-    if #dynamic_list > 0 then
-        local first_dyn = dynamic_list[1]
-        if duration_gap(rgn.StartMeasure, rgn.StartMeasurePos, first_dyn.Measure, first_dyn.MeasurePos) < config.inclusions_EDU_margin then
-            local offset = dynamic_horiz_offset(first_dyn, "left")
-            if offset > left_offset then
-                left_offset = offset
-            end
-            if rgn.StartMeasurePos ~= first_dyn.MeasurePos then
-                rgn.StartMeasurePos = first_dyn.MeasurePos
-                rgn.StartMeasure = first_dyn.Measure
-            end
-        end
-        local last_dyn = dynamic_list[#dynamic_list]
-        local edu_gap = duration_gap(last_dyn.Measure, last_dyn.MeasurePos, rgn.EndMeasure, rgn.EndMeasurePos)
-        if math.abs(edu_gap) < config.inclusions_EDU_margin then
-            local offset = dynamic_horiz_offset(last_dyn, "right")
-            if right_offset > offset then
-                right_offset = offset
-            end
-            if last_dyn.Measure ~= rgn.EndMeasure then
-                if config.attach_over_end_barline then
-                    local dyn_system = calc_measure_system(last_dyn.Measure, last_dyn.Staff)
-                    local rgn_system = calc_measure_system(rgn.EndMeasure, rgn.StartStaff)
-                    if config.attach_over_system_break or dyn_system == rgn_system then
-                        new_end_measure = last_dyn.Measure
-                        new_end_postion = last_dyn.MeasurePos
-                    end
-                else
-                    right_offset = config.right_horiz_offset
-                end
-            end
-        end
-    end
-    draw_staff_hairpin(rgn, lowest_vert, left_offset, right_offset, hairpin_shape, new_end_measure, new_end_postion)
-end
-local function design_staff_hairpin(rgn, hairpin_shape)
-    local left_offset = config.left_horiz_offset
-    local right_offset = config.right_horiz_offset
-
-
-    local lowest_vert = lowest_note_element(rgn)
-    local lowest_dynamic, dynamics_list = lowest_dynamic_in_region(rgn)
-    if lowest_dynamic < lowest_vert then
-        lowest_vert = lowest_dynamic
-    end
-
-    local new_end_measure, new_end_postion = nil, nil
-    if #dynamics_list > 0 then
-        if config.dynamics_match_hairpin then
-            for i, v in ipairs(dynamics_list) do
-                local vert_difference = v[2] - lowest_vert
-                v[1].VerticalPos = v[1].VerticalPos - vert_difference
-                v[1]:Save()
-            end
-        end
-
-        local first_dyn = dynamics_list[1][1]
-        if duration_gap(rgn.StartMeasure, rgn.StartMeasurePos, first_dyn.Measure, first_dyn.MeasurePos) < config.inclusions_EDU_margin then
-            local offset = dynamic_horiz_offset(first_dyn, "left")
-            if offset > left_offset then
-                left_offset = offset
-            end
-            if rgn.StartMeasurePos ~= first_dyn.MeasurePos then
-                rgn.StartMeasurePos = first_dyn.MeasurePos
-                rgn.StartMeasure = first_dyn.Measure
-            end
-        end
-        local last_dyn = dynamics_list[#dynamics_list][1]
-        local edu_gap = duration_gap(last_dyn.Measure, last_dyn.MeasurePos, rgn.EndMeasure, rgn.EndMeasurePos)
-        if math.abs(edu_gap) < config.inclusions_EDU_margin then
-            local offset = dynamic_horiz_offset(last_dyn, "right")
-            if right_offset > offset then
-                right_offset = offset
-            end
-            if last_dyn.Measure ~= rgn.EndMeasure then
-                if config.attach_over_end_barline then
-                    local dyn_system = calc_measure_system(last_dyn.Measure, last_dyn.Staff)
-                    local rgn_system = calc_measure_system(rgn.EndMeasure, rgn.StartStaff)
-                    if config.attach_over_system_break or dyn_system == rgn_system then
-                        new_end_measure = last_dyn.Measure
-                        new_end_postion = last_dyn.MeasurePos
-                    end
-                else
-                    right_offset = config.right_horiz_offset
-                end
-            end
-        end
-    end
-    draw_staff_hairpin(rgn, lowest_vert, left_offset, right_offset, hairpin_shape, new_end_measure, new_end_postion)
-end
-local function create_swell(swell_type)
-    local selection = finenv.Region()
-    local staff_rgn = finale.FCMusicRegion()
-    staff_rgn:SetRegion(selection)
-
-    local m_width = measure_width(staff_rgn.EndMeasure)
-    if staff_rgn.EndMeasurePos > m_width then
-        staff_rgn.EndMeasurePos = m_width
-    end
-
-    local total_duration = duration_gap(staff_rgn.StartMeasure, staff_rgn.StartMeasurePos, staff_rgn.EndMeasure, staff_rgn.EndMeasurePos)
-    local midpoint_measure, midpoint_position = add_to_position(staff_rgn.StartMeasure, staff_rgn.StartMeasurePos, total_duration / 2)
-    for slot = selection.StartSlot, selection.EndSlot do
-        local staff_number = selection:CalcStaffNumber(slot)
-        staff_rgn:SetStartStaff(staff_number)
-        staff_rgn:SetEndStaff(staff_number)
-        if region_contains_notes(staff_rgn) then
-            delete_hairpins(staff_rgn)
-
-            local lowest_vertical = lowest_note_element(staff_rgn)
-            local lowest_dynamic, dynamics_list = lowest_dynamic_in_region(staff_rgn)
-            if lowest_vertical > lowest_dynamic then
-                lowest_vertical = lowest_dynamic
-            end
-
-            if #dynamics_list > 0 and config.dynamics_match_hairpin then
-                for i, v in ipairs(dynamics_list) do
-                    local vert_difference = v[2] - lowest_vertical
-                    v[1].VerticalPos = v[1].VerticalPos - vert_difference
-                    v[1]:Save()
-                end
-            end
-
-            local half_rgn = finale.FCMusicRegion()
-            half_rgn:SetRegion(staff_rgn)
-            half_rgn.EndMeasure = midpoint_measure
-            half_rgn.EndMeasurePos = midpoint_position
-            local this_shape = (swell_type) and finale.SMARTSHAPE_CRESCENDO or finale.SMARTSHAPE_DIMINUENDO
-            design_staff_swell(half_rgn, this_shape, lowest_vertical)
-
-            if midpoint_position == measure_width(midpoint_measure) then
-                midpoint_measure = midpoint_measure + 1
-                midpoint_position = 0
-            end
-            half_rgn.StartMeasure = midpoint_measure
-            half_rgn.StartMeasurePos = midpoint_position
-            half_rgn.EndMeasure = staff_rgn.EndMeasure
-            half_rgn.EndMeasurePos = staff_rgn.EndMeasurePos
-            this_shape = (swell_type) and finale.SMARTSHAPE_DIMINUENDO or finale.SMARTSHAPE_CRESCENDO
-            design_staff_swell(half_rgn, this_shape, lowest_vertical)
-        end
-    end
-end
-local function create_hairpin(shape_type)
-    local selection = finenv.Region()
-    local staff_rgn = finale.FCMusicRegion()
-    staff_rgn:SetRegion(selection)
-
-    local m_width = measure_width(staff_rgn.EndMeasure)
-    if staff_rgn.EndMeasurePos > m_width then
-        staff_rgn.EndMeasurePos = m_width
-    end
-    for slot = selection.StartSlot, selection.EndSlot do
-        local staff_number = selection:CalcStaffNumber(slot)
-        staff_rgn:SetStartStaff(staff_number)
-        staff_rgn:SetEndStaff(staff_number)
-        if region_contains_notes(staff_rgn) then
-            delete_hairpins(staff_rgn)
-            design_staff_hairpin(staff_rgn, shape_type)
-        end
+        finenv.StartNewUndoBlock(undostr, true)
     end
 end
 function create_dialog_box()
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Hairpin Creator Configuration")
-    local y_step = 20
-    local max_text_width = 385
-    local x_offset = {0, 130, 155, 190}
-    local mac_offset = finenv.UI():IsOnMac() and 3 or 0
-    for i, v in ipairs(dialog_options) do
-        local y_current = y_step * i
-        local msg = string.gsub(v[1], "_", " ")
-        if boolean_options[v[1]] then
-            dialog:CreateCheckbox(x_offset[1], y_current, v[1]):SetText(msg):SetWidth(x_offset[3]):SetCheck(config[v[1]] and 1 or 0)
-            dialog:CreateStatic(x_offset[3], y_current):SetText("- " .. v[2]):SetWidth(max_text_width)
-        else
-            y_current = y_current + 10
-            dialog:CreateStatic(x_offset[1], y_current):SetText(msg .. ":"):SetWidth(x_offset[2])
-            dialog:CreateStatic(x_offset[4], y_current):SetText(v[2]):SetWidth(max_text_width)
-            y_current = y_current - mac_offset
-            if integer_options[v[1]] then
-                dialog.CreateEdit(dialog, x_offset[2], y_current, v[1]):SetWidth(50):SetInteger(config[v[1]])
-            else
-                dialog.CreateMeasurementEdit(dialog, x_offset[2], y_current, v[1]):SetWidth(50):SetMeasurementInteger(config[v[1]])
-            end
-        end
-    end
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Split Layers")
+    local current_y = 0
+    local x_increment = 110
+    local y_increment = 22
+    local edit_width = 30
 
-    local y_current = (#dialog_options + 1.6) * y_step
-    dialog:CreateStatic(x_offset[2] - 40, y_current):SetText("Units:")
-    dialog:SetMeasurementUnit(config.measurement_unit)
-    dialog:CreateMeasurementUnitPopup(x_offset[2], y_current)
+    dialog:CreateStatic(0, current_y + 2)
+        :SetWidth(x_increment - 5)
+        :SetText("From Layer (1-4):")
+    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
+    dialog:CreateEdit(edit_x, current_y, "from_layer")
+        :SetWidth(edit_width)
+        :SetInteger(1)
+    current_y = current_y + y_increment
+
+    dialog:CreateStatic(0, current_y + 2)
+        :SetWidth(x_increment - 5)
+        :SetText("To Layer (1-4):")
+    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
+    dialog:CreateEdit(edit_x, current_y, "to_layer")
+        :SetWidth(edit_width)
+        :SetInteger(2)
+    current_y = current_y + y_increment
+
+    dialog:CreateStatic(0, current_y + 2)
+        :SetWidth(100)
+        :SetText("Split At:")
+    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
+    dialog:CreateEdit(edit_x, current_y, "split_after")
+        :SetWidth(edit_width)
+        :SetInteger(1)
+    dialog:CreateStatic(edit_x + edit_width + 5, current_y + 2)
+        :SetWidth(100)
+        :SetText("Notes From Top")
+    current_y = current_y + y_increment
+
+    dialog:CreateCheckbox(0, current_y + 2, "clone_artics"):SetText("Copy Articulations")
+        :SetWidth(x_increment + edit_width)
+        :SetCheck(1)
+
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterHandleOkButtonPressed(function(self)
-        for _, v in ipairs(dialog_options) do
-            if boolean_options[v[1]] then
-                config[v[1]] = (self:GetControl(v[1]):GetCheck() == 1)
-            elseif integer_options[v[1]] then
-                config[v[1]] = self:GetControl(v[1]):GetInteger()
-            else
-                config[v[1]] = self:GetControl(v[1]):GetMeasurementInteger()
-            end
+            do_staff_split_layers()
         end
-        config.measurement_unit = self:GetMeasurementUnit()
-        self:StorePosition()
-        config.window_pos_x = self.StoredX
-        config.window_pos_y = self.StoredY
-        configuration.save_user_settings("hairpin_creator", config)
-    end)
+    )
     return dialog
 end
-function hairpin_selector()
-    configuration.get_user_settings("hairpin_creator", config)
-    local mod_down = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-    if mod_down or (hairpin_type == -3) then
-        local dialog = create_dialog_box()
-        if config.window_pos_x and config.window_pos_y then
-            dialog:StorePosition()
-            dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
-            dialog:RestorePosition()
-        end
-        if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK then
-            return
-        end
-    end
-
-    if hairpin_type < 0 then
-        if hairpin_type > -3 then
-            create_swell(hairpin_type == -1)
-        end
-    else
-        create_hairpin(hairpin_type)
-    end
+function staff_split_layers()
+    global_dialog = global_dialog or create_dialog_box()
+    global_dialog:RunModeless()
 end
-hairpin_selector()
+staff_split_layers()

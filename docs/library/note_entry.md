@@ -17,6 +17,7 @@
 - [stem_sign(entry)](#stem_sign)
 - [duplicate_note(note)](#duplicate_note)
 - [delete_note(note)](#delete_note)
+- [make_rest(entry)](#make_rest)
 - [calc_pitch_string(note)](#calc_pitch_string)
 - [calc_spans_number_of_octaves(entry)](#calc_spans_number_of_octaves)
 - [add_augmentation_dot(entry)](#add_augmentation_dot)
@@ -294,13 +295,32 @@ Removes the specified FCNote from its associated FCNoteEntry.
 | ----------- | ----------- |
 | `boolean` | true if success |
 
+### make_rest
+
+```lua
+note_entry.make_rest(entry)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L339)
+
+Deletes all notes and turns the note_entry into a floating rest. This function also
+deletes any attached entry details such as articulations and special tools edits.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `entry` | `FCNoteEntry` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` | success |
+
 ### calc_pitch_string
 
 ```lua
 note_entry.calc_pitch_string(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L338)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L362)
 
 Calculates the pitch string of a note for display purposes.
 
@@ -318,7 +338,7 @@ Calculates the pitch string of a note for display purposes.
 note_entry.calc_spans_number_of_octaves(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L354)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L378)
 
 Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).
 
@@ -336,7 +356,7 @@ Calculates the numer of octaves spanned by a chord (considering only staff posit
 note_entry.add_augmentation_dot(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L369)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L393)
 
 Adds an augentation dot to the entry. This works even if the entry already has one or more augmentation dots.
 
@@ -350,7 +370,7 @@ Adds an augentation dot to the entry. This works even if the entry already has o
 note_entry.get_next_same_v(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L384)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L408)
 
 Returns the next entry in the same V1 or V2 as the input entry.
 If the input entry is V2, only the current V2 launch is searched.
@@ -370,7 +390,7 @@ If the input entry is V1, only the current measure and layer is searched.
 note_entry.hide_stem(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L407)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L431)
 
 Hides the stem of the entry by replacing it with Shape 0.
 
@@ -384,7 +404,7 @@ Hides the stem of the entry by replacing it with Shape 0.
 note_entry.rest_offset(entry, offset)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L429)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/note_entry.lua#L453)
 
 Confirms the entry is a rest then offsets it from the staff rest "center" position. 
 

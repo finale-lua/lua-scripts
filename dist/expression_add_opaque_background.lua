@@ -671,6 +671,20 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
         return entry:DeleteNote(note)
     end
 
+    function note_entry.make_rest(entry)
+        local articulations = entry:CreateArticulations()
+        for articulation in each(articulations) do
+            articulation:DeleteData()
+        end
+        if entry:IsNote() then
+            while entry.Count > 0 do
+                note_entry.delete_note(entry:GetItemAt(0))
+            end
+        end
+        entry:MakeRest()
+        return true
+    end
+
     function note_entry.calc_pitch_string(note)
         local pitch_string = finale.FCString()
         local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)

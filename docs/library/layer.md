@@ -2,7 +2,7 @@
 
 ## Functions
 
-- [copy(region, source_layer, destination_layer)](#copy)
+- [copy(region, source_layer, destination_layer, clone_articulations)](#copy)
 - [clear(region, layer_to_clear)](#clear)
 - [swap(region, swap_a, swap_b)](#swap)
 - [max_layers()](#max_layers)
@@ -10,10 +10,10 @@
 ### copy
 
 ```lua
-layer.copy(region, source_layer, destination_layer)
+layer.copy(region, source_layer, destination_layer, clone_articulations)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L15)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L16)
 
 
 Duplicates the notes from the source layer to the destination. The source layer remains untouched.
@@ -24,6 +24,7 @@ Duplicates the notes from the source layer to the destination. The source layer 
 | `region` | `FCMusicRegion` | the region to be copied |
 | `source_layer` | `number` | the number (1-4) of the layer to duplicate |
 | `destination_layer` | `number` | the number (1-4) of the layer to be copied to |
+| `clone_articulations` (optional) | `boolean` | if true, clone articulations (default is false) |
 
 ### clear
 
@@ -31,7 +32,7 @@ Duplicates the notes from the source layer to the destination. The source layer 
 layer.clear(region, layer_to_clear)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L43)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L56)
 
 
 Clears all entries from a given layer.
@@ -48,7 +49,7 @@ Clears all entries from a given layer.
 layer.swap(region, swap_a, swap_b)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L67)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L80)
 
 
 Swaps the entries from two different layers (e.g. 1-->2 and 2-->1).
@@ -66,7 +67,7 @@ Swaps the entries from two different layers (e.g. 1-->2 and 2-->1).
 layer.max_layers()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L113)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/layer.lua#L126)
 
 
 Return the maximum number of layers available in the current document.
