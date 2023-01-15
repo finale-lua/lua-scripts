@@ -327,6 +327,30 @@ function note_entry.delete_note(note)
 end
 
 --[[
+% make_rest
+
+Deletes all notes and turns the note_entry into a floating rest. This function also
+deletes any attached entry details such as articulations and special tools edits.
+
+@ entry (FCNoteEntry)
+: (boolean) success
+]]
+
+function note_entry.make_rest(entry)
+    local articulations = entry:CreateArticulations()
+    for articulation in each(articulations) do
+        articulation:DeleteData()
+    end
+    if entry:IsNote() then
+        while entry.Count > 0 do
+            note_entry.delete_note(entry:GetItemAt(0)) -- cleans up note details
+        end
+    end
+    entry:MakeRest()
+    return true -- for now, always success. we can get fancier if we need to.
+end
+
+--[[
 % calc_pitch_string
 
 Calculates the pitch string of a note for display purposes.

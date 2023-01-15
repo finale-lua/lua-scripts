@@ -11,8 +11,9 @@ Duplicates the notes from the source layer to the destination. The source layer 
 @ region (FCMusicRegion) the region to be copied
 @ source_layer (number) the number (1-4) of the layer to duplicate
 @ destination_layer (number) the number (1-4) of the layer to be copied to
+@ [clone_articulations] (boolean) if true, clone articulations (default is false)
 ]]
-function layer.copy(region, source_layer, destination_layer)
+function layer.copy(region, source_layer, destination_layer, clone_articulations)
     local start = region.StartMeasure
     local stop = region.EndMeasure
     local sysstaves = finale.FCSystemStaves()
@@ -28,6 +29,18 @@ function layer.copy(region, source_layer, destination_layer)
             destination_layer, staffNum, start)
         noteentry_destination_layer:Save()
         noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
+        -- ToDo: (possible) clone note-level items such as custom notehead alterations
+        if clone_articulations and noteentry_source_layer.Count == noteentry_destination_layer.Count then
+            for index = 0, noteentry_destination_layer.Count - 1 do
+                local source_entry = noteentry_source_layer:GetItemAt(index)
+                local destination_entry = noteentry_destination_layer:GetItemAt(index)
+                local source_artics = source_entry:CreateArticulations()
+                for articulation in each (source_artics) do
+                    articulation:SetNoteEntry(destination_entry)
+                    articulation:SaveNew()
+                end
+            end
+        end
         noteentry_destination_layer:Save()
     end
 end -- function layer_copy
