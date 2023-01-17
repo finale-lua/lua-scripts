@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.67"
-    finaleplugin.Date = "2022/11/07"
+    finaleplugin.Version = "v0.69"
+    finaleplugin.Date = "2023/01/14"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin Create Diminuendo
         Hairpin Create Swell
@@ -83,31 +83,6 @@ local config = {
     measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
     window_pos_x = false,
     window_pos_y = false,
-}
-
-local dialog_options = { -- key value in config, text description
-    { "dynamics_match_hairpin", "move dynamics vertically to match hairpin height" },
-    { "include_trailing_items", "consider notes and dynamics past the end of selection" },
-    { "attach_over_end_barline", "attach right end of hairpin across the final barline" },
-    { "attach_over_system_break", "attach across final barline even over a system break" },
-    { "inclusions_EDU_margin", "(EDUs) the marginal duration for included trailing items" },
-    { "shape_vert_adjust",  "vertical adjustment for hairpin to match dynamics" },
-    { "below_note_cushion", "extra gap below notes" },
-    { "downstem_cushion", "extra gap below down-stems" },
-    { "below_artic_cushion", "extra gap below articulations" },
-    { "left_horiz_offset",  "gap between the start of selection and hairpin (no dynamics)" },
-    { "right_horiz_offset",  "gap between end of hairpin and end of selection (no dynamics)" },
-    { "left_dynamic_cushion",  "gap between first dynamic and start of hairpin" },
-    { "right_dynamic_cushion",  "gap between end of the hairpin and ending dynamic" },
-}
-local boolean_options = {
-    dynamics_match_hairpin = true,
-    include_trailing_items = true,
-    attach_over_end_barline = true,
-    attach_over_system_break = true,
-}
-local integer_options = {
-    inclusions_EDU_margin = true,
 }
 
 local configuration = require("library.configuration")
@@ -298,22 +273,6 @@ local function lowest_note_element(rgn)
     return lowest_vert
 end
 
-local function expression_is_dynamic(exp)
-    if not exp:IsShape() and exp.Visible and exp.StaffGroupID == 0 then
-        local cd = finale.FCCategoryDef()
-        local text_def = exp:CreateTextExpressionDef()
-        if text_def then
-            local font_info = text_def:CreateTextString():CreateLastFontInfo() -- ignore hidden expressions
-            if cd:Load(text_def.CategoryID) and not font_info.Hidden then
-                if text_def.CategoryID == finale.DEFAULTCATID_DYNAMICS or string.find(cd:CreateName().LuaString, "Dynamic") then
-                    return true
-                end
-            end
-        end
-    end
-    return false
-end
-
 local function lowest_dynamic_in_region(rgn)
     local arg_point = finale.FCPoint(0, 0)
     local top_of_staff, current_measure, lowest_vert = 0, 0, 0
@@ -328,7 +287,7 @@ local function lowest_dynamic_in_region(rgn)
     dynamics:LoadAllForRegion(dynamic_rgn)
 
     for dyn in each(dynamics) do -- find lowest dynamic expression
-        if expression_is_dynamic(dyn) then
+        if expression.is_dynamic(dyn) then
             if current_measure ~= dyn.Measure then
                 current_measure = dyn.Measure -- new measure, new top of cell staff
                 top_of_staff = calc_top_of_staff(current_measure, rgn.StartStaff)
@@ -355,7 +314,7 @@ local function simple_dynamic_scan(rgn)
     local dynamics = finale.FCExpressions()
     dynamics:LoadAllForRegion(dynamic_rgn)
     for dyn in each(dynamics) do -- find lowest dynamic expression
-        if expression_is_dynamic(dyn) then
+        if expression.is_dynamic(dyn) then
             table.insert(dynamic_list, dyn)
         end
     end
@@ -572,14 +531,39 @@ local function create_hairpin(shape_type)
 end
 
 function create_dialog_box()
+    local dialog_options = { -- key value from config, text description
+        { "dynamics_match_hairpin", "move dynamics vertically to match hairpin height" },
+        { "include_trailing_items", "consider notes and dynamics past the end of selection" },
+        { "attach_over_end_barline", "attach right end of hairpin across the final barline" },
+        { "attach_over_system_break", "attach across final barline even over a system break" },
+        { "inclusions_EDU_margin", "(EDUs) the marginal duration for included trailing items" },
+        { "shape_vert_adjust",  "vertical adjustment for hairpin to match dynamics" },
+        { "below_note_cushion", "extra gap below notes" },
+        { "downstem_cushion", "extra gap below down-stems" },
+        { "below_artic_cushion", "extra gap below articulations" },
+        { "left_horiz_offset",  "gap between the start of selection and hairpin (no dynamics)" },
+        { "right_horiz_offset",  "gap between end of hairpin and end of selection (no dynamics)" },
+        { "left_dynamic_cushion",  "gap between first dynamic and start of hairpin" },
+        { "right_dynamic_cushion",  "gap between end of the hairpin and ending dynamic" },
+    }
+    local boolean_options = {
+        dynamics_match_hairpin = true,
+        include_trailing_items = true,
+        attach_over_end_barline = true,
+        attach_over_system_break = true,
+    }
+    local integer_options = {
+        inclusions_EDU_margin = true,
+    }
+
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Hairpin Creator Configuration")
-    local y_step = 20
+    local y_step, y_current = 20, 0
     local max_text_width = 385
     local x_offset = {0, 130, 155, 190}
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- horizontal offset for Mac Edit boxes
 
     for i, v in ipairs(dialog_options) do -- run through config parameters
-        local y_current = y_step * i
+        y_current = y_step * i
         local msg = string.gsub(v[1], "_", " ")
         if boolean_options[v[1]] then -- checkboxes
             dialog:CreateCheckbox(x_offset[1], y_current, v[1]):SetText(msg):SetWidth(x_offset[3]):SetCheck(config[v[1]] and 1 or 0)
@@ -598,7 +582,7 @@ function create_dialog_box()
     end
 
     -- measurement unit options
-    local y_current = (#dialog_options + 1.6) * y_step
+    y_current = (#dialog_options + 1.6) * y_step
     dialog:CreateStatic(x_offset[2] - 40, y_current):SetText("Units:")
     dialog:SetMeasurementUnit(config.measurement_unit)
     dialog:CreateMeasurementUnitPopup(x_offset[2], y_current)
@@ -625,9 +609,9 @@ function create_dialog_box()
 end
 
 function hairpin_selector()
-    configuration.get_user_settings("hairpin_creator", config) -- get last saved user preferences
+    configuration.get_user_settings("hairpin_creator", config) -- overwrite config with saved user preferences
     local mod_down = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-    if mod_down or (hairpin_type == -3) then -- user wants to change their preferences
+    if mod_down or (hairpin_type == -3) then -- user wants to change preferences
         local dialog = create_dialog_box()
         if config.window_pos_x and config.window_pos_y then
             dialog:StorePosition()
