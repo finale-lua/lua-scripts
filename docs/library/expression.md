@@ -7,6 +7,7 @@
 - [calc_handle_offset_for_smart_shape(exp_assign)](#calc_handle_offset_for_smart_shape)
 - [calc_text_width(expression_def, expand_tags)](#calc_text_width)
 - [is_for_current_part(exp_assign, current_part)](#is_for_current_part)
+- [is_dynamic(exp)](#is_dynamic)
 
 ### get_music_region
 
@@ -95,6 +96,24 @@ Returns true if the expression assignment is assigned to the current part or sco
 | ----- | ---- | ----------- |
 | `exp_assign` | `FCExpression` |  |
 | `current_part` (optional) | `FCPart` | defaults to current part, but it can be supplied if the caller has already calculated it. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` |  |
+
+### is_dynamic
+
+```lua
+expression.is_dynamic(exp)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L137)
+
+Returns true if the expression appears to be a dynamic.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `exp` | `FCExpression` |  |
 
 | Return type | Description |
 | ----------- | ----------- |
