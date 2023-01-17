@@ -63,13 +63,16 @@ end
 --[[
 % round
 
-Rounds a number to the nearest whole integer.
+Rounds a number to the nearest integer or the specified number of decimal places.
 
 @ num (number)
+@ [places] (number) If specified, the number of decimal places to round to. If omitted or 0, will round to the nearest integer.
 : (number)
 ]]
-function utils.round(num)
-    return math.floor(num + 0.5)
+function utils.round(value, places)
+    places = places or 0
+    local multiplier = 10^places
+    return math.floor(value * multiplier + 0.5) / multiplier
 end
 
 --[[ 
@@ -144,6 +147,18 @@ Clamps a number between two values.
 ]]
 function utils.clamp(num, minimum, maximum)
     return math.min(math.max(num, minimum), maximum)
+end
+
+--[[
+% ltrim
+
+Removes whitespace from the start of a string.
+
+@ str (string)
+: (string)
+]]
+function utils.ltrim(str)
+    return string.match(str, "^%s*(.*)")
 end
 
 return utils
