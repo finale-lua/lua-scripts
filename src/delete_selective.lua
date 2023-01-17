@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.57"
-    finaleplugin.Date = "2023/01/07"
+    finaleplugin.Version = "0.60"
+    finaleplugin.Date = "2023/01/18"
     finaleplugin.MinJWLuaVersion = 0.62
 	finaleplugin.AdditionalMenuOptions = [[
         Delete Dynamics
@@ -55,16 +55,16 @@ function plugindef()
         delete_type = "expression_dynamic"
         delete_type = "expression_not_dynamic"
         delete_type = "measure_attached"
-        delete_type = "articulation"
-        delete_type = "lyrics"
+        delete_type = "entry_articulation"
+        delete_type = "entry_lyrics"
         delete_type = "shape_hairpin"
         delete_type = "shape_slur"
         delete_type = "shape_custom"
         delete_type = "shape_glissando"
         delete_type = "shape_beat_aligned"
         delete_type = "shape_all"
-        delete_type = "midi_note"
-        delete_type = "midi_continuous"
+        delete_type = "entry_midi"
+        delete_type = "continuous_midi"
 	]]
     finaleplugin.ScriptGroupName = "Delete selective"
     finaleplugin.ScriptGroupDescription = "Selectively delete thirteen different types of data from the currently selected music region"
@@ -79,29 +79,12 @@ function plugindef()
 end
 
 delete_type = delete_type or "expression_all"
+local expression = require("library.expression")
 
-function expression_is_dynamic(exp)
-    if not exp:IsShape() and exp.Visible and exp.StaffGroupID == 0 then
-        local cat_id = exp:CreateTextExpressionDef().CategoryID
-        if cat_id == finale.DEFAULTCATID_DYNAMICS then
-            return true
-        end
-        local cd = finale.FCCategoryDef()
-        cd:Load(cat_id)
-        if cd.Type == finale.DEFAULTCATID_DYNAMICS then
-            return true
-        end
-        if string.find(cd:CreateName().LuaString, "Dynamic") then
-            return true
-        end
-    end
-    return false
-end
-
-function delete_selected()
-    if string.find(delete_type, "shape") then -- SMART SHAPE
+function delete_selected(rgn)
+    if string.find(delete_type, "shape") then -- SMART SHAPE of some description
         local marks = finale.FCSmartShapeMeasureMarks()
-        marks:LoadAllForRegion(finenv.Region(), true)
+        marks:LoadAllForRegion(rgn, true)
         for mark in each(marks) do
             local shape = mark:CreateSmartShape()
             if (delete_type == "shape_all")
@@ -114,40 +97,28 @@ function delete_selected()
                 shape:DeleteData()
             end
         end
-    elseif string.find(delete_type, "express") then -- EXPRESSION type
+    elseif string.find(delete_type, "express") then -- EXPRESSION of some type
         local expressions = finale.FCExpressions()
-        expressions:LoadAllForRegion(finenv.Region())
+        expressions:LoadAllForRegion(rgn)
         for exp in eachbackwards(expressions) do
             if not exp:IsShape() and exp.StaffGroupID == 0 and
               (    (delete_type == "expression_all")
-                or (delete_type == "expression_not_dynamic" and not expression_is_dynamic(exp))
-                or (delete_type == "expression_dynamic" and expression_is_dynamic(exp))
+                or (delete_type == "expression_not_dynamic" and not expression.is_dynamic(exp))
+                or (delete_type == "expression_dynamic" and expression.is_dynamic(exp))
               )
             then
                 exp:DeleteData()
             end
         end
-    elseif delete_type == "midi_continuous" then -- MIDI CONTINUOUS type
+    elseif delete_type == "continuous_midi" then -- MIDI CONTINUOUS data
         local midi_ex = finale.FCMidiExpressions()
-        midi_ex:LoadAllForRegion(finenv.Region())
+        midi_ex:LoadAllForRegion(rgn)
         for exp in eachbackwards(midi_ex) do
             exp:DeleteData()
         end
-    elseif delete_type == "midi_note" then -- MIDI NOTE DATA type
-        for entry in eachentrysaved(finenv.Region()) do
-            if entry.PerformanceDataFlag then
-                local perf_mods = entry:CreatePerformanceMods()
-                if perf_mods.Count > 0 then
-                    for mod in eachbackwards(perf_mods) do
-                        mod:DeleteData()
-                    end
-                end
-                entry.PerformanceDataFlag = false
-            end
-        end
     elseif delete_type == "measure_attached" then -- MEASURE-ATTACHED EXPRESSIONS type
         local measures = finale.FCMeasures()
-        measures:LoadRegion(finenv.Region())
+        measures:LoadRegion(rgn)
         for measure in each(measures) do
             for exp in eachbackwards(measure:CreateExpressions()) do
                 if exp.StaffGroupID > 0 then
@@ -160,19 +131,23 @@ function delete_selected()
                 measure:Save()
             end
         end
-    elseif delete_type == "articulation" then -- ARTICULATION type
-        for entry in eachentrysaved(finenv.Region()) do
-            if entry:GetArticulationFlag() then
+    elseif string.find(delete_type, "entry") then -- three types of ENTRY-based data
+        local lyrics = { finale.FCChorusSyllable(), finale.FCSectionSyllable(), finale.FCVerseSyllable() }
+        for entry in eachentrysaved(rgn) do
+            if delete_type == "entry_articulation" and entry.ArticulationFlag then -- ARTICULATION
                 for articulation in eachbackwards(entry:CreateArticulations()) do
                     articulation:DeleteData()
                 end
                 entry:SetArticulationFlag(false)
-            end
-        end
-    elseif delete_type == "lyrics" then -- LYRICS type
-        local lyrics = { finale.FCChorusSyllable(), finale.FCSectionSyllable(), finale.FCVerseSyllable() }
-        for entry in eachentrysaved(finenv.Region()) do
-            if entry.LyricFlag then
+            elseif delete_type == "entry_midi" and entry.PerformanceDataFlag then -- NOTE-BASED MIDI
+                local perf_mods = entry:CreatePerformanceMods()
+                if perf_mods.Count > 0 then
+                    for mod in eachbackwards(perf_mods) do
+                        mod:DeleteData()
+                    end
+                end
+                entry.PerformanceDataFlag = false
+            elseif delete_type == "entry_lyrics" and entry.LyricFlag then -- LYRICS
                 for _, v in ipairs(lyrics) do
                     v:SetNoteEntry(entry)
                     while v:LoadFirst() do
@@ -184,4 +159,4 @@ function delete_selected()
     end
 end
 
-delete_selected()
+delete_selected(finenv.Region())
