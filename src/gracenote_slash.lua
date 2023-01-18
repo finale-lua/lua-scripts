@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.57"
-    finaleplugin.Date = "2023/01/02"
+    finaleplugin.Version = "v0.59"
+    finaleplugin.Date = "2023/01/18"
     finaleplugin.AdditionalMenuOptions = [[
         Gracenote Slash Configuration...
     ]]
@@ -25,7 +25,7 @@ function plugindef()
         An additional `Configuration` menu item is provided to change the script's default settings. 
         They can also be changed by holding down either the `shift` or `alt` (option) key when calling the script.
     ]]
-    return "Gracenote Slash", "Gracenote Slash", "Add a slash to all gracenote beamed groups in the current selection"
+    return "Gracenote Slash", "Gracenote Slash", "Add a slash to beamed gracenote groups in the current selection"
 end
 
 slash_configure = slash_configure or false
@@ -101,9 +101,9 @@ function add_slashes()
     end
 end
 
-function change_parameters()
+function user_sets_parameters()
     -- set "upstem_" and "downstem_" versions of parameters in this order ...
-    local dialog_options = { -- key value from config, text description
+    local dialog_options = { -- key value from config => text description
         {"line_width", "width of slash line"},
         {"y_start", "vertical offset at start of slash shape"},
         {"line_to_x", "horizontal length of slash line"},
@@ -111,6 +111,8 @@ function change_parameters()
         {"artic_x_offset", "articulation horizontal offset"},
         {"artic_y_offset", "articulation vertical offset"},
     }
+    local efix_value = { line_width = true }
+    
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Gracenote Slash Configuration")
     dialog:SetMeasurementUnit(config.measurement_unit)
     local y_step, y_current = 20, 0
@@ -119,13 +121,25 @@ function change_parameters()
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- vertical offset for Mac Edit boxes
 
     for _, stem in ipairs({"upstem", "downstem"}) do
-        dialog:CreateStatic(x_offset[1], y_current):SetText(string.upper(stem) .. " VALUES:"):SetWidth(x_offset[3])
+        dialog:CreateStatic(x_offset[1], y_current)
+            :SetText(string.upper(stem) .. " VALUES:")
+            :SetWidth(x_offset[3])
         y_current = y_current + y_step
         for _, v in ipairs(dialog_options) do -- run twice through config parameters
-            dialog:CreateStatic(x_offset[2], y_current):SetText(string.gsub(v[1], "_", " ") .. ":"):SetWidth(x_offset[3] - x_offset[2])
-            dialog:CreateStatic(x_offset[4], y_current):SetText(v[2]):SetWidth(max_width)
+            dialog:CreateStatic(x_offset[2], y_current)
+                :SetText(string.gsub(v[1], "_", " ") .. ":")
+                :SetWidth(x_offset[3] - x_offset[2])
+            dialog:CreateStatic(x_offset[4], y_current)
+                :SetText(v[2])
+                :SetWidth(max_width)
             local name = stem .. "_" .. v[1]
-            dialog.CreateMeasurementEdit(dialog, x_offset[3], y_current - mac_offset, name):SetWidth(60):SetTypeMeasurement():SetMeasurement(config[name])
+            local edit = dialog.CreateMeasurementEdit(dialog, x_offset[3], y_current - mac_offset, name)
+            if efix_value[v[1]] then
+                edit:SetTypeMeasurement() -- EFIX values need decimal precision
+            else
+                edit:SetTypeMeasurementInteger() -- the rest are integer EVPUs
+            end
+            edit:SetMeasurement(config[name]):SetWidth(60)
             y_current = y_current + y_step
         end
         y_current = y_current + (y_step / 2)
@@ -141,7 +155,8 @@ function change_parameters()
         function(self)
             for _, stem in ipairs({"upstem_", "downstem_"}) do
                 for _, v in ipairs(dialog_options) do
-                    config[stem .. v[1]] = self:GetControl(stem .. v[1]):GetMeasurement()
+                    local edit = self:GetControl(stem .. v[1])
+                    config[stem .. v[1]] = efix_value[v[1]] and edit:GetMeasurement() or edit:GetMeasurementInteger()
                 end
             end
             config.measurement_unit = self:GetMeasurementUnit()
@@ -166,7 +181,7 @@ function main()
     local mod_down = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
     local ok = true
     if slash_configure or mod_down then
-        ok = change_parameters()
+        ok = user_sets_parameters()
     end
     if not slash_configure and ok then
         add_slashes()
