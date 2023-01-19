@@ -70,7 +70,7 @@ function expression.calc_handle_offset_for_smart_shape(exp_assign)
         def_horizontal = exp_def.HorizontalOffset
     end
     local exp_entry = expression.get_associated_entry(exp_assign)
-    local ent_position = exp_entry.ManualPosition
+    local ent_position = exp_entry and exp_entry.ManualPosition or 0
     if (nil ~= exp_entry) and (nil ~= exp_def) then
         if finale.ALIGNHORIZ_LEFTOFALLNOTEHEAD == exp_def.HorizontalAlignmentPoint then
             alignment_offset = note_entry.calc_left_of_all_noteheads(exp_entry)
