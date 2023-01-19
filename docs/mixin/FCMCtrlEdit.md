@@ -3,6 +3,7 @@
 Summary of modifications:
 - Added `Change` custom control event.
 - Added hooks for restoring control state
+- `GetMeasurement*` and `SetMeasurement*` methods have been overridden to use the `FCMString` versions of those methods under the hood. For more details on any changes, see the documentation for `FCMString`.
 
 ## Functions
 
@@ -12,15 +13,18 @@ Summary of modifications:
 - [GetFloat(self)](#getfloat)
 - [SetFloat(self, value)](#setfloat)
 - [GetMeasurement(self, measurementunit)](#getmeasurement)
+- [GetRangeMeasurement(self, measurementunit, minimum, maximum)](#getrangemeasurement)
 - [SetMeasurement(self, value, measurementunit)](#setmeasurement)
 - [GetMeasurementEfix(self, measurementunit)](#getmeasurementefix)
+- [GetRangeMeasurementEfix(self, measurementunit, minimum, maximum)](#getrangemeasurementefix)
 - [SetMeasurementEfix(self, value, measurementunit)](#setmeasurementefix)
 - [GetMeasurementInteger(self, measurementunit)](#getmeasurementinteger)
-- [SetMeasurementInteger(self, value, measurementunit)](#setmeasurementinteger)
-- [GetRangeInteger(self, minimum, maximum)](#getrangeinteger)
-- [GetRangeMeasurement(self, measurementunit, minimum, maximum)](#getrangemeasurement)
-- [GetRangeMeasurementEfix(self, measurementunit, minimum, maximum)](#getrangemeasurementefix)
 - [GetRangeMeasurementInteger(self, measurementunit, minimum, maximum)](#getrangemeasurementinteger)
+- [SetMeasurementInteger(self, value, measurementunit)](#setmeasurementinteger)
+- [GetMeasurement10000th(self, measurementunit)](#getmeasurement10000th)
+- [GetRangeMeasurement10000th(self, measurementunit, minimum, maximum)](#getrangemeasurement10000th)
+- [SetMeasurement10000th(self, value, measurementunit)](#setmeasurement10000th)
+- [GetRangeInteger(self, minimum, maximum)](#getrangeinteger)
 - [HandleChange(control, last_value)](#handlechange)
 - [AddHandleChange(self, callback)](#addhandlechange)
 - [RemoveHandleChange(self, callback)](#removehandlechange)
@@ -31,7 +35,7 @@ Summary of modifications:
 fcmctrledit.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L29)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L30)
 
 **[Fluid] [Override]**
 Ensures that `Change` event is triggered.
@@ -47,7 +51,7 @@ Ensures that `Change` event is triggered.
 fcmctrledit.GetInteger(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L201)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L286)
 
 **[Override]**
 Hooks into control state restoration.
@@ -119,7 +123,7 @@ Also hooks into control state restoration.
 fcmctrledit.GetMeasurement(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L120)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L134)
 
 **[Override]**
 Hooks into control state restoration.
@@ -133,13 +137,35 @@ Hooks into control state restoration.
 | ----------- | ----------- |
 | `number` |  |
 
+### GetRangeMeasurement
+
+```lua
+fcmctrledit.GetRangeMeasurement(self, measurementunit, minimum, maximum)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L145)
+
+**[Override]**
+Hooks into control state restoration.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCtrlEdit` |  |
+| `measurementunit` | `number` | Any of the finale.MEASUREMENTUNIT_* constants. |
+| `minimum` | `number` |  |
+| `maximum` | `number` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` |  |
+
 ### SetMeasurement
 
 ```lua
 fcmctrledit.SetMeasurement(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L131)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L158)
 
 **[Fluid] [Override]**
 Ensures that `Change` event is triggered.
@@ -157,7 +183,7 @@ Also hooks into control state restoration.
 fcmctrledit.GetMeasurementEfix(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L241)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
 Hooks into control state restoration.
@@ -166,6 +192,28 @@ Hooks into control state restoration.
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlEdit` |  |
 | `measurementunit` | `number` | Any of the finale.MEASUREMENTUNIT_* constants. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` |  |
+
+### GetRangeMeasurementEfix
+
+```lua
+fcmctrledit.GetRangeMeasurementEfix(self, measurementunit, minimum, maximum)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+
+**[Override]**
+Hooks into control state restoration.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCtrlEdit` |  |
+| `measurementunit` | `number` | Any of the finale.MEASUREMENTUNIT_* constants. |
+| `minimum` | `number` |  |
+| `maximum` | `number` |  |
 
 | Return type | Description |
 | ----------- | ----------- |
@@ -195,7 +243,7 @@ Also hooks into control state restoration.
 fcmctrledit.GetMeasurementInteger(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L261)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
 Hooks into control state restoration.
@@ -204,6 +252,29 @@ Hooks into control state restoration.
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlEdit` |  |
 | `measurementunit` | `number` | Any of the finale.MEASUREMENTUNIT_* constants. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` |  |
+
+### GetRangeMeasurementInteger
+
+```lua
+fcmctrledit.GetRangeMeasurementInteger(self, measurementunit, minimum, maximum)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+
+**[Override]**
+Hooks into control state restoration.
+Also fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account (see `FCMString.GetRangeMeasurementInteger`).
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCtrlEdit` |  |
+| `measurementunit` | `number` | Any of the finale.MEASUREMENTUNIT_* constants. |
+| `minimum` | `number` |  |
+| `maximum` | `number` |  |
 
 | Return type | Description |
 | ----------- | ----------- |
@@ -227,86 +298,78 @@ Also hooks into control state restoration.
 | `value` | `number` |  |
 | `measurementunit` | `number` |  |
 
+### GetMeasurement10000th
+
+```lua
+fcmctrledit.GetMeasurement10000th(self, measurementunit)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+
+Returns the measurement in 10000ths of an EVPU.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCtrlEdit` |  |
+| `measurementunit` | `number` | Any of the finale.MEASUREMENTUNIT_* constants. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` |  |
+
+### GetRangeMeasurement10000th
+
+```lua
+fcmctrledit.GetRangeMeasurement10000th(self, measurementunit, minimum, maximum)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+
+Returns the measurement in 10000ths of an EVPU, clamped between two values.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCtrlEdit` |  |
+| `measurementunit` | `number` | Any of the finale.MEASUREMENTUNIT_* constants. |
+| `minimum` | `number` |  |
+| `maximum` | `number` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` |  |
+
+### SetMeasurement10000th
+
+```lua
+fcmctrledit.SetMeasurement10000th(self, value, measurementunit)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+
+**[Fluid]**
+Sets a measurement in 10000ths of an EVPU.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCtrlEdit` |  |
+| `value` | `number` |  |
+| `measurementunit` | `number` |  |
+
 ### GetRangeInteger
 
 ```lua
 fcmctrledit.GetRangeInteger(self, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L197)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L282)
 
 **[Override]**
 Hooks into control state restoration.
+Fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlEdit` |  |
-| `minimum` | `number` |  |
-| `maximum` | `number` |  |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `number` |  |
-
-### GetRangeMeasurement
-
-```lua
-fcmctrledit.GetRangeMeasurement(self, measurementunit, minimum, maximum)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L216)
-
-**[Override]**
-Hooks into control state restoration.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `self` | `FCMCtrlEdit` |  |
-| `measurementunit` | `number` | Any of the finale.MEASUREMENTUNIT_* constants. |
-| `minimum` | `number` |  |
-| `maximum` | `number` |  |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `number` |  |
-
-### GetRangeMeasurementEfix
-
-```lua
-fcmctrledit.GetRangeMeasurementEfix(self, measurementunit, minimum, maximum)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L236)
-
-**[Override]**
-Hooks into control state restoration.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `self` | `FCMCtrlEdit` |  |
-| `measurementunit` | `number` | Any of the finale.MEASUREMENTUNIT_* constants. |
-| `minimum` | `number` |  |
-| `maximum` | `number` |  |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `number` |  |
-
-### GetRangeMeasurementInteger
-
-```lua
-fcmctrledit.GetRangeMeasurementInteger(self, measurementunit, minimum, maximum)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L256)
-
-**[Override]**
-Hooks into control state restoration.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `self` | `FCMCtrlEdit` |  |
-| `measurementunit` | `number` | Any of the finale.MEASUREMENTUNIT_* constants. |
 | `minimum` | `number` |  |
 | `maximum` | `number` |  |
 
@@ -320,7 +383,7 @@ Hooks into control state restoration.
 fcmctrledit.HandleChange(control, last_value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L274)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L299)
 
 **[Callback Template]**
 
@@ -335,7 +398,7 @@ fcmctrledit.HandleChange(control, last_value)
 fcmctrledit.AddHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L291)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L316)
 
 **[Fluid]**
 Adds a handler for when the value of the control changes.
@@ -355,7 +418,7 @@ The even will fire when:
 fcmctrledit.RemoveHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L296)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L321)
 
 **[Fluid]**
 Removes a handler added with `AddHandleChange`.
