@@ -6,6 +6,7 @@ $module FCMCtrlEdit
 Summary of modifications:
 - Added `Change` custom control event.
 - Added hooks for restoring control state
+- `GetMeasurement*` and `SetMeasurement*` methods have been overridden to use the `FCMString` versions of those methods under the hood. For more details on any changes, see the documentation for `FCMString`.
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
@@ -105,6 +106,19 @@ Hooks into control state restoration.
 ]]
 
 --[[
+% GetRangeMeasurement
+
+**[Override]**
+Hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+@ minimum (number)
+@ maximum (number)
+: (number)
+]]
+
+--[[
 % SetMeasurement
 
 **[Fluid] [Override]**
@@ -124,6 +138,19 @@ Hooks into control state restoration.
 
 @ self (FCMCtrlEdit)
 @ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+: (number)
+]]
+
+--[[
+% GetRangeMeasurementEfix
+
+**[Override]**
+Hooks into control state restoration.
+
+@ self (FCMCtrlEdit)
+@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+@ minimum (number)
+@ maximum (number)
 : (number)
 ]]
 
@@ -151,6 +178,20 @@ Hooks into control state restoration.
 ]]
 
 --[[
+% GetRangeMeasurementInteger
+
+**[Override]**
+Hooks into control state restoration.
+Also fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account (see `FCMString.GetRangeMeasurementInteger`).
+
+@ self (FCMCtrlEdit)
+@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+@ minimum (number)
+@ maximum (number)
+: (number)
+]]
+
+--[[
 % SetMeasurementInteger
 
 **[Fluid] [Override]**
@@ -161,16 +202,59 @@ Also hooks into control state restoration.
 @ value (number)
 @ measurementunit (number)
 ]]
+
+--[[
+% GetMeasurement10000th
+
+Returns the measurement in 10000ths of an EVPU.
+
+@ self (FCMCtrlEdit)
+@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+: (number)
+]]
+
+--[[
+% GetRangeMeasurement10000th
+
+Returns the measurement in 10000ths of an EVPU, clamped between two values.
+
+@ self (FCMCtrlEdit)
+@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
+@ minimum (number)
+@ maximum (number)
+: (number)
+]]
+
+--[[
+% SetMeasurement10000th
+
+**[Fluid]**
+Sets a measurement in 10000ths of an EVPU.
+
+@ self (FCMCtrlEdit)
+@ value (number)
+@ measurementunit (number)
+]]
 for method, valid_types in pairs({
     Measurement = "number",
     MeasurementEfix = "number",
     MeasurementInteger = "number",
+    Measurement10000th = "number",
 }) do
     props["Get" .. method] = function(self, measurementunit)
         mixin.assert_argument(measurementunit, "number", 2)
 
         mixin.FCMControl.GetText(self, temp_str)
         return temp_str["Get" .. method](temp_str, measurementunit)
+    end
+
+    props["GetRange" .. method] = function(self, measurementunit, minimum, maximum)
+        mixin.assert_argument(measurementunit, "number", 2)
+        mixin.assert_argument(minimum, "number", 3)
+        mixin.assert_argument(maximum, "number", 4)
+
+        mixin.FCMControl.GetText(self, temp_str)
+        return temp_str["GetRange" .. method](temp_str, measurementunit, minimum, maximum)
     end
 
     props["Set" .. method] = function(self, value, measurementunit)
@@ -188,6 +272,7 @@ end
 
 **[Override]**
 Hooks into control state restoration.
+Fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account.
 
 @ self (FCMCtrlEdit)
 @ minimum (number)
@@ -198,67 +283,7 @@ function props:GetRangeInteger(minimum, maximum)
     mixin.assert_argument(minimum, "number", 2)
     mixin.assert_argument(maximum, "number", 3)
 
-    return utils.clamp(mixin.FCMCtrlEdit.GetInteger(self), math.floor(minimum), math.floor(maximum))
-end
-
---[[
-% GetRangeMeasurement
-
-**[Override]**
-Hooks into control state restoration.
-
-@ self (FCMCtrlEdit)
-@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
-@ minimum (number)
-@ maximum (number)
-: (number)
-]]
-function props:GetRangeMeasurement(measurementunit, minimum, maximum)
-    mixin.assert_argument(measurementunit, "number", 2)
-    mixin.assert_argument(minimum, "number", 3)
-    mixin.assert_argument(maximum, "number", 4)
-
-    return utils.clamp(mixin.FCMCtrlEdit.GetMeasurement(self, measurementunit), minimum, maximum)
-end
-
---[[
-% GetRangeMeasurementEfix
-
-**[Override]**
-Hooks into control state restoration.
-
-@ self (FCMCtrlEdit)
-@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
-@ minimum (number)
-@ maximum (number)
-: (number)
-]]
-function props:GetRangeMeasurementEfix(measurementunit, minimum, maximum)
-    mixin.assert_argument(measurementunit, "number", 2)
-    mixin.assert_argument(minimum, "number", 3)
-    mixin.assert_argument(maximum, "number", 4)
-
-    return utils.clamp(mixin.FCMCtrlEdit.GetMeasurementEfix(self, measurementunit), minimum, maximum)
-end
-
---[[
-% GetRangeMeasurementInteger
-
-**[Override]**
-Hooks into control state restoration.
-
-@ self (FCMCtrlEdit)
-@ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
-@ minimum (number)
-@ maximum (number)
-: (number)
-]]
-function props:GetRangeMeasurementInteger(measurementunit, minimum, maximum)
-    mixin.assert_argument(measurementunit, "number", 2)
-    mixin.assert_argument(minimum, "number", 3)
-    mixin.assert_argument(maximum, "number", 4)
-
-    return utils.clamp(mixin.FCMCtrlEdit.GetMeasurementInteger(self, measurementunit), math.floor(minimum), math.floor(maximum))
+    return utils.clamp(mixin.FCMCtrlEdit.GetInteger(self), math.ceil(minimum), math.floor(maximum))
 end
 
 --[[
