@@ -2258,6 +2258,31 @@ __imports["mixin.FCMString"] = __imports["mixin.FCMString"] or function()
         return utils.clamp(mixin.FCMString.GetMeasurement(measurementunit), minimum, maximum)
     end
 
+    function props:SetMeasurement(value, measurementunit)
+        mixin.assert_argument(value, "number", 2)
+        mixin.assert_argument(measurementunit, "number", 3)
+        if measurementunit == finale.MEASUREMENTUNIT_PICAS then
+            local whole = math.floor(value / 48)
+            local fractional = value - whole * 48
+            fractional = fractional < 0 and fractional * -1 or fractional
+            self.LuaString = whole .. "p" .. utils.round(fractional / 4, 4)
+            return
+        end
+
+        if measurementunit == finale.MEASUREMENTUNIT_INCHES then
+            value = value / 288
+        elseif measurementunit == finale.MEASUREMENTUNIT_CENTIMETERS then
+            value = value / 288 * 2.54
+        elseif measurementunit == finale.MEASUREMENTUNIT_POINTS then
+            value = value / 4
+        elseif measurementunit == finale.MEASUREMENTUNIT_SPACES then
+            value = value / 24
+        elseif measurementunit == finale.MEASUREMENTUNIT_MILLIMETERS then
+            value = value / 288 * 25.4
+        end
+        self.LuaString = tostring(utils.round(value, 5))
+    end
+
     function props:GetMeasurementInteger(measurementunit)
         mixin.assert_argument(measurementunit, "number", 2)
         return utils.round(mixin.FCMString.GetMeasurement(self, measurementunit))
@@ -2273,7 +2298,7 @@ __imports["mixin.FCMString"] = __imports["mixin.FCMString"] or function()
     function props:SetMeasurementInteger(value, measurementunit)
         mixin.assert_argument(value, "number", 2)
         mixin.assert_argument(measurementunit, "number", 3)
-        self:SetMeasurement_(utils.round(value), measurementunit)
+        mixin.FCMString.SetMeasurement(self, utils.round(value), measurementunit)
     end
 
     function props:GetMeasurementEfix(measurementunit)
@@ -2291,7 +2316,7 @@ __imports["mixin.FCMString"] = __imports["mixin.FCMString"] or function()
     function props:SetMeasurementEfix(value, measurementunit)
         mixin.assert_argument(value, "number", 2)
         mixin.assert_argument(measurementunit, "number", 3)
-        self:SetMeasurement_(utils.round(value) / 64, measurementunit)
+        mixin.FCMString.SetMeasurement(self, utils.round(value) / 64, measurementunit)
     end
 
     function props:GetMeasurement10000th(measurementunit)
@@ -2309,7 +2334,7 @@ __imports["mixin.FCMString"] = __imports["mixin.FCMString"] or function()
     function props:SetMeasurement10000th(value, measurementunit)
         mixin.assert_argument(value, "number", 2)
         mixin.assert_argument(measurementunit, "number", 3)
-        self:SetMeasurement_(utils.round(value) / 10000, measurementunit)
+        mixin.FCMString.SetMeasurement(self, utils.round(value) / 10000, measurementunit)
     end
     return props
 end
