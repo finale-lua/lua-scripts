@@ -46,8 +46,10 @@ __imports["library.utils"] = __imports["library.utils"] or function()
         end
     end
 
-    function utils.round(num)
-        return math.floor(num + 0.5)
+    function utils.round(value, places)
+        places = places or 0
+        local multiplier = 10^places
+        return math.floor(value * multiplier + 0.5) / multiplier
     end
 
     function utils.calc_roman_numeral(num)
@@ -84,6 +86,10 @@ __imports["library.utils"] = __imports["library.utils"] or function()
 
     function utils.clamp(num, minimum, maximum)
         return math.min(math.max(num, minimum), maximum)
+    end
+
+    function utils.ltrim(str)
+        return string.match(str, "^%s*(.*)")
     end
     return utils
 end

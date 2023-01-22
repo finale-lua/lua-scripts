@@ -1106,6 +1106,25 @@ __imports["library.expression"] = __imports["library.expression"] or function()
         end
         return false
     end
+
+    function expression.is_dynamic(exp)
+        if not exp:IsShape() and exp.Visible and exp.StaffGroupID == 0 then
+            local cat_id = exp:CreateTextExpressionDef().CategoryID
+            if cat_id == finale.DEFAULTCATID_DYNAMICS then
+                return true
+            end
+            local cd = finale.FCCategoryDef()
+            cd:Load(cat_id)
+            if cd.Type == finale.DEFAULTCATID_DYNAMICS then
+                return true
+            end
+            local exp_name = cd:CreateName().LuaString
+            if string.find(exp_name, "Dynamic") or string.find(exp_name, "dynamic") then
+                return true
+            end
+        end
+        return false
+    end
     return expression
 end
 function plugindef()

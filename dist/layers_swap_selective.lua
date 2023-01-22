@@ -351,15 +351,29 @@ __imports["mixin.FCMCtrlEdit"] = __imports["mixin.FCMCtrlEdit"] or function()
 
 
 
+
+
+
+
+
+
     for method, valid_types in pairs({
         Measurement = "number",
         MeasurementEfix = "number",
         MeasurementInteger = "number",
+        Measurement10000th = "number",
     }) do
         props["Get" .. method] = function(self, measurementunit)
             mixin.assert_argument(measurementunit, "number", 2)
             mixin.FCMControl.GetText(self, temp_str)
             return temp_str["Get" .. method](temp_str, measurementunit)
+        end
+        props["GetRange" .. method] = function(self, measurementunit, minimum, maximum)
+            mixin.assert_argument(measurementunit, "number", 2)
+            mixin.assert_argument(minimum, "number", 3)
+            mixin.assert_argument(maximum, "number", 4)
+            mixin.FCMControl.GetText(self, temp_str)
+            return temp_str["GetRange" .. method](temp_str, measurementunit, minimum, maximum)
         end
         props["Set" .. method] = function(self, value, measurementunit)
             mixin.assert_argument(value, valid_types, 2)
@@ -373,28 +387,7 @@ __imports["mixin.FCMCtrlEdit"] = __imports["mixin.FCMCtrlEdit"] or function()
     function props:GetRangeInteger(minimum, maximum)
         mixin.assert_argument(minimum, "number", 2)
         mixin.assert_argument(maximum, "number", 3)
-        return utils.clamp(mixin.FCMCtrlEdit.GetInteger(self), math.floor(minimum), math.floor(maximum))
-    end
-
-    function props:GetRangeMeasurement(measurementunit, minimum, maximum)
-        mixin.assert_argument(measurementunit, "number", 2)
-        mixin.assert_argument(minimum, "number", 3)
-        mixin.assert_argument(maximum, "number", 4)
-        return utils.clamp(mixin.FCMCtrlEdit.GetMeasurement(self, measurementunit), minimum, maximum)
-    end
-
-    function props:GetRangeMeasurementEfix(measurementunit, minimum, maximum)
-        mixin.assert_argument(measurementunit, "number", 2)
-        mixin.assert_argument(minimum, "number", 3)
-        mixin.assert_argument(maximum, "number", 4)
-        return utils.clamp(mixin.FCMCtrlEdit.GetMeasurementEfix(self, measurementunit), minimum, maximum)
-    end
-
-    function props:GetRangeMeasurementInteger(measurementunit, minimum, maximum)
-        mixin.assert_argument(measurementunit, "number", 2)
-        mixin.assert_argument(minimum, "number", 3)
-        mixin.assert_argument(maximum, "number", 4)
-        return utils.clamp(mixin.FCMCtrlEdit.GetMeasurementInteger(self, measurementunit), math.floor(minimum), math.floor(maximum))
+        return utils.clamp(mixin.FCMCtrlEdit.GetInteger(self), math.ceil(minimum), math.floor(maximum))
     end
 
 
@@ -1663,17 +1656,165 @@ __imports["mixin.FCMString"] = __imports["mixin.FCMString"] or function()
 
     local mixin = require("library.mixin")
     local utils = require("library.utils")
+    local measurement = require("library.measurement")
     local props = {}
+
+    local unit_overrides = {
+        {unit = finale.MEASUREMENTUNIT_EVPUS, overrides = {"EVPUS", "evpus", "e"}},
+        {unit = finale.MEASUREMENTUNIT_INCHES, overrides = {"inches", "in", "i", "”"}},
+        {unit = finale.MEASUREMENTUNIT_CENTIMETERS, overrides = {"centimeters", "cm", "c"}},
+
+        {unit = finale.MEASUREMENTUNIT_POINTS, overrides = {"points", "pts", "pt"}},
+        {unit = finale.MEASUREMENTUNIT_PICAS, overrides = {"picas", "p"}},
+        {unit = finale.MEASUREMENTUNIT_SPACES, overrides = {"spaces", "sp", "s"}},
+        {unit = finale.MEASUREMENTUNIT_MILLIMETERS, overrides = {"millimeters", "mm", "m"}},
+    }
+    function split_string_start(str, pattern)
+        return string.match(str, "^(" .. pattern .. ")(.*)")
+    end
+    local function split_number(str, allow_negative)
+        return split_string_start(str, (allow_negative and "%-?" or "") .. "%d+%.?%d*")
+    end
+    local function calculate_picas(whole, fractional)
+        fractional = fractional or 0
+        return tonumber(whole) * 48 + tonumber(fractional) * 4
+    end
+
+    function props:GetMeasurement(measurementunit)
+        mixin.assert_argument(measurementunit, "number", 2)
+
+        local value = string.gsub(self.LuaString, "%" .. mixin.UI():GetDecimalSeparator(), '.')
+        local start_number, remainder = split_number(value, true)
+        if not start_number then
+            return 0
+        end
+        if remainder then
+
+            remainder = utils.ltrim(remainder)
+            if remainder == "" then
+                goto continue
+            end
+            for _, unit in ipairs(unit_overrides) do
+                for _, override in ipairs(unit.overrides) do
+                    local a, b = split_string_start(remainder, override)
+                    if a then
+                        measurementunit = unit.unit
+                        if measurementunit == finale.MEASUREMENTUNIT_PICAS then
+                            return calculate_picas(start_number, split_number(utils.ltrim(b)))
+                        end
+                        goto continue
+                    end
+                end
+            end
+            :: continue ::
+        end
+        if measurementunit == finale.MEASUREMENTUNIT_DEFAULT then
+            measurementunit = measurement.get_real_default_unit()
+        end
+        start_number = tonumber(start_number)
+        if measurementunit == finale.MEASUREMENTUNIT_EVPUS then
+            return start_number
+        elseif measurementunit == finale.MEASUREMENTUNIT_INCHES then
+            return start_number * 288
+        elseif measurementunit == finale.MEASUREMENTUNIT_CENTIMETERS then
+            return start_number * 288 / 2.54
+        elseif measurementunit == finale.MEASUREMENTUNIT_POINTS then
+            return start_number * 4
+        elseif measurementunit == finale.MEASUREMENTUNIT_PICAS then
+            return start_number * 48
+        elseif measurementunit == finale.MEASUREMENTUNIT_SPACES then
+            return start_number * 24
+        elseif measurementunit == finale.MEASUREMENTUNIT_MILLIMETERS then
+            return start_number * 288 / 25.4
+        end
+
+        return 0
+    end
+
+    function props:GetRangeMeasurement(measurementunit, minimum, maximum)
+        mixin.assert_argument(measurementunit, "number", 2)
+        mixin.assert_argument(minimum, "number", 3)
+        mixin.assert_argument(maximum, "number", 4)
+        return utils.clamp(mixin.FCMString.GetMeasurement(measurementunit), minimum, maximum)
+    end
+
+    function props:SetMeasurement(value, measurementunit)
+        mixin.assert_argument(value, "number", 2)
+        mixin.assert_argument(measurementunit, "number", 3)
+        if measurementunit == finale.MEASUREMENTUNIT_PICAS then
+            local whole = math.floor(value / 48)
+            local fractional = value - whole * 48
+            fractional = fractional < 0 and fractional * -1 or fractional
+            self.LuaString = whole .. "p" .. utils.round(fractional / 4, 4)
+            return
+        end
+
+        if measurementunit == finale.MEASUREMENTUNIT_INCHES then
+            value = value / 288
+        elseif measurementunit == finale.MEASUREMENTUNIT_CENTIMETERS then
+            value = value / 288 * 2.54
+        elseif measurementunit == finale.MEASUREMENTUNIT_POINTS then
+            value = value / 4
+        elseif measurementunit == finale.MEASUREMENTUNIT_SPACES then
+            value = value / 24
+        elseif measurementunit == finale.MEASUREMENTUNIT_MILLIMETERS then
+            value = value / 288 * 25.4
+        end
+        self.LuaString = tostring(utils.round(value, 5))
+    end
 
     function props:GetMeasurementInteger(measurementunit)
         mixin.assert_argument(measurementunit, "number", 2)
-        return utils.round(self:GetMeasurement_(measurementunit))
+        return utils.round(mixin.FCMString.GetMeasurement(self, measurementunit))
+    end
+
+    function props:GetRangeMeasurementInteger(measurementunit, minimum, maximum)
+        mixin.assert_argument(measurementunit, "number", 2)
+        mixin.assert_argument(minimum, "number", 3)
+        mixin.assert_argument(maximum, "number", 4)
+        return utils.clamp(mixin.FCMString.GetMeasurementInteger(measurementunit), math.ceil(minimum), math.floor(maximum))
     end
 
     function props:SetMeasurementInteger(value, measurementunit)
         mixin.assert_argument(value, "number", 2)
         mixin.assert_argument(measurementunit, "number", 3)
-        self:SetMeasurement_(utils.round(value), measurementunit)
+        mixin.FCMString.SetMeasurement(self, utils.round(value), measurementunit)
+    end
+
+    function props:GetMeasurementEfix(measurementunit)
+        mixin.assert_argument(measurementunit, "number", 2)
+        return utils.round(mixin.FCMString.GetMeasurement(self, measurementunit) * 64)
+    end
+
+    function props:GetRangeMeasurementEfix(measurementunit, minimum, maximum)
+        mixin.assert_argument(measurementunit, "number", 2)
+        mixin.assert_argument(minimum, "number", 3)
+        mixin.assert_argument(maximum, "number", 4)
+        return utils.clamp(mixin.FCMString.GetMeasurementEfix(measurementunit), math.ceil(minimum), math.floor(maximum))
+    end
+
+    function props:SetMeasurementEfix(value, measurementunit)
+        mixin.assert_argument(value, "number", 2)
+        mixin.assert_argument(measurementunit, "number", 3)
+        mixin.FCMString.SetMeasurement(self, utils.round(value) / 64, measurementunit)
+    end
+
+    function props:GetMeasurement10000th(measurementunit)
+        mixin.assert_argument(measurementunit, "number", 2)
+        return utils.round(mixin.FCMString.GetMeasurement(self, measurementunit) * 10000)
+    end
+
+    function props:GetRangeMeasurement10000th(measurementunit)
+        mixin.assert_argument(measurementunit, "number", 2)
+        mixin.assert_argument(minimum, "number", 3)
+        mixin.assert_argument(maximum, "number", 4)
+        return utils.clamp(mixin.FCMString.GetMeasurement10000th(self, measurementunit), math.ceil(minimum), math.floor(maximum))
+    end
+
+    function props:SetMeasurement10000th(value, measurementunit)
+        mixin.assert_argument(value, "number", 2)
+        mixin.assert_argument(measurementunit, "number", 3)
+        mixin.FCMString.SetMeasurement(self, utils.round(value) / 10000, measurementunit)
     end
     return props
 end
@@ -2305,12 +2446,38 @@ __imports["mixin.FCXCtrlMeasurementEdit"] = __imports["mixin.FCXCtrlMeasurementE
     local trigger_change
     local each_last_change
 
+    local function convert_type(value, from, to)
+
+        if from ~= "Measurement" then
+            value = utils.round(value)
+        end
+        if from == to then
+            return value
+        end
+        if from == "MeasurementEfix" then
+            value = value / 64
+        elseif from == "Measurement10000th" then
+            value = value / 10000
+        end
+        if to == "MeasurementEfix" then
+            value = value * 64
+        elseif to == "Measurement10000th" then
+            value = value * 10000
+        end
+        if to == "Measurement" then
+            return value
+        end
+        return utils.round(value)
+    end
+
     function props:Init()
         local parent = self:GetParent()
         mixin.assert(mixin.is_instance_of(parent, "FCXCustomLuaWindow"), "FCXCtrlMeasurementEdit must have a parent window that is an instance of FCXCustomLuaWindow")
         private[self] = private[self] or {
             Type = "MeasurementInteger",
             LastMeasurementUnit = parent:GetMeasurementUnit(),
+            LastText = mixin.FCMCtrlEdit.GetText(self),
+            Value = mixin.FCMCtrlEdit.GetMeasurementInteger(self, parent:GetMeasurementUnit()),
         }
     end
 
@@ -2328,6 +2495,21 @@ __imports["mixin.FCXCtrlMeasurementEdit"] = __imports["mixin.FCXCtrlMeasurementE
         end
     end
 
+    function props:GetType()
+        return private[self].Type
+    end
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2340,76 +2522,48 @@ __imports["mixin.FCXCtrlMeasurementEdit"] = __imports["mixin.FCXCtrlMeasurementE
         Measurement = "number",
         MeasurementInteger = "number",
         MeasurementEfix = "number",
+        Measurement10000th = "number",
     }) do
         props["Get" .. method] = function(self)
-            return mixin.FCMCtrlEdit["Get" .. method](self, private[self].LastMeasurementUnit)
+            local text = mixin.FCMCtrlEdit.GetText(self)
+            if (text ~= private[self].LastText) then
+                private[self].Value = mixin.FCMCtrlEdit["Get" .. private[self].Type](self, private[self].LastMeasurementUnit)
+                private[self].LastText = text
+            end
+            return convert_type(private[self].Value, private[self].Type, method)
         end
         props["GetRange" .. method] = function(self, minimum, maximum)
             mixin.assert_argument(minimum, "number", 2)
             mixin.assert_argument(maximum, "number", 3)
-            return mixin.FCMCtrlEdit["GetRange" .. method](self, private[self].LastMeasurementUnit, minimum, maximum)
+            minimum = method ~= "Measurement" and math.ceil(minimum) or minimum
+            maximum = method ~= "Measurement" and math.floor(maximum) or maximum
+            return utils.clamp(mixin.FCXCtrlMeasurementEdit["Get" .. method](self), minimum, maximum)
         end
         props["Set" .. method] = function (self, value)
             mixin.assert_argument(value, valid_types, 2)
-            mixin.FCMCtrlEdit["Set" .. method](self, value, private[self].LastMeasurementUnit)
+            private[self].Value = convert_type(value, method, private[self].Type)
+            mixin.FCMCtrlEdit["Set" .. private[self].Type](self, private[self].Value, private[self].LastMeasurementUnit)
+            private[self].LastText = mixin.FCMCtrlEdit.GetText(self)
             trigger_change(self)
         end
         props["IsType" .. method] = function(self)
             return private[self].Type == method
         end
-    end
-
-    function props:GetType()
-        return private[self].Type
-    end
-
-
-
-
-    function props:SetTypeMeasurement()
-        if private[self].Type == "Measurement" then
-            return
-        end
-        if private[self].Type == "MeasurementEfix" then
+        props["SetType" .. method] = function(self)
+            private[self].Value = convert_type(private[self].Value, private[self].Type, method)
             for v in each_last_change(self) do
-                v.last_value = v.last_value / 64
+                v.last_value = convert_type(v.last_value, private[self].Type, method)
             end
+            private[self].Type = method
         end
-        private[self].Type = "Measurement"
-    end
-
-    function props:SetTypeMeasurementInteger()
-        if private[self].Type == "MeasurementInteger" then
-            return
-        end
-        if private[self].Type == "Measurement" then
-            for v in each_last_change(self) do
-                v.last_value = utils.round(v.last_value)
-            end
-        elseif private[self].Type == "MeasurementEfix" then
-            for v in each_last_change(self) do
-                v.last_value = utils.round(v.last_value / 64)
-            end
-        end
-        private[self].Type = "MeasurementInteger"
-    end
-
-    function props:SetTypeMeasurementEfix()
-        if private[self].Type == "MeasurementEfix" then
-            return
-        end
-        for v in each_last_change(self) do
-            v.last_value = v.last_value * 64
-        end
-        private[self].Type = "MeasurementEfix"
     end
 
     function props:UpdateMeasurementUnit()
         local new_unit = self:GetParent():GetMeasurementUnit()
         if private[self].LastMeasurementUnit ~= new_unit then
-            local val = self["Get" .. private[self].Type](self)
+            local value = mixin.FCXCtrlMeasurementEdit["Get" .. private[self].Type](self)
             private[self].LastMeasurementUnit = new_unit
-            self["Set" .. private[self].Type](self, val)
+            mixin.FCXCtrlMeasurementEdit["Set" .. private[self].Type](self, value)
         end
     end
 
@@ -2418,8 +2572,8 @@ __imports["mixin.FCXCtrlMeasurementEdit"] = __imports["mixin.FCXCtrlMeasurementE
     props.AddHandleChange, props.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
         {
             name = "last_value",
-            get = function(ctrl)
-                return mixin.FCXCtrlMeasurementEdit["Get" .. private[ctrl].Type](ctrl)
+            get = function(self)
+                return mixin.FCXCtrlMeasurementEdit["Get" .. private[self].Type](self)
             end,
             initial = 0,
         }
@@ -3015,8 +3169,10 @@ __imports["library.utils"] = __imports["library.utils"] or function()
         end
     end
 
-    function utils.round(num)
-        return math.floor(num + 0.5)
+    function utils.round(value, places)
+        places = places or 0
+        local multiplier = 10^places
+        return math.floor(value * multiplier + 0.5) / multiplier
     end
 
     function utils.calc_roman_numeral(num)
@@ -3053,6 +3209,10 @@ __imports["library.utils"] = __imports["library.utils"] or function()
 
     function utils.clamp(num, minimum, maximum)
         return math.min(math.max(num, minimum), maximum)
+    end
+
+    function utils.ltrim(str)
+        return string.match(str, "^%s*(.*)")
     end
     return utils
 end
