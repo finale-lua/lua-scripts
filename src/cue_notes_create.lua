@@ -3,13 +3,13 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.67"
-    finaleplugin.Date = "2023/01/07"
+    finaleplugin.Version = "v0.69"
+    finaleplugin.Date = "2023/01/25"
     finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action. 
-        It takes music in Layer 1 from one staff in the selected region and creates a "Cue" version on another chosen staff. 
-        The cue copy is reduced in size and muted, and can duplicate chosen markings from the original. 
-        It is shifted to the chosen layer with a (real) whole-note rest placed in layer 1.
+        It takes music from a nominated layer in the chosen staff and creates a "Cue" version on another staff. 
+        The cue copy is reduced in size and muted, and can duplicate nominated markings from the original. 
+        It is shifted to the chosen layer with a whole-note rest placed in the original layer.
 
         Your choices are saved in your preferences folder after each script execution. 
         This script requires an expression category called "Cue Names". 
@@ -29,12 +29,15 @@ local config = { -- retained and over-written by the user's "settings" file
     copy_lyrics         =   false,
     mute_cuenotes       =   true,
     cuenote_percent     =   70,    -- (75% too big, 66% too small)
-    cuenote_layer       =   3,
-    freeze_up_down      =   0,      -- "0" for no freezing, "1" for up, "2" for down
+    source_layer        =   1,     -- layer the cue comes from
+    cuenote_layer       =   3,     -- layer the cue ends up
+    rest_layer          =   1,     -- layer for default wholenote rest
+    freeze_up_down      =   0,     -- "0" for no freezing, "1" for up, "2" for down
     -- if creating a new "Cue Names" category ...
     cue_category_name   =   "Cue Names",
     cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
 }
+
 local configuration = require("library.configuration")
 local clef = require("library.clef")
 local layer = require("library.layer")
@@ -45,6 +48,7 @@ function show_error(error_code)
     local errors = {
         only_one_staff = "Please select just one staff\n as the source for the new cue",
         empty_region = "Please select a region\nwith some notes in it!",
+        no_notes_in_source_layer = "The music selected contains\nno notes in layer " .. config.source_layer,
         first_make_expression_category = "You must first create a new Text Expression Category called \""..config.cue_category_name.."\" containing at least one entry",
     }
     local msg = errors[error_code] or "Unknown error condition"
@@ -52,18 +56,18 @@ function show_error(error_code)
     return -1
 end
 
-function should_overwrite_existing_music()
+function dont_overwrite_existing_music()
     local alert = finenv.UI():AlertOkCancel("script: " .. plugindef(), "Overwrite existing music?")
-    return (alert == finale.OKRETURN)
+    return (alert ~= finale.OKRETURN)
 end
 
-function region_is_empty(region)
-    for entry in eachentry(region) do
+function region_contains_notes(region, layer_number)
+    for entry in eachentry(region, layer_number) do
         if entry.Count > 0 then
-            return false
+            return true
         end
     end
-    return true
+    return false
 end
 
 function new_cue_name(source_staff)
@@ -150,17 +154,18 @@ function choose_destination_staff(source_staff)
     rgn.EndSlot = original_slot
 
     -- draw up the dialog box
-    local horiz_grid = { 210, 310, 360 }
-    local vert_step = 20
+    local x_grid = { 210, 310, 360 }
+    local y_step = 20
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- + vertical offset for Mac edit boxes
     local user_checks = {
-        "copy_articulations",   "copy_expressions",   "copy_smartshapes",
-        "copy_slurs",           "copy_clef",          "copy_lyrics",
-        "mute_cuenotes",        "cuenote_percent",      "cuenote_layer"
+        "copy_articulations",  "copy_expressions",  "copy_smartshapes",
+        "copy_slurs",          "copy_clef",         "copy_lyrics",
+        "mute_cuenotes",       "cuenote_percent",   "source_layer",   "cuenote_layer",
         -- note that [config.freeze_up_down] is a special case
     }
     local integer_options = { -- numeric, not boolean options
         cuenote_percent = true,
+        source_layer = true,
         cuenote_layer = true
     }
     local user_selections = {}  -- an array of controls corresponding to user choices
@@ -174,7 +179,7 @@ function choose_destination_staff(source_staff)
     static:SetText(str)
     static:SetWidth(200)
 
-    local list_box = dialog:CreateListBox(0, vert_step)
+    local list_box = dialog:CreateListBox(0, y_step)
     list_box.UseCheckboxes = true
     list_box:SetWidth(200)
     for _, v in ipairs(staff_list) do -- list all staff names
@@ -183,18 +188,19 @@ function choose_destination_staff(source_staff)
     end
     -- add user options
     str.LuaString = "Cue Options:"
-    dialog:CreateStatic(horiz_grid[1], 0):SetText(str)
+    dialog:CreateStatic(x_grid[1], 0):SetText(str)
 
     for i, v in ipairs(user_checks) do -- run through config parameter list
         str.LuaString = string.gsub(v, '_', ' ')
+        local y = y_step * i
         if integer_options[v] then
             str.LuaString = str.LuaString .. ":"
-            dialog:CreateStatic(horiz_grid[1], i * vert_step):SetText(str)
-            user_selections[v] = dialog:CreateEdit(horiz_grid[2], (i * vert_step) - mac_offset)
+            dialog:CreateStatic(x_grid[1], y):SetText(str)
+            user_selections[v] = dialog:CreateEdit(x_grid[2], y - mac_offset)
             user_selections[v]:SetInteger(config[v])
             user_selections[v]:SetWidth(50)
         else
-            user_selections[v] = dialog:CreateCheckbox(horiz_grid[1], i * vert_step)
+            user_selections[v] = dialog:CreateCheckbox(x_grid[1], y)
             user_selections[v]:SetText(str)
             user_selections[v]:SetWidth(120)
             local checked = config[v] and 1 or 0
@@ -202,7 +208,7 @@ function choose_destination_staff(source_staff)
         end
     end
     -- popup for stem direction -> config.freeze_up_down
-    local stem_direction_popup = dialog:CreatePopup(horiz_grid[1], ((#user_checks + 1) * vert_step + 5))
+    local stem_direction_popup = dialog:CreatePopup(x_grid[1], ((#user_checks + 1) * y_step + 5))
     str.LuaString = "Stems: normal"
     stem_direction_popup:AddString(str)  -- config.freeze_up_down == 0 (normal)
     str.LuaString = "Stems: freeze up"
@@ -213,7 +219,7 @@ function choose_destination_staff(source_staff)
     stem_direction_popup:SetSelectedItem(config.freeze_up_down) -- 0-based index
 
     -- "CLEAR ALL" button to CLEAR all booleans
-    local clear_button = dialog:CreateButton(horiz_grid[3], vert_step * 2)
+    local clear_button = dialog:CreateButton(x_grid[3], y_step * 2)
     str.LuaString = "Clear All"
     clear_button:SetWidth(80)
     clear_button:SetText(str)
@@ -226,10 +232,10 @@ function choose_destination_staff(source_staff)
             end
             list_box:SetKeyboardFocus()
         end
-        )
+    )
 
     -- "SET ALL" button to SET all booleans
-    local set_button = dialog:CreateButton(horiz_grid[3], vert_step * 4)
+    local set_button = dialog:CreateButton(x_grid[3], y_step * 4)
     str.LuaString = "Set All"
     set_button:SetWidth(80)
     set_button:SetText(str)
@@ -242,7 +248,7 @@ function choose_destination_staff(source_staff)
             end
             list_box:SetKeyboardFocus()
         end
-        )
+    )
 
     -- run the dialog
     dialog:CreateOkButton()
@@ -255,12 +261,17 @@ function choose_destination_staff(source_staff)
         for i, v in ipairs(user_checks) do -- run through config parameters
             if integer_options[v] then
                 config[v] = user_selections[v]:GetInteger()
-                if v == "cuenote_layer" and (config[v] < 1 or config[v] > layer.max_layers()) then -- legitimate layer choice?
-                    config[v] = layer.max_layers() -- make sure layer number is in range
+                if string.find(v, "layer") and (config[v] < 1 or config[v] > layer.max_layers()) then -- legitimate layer choice?
+                    config[v] = (v == "source_layer") and 1 or layer.max_layers() -- make sure layer number is in range
                 end
             else
                 config[v] = (user_selections[v]:GetCheck() == 1) -- "true" for value 1, boolean checked
             end
+        end
+        if config.source_layer ~= config.cuenote_layer then
+            config.rest_layer = config.source_layer
+        else -- make sure the whole-bar rest is in a different layer from the cuenotes
+            config.rest_layer = (config.source_layer % layer.max_layers()) + 1
         end
         config.freeze_up_down = stem_direction_popup:GetSelectedItem() -- 0-based index
     end
@@ -271,7 +282,7 @@ function fix_text_expressions(region)
     local expressions = finale.FCExpressions()
     expressions:LoadAllForRegion(region)
     for expression in eachbackwards(expressions) do
-        if expression.StaffGroupID == 0 then -- staff-attached expressions only
+        if expression.StaffGroupID == 0 then -- note-attached expressions only
             if config.copy_expressions then -- keep them and switch to cuenote layer
                 expression.LayerAssignment = config.cuenote_layer
                 expression.ScaleWithEntry = true -- and scale to smaller noteheads
@@ -290,18 +301,25 @@ function copy_to_destination(source_region, destination_staff)
     destination_region.StartStaff = destination_staff
     destination_region.EndStaff = destination_staff
 
-    if not region_is_empty(destination_region) and (not should_overwrite_existing_music()) then
+    if region_contains_notes(destination_region, 0) and dont_overwrite_existing_music() then
         destination_region:ReleaseMusic() -- clear memory
+        return false -- and go home
+    end
+    if not region_contains_notes(source_region, config.source_layer) then
+        destination_region:ReleaseMusic() -- clear memory
+        show_error("no_notes_in_source_layer")
         return false -- and go home
     end
     -- otherwise carry on ...
     destination_region:PasteMusic()   -- paste the copy
     destination_region:ReleaseMusic() -- and release memory
-    for layer_number = 2, 4 do     -- clear out LAYERS 2-4
-        layer.clear(destination_region, layer_number)
+    for layer_number = 1, 4 do     -- clear out non-source layers
+        if layer_number ~= config.source_layer then
+            layer.clear(destination_region, layer_number)
+        end
     end
 
-    -- mute / set to % size / delete articulations / freeze stems
+    -- mute / set to % size / delete articulations? / freeze stems? / delete lyrics?
     for entry in eachentrysaved(destination_region) do
         if entry:IsNote() and config.mute_cuenotes then
             entry.Playback = false
@@ -330,10 +348,12 @@ function copy_to_destination(source_region, destination_staff)
         if config.freeze_up_down > 0 then -- frozen stems requested
             entry.FreezeStem = true
             entry.StemUp = (config.freeze_up_down == 1) -- "true" -> upstem, "false" -> downstem
+        else
+            entry.FreezeStem = false
         end
     end
     -- swap layer 1 with cuenote_layer & fix clef
-    layer.swap(destination_region, 1, config.cuenote_layer)
+    layer.swap(destination_region, config.source_layer, config.cuenote_layer)
     if not config.copy_clef then
         clef.restore_default_clef(destination_region.StartMeasure, destination_region.EndMeasure, destination_staff)
     end
@@ -344,19 +364,19 @@ function copy_to_destination(source_region, destination_staff)
     if not config.copy_smartshapes or not config.copy_slurs then
         local marks = finale.FCSmartShapeMeasureMarks()
         marks:LoadAllForRegion(destination_region, true)
-        for one_mark in each(marks) do
-            local shape = one_mark:CreateSmartShape()
+        for m in each(marks) do
+            local shape = m:CreateSmartShape()
             if (shape:IsSlur() and not config.copy_slurs) or (not shape:IsSlur() and not config.copy_smartshapes) then
                 shape:DeleteData()
             end
         end
     end
 
-    -- create whole-note rest in layer 1 in each measure
+    -- create whole-note rest in rest_layer in each measure
     for measure = destination_region.StartMeasure, destination_region.EndMeasure do
         local notecell = finale.FCNoteEntryCell(measure, destination_staff)
         notecell:Load()
-        local whole_note = notecell:AppendEntriesInLayer(1, 1) --   Append to layer 1, add 1 entry
+        local whole_note = notecell:AppendEntriesInLayer(config.rest_layer, 1) --   Append to layer 1, add 1 entry
         if whole_note then
             whole_note.Duration = finale.WHOLE_NOTE
             whole_note.Legality = true
@@ -399,7 +419,7 @@ function assign_expression_to_staff(staff_number, measure_number, measure_positi
     new_expression:SetStaff(staff_number)
     new_expression:SetVisible(true)
     new_expression:SetMeasurePos(measure_position)
-    new_expression:SetScaleWithEntry(false)    -- could possibly be true!  
+    new_expression:SetScaleWithEntry(false) -- could also (possibly) be true!  
     new_expression:SetPartAssignment(true)
     new_expression:SetScoreAssignment(true)
     new_expression:SetID(expression_id)
@@ -415,7 +435,7 @@ function create_cue_notes()
 
     if source_region:CalcStaffSpan() > 1 then
         return show_error("only_one_staff")
-    elseif region_is_empty(source_region) then
+    elseif not region_contains_notes(source_region, 0) then
         return show_error("empty_region")
     end
 
@@ -425,9 +445,9 @@ function create_cue_notes()
 
     -- collate extant cue names
     for text_def in each(expression_defs) do
-        cd:Load(text_def.CategoryID)
+        cat_ID = text_def.CategoryID
+        cd:Load(cat_ID)
         if string.find(cd:CreateName().LuaString, config.cue_category_name) then
-            cat_ID = text_def.CategoryID
             local str = text_def:CreateTextString()
             str:TrimEnigmaTags()
             -- save expresion NAME and ItemNo
