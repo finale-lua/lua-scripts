@@ -69,7 +69,7 @@ Returns the horizontal EVPU offset for a smart shape endpoint to align exactly w
 expression.calc_text_width(expression_def, expand_tags)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L100)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L101)
 
 Returns the text advance width of the input expression definition.
 
@@ -88,7 +88,7 @@ Returns the text advance width of the input expression definition.
 expression.is_for_current_part(exp_assign, current_part)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L119)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L120)
 
 Returns true if the expression assignment is assigned to the current part or score.
 
@@ -107,7 +107,7 @@ Returns true if the expression assignment is assigned to the current part or sco
 expression.is_dynamic(exp)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L137)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L138)
 
 Returns true if the expression appears to be a dynamic.
 

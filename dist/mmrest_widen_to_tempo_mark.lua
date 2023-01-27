@@ -1069,6 +1069,7 @@ __imports["library.expression"] = __imports["library.expression"] or function()
             def_horizontal = exp_def.HorizontalOffset
         end
         local exp_entry = expression.get_associated_entry(exp_assign)
+        local ent_position = exp_entry and exp_entry.ManualPosition or 0
         if (nil ~= exp_entry) and (nil ~= exp_def) then
             if finale.ALIGNHORIZ_LEFTOFALLNOTEHEAD == exp_def.HorizontalAlignmentPoint then
                 alignment_offset = note_entry.calc_left_of_all_noteheads(exp_entry)
@@ -1084,7 +1085,7 @@ __imports["library.expression"] = __imports["library.expression"] or function()
                 alignment_offset = note_entry.calc_right_of_all_noteheads(exp_entry)
             end
         end
-        return (manual_horizontal + def_horizontal + alignment_offset)
+        return (manual_horizontal + def_horizontal + ent_position + alignment_offset)
     end
 
     function expression.calc_text_width(expression_def, expand_tags)
