@@ -55,7 +55,28 @@ One effective way to do this is to detect modifier keys. If your script has a di
 
    3. Inside the folder, edit `packages.json`, deleting the `enableBreakpointsFor` element under `debuggers` and adding a `breakpoints` element under `contributes`.
 
-      ![Manifest Diff](assets/manifest_diff.png "Manifest Diff")
+      ```diff
+      --- package.json.original
+      +++ package.json.revised
+      @@ -21,21 +21,21 @@
+           "devDependencies": {},
+           "contributes": {
+      +        "breakpoints": [
+      +            {
+      +                "language": "lua"
+      +            }
+      +        ],
+               "debuggers": [
+                   {
+                       "type": "lua",
+                       "label": "Lua Debugger",
+      -                "enableBreakpointsFor": {
+      -                    "languageIds": [
+      -                        "lua"
+      -                    ]
+      -                },
+                       "program": "./DebugAdapter.exe",
+      ```
 
    4. If VS Code was open, close and restart it. You may then be prompted to reload the window when VS Code notices that the extension has changed on disk.
 
@@ -75,7 +96,18 @@ One effective way to do this is to detect modifier keys. If your script has a di
    
 6. Type <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> or click on the "Run and Debug" icon in the side bar, then click on the "create a launch.json file" link. From the "Select debugger" dropdown that appears, select `Lua Debugger`. This will create a default `launch.json` that should include this snippet at the bottom of the file:
 
-   ![launch.json](assets/launch_json.png "launch.json")
+    ```json
+    {        
+        "name": "wait",
+        "type": "lua",
+        "request": "attach",
+        "workingDirectory": "${workspaceRoot}",
+        "sourceBasePath": "${workspaceRoot}",
+        "listenPublicly": false,
+        "listenPort": 56789,
+        "encoding": "UTF-8"
+    }
+    ```
 
 8. Launch the `wait` configuration by selecting it from the dropdown at the top of the "Run and Debug" panel and clicking the arrow next to it (or hitting <kbd>F5</kbd>). This tells VS Code to listen for messages from remote execution of your script.
 
