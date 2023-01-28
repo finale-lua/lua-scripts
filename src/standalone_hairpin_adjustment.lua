@@ -110,7 +110,7 @@ function vertical_dynamic_adjustment(region, direction)
         local create_def = e:CreateTextExpressionDef()
         local cd = finale.FCCategoryDef()
         if cd:Load(create_def:GetCategoryID()) then
-            if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
+            if e.Visible and expression.is_dynamic(e) then -- non-visible exps have incorrect metrics, so ignore them
                 local success, staff_offset = expression_calc_relative_vertical_position(e)
                 if success then
                     has_dynamics = true
@@ -142,7 +142,7 @@ function vertical_dynamic_adjustment(region, direction)
             local create_def = e:CreateTextExpressionDef()
             local cd = finale.FCCategoryDef()
             if cd:Load(create_def:GetCategoryID()) then
-                if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
+                if e.Visible and expression.is_dynamic(e) then -- non-visible exps have incorrect metrics, so ignore them
                     local success, staff_offset = expression_calc_relative_vertical_position(e)
                     if success then
                         local difference_pos =  staff_offset - lowest_item[1]
@@ -356,7 +356,7 @@ function hairpin_adjustments(range_settings)
             local create_def = e:CreateTextExpressionDef()
             local cd = finale.FCCategoryDef()
             if cd:Load(create_def:GetCategoryID()) then
-                if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
+                if e.Visible and expression.is_dynamic(e) then -- non-visible exps have incorrect metrics, so ignore them
                     table.insert(expression_list, e)
                 end
             end
