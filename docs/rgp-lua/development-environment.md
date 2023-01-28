@@ -55,28 +55,7 @@ One effective way to do this is to detect modifier keys. If your script has a di
 
    3. Inside the folder, edit `packages.json`, deleting the `enableBreakpointsFor` element under `debuggers` and adding a `breakpoints` element under `contributes`.
 
-      ```diff
-      --- package.json.original
-      +++ package.json.revised
-      @@ -21,21 +21,21 @@
-           "devDependencies": &lbrace;&rbrace;,
-           "contributes": &lbrace;
-      +        "breakpoints": [
-      +            &lbrace;
-      +                "language": "lua"
-      +            &rbrace
-      +        ],
-               "debuggers": [
-                   &lbrace;
-                       "type": "lua",
-                       "label": "Lua Debugger",
-      -                "enableBreakpointsFor": &lbrace;
-      -                    "languageIds": [
-      -                        "lua"
-      -                    ]
-      -                &rbrace;,
-                       "program": "./DebugAdapter.exe",
-      ```
+      ![Manifest Diff](assets/manifest_diff.png "Manifest Diff")
 
    4. If VS Code was open, close and restart it. You may then be prompted to reload the window when VS Code notices that the extension has changed on disk.
 
@@ -96,18 +75,7 @@ One effective way to do this is to detect modifier keys. If your script has a di
    
 6. Type <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> or click on the "Run and Debug" icon in the side bar, then click on the "create a launch.json file" link. From the "Select debugger" dropdown that appears, select `Lua Debugger`. This will create a default `launch.json` that should include this snippet at the bottom of the file:
 
-    ```json
-    &lbrace;
-        "name": "wait",
-        "type": "lua",
-        "request": "attach",
-        "workingDirectory": "$&lbrace;workspaceRoot&rbrace;",
-        "sourceBasePath": "$&lbrace;workspaceRoot&rbrace;",
-        "listenPublicly": false,
-        "listenPort": 56789,
-        "encoding": "UTF-8"
-    &rbrace;
-    ```
+   ![launch.json](assets/launch_json.png "launch.json")
 
 8. Launch the `wait` configuration by selecting it from the dropdown at the top of the "Run and Debug" panel and clicking the arrow next to it (or hitting <kbd>F5</kbd>). This tells VS Code to listen for messages from remote execution of your script.
 
