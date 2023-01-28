@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "May 30, 2022"
+    finaleplugin.Version = "1.0.1"
+    finaleplugin.Date = "January 28, 2023"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.Notes = [[
@@ -77,19 +77,21 @@ function do_save_as_dialog(document)
 end
 
 local smart_shape_codes = {
-    [finale.SMARTSHAPE_SLURDOWN] = "SU",
+    [finale.SMARTSHAPE_SLURDOWN] = "SD",
+    [finale.SMARTSHAPE_SLURUP] = "SU",
     [finale.SMARTSHAPE_DIMINUENDO] = "DM",
     [finale.SMARTSHAPE_CRESCENDO] = "CR",
     [finale.SMARTSHAPE_OCTAVEDOWN ] = "8B",
     [finale.SMARTSHAPE_OCTAVEUP] = "8V",
     [finale.SMARTSHAPE_DASHLINEUP] = "DU",
     [finale.SMARTSHAPE_DASHLINEDOWN] = "DD",
-    [finale.SMARTSHAPE_DASHCURVEDOWN] = "DCU",
+    [finale.SMARTSHAPE_DASHCURVEDOWN] = "DCD",
     [finale.SMARTSHAPE_DASHCURVEUP] = "DCU",
     [finale.SMARTSHAPE_DASHLINE ] = "DL",
     [finale.SMARTSHAPE_SOLIDLINE] = "SL",
     [finale.SMARTSHAPE_SOLIDLINEDOWN] = "SLD",
     [finale.SMARTSHAPE_SOLIDLINEUP] = "SLU",
+    [finale.SMARTSHAPE_TRILL] = "TR",
     [finale.SMARTSHAPE_SLURAUTO] = "SS",
     [finale.SMARTSHAPE_DASHCURVEAUTO] = "DC",
     [finale.SMARTSHAPE_TRILLEXT] = "TE",
