@@ -59,22 +59,22 @@ One effective way to do this is to detect modifier keys. If your script has a di
       --- package.json.original
       +++ package.json.revised
       @@ -21,21 +21,21 @@
-           "devDependencies": {},
-           "contributes": {
+           "devDependencies": &lbrace;&rbrace;,
+           "contributes": &lbrace;
       +        "breakpoints": [
-      +            {
+      +            &lbrace;
       +                "language": "lua"
-      +            }
+      +            &rbrace
       +        ],
                "debuggers": [
-                   {
+                   &lbrace;
                        "type": "lua",
                        "label": "Lua Debugger",
-      -                "enableBreakpointsFor": {
+      -                "enableBreakpointsFor": &lbrace;
       -                    "languageIds": [
       -                        "lua"
       -                    ]
-      -                },
+      -                &rbrace;,
                        "program": "./DebugAdapter.exe",
       ```
 
@@ -94,50 +94,19 @@ One effective way to do this is to detect modifier keys. If your script has a di
     debuggee.start(json, { redirectPrint = true })
     ```
    
-6. Type <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> or click on the "Run and Debug" icon in the side bar, then click on the "create a launch.json file" link. From the "Select debugger" dropdown that appears, select `Lua Debugger`. This will create a default `launch.json` file that should look like this:
+6. Type <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> or click on the "Run and Debug" icon in the side bar, then click on the "create a launch.json file" link. From the "Select debugger" dropdown that appears, select `Lua Debugger`. This will create a default `launch.json` that should include this snippet at the bottom of the file:
 
     ```json
-    {
-        "version": "0.2.0",
-        "configurations": [
-            {
-                "name": "launch-lua",
-                "type": "lua",
-                "request": "launch",
-                "workingDirectory": "${workspaceRoot}",
-                "sourceBasePath": "${workspaceRoot}",
-                "executable": "${workspaceRoot}/lua.exe",
-                "arguments": "main.lua",
-                "listenPublicly": false,
-                "listenPort": 56789,
-                "encoding": "UTF-8",
-                "env": {}
-            },
-            {
-                "name": "launch-gideros",
-                "type": "lua",
-                "request": "launch",
-                "workingDirectory": "${workspaceRoot}",
-                "giderosPath": "C:/Program Files (x86)/Gideros",
-                "gprojPath": "${workspaceRoot}/GPROJ.gproj",
-                "jumpToGiderosErrorPosition": false,
-                "stopGiderosWhenDebuggerStops": true,
-                "listenPublicly": false,
-                "listenPort": 56789,
-                "encoding": "UTF-8"
-            },
-            {
-                "name": "wait",
-                "type": "lua",
-                "request": "attach",
-                "workingDirectory": "${workspaceRoot}",
-                "sourceBasePath": "${workspaceRoot}",
-                "listenPublicly": false,
-                "listenPort": 56789,
-                "encoding": "UTF-8"
-            }
-        ]
-    }
+    &lbrace;
+        "name": "wait",
+        "type": "lua",
+        "request": "attach",
+        "workingDirectory": "$&lbrace;workspaceRoot&rbrace;",
+        "sourceBasePath": "$&lbrace;workspaceRoot&rbrace;",
+        "listenPublicly": false,
+        "listenPort": 56789,
+        "encoding": "UTF-8"
+    &rbrace;
     ```
 
 8. Launch the `wait` configuration by selecting it from the dropdown at the top of the "Run and Debug" panel and clicking the arrow next to it (or hitting <kbd>F5</kbd>). This tells VS Code to listen for messages from remote execution of your script.
