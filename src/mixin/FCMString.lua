@@ -302,7 +302,7 @@ Also ensures that any decimal places in `minimum` are handled correctly instead 
 @ maximum (number)
 : (number)
 ]]
-function props:GetRangeMeasurement10000th(measurementunit)
+function props:GetRangeMeasurement10000th(measurementunit, minimum, maximum)
     mixin.assert_argument(measurementunit, "number", 2)
     mixin.assert_argument(minimum, "number", 3)
     mixin.assert_argument(maximum, "number", 4)
