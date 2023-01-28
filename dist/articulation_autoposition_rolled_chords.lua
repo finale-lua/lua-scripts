@@ -354,8 +354,8 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "December 26, 2021"
+    finaleplugin.Version = "1.0.1"
+    finaleplugin.Date = "January 15, 2023"
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.MinJWLuaVersion = 0.59
     finaleplugin.Notes = [[
@@ -396,6 +396,7 @@ function calc_top_bot_page_pos(search_region, artic_id)
     local top_page_pos = -math.huge
     local bot_page_pos = math.huge
     local left_page_pos = math.huge
+    local min_slot = math.huge
     for entry in eachentry(search_region) do
         if not entry:IsRest() then
             local artics = entry:CreateArticulations()
@@ -422,11 +423,15 @@ function calc_top_bot_page_pos(search_region, artic_id)
                         left_page_pos = em.FirstAccidentalPosition
                     end
                     em:FreeMetrics()
+                    local entry_slot = search_region:CalcSlotNumber(entry.Staff)
+                    if entry_slot < min_slot then
+                        min_slot = entry_slot
+                    end
                 end
             end
         end
     end
-    return success, top_page_pos, bot_page_pos, left_page_pos
+    return success, top_page_pos, bot_page_pos, left_page_pos, min_slot
 end
 function articulation_autoposition_rolled_chords()
     for entry in eachentry(finenv.Region()) do
@@ -435,37 +440,35 @@ function articulation_autoposition_rolled_chords()
             if artic.Visible then
                 local artic_def = artic:CreateArticulationDef()
                 if artic_def.CopyMainSymbol and not artic_def.CopyMainSymbolHorizontally then
-                    local save_it = false
                     local search_region = note_entry.get_music_region(entry)
                     if config.extend_across_staves then
-                        if search_region.StartStaff ~= finenv.Region().StartStaff then
-                            artic.Visible = false
-                            save_it = true
-                        else
-                            search_region.EndStaff = finenv.Region().EndStaff
-                        end
+                        search_region.StartStaff = finenv.Region().StartStaff
+                        search_region.EndStaff = finenv.Region().EndStaff
                     end
                     local metric_pos = finale.FCPoint(0, 0)
                     local mm = finale.FCCellMetrics()
                     if artic.Visible and artic:CalcMetricPos(metric_pos) and mm:LoadAtEntry(entry) then
-                        local success, top_page_pos, bottom_page_pos, left_page_pos = calc_top_bot_page_pos(search_region, artic.ID)
-                        local this_bottom = note_entry.get_bottom_note_position(entry)
-                        staff_scale = mm.StaffScaling / 10000
-                        top_page_pos = top_page_pos / staff_scale
-                        bottom_page_pos = bottom_page_pos / staff_scale
-                        left_page_pos = left_page_pos / staff_scale
-                        this_bottom = this_bottom / staff_scale
-                        local char_width, char_height = articulation.calc_main_character_dimensions(artic_def)
-                        local half_char_height = char_height/2
-                        local horz_diff = left_page_pos - metric_pos.X
-                        local vert_diff = top_page_pos - metric_pos.Y
-                        artic.HorizontalPos = artic.HorizontalPos + math.floor(horz_diff - char_width - config.horizontal_padding + 0.5)
-                        artic.VerticalPos = artic.VerticalPos + math.floor(vert_diff - char_height + 2*config.vertical_padding + 0.5)
-                        artic.VerticalCopyToPos = math.floor(bottom_page_pos - this_bottom - config.vertical_padding - half_char_height + 0.5)
-                        save_it = true
-                    end
-                    if save_it then
-                        artic:Save()
+                        local success, top_page_pos, bottom_page_pos, left_page_pos, min_slot = calc_top_bot_page_pos(search_region, artic.ID)
+                        if success then
+                            if min_slot < search_region:CalcSlotNumber(entry.Staff) then
+                                artic.Visible = false
+                            else
+                                local this_bottom = note_entry.get_bottom_note_position(entry)
+                                staff_scale = mm.StaffScaling / 10000
+                                top_page_pos = top_page_pos / staff_scale
+                                bottom_page_pos = bottom_page_pos / staff_scale
+                                left_page_pos = left_page_pos / staff_scale
+                                this_bottom = this_bottom / staff_scale
+                                local char_width, char_height = articulation.calc_main_character_dimensions(artic_def)
+                                local half_char_height = char_height/2
+                                local horz_diff = left_page_pos - metric_pos.X
+                                local vert_diff = top_page_pos - metric_pos.Y
+                                artic.HorizontalPos = artic.HorizontalPos + math.floor(horz_diff - char_width - config.horizontal_padding + 0.5)
+                                artic.VerticalPos = artic.VerticalPos + math.floor(vert_diff - char_height + 2*config.vertical_padding + 0.5)
+                                artic.VerticalCopyToPos = math.floor(bottom_page_pos - this_bottom - config.vertical_padding - half_char_height + 0.5)
+                            end
+                            artic:Save()
+                        end
                     end
                 end
             end
