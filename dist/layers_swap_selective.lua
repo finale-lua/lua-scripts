@@ -1804,7 +1804,7 @@ __imports["mixin.FCMString"] = __imports["mixin.FCMString"] or function()
         return utils.round(mixin.FCMString.GetMeasurement(self, measurementunit) * 10000)
     end
 
-    function props:GetRangeMeasurement10000th(measurementunit)
+    function props:GetRangeMeasurement10000th(measurementunit, minimum, maximum)
         mixin.assert_argument(measurementunit, "number", 2)
         mixin.assert_argument(minimum, "number", 3)
         mixin.assert_argument(maximum, "number", 4)
