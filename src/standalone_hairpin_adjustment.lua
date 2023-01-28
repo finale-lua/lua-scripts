@@ -107,15 +107,11 @@ function vertical_dynamic_adjustment(region, direction)
     local expressions = finale.FCExpressions()
     expressions:LoadAllForRegion(region)
     for e in each(expressions) do
-        local create_def = e:CreateTextExpressionDef()
-        local cd = finale.FCCategoryDef()
-        if cd:Load(create_def:GetCategoryID()) then
-            if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
-                local success, staff_offset = expression_calc_relative_vertical_position(e)
-                if success then
-                    has_dynamics = true
-                    table.insert(lowest_item, staff_offset)
-                end
+        if e.Visible and expression.is_dynamic(e) then -- non-visible exps have incorrect metrics, so ignore them
+            local success, staff_offset = expression_calc_relative_vertical_position(e)
+            if success then
+                has_dynamics = true
+                table.insert(lowest_item, staff_offset)
             end
         end
     end
@@ -139,24 +135,20 @@ function vertical_dynamic_adjustment(region, direction)
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(region)
         for e in each(expressions) do
-            local create_def = e:CreateTextExpressionDef()
-            local cd = finale.FCCategoryDef()
-            if cd:Load(create_def:GetCategoryID()) then
-                if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
-                    local success, staff_offset = expression_calc_relative_vertical_position(e)
-                    if success then
-                        local difference_pos =  staff_offset - lowest_item[1]
-                        if direction == "near" then
-                            difference_pos = lowest_item[#lowest_item] - staff_offset
-                        end
-                        local current_pos = e:GetVerticalPos()
-                        if direction == "far" then
-                            e:SetVerticalPos(current_pos - difference_pos)
-                        else
-                            e:SetVerticalPos(current_pos + difference_pos)
-                        end
-                        e:Save()
+            if e.Visible and expression.is_dynamic(e) then -- non-visible exps have incorrect metrics, so ignore them
+                local success, staff_offset = expression_calc_relative_vertical_position(e)
+                if success then
+                    local difference_pos =  staff_offset - lowest_item[1]
+                    if direction == "near" then
+                        difference_pos = lowest_item[#lowest_item] - staff_offset
                     end
+                    local current_pos = e:GetVerticalPos()
+                    if direction == "far" then
+                        e:SetVerticalPos(current_pos - difference_pos)
+                    else
+                        e:SetVerticalPos(current_pos + difference_pos)
+                    end
+                    e:Save()
                 end
             end
         end
@@ -268,12 +260,9 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
     expressions:LoadAllForRegion(region)
     local expression_list = {}
     for e in each(expressions) do
-        local create_def = e:CreateTextExpressionDef()
-        local cd = finale.FCCategoryDef()
-        if cd:Load(create_def:GetCategoryID()) then
-            if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
-                table.insert(expression_list, {expression.calc_text_width(create_def), e, e:GetItemInci()})
-            end
+        if e.Visible and expression.is_dynamic(e) then
+            local create_def = e:CreateTextExpressionDef()
+            table.insert(expression_list, {expression.calc_text_width(create_def), e, e:GetItemInci()})
         end
     end
     if #expression_list > 0 then
@@ -353,12 +342,8 @@ function hairpin_adjustments(range_settings)
         expressions:LoadAllForRegion(region)
         local expression_list = {}
         for e in each(expressions) do
-            local create_def = e:CreateTextExpressionDef()
-            local cd = finale.FCCategoryDef()
-            if cd:Load(create_def:GetCategoryID()) then
-                if ((cd:GetID() == finale.DEFAULTCATID_DYNAMICS) or (string.find(cd:CreateName().LuaString, "Dynamic"))) then
-                    table.insert(expression_list, e)
-                end
+            if e.Visible and expression.is_dynamic(e) then -- non-visible exps have incorrect metrics, so ignore them
+                table.insert(expression_list, e)
             end
         end
         if #expression_list > 0 then

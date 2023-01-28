@@ -9,7 +9,7 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.Notes = [[
         This script encodes the current document to a utf-8 text file. The primary purpose is to find changes
-        between one version of a document and another. One would then write each version out to a text file and then
+        between one version of a document and another. One could then write each version out to a text file and 
         use a comparison tool like kdiff3 to find differences. The text files could also be used to track changes with a tool like Git.
 
         The specifics of the shorthand for how the music is represented may not be that important.
@@ -124,7 +124,7 @@ local smart_shape_codes = {
 function get_smartshape_string(smart_shape, beg_mark, end_mark)
     local desc = smart_shape_codes[smart_shape.ShapeType]
     if not desc then
-        return "S"..tostring(smart_shape.ShapeType)
+        desc = "S"..tostring(smart_shape.ShapeType)
     end
     if smart_shape.ShapeType == finale.SMARTSHAPE_CUSTOM then
         desc = desc .. tostring(smart_shape.LineID)
