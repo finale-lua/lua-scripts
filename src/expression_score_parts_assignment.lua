@@ -8,6 +8,15 @@ function plugindef()
     finaleplugin.Date = "January 29, 2023"
     finaleplugin.CategoryTags = "Expression"
     finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.Notes = [[
+        This script implements three menu options to modify expressions.
+
+        - Expression Set To Score And Parts
+        - Expression Set To Score Only
+        - Expression Set To Parts Only
+
+        It changes any selected single-staff expressions that is visible in the current score or part view.
+    ]]
     finaleplugin.AdditionalMenuOptions = [[
         Expression Set To Score Only
         Expression Set To Parts Only
