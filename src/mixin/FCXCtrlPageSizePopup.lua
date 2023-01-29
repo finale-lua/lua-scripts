@@ -33,7 +33,7 @@ local measurement = require("library.measurement")
 local page_size = require("library.page_size")
 
 local private = setmetatable({}, {__mode = "k"})
-local props = {}
+local props = {MixinParent = "FCMCtrlPopup"}
 
 local trigger_page_size_change
 local each_last_page_size_change
@@ -41,24 +41,21 @@ local each_last_page_size_change
 local temp_str = finale.FCString()
 
 -- Disabled methods
-mixin_helper.disable_methods(
-    props, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
-    "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange",
-    "RemoveHandleSelectionChange")
+mixin_helper.disable_methods(props, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
+    "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange", "RemoveHandleSelectionChange")
 
 local function repopulate(control)
-    local unit = mixin.is_instance_of(control:GetParent(), "FCXCustomLuaWindow") and
-                     control:GetParent():GetMeasurementUnit() or measurement.get_real_default_unit()
+    local unit = mixin.is_instance_of(control:GetParent(), "FCXCustomLuaWindow") and control:GetParent():GetMeasurementUnit() or measurement.get_real_default_unit()
 
     if private[control].LastUnit == unit then
         return
     end
 
     local suffix = measurement.get_unit_abbreviation(unit)
-    local selection = control:GetSelectedItem_()
+    local selection = mixin.FCMCtrlPopup.GetSelectedItem(control)
 
     -- Use FCMCtrlPopup methods because `GetSelectedString` is needed in `GetSelectedPageSize`
-    mixin.FCMCtrlPopup.Clear()
+    mixin.FCMCtrlPopup.Clear(control)
 
     for size, dimensions in page_size.pairs() do
         local str = size .. " ("
@@ -67,10 +64,10 @@ local function repopulate(control)
         temp_str:SetMeasurement(dimensions.height, unit)
         str = str .. temp_str.LuaString .. suffix .. ")"
 
-        mixin.FCMCtrlPopup.AddString(str)
+        mixin.FCMCtrlPopup.AddString(control, str)
     end
 
-    control:SetSelectedItem_(selection)
+    mixin.FCMCtrlPopup.SetSelectedItem(control, selection)
     private[control].LastUnit = unit
 end
 
@@ -96,7 +93,7 @@ Returns the selected page size.
 : (string|nil) The page size or `nil` if nothing is selected.
 ]]
 function props:GetSelectedPageSize()
-    local str = mixin.FCMCtrlPopup.GetSelectedString()
+    local str = mixin.FCMCtrlPopup.GetSelectedString(self)
     if not str then
         return nil
     end
@@ -121,8 +118,8 @@ function props:SetSelectedPageSize(size)
     local index = 0
     for s in page_size.pairs() do
         if size == s then
-            if index ~= self:_GetSelectedItem() then
-                mixin.FCMCtrlPopup.SetSelectedItem(index)
+            if index ~= self:GetSelectedItem_() then
+                mixin.FCMCtrlPopup.SetSelectedItem(self, index)
                 trigger_page_size_change(self)
             end
 
@@ -178,14 +175,14 @@ Removes a handler added with `AddHandlePageSizeChange`.
 @ self (FCXCtrlPageSizePopup)
 @ callback (function) Handler to remove.
 ]]
-props.AddHandlePageSizeChange, props.RemoveHandlePageSizeChange, trigger_page_size_change, each_last_page_size_change =
-    mixin_helper.create_custom_control_change_event(
-        {
-            name = "last_page_size",
-            get = function(ctrl)
-                return mixin.FCXCtrlPageSizePopup.GetSelectedPageSize(ctrl)
-            end,
-            initial = false,
-        })
+props.AddHandlePageSizeChange, props.RemoveHandlePageSizeChange, trigger_page_size_change, each_last_page_size_change = mixin_helper.create_custom_control_change_event(
+    {
+        name = "last_page_size",
+        get = function(ctrl)
+            return mixin.FCXCtrlPageSizePopup.GetSelectedPageSize(ctrl)
+        end,
+        initial = false,
+    }
+)
 
 return props

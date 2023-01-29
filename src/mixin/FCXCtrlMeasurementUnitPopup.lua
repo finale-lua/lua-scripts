@@ -35,10 +35,10 @@ local unit_order = {
     finale.MEASUREMENTUNIT_EVPUS, finale.MEASUREMENTUNIT_INCHES, finale.MEASUREMENTUNIT_CENTIMETERS,
     finale.MEASUREMENTUNIT_POINTS, finale.MEASUREMENTUNIT_PICAS, finale.MEASUREMENTUNIT_SPACES,
 }
-local reverse_unit_order = {}
+local flipped_unit_order = {}
 
 for k, v in ipairs(unit_order) do
-    reverse_unit_order[v] = k
+    flipped_unit_order[v] = k
 end
 
 -- Disabled methods
@@ -55,9 +55,7 @@ mixin_helper.disable_methods(
 @ self (FCXCtrlMeasurementUnitPopup)
 ]]
 function props:Init()
-    mixin.assert(
-        mixin.is_instance_of(self:GetParent(), "FCXCustomLuaWindow"),
-        "FCXCtrlMeasurementUnitPopup must have a parent window that is an instance of FCXCustomLuaWindow")
+    mixin.assert(mixin.is_instance_of(self:GetParent(), "FCXCustomLuaWindow"), "FCXCtrlMeasurementUnitPopup must have a parent window that is an instance of FCXCustomLuaWindow")
 
     for _, v in ipairs(unit_order) do
         mixin.FCMCtrlPopup.AddString(self, measurement.get_unit_name(v))
@@ -65,10 +63,9 @@ function props:Init()
 
     self:UpdateMeasurementUnit()
 
-    mixin.FCMCtrlPopup.AddHandleSelectionChange(
-        self, function(control)
-            control:GetParent():SetMeasurementUnit(unit_order[control:GetSelectedItem_() + 1])
-        end)
+    mixin.FCMCtrlPopup.AddHandleSelectionChange(self, function(control)
+        control:GetParent():SetMeasurementUnit(unit_order[mixin.FCMCtrlPopup.GetSelectedItem(control) + 1])
+    end)
 end
 
 --[[
@@ -82,11 +79,11 @@ Checks the parent window's measurement unit and updates the selection if necessa
 function props:UpdateMeasurementUnit()
     local unit = self:GetParent():GetMeasurementUnit()
 
-    if unit == unit_order[self:GetSelectedItem_() + 1] then
+    if unit == unit_order[mixin.FCMCtrlPopup.GetSelectedItem(self) + 1] then
         return
     end
 
-    mixin.FCMCtrlPopup.SetSelectedItem(self, reverse_unit_order[unit] - 1)
+    mixin.FCMCtrlPopup.SetSelectedItem(self, flipped_unit_order[unit] - 1)
 end
 
 return props

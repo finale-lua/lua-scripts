@@ -126,6 +126,7 @@ Return an alphabetical order iterator that yields the following pairs:
 local sizes_index
 function page_size.pairs()
     if not sizes_index then
+        sizes_index = {}
         for size in pairs(sizes) do
             table.insert(sizes_index, size)
         end
