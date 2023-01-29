@@ -972,12 +972,31 @@ __imports["mixin.FCMCtrlListBox"] = __imports["mixin.FCMCtrlListBox"] or functio
     local temp_str = finale.FCString()
 
     function props:Init()
-        private[self] = private[self] or {}
+        private[self] = private[self] or {
+            Items = {},
+        }
+    end
+
+    function props:StoreState()
+        mixin.FCMControl.StoreState(self)
+        private[self].SelectedItem = self:GetSelectedItem_()
+    end
+
+    function props:RestoreState()
+        mixin.FCMControl.RestoreState(self)
+        self:Clear_()
+        for _, str in ipairs(private[self].Items) do
+            temp_str.LuaString = str
+            self:AddString_(temp_str)
+        end
+        self:SetSelectedItem_(private[self].SelectedItem)
     end
 
     function props:Clear()
-        self:Clear_()
-        private[self] = {}
+        if not mixin.FCMControl.UseStoredState(self) then
+            self:Clear_()
+        end
+        private[self].Items = {}
         for v in each_last_selection_change(self) do
             if v.last_item >= 0 then
                 v.is_deleted = true
@@ -986,15 +1005,50 @@ __imports["mixin.FCMCtrlListBox"] = __imports["mixin.FCMCtrlListBox"] or functio
         trigger_selection_change(self)
     end
 
+    function props:GetCount()
+        if mixin.FCMControl.UseStoredState(self) then
+            return #private[self].Items
+        end
+        return self:GetCount_()
+    end
+
+    function props:GetSelectedItem()
+        if mixin.FCMControl.UseStoredState(self) then
+            return private[self].SelectedItem
+        end
+        return self:GetSelectedItem_()
+    end
+
     function props:SetSelectedItem(index)
         mixin.assert_argument(index, "number", 2)
-        self:SetSelectedItem_(index)
+        if mixin.FCMControl.UseStoredState(self) then
+            private[self].SelectedItem = index
+        else
+            self:SetSelectedItem_(index)
+        end
         trigger_selection_change(self)
     end
 
     function props:SetSelectedLast()
+        local return_value
+        if mixin.FCMControl.UseStoredState(self) then
+            local count = mixin.FCMCtrlListBox.GetCount(self)
+            mixin.FCMCtrlListBox.SetSelectedItem(count - 1)
+            return_value = count > 0 and true or false
+        else
+            return_value = self:SetSelectedLast_()
+        end
         trigger_selection_change(self)
-        return self:SetSelectedLast_()
+        return return_value
+    end
+
+    function props:IsItemSelected()
+        return mixin.FCMCtrlListBox.GetSelectedItem(self) >= 0
+    end
+
+    function props:ItemExists(index)
+        mixin.assert_argument(index, "number", 2)
+        return private[self].Items[index + 1] and true or false
     end
 
     function props:AddString(str)
@@ -1003,9 +1057,11 @@ __imports["mixin.FCMCtrlListBox"] = __imports["mixin.FCMCtrlListBox"] or functio
             temp_str.LuaString = tostring(str)
             str = temp_str
         end
-        self:AddString_(str)
+        if not mixin.FCMControl.UseStoredState(self) then
+            self:AddString_(str)
+        end
 
-        table.insert(private[self], str.LuaString)
+        table.insert(private[self].Items, str.LuaString)
     end
 
     function props:AddStrings(...)
@@ -1026,12 +1082,12 @@ __imports["mixin.FCMCtrlListBox"] = __imports["mixin.FCMCtrlListBox"] or functio
         mixin.assert_argument(strs, {"nil", "FCStrings"}, 2)
         if strs then
             strs:ClearAll()
-            for _, v in ipairs(private[self]) do
+            for _, v in ipairs(private[self].Items) do
                 temp_str.LuaString = v
                 strs:AddCopy(temp_str)
             end
         end
-        return utils.copy_table(private[self])
+        return utils.copy_table(private[self].Items)
     end
 
     function props:SetStrings(...)
@@ -1041,10 +1097,12 @@ __imports["mixin.FCMCtrlListBox"] = __imports["mixin.FCMCtrlListBox"] or functio
             strs = mixin.FCMStrings()
             strs:CopyFrom(...)
         end
-        self:SetStrings_(strs)
-        private[self] = {}
+        if not mixin.FCMControl.UseStoredState(self) then
+            self:SetStrings_(strs)
+        end
+        private[self].Items = {}
         for str in each(strs) do
-            table.insert(private[self], str.LuaString)
+            table.insert(private[self].Items, str.LuaString)
         end
         for v in each_last_selection_change(self) do
             if v.last_item >= 0 then
@@ -1057,47 +1115,54 @@ __imports["mixin.FCMCtrlListBox"] = __imports["mixin.FCMCtrlListBox"] or functio
     function props:GetItemText(index, str)
         mixin.assert_argument(index, "number", 2)
         mixin.assert_argument(str, {"nil", "FCString"}, 3)
-        if not private[self][index + 1] then
+        if not mixin.FCMCtrlListBox.ItemExists(self, index) then
             error("No item at index " .. tostring(index), 2)
         end
         if str then
-            str.LuaString = private[self][index + 1]
+            str.LuaString = private[self].Items[index + 1]
         end
-        return private[self][index + 1]
+        return private[self].Items[index + 1]
     end
 
     function props:SetItemText(index, str)
         mixin.assert_argument(index, "number", 2)
         mixin.assert_argument(str, {"string", "number", "FCString"}, 3)
-        if not private[self][index + 1] then
+        if not private[self].Items[index + 1] then
             error("No item at index " .. tostring(index), 2)
         end
-        private[self][index + 1] = type(str) == "userdata" and str.LuaString or tostring(str)
+        str = type(str) == "userdata" and str.LuaString or tostring(str)
 
-        if self:GetParent():WindowExists_() and self.SetItemText_ then
-            temp_str.LuaString = private[self][index + 1]
-            self:SetItemText_(index, temp_str)
+        if private[self].Items[index + 1] == str then
+            return
+        end
+        private[self].Items[index + 1] = str
+        if not mixin.FCMControl.UseStoredState(self) then
 
-        else
-            local strs = finale.FCStrings()
-            for _, v in ipairs(private[self]) do
-                temp_str.LuaString = v
-                strs:AddCopy(temp_str)
+            if self.SetItemText_ and self:GetParent():WindowExists_() then
+                temp_str.LuaString = private[self].Items[index + 1]
+                self:SetItemText_(index, temp_str)
+
+            else
+                local strs = finale.FCStrings()
+                for _, v in ipairs(private[self].Items) do
+                    temp_str.LuaString = v
+                    strs:AddCopy(temp_str)
+                end
+                local curr_item = mixin.FCMCtrlListBox.GetSelectedItem(self)
+                self:SetStrings_(strs)
+                self:SetSelectedItem_(curr_item)
             end
-            local curr_item = self:GetSelectedItem_()
-            self:SetStrings_(strs)
-            self:SetSelectedItem_(curr_item)
         end
     end
 
     function props:GetSelectedString(str)
         mixin.assert_argument(str, {"nil", "FCString"}, 2)
-        local index = self:GetSelectedItem_()
+        local index = mixin.FCMCtrlListBox.GetSelectedItem(self)
         if index ~= -1 then
             if str then
-                str.LuaString = private[self][index + 1]
+                str.LuaString = private[self].Items[index + 1]
             end
-            return private[self][index + 1]
+            return private[self].Items[index + 1]
         else
             if str then
                 str.LuaString = ""
@@ -1109,10 +1174,9 @@ __imports["mixin.FCMCtrlListBox"] = __imports["mixin.FCMCtrlListBox"] or functio
     function props:SetSelectedString(str)
         mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
         str = type(str) == "userdata" and str.LuaString or tostring(str)
-        for k, v in ipairs(private[self]) do
+        for k, v in ipairs(private[self].Items) do
             if str == v then
-                self:SetSelectedItem_(k - 1)
-                trigger_selection_change(self)
+                mixin.FCMCtrlListBox.SetSelectedItem(self, k - 1)
                 return
             end
         end
@@ -1123,23 +1187,22 @@ __imports["mixin.FCMCtrlListBox"] = __imports["mixin.FCMCtrlListBox"] or functio
         mixin.assert_argument(str, {"string", "number", "FCString"}, 3)
         if index < 0 then
             index = 0
-        elseif index >= #private[self] then
-            self:AddString(str)
+        elseif index >= mixin.FCMCtrlListBox.GetCount(self) then
+            mixin.FCMCtrlListBox.AddString(self, str)
             return
         end
-        table.insert(private[self], index + 1, type(str) == "userdata" and str.LuaString or tostring(str))
-        local strs = finale.FCStrings()
-        for _, v in ipairs(private[self]) do
-            temp_str.LuaString = v
-            strs:AddCopy(temp_str)
+        table.insert(private[self].Items, index + 1, type(str) == "userdata" and str.LuaString or tostring(str))
+        local current_selection = mixin.FCMCtrlListBox.GetSelectedItem(self)
+        if not mixin.FCMControl.UseStoredState(self) then
+            local strs = finale.FCStrings()
+            for _, v in ipairs(private[self].Items) do
+                temp_str.LuaString = v
+                strs:AddCopy(temp_str)
+            end
+            self:SetStrings_(strs)
         end
-        local curr_item = self:GetSelectedItem()
-        self:SetStrings_(strs)
-        if curr_item >= index then
-            self:SetSelectedItem_(curr_item + 1)
-        else
-            self:SetSelectedItem_(curr_item)
-        end
+        local new_selection = current_selection >= index and current_selection + 1 or current_selection
+        mixin.FCMCtrlListBox.SetSelectedItem(self, new_selection)
         for v in each_last_selection_change(self) do
             if v.last_item >= index then
                 v.last_item = v.last_item + 1
@@ -1149,24 +1212,29 @@ __imports["mixin.FCMCtrlListBox"] = __imports["mixin.FCMCtrlListBox"] or functio
 
     function props:DeleteItem(index)
         mixin.assert_argument(index, "number", 2)
-        if index < 0 or index >= #private[self] then
+        if index < 0 or index >= mixin.FCMCtrlListBox.GetCount(self) then
             return
         end
-        table.remove(private[self], index + 1)
-        local strs = finale.FCStrings()
-        for _, v in ipairs(private[self]) do
-            temp_str.LuaString = v
-            strs:AddCopy(temp_str)
+        table.remove(private[self].Items, index + 1)
+
+        local current_selection = mixin.FCMCtrlListBox.GetSelectedItem(self)
+        if not mixin.FCMControl.UseStoredState(self) then
+            local strs = finale.FCStrings()
+            for _, v in ipairs(private[self].Items) do
+                temp_str.LuaString = v
+                strs:AddCopy(temp_str)
+            end
+            self:SetStrings_(strs)
         end
-        local curr_item = self:GetSelectedItem()
-        self:SetStrings_(strs)
-        if curr_item > index then
-            self:SetSelectedItem_(curr_item - 1)
-        elseif curr_item == index then
-            self:SetSelectedItem_(-1)
+        local new_selection
+        if current_selection > index then
+            new_selection = current_selection - 1
+        elseif current_selection == index then
+            new_selection = -1
         else
-            self:SetSelectedItem_(curr_item)
+            new_selection = current_selection
         end
+        mixin.FCMCtrlListBox.SetSelectedItem(self, new_selection)
         for v in each_last_selection_change(self) do
             if v.last_item == index then
                 v.is_deleted = true
@@ -1175,28 +1243,34 @@ __imports["mixin.FCMCtrlListBox"] = __imports["mixin.FCMCtrlListBox"] or functio
             end
         end
 
-        if curr_item == index then
+        if current_selection == index then
             trigger_selection_change(self)
         end
     end
 
 
 
-    props.AddHandleSelectionChange, props.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change =
-        mixin_helper.create_custom_control_change_event(
-            {name = "last_item", get = "GetSelectedItem_", initial = -1}, {
-                name = "last_item_text",
-                get = function(ctrl)
-                    return mixin.FCMCtrlListBox.GetSelectedString(ctrl) or ""
-                end,
-                initial = "",
-            }, {
-                name = "is_deleted",
-                get = function()
-                    return false
-                end,
-                initial = false,
-            })
+    props.AddHandleSelectionChange, props.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change = mixin_helper.create_custom_control_change_event(
+        {
+            name = "last_item",
+            get = function(ctrl)
+                return mixin.FCMCtrlListBox.GetSelectedItem(ctrl)
+            end,
+            initial = -1,
+        }, {
+            name = "last_item_text",
+            get = function(ctrl)
+                return mixin.FCMCtrlListBox.GetSelectedString(ctrl) or ""
+            end,
+            initial = "",
+        }, {
+            name = "is_deleted",
+            get = function()
+                return false
+            end,
+            initial = false,
+        }
+    )
     return props
 end
 __imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
@@ -1214,12 +1288,31 @@ __imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
     local temp_str = finale.FCString()
 
     function props:Init()
-        private[self] = private[self] or {}
+        private[self] = private[self] or {
+            Items = {},
+        }
+    end
+
+    function props:StoreState()
+        mixin.FCMControl.StoreState(self)
+        private[self].SelectedItem = self:GetSelectedItem_()
+    end
+
+    function props:RestoreState()
+        mixin.FCMControl.RestoreState(self)
+        self:Clear_()
+        for _, str in ipairs(private[self].Items) do
+            temp_str.LuaString = str
+            self:AddString_(temp_str)
+        end
+        self:SetSelectedItem_(private[self].SelectedItem)
     end
 
     function props:Clear()
-        self:Clear_()
-        private[self] = {}
+        if not mixin.FCMControl.UseStoredState(self) then
+            self:Clear_()
+        end
+        private[self].Items = {}
         for v in each_last_selection_change(self) do
             if v.last_item >= 0 then
                 v.is_deleted = true
@@ -1229,25 +1322,41 @@ __imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
         trigger_selection_change(self)
     end
 
+    function props:GetCount()
+        if mixin.FCMControl.UseStoredState(self) then
+            return #private[self].Items
+        end
+        return self:GetCount_()
+    end
+
+    function props:GetSelectedItem()
+        if mixin.FCMControl.UseStoredState(self) then
+            return private[self].SelectedItem
+        end
+        return self:GetSelectedItem_()
+    end
+
     function props:SetSelectedItem(index)
         mixin.assert_argument(index, "number", 2)
-        self:SetSelectedItem_(index)
+        if mixin.FCMControl.UseStoredState(self) then
+            private[self].SelectedItem = index
+        else
+            self:SetSelectedItem_(index)
+        end
         trigger_selection_change(self)
     end
 
     function props:SetSelectedLast()
-        if self:GetCount() ~= 0 then
-            self:SetSelectedItem(self:GetCount() - 1)
-        end
+        mixin.FCMCtrlPopup.SetSelectedItem(self, mixin.FCMCtrlPopup.GetCount(self) - 1)
     end
 
     function props:IsItemSelected()
-        return self:GetSelectedItem_() >= 0
+        return mixin.FCMCtrlPopup.GetSelectedItem(self) >= 0
     end
 
     function props:ItemExists(index)
         mixin.assert_argument(index, "number", 2)
-        return index <= self:GetCount_() - 1
+        return private[self].Items[index + 1] and true or false
     end
 
     function props:AddString(str)
@@ -1256,9 +1365,11 @@ __imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
             temp_str.LuaString = tostring(str)
             str = temp_str
         end
-        self:AddString_(str)
+        if not mixin.FCMControl.UseStoredState(self) then
+            self:AddString_(str)
+        end
 
-        table.insert(private[self], str.LuaString)
+        table.insert(private[self].Items, str.LuaString)
     end
 
     function props:AddStrings(...)
@@ -1279,12 +1390,12 @@ __imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
         mixin.assert_argument(strs, {"nil", "FCStrings"}, 2)
         if strs then
             strs:ClearAll()
-            for _, v in ipairs(private[self]) do
+            for _, v in ipairs(private[self].Items) do
                 temp_str.LuaString = v
                 strs:AddCopy(temp_str)
             end
         end
-        return utils.copy_table(private[self])
+        return utils.copy_table(private[self].Items)
     end
 
     function props:SetStrings(...)
@@ -1294,10 +1405,12 @@ __imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
             strs = mixin.FCMStrings()
             strs:CopyFrom(...)
         end
-        self:SetStrings_(strs)
-        private[self] = {}
+        if not mixin.FCMControl.UseStoredState(self) then
+            self:SetStrings_(strs)
+        end
+        private[self].Items = {}
         for str in each(strs) do
-            table.insert(private[self], str.LuaString)
+            table.insert(private[self].Items, str.LuaString)
         end
         for v in each_last_selection_change(self) do
             if v.last_item >= 0 then
@@ -1310,45 +1423,47 @@ __imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
     function props:GetItemText(index, str)
         mixin.assert_argument(index, "number", 2)
         mixin.assert_argument(str, {"nil", "FCString"}, 3)
-        if not private[self][index + 1] then
+        if not mixin.FCMCtrlPopup.ItemExists(self, index) then
             error("No item at index " .. tostring(index), 2)
         end
         if str then
-            str.LuaString = private[self][index + 1]
+            str.LuaString = private[self].Items[index + 1]
         end
-        return private[self][index + 1]
+        return private[self].Items[index + 1]
     end
 
     function props:SetItemText(index, str)
         mixin.assert_argument(index, "number", 2)
         mixin.assert_argument(str, {"string", "number", "FCString"}, 3)
-        if not private[self][index + 1] then
+        if not mixin.FCMCtrlPopup.ItemExists(self, index) then
             error("No item at index " .. tostring(index), 2)
         end
         str = type(str) == "userdata" and str.LuaString or tostring(str)
 
-        if private[self][index + 1] == str then
+        if private[self].Items[index + 1] == str then
             return
         end
-        private[self][index + 1] = type(str) == "userdata" and str.LuaString or tostring(str)
-        local strs = finale.FCStrings()
-        for _, v in ipairs(private[self]) do
-            temp_str.LuaString = v
-            strs:AddCopy(temp_str)
+        private[self].Items[index + 1] = str
+        if not mixin.FCMControl.UseStoredState(self) then
+            local strs = finale.FCStrings()
+            for _, v in ipairs(private[self].Items) do
+                temp_str.LuaString = v
+                strs:AddCopy(temp_str)
+            end
+            local curr_item = self:GetSelectedItem_()
+            self:SetStrings_(strs)
+            self:SetSelectedItem_(curr_item)
         end
-        local curr_item = self:GetSelectedItem_()
-        self:SetStrings_(strs)
-        self:SetSelectedItem_(curr_item)
     end
 
     function props:GetSelectedString(str)
         mixin.assert_argument(str, {"nil", "FCString"}, 2)
-        local index = self:GetSelectedItem_()
-        if index ~= -1 then
+        local index = mixin.FCMCtrlPopup.GetSelectedItem(self)
+        if mixin.FCMCtrlPopup.ItemExists(self, index) then
             if str then
-                str.LuaString = private[self][index + 1]
+                str.LuaString = private[self].Items[index + 1]
             end
-            return private[self][index + 1]
+            return private[self].Items[index + 1]
         else
             if str then
                 str.LuaString = ""
@@ -1360,10 +1475,9 @@ __imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
     function props:SetSelectedString(str)
         mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
         str = type(str) == "userdata" and str.LuaString or tostring(str)
-        for k, v in ipairs(private[self]) do
+        for k, v in ipairs(private[self].Items) do
             if str == v then
-                self:SetSelectedItem_(k - 1)
-                trigger_selection_change(self)
+                mixin.FCMCtrlPopup.SetSelectedItem(self, k - 1)
                 return
             end
         end
@@ -1374,23 +1488,22 @@ __imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
         mixin.assert_argument(str, {"string", "number", "FCString"}, 3)
         if index < 0 then
             index = 0
-        elseif index >= #private[self] then
-            self:AddString(str)
+        elseif index >= mixin.FCMCtrlPopup.GetCount(self) then
+            mixin.FCMCtrlPopup.AddString(self, str)
             return
         end
-        table.insert(private[self], index + 1, type(str) == "userdata" and str.LuaString or tostring(str))
-        local strs = finale.FCStrings()
-        for _, v in ipairs(private[self]) do
-            temp_str.LuaString = v
-            strs:AddCopy(temp_str)
+        table.insert(private[self].Items, index + 1, type(str) == "userdata" and str.LuaString or tostring(str))
+        local current_selection = mixin.FCMCtrlPopup.GetSelectedItem(self)
+        if not mixin.FCMControl.UseStoredState(self) then
+            local strs = finale.FCStrings()
+            for _, v in ipairs(private[self].Items) do
+                temp_str.LuaString = v
+                strs:AddCopy(temp_str)
+            end
+            self:SetStrings_(strs)
         end
-        local curr_item = self:GetSelectedItem()
-        self:SetStrings_(strs)
-        if curr_item >= index then
-            self:SetSelectedItem_(curr_item + 1)
-        else
-            self:SetSelectedItem_(curr_item)
-        end
+        local new_selection = current_selection >= index and current_selection + 1 or current_selection
+        mixin.FCMCtrlPopup.SetSelectedItem(self, new_selection)
         for v in each_last_selection_change(self) do
             if v.last_item >= index then
                 v.last_item = v.last_item + 1
@@ -1400,24 +1513,28 @@ __imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
 
     function props:DeleteItem(index)
         mixin.assert_argument(index, "number", 2)
-        if index < 0 or index >= #private[self] then
+        if index < 0 or index >= mixin.FCMCtrlPopup.GetCount(self) then
             return
         end
-        table.remove(private[self], index + 1)
-        local strs = finale.FCStrings()
-        for _, v in ipairs(private[self]) do
-            temp_str.LuaString = v
-            strs:AddCopy(temp_str)
+        table.remove(private[self].Items, index + 1)
+        local current_selection = mixin.FCMCtrlPopup.GetSelectedItem(self)
+        if not mixin.FCMControl.UseStoredState(self) then
+            local strs = finale.FCStrings()
+            for _, v in ipairs(private[self].Items) do
+                temp_str.LuaString = v
+                strs:AddCopy(temp_str)
+            end
+            self:SetStrings_(strs)
         end
-        local curr_item = self:GetSelectedItem()
-        self:SetStrings_(strs)
-        if curr_item > index then
-            self:SetSelectedItem_(curr_item - 1)
-        elseif curr_item == index then
-            self:SetSelectedItem_(-1)
+        local new_selection
+        if current_selection > index then
+            new_selection = current_selection - 1
+        elseif current_selection == index then
+            new_selection = -1
         else
-            self:SetSelectedItem_(curr_item)
+            new_selection = current_selection
         end
+        mixin.FCMCtrlPopup.SetSelectedItem(self, new_selection)
         for v in each_last_selection_change(self) do
             if v.last_item == index then
                 v.is_deleted = true
@@ -1426,28 +1543,34 @@ __imports["mixin.FCMCtrlPopup"] = __imports["mixin.FCMCtrlPopup"] or function()
             end
         end
 
-        if curr_item == index then
+        if current_selection == index then
             trigger_selection_change(self)
         end
     end
 
 
 
-    props.AddHandleSelectionChange, props.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change =
-        mixin_helper.create_custom_control_change_event(
-            {name = "last_item", get = "GetSelectedItem_", initial = -1}, {
-                name = "last_item_text",
-                get = function(ctrl)
-                    return mixin.FCMCtrlPopup.GetSelectedString(ctrl) or ""
-                end,
-                initial = "",
-            }, {
-                name = "is_deleted",
-                get = function()
-                    return false
-                end,
-                initial = false,
-            })
+    props.AddHandleSelectionChange, props.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change = mixin_helper.create_custom_control_change_event(
+        {
+            name = "last_item",
+            get = function(ctrl)
+                return mixin.FCMCtrlPopup.GetSelectedItem(ctrl)
+            end,
+            initial = -1,
+        }, {
+            name = "last_item_text",
+            get = function(ctrl)
+                return mixin.FCMCtrlPopup.GetSelectedString(ctrl) or ""
+            end,
+            initial = "",
+        }, {
+            name = "is_deleted",
+            get = function()
+                return false
+            end,
+            initial = false,
+        }
+    )
     return props
 end
 __imports["mixin.FCMCtrlSlider"] = __imports["mixin.FCMCtrlSlider"] or function()
@@ -3148,9 +3271,9 @@ __imports["mixin.FCXCtrlMeasurementUnitPopup"] = __imports["mixin.FCXCtrlMeasure
         finale.MEASUREMENTUNIT_EVPUS, finale.MEASUREMENTUNIT_INCHES, finale.MEASUREMENTUNIT_CENTIMETERS,
         finale.MEASUREMENTUNIT_POINTS, finale.MEASUREMENTUNIT_PICAS, finale.MEASUREMENTUNIT_SPACES,
     }
-    local reverse_unit_order = {}
+    local flipped_unit_order = {}
     for k, v in ipairs(unit_order) do
-        reverse_unit_order[v] = k
+        flipped_unit_order[v] = k
     end
 
     mixin_helper.disable_methods(
@@ -3159,25 +3282,22 @@ __imports["mixin.FCXCtrlMeasurementUnitPopup"] = __imports["mixin.FCXCtrlMeasure
         "RemoveHandleSelectionChange")
 
     function props:Init()
-        mixin.assert(
-            mixin.is_instance_of(self:GetParent(), "FCXCustomLuaWindow"),
-            "FCXCtrlMeasurementUnitPopup must have a parent window that is an instance of FCXCustomLuaWindow")
+        mixin.assert(mixin.is_instance_of(self:GetParent(), "FCXCustomLuaWindow"), "FCXCtrlMeasurementUnitPopup must have a parent window that is an instance of FCXCustomLuaWindow")
         for _, v in ipairs(unit_order) do
             mixin.FCMCtrlPopup.AddString(self, measurement.get_unit_name(v))
         end
         self:UpdateMeasurementUnit()
-        mixin.FCMCtrlPopup.AddHandleSelectionChange(
-            self, function(control)
-                control:GetParent():SetMeasurementUnit(unit_order[control:GetSelectedItem_() + 1])
-            end)
+        mixin.FCMCtrlPopup.AddHandleSelectionChange(self, function(control)
+            control:GetParent():SetMeasurementUnit(unit_order[mixin.FCMCtrlPopup.GetSelectedItem(control) + 1])
+        end)
     end
 
     function props:UpdateMeasurementUnit()
         local unit = self:GetParent():GetMeasurementUnit()
-        if unit == unit_order[self:GetSelectedItem_() + 1] then
+        if unit == unit_order[mixin.FCMCtrlPopup.GetSelectedItem(self) + 1] then
             return
         end
-        mixin.FCMCtrlPopup.SetSelectedItem(self, reverse_unit_order[unit] - 1)
+        mixin.FCMCtrlPopup.SetSelectedItem(self, flipped_unit_order[unit] - 1)
     end
     return props
 end
@@ -3250,6 +3370,7 @@ __imports["library.page_size"] = __imports["library.page_size"] or function()
     local sizes_index
     function page_size.pairs()
         if not sizes_index then
+            sizes_index = {}
             for size in pairs(sizes) do
                 table.insert(sizes_index, size)
             end
@@ -3277,34 +3398,31 @@ __imports["mixin.FCXCtrlPageSizePopup"] = __imports["mixin.FCXCtrlPageSizePopup"
     local measurement = require("library.measurement")
     local page_size = require("library.page_size")
     local private = setmetatable({}, {__mode = "k"})
-    local props = {}
+    local props = {MixinParent = "FCMCtrlPopup"}
     local trigger_page_size_change
     local each_last_page_size_change
     local temp_str = finale.FCString()
 
-    mixin_helper.disable_methods(
-        props, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
-        "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange",
-        "RemoveHandleSelectionChange")
+    mixin_helper.disable_methods(props, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
+        "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange", "RemoveHandleSelectionChange")
     local function repopulate(control)
-        local unit = mixin.is_instance_of(control:GetParent(), "FCXCustomLuaWindow") and
-                         control:GetParent():GetMeasurementUnit() or measurement.get_real_default_unit()
+        local unit = mixin.is_instance_of(control:GetParent(), "FCXCustomLuaWindow") and control:GetParent():GetMeasurementUnit() or measurement.get_real_default_unit()
         if private[control].LastUnit == unit then
             return
         end
         local suffix = measurement.get_unit_abbreviation(unit)
-        local selection = control:GetSelectedItem_()
+        local selection = mixin.FCMCtrlPopup.GetSelectedItem(control)
 
-        mixin.FCMCtrlPopup.Clear()
+        mixin.FCMCtrlPopup.Clear(control)
         for size, dimensions in page_size.pairs() do
             local str = size .. " ("
             temp_str:SetMeasurement(dimensions.width, unit)
             str = str .. temp_str.LuaString .. suffix .. " x "
             temp_str:SetMeasurement(dimensions.height, unit)
             str = str .. temp_str.LuaString .. suffix .. ")"
-            mixin.FCMCtrlPopup.AddString(str)
+            mixin.FCMCtrlPopup.AddString(control, str)
         end
-        control:SetSelectedItem_(selection)
+        mixin.FCMCtrlPopup.SetSelectedItem(control, selection)
         private[control].LastUnit = unit
     end
 
@@ -3314,7 +3432,7 @@ __imports["mixin.FCXCtrlPageSizePopup"] = __imports["mixin.FCXCtrlPageSizePopup"
     end
 
     function props:GetSelectedPageSize()
-        local str = mixin.FCMCtrlPopup.GetSelectedString()
+        local str = mixin.FCMCtrlPopup.GetSelectedString(self)
         if not str then
             return nil
         end
@@ -3328,8 +3446,8 @@ __imports["mixin.FCXCtrlPageSizePopup"] = __imports["mixin.FCXCtrlPageSizePopup"
         local index = 0
         for s in page_size.pairs() do
             if size == s then
-                if index ~= self:_GetSelectedItem() then
-                    mixin.FCMCtrlPopup.SetSelectedItem(index)
+                if index ~= self:GetSelectedItem_() then
+                    mixin.FCMCtrlPopup.SetSelectedItem(self, index)
                     trigger_page_size_change(self)
                 end
                 return
@@ -3344,15 +3462,15 @@ __imports["mixin.FCXCtrlPageSizePopup"] = __imports["mixin.FCXCtrlPageSizePopup"
 
 
 
-    props.AddHandlePageSizeChange, props.RemoveHandlePageSizeChange, trigger_page_size_change, each_last_page_size_change =
-        mixin_helper.create_custom_control_change_event(
-            {
-                name = "last_page_size",
-                get = function(ctrl)
-                    return mixin.FCXCtrlPageSizePopup.GetSelectedPageSize(ctrl)
-                end,
-                initial = false,
-            })
+    props.AddHandlePageSizeChange, props.RemoveHandlePageSizeChange, trigger_page_size_change, each_last_page_size_change = mixin_helper.create_custom_control_change_event(
+        {
+            name = "last_page_size",
+            get = function(ctrl)
+                return mixin.FCXCtrlPageSizePopup.GetSelectedPageSize(ctrl)
+            end,
+            initial = false,
+        }
+    )
     return props
 end
 __imports["mixin.FCXCtrlStatic"] = __imports["mixin.FCXCtrlStatic"] or function()

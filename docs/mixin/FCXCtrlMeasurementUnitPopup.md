@@ -48,7 +48,7 @@ fcxctrlmeasurementunitpopup.Init(self)
 fcxctrlmeasurementunitpopup.UpdateMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementUnitPopup.lua#L82)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementUnitPopup.lua#L79)
 
 **[Fluid] [Internal]**
 Checks the parent window's measurement unit and updates the selection if necessary.
