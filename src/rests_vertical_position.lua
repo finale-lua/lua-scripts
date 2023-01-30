@@ -2,34 +2,36 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Version = "v1.40"
-    finaleplugin.Date = "2022/09/05"
+    finaleplugin.Version = "v1.41"
+    finaleplugin.Date = "2023/01/31"
     finaleplugin.Notes = [[
         Several situations including cross-staff notation (rests should be centred between the staves) 
-        require adjusting the vertical position (offset) of rests. 
+        require adjusting the vertical position of rests. 
         This script duplicates the action of Finale's inbuilt "Move rests..." plug-in but needs no mouse activity. 
-        It is also an easy way to reset rest offsets to zero in every layer, the default setting. 
+        It is also an easy way to reset rest positions in every layer, the default setting. 
 
         Newly created rests are "floating" and will avoid entries in other layers (if present) 
         using the setting for "Adjust Floating Rests by..." in `Document Options...` -> `Layers`.  
-        This script stops them "floating", instead "fixing" them to a specific offset from the middle staff line. 
+        This script stops them "floating", instead "fixing" them to a specific distance from the middle staff line. 
         To return them to "floating", select the "Zero = Floating Rest" checkbox and set the offset to zero.
     ]]
-   return "Rest Offsets", "Rest Offsets", "Rest vertical offsets"
+   return "Rests Vertical Position...", "Rests Vertical Position", "Reposition the vertical position of rests"
 end
 
 local mixin = require("library.mixin")
+local layer = require("library.layer")
 
 -- ================= SCRIPT BEGINS =================================
 -- RetainLuaState retains one global:
 config = config or {}
 
 function is_error()
+    local max = layer.max_layers()
     local msg = ""
     if math.abs(config.offset) > 20 then
         msg = "Offset level must be reasonable,\nsay -20 to 20\n(not " .. config.offset .. ")"
-    elseif config.layer < 0 or config.layer > 4 then
-        msg = "Layer number must be an\ninteger between zero and 4\n(not " .. config.layer .. ")"
+    elseif config.layer < 0 or config.layer > max then
+        msg = "Layer number must be an\ninteger between zero and " .. max .. "\n(not " .. config.layer .. ")"
     end
     if msg ~= "" then
         finenv.UI():AlertNeutral("script: " .. plugindef(), msg)
@@ -39,7 +41,7 @@ function is_error()
 end
 
 function make_dialog()
-    local horizontal = 110
+    local horiz = 110
     local y_level = {15, 45, 75}
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac Edit box
     local answer = {}
@@ -47,24 +49,24 @@ function make_dialog()
 
     local texts = { -- text, default value, vertical_position
         { "Vertical offset:", config.offset or 0, y_level[1] },
-        { "Layer# 1-4 (0 = all):", config.layer or 0, y_level[2]  },
+        { "Layer# 1-" .. layer.max_layers() .. " (0 = all):", config.layer or 0, y_level[2]  },
     }
     for i, v in ipairs(texts) do -- create labels and edit boxes
-        dialog:CreateStatic(0, v[3]):SetText(v[1]):SetWidth(horizontal)
-        answer[i] = dialog:CreateEdit(horizontal, v[3] - mac_offset):SetInteger(v[2]):SetWidth(50)
+        dialog:CreateStatic(0, v[3]):SetText(v[1]):SetWidth(horiz)
+        answer[i] = dialog:CreateEdit(horiz, v[3] - mac_offset):SetInteger(v[2]):SetWidth(50)
     end
     local checked = config.zero_floating and 1 or 0
-    answer[3] = dialog:CreateCheckbox(0, texts[2][3] + 30):SetText("Zero = Floating Rest"):SetWidth(horizontal * 2):SetCheck(checked)
+    answer[3] = dialog:CreateCheckbox(0, texts[2][3] + 30):SetText("Zero = Floating Rest"):SetWidth(horiz * 2):SetCheck(checked)
 
-    texts = { -- offset number / horizontal offset / description /  vertical position
+    texts = { -- offset number / horiz offset / description /  vertical position
         {  "4", 5, "= top staff line", 0 },
         {  "0", 5, "= middle staff line", 15 },
         { "-4", 0, "= bottom staff line", 30 },
         { "", 0, "(for 5-line staff)", 45 },
     }
     for _, v in ipairs(texts) do -- static text information lines
-        dialog:CreateStatic(horizontal + 60 + v[2], v[4]):SetText(v[1])
-        dialog:CreateStatic(horizontal + 75, v[4]):SetText(v[3]):SetWidth(horizontal)
+        dialog:CreateStatic(horiz + 60 + v[2], v[4]):SetText(v[1])
+        dialog:CreateStatic(horiz + 75, v[4]):SetText(v[3]):SetWidth(horiz)
     end
 
     dialog:CreateButton(128, y_level[3]):SetText("?"):SetWidth(20):AddHandleCommand(function(self)
@@ -127,7 +129,7 @@ function change_rest_offset()
         dialog:RestorePosition()
     end
     if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK or is_error() then
-        return -- user cancelled OR data error
+        return -- user cancelled or data error
     end
     make_the_change()
 end
