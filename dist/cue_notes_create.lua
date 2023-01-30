@@ -610,16 +610,16 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.69"
-    finaleplugin.Date = "2023/01/25"
+    finaleplugin.Version = "v0.70"
+    finaleplugin.Date = "2023/01/30"
     finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action.
-        It takes music from a nominated layer in the chosen staff and creates a "Cue" version on another staff.
+        It takes music from a nominated layer in the selected staff and creates a "Cue" version on another staff.
         The cue copy is reduced in size and muted, and can duplicate nominated markings from the original.
         It is shifted to the chosen layer with a whole-note rest placed in the original layer.
-        Your choices are saved in your preferences folder after each script execution.
+        Your choices are saved in the User preferences folder after each script execution.
         This script requires an expression category called "Cue Names".
-        Under RGPLua (v0.58+) the category is created automatically if necessary.
+        Under RGPLua (v0.58+) the category is created automatically if needed.
         Under JWLua, before running the script you must create an Expression Category called
         "Cue Names" containing at least one text expression.
         ]]
@@ -745,7 +745,7 @@ function choose_destination_staff(source_staff)
     rgn.EndSlot = original_slot
 
     local x_grid = { 210, 310, 360 }
-    local y_step = 20
+    local y_step = 19
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0
     local user_checks = {
         "copy_articulations",  "copy_expressions",  "copy_smartshapes",
@@ -768,7 +768,6 @@ function choose_destination_staff(source_staff)
     static:SetText(str)
     static:SetWidth(200)
     local list_box = dialog:CreateListBox(0, y_step)
-    list_box.UseCheckboxes = true
     list_box:SetWidth(200)
     for _, v in ipairs(staff_list) do
         str.LuaString = v[2]
@@ -841,11 +840,12 @@ function choose_destination_staff(source_staff)
     local selected_item = list_box:GetSelectedItem()
     local chosen_staff_number = staff_list[selected_item + 1][1]
     if ok then
+        local max = layer.max_layers()
         for i, v in ipairs(user_checks) do
             if integer_options[v] then
                 config[v] = user_selections[v]:GetInteger()
-                if string.find(v, "layer") and (config[v] < 1 or config[v] > layer.max_layers()) then
-                    config[v] = (v == "source_layer") and 1 or layer.max_layers()
+                if string.find(v, "layer") and (config[v] < 1 or config[v] > max) then
+                    config[v] = (v == "source_layer") and 1 or max
                 end
             else
                 config[v] = (user_selections[v]:GetCheck() == 1)
@@ -854,7 +854,7 @@ function choose_destination_staff(source_staff)
         if config.source_layer ~= config.cuenote_layer then
             config.rest_layer = config.source_layer
         else
-            config.rest_layer = (config.source_layer % layer.max_layers()) + 1
+            config.rest_layer = (config.source_layer % max) + 1
         end
         config.freeze_up_down = stem_direction_popup:GetSelectedItem()
     end
@@ -884,8 +884,7 @@ function copy_to_destination(source_region, destination_staff)
     if region_contains_notes(destination_region, 0) and dont_overwrite_existing_music() then
         destination_region:ReleaseMusic()
         return false
-    end
-    if not region_contains_notes(source_region, config.source_layer) then
+    elseif not region_contains_notes(source_region, config.source_layer) then
         destination_region:ReleaseMusic()
         show_error("no_notes_in_source_layer")
         return false
@@ -893,7 +892,7 @@ function copy_to_destination(source_region, destination_staff)
 
     destination_region:PasteMusic()
     destination_region:ReleaseMusic()
-    for layer_number = 1, 4 do
+    for layer_number = 1, layer.max_layers() do
         if layer_number ~= config.source_layer then
             layer.clear(destination_region, layer_number)
         end
@@ -1020,7 +1019,7 @@ function create_cue_notes()
             local str = text_def:CreateTextString()
             str:TrimEnigmaTags()
 
-            table.insert(cue_names, {str.LuaString, text_def.ItemNo} )
+            table.insert(cue_names, { str.LuaString, text_def.ItemNo } )
         end
     end
 
