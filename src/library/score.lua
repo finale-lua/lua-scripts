@@ -11,7 +11,7 @@ configuration.get_parameters("score.config.txt", config)
 
 local score = {}
 
-local CLEF_MAP = {treble = 0, alto = 1, tenor = 2, bass = 3, treble_8ba = 5, tenor_vocal = 5, percussion = 12}
+local CLEF_MAP = {treble = 0, alto = 1, tenor = 2, bass = 3, percussion = 12, grand_staff = {0, 3}, organ = {0, 3, 3}, treble_8ba = 5, tenor_voice = 5}
 local BRACE_MAP = {
     none = finale.GRBRAC_NONE,
     plain = finale.GRBRAC_PLAIN,
@@ -46,6 +46,26 @@ KEY_MAP.db = 5 -- Db, just lowercase
 KEY_MAP.gb = 6 -- Gb, just lowercase
 KEY_MAP.cb = 7 -- Cb, just lowercase
 KEY_MAP.fb = 8 -- Fb, just lowercase
+ 
+local VOICE_INSTRUMENTS = {
+    finale.FFUUID_ALTOVOICE, 
+    finale.FFUUID_BARITONEVOICE, 
+    finale.FFUUID_BASSBAROTONEVOICE, 
+    finale.FFUUID_BASSVOICE, 
+    finale.FFUUID_BEATBOX, 
+    finale.FFUUID_CHOIRAAHS, 
+    finale.FFUUID_CHOIROOHS, 
+    finale.FFUUID_CONTRALTOVOICE, 
+    finale.FFUUID_COUNTERTENORVOICE, 
+    finale.FFUUID_MEZZOSOPRANOVOICE, 
+    finale.FFUUID_SOPRANOVOICE, 
+    finale.FFUUID_TALKBOX, 
+    finale.FFUUID_TENORVOICE, 
+    finale.FFUUID_VOCALPERCUSSION, 
+    finale.FFUUID_VOCALS, 
+    finale.FFUUID_VOICE, 
+    finale.FFUUID_YODEL
+}
 
 --[[
 % create_default_config
@@ -290,7 +310,7 @@ function score.set_staff_full_name(staff, full_name, double)
     end
     if (double ~= nil) then
         str.LuaString = str.LuaString .. "^baseline(" .. measurement.convert_to_EVPUs("1s") .. ") " .. double ..
-                            "\r^baseline(" .. measurement.convert_to_EVPUs("1s") .. ") " .. (double + 1)
+        "\r^baseline(" .. measurement.convert_to_EVPUs("1s") .. ") " .. (double + 1)
     end
     staff:SaveNewFullNameString(str)
 end
@@ -315,7 +335,7 @@ function score.set_staff_short_name(staff, short_name, double)
     end
     if (double ~= nil) then
         str.LuaString = str.LuaString .. "^baseline(" .. measurement.convert_to_EVPUs("1s") .. ") " .. double ..
-                            "\r^baseline(" .. measurement.convert_to_EVPUs("1s") .. ") " .. (double + 1)
+        "\r^baseline(" .. measurement.convert_to_EVPUs("1s") .. ") " .. (double + 1)
     end
     staff:SaveNewAbbreviatedNameString(str)
 end
@@ -781,6 +801,29 @@ function score.apply_config(config, options)
     end
     score.set_max_measures_per_system(config.max_measures_per_system)
     library.update_layout()
+end
+
+--[[
+% calc_voice_staff
+
+Determines whether the staff is a voice instrument.
+
+@ staff_num (number) The number of the staff to check.
+: (boolean) True if the staff is a voice instrument.
+]]
+function score.calc_voice_staff(staff_num)
+    local is_voice_staff = false
+    local staff = finale.FCStaff()
+    if staff:Load(staff_num) then
+        local staff_instrument = staff:GetInstrumentUUID()
+        local test = finale.FFUID_YODEL
+        for k, v in pairs(VOICE_INSTRUMENTS) do
+            if staff_instrument == v then
+                is_voice_staff = true
+            end
+        end
+    end
+    return is_voice_staff
 end
 
 return score
