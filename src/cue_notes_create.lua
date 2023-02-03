@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.77"
+    finaleplugin.Version = "v0.78"
     finaleplugin.Date = "2023/02/03"
     finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action. 
@@ -386,24 +386,12 @@ function new_expression_category(new_name)
     return ok, category_id
 end
 
-function assign_expression_to_staff(staff_number, measure_number, measure_position, expression_id)
-    local new_expression = finale.FCExpression()
-    new_expression:SetStaff(staff_number)
-    new_expression:SetVisible(true)
-    new_expression:SetMeasurePos(measure_position)
-    new_expression:SetScaleWithEntry(false) -- could also (possibly) be true!  
-    new_expression:SetPartAssignment(true)
-    new_expression:SetScoreAssignment(true)
-    new_expression:SetID(expression_id)
-    new_expression:SaveNewToCell( finale.FCCell(measure_number, staff_number) )
-end
-
 function create_cue_notes()
     local cue_names = { }	-- compile NAME/ItemNo of all pre-existing CUE_NAME expressions
     local source_region = finenv.Region()
     local start_staff = source_region.StartStaff
     -- declare all other local variables
-    local ok, cd, expression_defs, cat_ID, expression_ID, name_index, destination_staff, new_expression
+    local ok, cd, expression_defs, cat_ID, expression_ID, name_index, new_expression
 
     if source_region:CalcStaffSpan() > 1 then
         return show_error("only_one_staff")
@@ -419,7 +407,7 @@ function create_cue_notes()
     for text_def in each(expression_defs) do
         cat_ID = text_def.CategoryID
         cd:Load(cat_ID)
-        if string.find(cd:CreateName().LuaString, config.cue_category_name) then
+        if cd:CreateName().LuaString == config.cue_category_name then
             local str = text_def:CreateTextString()
             str:TrimEnigmaTags()
             -- save expresion NAME and ItemNo
@@ -454,8 +442,15 @@ function create_cue_notes()
     -- make the cue copy
     for _, one_staff in ipairs(destination_staves) do
         if copy_to_destination(source_region, one_staff) then
-            -- name the cue
-            assign_expression_to_staff(one_staff, source_region.StartMeasure, 0, expression_ID)
+            mixin.FCMExpression() -- "name" the cue
+                :SetStaff(one_staff)
+                :SetVisible(true)
+                :SetMeasurePos(0)
+                :SetScaleWithEntry(false) -- could also (possibly) be true!  
+                :SetPartAssignment(true)
+                :SetScoreAssignment(true)
+                :SetID(expression_ID)
+                :SaveNewToCell(finale.FCCell(source_region.StartMeasure, one_staff))
         end
     end
     source_region:SetInDocument()
