@@ -3,18 +3,19 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.76"
-    finaleplugin.Date = "2023/02/02"
+    finaleplugin.Version = "v0.77"
+    finaleplugin.Date = "2023/02/03"
     finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action. 
-        It takes music from a nominated layer in the selected staff and creates a "Cue" version on another staff. 
+        It takes music from a nominated layer in the selected staff and 
+        creates a "Cue" version on one or more other staves. 
         The cue copy is reduced in size and muted, and can duplicate nominated markings from the original. 
         It is shifted to the chosen layer with a whole-note rest placed in the original layer.
 
-        Your prerences are saved in the User prefs folder after each script run. 
+        Your preferences are preserved between each script run. 
         This script requires an expression category called "Cue Names". 
         Under RGPLua (v0.58+) the category is created automatically if needed. 
-        Under JWLua, before running the script you must create an Expression Category called 
+        Using JWLua, before running the script you must create an Expression Category called 
         "Cue Names" containing at least one text expression.
         ]]
     return "Cue Notes Create...", "Cue Notes Create", "Copy as cue notes to another staff"
@@ -32,7 +33,7 @@ local config = { -- retained and over-written by the user's "settings" file
     source_layer        =   1,     -- layer the cue comes from
     cuenote_layer       =   3,     -- layer the cue ends up
     rest_layer          =   1,     -- layer for default wholenote rest
-    freeze_up_down      =   0,     -- "0" for no freezing, "1" for up, "2" for down
+    freeze_up_down      =   0,     -- "0" for no stem freezing, "1" for up, "2" for down
     -- if creating a new "Cue Names" category ...
     cue_category_name   =   "Cue Names",
     cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
@@ -84,9 +85,7 @@ function new_cue_name(source_staff)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-    local str = finale.FCString()
-    the_name:GetText(str)
-    return ok, str.LuaString
+    return ok, the_name:GetText()
 end
 
 function choose_name_index(name_list)
@@ -121,7 +120,7 @@ function create_new_expression(exp_name, category_number)
 end
 
 function choose_destination_staff(source_staff)
-    local staff_list = {} -- save name and number of all staves in the score
+    local staff_list = {} -- save number and name of all (other) staves in the score
     local rgn = finale.FCMusicRegion()
     rgn:SetCurrentSelection()
     rgn:SetFullMeasureStack() -- scan the whole stack
@@ -146,11 +145,12 @@ function choose_destination_staff(source_staff)
 
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:CreateStatic(0, 20):SetText("Select cue name:"):SetWidth(100)
-    local num_rows = #staff_list > 10 and 12 or (#staff_list + 2)
+    local max_rows = #checks + #integers + 2
+    local num_rows = #staff_list > (max_rows + 2) and max_rows or (#staff_list + 2)
     local data_list = dialog:CreateDataList(0, 0)
         :SetUseCheckboxes(true)
         :SetHeight(num_rows * y_step)
-        :AddColumn("Destination Staff:", 120)
+        :AddColumn("Destination Staff(s):", 120)
     if finenv.UI():IsOnMac() then
         data_list:UseAlternatingBackgroundRowColors()
     else
@@ -173,7 +173,7 @@ function choose_destination_staff(source_staff)
         y = y + y_step
     end
 
-    local stem_popup = dialog:CreatePopup(x_grid[1], (y_step * 11 + 5)):SetWidth(160)
+    local stem_popup = dialog:CreatePopup(x_grid[1], y + 5):SetWidth(160)
         :AddString("Stems: normal")  -- == 0 (normal)
         :AddString("Stems: freeze up")  -- == 1 (up)
         :AddString("Stems: freeze down")  -- == 2 (down)
@@ -202,14 +202,14 @@ function choose_destination_staff(source_staff)
         end
     end
 
-    -- buttons to PRESET checkboxes/datalist items
+    -- buttons to PRESET checkboxes/data_list items
     local buttons = {}
     for i, name in ipairs( {"Clear All", "Set All", "No Staves", "All Staves", "Empty Staves"} ) do
         buttons[name] = dialog:CreateButton(x_grid[3], y_step * 2 * (i - 1)):SetWidth(80):SetText(name)
-        if string.find(name, "Stave") then
-            buttons[name]:AddHandleCommand(function(self) set_list_state(i - 3) end)
+        if i > 2 then
+            buttons[name]:AddHandleCommand(function() set_list_state(i - 3) end)
         else
-            buttons[name]:AddHandleCommand(function(self) set_check_state(i - 1) end)
+            buttons[name]:AddHandleCommand(function() set_check_state(i - 1) end)
         end
     end
 
@@ -217,21 +217,21 @@ function choose_destination_staff(source_staff)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-    local chosen_staves = {} -- user choice of destination staff/staves
+    local chosen_staves = {} -- save user choice of destination staves
 
     if ok then -- save changed User Prefs
         local selection = data_list:GetSelectedLine() + 1
-        if selection > 0 then
+        if selection > 0 then -- user selected a line (not necessairly the line's checkbox)
             table.insert(chosen_staves, staff_list[selection][1])
         end
-        for i, v in ipairs(staff_list) do -- check staves for ticked boxes
+        for i, v in ipairs(staff_list) do -- check every staff for ticked boxes
             local list_row = data_list:GetItemAt(i - 1)
             if list_row.Check and i ~= selection then
                 table.insert(chosen_staves, v[1])
             end
         end
+        -- udpate config values
         local max = layer.max_layers()
-        -- udpate all config values
         for _, v in ipairs(checks) do
             config[v] = (dialog:GetControl(v):GetCheck() == 1)
         end
@@ -324,7 +324,7 @@ function copy_to_destination(source_region, destination_staff)
             entry.FreezeStem = false
         end
     end
-    -- swap layer 1 with cuenote_layer & fix clef
+    -- swap source_layer with cuenote_layer & fix clef
     layer.swap(destination_region, config.source_layer, config.cuenote_layer)
     if not config.copy_clef then
         clef.restore_default_clef(destination_region.StartMeasure, destination_region.EndMeasure, destination_staff)
@@ -348,7 +348,7 @@ function copy_to_destination(source_region, destination_staff)
     for measure = destination_region.StartMeasure, destination_region.EndMeasure do
         local notecell = finale.FCNoteEntryCell(measure, destination_staff)
         notecell:Load()
-        local whole_note = notecell:AppendEntriesInLayer(config.rest_layer, 1) --   Append to layer 1, add 1 entry
+        local whole_note = notecell:AppendEntriesInLayer(config.rest_layer, 1) --   Append to rest_layer, add 1 entry
         if whole_note then
             whole_note.Duration = finale.WHOLE_NOTE
             whole_note.Legality = true
