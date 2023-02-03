@@ -3949,6 +3949,15 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
     local mixin_props = setmetatable({}, {__mode = "k"})
 
 
+    local reserved_props = {
+        MixinReady = function(class) return true end,
+        MixinClass = function(class) return class end,
+        MixinParent = function(class) return mixin_classes[class].meta.Parent end,
+        MixinBase = function(class) return mixin_classes[class].meta.Base end,
+        Init = function(class) return mixin_classes[class].meta.Init end,
+    }
+
+
     local mixin = setmetatable({}, {
         __newindex = function(t, k, v) end,
         __index = function(t, k)
@@ -3961,7 +3970,7 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
             mixin_public[k] = setmetatable({}, {
                 __newindex = function(tt, kk, vv) end,
                 __index = function(tt, kk)
-                    local val = utils.copy_table(mixin_classes[k].props[kk])
+                    local val = reserved_props[kk] and utils.copy_table(reserved_props[kk](k)) or utils.copy_table(mixin_classes[k].public[kk])
                     if type(val) == "function" then
                         val = mixin_private.create_fluid_proxy(val, kk)
                     end
@@ -3980,17 +3989,6 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
         end
     })
 
-
-
-
-    local reserved_props = {
-        IsMixinReady = 0,
-        MixinClass = 0,
-        MixinParent = 1,
-        MixinBase = 0,
-        Init = 1,
-    }
-
     function mixin_private.is_fcm_class_name(class_name)
         return type(class_name) == "string" and (class_name:match("^FCM%u") or class_name:match("^__FCM%u")) and true or false
     end
@@ -4005,6 +4003,22 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
 
     function mixin_private.fc_to_fcm_class_name(class_name)
         return string.gsub(class_name, "FC", "FCM", 1)
+    end
+
+    function mixin_private.assert_valid_property_name(name, error_level, suffix)
+        if type(name) ~= "string" then
+            return
+        end
+
+        suffix = suffix or ""
+
+        if name:sub(-1) == "_" then
+            error("Mixin methods and properties cannot end in an underscore" .. suffix, error_level)
+        elseif name:sub(1, 5):lower() == "mixin" then
+            error("Mixin methods and properties beginning with 'Mixin' are reserved" .. suffix, error_level)
+        elseif reserved_props[name] then
+            error("'" .. name .. "' is a reserved name and cannot be used for propertiea or methods" .. suffix, error_level)
+        end
     end
 
 
@@ -4090,7 +4104,7 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
         if not success then
 
             if is_fcm and finale[mixin_private.fcm_to_fc_class_name(class_name)] then
-                result = {}
+                result = {{}, {}}
             else
                 return
             end
@@ -4101,48 +4115,53 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
             error("Mixin '" .. class_name .. "' is not a table.", 0)
         end
 
-        local class = {props = result}
+        local class = {}
+        if #result > 1 then
+            class.meta = result[1]
+            class.public = result[2]
+        else
 
-
-        for k, _ in pairs(class.props) do
-            if type(k) == "string" and k:sub(-1) == "_" then
-                error("Mixin methods and properties cannot end in an underscore (" .. class_name .. "." .. k .. ")", 0)
-            end
+            class.public = result
+            class.meta = {}
+            class.meta.Parent = class.public.MixinParent
+            class.meta.Init = class.public.Init
+            class.public.MixinParent = nil
+            class.public.Init = nil
         end
 
 
-        for k, v in pairs(reserved_props) do
-            if v == 0 and type(class.props[k]) ~= "nil" then
-                error("Mixin '" .. class_name .. "' contains reserved property '" .. k .. "'", 0)
-            end
+        for k, _ in pairs(class.public) do
+            mixin_private.assert_valid_property_name(k, 0, " (" .. class_name .. "." .. k .. ")")
         end
 
 
-        if class.props.Init and type(class.props.Init) ~= "function" then
-            error("Mixin '" .. class_name .. "' method 'Init' must be a function.", 0)
+        if class.meta.Init and type(class.meta.Init) ~= "function" then
+            error("Mixin meta-method 'Init' must be a function (" .. class_name .. ")", 0)
         end
 
 
         if is_fcm then
-            class.props.MixinParent = mixin_private.get_parent_class(mixin_private.fcm_to_fc_class_name(class_name))
 
-            if class.props.MixinParent then
-                class.props.MixinParent = mixin_private.fc_to_fcm_class_name(class.props.MixinParent)
+            class.meta.Parent = mixin_private.get_parent_class(mixin_private.fcm_to_fc_class_name(class_name))
 
-                mixin_private.load_mixin_class(class.props.MixinParent)
+            if class.meta.Parent then
+
+                class.meta.Parent = mixin_private.fc_to_fcm_class_name(class.meta.Parent)
+
+                mixin_private.load_mixin_class(class.meta.Parent)
 
 
-                class.init = mixin_classes[class.props.MixinParent].init and utils.copy_table(mixin_classes[class.props.MixinParent].init) or {}
+                class.init = mixin_classes[class.meta.Parent].init and utils.copy_table(mixin_classes[class.meta.Parent].init) or {}
 
-                if class.props.Init then
-                    table.insert(class.init, class.props.Init)
+                if class.meta.Init then
+                    table.insert(class.init, class.meta.Init)
                 end
 
 
 
-                for k, v in pairs(mixin_classes[class.props.MixinParent].props) do
-                    if type(class.props[k]) == "nil" then
-                        class.props[k] = utils.copy_table(v)
+                for k, v in pairs(mixin_classes[class.meta.Parent].public) do
+                    if type(class.public[k]) == "nil" then
+                        class.public[k] = utils.copy_table(v)
                     end
                 end
             end
@@ -4150,23 +4169,23 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
 
         else
 
-            if not class.props.MixinParent then
-                error("Mixin '" .. class_name .. "' does not have a 'MixinParent' property defined.", 0)
+            if not class.meta.Parent then
+                error("Mixin '" .. class_name .. "' does not have a parent class defined.", 0)
             end
 
-            mixin_private.load_mixin_class(class.props.MixinParent)
+            mixin_private.load_mixin_class(class.meta.Parent)
 
 
-            if not mixin_classes[class.props.MixinParent] then
-                error("Unable to load mixin '" .. class.props.MixinParent .. "' as parent of '" .. class_name .. "'", 0)
+            if not mixin_classes[class.meta.Parent] then
+                error("Unable to load mixin '" .. class.meta.Parent .. "' as parent of '" .. class_name .. "'", 0)
             end
 
 
-            class.props.MixinBase = mixin_private.is_fcm_class_name(class.props.MixinParent) and class.props.MixinParent or mixin_classes[class.props.MixinParent].props.MixinBase
+            class.meta.Base = mixin_private.is_fcm_class_name(class.meta.Parent) and class.meta.Parent or mixin_classes[class.meta.Parent].meta.Base
         end
 
 
-        class.props.MixinClass = class_name
+        class.meta.Class = class_name
 
         mixin_classes[class_name] = class
     end
@@ -4255,18 +4274,18 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
 
 
     function mixin_private.enable_mixin(object, fcm_class_name)
-        if not library.is_finale_object(object) or mixin_props[object] then return object end
+        if mixin_props[object] or not library.is_finale_object(object) then
+            return object
+        end
 
         mixin_private.apply_mixin_foundation(object)
         fcm_class_name = fcm_class_name or mixin_private.fc_to_fcm_class_name(mixin_private.get_class_name(object))
-        mixin_props[object] = {}
 
         mixin_private.load_mixin_class(fcm_class_name)
+        mixin_props[object] = {MixinClass = fcm_class_name}
 
-        if mixin_classes[fcm_class_name].init then
-            for _, v in pairs(mixin_classes[fcm_class_name].init) do
-                v(object)
-            end
+        for _, v in pairs(mixin_classes[fcm_class_name].init) do
+            v(object)
         end
 
         return object
@@ -4275,7 +4294,7 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
 
 
     function mixin_private.apply_mixin_foundation(object)
-        if not object or not library.is_finale_object(object) or object.IsMixinReady then return end
+        if not object or not library.is_finale_object(object) or object.MixinReady then return end
 
 
         local meta = getmetatable(object)
@@ -4289,7 +4308,7 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
         meta.__index = function(t, k)
 
 
-            if k == "IsMixinReady" then return true end
+            if k == "MixinReady" then return true end
 
 
             if not mixin_props[t] then return original_index(t, k) end
@@ -4306,14 +4325,18 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
                 prop = mixin_props[t][k]
 
 
-            elseif type(mixin_classes[fcm_class_name].props[k]) ~= "nil" then
-                prop = mixin_classes[fcm_class_name].props[k]
+            elseif type(mixin_classes[fcm_class_name].public[k]) ~= "nil" then
+                prop = mixin_classes[fcm_class_name].public[k]
 
 
                 if type(prop) == "table" then
                     mixin_props[t][k] = utils.copy_table(prop)
                     prop = mixin[t][k]
                 end
+
+
+            elseif reserved_props[k] then
+                prop = reserved_props[k](mixin_props[t].MixinClass)
 
 
             else
@@ -4333,15 +4356,7 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
 
             if not mixin_props[t] then return catch_and_rethrow(original_newindex, 2, t, k, v) end
 
-
-            if type(k) == "string" and k:sub(-1) == "_" then
-                error("Mixin methods and properties cannot end in an underscore.", 2)
-            end
-
-
-            if reserved_props[k] then
-                error("Cannot set reserved property '" .. k .. "'", 2)
-            end
+            mixin_private.assert_valid_property_name(k, 3)
 
             local type_v_original = type(original_index(t, k))
 
@@ -4422,26 +4437,28 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
         end
 
 
-        if mixin_private.is_fcm_class_name(mixin_classes[class_name].props.MixinParent) and mixin_classes[class_name].props.MixinParent ~= object.MixinClass then
+        if mixin_private.is_fcm_class_name(mixin_classes[class_name].meta.Parent) and mixin_classes[class_name].meta.Parent ~= object.MixinClass then
             return false
         end
 
 
-        if mixin_classes[class_name].props.MixinParent ~= object.MixinClass then
-            if not catch_and_rethrow(mixin_private.subclass_helper, 2, object, mixin_classes[class_name].props.MixinParent) then
+        if mixin_classes[class_name].meta.Parent ~= object.MixinClass then
+            if not catch_and_rethrow(mixin_private.subclass_helper, 2, object, mixin_classes[class_name].meta.Parent) then
                 return false
             end
         end
 
 
         local props = mixin_props[object]
-        for k, v in pairs(mixin_classes[class_name].props) do
+        props.MixinClass = class_name
+
+        for k, v in pairs(mixin_classes[class_name].public) do
             props[k] = utils.copy_table(v)
         end
 
 
-        if mixin_classes[class_name].props.Init then
-            catch_and_rethrow(object.Init, 2, object)
+        if mixin_classes[class_name].meta.Init then
+            catch_and_rethrow(mixin_classes[class_name].meta.Init, 2, object)
         end
 
         return true
@@ -4460,7 +4477,7 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
         mixin_private.load_mixin_class(class_name)
         if not mixin_classes[class_name] then return nil end
 
-        local object = mixin_private.create_fcm(mixin_classes[class_name].props.MixinBase, ...)
+        local object = mixin_private.create_fcm(mixin_classes[class_name].meta.Base, ...)
 
         if not object then return nil end
 
@@ -4501,7 +4518,7 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
                 end
 
 
-                parent = mixin_classes[parent].props.MixinParent
+                parent = mixin_classes[parent].meta.Parent
             until mixin_private.is_fcm_class_name(parent)
         end
 
@@ -4560,6 +4577,10 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
 
 
     function mixin_public.assert(condition, message, no_level)
+        if type(condition) == 'function' then
+            condition = condition()
+        end
+
         if not condition then
             error(message, no_level and 0 or 3)
         end
