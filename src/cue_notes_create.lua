@@ -3,18 +3,19 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.70"
-    finaleplugin.Date = "2023/01/30"
+    finaleplugin.Version = "v0.78"
+    finaleplugin.Date = "2023/02/03"
     finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action. 
-        It takes music from a nominated layer in the selected staff and creates a "Cue" version on another staff. 
+        It takes music from a nominated layer in the selected staff and 
+        creates a "Cue" version on one or more other staves. 
         The cue copy is reduced in size and muted, and can duplicate nominated markings from the original. 
         It is shifted to the chosen layer with a whole-note rest placed in the original layer.
 
-        Your choices are saved in the User preferences folder after each script execution. 
+        Your preferences are preserved between each script run. 
         This script requires an expression category called "Cue Names". 
         Under RGPLua (v0.58+) the category is created automatically if needed. 
-        Under JWLua, before running the script you must create an Expression Category called 
+        Using JWLua, before running the script you must create an Expression Category called 
         "Cue Names" containing at least one text expression.
         ]]
     return "Cue Notes Create...", "Cue Notes Create", "Copy as cue notes to another staff"
@@ -32,7 +33,7 @@ local config = { -- retained and over-written by the user's "settings" file
     source_layer        =   1,     -- layer the cue comes from
     cuenote_layer       =   3,     -- layer the cue ends up
     rest_layer          =   1,     -- layer for default wholenote rest
-    freeze_up_down      =   0,     -- "0" for no freezing, "1" for up, "2" for down
+    freeze_up_down      =   0,     -- "0" for no stem freezing, "1" for up, "2" for down
     -- if creating a new "Cue Names" category ...
     cue_category_name   =   "Cue Names",
     cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
@@ -41,6 +42,7 @@ local config = { -- retained and over-written by the user's "settings" file
 local configuration = require("library.configuration")
 local clef = require("library.clef")
 local layer = require("library.layer")
+local mixin = require("library.mixin")
 
 configuration.get_user_settings("cue_notes_create", config, true)
 
@@ -56,8 +58,11 @@ function show_error(error_code)
     return -1
 end
 
-function dont_overwrite_existing_music()
-    local alert = finenv.UI():AlertOkCancel("script: " .. plugindef(), "Overwrite existing music?")
+function dont_overwrite_existing_music(staff_number)
+    local staff = finale.FCStaff()
+    staff:Load(staff_number) -- staff number of this slot
+    local msg = "Overwrite existing music on staff: " .. staff:CreateDisplayFullNameString().LuaString .. "?"
+    local alert = finenv.UI():AlertOkCancel("script: " .. plugindef(), msg)
     return (alert ~= finale.OKRETURN)
 end
 
@@ -71,52 +76,30 @@ function region_contains_notes(region, layer_number)
 end
 
 function new_cue_name(source_staff)
-    local dialog = finale.FCCustomWindow()
-    local str = finale.FCString()
-    str.LuaString = plugindef()
-    dialog:SetTitle(str)
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    dialog:CreateStatic(0, 20):SetText("New cue name:"):SetWidth(100)
 
-    str.LuaString = "New cue name:"
-    dialog:CreateStatic(0, 20):SetText(str)
-
-    local the_name = dialog:CreateEdit(0, 40)
-    the_name:SetWidth(200)
-    -- copy default name from the source Staff Name
-    local staff = finale.FCStaff()
+    local staff = finale.FCStaff() -- copy the source Staff Name
     staff:Load(source_staff)
-    the_name:SetText(staff:CreateDisplayFullNameString())
-
+    local the_name = dialog:CreateEdit(0, 40):SetWidth(200):SetText(staff:CreateDisplayFullNameString())
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-    the_name:GetText(str)
-    return ok, str.LuaString
+    return ok, the_name:GetText()
 end
 
 function choose_name_index(name_list)
-    local dialog = finale.FCCustomWindow()
-    local str = finale.FCString()
-    str.LuaString = plugindef()
-    dialog:SetTitle(str)
-    str.LuaString = "Select cue name:"
-    dialog:CreateStatic(0, 20):SetText(str)
-
-    local staff_list = dialog:CreateListBox(0, 40)
-    staff_list:SetWidth(200)
-    -- item "0" in the list is "*** new name ***"
-    str.LuaString = "*** new name ***"
-    staff_list:AddString(str)
-
-    -- add all names in the extant list
-    for _, v in ipairs(name_list) do
-        str.LuaString = v[1]  -- add the name, not the ItemNo
-        staff_list:AddString(str)
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    dialog:CreateStatic(0, 20):SetText("Select cue name:"):SetWidth(100)
+    -- menu item [0] is "*** new name ***"
+    local staff_list = dialog:CreateListBox(0, 40):SetWidth(200):AddString("*** new name ***")
+    for _, v in ipairs(name_list) do -- add all names in the extant list
+        staff_list:AddString(v[1])
     end
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-    return ok, staff_list:GetSelectedItem()
-    -- NOTE: returns the chosen INDEX number (0-based)
+    return ok, staff_list:GetSelectedItem() -- returns the chosen (0-based) INDEX number
 end
 
 function create_new_expression(exp_name, category_number)
@@ -137,135 +120,125 @@ function create_new_expression(exp_name, category_number)
 end
 
 function choose_destination_staff(source_staff)
-    local staff_list = {}    -- compile all staves in the score
-    local rgn = finenv.Region()
-    -- compile staff list by slot number
-    local original_slot = rgn.StartSlot
-    rgn:SetFullMeasureStack()   -- scan the whole stack
+    local staff_list = {} -- save number and name of all (other) staves in the score
+    local rgn = finale.FCMusicRegion()
+    rgn:SetCurrentSelection()
+    rgn:SetFullMeasureStack() -- scan the whole stack
     local staff = finale.FCStaff()
     for slot = rgn.StartSlot, rgn.EndSlot do
         local staff_number = rgn:CalcStaffNumber(slot)
         if staff_number ~= source_staff then
-            staff:Load(staff_number) -- staff at this slot
+            staff:Load(staff_number) -- staff number of this slot
             table.insert(staff_list, { staff_number, staff:CreateDisplayFullNameString().LuaString } )
         end
     end
-    rgn.StartSlot = original_slot -- restore original single staff
-    rgn.EndSlot = original_slot
+    local checks = {
+        "copy_articulations", "copy_expressions", "copy_smartshapes",
+        "copy_slurs", "copy_clef", "copy_lyrics", "mute_cuenotes"
+    }
+    local integers = { "cuenote_percent", "source_layer", "cuenote_layer" }
 
-    -- draw up the dialog box
-    local x_grid = { 210, 310, 360 }
+    -- make the dialog
+    local x_grid = { 210, 310, 370 }
     local y_step = 19
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- + vertical offset for Mac edit boxes
-    local user_checks = {
-        "copy_articulations",  "copy_expressions",  "copy_smartshapes",
-        "copy_slurs",          "copy_clef",         "copy_lyrics",
-        "mute_cuenotes",       "cuenote_percent",   "source_layer",   "cuenote_layer",
-        -- note that [config.freeze_up_down] is a special case
-    }
-    local integer_options = { -- numeric, not boolean options
-        cuenote_percent = true,
-        source_layer = true,
-        cuenote_layer = true
-    }
-    local user_selections = {}  -- an array of controls corresponding to user choices
 
-    local str = finale.FCString()
-    local dialog = finale.FCCustomLuaWindow()
-    str.LuaString = plugindef()
-    dialog:SetTitle(str)
-    local static = dialog:CreateStatic(0, 0)
-    str.LuaString = "Select destination staff:"
-    static:SetText(str)
-    static:SetWidth(200)
-
-    local list_box = dialog:CreateListBox(0, y_step)
-    list_box:SetWidth(200)
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    dialog:CreateStatic(0, 20):SetText("Select cue name:"):SetWidth(100)
+    local max_rows = #checks + #integers + 2
+    local num_rows = #staff_list > (max_rows + 2) and max_rows or (#staff_list + 2)
+    local data_list = dialog:CreateDataList(0, 0)
+        :SetUseCheckboxes(true)
+        :SetHeight(num_rows * y_step)
+        :AddColumn("Destination Staff(s):", 120)
+    if finenv.UI():IsOnMac() then
+        data_list:UseAlternatingBackgroundRowColors()
+    else
+        data_list:UseFullRowSelect()
+    end
     for _, v in ipairs(staff_list) do -- list all staff names
-        str.LuaString = v[2]
-        list_box:AddString(str)
+        local row = data_list:CreateRow()
+        row:GetItemAt(0).LuaString = v[2]
     end
-    -- add user options
-    str.LuaString = "Cue Options:"
-    dialog:CreateStatic(x_grid[1], 0):SetText(str)
 
-    for i, v in ipairs(user_checks) do -- run through config parameter list
-        str.LuaString = string.gsub(v, '_', ' ')
-        local y = y_step * i
-        if integer_options[v] then
-            str.LuaString = str.LuaString .. ":"
-            dialog:CreateStatic(x_grid[1], y):SetText(str)
-            user_selections[v] = dialog:CreateEdit(x_grid[2], y - mac_offset)
-            user_selections[v]:SetInteger(config[v])
-            user_selections[v]:SetWidth(50)
+    local y = y_step
+    dialog:CreateStatic(x_grid[1], 0):SetText("Cue Options:"):SetWidth(150)
+    for _, v in ipairs(checks) do -- run through config parameter list
+        dialog:CreateCheckbox(x_grid[1], y, v):SetText(string.gsub(v, "_", " ")):SetWidth(120):SetCheck(config[v] and 1 or 0)
+        y = y + y_step
+    end
+    for _, v in ipairs(integers) do -- run through config parameter list
+        dialog:CreateStatic(x_grid[1], y):SetText(string.gsub(v, "_", " ") .. ":"):SetWidth(150)
+        dialog:CreateEdit(x_grid[2], y - mac_offset, v):SetWidth(50):SetInteger(config[v])
+        y = y + y_step
+    end
+
+    local stem_popup = dialog:CreatePopup(x_grid[1], y + 5):SetWidth(160)
+        :AddString("Stems: normal")  -- == 0 (normal)
+        :AddString("Stems: freeze up")  -- == 1 (up)
+        :AddString("Stems: freeze down")  -- == 2 (down)
+        :SetSelectedItem(config.freeze_up_down) -- 0-based index configure value
+
+    local function set_check_state(state)
+        for _, v in ipairs(checks) do
+            dialog:GetControl(v):SetCheck(state)
+        end
+        data_list:SetKeyboardFocus()
+    end
+    local function set_list_state(state)
+        for i, v in ipairs(staff_list) do
+            local list_row = data_list:GetItemAt(i - 1)
+            if state < 2 then -- "No Staves" = 0 / "All Staves" = 1
+                list_row.Check = (state == 1)
+            else
+                rgn.StartStaff = v[1] -- is this staff number empty?
+                rgn.EndStaff = v[1]
+                local check_state = not region_contains_notes(rgn, 0)
+                list_row.Check = check_state
+                if check_state then
+                    data_list:SelectLine(i - 1) -- update menu list visually
+                end
+            end
+        end
+    end
+
+    -- buttons to PRESET checkboxes/data_list items
+    local buttons = {}
+    for i, name in ipairs( {"Clear All", "Set All", "No Staves", "All Staves", "Empty Staves"} ) do
+        buttons[name] = dialog:CreateButton(x_grid[3], y_step * 2 * (i - 1)):SetWidth(80):SetText(name)
+        if i > 2 then
+            buttons[name]:AddHandleCommand(function() set_list_state(i - 3) end)
         else
-            user_selections[v] = dialog:CreateCheckbox(x_grid[1], y)
-            user_selections[v]:SetText(str)
-            user_selections[v]:SetWidth(120)
-            local checked = config[v] and 1 or 0
-            user_selections[v]:SetCheck(checked)
+            buttons[name]:AddHandleCommand(function() set_check_state(i - 1) end)
         end
     end
-    -- popup for stem direction -> config.freeze_up_down
-    local stem_direction_popup = dialog:CreatePopup(x_grid[1], ((#user_checks + 1) * y_step + 5))
-    str.LuaString = "Stems: normal"
-    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 0 (normal)
-    str.LuaString = "Stems: freeze up"
-    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 1 (up)
-    str.LuaString = "Stems: freeze down"
-    stem_direction_popup:AddString(str)  -- config.freeze_up_down == 2 (down)
-    stem_direction_popup:SetWidth(160)
-    stem_direction_popup:SetSelectedItem(config.freeze_up_down) -- 0-based index
-
-    -- "CLEAR ALL" button to CLEAR all booleans
-    local clear_button = dialog:CreateButton(x_grid[3], y_step * 2)
-    str.LuaString = "Clear All"
-    clear_button:SetWidth(80)
-    clear_button:SetText(str)
-    dialog:RegisterHandleControlEvent ( clear_button,
-        function()
-            for _, v in ipairs(user_checks) do
-                if not integer_options[v] then
-                    user_selections[v]:SetCheck(0)
-                end
-            end
-            list_box:SetKeyboardFocus()
-        end
-    )
-
-    -- "SET ALL" button to SET all booleans
-    local set_button = dialog:CreateButton(x_grid[3], y_step * 4)
-    str.LuaString = "Set All"
-    set_button:SetWidth(80)
-    set_button:SetText(str)
-    dialog:RegisterHandleControlEvent ( set_button,
-        function()
-            for _, v in ipairs(user_checks) do
-                if not integer_options[v] then
-                    user_selections[v]:SetCheck(1)
-                end
-            end
-            list_box:SetKeyboardFocus()
-        end
-    )
 
     -- run the dialog
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-    local selected_item = list_box:GetSelectedItem() -- retrieve user staff selection (index base 0)
-    local chosen_staff_number = staff_list[selected_item + 1][1]
+    local chosen_staves = {} -- save user choice of destination staves
 
     if ok then -- save changed User Prefs
+        local selection = data_list:GetSelectedLine() + 1
+        if selection > 0 then -- user selected a line (not necessairly the line's checkbox)
+            table.insert(chosen_staves, staff_list[selection][1])
+        end
+        for i, v in ipairs(staff_list) do -- check every staff for ticked boxes
+            local list_row = data_list:GetItemAt(i - 1)
+            if list_row.Check and i ~= selection then
+                table.insert(chosen_staves, v[1])
+            end
+        end
+        -- udpate config values
         local max = layer.max_layers()
-        for i, v in ipairs(user_checks) do -- run through config parameters
-            if integer_options[v] then
-                config[v] = user_selections[v]:GetInteger()
-                if string.find(v, "layer") and (config[v] < 1 or config[v] > max) then -- legitimate layer choice?
-                    config[v] = (v == "source_layer") and 1 or max -- make sure layer number is in range
-                end
-            else
-                config[v] = (user_selections[v]:GetCheck() == 1) -- "true" for value 1, boolean checked
+        for _, v in ipairs(checks) do
+            config[v] = (dialog:GetControl(v):GetCheck() == 1)
+        end
+        for _, v in ipairs(integers) do
+            config[v] = dialog:GetControl(v):GetInteger()
+            if string.find(v, "layer") and (config[v] < 1 or config[v] > max) then -- legitimate layer choice?
+                config[v] = (v == "source_layer") and 1 or max -- make sure layer number is in range
             end
         end
         if config.source_layer ~= config.cuenote_layer then
@@ -273,9 +246,9 @@ function choose_destination_staff(source_staff)
         else -- make sure the whole-bar rest is in a different layer from the cuenotes
             config.rest_layer = (config.source_layer % max) + 1
         end
-        config.freeze_up_down = stem_direction_popup:GetSelectedItem() -- 0-based index
+        config.freeze_up_down = stem_popup:GetSelectedItem() -- 0-based index
     end
-    return ok, chosen_staff_number
+    return ok, chosen_staves
 end
 
 function fix_text_expressions(region)
@@ -301,9 +274,9 @@ function copy_to_destination(source_region, destination_staff)
     destination_region.StartStaff = destination_staff
     destination_region.EndStaff = destination_staff
 
-    if region_contains_notes(destination_region, 0) and dont_overwrite_existing_music() then
+    if region_contains_notes(destination_region, 0) and dont_overwrite_existing_music(destination_staff) then
         destination_region:ReleaseMusic() -- clear memory
-        return false -- and go home
+        return -- and go home
     elseif not region_contains_notes(source_region, config.source_layer) then
         destination_region:ReleaseMusic() -- clear memory
         show_error("no_notes_in_source_layer")
@@ -351,7 +324,7 @@ function copy_to_destination(source_region, destination_staff)
             entry.FreezeStem = false
         end
     end
-    -- swap layer 1 with cuenote_layer & fix clef
+    -- swap source_layer with cuenote_layer & fix clef
     layer.swap(destination_region, config.source_layer, config.cuenote_layer)
     if not config.copy_clef then
         clef.restore_default_clef(destination_region.StartMeasure, destination_region.EndMeasure, destination_staff)
@@ -375,7 +348,7 @@ function copy_to_destination(source_region, destination_staff)
     for measure = destination_region.StartMeasure, destination_region.EndMeasure do
         local notecell = finale.FCNoteEntryCell(measure, destination_staff)
         notecell:Load()
-        local whole_note = notecell:AppendEntriesInLayer(config.rest_layer, 1) --   Append to layer 1, add 1 entry
+        local whole_note = notecell:AppendEntriesInLayer(config.rest_layer, 1) --   Append to rest_layer, add 1 entry
         if whole_note then
             whole_note.Duration = finale.WHOLE_NOTE
             whole_note.Legality = true
@@ -413,24 +386,12 @@ function new_expression_category(new_name)
     return ok, category_id
 end
 
-function assign_expression_to_staff(staff_number, measure_number, measure_position, expression_id)
-    local new_expression = finale.FCExpression()
-    new_expression:SetStaff(staff_number)
-    new_expression:SetVisible(true)
-    new_expression:SetMeasurePos(measure_position)
-    new_expression:SetScaleWithEntry(false) -- could also (possibly) be true!  
-    new_expression:SetPartAssignment(true)
-    new_expression:SetScoreAssignment(true)
-    new_expression:SetID(expression_id)
-    new_expression:SaveNewToCell( finale.FCCell(measure_number, staff_number) )
-end
-
 function create_cue_notes()
     local cue_names = { }	-- compile NAME/ItemNo of all pre-existing CUE_NAME expressions
     local source_region = finenv.Region()
     local start_staff = source_region.StartStaff
     -- declare all other local variables
-    local ok, cd, expression_defs, cat_ID, expression_ID, name_index, destination_staff, new_expression
+    local ok, cd, expression_defs, cat_ID, expression_ID, name_index, new_expression
 
     if source_region:CalcStaffSpan() > 1 then
         return show_error("only_one_staff")
@@ -446,7 +407,7 @@ function create_cue_notes()
     for text_def in each(expression_defs) do
         cat_ID = text_def.CategoryID
         cd:Load(cat_ID)
-        if string.find(cd:CreateName().LuaString, config.cue_category_name) then
+        if cd:CreateName().LuaString == config.cue_category_name then
             local str = text_def:CreateTextString()
             str:TrimEnigmaTags()
             -- save expresion NAME and ItemNo
@@ -473,18 +434,25 @@ function create_cue_notes()
         expression_ID = cue_names[name_index][2] --([name_index][1] is the item name)
     end
     -- choose destination staff
-    ok, destination_staff = choose_destination_staff(start_staff)
+    ok, destination_staves = choose_destination_staff(start_staff)
     if not ok then return end
 
     -- save revised config file
     configuration.save_user_settings("cue_notes_create", config)
     -- make the cue copy
-    if not copy_to_destination(source_region, destination_staff) then
-        return
+    for _, one_staff in ipairs(destination_staves) do
+        if copy_to_destination(source_region, one_staff) then
+            mixin.FCMExpression() -- "name" the cue
+                :SetStaff(one_staff)
+                :SetVisible(true)
+                :SetMeasurePos(0)
+                :SetScaleWithEntry(false) -- could also (possibly) be true!  
+                :SetPartAssignment(true)
+                :SetScoreAssignment(true)
+                :SetID(expression_ID)
+                :SaveNewToCell(finale.FCCell(source_region.StartMeasure, one_staff))
+        end
     end
-    -- name the cue
-    assign_expression_to_staff(destination_staff, source_region.StartMeasure, 0, expression_ID)
-    -- reset visible selection to original staff
     source_region:SetInDocument()
 end
 
