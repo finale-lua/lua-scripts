@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.78"
-    finaleplugin.Date = "2023/02/03"
+    finaleplugin.Version = "v0.81 (limited mixin)"
+    finaleplugin.Date = "2023/02/06"
     finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action. 
         It takes music from a nominated layer in the selected staff and 
@@ -153,8 +153,6 @@ function choose_destination_staff(source_staff)
         :AddColumn("Destination Staff(s):", 120)
     if finenv.UI():IsOnMac() then
         data_list:UseAlternatingBackgroundRowColors()
-    else
-        data_list:UseFullRowSelect()
     end
     for _, v in ipairs(staff_list) do -- list all staff names
         local row = data_list:CreateRow()
@@ -188,7 +186,7 @@ function choose_destination_staff(source_staff)
     local function set_list_state(state)
         for i, v in ipairs(staff_list) do
             local list_row = data_list:GetItemAt(i - 1)
-            if state < 2 then -- "No Staves" = 0 / "All Staves" = 1
+            if state > -1 then -- "No Staves" = 0 / "All Staves" = 1
                 list_row.Check = (state == 1)
             else
                 rgn.StartStaff = v[1] -- is this staff number empty?
@@ -204,12 +202,12 @@ function choose_destination_staff(source_staff)
 
     -- buttons to PRESET checkboxes/data_list items
     local buttons = {}
-    for i, name in ipairs( {"Clear All", "Set All", "No Staves", "All Staves", "Empty Staves"} ) do
+    for i, name in ipairs( {"Set All", "Clear All", "All Staves", "No Staves", "Empty Staves"} ) do
         buttons[name] = dialog:CreateButton(x_grid[3], y_step * 2 * (i - 1)):SetWidth(80):SetText(name)
         if i > 2 then
-            buttons[name]:AddHandleCommand(function() set_list_state(i - 3) end)
+            buttons[name]:AddHandleCommand(function() set_list_state(4 - i) end)
         else
-            buttons[name]:AddHandleCommand(function() set_check_state(i - 1) end)
+            buttons[name]:AddHandleCommand(function() set_check_state(2 - i) end)
         end
     end
 
@@ -360,25 +358,24 @@ function copy_to_destination(source_region, destination_staff)
 end
 
 function new_expression_category(new_name)
-    local ok = false
     local category_id = 0
     if not finenv.IsRGPLua then  -- SaveNewWithType only works on RGPLua 0.58+
-        return ok, category_id   -- and crashes on JWLua
+        return false, category_id   -- and crashes on JWLua
     end
-    local new_category = finale.FCCategoryDef()
+
+    local new_category = mixin.FCMCategoryDef()
     new_category:Load(finale.DEFAULTCATID_TECHNIQUETEXT)
     local str = finale.FCString()
     str.LuaString = new_name
     new_category:SetName(str)
-    new_category:SetVerticalAlignmentPoint(finale.ALIGNVERT_STAFF_REFERENCE_LINE)
-    new_category:SetVerticalBaselineOffset(30)
-    new_category:SetHorizontalAlignmentPoint(finale.ALIGNHORIZ_CLICKPOS)
-    new_category:SetHorizontalOffset(-18)
+        :SetVerticalAlignmentPoint(finale.ALIGNVERT_STAFF_REFERENCE_LINE)
+        :SetVerticalBaselineOffset(30)
+        :SetHorizontalAlignmentPoint(finale.ALIGNHORIZ_CLICKPOS)
+        :SetHorizontalOffset(-18)
     -- make font slightly smaller than standard TECHNIQUE expression
     local tfi = new_category:CreateTextFontInfo()
     tfi.Size = tfi.Size - config.cue_font_smaller
     new_category:SetTextFontInfo(tfi)
-
     ok = new_category:SaveNewWithType(finale.DEFAULTCATID_TECHNIQUETEXT)
     if ok then
         category_id = new_category:GetID()
@@ -390,8 +387,8 @@ function create_cue_notes()
     local cue_names = { }	-- compile NAME/ItemNo of all pre-existing CUE_NAME expressions
     local source_region = finenv.Region()
     local start_staff = source_region.StartStaff
-    -- declare all other local variables
-    local ok, cd, expression_defs, cat_ID, expression_ID, name_index, new_expression
+    -- declare other local variables
+    local ok, expression_ID, name_index, new_expression
 
     if source_region:CalcStaffSpan() > 1 then
         return show_error("only_one_staff")
@@ -399,24 +396,30 @@ function create_cue_notes()
         return show_error("empty_region")
     end
 
-    cd = finale.FCCategoryDef()
-    expression_defs = finale.FCTextExpressionDefs()
-    expression_defs:LoadAll()
-
-    -- collate extant cue names
-    for text_def in each(expression_defs) do
-        cat_ID = text_def.CategoryID
-        cd:Load(cat_ID)
-        if cd:CreateName().LuaString == config.cue_category_name then
-            local str = text_def:CreateTextString()
-            str:TrimEnigmaTags()
-            -- save expresion NAME and ItemNo
-            table.insert(cue_names, { str.LuaString, text_def.ItemNo } )
+    local cat_ID = -1 -- assume the CUE_NAMES category doesn't exist
+    local cat_defs = finale.FCCategoryDefs()
+    cat_defs:LoadAll()
+    for cat in each(cat_defs) do
+        if cat:CreateName().LuaString == config.cue_category_name then
+            cat_ID = cat.ID
+            break
         end
     end
+
+    local expression_defs = finale.FCTextExpressionDefs()
+    expression_defs:LoadAll()
+    if cat_ID > -1 then -- expression category already exists
+        for text_def in each(expression_defs) do -- collate existing cue names
+            if text_def.CategoryID == cat_ID then
+                local str = text_def:CreateTextString()
+                str:TrimEnigmaTags()
+                table.insert(cue_names, { str.LuaString, text_def.ItemNo } ) -- save expresion NAME and ItemNo
+            end
+        end
+    end
+
     -- test for pre-existing names
-    if #cue_names == 0 then
-        -- create a new Text Expression Category
+    if cat_ID < 0 then -- create a new Text Expression Category
         ok, cat_ID = new_expression_category(config.cue_category_name)
         if not ok then -- creation failed
             return show_error("first_make_expression_category")
