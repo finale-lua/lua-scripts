@@ -8,6 +8,7 @@ Summary of modifications:
 ]] --
 
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 
 local props = {}
 
@@ -23,7 +24,7 @@ This allows the item to be used outside of a `mixin.eachentry` loop.
 : (FCMNoteEntry|nil)
 ]]
 function props:GetItemAt(index)
-    mixin.assert_argument(index, "number", 2)
+    mixin_helper.assert_argument_type(2, index, "number")
 
     local item = self:GetItemAt_(index)
     if item then

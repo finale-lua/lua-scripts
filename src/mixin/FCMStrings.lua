@@ -8,6 +8,7 @@ Summary of modifications:
 - Setters that accept `FCStrings` now also accept multiple arguments of `FCString`, Lua `string`, or `number`.
 ]] --
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 local library = require("library.general_library")
 
 local props = {}
@@ -25,7 +26,7 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 : (boolean) True on success.
 ]]
 function props:AddCopy(str)
-    mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     if type(str) ~= "userdata" then
         temp_str.LuaString = tostring(str)
@@ -48,7 +49,7 @@ Same as `AddCopy`, but accepts multiple arguments so that multiple strings can b
 function props:AddCopies(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
-        mixin.assert_argument(v, {"FCStrings", "FCString", "string", "number"}, i + 1)
+        mixin_helper.assert_argument_type(i + 1, v, "FCStrings", "FCString", "string", "number")
         if type(v) == "userdata" and v:ClassName() == "FCStrings" then
             for str in each(v) do
                 v:AddCopy_(str)
@@ -74,7 +75,7 @@ Accepts multiple arguments.
 function props:CopyFrom(...)
     local num_args = select("#", ...)
     local first = select(1, ...)
-    mixin.assert_argument(first, {"FCStrings", "FCString", "string", "number"}, 2)
+    mixin_helper.assert_argument_type(2, first, "FCStrings", "FCString", "string", "number")
 
     if library.is_finale_object(first) and first:ClassName() == "FCStrings" then
         self:CopyFrom_(first)
@@ -85,7 +86,7 @@ function props:CopyFrom(...)
 
     for i = 2, num_args do
         local v = select(i, ...)
-        mixin.assert_argument(v, {"FCStrings", "FCString", "string", "number"}, i + 1)
+        mixin_helper.assert_argument_type(i + 1, v, "FCStrings", "FCString", "string", "number")
 
         if type(v) == "userdata" then
             if v:ClassName() == "FCString" then
@@ -115,7 +116,7 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 : (FCMString|nil)
 ]]
 function props:Find(str)
-    mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     if type(str) ~= "userdata" then
         temp_str.LuaString = tostring(str)
@@ -136,7 +137,7 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 : (FCMString|nil)
 ]]
 function props:FindNocase(str)
-    mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     if type(str) ~= "userdata" then
         temp_str.LuaString = tostring(str)
@@ -157,7 +158,7 @@ Accepts Lua `string` in addition to `FCString`.
 : (boolean) True on success.
 ]]
 function props:LoadFolderFiles(folderstring)
-    mixin.assert_argument(folderstring, {"string", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, folderstring, "string", "FCString")
 
     if type(folderstring) ~= "userdata" then
         temp_str.LuaString = tostring(folderstring)
@@ -178,7 +179,7 @@ Accepts Lua `string` in addition to `FCString`.
 : (boolean) True on success.
 ]]
 function props:LoadSubfolders(folderstring)
-    mixin.assert_argument(folderstring, {"string", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, folderstring, "string", "FCString")
 
     if type(folderstring) ~= "userdata" then
         temp_str.LuaString = tostring(folderstring)
@@ -200,8 +201,8 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 ]]
 if finenv.MajorVersion > 0 or finenv.MinorVersion >= 59 then
     function props:InsertStringAt(str, index)
-        mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
-        mixin.assert_argument(index, "number", 3)
+        mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
+        mixin_helper.assert_argument_type(3, index, "number")
 
         if type(str) ~= "userdata" then
             temp_str.LuaString = tostring(str)

@@ -45,7 +45,7 @@ mixin_helper.disable_methods(props, "Clear", "AddString", "AddStrings", "SetStri
     "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange", "RemoveHandleSelectionChange")
 
 local function repopulate(control)
-    local unit = mixin.is_instance_of(control:GetParent(), "FCXCustomLuaWindow") and control:GetParent():GetMeasurementUnit() or measurement.get_real_default_unit()
+    local unit = mixin_helper.is_instance_of(control:GetParent(), "FCXCustomLuaWindow") and control:GetParent():GetMeasurementUnit() or measurement.get_real_default_unit()
 
     if private[control].LastUnit == unit then
         return
@@ -111,9 +111,9 @@ Sets the selected page size. Must be a valid page size.
 @ size (FCString|string)
 ]]
 function props:SetSelectedPageSize(size)
-    mixin.assert_argument(size, {"string", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, size, "string", "FCString")
     size = type(size) == "userdata" and size.LuaString or tostring(size)
-    mixin.assert(page_size.is_size(size), "'" .. size .. "' is not a valid page size.")
+    mixin_helper.assert(page_size.is_size(size), "'" .. size .. "' is not a valid page size.")
 
     local index = 0
     for s in page_size.pairs() do

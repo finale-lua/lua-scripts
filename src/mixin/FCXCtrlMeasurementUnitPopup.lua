@@ -55,7 +55,7 @@ mixin_helper.disable_methods(
 @ self (FCXCtrlMeasurementUnitPopup)
 ]]
 function props:Init()
-    mixin.assert(mixin.is_instance_of(self:GetParent(), "FCXCustomLuaWindow"), "FCXCtrlMeasurementUnitPopup must have a parent window that is an instance of FCXCustomLuaWindow")
+    mixin_helper.assert(function() return mixin_helper.is_instance_of(self:GetParent(), "FCXCustomLuaWindow") end, "FCXCtrlMeasurementUnitPopup must have a parent window that is an instance of FCXCustomLuaWindow")
 
     for _, v in ipairs(unit_order) do
         mixin.FCMCtrlPopup.AddString(self, measurement.get_unit_name(v))

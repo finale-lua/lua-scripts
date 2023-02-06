@@ -65,7 +65,7 @@ end
 ]]
 function props:Init()
     local parent = self:GetParent()
-    mixin.assert(mixin.is_instance_of(parent, "FCXCustomLuaWindow"), "FCXCtrlMeasurementEdit must have a parent window that is an instance of FCXCustomLuaWindow")
+    mixin_helper.assert(function() return mixin_helper.is_instance_of(parent, "FCXCustomLuaWindow") end, "FCXCtrlMeasurementEdit must have a parent window that is an instance of FCXCustomLuaWindow")
 
     private[self] = private[self] or {
         Type = "MeasurementInteger",
@@ -107,11 +107,11 @@ Ensures that the overridden `Change` event is triggered.
 
 for method, valid_types in pairs({
     Text = {"string", "number", "FCString"},
-    Integer = "number",
-    Float = "number",
+    Integer = {"number"},
+    Float = {"number"},
 }) do
     props["Set" .. method] = function(self, value)
-        mixin.assert_argument(value, valid_types, 2)
+        mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
 
         mixin.FCMCtrlEdit["Set" .. method](self, value)
         trigger_change(self)
@@ -340,10 +340,10 @@ This means that the getters & setters used in events, measurement unit changes, 
 ]]
 
 for method, valid_types in pairs({
-    Measurement = "number",
-    MeasurementInteger = "number",
-    MeasurementEfix = "number",
-    Measurement10000th = "number",
+    Measurement = {"number"},
+    MeasurementInteger = {"number"},
+    MeasurementEfix = {"number"},
+    Measurement10000th = {"number"},
 }) do
     props["Get" .. method] = function(self)
         local text = mixin.FCMCtrlEdit.GetText(self)
@@ -356,8 +356,8 @@ for method, valid_types in pairs({
     end
 
     props["GetRange" .. method] = function(self, minimum, maximum)
-        mixin.assert_argument(minimum, "number", 2)
-        mixin.assert_argument(maximum, "number", 3)
+        mixin_helper.assert_argument_type(2, minimum, "number")
+        mixin_helper.assert_argument_type(3, maximum, "number")
 
         minimum = method ~= "Measurement" and math.ceil(minimum) or minimum
         maximum = method ~= "Measurement" and math.floor(maximum) or maximum
@@ -365,7 +365,7 @@ for method, valid_types in pairs({
     end
 
     props["Set" .. method] = function (self, value)
-        mixin.assert_argument(value, valid_types, 2)
+        mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
 
         private[self].Value = convert_type(value, method, private[self].Type)
         mixin.FCMCtrlEdit["Set" .. private[self].Type](self, private[self].Value, private[self].LastMeasurementUnit)

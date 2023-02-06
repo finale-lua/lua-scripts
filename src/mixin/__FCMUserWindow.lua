@@ -8,6 +8,7 @@ Summary of modifications:
 - In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
 ]] --
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 
 local props = {}
 
@@ -24,7 +25,7 @@ Returns a Lua `string` and makes passing an `FCString` optional.
 : (string)
 ]]
 function props:GetTitle(title)
-    mixin.assert_argument(title, {"nil", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, title, "nil", "FCString")
 
     if not title then
         title = temp_str
@@ -45,7 +46,7 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 @ title (FCString|string|number)
 ]]
 function props:SetTitle(title)
-    mixin.assert_argument(title, {"string", "number", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, title, "string", "number", "FCString")
 
     if type(title) ~= "userdata" then
         temp_str.LuaString = tostring(title)

@@ -7,6 +7,7 @@ Summary of modifications:
 - Methods that accept `FCString` now also accept Lua `string` and `number`.
 ]] --
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 
 local props = {}
 
@@ -25,9 +26,9 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 : (FCMTreeNode)
 ]]
 function props:AddNode(parentnode, iscontainer, text)
-    mixin.assert_argument(parentnode, {"nil", "FCTreeNode"}, 2)
-    mixin.assert_argument(iscontainer, "boolean", 3)
-    mixin.assert_argument(text, {"string", "number", "FCString"}, 4)
+    mixin_helper.assert_argument_type(2, parentnode, "nil", "FCTreeNode")
+    mixin_helper.assert_argument_type(3, iscontainer, "boolean")
+    mixin_helper.assert_argument_type(4, text, "string", "number", "FCString")
 
     if not text.ClassName then
         temp_str.LuaString = tostring(text)

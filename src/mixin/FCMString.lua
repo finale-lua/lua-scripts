@@ -11,6 +11,7 @@ Summary of modifications:
 - Added `*Measurement10000th` methods for setting and retrieving values in 10,000ths of an EVPU (eg for piano brace settings, slur tip width, etc)
 ]] --
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 local utils = require("library.utils")
 local measurement = require("library.measurement")
 
@@ -53,7 +54,7 @@ Also changes handling of overrides to match the behaviour of `FCCtrlEdit` on Win
 : (number) EVPUs with decimal part.
 ]]
 function props:GetMeasurement(measurementunit)
-    mixin.assert_argument(measurementunit, "number", 2)
+    mixin_helper.assert_argument_type(2, measurementunit, "number")
 
     -- Normalise decimal separator
     local value = string.gsub(self.LuaString, "%" .. mixin.UI():GetDecimalSeparator(), '.')
@@ -126,9 +127,9 @@ See `FCMString.GetMeasurement`.
 : (number)
 ]]
 function props:GetRangeMeasurement(measurementunit, minimum, maximum)
-    mixin.assert_argument(measurementunit, "number", 2)
-    mixin.assert_argument(minimum, "number", 3)
-    mixin.assert_argument(maximum, "number", 4)
+    mixin_helper.assert_argument_type(2, measurementunit, "number")
+    mixin_helper.assert_argument_type(3, minimum, "number")
+    mixin_helper.assert_argument_type(4, maximum, "number")
 
     return utils.clamp(mixin.FCMString.GetMeasurement(measurementunit), minimum, maximum)
 end
@@ -145,8 +146,8 @@ Emulates the behaviour of `FCCtrlEdit.SetMeasurement` on Windows while the windo
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT_*` constants.
 ]]
 function props:SetMeasurement(value, measurementunit)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert_argument(measurementunit, "number", 3)
+    mixin_helper.assert_argument_type(2, value, "number")
+    mixin_helper.assert_argument_type(3, measurementunit, "number")
 
     if measurementunit == finale.MEASUREMENTUNIT_PICAS then
         local whole = math.floor(value / 48)
@@ -182,7 +183,7 @@ Returns the measurement in whole EVPUs.
 : (number)
 ]]
 function props:GetMeasurementInteger(measurementunit)
-    mixin.assert_argument(measurementunit, "number", 2)
+    mixin_helper.assert_argument_type(2, measurementunit, "number")
 
     return utils.round(mixin.FCMString.GetMeasurement(self, measurementunit))
 end
@@ -200,9 +201,9 @@ Also ensures that any decimal places in `minimum` are correctly taken into accou
 : (number)
 ]]
 function props:GetRangeMeasurementInteger(measurementunit, minimum, maximum)
-    mixin.assert_argument(measurementunit, "number", 2)
-    mixin.assert_argument(minimum, "number", 3)
-    mixin.assert_argument(maximum, "number", 4)
+    mixin_helper.assert_argument_type(2, measurementunit, "number")
+    mixin_helper.assert_argument_type(3, minimum, "number")
+    mixin_helper.assert_argument_type(4, maximum, "number")
 
     return utils.clamp(mixin.FCMString.GetMeasurementInteger(measurementunit), math.ceil(minimum), math.floor(maximum))
 end
@@ -218,8 +219,8 @@ Sets a measurement in whole EVPUs.
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT*_` constants.
 ]]
 function props:SetMeasurementInteger(value, measurementunit)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert_argument(measurementunit, "number", 3)
+    mixin_helper.assert_argument_type(2, value, "number")
+    mixin_helper.assert_argument_type(3, measurementunit, "number")
 
     mixin.FCMString.SetMeasurement(self, utils.round(value), measurementunit)
 end
@@ -234,7 +235,7 @@ Returns the measurement in whole EFIXes (1/64th of an EVPU)
 : (number)
 ]]
 function props:GetMeasurementEfix(measurementunit)
-    mixin.assert_argument(measurementunit, "number", 2)
+    mixin_helper.assert_argument_type(2, measurementunit, "number")
 
     return utils.round(mixin.FCMString.GetMeasurement(self, measurementunit) * 64)
 end
@@ -251,9 +252,9 @@ Returns the measurement in whole EFIXes (1/64th of an EVPU), clamped between two
 : (number)
 ]]
 function props:GetRangeMeasurementEfix(measurementunit, minimum, maximum)
-    mixin.assert_argument(measurementunit, "number", 2)
-    mixin.assert_argument(minimum, "number", 3)
-    mixin.assert_argument(maximum, "number", 4)
+    mixin_helper.assert_argument_type(2, measurementunit, "number")
+    mixin_helper.assert_argument_type(3, minimum, "number")
+    mixin_helper.assert_argument_type(4, maximum, "number")
 
     return utils.clamp(mixin.FCMString.GetMeasurementEfix(measurementunit), math.ceil(minimum), math.floor(maximum))
 end
@@ -269,8 +270,8 @@ Sets a measurement in whole EFIXes.
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT*_` constants.
 ]]
 function props:SetMeasurementEfix(value, measurementunit)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert_argument(measurementunit, "number", 3)
+    mixin_helper.assert_argument_type(2, value, "number")
+    mixin_helper.assert_argument_type(3, measurementunit, "number")
 
     mixin.FCMString.SetMeasurement(self, utils.round(value) / 64, measurementunit)
 end
@@ -285,7 +286,7 @@ Returns the measurement in 10,000ths of an EVPU.
 : (number)
 ]]
 function props:GetMeasurement10000th(measurementunit)
-    mixin.assert_argument(measurementunit, "number", 2)
+    mixin_helper.assert_argument_type(2, measurementunit, "number")
 
     return utils.round(mixin.FCMString.GetMeasurement(self, measurementunit) * 10000)
 end
@@ -303,9 +304,9 @@ Also ensures that any decimal places in `minimum` are handled correctly instead 
 : (number)
 ]]
 function props:GetRangeMeasurement10000th(measurementunit, minimum, maximum)
-    mixin.assert_argument(measurementunit, "number", 2)
-    mixin.assert_argument(minimum, "number", 3)
-    mixin.assert_argument(maximum, "number", 4)
+    mixin_helper.assert_argument_type(2, measurementunit, "number")
+    mixin_helper.assert_argument_type(3, minimum, "number")
+    mixin_helper.assert_argument_type(4, maximum, "number")
 
     return utils.clamp(mixin.FCMString.GetMeasurement10000th(self, measurementunit), math.ceil(minimum), math.floor(maximum))
 end
@@ -321,8 +322,8 @@ Sets a measurement in 10,000ths of an EVPU.
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT*_` constants.
 ]]
 function props:SetMeasurement10000th(value, measurementunit)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert_argument(measurementunit, "number", 3)
+    mixin_helper.assert_argument_type(2, value, "number")
+    mixin_helper.assert_argument_type(3, measurementunit, "number")
 
     mixin.FCMString.SetMeasurement(self, utils.round(value) / 10000, measurementunit)
 end

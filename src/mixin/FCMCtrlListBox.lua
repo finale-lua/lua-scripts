@@ -139,7 +139,7 @@ Also hooks into control state restoration.
 @ index (number)
 ]]
 function props:SetSelectedItem(index)
-    mixin.assert_argument(index, "number", 2)
+    mixin_helper.assert_argument_type(2, index, "number")
 
     if mixin.FCMControl.UseStoredState(self) then
         private[self].SelectedItem = index
@@ -196,7 +196,7 @@ Checks if there is an item at the specified index.
 : (boolean) `true` if the item exists, `false` if it does not exist.
 ]]
 function props:ItemExists(index)
-    mixin.assert_argument(index, "number", 2)
+    mixin_helper.assert_argument_type(2, index, "number")
 
     return private[self].Items[index + 1] and true or false
 end
@@ -212,7 +212,7 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 @ str (FCString|string|number)
 ]]
 function props:AddString(str)
-    mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     if type(str) ~= "userdata" then
         temp_str.LuaString = tostring(str)
@@ -239,7 +239,7 @@ Adds multiple strings to the list box.
 function props:AddStrings(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
-        mixin.assert_argument(v, {"string", "number", "FCString", "FCStrings"}, i + 1)
+        mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings")
 
         if type(v) == "userdata" and v:ClassName() == "FCStrings" then
             for str in each(v) do
@@ -261,7 +261,7 @@ Returns a copy of all strings in the list box.
 : (table) A table of strings (1-indexed - beware if accessing keys!).
 ]]
 function props:GetStrings(strs)
-    mixin.assert_argument(strs, {"nil", "FCStrings"}, 2)
+    mixin_helper.assert_argument_type(2, strs, "nil", "FCStrings")
 
     if strs then
         strs:ClearAll()
@@ -321,8 +321,8 @@ This method works in all JW/RGP Lua versions and irrespective of whether `InitWi
 : (string)
 ]]
 function props:GetItemText(index, str)
-    mixin.assert_argument(index, "number", 2)
-    mixin.assert_argument(str, {"nil", "FCString"}, 3)
+    mixin_helper.assert_argument_type(2, index, "number")
+    mixin_helper.assert_argument_type(3, str, "nil", "FCString")
 
     if not mixin.FCMCtrlListBox.ItemExists(self, index) then
         error("No item at index " .. tostring(index), 2)
@@ -346,8 +346,8 @@ Sets the text for an item.
 @ str (FCString|string|number)
 ]]
 function props:SetItemText(index, str)
-    mixin.assert_argument(index, "number", 2)
-    mixin.assert_argument(str, {"string", "number", "FCString"}, 3)
+    mixin_helper.assert_argument_type(2, index, "number")
+    mixin_helper.assert_argument_type(3, str, "string", "number", "FCString")
 
     if not private[self].Items[index + 1] then
         error("No item at index " .. tostring(index), 2)
@@ -393,7 +393,7 @@ Returns the text for the item that is currently selected.
 : (string|nil) `nil` if no item is currently selected.
 ]]
 function props:GetSelectedString(str)
-    mixin.assert_argument(str, {"nil", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "nil", "FCString")
 
     local index = mixin.FCMCtrlListBox.GetSelectedItem(self)
 
@@ -423,7 +423,7 @@ If no match is found, the current selected item will remain selected. Matches ar
 @ str (FCString|string|number)
 ]]
 function props:SetSelectedString(str)
-    mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     str = type(str) == "userdata" and str.LuaString or tostring(str)
 
@@ -448,8 +448,8 @@ If index is >= Count, will insert at the end.
 @ str (FCString|string|number) The value to insert.
 ]]
 function props:InsertItem(index, str)
-    mixin.assert_argument(index, "number", 2)
-    mixin.assert_argument(str, {"string", "number", "FCString"}, 3)
+    mixin_helper.assert_argument_type(2, index, "number")
+    mixin_helper.assert_argument_type(3, str, "string", "number", "FCString")
 
     if index < 0 then
         index = 0
@@ -493,7 +493,7 @@ If the currently selected item is deleted, items will be deselected (ie set to -
 @ index (number) 0-based index of item to delete.
 ]]
 function props:DeleteItem(index)
-    mixin.assert_argument(index, "number", 2)
+    mixin_helper.assert_argument_type(2, index, "number")
 
     if index < 0 or index >= mixin.FCMCtrlListBox.GetCount(self) then
         return

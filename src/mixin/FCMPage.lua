@@ -8,6 +8,7 @@ Summary of modifications:
 - Added method for checking if the page is blank.
 ]] --
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 local page_size = require("library.page_size")
 
 local props = {}
@@ -34,8 +35,8 @@ Sets the dimensions of this page to match the given size. Page orientation will 
 @ size (string) A defined page size.
 ]]
 function props:SetSize(size)
-    mixin.assert_argument(size, "string", 2)
-    mixin.assert(page_size.is_size(size), "'" .. size .. "' is not a valid page size.")
+    mixin_helper.assert_argument_type(2, size, "string")
+    mixin_helper.assert(page_size.is_size(size), "'" .. size .. "' is not a valid page size.")
 
     page_size.set_page_size(self, size)
 end

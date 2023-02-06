@@ -63,9 +63,7 @@ local default_efix_steps = {
 @ self (FCXCtrlUpDown)
 ]]
 function props:Init()
-    mixin.assert(
-        mixin.is_instance_of(self:GetParent(), "FCXCustomLuaWindow"),
-        "FCXCtrlUpDown must have a parent window that is an instance of FCXCustomLuaWindow")
+    mixin_helper.assert(function() return mixin_helper.is_instance_of(self:GetParent(), "FCXCustomLuaWindow") end, "FCXCtrlUpDown must have a parent window that is an instance of FCXCustomLuaWindow")
     private[self] = private[self] or {IntegerStepSize = 1, MeasurementSteps = {}, AlignWhenMoving = true}
 
     self:AddHandlePress(
@@ -169,12 +167,10 @@ The underlying methods used in `GetValue` and `SetValue` will be `GetRangeIntege
 @ maximum (maximum)
 ]]
 function props:ConnectIntegerEdit(control, minimum, maximum)
-    mixin.assert_argument(control, "FCMCtrlEdit", 2)
-    mixin.assert_argument(minimum, "number", 3)
-    mixin.assert_argument(maximum, "number", 4)
-    mixin.assert(
-        not mixin.is_instance_of(control, "FCXCtrlMeasurementEdit"),
-        "A measurement edit cannot be connected as an integer edit.")
+    mixin_helper.assert_argument_type(2, control, "FCMCtrlEdit")
+    mixin_helper.assert_argument_type(3, minimum, "number")
+    mixin_helper.assert_argument_type(4, maximum, "number")
+    mixin_helper.assert(function() return not mixin_helper.is_instance_of(control, "FCXCtrlMeasurementEdit") end, "A measurement edit cannot be connected as an integer edit.")
 
     private[self].ConnectedEdit = control
     private[self].ConnectedEditType = "Integer"
@@ -195,9 +191,9 @@ The underlying methods used in `GetValue` and `SetValue` will depend on the meas
 @ maximum (maximum)
 ]]
 function props:ConnectMeasurementEdit(control, minimum, maximum)
-    mixin.assert_argument(control, "FCXCtrlMeasurementEdit", 2)
-    mixin.assert_argument(minimum, "number", 3)
-    mixin.assert_argument(maximum, "number", 4)
+    mixin_helper.assert_argument_type(2, control, "FCXCtrlMeasurementEdit")
+    mixin_helper.assert_argument_type(3, minimum, "number")
+    mixin_helper.assert_argument_type(4, maximum, "number")
 
     private[self].ConnectedEdit = control
     private[self].ConnectedEditType = "Measurement"
@@ -215,7 +211,7 @@ Sets the step size for integer edits.
 @ value (number)
 ]]
 function props:SetIntegerStepSize(value)
-    mixin.assert_argument(value, "number", 2)
+    mixin_helper.assert_argument_type(2, value, "number")
 
     private[self].IntegerStepSize = value
 end
@@ -230,7 +226,7 @@ Sets the step size for measurement edits that are currently displaying in EVPUs.
 @ value (number)
 ]]
 function props:SetEVPUsStepSize(value)
-    mixin.assert_argument(value, "number", 2)
+    mixin_helper.assert_argument_type(2, value, "number")
 
     private[self].MeasurementSteps[finale.MEASUREMENTUNIT_EVPUS] = {value = value, is_evpus = true}
 end
@@ -246,8 +242,8 @@ Sets the step size for measurement edits that are currently displaying in Inches
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Inches.
 ]]
 function props:SetInchesStepSize(value, is_evpus)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert_argument(is_evpus, {"boolean", "nil"}, 3)
+    mixin_helper.assert_argument_type(2, value, "number")
+    mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
     private[self].MeasurementSteps[finale.MEASUREMENTUNIT_INCHES] = {
         value = value,
@@ -266,8 +262,8 @@ Sets the step size for measurement edits that are currently displaying in Centim
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Centimeters.
 ]]
 function props:SetCentimetersStepSize(value, is_evpus)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert_argument(is_evpus, {"boolean", "nil"}, 3)
+    mixin_helper.assert_argument_type(2, value, "number")
+    mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
     private[self].MeasurementSteps[finale.MEASUREMENTUNIT_CENTIMETERS] = {
         value = value,
@@ -286,8 +282,8 @@ Sets the step size for measurement edits that are currently displaying in Points
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Points.
 ]]
 function props:SetPointsStepSize(value, is_evpus)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert_argument(is_evpus, {"boolean", "nil"}, 3)
+    mixin_helper.assert_argument_type(2, value, "number")
+    mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
     private[self].MeasurementSteps[finale.MEASUREMENTUNIT_POINTS] = {
         value = value,
@@ -306,7 +302,7 @@ Sets the step size for measurement edits that are currently displaying in Picas.
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Picas.
 ]]
 function props:SetPicasStepSize(value, is_evpus)
-    mixin.assert_argument(value, {"number", "string"}, 2)
+    mixin_helper.assert_argument_type(2, value, "number", "string")
 
     if not is_evpus then
         temp_str:SetText(tostring(value))
@@ -327,8 +323,8 @@ Sets the step size for measurement edits that are currently displaying in Spaces
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Spaces.
 ]]
 function props:SetSpacesStepSize(value, is_evpus)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert_argument(is_evpus, {"boolean", "nil"}, 3)
+    mixin_helper.assert_argument_type(2, value, "number")
+    mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
     private[self].MeasurementSteps[finale.MEASUREMENTUNIT_SPACES] = {
         value = value,
@@ -346,7 +342,7 @@ Sets whether to align to the next multiple of a step when moving.
 @ on (boolean)
 ]]
 function props:SetAlignWhenMoving(on)
-    mixin.assert_argument(on, "boolean", 2)
+    mixin_helper.assert_argument_type(2, on, "boolean")
 
     private[self].AlignWhenMoving = on
 end
@@ -396,8 +392,8 @@ Different types of connected edits will accept different types and use different
 @ value (number) An integer for an integer edit, EVPUs for a measurement edit, whole EVPUs for a measurement integer edit, or EFIXes for a measurement EFIX edit.
 ]]
 function props:SetValue(value)
-    mixin.assert_argument(value, "number", 2)
-    mixin.assert(private[self].ConnectedEdit, "Unable to set value: no connected edit.")
+    mixin_helper.assert_argument_type(2, value, "number")
+    mixin_helper.assert(private[self].ConnectedEdit, "Unable to set value: no connected edit.")
 
     -- Clamp the value
     value = value < private[self].Minimum and private[self].Minimum or value
@@ -447,8 +443,8 @@ end
 @ maximum (number) An integer for integer edits or EVPUs for measurement edits.
 ]]
 function props:SetRange(minimum, maximum)
-    mixin.assert_argument(minimum, "number", 2)
-    mixin.assert_argument(maximum, "number", 3)
+    mixin_helper.assert_argument_type(2, minimum, "number")
+    mixin_helper.assert_argument_type(3, maximum, "number")
 
     private[self].Minimum = minimum
     private[self].Maximum = maximum

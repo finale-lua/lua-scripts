@@ -56,7 +56,7 @@ Do not disable this method.
 @ window (FCMCustomWindow)
 ]]
 function props:RegisterParent(window)
-    mixin.assert_argument(window, {"FCMCustomWindow", "FCMCustomLuaWindow"}, 2)
+    mixin_helper.assert_argument_type(2, window, "FCMCustomWindow", "FCMCustomLuaWindow")
 
     if parent[self] then
         error("This method is for internal use only.", 2)
@@ -187,10 +187,10 @@ Hooks into control state restoration.
 for method, valid_types in pairs({
     Enable = {"boolean", "nil"},
     Visible = {"boolean", "nil"},
-    Left = "number",
-    Top = "number",
-    Height = "number",
-    Width = "number",
+    Left = {"number"},
+    Top = {"number"},
+    Height = {"number"},
+    Width = {"number"},
 }) do
     props["Get" .. method] = function(self)
         if mixin.FCMControl.UseStoredState(self) then
@@ -201,7 +201,7 @@ for method, valid_types in pairs({
     end
 
     props["Set" .. method] = function(self, value)
-        mixin.assert_argument(value, valid_types, 2)
+        mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
 
         if mixin.FCMControl.UseStoredState(self) then
             private[self][method] = value
@@ -230,7 +230,7 @@ Also hooks into control state restoration.
 : (string)
 ]]
 function props:GetText(str)
-    mixin.assert_argument(str, {"nil", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "nil", "FCString")
 
     if not str then
         str = temp_str
@@ -256,7 +256,7 @@ Also hooks into control state restoration.
 @ str (FCString|string|number)
 ]]
 function props:SetText(str)
-    mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     if type(str) ~= "userdata" then
         temp_str.LuaString = tostring(str)
@@ -282,7 +282,7 @@ Do not override or disable this method.
 ]]
 function props:UseStoredState()
     local parent = self:GetParent()
-    return mixin.is_instance_of(parent, "FCMCustomLuaWindow") and parent:GetRestoreControlState() and not parent:WindowExists() and parent:HasBeenShown()
+    return mixin_helper.is_instance_of(parent, "FCMCustomLuaWindow") and parent:GetRestoreControlState() and not parent:WindowExists() and parent:HasBeenShown()
 end
 
 --[[

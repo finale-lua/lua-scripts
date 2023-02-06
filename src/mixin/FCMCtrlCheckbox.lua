@@ -24,7 +24,7 @@ Ensures that `CheckChange` event is triggered.
 @ checked (number)
 ]]
 function props:SetCheck(checked)
-    mixin.assert_argument(checked, "number", 2)
+    mixin_helper.assert_argument_type(2, checked, "number")
 
     self:SetCheck_(checked)
 
