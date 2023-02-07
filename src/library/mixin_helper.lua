@@ -1,5 +1,6 @@
 --  Author: Edward Koltun
---  Date: April 3, 2022
+--  Date: 2023/02/07
+--  version 0.2
 --[[
 $module Mixin Helper
 
@@ -371,6 +372,44 @@ function mixin_helper.create_custom_window_change_event(...)
     end
 
     return add_func, remove_func, trigger_func, event.history_iterator
+end
+
+
+--[[
+% to_fcstring
+
+Casts a value to an `FCString` object. If the value is already an `FCString`, it will be returned.
+
+@ value (any)
+@ [fcstr] (FCString) An optional `FCString` object to populate to skip creating a new object.
+: (FCString)
+]]
+
+function mixin_helper.to_fcstring(value, fcstr)
+    if mixin.is_instance_of(value, "FCString") then
+        return value
+    end
+
+    fcstr = fcstr or finale.FCString()
+    fcstr.LuaString = tostring(value)
+    return fcstr
+end
+
+--[[
+% boolean_to_error
+
+There are many PDK methods that return a boolean value to indicate success / failure instead of throwing an error.
+This function captures that result and throws an error in case of failure.
+
+@ object (__FCMBase) Any `FCM` or `FCX` object.
+@ method (string) The name of the method to call (no trailing underscore, it will be added automatically).
+@ [...] (any) Any arguments to pass to the method.
+]]
+
+function mixin_helper.boolean_to_error(object, method, ...)
+    if not object[method .. "_"](object, ...) then
+        error("'" .. object.MixinClass .. "." .. method .. "' has encountered an error.", 3)
+    end
 end
 
 return mixin_helper
