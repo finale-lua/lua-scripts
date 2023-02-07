@@ -355,7 +355,6 @@ function create_new_meter()
         local time_sig = measure:GetTimeSignature()
         fix_new_top(composites[1], time_sig, meters[1][1])
         fix_new_bottom(composites[2], time_sig, meters[2])
-        time_sig:Save()
 
         if meters[7][1] ~= 0 then -- new, unique Display meter
             measure.UseTimeSigForDisplay = true
@@ -363,7 +362,6 @@ function create_new_meter()
             if display_sig then
                 fix_new_top(composites[3], display_sig, meters[7][1])
                 fix_new_bottom(composites[4], display_sig, meters[8])
-                display_sig:Save()
             end
         else   -- suppress display time_sig
             measure.UseTimeSigForDisplay = false
