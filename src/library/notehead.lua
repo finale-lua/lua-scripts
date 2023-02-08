@@ -206,13 +206,20 @@ configuration.get_parameters("notehead.config.txt", config)
 % change_shape
 
 Changes the given notehead to a specified notehead descriptor string, or specified numeric character.
+Layer number is optional.
 
 @ note (FCNote)
 @ shape (lua string) or (number)
+@ layer (number)
 
 : (FCNoteheadMod) the new notehead mod record created
 ]]
-function notehead.change_shape(note, shape)
+function notehead.change_shape(note, shape, layer)
+
+    if layer and type(layer) == "number" and note.Entry.LayerNumber ~= layer then
+        return -- note on the wrong layer
+    end
+
     local notehead_mod = finale.FCNoteheadMod()
     notehead_mod:EraseAt(note)
     local notehead_char = config.default.quarter.glyph
