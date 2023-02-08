@@ -216,7 +216,7 @@ Layer number is optional.
 ]]
 function notehead.change_shape(note, shape, layer)
 
-    if layer and type(layer) == "number" and note.Entry.LayerNumber ~= layer then
+    if layer and type(layer) == "number" and layer > 0 and note.Entry.LayerNumber ~= layer then
         return -- note on the wrong layer
     end
 
