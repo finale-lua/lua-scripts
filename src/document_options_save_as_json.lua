@@ -5,14 +5,14 @@ function plugindef()
     finaleplugin.Author = "Aaron Sherber"
     finaleplugin.AuthorURL = "https://aaron.sherber.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.1"
-    finaleplugin.Date = "2023-02-07"
+    finaleplugin.Version = "1.1.0"
+    finaleplugin.Date = "2023-02-09"
     finaleplugin.CategoryTags = "Report"   
     finaleplugin.Id = "9c05a4c4-9508-4608-bb1b-2819cba96101" 
     finaleplugin.Notes = [[
         While other plugins exist that let you copy document options from one document to another, 
         this script saves the options from the current document in an organized human-readable form, as a 
-        YAML (text) file. You can then use a diff program to compare the YAML files generated from 
+        JSON file. You can then use a diff program to compare the JSON files generated from 
         two Finale documents, or you can keep track of how the settings in a document have changed 
         over time.
         
@@ -21,31 +21,35 @@ function plugindef()
         in Finale, although some come from the Category Designer, the Page Format dialog, and the 
         SmartShape menu.
 
-        Note that numbers for measurements don't always represent the units you might expect, but they
-        will be consistent between documents. For example, most measurements are in EVPUs (1 EVPU is 
-        1/288 of an inch, 1/24 of a space, or 1/4 of a point), but some are in EFIX (1 EFIX is 1/64 of an 
-        EVPU). Even within one group of settings, like Beams, the length of a broken beam is in EVPU, but 
-        the beam thickness is in EFIX. This is just the way that Finale stores these values internally.
+        All physical measurements are given in EVPUs, except for a couple of values that Finale always 
+        displays as spaces. (1 EVPU is 1/288 of an inch, 1/24 of a space, or 1/4 of a point.) So if your 
+        measurement units are set to EVPUs, the values given here should match what you see in Finale.
     ]]
 
-    return "Serialize Document Options...", "", "Saves all current document options to a YAML file"
+    return "Save Document Options as JSON...", "", "Saves all current document options to a JSON file"
 end
 
-local save_raw_file = false
+local normalize_units = true
+local transform_categories = true
+
 local mixin = require('library.mixin')
-
-function add_props(result, obj, tag)
-    local props = dumpproperties(obj)
-    result[tag] = props
-end
 
 local fcstr = function(str)
     return mixin.FCMString():SetLuaString(str)
 end
 
+function get_file_options_tag()
+    local temp_table = {}
+    if not transform_categories then table.insert(temp_table, "raw prefs") end
+    if not normalize_units then table.insert(temp_table, "raw units") end
+    local result = table.concat(temp_table, ", ")
+    if #result > 0 then result = " - " .. result end
+    return result
+end
+
 function do_save_as_dialog(document)
-    local text_extension = ".yaml"
-    local filter_text = "YAML files"
+    local text_extension = ".json"
+    local filter_text = "JSON files"
 
     local path_name = finale.FCString()
     local file_name = finale.FCString()
@@ -59,7 +63,7 @@ function do_save_as_dialog(document)
     if extension.Length > 0 then
         file_name:TruncateAt(file_name:FindLast("."..extension.LuaString))
     end
-    if save_raw_file then file_name:AppendLuaString(" - raw") end
+    file_name:AppendLuaString(get_file_options_tag())
     file_name:AppendLuaString(text_extension)
     local save_dialog = mixin.FCMFileSaveAsDialog(finenv.UI())
             :SetWindowTitle(fcstr("Save "..full_file_name.." As"))
@@ -74,6 +78,13 @@ function do_save_as_dialog(document)
     save_dialog:GetFileName(selected_file_name)
     return selected_file_name.LuaString
 end
+
+function add_props(result, obj, tag)
+    local props = dumpproperties(obj)
+    result[tag] = props
+end
+
+-- region LOADERS
 
 function load_page_format_prefs(prefs, table)
     prefs:LoadScore()
@@ -286,34 +297,62 @@ function load_grid_prefs(prefs, table)
     end
 end
 
-local prefs_table = {
-    { prefs = finale.FCCategoryDefs(), tag = "Categories", loader = load_category_prefs },
-    { prefs = finale.FCChordPrefs(), tag = "Chords" },
-    { prefs = finale.FCDistancePrefs(), tag = "Distances" },
-    { prefs = finale.FCFontInfo(), tag = "Fonts", loader = load_font_prefs },
-    { prefs = finale.FCGridsGuidesPrefs(), tag = "GridsAndGuides", loader = load_grid_prefs },
-    { prefs = finale.FCGroupNamePositionPrefs(), tag = "GroupNamePositions", loader = load_name_position_prefs },
-    { prefs = finale.FCLayerPrefs(), tag = "Layers", loader = load_layer_prefs },
-    { prefs = finale.FCLyricsPrefs(), tag = "Lyrics" }, 
-    { prefs = finale.FCMiscDocPrefs(), tag = "MiscellaneousDocument" },
-    { prefs = finale.FCMultiMeasureRestPrefs(), tag = "MultimeasureRests" },
-    { prefs = finale.FCMusicCharacterPrefs(), tag = "MusicCharacters" },
-    { prefs = finale.FCMusicSpacingPrefs(), tag = "MusicSpacing" },
-    { prefs = finale.FCPageFormatPrefs(), tag = "PageFormat", loader = load_page_format_prefs },
-    { prefs = finale.FCPianoBracePrefs(), tag = "PianoBracesAndBrackets" },
-    { prefs = finale.FCPlaybackPrefs(), tag = "Playback" },
-    { prefs = finale.FCRepeatPrefs(), tag = "Repeats" },
-    { prefs = finale.FCSizePrefs(), tag = "Sizes" },
-    { prefs = finale.FCSmartShapePrefs(), tag = "SmartShapes", loader = load_smart_shape_prefs },
-    { prefs = finale.FCStaffNamePositionPrefs(), tag = "StaffNamePositions", loader = load_name_position_prefs },     
-    { prefs = finale.FCTiePrefs(), tag = "Ties", loader = load_tie_prefs },
-    { prefs = finale.FCTupletPrefs(), tag = "Tuplets" },
+-- endregion
+
+-- region RAW PREFS
+
+local raw_pref_names = {
+    CATEGORIES = "Categories",
+    CHORDS = "Chords",
+    DISTANCES = "Distances",
+    FONTS = "Fonts",
+    GRIDS = "GridsAndGuides",
+    GROUPNAMEPOS = "GroupNamePositions",
+    LAYERS = "Layers",
+    LYRICS = "Lyrics",
+    MISCDOC = "MiscellaneousDocument",
+    MMRESTS = "MultimeasureRests",
+    MUSICCHAR = "MusicCharacters",
+    MUSICSPACING = "MusicSpacing",
+    PAGEFORMAT = "PageFormat",
+    PIANOBRACES = "PianoBraces",
+    PLAYBACK = "Playback",
+    REPEATS = "Repeats",
+    SIZES = "Sizes",
+    SMARTSHAPES = "SmartShapes",
+    STAFFNAMEPOS = "StaffNamePositions",
+    TIES = "Ties",
+    TUPLETS = "Tuplets"
 }
 
-function collect_all_prefs()
+local raw_prefs_table = {
+    { prefs = finale.FCCategoryDefs(), tag = raw_pref_names.CATEGORIES, loader = load_category_prefs },
+    { prefs = finale.FCChordPrefs(), tag = raw_pref_names.CHORDS },
+    { prefs = finale.FCDistancePrefs(), tag = raw_pref_names.DISTANCES },
+    { prefs = finale.FCFontInfo(), tag = raw_pref_names.FONTS, loader = load_font_prefs },
+    { prefs = finale.FCGridsGuidesPrefs(), tag = raw_pref_names.GRIDS, loader = load_grid_prefs },
+    { prefs = finale.FCGroupNamePositionPrefs(), tag = raw_pref_names.GROUPNAMEPOS, loader = load_name_position_prefs },
+    { prefs = finale.FCLayerPrefs(), tag = raw_pref_names.LAYERS, loader = load_layer_prefs },
+    { prefs = finale.FCLyricsPrefs(), tag = raw_pref_names.LYRICS }, 
+    { prefs = finale.FCMiscDocPrefs(), tag = raw_pref_names.MISCDOC },
+    { prefs = finale.FCMultiMeasureRestPrefs(), tag = raw_pref_names.MMRESTS },
+    { prefs = finale.FCMusicCharacterPrefs(), tag = raw_pref_names.MUSICCHAR },
+    { prefs = finale.FCMusicSpacingPrefs(), tag = raw_pref_names.MUSICSPACING },
+    { prefs = finale.FCPageFormatPrefs(), tag = raw_pref_names.PAGEFORMAT, loader = load_page_format_prefs },
+    { prefs = finale.FCPianoBracePrefs(), tag = raw_pref_names.PIANOBRACES },
+    { prefs = finale.FCPlaybackPrefs(), tag = raw_pref_names.PLAYBACK },
+    { prefs = finale.FCRepeatPrefs(), tag = raw_pref_names.REPEATS },
+    { prefs = finale.FCSizePrefs(), tag = raw_pref_names.SIZES },
+    { prefs = finale.FCSmartShapePrefs(), tag = raw_pref_names.SMARTSHAPES, loader = load_smart_shape_prefs },
+    { prefs = finale.FCStaffNamePositionPrefs(), tag = raw_pref_names.STAFFNAMEPOS, loader = load_name_position_prefs },     
+    { prefs = finale.FCTiePrefs(), tag = raw_pref_names.TIES, loader = load_tie_prefs },
+    { prefs = finale.FCTupletPrefs(), tag = raw_pref_names.TUPLETS },
+}
+
+function load_all_raw_prefs()
     local result = {}
     
-    for _, obj in ipairs(prefs_table) do
+    for _, obj in ipairs(raw_prefs_table) do
         if obj.loader == nil then
             obj.prefs:Load(1)
             add_props(result, obj.prefs, obj.tag)
@@ -321,56 +360,63 @@ function collect_all_prefs()
             result[obj.tag] = {}
             obj.loader(obj.prefs, result[obj.tag])
         end
+        if normalize_units then
+            normalize_units_for_section(result[obj.tag], obj.tag)
+        end
     end
 
     return result
 end
 
+-- endregion
+
+-- region TRANSFORM
+
 local transform_table = {
     Accidentals = { 
-        Distances  = { "^Accidental" },
-        MusicSpacing = { "AccidentalsGutter" },
-        MusicCharacters = {
+        [raw_pref_names.DISTANCES]  = { "^Accidental" },
+        [raw_pref_names.MUSICSPACING] = { "AccidentalsGutter" },
+        [raw_pref_names.MUSICCHAR] = {
             "SymbolNatural", "SymbolFlat", "SymbolSharp", "SymbolDoubleFlat",
             "SymbolDoubleSharp", "SymbolPar."
         },
     },
     AlternateNotation = {
-        Distances = { "^Alternate" },
-        MusicCharacters = {
+        [raw_pref_names.DISTANCES] = { "^Alternate" },
+        [raw_pref_names.MUSICCHAR] = {
             "VerticalTwoMeasureRepeatOffset", ".Slash",            
             "SymbolOneBarRepeat", "SymbolTwoBarRepeat",
         },
     },
     AugmentationDots = {
-        MiscellaneousDocument = { "AdjustDotForMultiVoices" },
-        MusicCharacters = { "SymbolAugmentationDot" },
-        Distances = { "^AugmentationDot" }
+        [raw_pref_names.MISCDOC] = { "AdjustDotForMultiVoices" },
+        [raw_pref_names.MUSICCHAR] = { "SymbolAugmentationDot" },
+        [raw_pref_names.DISTANCES] = { "^AugmentationDot" }
     },
     Barlines = {
-        Distances = { "^Barline" },
-        Sizes = { "Barline." },
-        MiscellaneousDocument = { ".Barline" }
+        [raw_pref_names.DISTANCES] = { "^Barline" },
+        [raw_pref_names.SIZES] = { "Barline." },
+        [raw_pref_names.MISCDOC] = { ".Barline" }
     },
     Beams = {
-        Distances = { "Beam." },
-        Sizes = { "Beam." },
-        MiscellaneousDocument = { "Beam.", "IncludeRestsInFour", "AllowFloatingRests" }
+        [raw_pref_names.DISTANCES] = { "Beam." },
+        [raw_pref_names.SIZES] = { "Beam." },
+        [raw_pref_names.MISCDOC] = { "Beam.", "IncludeRestsInFour", "AllowFloatingRests" }
     },
     Chords = {
-        Chords = { "." },
-        MusicCharacters = { "Chord." },
-        MiscellaneousDocument = { "Chord.", "Fretboard." }
+        [raw_pref_names.CHORDS] = { "." },
+        [raw_pref_names.MUSICCHAR] = { "Chord." },
+        [raw_pref_names.MISCDOC] = { "Chord.", "Fretboard." }
     },
     Clefs = {
-        MiscellaneousDocument = { "ClefResize", ".Clef" },
-        Distances = { "^Clef" }
+        [raw_pref_names.MISCDOC] = { "ClefResize", ".Clef" },
+        [raw_pref_names.DISTANCES] = { "^Clef" }
     },
     Flags = {
-        MusicCharacters = { ".Flag", "VerticalSecondaryGroupAdjust" }
+        [raw_pref_names.MUSICCHAR] = { ".Flag", "VerticalSecondaryGroupAdjust" }
     },
     Fonts = {
-        Fonts = { 
+        [raw_pref_names.FONTS] = { 
             "^Lyric", "^Text", "^Time", ".Names", "Noteheads$", "^Chord",
             "^Alternate", "Dots$", "EndingRepeats",  "MeasureNumbers", 
             "Tablature",  "Accidentals",  "Flags", "Rests", "Clefs", 
@@ -379,85 +425,85 @@ local transform_table = {
         }
     },
     GraceNotes = {
-        Sizes = { "Grace." },
-        Distances = { "GraceNoteSpacing" },
-        MiscellaneousDocument = { "Grace." },
+        [raw_pref_names.SIZES] = { "Grace." },
+        [raw_pref_names.DISTANCES] = { "GraceNoteSpacing" },
+        [raw_pref_names.MISCDOC] = { "Grace." },
     },
     GridsAndGuides = {
-        GridsAndGuides = { "." }
+        [raw_pref_names.GRIDS] = { "." }
     },
     KeySignatures = {
-        Distances = { "^Key" },
-        MusicCharacters = { "^SymbolKey" },
-        MiscellaneousDocument = { "^Key", "CourtesyKeySigAtSystemEnd" }
+        [raw_pref_names.DISTANCES] = { "^Key" },
+        [raw_pref_names.MUSICCHAR] = { "^SymbolKey" },
+        [raw_pref_names.MISCDOC] = { "^Key", "CourtesyKeySigAtSystemEnd" }
     },
     Layers = {
-        Layers = { "." },
-        MiscellaneousDocument = { "ConsolidateRestsAcrossLayers" }
+        [raw_pref_names.LAYERS] = { "." },
+        [raw_pref_names.MISCDOC] = { "ConsolidateRestsAcrossLayers" }
     },
     LinesAndCurves = {
-        Sizes = { "^Ledger", "EnclosureThickness", "StaffLineThickness", "ShapeSlurTipWidth" },
-        MiscellaneousDocument = { "CurveResolution" }
+        [raw_pref_names.SIZES] = { "^Ledger", "EnclosureThickness", "StaffLineThickness", "ShapeSlurTipWidth" },
+        [raw_pref_names.MISCDOC] = { "CurveResolution" }
     },
     Lyrics = {
-        Lyrics = { "." }
+        [raw_pref_names.LYRICS] = { "." }
     },
     MultimeasureRests = {
-        MultimeasureRests = { "." }
+        [raw_pref_names.MMRESTS] = { "." }
     },
     MusicSpacing = {
-        MusicSpacing = { "!Gutter$" },
-        MiscellaneousDocument = { "ScaleManualNotePositioning" }
+        [raw_pref_names.MUSICSPACING] = { "!Gutter$" },
+        [raw_pref_names.MISCDOC] = { "ScaleManualNotePositioning" }
     },
     NotesAndRests = {
-        MiscellaneousDocument = { "UseNoteShapes", "CrossStaffNotesInOriginal" },
-        Distances = { "^Space" },
-        MusicCharacters = { "^Symbol.*Rest$", "^Symbol.*Notehead$", "^Vertical.*Rest$"}
+        [raw_pref_names.MISCDOC] = { "UseNoteShapes", "CrossStaffNotesInOriginal" },
+        [raw_pref_names.DISTANCES] = { "^Space" },
+        [raw_pref_names.MUSICCHAR] = { "^Symbol.*Rest$", "^Symbol.*Notehead$", "^Vertical.*Rest$"}
     },
     PianoBracesAndBrackets = {
-        PianoBracesAndBrackets = { "." },
-        Distances = { "GroupBracketDefaultDistance" }
+        [raw_pref_names.PIANOBRACES] = { "." },
+        [raw_pref_names.DISTANCES] = { "GroupBracketDefaultDistance" }
     },
     Repeats = {
-        Repeats = { "." },
-        MusicCharacters = { "RepeatDot$" }
+        [raw_pref_names.REPEATS] = { "." },
+        [raw_pref_names.MUSICCHAR] = { "RepeatDot$" }
     },
     Stems = {
-        Sizes = { "Stem." },
-        Distances = { "StemVerticalNoteheadOffset" },
-        MiscellaneousDocument = { "UseStemConnections", "DisplayReverseStemming" }
+        [raw_pref_names.SIZES] = { "Stem." },
+        [raw_pref_names.DISTANCES] = { "StemVerticalNoteheadOffset" },
+        [raw_pref_names.MISCDOC] = { "UseStemConnections", "DisplayReverseStemming" }
     },
     Text = {
-        MiscellaneousDocument = { "DateFormat", "SecondsInTimeStamp", "TextTabCharacters" },
+        [raw_pref_names.MISCDOC] = { "DateFormat", "SecondsInTimeStamp", "TextTabCharacters" },
     },
     Ties = {
-        Ties = { "." }
+        [raw_pref_names.TIES] = { "." }
     },
     TimeSignatures = {
-        MiscellaneousDocument = { ".TimeSig", "TimeSigCompositeDecimals" },
-        MusicCharacters = { ".TimeSig" },
-        Distances = { "^TimeSig" },
+        [raw_pref_names.MISCDOC] = { ".TimeSig", "TimeSigCompositeDecimals" },
+        [raw_pref_names.MUSICCHAR] = { ".TimeSig" },
+        [raw_pref_names.DISTANCES] = { "^TimeSig" },
     },
     Tuplets = {
-        Tuplets = { "." }
+        [raw_pref_names.TUPLETS] = { "." }
     },
     Categories = {
-        Categories = { "." }
+        [raw_pref_names.CATEGORIES] = { "." }
     },
     PageFormat = {
-        PageFormat = { "." }
+        [raw_pref_names.PAGEFORMAT] = { "." }
     },
     SmartShapes = {
-        SmartShapes = { "." },
-        MusicCharacters = { ".Octave", "SymbolTrill", "SymbolWiggle" },
-        _Fonts = { "^SmartShape", "^Guitar" }    -- incorporate a top-level menu from the source as a submenu
+        [raw_pref_names.SMARTSHAPES] = { "." },
+        [raw_pref_names.MUSICCHAR] = { ".Octave", "SymbolTrill", "SymbolWiggle" },
+        [">" .. raw_pref_names.FONTS] = { "^SmartShape", "^Guitar" }    -- incorporate a top-level menu from the source as a submenu
     },
     NamePositions = {
-        _GroupNamePositions = { "." },
-        _StaffNamePositions = { "." },
+        [">" .. raw_pref_names.GROUPNAMEPOS] = { "." },
+        [">" .. raw_pref_names.STAFFNAMEPOS] = { "." },
     },
     DefaultMusicFont = {
-        ["Fonts/Music"] = { "." }
+        [raw_pref_names.FONTS .. "/Music"] = { "." }
     }
 }
 
@@ -481,7 +527,7 @@ function copy_items(source_table, dest_table, refs)
     end
 
     for source_menu, items in pairs(refs) do
-        if source_menu:sub(1, 1) == "_" then
+        if source_menu:sub(1, 1) == ">" then
             source_menu = source_menu:sub(2)        
             dest_table[source_menu] = {}
             target = dest_table[source_menu]    
@@ -499,50 +545,166 @@ function copy_items(source_table, dest_table, refs)
     end
 end
 
-function apply_transform(prefs)
+function apply_transform(all_raw_prefs)
     local result = {}
     for transformed_category, refs in pairs(transform_table) do
         result[transformed_category] = {}
-        copy_items(prefs, result[transformed_category], refs)
+        copy_items(all_raw_prefs, result[transformed_category], refs)
     end
     return result
 end
 
--- Simple implementation because we know our inputs are simple
-function get_as_yaml(t, indent)
-    indent = indent or 0
-    local spaces = string.rep(" ", indent * 2)
-    local result = {}
+-- endregion
 
-    local first_element = true
-    for key, val in pairsbykeys(t) do
-        if type(val) == "table" then 
-            if not first_element then table.insert(result, '') end
-            first_element = false
-            table.insert(result, string.format('%s%s:', spaces, key))
-            table.insert(result, get_as_yaml(val, indent + 1))        
-        else
-            table.insert(result, string.format('%s%s: %s', spaces, key, tostring(val)))
-        end 
+-- region NORMALIZE
+
+local normalize_funcs = {
+    d64 = function(value) return value / 64 end,
+    d10k = function(value) return value / 10000 end,
+    d16 = function(value) return value / 16 end,
+    d100 = function(value) return value / 100 end,
+    d10 = function(value) return value / 10 end,
+    d20_48 = function(value) return value / 20.48 end,
+    m100 = function(value) return value * 100 end,
+}
+
+local norm_func_selectors = {
+    [raw_pref_names.DISTANCES] = {
+        BarlineDoubleSpace = normalize_funcs.d64,
+        BarlineFinalSpace = normalize_funcs.d64,
+        StemVerticalNoteheadOffset = normalize_funcs.d64
+    },
+    [raw_pref_names.GRIDS] = {
+        GravityZoneSize = normalize_funcs.d64,
+        GridDistance = normalize_funcs.d64
+    },
+    [raw_pref_names.LYRICS] = {
+        WordExtLineThickness = normalize_funcs.d64
+    },
+    [raw_pref_names.MISCDOC] = {
+        FretboardsResizeFraction = normalize_funcs.d10k
+    },
+    [raw_pref_names.MUSICCHAR] = {
+        DefaultStemLift = normalize_funcs.d64,
+        ["[HV].+Flag[UD]"] = normalize_funcs.d64,        
+    },
+    [raw_pref_names.PAGEFORMAT] = {
+        SystemStaffHeight = normalize_funcs.d16
+    },
+    [raw_pref_names.PIANOBRACES] = {
+        ["."] = normalize_funcs.d10k
+    },
+    [raw_pref_names.REPEATS] = {
+        ["Thickness$"] = normalize_funcs.d64,
+        SpaceBetweenLines = normalize_funcs.d64,        
+    },
+    [raw_pref_names.SIZES] = {
+        ["Thickness$"] = normalize_funcs.d64,
+        ShapeSlurTipWidth = normalize_funcs.d10k,
+    },
+    [raw_pref_names.SMARTSHAPES] = {
+        EngraverSlurMaxAngle = normalize_funcs.d100,
+        EngraverSlurMaxLift = normalize_funcs.d64,
+        EngraverSlurMaxStretchFixed = normalize_funcs.d64,
+        EngraverSlurMaxStretchPercent = normalize_funcs.d100,
+        EngraverSlurSymmetryPercent = normalize_funcs.d100,
+        HairpinLineWidth = normalize_funcs.d64,
+        ["^LineWidth$"] = normalize_funcs.d64,
+        SlurTipWidth = normalize_funcs.d10k,
+        Inset = normalize_funcs.d20_48,
+    },
+    [raw_pref_names.TIES] = {
+        TipWidth = normalize_funcs.d10k,
+        ["tRelativeInset"] = normalize_funcs.m100
+    },
+    [raw_pref_names.TUPLETS] = {
+        BracketThickness = normalize_funcs.d64,
+        MaxSlope = normalize_funcs.d10
+    }    
+}
+
+function normalize_units_for_table(t, pattern, func)
+    for key, value in pairs(t) do
+        if type(value) == "table" then 
+            normalize_units_for_table(value, pattern, func)
+        elseif string.find(key, pattern) then
+            t[key] = func(value)
+        end
     end
+end    
 
-    return table.concat(result, '\n')
+function normalize_units_for_section(section_table, section_tag)
+    local selectors = norm_func_selectors[section_tag]
+    if selectors then
+        for pattern, func in pairs(selectors) do            
+            normalize_units_for_table(section_table, pattern, func)
+        end
+    end
 end
 
-function get_header(document)
+-- endregion
+
+function get_last_key(t)
+    local result
+    for k, _ in pairsbykeys(t) do result = k end
+    return result
+end
+
+-- Simple implementation because we know our inputs are simple
+-- Can't use a json library because we need to keep keys in order
+function get_as_json(t, indent)
+    indent = indent or 0
+    local result = {}
+
+    table.insert(result, '{\n')
+    indent = indent + 1
+    local spaces = string.rep(" ", indent * 2) 
+
+    local last_key = get_last_key(t)
+    for key, val in pairsbykeys(t) do
+        local maybe_comma = key ~= last_key and ',' or ''
+        if type(val) == "table" then 
+            table.insert(result, string.format('%s"%s": ', spaces, key))
+            table.insert(result, get_as_json(val, indent))
+            table.insert(result, string.format("%s}%s\n",
+                spaces,
+                maybe_comma
+            ))
+        else 
+            table.insert(result, string.format('%s"%s": %s%s\n',
+                spaces, 
+                key, 
+                type(val) == "string" and string.format('"%s"', val) or tostring(val),
+                maybe_comma
+            ))
+        end
+    end
+
+    if indent == 1 then
+        table.insert(result, "}")
+    end 
+    return table.concat(result)
+end
+
+function insert_header(prefs_table, document)
     local file_path = finale.FCString()
     document:GetPath(file_path)
-    local meta = { Meta = {
-      File = file_path.LuaString,
+    local key = "@Meta"
+    prefs_table[key] = {
+      File = string.gsub(file_path.LuaString, "\\", "\\\\"),
       Date =  os.date(),
       FinaleVersion = finenv.FinaleVersion,
       PluginVersion = finaleplugin.Version
-    } };
-    if save_raw_file then meta.Meta.Raw = true end
-    return '---\n' .. get_as_yaml(meta) .. '\n\n'
+    }
+    if not transform_categories then 
+        prefs_table[key].Transformed = false 
+    end
+    if normalize_units then
+        prefs_table[key].DefaultUnit = "ev"
+    end
 end
 
-function options_save_as_yaml()
+function options_save_as_json()
     local documents = finale.FCDocuments()
     documents:LoadAll()
     local document = documents:FindCurrent()
@@ -558,12 +720,11 @@ function options_save_as_yaml()
         return
     end
 
-    local all_prefs = collect_all_prefs()
-    local prefs_to_save = save_raw_file and all_prefs or apply_transform(all_prefs)
-    file:write(get_header(document))
-    file:write(get_as_yaml(prefs_to_save))
+    local raw_prefs = load_all_raw_prefs()
+    local prefs_to_save = transform_categories and apply_transform(raw_prefs) or raw_prefs
+    insert_header(prefs_to_save, document)
+    file:write(get_as_json(prefs_to_save))
     file:close()
 end
 
-
-options_save_as_yaml()
+options_save_as_json()
