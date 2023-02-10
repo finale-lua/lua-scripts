@@ -5,8 +5,8 @@ function plugindef()
     finaleplugin.Author = "Aaron Sherber"
     finaleplugin.AuthorURL = "https://aaron.sherber.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.1.1"
-    finaleplugin.Date = "2023-02-09"
+    finaleplugin.Version = "1.1.2"
+    finaleplugin.Date = "2023-02-10"
     finaleplugin.CategoryTags = "Report"   
     finaleplugin.Id = "9c05a4c4-9508-4608-bb1b-2819cba96101" 
     finaleplugin.Notes = [[
@@ -302,67 +302,44 @@ end
 
 -- region RAW PREFS
 
-local raw_pref_names = {
-    CATEGORIES = "Categories",
-    CHORDS = "Chords",
-    DISTANCES = "Distances",
-    FONTS = "Fonts",
-    GRIDS = "GridsAndGuides",
-    GROUPNAMEPOS = "GroupNamePositions",
-    LAYERS = "Layers",
-    LYRICS = "Lyrics",
-    MISCDOC = "MiscellaneousDocument",
-    MMRESTS = "MultimeasureRests",
-    MUSICCHAR = "MusicCharacters",
-    MUSICSPACING = "MusicSpacing",
-    PAGEFORMAT = "PageFormat",
-    PIANOBRACES = "PianoBraces",
-    PLAYBACK = "Playback",
-    REPEATS = "Repeats",
-    SIZES = "Sizes",
-    SMARTSHAPES = "SmartShapes",
-    STAFFNAMEPOS = "StaffNamePositions",
-    TIES = "Ties",
-    TUPLETS = "Tuplets"
-}
-
 local raw_prefs_table = {
-    { prefs = finale.FCCategoryDefs(), tag = raw_pref_names.CATEGORIES, loader = load_category_prefs },
-    { prefs = finale.FCChordPrefs(), tag = raw_pref_names.CHORDS },
-    { prefs = finale.FCDistancePrefs(), tag = raw_pref_names.DISTANCES },
-    { prefs = finale.FCFontInfo(), tag = raw_pref_names.FONTS, loader = load_font_prefs },
-    { prefs = finale.FCGridsGuidesPrefs(), tag = raw_pref_names.GRIDS, loader = load_grid_prefs },
-    { prefs = finale.FCGroupNamePositionPrefs(), tag = raw_pref_names.GROUPNAMEPOS, loader = load_name_position_prefs },
-    { prefs = finale.FCLayerPrefs(), tag = raw_pref_names.LAYERS, loader = load_layer_prefs },
-    { prefs = finale.FCLyricsPrefs(), tag = raw_pref_names.LYRICS }, 
-    { prefs = finale.FCMiscDocPrefs(), tag = raw_pref_names.MISCDOC },
-    { prefs = finale.FCMultiMeasureRestPrefs(), tag = raw_pref_names.MMRESTS },
-    { prefs = finale.FCMusicCharacterPrefs(), tag = raw_pref_names.MUSICCHAR },
-    { prefs = finale.FCMusicSpacingPrefs(), tag = raw_pref_names.MUSICSPACING },
-    { prefs = finale.FCPageFormatPrefs(), tag = raw_pref_names.PAGEFORMAT, loader = load_page_format_prefs },
-    { prefs = finale.FCPianoBracePrefs(), tag = raw_pref_names.PIANOBRACES },
-    { prefs = finale.FCPlaybackPrefs(), tag = raw_pref_names.PLAYBACK },
-    { prefs = finale.FCRepeatPrefs(), tag = raw_pref_names.REPEATS },
-    { prefs = finale.FCSizePrefs(), tag = raw_pref_names.SIZES },
-    { prefs = finale.FCSmartShapePrefs(), tag = raw_pref_names.SMARTSHAPES, loader = load_smart_shape_prefs },
-    { prefs = finale.FCStaffNamePositionPrefs(), tag = raw_pref_names.STAFFNAMEPOS, loader = load_name_position_prefs },     
-    { prefs = finale.FCTiePrefs(), tag = raw_pref_names.TIES, loader = load_tie_prefs },
-    { prefs = finale.FCTupletPrefs(), tag = raw_pref_names.TUPLETS },
+    { prefs = finale.FCCategoryDefs(), loader = load_category_prefs },
+    { prefs = finale.FCChordPrefs() },
+    { prefs = finale.FCDistancePrefs() },
+    { prefs = finale.FCFontInfo(), loader = load_font_prefs },
+    { prefs = finale.FCGridsGuidesPrefs(), loader = load_grid_prefs },
+    { prefs = finale.FCGroupNamePositionPrefs(), loader = load_name_position_prefs },
+    { prefs = finale.FCLayerPrefs(), loader = load_layer_prefs },
+    { prefs = finale.FCLyricsPrefs() }, 
+    { prefs = finale.FCMiscDocPrefs() },
+    { prefs = finale.FCMultiMeasureRestPrefs() },
+    { prefs = finale.FCMusicCharacterPrefs() },
+    { prefs = finale.FCMusicSpacingPrefs() },
+    { prefs = finale.FCPageFormatPrefs(), loader = load_page_format_prefs },
+    { prefs = finale.FCPianoBracePrefs() },
+    { prefs = finale.FCPlaybackPrefs() },
+    { prefs = finale.FCRepeatPrefs() },
+    { prefs = finale.FCSizePrefs() },
+    { prefs = finale.FCSmartShapePrefs(), loader = load_smart_shape_prefs },
+    { prefs = finale.FCStaffNamePositionPrefs(), loader = load_name_position_prefs },     
+    { prefs = finale.FCTiePrefs(), loader = load_tie_prefs },
+    { prefs = finale.FCTupletPrefs() },
 }
 
 function load_all_raw_prefs()
     local result = {}
     
     for _, obj in ipairs(raw_prefs_table) do
+        local tag = obj.prefs:ClassName()
         if obj.loader == nil then
             obj.prefs:Load(1)
-            add_props(result, obj.prefs, obj.tag)
+            add_props(result, obj.prefs, tag)
         else
-            result[obj.tag] = {}
-            obj.loader(obj.prefs, result[obj.tag])
+            result[tag] = {}
+            obj.loader(obj.prefs, result[tag])
         end
         if normalize_units then
-            normalize_units_for_section(result[obj.tag], obj.tag)
+            normalize_units_for_section(result[tag], tag)
         end
     end
 
@@ -375,49 +352,49 @@ end
 
 local transform_table = {
     Accidentals = { 
-        [raw_pref_names.DISTANCES]  = { "^Accidental" },
-        [raw_pref_names.MUSICSPACING] = { "AccidentalsGutter" },
-        [raw_pref_names.MUSICCHAR] = {
+        FCDistancePrefs  = { "^Accidental" },
+        FCMusicSpacingPrefs = { "AccidentalsGutter" },
+        FCMusicCharacterPrefs = {
             "SymbolNatural", "SymbolFlat", "SymbolSharp", "SymbolDoubleFlat",
             "SymbolDoubleSharp", "SymbolPar."
         },
     },
     AlternateNotation = {
-        [raw_pref_names.DISTANCES] = { "^Alternate" },
-        [raw_pref_names.MUSICCHAR] = {
+        FCDistancePrefs = { "^Alternate" },
+        FCMusicCharacterPrefs = {
             "VerticalTwoMeasureRepeatOffset", ".Slash",            
             "SymbolOneBarRepeat", "SymbolTwoBarRepeat",
         },
     },
     AugmentationDots = {
-        [raw_pref_names.MISCDOC] = { "AdjustDotForMultiVoices" },
-        [raw_pref_names.MUSICCHAR] = { "SymbolAugmentationDot" },
-        [raw_pref_names.DISTANCES] = { "^AugmentationDot" }
+        FCMiscDocPrefs = { "AdjustDotForMultiVoices" },
+        FCMusicCharacterPrefs = { "SymbolAugmentationDot" },
+        FCDistancePrefs = { "^AugmentationDot" }
     },
     Barlines = {
-        [raw_pref_names.DISTANCES] = { "^Barline" },
-        [raw_pref_names.SIZES] = { "Barline." },
-        [raw_pref_names.MISCDOC] = { ".Barline" }
+        FCDistancePrefs = { "^Barline" },
+        FCSizePrefs = { "Barline." },
+        FCMiscDocPrefs = { ".Barline" }
     },
     Beams = {
-        [raw_pref_names.DISTANCES] = { "Beam." },
-        [raw_pref_names.SIZES] = { "Beam." },
-        [raw_pref_names.MISCDOC] = { "Beam.", "IncludeRestsInFour", "AllowFloatingRests" }
+        FCDistancePrefs = { "Beam." },
+        FCSizePrefs = { "Beam." },
+        FCMiscDocPrefs = { "Beam.", "IncludeRestsInFour", "AllowFloatingRests" }
     },
     Chords = {
-        [raw_pref_names.CHORDS] = { "." },
-        [raw_pref_names.MUSICCHAR] = { "Chord." },
-        [raw_pref_names.MISCDOC] = { "Chord.", "Fretboard." }
+        FCChordPrefs = { "." },
+        FCMusicCharacterPrefs = { "Chord." },
+        FCMiscDocPrefs = { "Chord.", "Fretboard." }
     },
     Clefs = {
-        [raw_pref_names.MISCDOC] = { "ClefResize", ".Clef" },
-        [raw_pref_names.DISTANCES] = { "^Clef" }
+        FCMiscDocPrefs = { "ClefResize", ".Clef" },
+        FCDistancePrefs = { "^Clef" }
     },
     Flags = {
-        [raw_pref_names.MUSICCHAR] = { ".Flag", "VerticalSecondaryGroupAdjust" }
+        FCMusicCharacterPrefs = { ".Flag", "VerticalSecondaryGroupAdjust" }
     },
     Fonts = {
-        [raw_pref_names.FONTS] = { 
+        FCFontInfo = { 
             "^Lyric", "^Text", "^Time", ".Names", "Noteheads$", "^Chord",
             "^Alternate", "Dots$", "EndingRepeats",  "MeasureNumbers", 
             "Tablature",  "Accidentals",  "Flags", "Rests", "Clefs", 
@@ -426,85 +403,85 @@ local transform_table = {
         }
     },
     GraceNotes = {
-        [raw_pref_names.SIZES] = { "Grace." },
-        [raw_pref_names.DISTANCES] = { "GraceNoteSpacing" },
-        [raw_pref_names.MISCDOC] = { "Grace." },
+        FCSizePrefs = { "Grace." },
+        FCDistancePrefs = { "GraceNoteSpacing" },
+        FCMiscDocPrefs = { "Grace." },
     },
     GridsAndGuides = {
-        [raw_pref_names.GRIDS] = { "." }
+        FCGridsGuidesPrefs = { "." }
     },
     KeySignatures = {
-        [raw_pref_names.DISTANCES] = { "^Key" },
-        [raw_pref_names.MUSICCHAR] = { "^SymbolKey" },
-        [raw_pref_names.MISCDOC] = { "^Key", "CourtesyKeySigAtSystemEnd" }
+        FCDistancePrefs = { "^Key" },
+        FCMusicCharacterPrefs = { "^SymbolKey" },
+        FCMiscDocPrefs = { "^Key", "CourtesyKeySigAtSystemEnd" }
     },
     Layers = {
-        [raw_pref_names.LAYERS] = { "." },
-        [raw_pref_names.MISCDOC] = { "ConsolidateRestsAcrossLayers" }
+        FCLayerPrefs = { "." },
+        FCMiscDocPrefs = { "ConsolidateRestsAcrossLayers" }
     },
     LinesAndCurves = {
-        [raw_pref_names.SIZES] = { "^Ledger", "EnclosureThickness", "StaffLineThickness", "ShapeSlurTipWidth" },
-        [raw_pref_names.MISCDOC] = { "CurveResolution" }
+        FCSizePrefs = { "^Ledger", "EnclosureThickness", "StaffLineThickness", "ShapeSlurTipWidth" },
+        FCMiscDocPrefs = { "CurveResolution" }
     },
     Lyrics = {
-        [raw_pref_names.LYRICS] = { "." }
+        FCLyricsPrefs = { "." }
     },
     MultimeasureRests = {
-        [raw_pref_names.MMRESTS] = { "." }
+        FCMultiMeasureRestPrefs = { "." }
     },
     MusicSpacing = {
-        [raw_pref_names.MUSICSPACING] = { "!Gutter$" },
-        [raw_pref_names.MISCDOC] = { "ScaleManualNotePositioning" }
+        FCMusicSpacingPrefs = { "!Gutter$" },
+        FCMiscDocPrefs = { "ScaleManualNotePositioning" }
     },
     NotesAndRests = {
-        [raw_pref_names.MISCDOC] = { "UseNoteShapes", "CrossStaffNotesInOriginal" },
-        [raw_pref_names.DISTANCES] = { "^Space" },
-        [raw_pref_names.MUSICCHAR] = { "^Symbol.*Rest$", "^Symbol.*Notehead$", "^Vertical.*Rest$"}
+        FCMiscDocPrefs = { "UseNoteShapes", "CrossStaffNotesInOriginal" },
+        FCDistancePrefs = { "^Space" },
+        FCMusicCharacterPrefs = { "^Symbol.*Rest$", "^Symbol.*Notehead$", "^Vertical.*Rest$"}
     },
     PianoBracesAndBrackets = {
-        [raw_pref_names.PIANOBRACES] = { "." },
-        [raw_pref_names.DISTANCES] = { "GroupBracketDefaultDistance" }
+        FCPianoBracePrefs = { "." },
+        FCDistancePrefs = { "GroupBracketDefaultDistance" }
     },
     Repeats = {
-        [raw_pref_names.REPEATS] = { "." },
-        [raw_pref_names.MUSICCHAR] = { "RepeatDot$" }
+        FCRepeatPrefs = { "." },
+        FCMusicCharacterPrefs = { "RepeatDot$" }
     },
     Stems = {
-        [raw_pref_names.SIZES] = { "Stem." },
-        [raw_pref_names.DISTANCES] = { "StemVerticalNoteheadOffset" },
-        [raw_pref_names.MISCDOC] = { "UseStemConnections", "DisplayReverseStemming" }
+        FCSizePrefs = { "Stem." },
+        FCDistancePrefs = { "StemVerticalNoteheadOffset" },
+        FCMiscDocPrefs = { "UseStemConnections", "DisplayReverseStemming" }
     },
     Text = {
-        [raw_pref_names.MISCDOC] = { "DateFormat", "SecondsInTimeStamp", "TextTabCharacters" },
+        FCMiscDocPrefs = { "DateFormat", "SecondsInTimeStamp", "TextTabCharacters" },
     },
     Ties = {
-        [raw_pref_names.TIES] = { "." }
+        FCTiePrefs = { "." }
     },
     TimeSignatures = {
-        [raw_pref_names.MISCDOC] = { ".TimeSig", "TimeSigCompositeDecimals" },
-        [raw_pref_names.MUSICCHAR] = { ".TimeSig" },
-        [raw_pref_names.DISTANCES] = { "^TimeSig" },
+        FCMiscDocPrefs = { ".TimeSig", "TimeSigCompositeDecimals" },
+        FCMusicCharacterPrefs = { ".TimeSig" },
+        FCDistancePrefs = { "^TimeSig" },
     },
     Tuplets = {
-        [raw_pref_names.TUPLETS] = { "." }
+        FCTupletPrefs = { "." }
     },
     Categories = {
-        [raw_pref_names.CATEGORIES] = { "." }
+        FCCategoryDefs = { "." }
     },
     PageFormat = {
-        [raw_pref_names.PAGEFORMAT] = { "." }
+        FCPageFormatPrefs = { "." }
     },
     SmartShapes = {
-        [raw_pref_names.SMARTSHAPES] = { "." },
-        [raw_pref_names.MUSICCHAR] = { ".Octave", "SymbolTrill", "SymbolWiggle" },
-        [">" .. raw_pref_names.FONTS] = { "^SmartShape", "^Guitar" }    -- incorporate a top-level menu from the source as a submenu
+        FCSmartShapePrefs = { "." },
+        FCMusicCharacterPrefs = { ".Octave", "SymbolTrill", "SymbolWiggle" },
+        ["FCFontInfo>Fonts"] = { "^SmartShape", "^Guitar" }    -- incorporate a top-level menu from the source as a submenu
     },
     NamePositions = {
-        [">" .. raw_pref_names.GROUPNAMEPOS] = { "." },
-        [">" .. raw_pref_names.STAFFNAMEPOS] = { "." },
+        ["FCGroupNamePositionPrefs>GroupNames"] = { "." },
+        ["FCStaffNamePositionPrefs>StaffNames"] = { "." },
     },
     DefaultMusicFont = {
-        [raw_pref_names.FONTS .. "/Music"] = { "." }
+        ["FCFontInfo/Music"] = { "." }
     }
 }
 
@@ -528,10 +505,11 @@ function copy_items(source_table, dest_table, refs)
     end
 
     for source_menu, items in pairs(refs) do
-        if source_menu:sub(1, 1) == ">" then
-            source_menu = source_menu:sub(2)        
-            dest_table[source_menu] = {}
-            target = dest_table[source_menu]    
+        if string.find(source_menu, ">") then
+            local dest_menu
+            source_menu, dest_menu = string.match(source_menu, "(.*)>(.*)")
+            dest_table[dest_menu] = {}
+            target = dest_table[dest_menu]    
         else
             target = dest_table
         end
@@ -570,40 +548,40 @@ local normalize_funcs = {
 }
 
 local norm_func_selectors = {
-    [raw_pref_names.DISTANCES] = {
+    FCDistancePrefs = {
         BarlineDoubleSpace = normalize_funcs.d64,
         BarlineFinalSpace = normalize_funcs.d64,
         StemVerticalNoteheadOffset = normalize_funcs.d64
     },
-    [raw_pref_names.GRIDS] = {
+    FCGridsGuidesPrefs = {
         GravityZoneSize = normalize_funcs.d64,
         GridDistance = normalize_funcs.d64
     },
-    [raw_pref_names.LYRICS] = {
+    FCLyricsPrefs = {
         WordExtLineThickness = normalize_funcs.d64
     },
-    [raw_pref_names.MISCDOC] = {
+    FCMiscDocPrefs = {
         FretboardsResizeFraction = normalize_funcs.d10k
     },
-    [raw_pref_names.MUSICCHAR] = {
+    FCMusicCharacterPrefs = {
         DefaultStemLift = normalize_funcs.d64,
         ["[HV].+Flag[UD]"] = normalize_funcs.d64,        
     },
-    [raw_pref_names.PAGEFORMAT] = {
+    FCPageFormatPrefs = {
         SystemStaffHeight = normalize_funcs.d16
     },
-    [raw_pref_names.PIANOBRACES] = {
+    FCPianoBracePrefs = {
         ["."] = normalize_funcs.d10k
     },
-    [raw_pref_names.REPEATS] = {
+    FCRepeatPrefs = {
         ["Thickness$"] = normalize_funcs.d64,
         SpaceBetweenLines = normalize_funcs.d64,        
     },
-    [raw_pref_names.SIZES] = {
+    FCSizePrefs = {
         ["Thickness$"] = normalize_funcs.d64,
         ShapeSlurTipWidth = normalize_funcs.d10k,
     },
-    [raw_pref_names.SMARTSHAPES] = {
+    FCSmartShapePrefs = {
         EngraverSlurMaxAngle = normalize_funcs.d100,
         EngraverSlurMaxLift = normalize_funcs.d64,
         EngraverSlurMaxStretchFixed = normalize_funcs.d64,
@@ -614,11 +592,11 @@ local norm_func_selectors = {
         SlurTipWidth = normalize_funcs.d10k,
         Inset = normalize_funcs.d20_48,
     },
-    [raw_pref_names.TIES] = {
+    FCTiePrefs = {
         TipWidth = normalize_funcs.d10k,
         ["tRelativeInset"] = normalize_funcs.m100
     },
-    [raw_pref_names.TUPLETS] = {
+    FCTupletPrefs = {
         BracketThickness = normalize_funcs.d64,
         MaxSlope = normalize_funcs.d10
     }    
