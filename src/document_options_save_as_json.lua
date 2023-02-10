@@ -5,7 +5,7 @@ function plugindef()
     finaleplugin.Author = "Aaron Sherber"
     finaleplugin.AuthorURL = "https://aaron.sherber.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.1.0"
+    finaleplugin.Version = "1.1.1"
     finaleplugin.Date = "2023-02-09"
     finaleplugin.CategoryTags = "Report"   
     finaleplugin.Id = "9c05a4c4-9508-4608-bb1b-2819cba96101" 
@@ -52,7 +52,7 @@ function do_save_as_dialog(document)
     local filter_text = "JSON files"
 
     local path_name = finale.FCString()
-    local file_name = finale.FCString()
+    local file_name = mixin.FCMString()
     local file_path = finale.FCString()
     document:GetPath(file_path)
     file_path:SplitToPathAndFile(path_name, file_name)
@@ -63,8 +63,9 @@ function do_save_as_dialog(document)
     if extension.Length > 0 then
         file_name:TruncateAt(file_name:FindLast("."..extension.LuaString))
     end
-    file_name:AppendLuaString(get_file_options_tag())
-    file_name:AppendLuaString(text_extension)
+    file_name:AppendLuaString(" settings")
+            :AppendLuaString(get_file_options_tag())
+            :AppendLuaString(text_extension)
     local save_dialog = mixin.FCMFileSaveAsDialog(finenv.UI())
             :SetWindowTitle(fcstr("Save "..full_file_name.." As"))
             :AddFilter(fcstr("*"..text_extension), fcstr(filter_text))
