@@ -1718,135 +1718,174 @@ __imports["mixin.FCMCustomLuaWindow"] = __imports["mixin.FCMCustomLuaWindow"] or
 
 
     local mixin = require("library.mixin")
+    local mixin_helper = require("library.mixin_helper")
     local utils = require("library.utils")
+    local measurement = require("library.measurement")
     local private = setmetatable({}, {__mode = "k"})
     local props = {}
-    local control_handlers = {"HandleCommand", "HandleDataListCheck", "HandleDataListSelect", "HandleUpDownPressed"}
-    local other_handlers = {"HandleCancelButtonPressed", "HandleOkButtonPressed", "InitWindow", "CloseWindow"}
+    local trigger_measurement_unit_change
+    local each_last_measurement_unit_change
+
+    local window_events = {"HandleCancelButtonPressed", "HandleOkButtonPressed", "InitWindow", "CloseWindow"}
+    local control_events = {"HandleCommand", "HandleDataListCheck", "HandleDataListSelect", "HandleUpDownPressed"}
     local function flush_custom_queue(self)
         local queue = private[self].HandleCustomQueue
         private[self].HandleCustomQueue = {}
-        for _, cb in ipairs(queue) do
-            cb()
+        for _, callback in ipairs(queue) do
+            callback()
         end
     end
-    local function restore_position(window)
-        if private[window].HasBeenShown and private[window].AutoRestorePosition and window.StorePosition then
-            window:StorePosition(false)
-            window:SetRestorePositionOnlyData_(private[window].StoredX, private[window].StoredY)
-            window:RestorePosition()
+    local function restore_position(self)
+        if private[self].HasBeenShown and private[self].EnableAutoRestorePosition and self.StorePosition then
+            self:StorePosition(false)
+            self:SetRestorePositionOnlyData_(private[self].StoredX, private[self].StoredY)
+            self:RestorePosition()
+        end
+    end
+
+    local function dispatch_event_handlers(self, event, context, ...)
+        local handlers = private[self][event]
+        if handlers.Registered then
+            handlers.Registered(context, ...)
+        end
+        for _, handler in ipairs(handlers.Added) do
+            handler(context, ...)
+        end
+    end
+    local function create_handle_methods(event)
+
+        props["Register" .. event] = function(self, callback)
+            mixin.assert_argument(callback, "function", 2)
+            private[self][event].Registered = callback
+        end
+        props["Add" .. event] = function(self, callback)
+            mixin.assert_argument(callback, "function", 2)
+            table.insert(private[self][event].Added, callback)
+        end
+        props["Remove" .. event] = function(self, callback)
+            mixin.assert_argument(callback, "function", 2)
+            utils.table_remove_first(private[self][event].Added, callback)
         end
     end
 
     function props:Init()
         private[self] = private[self] or {
+            HandleTimer = {},
             HandleCustomQueue = {},
             HasBeenShown = false,
             EnableDebugClose = false,
-            RestoreControlState = false,
-            AutoRestorePosition = false,
+            RestoreControlState = true,
+            EnableAutoRestorePosition = true,
             StoredX = nil,
             StoredY = nil,
+            MeasurementUnit = measurement.get_real_default_unit(),
+            UseParentMeasurementUnit = true,
         }
 
-        for _, f in ipairs(control_handlers) do
-            private[self][f] = {Added = {}}
+        for _, event in ipairs(control_events) do
+            private[self][event] = {Added = {}}
+            if self["Register" .. event .. "_"] then
 
-            local is_running = false
-            if self["Register" .. f .. "_"] then
-                self["Register" .. f .. "_"](
-                    self, function(control, ...)
-                        if is_running then
-                            return
-                        end
-                        is_running = true
-                        local handlers = private[self][f]
+                local is_running = false
+                self["Register" .. event .. "_"](self, function(control, ...)
+                    if is_running then
+                        return
+                    end
+                    is_running = true
 
+                    flush_custom_queue(self)
+
+                    local real_control = self:FindControl(control:GetControlID())
+                    if not real_control then
+                        error("Control with ID #" .. tostring(control:GetControlID()) .. " not found in '" .. f .. "'")
+                    end
+                    dispatch_event_handlers(self, event, real_control, ...)
+
+                    while #private[self].HandleCustomQueue > 0 do
                         flush_custom_queue(self)
-
-                        local temp = self:FindControl(control:GetControlID())
-                        if not temp then
-                            error("Control with ID #" .. tostring(control:GetControlID()) .. " not found in '" .. f .. "'")
-                        end
-                        control = temp
-
-                        if handlers.Registered then
-                            handlers.Registered(control, ...)
-                        end
-
-                        for _, cb in ipairs(handlers.Added) do
-                            cb(control, ...)
-                        end
-
-                        while #private[self].HandleCustomQueue > 0 do
-                            flush_custom_queue(self)
-                        end
-                        is_running = false
-                    end)
+                    end
+                    is_running = false
+                end)
             end
         end
 
-        for _, f in ipairs(other_handlers) do
-            private[self][f] = {Added = {}}
-            if self["Register" .. f .. "_"] then
-                local function cb()
-                    local handlers = private[self][f]
-                    if handlers.Registered then
-                        handlers.Registered(self)
-                    end
-                    for _, v in ipairs(handlers.Added) do
-                        v(self)
-                    end
-                end
-                if f == "InitWindow" then
-                    self["Register" .. f .. "_"](self, function()
-                        if private[self].HasBeenShown and private[self].RestoreControlState then
-                            for control in each(self) do
-                                control:RestoreState()
-                            end
-                        end
-                        cb()
-                    end)
-                elseif f == "CloseWindow" then
-                    self["Register" .. f .. "_"](self, function()
-                        if private[self].EnableDebugClose and finenv.RetainLuaState ~= nil then
-                            if finenv.DebugEnabled and (self:QueryLastCommandModifierKeys(finale.CMDMODKEY_ALT) or self:QueryLastCommandModifierKeys(finale.CMDMODKEY_SHIFT)) then
-                                finenv.RetainLuaState = false
-                            end
-                        end
-
-                        local success, error_msg = pcall(cb)
-                        if self.StorePosition then
-                            self:StorePosition(false)
-                            private[self].StoredX = self.StoredX
-                            private[self].StoredY = self.StoredY
-                        end
-                        if private[self].RestoreControlState then
-                            for control in each(self) do
-                                control:StoreState()
-                            end
-                        end
-                        private[self].HasBeenShown = true
-                        if not success then
-                            error(error_msg, 0)
-                        end
-                    end)
-                else
-                    self["Register" .. f .. "_"](self, cb)
-                end
+        for _, event in ipairs(window_events) do
+            private[self][event] = {Added = {}}
+            if not self["Register" .. event .. "_"] then
+                goto continue
             end
+            if event == "InitWindow" then
+                self["Register" .. event .. "_"](self, function(...)
+                    if private[self].HasBeenShown and private[self].RestoreControlState then
+                        for control in each(self) do
+                            control:RestoreState()
+                        end
+                    end
+                    dispatch_event_handlers(self, event, self, ...)
+                end)
+            elseif event == "CloseWindow" then
+                self["Register" .. event .. "_"](self, function(...)
+                    if private[self].EnableDebugClose and finenv.RetainLuaState ~= nil then
+                        if finenv.DebugEnabled and (self:QueryLastCommandModifierKeys(finale.CMDMODKEY_ALT) or self:QueryLastCommandModifierKeys(finale.CMDMODKEY_SHIFT)) then
+                            finenv.RetainLuaState = false
+                        end
+                    end
+
+                    local success, error_msg = pcall(dispatch_event_handlers, self, event, self, ...)
+                    if self.StorePosition then
+                        self:StorePosition(false)
+                        private[self].StoredX = self.StoredX
+                        private[self].StoredY = self.StoredY
+                    end
+                    if private[self].RestoreControlState then
+                        for control in each(self) do
+                            control:StoreState()
+                        end
+                    end
+                    private[self].HasBeenShown = true
+                    if not success then
+                        error(error_msg, 0)
+                    end
+                end)
+            else
+                self["Register" .. event .. "_"](self, function(...)
+                    dispatch_event_handlers(self, event, self, ...)
+                end)
+            end
+            :: continue ::
+        end
+
+        if self.RegisterHandleTimer_ then
+            self:RegisterHandleTimer_(function(timerid)
+
+                if private[self].HandleTimer.Registered then
+
+                    private[self].HandleTimer.Registered(self, timerid)
+                end
+
+                if private[self].HandleTimer[timerid] then
+                    for _, callback in ipairs(private[self].HandleTimer[timerid]) do
+
+                        callback(self, timerid)
+                    end
+                end
+            end)
         end
     end
 
 
 
 
-    for _, f in ipairs(control_handlers) do
-        props["Register" .. f] = function(self, callback)
-            mixin.assert_argument(callback, "function", 2)
-            private[self][f].Registered = callback
-            return true
-        end
+
+
+
+
+
+
+
+
+    for _, event in ipairs(control_events) do
+        create_handle_methods(event)
     end
 
 
@@ -1856,52 +1895,16 @@ __imports["mixin.FCMCustomLuaWindow"] = __imports["mixin.FCMCustomLuaWindow"] or
 
 
 
-    for _, f in ipairs(other_handlers) do
-        props["Register" .. f] = function(self, callback)
-            mixin.assert_argument(callback, "function", 2)
-            private[self][f].Registered = callback
-            return true
-        end
-    end
 
 
 
 
-    for _, f in ipairs(control_handlers) do
-        props["Add" .. f] = function(self, callback)
-            mixin.assert_argument(callback, "function", 2)
-            table.insert(private[self][f].Added, callback)
-        end
-    end
 
 
 
 
-    for _, f in ipairs(other_handlers) do
-        props["Add" .. f] = function(self, callback)
-            mixin.assert_argument(callback, "function", 2)
-            table.insert(private[self][f].Added, callback)
-        end
-    end
-
-
-
-
-    for _, f in ipairs(control_handlers) do
-        props["Remove" .. f] = function(self, callback)
-            mixin.assert_argument(callback, "function", 2)
-            utils.table_remove_first(private[self][f].Added, callback)
-        end
-    end
-
-
-
-
-    for _, f in ipairs(other_handlers) do
-        props["Remove" .. f] = function(self, callback)
-            mixin.assert_argument(callback, "function", 2)
-            utils.table_remove_first(private[self][f].Added, callback)
-        end
+    for _, event in ipairs(window_events) do
+        create_handle_methods(event)
     end
 
     function props:QueueHandleCustom(callback)
@@ -1912,25 +1915,67 @@ __imports["mixin.FCMCustomLuaWindow"] = __imports["mixin.FCMCustomLuaWindow"] or
 
         function props:RegisterHandleControlEvent(control, callback)
             mixin.assert_argument(callback, "function", 3)
-            return self:RegisterHandleControlEvent_(
-                       control, function(ctrl)
-                    callback(self.FindControl(ctrl:GetControlID()))
-                end)
+            if not self:RegisterHandleControlEvent_(control, function(ctrl)
+                callback(self:FindControl(ctrl:GetControlID()))
+            end) then
+                error("'FCMCustomLuaWindow.RegisterHandleControlEvent' has encountered an error.", 2)
+            end
         end
     end
+    if finenv.MajorVersion > 0 or finenv.MinorVersion >= 56 then
 
-    function props:HasBeenShown()
-        return private[self].HasBeenShown
+
+        function props:RegisterHandleTimer(callback)
+            mixin.assert_argument(callback, "function", 2)
+            private[self].HandleTimer.Registered = callback
+        end
+
+        function props:AddHandleTimer(timerid, callback)
+            mixin.assert_argument(timerid, "number", 2)
+            mixin.assert_argument(callback, "function", 3)
+            private[self].HandleTimer[timerid] = private[self].HandleTimer[timerid] or {}
+            table.insert(private[self].HandleTimer[timerid], callback)
+        end
+
+        function props:RemoveHandleTimer(timerid, callback)
+            mixin.assert_argument(timerid, "number", 2)
+            mixin.assert_argument(callback, "function", 3)
+            if not private[self].HandleTimer[timerid] then
+                return
+            end
+            utils.table_remove_first(private[self].HandleTimer[timerid], callback)
+        end
+
+        function props:SetTimer(timerid, msinterval)
+            mixin.assert_argument(timerid, "number", 2)
+            mixin.assert_argument(msinterval, "number", 3)
+            self:SetTimer_(timerid, msinterval)
+            private[self].HandleTimer[timerid] = private[self].HandleTimer[timerid] or {}
+        end
+
+        function props:GetNextTimerID()
+            while private[self].HandleTimer[private[self].NextTimerID] do
+                private[self].NextTimerID = private[self].NextTimerID + 1
+            end
+            return private[self].NextTimerID
+        end
+
+        function props:SetNextTimer(msinterval)
+            mixin.assert_argument(msinterval, "number", 2)
+            local timerid = mixin.FCMCustomLuaWindow.GetNextTimerID(self)
+            mixin.FCMCustomLuaWindow.SetTimer(self, timerid, msinterval)
+            return timerid
+        end
     end
     if finenv.MajorVersion > 0 or finenv.MinorVersion >= 60 then
 
-        function props:SetAutoRestorePosition(enabled)
+        function props:SetEnableAutoRestorePosition(enabled)
             mixin.assert_argument(enabled, "boolean", 2)
-            private[self].AutoRestorePosition = enabled
+            private[self].EnableAutoRestorePosition = enabled
         end
 
-        function props:GetAutoRestorePosition()
-            return private[self].AutoRestorePosition
+        function props:GetEnableAutoRestorePosition()
+            return private[self].EnableAutoRestorePosition
         end
 
         function props:SetRestorePositionData(x, y, width, height)
@@ -1961,7 +2006,7 @@ __imports["mixin.FCMCustomLuaWindow"] = __imports["mixin.FCMCustomLuaWindow"] or
         private[self].EnableDebugClose = enabled and true or false
     end
 
-    function props:GetEnableDebugClose(enabled)
+    function props:GetEnableDebugClose()
         return private[self].EnableDebugClose
     end
 
@@ -1974,14 +2019,119 @@ __imports["mixin.FCMCustomLuaWindow"] = __imports["mixin.FCMCustomLuaWindow"] or
         return private[self].RestoreControlState
     end
 
+    function props:HasBeenShown()
+        return private[self].HasBeenShown
+    end
+
     function props:ExecuteModal(parent)
+      if mixin.is_instance_of(parent, "FCMCustomLuaWindow") and private[self].UseParentMeasurementUnit then
+            self:SetMeasurementUnit(parent:GetMeasurementUnit())
+        end
         restore_position(self)
         return mixin.FCMCustomWindow.ExecuteModal(self, parent)
     end
 
     function props:ShowModeless()
+        finenv.RegisterModelessDialog(self)
         restore_position(self)
         return self:ShowModeless_()
+    end
+
+    function props:RunModeless(selection_not_required, default_action_override)
+        local modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
+        local default_action = default_action_override == nil and private[self].HandleOkButtonPressed.Registered or default_action_override
+        if modifier_keys_on_invoke and self:HasBeenShown() and default_action then
+            default_action(self)
+            return
+        end
+        if finenv.IsRGPLua then
+
+            if self.OkButtonCanClose then
+                self.OkButtonCanClose = modifier_keys_on_invoke
+            end
+            if self:ShowModeless() then
+                finenv.RetainLuaState = true
+            end
+        else
+            if not selection_not_required and finenv.Region():IsEmpty() then
+                finenv.UI():AlertInfo("Please select a music region before running this script.", "Selection Required")
+                return
+            end
+            self:ExecuteModal(nil)
+        end
+    end
+
+    function props:GetMeasurementUnit()
+        return private[self].MeasurementUnit
+    end
+
+    function props:SetMeasurementUnit(unit)
+        mixin.assert_argument(unit, "number", 2)
+        if unit == private[self].MeasurementUnit then
+            return
+        end
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        mixin.force_assert(measurement.is_valid_unit(unit), "Measurement unit is not valid.")
+        private[self].MeasurementUnit = unit
+
+        for ctrl in each(self) do
+            local func = ctrl.UpdateMeasurementUnit
+            if func then
+                func(ctrl)
+            end
+        end
+        trigger_measurement_unit_change(self)
+    end
+
+    function props:GetMeasurementUnitName()
+        return measurement.get_unit_name(private[self].MeasurementUnit)
+    end
+
+    function props:GetUseParentMeasurementUnit(enabled)
+        return private[self].UseParentMeasurementUnit
+    end
+
+    function props:SetUseParentMeasurementUnit(enabled)
+        mixin.assert_argument(enabled, "boolean", 2)
+        private[self].UseParentMeasurementUnit = enabled and true or false
+    end
+
+
+
+    props.AddHandleMeasurementUnitChange, props.RemoveHandleMeasurementUnitChange, trigger_measurement_unit_change, each_last_measurement_unit_change = mixin_helper.create_custom_window_change_event(
+        {
+            name = "last_unit",
+            get = function(window)
+                return mixin.FCMCustomLuaWindow.GetMeasurementUnit(window)
+            end,
+            initial = measurement.get_real_default_unit(),
+        }
+    )
+
+    function props:CreateMeasurementEdit(x, y, control_name)
+        mixin.assert_argument(x, "number", 2)
+        mixin.assert_argument(y, "number", 3)
+        mixin.assert_argument(control_name, {"string", "nil"}, 4)
+        local edit = mixin.FCMCustomWindow.CreateEdit(self, x, y, control_name)
+        return mixin.subclass(edit, "FCXCtrlMeasurementEdit")
+    end
+
+    function props:CreateMeasurementUnitPopup(x, y, control_name)
+        mixin.assert_argument(x, "number", 2)
+        mixin.assert_argument(y, "number", 3)
+        mixin.assert_argument(control_name, {"string", "nil"}, 4)
+        local popup = mixin.FCMCustomWindow.CreatePopup(self, x, y, control_name)
+        return mixin.subclass(popup, "FCXCtrlMeasurementUnitPopup")
+    end
+
+    function props:CreatePageSizePopup(x, y, control_name)
+        mixin.assert_argument(x, "number", 2)
+        mixin.assert_argument(y, "number", 3)
+        mixin.assert_argument(control_name, {"string", "nil"}, 4)
+        local popup = mixin.FCMCustomWindow.CreatePopup(self, x, y, control_name)
+        return mixin.subclass(popup, "FCXCtrlPageSizePopup")
     end
     return props
 end
@@ -4116,97 +4266,12 @@ __imports["mixin.FCXCustomLuaWindow"] = __imports["mixin.FCXCustomLuaWindow"] or
     local utils = require("library.utils")
     local mixin_helper = require("library.mixin_helper")
     local measurement = require("library.measurement")
-    local private = setmetatable({}, {__mode = "k"})
     local props = {MixinParent = "FCMCustomLuaWindow"}
     local trigger_measurement_unit_change
     local each_last_measurement_unit_change
 
     function props:Init()
-        private[self] = private[self] or {
-            MeasurementUnit = measurement.get_real_default_unit(),
-            UseParentMeasurementUnit = true,
-            HandleTimer = {},
-            RunModelessDefaultAction = nil,
-        }
-        if self.SetAutoRestorePosition then
-            self:SetAutoRestorePosition(true)
-        end
-        self:SetRestoreControlState(true)
         self:SetEnableDebugClose(true)
-
-        if self.RegisterHandleTimer_ then
-            self:RegisterHandleTimer_(function(timerid)
-
-                if private[self].HandleTimer.Registered then
-
-                    private[self].HandleTimer.Registered(self, timerid)
-                end
-
-                if private[self].HandleTimer[timerid] then
-                    for _, cb in ipairs(private[self].HandleTimer[timerid]) do
-
-                        cb(self, timerid)
-                    end
-                end
-            end)
-        end
-    end
-
-    function props:GetMeasurementUnit()
-        return private[self].MeasurementUnit
-    end
-
-    function props:SetMeasurementUnit(unit)
-        mixin.assert_argument(unit, "number", 2)
-        if unit == private[self].MeasurementUnit then
-            return
-        end
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        mixin.force_assert(measurement.is_valid_unit(unit), "Measurement unit is not valid.")
-        private[self].MeasurementUnit = unit
-
-        for ctrl in each(self) do
-            local func = ctrl.UpdateMeasurementUnit
-            if func then
-                func(ctrl)
-            end
-        end
-        trigger_measurement_unit_change(self)
-    end
-
-    function props:GetMeasurementUnitName()
-        return measurement.get_unit_name(private[self].MeasurementUnit)
-    end
-
-    function props:UseParentMeasurementUnit(on)
-        mixin.assert_argument(on, "boolean", 2)
-        private[self].UseParentMeasurementUnit = on
-    end
-
-    function props:CreateMeasurementEdit(x, y, control_name)
-        mixin.assert_argument(x, "number", 2)
-        mixin.assert_argument(y, "number", 3)
-        mixin.assert_argument(control_name, {"string", "nil"}, 4)
-        local edit = mixin.FCMCustomWindow.CreateEdit(self, x, y, control_name)
-        return mixin.subclass(edit, "FCXCtrlMeasurementEdit")
-    end
-
-    function props:CreateMeasurementUnitPopup(x, y, control_name)
-        mixin.assert_argument(x, "number", 2)
-        mixin.assert_argument(y, "number", 3)
-        mixin.assert_argument(control_name, {"string", "nil"}, 4)
-        local popup = mixin.FCMCustomWindow.CreatePopup(self, x, y, control_name)
-        return mixin.subclass(popup, "FCXCtrlMeasurementUnitPopup")
-    end
-
-    function props:CreatePageSizePopup(x, y, control_name)
-        mixin.assert_argument(x, "number", 2)
-        mixin.assert_argument(y, "number", 3)
-        mixin.assert_argument(control_name, {"string", "nil"}, 4)
-        local popup = mixin.FCMCustomWindow.CreatePopup(self, x, y, control_name)
-        return mixin.subclass(popup, "FCXCtrlPageSizePopup")
     end
 
     function props:CreateStatic(x, y, control_name)
@@ -4224,106 +4289,6 @@ __imports["mixin.FCXCustomLuaWindow"] = __imports["mixin.FCXCustomLuaWindow"] or
         local updown = mixin.FCMCustomWindow.CreateUpDown(self, x, y, control_name)
         return mixin.subclass(updown, "FCXCtrlUpDown")
     end
-    if finenv.MajorVersion > 0 or finenv.MinorVersion >= 56 then
-
-        function props:SetTimer(timerid, msinterval)
-            mixin.assert_argument(timerid, "number", 2)
-            mixin.assert_argument(msinterval, "number", 3)
-            self:SetTimer_(timerid, msinterval)
-            private[self].HandleTimer[timerid] = private[self].HandleTimer[timerid] or {}
-        end
-
-        function props:GetNextTimerID()
-            while private[self].HandleTimer[private[self].NextTimerID] do
-                private[self].NextTimerID = private[self].NextTimerID + 1
-            end
-            return private[self].NextTimerID
-        end
-
-        function props:SetNextTimer(msinterval)
-            mixin.assert_argument(msinterval, "number", 2)
-            local timerid = self:GetNextTimerID()
-            self:SetTimer(timerid, msinterval)
-            return timerid
-        end
-
-
-        function props:RegisterHandleTimer(callback)
-            mixin.assert_argument(callback, "function", 2)
-            private[self].HandleTimer.Registered = callback
-            return true
-        end
-
-        function props:AddHandleTimer(timerid, callback)
-            mixin.assert_argument(timerid, "number", 2)
-            mixin.assert_argument(callback, "function", 3)
-            private[self].HandleTimer[timerid] = private[self].HandleTimer[timerid] or {}
-            table.insert(private[self].HandleTimer[timerid], callback)
-        end
-
-        function props:RemoveHandleTimer(timerid, callback)
-            mixin.assert_argument(timerid, "number", 2)
-            mixin.assert_argument(callback, "function", 3)
-            if not private[self].HandleTimer[timerid] then
-                return
-            end
-            utils.table_remove_first(private[self].HandleTimer[timerid], callback)
-        end
-    end
-
-    function props:RegisterHandleOkButtonPressed(callback)
-        mixin.assert_argument(callback, "function", 2)
-        private[self].RunModelessDefaultAction = callback
-        mixin.FCMCustomLuaWindow.RegisterHandleOkButtonPressed(self, callback)
-    end
-
-    function props:ExecuteModal(parent)
-        if mixin.is_instance_of(parent, "FCXCustomLuaWindow") and private[self].UseParentMeasurementUnit then
-            self:SetMeasurementUnit(parent:GetMeasurementUnit())
-        end
-        return mixin.FCMCustomLuaWindow.ExecuteModal(self, parent)
-    end
-
-    function props:ShowModeless()
-        finenv.RegisterModelessDialog(self)
-        return mixin.FCMCustomLuaWindow.ShowModeless(self)
-    end
-
-    function props:RunModeless(no_selection_required, default_action_override)
-        local modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-        local default_action = default_action_override == nil and private[self].RunModelessDefaultAction or default_action_override
-        if modifier_keys_on_invoke and self:HasBeenShown() and default_action then
-            default_action(self)
-            return
-        end
-        if finenv.IsRGPLua then
-
-            if self.OkButtonCanClose then
-                self.OkButtonCanClose = modifier_keys_on_invoke
-            end
-            if self:ShowModeless() then
-                finenv.RetainLuaState = true
-            end
-        else
-            if not no_selection_required and finenv.Region():IsEmpty() then
-                finenv.UI():AlertInfo("Please select a music region before running this script.", "Selection Required")
-                return
-            end
-            self:ExecuteModal(nil)
-        end
-    end
-
-
-
-    props.AddHandleMeasurementUnitChange, props.RemoveHandleMeasurementUnitChange, trigger_measurement_unit_change, each_last_measurement_unit_change =
-        mixin_helper.create_custom_window_change_event(
-            {
-                name = "last_unit",
-                get = function(win)
-                    return mixin.FCXCustomLuaWindow.GetMeasurementUnit(win)
-                end,
-                initial = measurement.get_real_default_unit(),
-            })
     return props
 end
 __imports["mixin.__FCMUserWindow"] = __imports["mixin.__FCMUserWindow"] or function()
