@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.11"
-    finaleplugin.Date = "2023/02/09"
+    finaleplugin.Version = "v0.12"
+    finaleplugin.Date = "2023/02/10"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         Change notehead shapes on a specific layer of the current selection to one of these shapes:  
@@ -36,7 +36,7 @@ local config = {
 }
 
 function user_chooses_glyph()
-    local dlg = mixin.FCMCustomLuaWindow():SetTitle(plugindef())
+    local dlg = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     local x, y = 200, 10
     local y_diff = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
 
@@ -73,7 +73,7 @@ function user_chooses_shape()
     local y_step = 20
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- + vertical offset for Mac edit boxes
 
-    local dialog = mixin.FCMCustomLuaWindow():SetTitle(plugindef())
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:CreateStatic(0, 0):SetText("Select note shape:"):SetWidth(150)
     local shape_list = dialog:CreateListBox(0, y_step):SetWidth(x_offset - 20):SetHeight(y_step * 11)
     for i, v in ipairs(shapes) do
@@ -119,7 +119,7 @@ function change_noteheads()
     if config.shape == "number" then
         local ok = user_chooses_glyph() -- get user's numeric choice in config.glyph (string)
         if not ok then return end -- user cancelled
-        configuration.save_user_settings("noteheads_change_by_layer", config)
+        configuration.save_user_settings("noteheads_change_by_layer", config) -- save new glyph value
         -- now use the glyph number below as a shape but don't save it back to config file
         config.shape = tonumber(config.glyph)
     end
