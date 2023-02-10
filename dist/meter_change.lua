@@ -148,10 +148,10 @@ end
 function plugindef()
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.0"
-    finaleplugin.Date = "June 4, 2022"
+    finaleplugin.Version = "1.1.0"
+    finaleplugin.Date = "February 6, 2023"
     finaleplugin.CategoryTags = "Meter"
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.RequireSelection = true
     finaleplugin.Notes = [[
@@ -244,8 +244,15 @@ denominators[2] = 2048
 denominators[4] = 1024
 denominators[8] = composite and 512 or 1536
 local do_single_bar = finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
-function apply_new_time(measure, beat_num, beat_duration)
-    local time_sig = measure:GetTimeSignature()
+local measures_processed = {}
+function apply_new_time(measure_or_cell, beat_num, beat_duration)
+    if measure_or_cell:ClassName() == "FCMeasure" then
+        if measures_processed[measure_or_cell.ItemNo] then
+            return
+        end
+        measures_processed[measure_or_cell.ItemNo] = true
+    end
+    local time_sig = measure_or_cell:GetTimeSignature()
     if composite then
         local top_list = finale.FCCompositeTimeSigTop()
         top_list:AddGroup(num_composite)
@@ -253,48 +260,78 @@ function apply_new_time(measure, beat_num, beat_duration)
             top_list:SetGroupElementBeats(0, k-1, v)
         end
         time_sig:SaveNewCompositeTop(top_list)
-        measure.UseTimeSigForDisplay = true
-        local abrv_time_sig = measure:GetTimeSignatureForDisplay()
+        local abrv_time_sig = (function()
+            if measure_or_cell.UseTimeSigForDisplay ~= nil then
+                measure_or_cell.UseTimeSigForDisplay = true
+                return measure_or_cell:GetTimeSignatureForDisplay()
+            end
+            return measure_or_cell:AssureSavedIndependentTimeSigForDisplay()
+        end)()
         abrv_time_sig:RemoveCompositeTop(beat_num)
         abrv_time_sig:RemoveCompositeBottom(beat_duration)
     else
-        if measure.UseTimeSigForDisplay then
-            local abrv_time_sig = measure:GetTimeSignatureForDisplay()
+        if measure_or_cell.UseTimeSigForDisplay then
+            local abrv_time_sig = measure_or_cell:GetTimeSignatureForDisplay()
             abrv_time_sig:RemoveCompositeTop(beat_num)
             abrv_time_sig:RemoveCompositeBottom(beat_duration)
-            measure.UseTimeSigForDisplay = false
+            measure_or_cell.UseTimeSigForDisplay = false
+        elseif measure_or_cell.RemoveIndependentTimeSigForDisplay then
+            measure_or_cell:RemoveIndependentTimeSigForDisplay()
         end
         time_sig:RemoveCompositeTop(beat_num)
     end
     time_sig:RemoveCompositeBottom(beat_duration)
+    measure_or_cell:Save()
 end
 function set_time(beat_num, beat_duration)
-    local measures = finale.FCMeasures()
-    measures:LoadRegion(finenv.Region())
-    if measures.Count > 1 or do_single_bar then
-        for m in each(measures) do
-            apply_new_time(m, beat_num, beat_duration)
-            m:Save()
-        end
-    else
-        local selected_measure = measures:GetItemAt(0)
-        local selected_time_signature = selected_measure:GetTimeSignature()
-
-
-        for m in loadall(finale.FCMeasures()) do
-            if (m.ItemNo > selected_measure.ItemNo) then
-                if config.stop_at_always_show and m.ShowTimeSignature == finale.SHOWSTATE_SHOW then
-                    break
+    local measures_selected = finale.FCMeasures()
+    measures_selected:LoadRegion(finenv.Region())
+    local all_measures = finale.FCMeasures()
+    all_measures:LoadAll()
+    for staff_num in eachstaff(finenv.Region()) do
+        if measures_selected.Count > 1 or do_single_bar then
+            for m in each(measures_selected) do
+                local cell = finale.FCCell(m.ItemNo, staff_num)
+                if cell:HasIndependentTimeSig() then
+                    apply_new_time(cell, beat_num, beat_duration)
+                else
+                    apply_new_time(m, beat_num, beat_duration)
                 end
-                if not selected_time_signature:IsIdentical(m:GetTimeSignature()) then
-                    break
-                end
-                apply_new_time(m, beat_num, beat_duration)
-                m:Save()
             end
+        else
+            local selected_measure = measures_selected:GetItemAt(0)
+            local is_measure_stack = true
+            local selected_time_signature, selected_item = (function()
+                local selected_cell = finale.FCCell(selected_measure.ItemNo, staff_num)
+                if selected_cell:HasIndependentTimeSig() then
+                    is_measure_stack = false
+                    return selected_cell:GetTimeSignature(), selected_cell
+                end
+                return selected_measure:GetTimeSignature(), selected_measure
+            end)()
+
+
+            for m in each(all_measures) do
+                if (m.ItemNo > selected_measure.ItemNo) then
+                    if config.stop_at_always_show and m.ShowTimeSignature == finale.SHOWSTATE_SHOW then
+                        break
+                    end
+                    local this_item = m
+                    if not is_measure_stack then
+                        local cell = finale.FCCell(m.ItemNo, staff_num)
+                        if not cell:HasIndependentTimeSig() then
+                            break
+                        end
+                        this_item = cell
+                    end
+                    if not selected_time_signature:IsIdentical(this_item:GetTimeSignature()) then
+                        break
+                    end
+                    apply_new_time(this_item, beat_num, beat_duration)
+                end
+            end
+            apply_new_time(selected_item, beat_num, beat_duration)
         end
-        apply_new_time(selected_measure, beat_num, beat_duration)
-        selected_measure:Save()
     end
 end
 set_time(numerator, denominators[denominator])
