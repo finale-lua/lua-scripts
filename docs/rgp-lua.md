@@ -274,10 +274,14 @@ end
 
 `dumpproperties()` creates a table consisting of all available properties for an object and their values. The keys in the table is the property names; the values in the table are the property values. Use the `pairsbykeys()` iterator (see below) to get the properties sorted in alphabetical order.
 
+The first parameter to the function is an instance of a PDK Framework class.
+
+The second parameter is optional, but can be used to specify if properties from base classes should be included as well. If omitted, properties from base classes are not included.
+
 ```lua
 page = finale.FCPage()
 page:Load(1)
-properties = dumpproperties(page)
+properties = dumpproperties(page, true) -- true: include base class properties
 for k, v in pairsbykeys(properties) do
    print (k, "=", v)
 end
@@ -325,7 +329,7 @@ end
 
 `eachentry()` feeds a `for` loop with all the note entry objects in a region, without saving them back. Mirror entries are processed with `eachentry()`.
 
-First parameter to this function is the region to process, where you could use `finenv.Region()` to get the current selection.
+The first parameter to this function is the region to process, where you could use `finenv.Region()` to get the current selection.
 
 The second parameter is optional, but can be used to indicate the note entry layer(s) to load in Finale. The default is to load all visible layers. These values are available:
 
