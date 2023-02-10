@@ -1044,6 +1044,8 @@ __imports["library.notehead"] = __imports["library.notehead"] or function()
         end
         if shape == "default" then
             notehead_mod:ClearChar()
+            notehead_mod.Resize = 100
+            notehead_mod.HorizontalPos = 0
         else
             local entry = note:GetEntry()
             if not entry then return end

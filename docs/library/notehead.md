@@ -15,7 +15,7 @@ And for offset (horizontal - left/right):
 
 Note that many of the shapes assumed in this file don't exist in Maestro but only in proper SMuFL fonts.
 
-version cv0.55 2023/01/18
+version cv0.56 2023/02/09
 
 ## Functions
 
