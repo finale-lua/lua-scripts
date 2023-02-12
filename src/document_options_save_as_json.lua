@@ -5,10 +5,14 @@ function plugindef()
     finaleplugin.Author = "Aaron Sherber"
     finaleplugin.AuthorURL = "https://aaron.sherber.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.1.2"
-    finaleplugin.Date = "2023-02-10"
+    finaleplugin.Version = "1.2.1"
+    finaleplugin.Date = "2023-02-12"
     finaleplugin.CategoryTags = "Report"   
     finaleplugin.Id = "9c05a4c4-9508-4608-bb1b-2819cba96101" 
+    finaleplugin.RevisionNotes = [[
+        v1.1.2      First public release
+        v1.2.1      Add Grid/Guide snap-tos; better organization of SmartShapes
+    ]]
     finaleplugin.Notes = [[
         While other plugins exist that let you copy document options from one document to another, 
         this script saves the options from the current document in an organized human-readable form, as a 
@@ -296,6 +300,29 @@ function load_grid_prefs(prefs, table)
         local guides = prefs["Get" .. type .. "Guides"](prefs)
         table[type .. "GuideCount"] = guides.Count
     end
+
+    local snap_items = {
+        [finale.SNAPITEM_BRACKETS ] = "Brackets",
+        [finale.SNAPITEM_CHORDS ] = "Chords",
+        [finale.SNAPITEM_EXPRESSIONS ] = "Expressions",
+        [finale.SNAPITEM_FRETBOARDS ] = "Fretboards",
+        [finale.SNAPITEM_GRAPHICSMOVE ] = "GraphicsMove",
+        [finale.SNAPITEM_GRAPHICSSIZING ] = "GraphicsSizing",
+        [finale.SNAPITEM_MEASURENUMBERS ] = "MeasureNumbers",
+        [finale.SNAPITEM_REPEATS ] = "Repeats",
+        [finale.SNAPITEM_SPECIALTOOLS ] = "SpecialTools",
+        [finale.SNAPITEM_STAFFNAMES ] = "StaffNames",
+        [finale.SNAPITEM_STAVES ] = "Staves",
+        [finale.SNAPITEM_TEXTBLOCKMOVE ] = "TextBlockMove",
+        [finale.SNAPITEM_TEXTBLOCKSIZING ] = "TextBlockSizing",
+    }
+
+    table["SnapToGrid"] = {}
+    table["SnapToGuide"] = {}
+    for item, name in pairs(snap_items) do
+        table["SnapToGrid"][name] = prefs:GetGridSnapToItem(item)
+        table["SnapToGuide"][name] = prefs:GetGuideSnapToItem(item)
+    end
 end
 
 -- endregion
@@ -471,10 +498,13 @@ local transform_table = {
     PageFormat = {
         FCPageFormatPrefs = { "." }
     },
-    SmartShapes = {
-        FCSmartShapePrefs = { "." },
+    SmartShapes = {        
+        FCSmartShapePrefs = { "^Symbol", "^Hairpin", "^Line", "HookLength", "OctavesAsText", "ID$" },
         FCMusicCharacterPrefs = { ".Octave", "SymbolTrill", "SymbolWiggle" },
-        ["FCFontInfo>Fonts"] = { "^SmartShape", "^Guitar" }    -- incorporate a top-level menu from the source as a submenu
+        ["FCFontInfo>Fonts"] = { "^SmartShape" },    -- incorporate a top-level menu from the source as a submenu
+        ["FCSmartShapePrefs>SmartSlur"] = { "Slur." },
+        ["FCSmartShapePrefs>GuitarBend"] = { "GuitarBend[^D]" },
+        ["FCFontInfo>GuitarBend>Fonts"] = { "^Guitar" }
     },
     NamePositions = {
         ["FCGroupNamePositionPrefs>GroupNames"] = { "." },
@@ -506,10 +536,12 @@ function copy_items(source_table, dest_table, refs)
 
     for source_menu, items in pairs(refs) do
         if string.find(source_menu, ">") then
-            local dest_menu
-            source_menu, dest_menu = string.match(source_menu, "(.*)>(.*)")
-            dest_table[dest_menu] = {}
-            target = dest_table[dest_menu]    
+            target = dest_table
+            for dest_menu in string.gmatch(source_menu, ">(%a+)") do
+                if target[dest_menu] == nil then target[dest_menu] = {} end
+                target = target[dest_menu]
+            end
+            source_menu = string.match(source_menu, "^%a+")
         else
             target = dest_table
         end
@@ -629,37 +661,43 @@ function get_last_key(t)
     return result
 end
 
+function quote_and_escape(s)
+    s = string.gsub(s, "\\", "\\\\")
+    s = string.gsub(s, '"', '\\"')
+    return string.format('"%s"', s)
+end
+
 -- Simple implementation because we know our inputs are simple
 -- Can't use a json library because we need to keep keys in order
-function get_as_json(t, indent)
-    indent = indent or 0
+function get_as_ordered_json(t, indent_level, in_array)
+    indent_level = indent_level or 0
     local result = {}
 
-    table.insert(result, '{\n')
-    indent = indent + 1
-    local spaces = string.rep(" ", indent * 2) 
+    table.insert(result, (in_array and '[' or '{') .. '\n')
+    indent_level = indent_level + 1
+    local indent = string.rep(" ", indent_level * 2) 
 
     local last_key = get_last_key(t)
     for key, val in pairsbykeys(t) do
-        local maybe_comma = key ~= last_key and ',' or ''
+        local maybe_comma_plus_newline = key ~= last_key and ',\n' or '\n'    
+        local maybe_element_name = in_array and '' or quote_and_escape(key) .. ': '
         if type(val) == "table" then 
-            table.insert(result, string.format('%s"%s": ', spaces, key))
-            table.insert(result, get_as_json(val, indent))
-            table.insert(result, string.format("%s}%s\n",
-                spaces,
-                maybe_comma
-            ))
-        else 
-            table.insert(result, string.format('%s"%s": %s%s\n',
-                spaces, 
-                key, 
-                type(val) == "string" and string.format('"%s"', val) or tostring(val),
-                maybe_comma
-            ))
+            local val_is_array = val[1] ~= nil
+            table.insert(result, indent)
+            table.insert(result, maybe_element_name)
+            table.insert(result, get_as_ordered_json(val, indent_level, val_is_array))
+            table.insert(result, indent)
+            table.insert(result, val_is_array and ']' or '}')
+            table.insert(result, maybe_comma_plus_newline)
+        elseif type(val) == "string" or type(val) == "number" or type(val) == "boolean" then
+            table.insert(result, indent)
+            table.insert(result, maybe_element_name)
+            table.insert(result, type(val) == "string" and quote_and_escape(val) or tostring(val))
+            table.insert(result, maybe_comma_plus_newline)
         end
     end
 
-    if indent == 1 then
+    if indent_level == 1 then
         table.insert(result, "}")
     end 
     return table.concat(result)
@@ -670,7 +708,7 @@ function insert_header(prefs_table, document)
     document:GetPath(file_path)
     local key = "@Meta"
     prefs_table[key] = {
-      File = string.gsub(file_path.LuaString, "\\", "\\\\"),
+      File = file_path.LuaString,
       Date =  os.date(),
       FinaleVersion = finenv.FinaleVersion,
       PluginVersion = finaleplugin.Version
@@ -702,7 +740,7 @@ function options_save_as_json()
     local raw_prefs = load_all_raw_prefs()
     local prefs_to_save = transform_categories and apply_transform(raw_prefs) or raw_prefs
     insert_header(prefs_to_save, document)
-    file:write(get_as_json(prefs_to_save))
+    file:write(get_as_ordered_json(prefs_to_save))
     file:close()
 end
 
