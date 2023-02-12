@@ -333,5 +333,19 @@ function set_time(beat_num, beat_duration)
             apply_new_time(selected_item, beat_num, beat_duration)
         end
     end
+    for measure_number, _ in pairs(measures_processed) do
+        local measure = finale.FCMeasure()
+        measure:Load(measure_number)
+        local beat_chart = measure:CreateBeatChartElements()
+        if beat_chart.Count > 0 then
+            if beat_chart:GetItemAt(0).MeasurePos ~= measure:GetDuration() then
+                beat_chart:DeleteDataForItem(measure_number)
+                if measure.PositioningNotesMode == finale.POSITIONING_BEATCHART then
+                    measure.PositioningNotesMode = finale.POSITIONING_TIMESIG
+                    measure:Save()
+                end
+            end
+        end
+    end
 end
 set_time(numerator, denominators[denominator])
