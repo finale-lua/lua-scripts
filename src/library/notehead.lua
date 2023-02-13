@@ -16,7 +16,7 @@ And for offset (horizontal - left/right):
 
 Note that many of the shapes assumed in this file don't exist in Maestro but only in proper SMuFL fonts.
 
-version cv0.56 2023/02/09
+version cv0.57 2023/02/12
 ]] --
 
 local notehead = {}
@@ -78,8 +78,8 @@ local config = {
     wedge = {
         quarter = { glyph = 108 },
         half  = { glyph = 231 },
-        whole = { glyph = 231, offset = -14 },
-        breve = { glyph = 231, offset = -14 },
+        whole = { glyph = 231 },
+        breve = { glyph = 231 },
     },
     strikethrough = {
         quarter = { glyph = 191 }, -- doesn't exist in Maestro
@@ -167,8 +167,8 @@ if library.is_font_smufl_font() then
         wedge = {
             quarter = { glyph = 0xe1c5 },
             half  = { glyph = 0xe1c8, size = 120 },
-            whole = { glyph = 0xe1c4, size = 120, offset = -14 },
-            breve = { glyph = 0xe1ca, size = 120, offset = -14 },
+            whole = { glyph = 0xe1c4, size = 120 },
+            breve = { glyph = 0xe1ca, size = 120 },
         },
         strikethrough = {
             quarter = { glyph = 0xe0cf },
