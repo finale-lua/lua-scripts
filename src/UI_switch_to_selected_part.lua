@@ -1,9 +1,9 @@
 function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "CJ Garcia"
-    finaleplugin.Copyright = "© 2020 CJ Garcia Music"
-    finaleplugin.Version = "1.2"
-    finaleplugin.Date = "June 12, 2020"
+    finaleplugin.Copyright = "© 2022 CJ Garcia Music"
+    finaleplugin.Version = "1.3"
+    finaleplugin.Date = "February 14, 2022"
     finaleplugin.CategoryTags = "UI"
     return "Switch To Selected Part", "Switch To Selected Part",
            "Switches to the first part of the top staff in a selected region in a score. Switches back to the score if viewing a part."
