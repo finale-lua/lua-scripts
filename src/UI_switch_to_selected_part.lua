@@ -1,9 +1,9 @@
 function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "CJ Garcia"
-    finaleplugin.Copyright = "© 2020 CJ Garcia Music"
-    finaleplugin.Version = "1.2"
-    finaleplugin.Date = "June 12, 2020"
+    finaleplugin.Copyright = "© 2022 CJ Garcia Music"
+    finaleplugin.Version = "1.3"
+    finaleplugin.Date = "February 14, 2022"
     finaleplugin.CategoryTags = "UI"
     return "Switch To Selected Part", "Switch To Selected Part",
            "Switches to the first part of the top staff in a selected region in a score. Switches back to the score if viewing a part."
@@ -27,7 +27,20 @@ function ui_switch_to_selected_part()
         for part in each(parts) do
             if (not part:IsScore()) and part:IsStaffIncluded(top_cell.Staff) then
                 part_ID = part:GetID()
-                break
+                -- stop searching if the top selected staff is visible on the system of the first selected measure
+                local found_staff = false
+                local part = finale.FCPart(part_ID)
+                part:SwitchTo()
+                local systems = finale.FCStaffSystems()
+                systems:LoadAll()
+                local system = systems:FindMeasureNumber(top_cell.Measure)
+                if system then
+                    local staves = finale.FCSystemStaves()
+                    staves:LoadAllForItem(system.ItemNo)
+                    found_staff = staves:FindStaff(top_cell.Staff) ~= nil
+                end
+                part:SwitchBack()
+                if found_staff then break end
             end
         end
         if part_ID ~= nil then
