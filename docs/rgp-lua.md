@@ -62,7 +62,7 @@ print (math.random(1, 10))
 
 ### The 'finale' namespace
 
-All functionality that accesses Finale through the [Lua/PDK Framework](https://pdk.finalelua.com/) resides within the `finale` namespace. (Namespaces use the dot separator.)
+All functionality that accesses Finale through the [Finale PDK Framework](https://pdk.finalelua.com/) resides within the `finale` namespace. (Namespaces use the dot separator.)
 
 For example:
 
