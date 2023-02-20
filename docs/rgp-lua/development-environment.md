@@ -45,70 +45,63 @@ One effective way to do this is to detect modifier keys. If your script has a di
 
 ## Using Visual Studio Code
 
-1. Install the extensions [Lua](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) (language server) and [Lua Debugger](https://marketplace.visualstudio.com/items?itemName=devCAT.lua-debug) (and optionally [vscode-lua-format](https://marketplace.visualstudio.com/items?itemName=Koihik.vscode-lua-format)).
+There are several different VS Code extensions for Lua debugging, each with different pros and cons. Here is one setup that gives satisfactory results.
 
-2. As of 1/25/2023, there's an error in the package manifest for Lua Debugger that prevents VS Code from creating breakpoints in lua files. ([Pull request](https://github.com/devcat-studio/VSCodeLuaDebug/pull/28) created.) In order to fix this:
+1. Install the extensions [Lua](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) (language server) and [Lua MobDebug adapter](https://marketplace.visualstudio.com/items?itemName=AlexeyMelnichuk.lua-mobdebug).
 
-   1. Go to your local extension installation directory, usually `~/.vscode/extensions`. 
+2. For a development folder, it can be convenient to fork and clone the [Finale Lua repo](https://github.com/finale-lua/lua-scripts) and put any new scripts in the `src` folder. This lets you include existing things from the `library` and `mixin` folders. You can also set up a development folder somewhere else, if you prefer.
 
-   2. Find the folder for the extension, `devcat.lua-debug-1.1.1`
+3. Open your development folder in VS Code.
 
-   3. Inside the folder, edit `packages.json`, deleting the `enableBreakpointsFor` element under `debuggers` and adding a `breakpoints` element under `contributes`.
-
-      ```diff
-      --- package.json.original
-      +++ package.json.revised
-      @@ -21,21 +21,21 @@
-           "devDependencies": {},
-           "contributes": {
-      +        "breakpoints": [
-      +            {
-      +                "language": "lua"
-      +            }
-      +        ],
-               "debuggers": [
-                   {
-                       "type": "lua",
-                       "label": "Lua Debugger",
-      -                "enableBreakpointsFor": {
-      -                    "languageIds": [
-      -                        "lua"
-      -                    ]
-      -                },
-                       "program": "./DebugAdapter.exe",
-      ```
-
-   4. If VS Code was open, close and restart it. You may then be prompted to reload the window when VS Code notices that the extension has changed on disk.
-
-3. For a development folder, it can be convenient to fork and clone the [Finale Lua repo](https://github.com/finale-lua/lua-scripts) and put any new scripts in the `src` folder. This lets you include existing things from the `library` and `mixin` folders. You can also set up a development folder somewhere else, if you prefer.
-
-4. Save the file [vscode-debuggee.lua](https://raw.githubusercontent.com/devcat-studio/VSCodeLuaDebug/master/debuggee/vscode-debuggee.lua) to your development folder, next to your script file. If you are developing outside of the repo `src` folder, also save the file [dkjson.lua](http://dkolf.de/src/dkjson-lua.fsl/raw/dkjson.lua?name=6c6486a4a589ed9ae70654a2821e956650299228) to your development folder, next to your script.
-
-5. Open your development folder in VS Code.
-
-5. Add the following three lines to your lua script. If you are developing outside the repo `src` folder, use `dkjson` in the first line instead of `lunajson.lunajson`. The `redirectPrint` argument tells your script to send any `print` output to the VS Code output window; it can be omitted or set to `false` if you prefer.
+4. Add the following lines to your lua script:
 
     ```lua
-    local json = require 'lunajson.lunajson'
-    local debuggee = require 'vscode-debuggee'
-    debuggee.start(json, { redirectPrint = true })
-    ```
-   
-6. Type <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> or click on the "Run and Debug" icon in the side bar, then click on the "create a launch.json file" link. From the "Select debugger" dropdown that appears, select `Lua Debugger`. This will create a default `launch.json` that should include this snippet at the bottom of the file:
-
-    ```json
-    {        
-        "name": "wait",
-        "type": "lua",
-        "request": "attach",
-        "workingDirectory": "${workspaceRoot}",
-        "sourceBasePath": "${workspaceRoot}",
-        "listenPublicly": false,
-        "listenPort": 56789,
-        "encoding": "UTF-8"
-    }
+    local home = os.getenv("HOME") or os.getenv("HOMEDRIVE") .. os.getenv("HOMEPATH")
+    package.path = home .. "/.vscode/extensions/alexeymelnichuk.lua-mobdebug-0.0.5/lua/?.lua"
+        .. ";" .. package.path
+    require("vscode-mobdebug").start('127.0.0.1', 8172)
     ```
 
-8. Launch the `wait` configuration by selecting it from the dropdown at the top of the "Run and Debug" panel and clicking the arrow next to it (or hitting <kbd>F5</kbd>). This tells VS Code to listen for messages from remote execution of your script.
+5. Type <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> or click on the "Run and Debug" icon in the side bar to bring up the "Run and Debug" panel. The process for adding the Lua MobDebug launch configurations to your `launch.json` file depends on whether or not you already have a `launch.json` in your workspace.
 
-9.  Run your script from Finale. Any breakpoints you have set in VS Code will be hit, and then you can use VS Code's debugging capabilities. 
+    - If you don't have a `launch.json` file yet, you'll see a link to "create a launch.json file"; click it. If you have a Lua file open in the editor, VS Code will automatically create the appropriate `launch.json` file for you. Otherwise, from the dropdown that appears, select `Lua MobDebug`. Your `launch.json` should include these elements as part of the `configurations` array:
+        ```json
+        {
+            "name": "Lua MobDebug: Listen",
+            "type": "luaMobDebug",
+            "request": "attach",
+            "workingDirectory": "${workspaceFolder}",
+            "sourceBasePath": "${workspaceFolder}",
+            "listenPublicly": false,
+            "listenPort": 8172,
+            "stopOnEntry": true,
+            "sourceEncoding": "UTF-8"
+        },
+        {
+            "name": "Lua MobDebug: Current File",
+            "type": "luaMobDebug",
+            "request": "launch",
+            "workingDirectory": "${workspaceFolder}",
+            "sourceBasePath": "${workspaceFolder}",
+            "listenPort": 8172,
+            "stopOnEntry": true,
+            "sourceEncoding": "UTF-8",
+            "interpreter": "lua",
+            "arguments": [
+                "${relativeFile}"
+            ]
+        }
+        ```
+    - If you do have a `launch.json`, click on the gear icon at the top of the "Run and Debug" panel to bring it up. You can then either click the "Add Configuration" button in the lower left and select the two `Lua MobDebug` items one after the other, or add the above elements to the `configurations` array directly.
+
+6. Launch the `Lua MobDebug: Listen` configuration by selecting it from the dropdown at the top of the "Run and Debug" panel and clicking the arrow next to it (or hitting <kbd>F5</kbd>). This tells VS Code to listen for messages from remote execution of your script.
+
+7. Run your script from Finale. Any breakpoints you have set in VS Code will be hit, and then you can use VS Code's debugging capabilities. **Note** that the line `"stopOnEntry": true` in the launch configuration will cause the debugger to stop at the top of your script even if you have no breakpoints set. If you don't like this behavior, you can change the value to `false`.
+
+8. The extension collects any `print` statements and outputs them all at the end of the script. In order to work around this and print values while your script is running, you'll need to define a local function:
+    ```lua
+    local print = function(...) print(...); io.flush() end
+    ```
+
+
+9. When the script exits, your debug session will end; you'll need to launch a new session from VS Code before invoking the script from Finale again.
