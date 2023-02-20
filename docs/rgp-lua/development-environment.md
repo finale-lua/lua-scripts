@@ -59,8 +59,7 @@ There are several different VS Code extensions for Lua debugging, each with diff
     local home = os.getenv("HOME") or os.getenv("HOMEDRIVE") .. os.getenv("HOMEPATH")
     package.path = home .. "/.vscode/extensions/alexeymelnichuk.lua-mobdebug-0.0.5/lua/?.lua"
         .. ";" .. package.path
-    local mobdebug = require ("vscode-mobdebug")
-    mobdebug.start('127.0.0.1', 8172)
+    require("vscode-mobdebug").start('127.0.0.1', 8172)
     ```
 
 5. Type <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> or click on the "Run and Debug" icon in the side bar to bring up the "Run and Debug" panel. The process for adding the Lua MobDebug launch configurations to your `launch.json` file depends on whether or not you already have a `launch.json` in your workspace.
@@ -99,4 +98,10 @@ There are several different VS Code extensions for Lua debugging, each with diff
 
 7. Run your script from Finale. Any breakpoints you have set in VS Code will be hit, and then you can use VS Code's debugging capabilities. **Note** that the line `"stopOnEntry": true` in the launch configuration will cause the debugger to stop at the top of your script even if you have no breakpoints set. If you don't like this behavior, you can change the value to `false`.
 
-8. When the script exits, your debug session will end; you'll need to launch a new session from VS Code before invoking the script from Finale again.
+8. The extension collects any `print` statements and outputs them all at the end of the script. In order to work around this and print values while your script is running, you'll need to define a local function:
+    ```lua
+    local print = function(...) print(...); io.flush() end
+    ```
+
+
+9. When the script exits, your debug session will end; you'll need to launch a new session from VS Code before invoking the script from Finale again.
