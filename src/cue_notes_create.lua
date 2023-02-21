@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.81 (limited mixin)"
-    finaleplugin.Date = "2023/02/06"
+    finaleplugin.Version = "v0.85"
+    finaleplugin.Date = "2023/02/13"
     finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action. 
         It takes music from a nominated layer in the selected staff and 
@@ -14,9 +14,8 @@ function plugindef()
 
         Your preferences are preserved between each script run. 
         This script requires an expression category called "Cue Names". 
-        Under RGPLua (v0.58+) the category is created automatically if needed. 
-        Using JWLua, before running the script you must create an Expression Category called 
-        "Cue Names" containing at least one text expression.
+        Under RGPLua (v0.58+) a new category is created automatically if needed. 
+        To use with JWLua you must first create an Expression Category called "Cue Names". 
         ]]
     return "Cue Notes Create...", "Cue Notes Create", "Copy as cue notes to another staff"
 end
@@ -33,10 +32,12 @@ local config = { -- retained and over-written by the user's "settings" file
     source_layer        =   1,     -- layer the cue comes from
     cuenote_layer       =   3,     -- layer the cue ends up
     rest_layer          =   1,     -- layer for default wholenote rest
-    freeze_up_down      =   0,     -- "0" for no stem freezing, "1" for up, "2" for down
+    freeze_up_down      =   0,     -- "0" for no stem freezing, "1" for up, "2" for down, "3" for away from center
     -- if creating a new "Cue Names" category ...
     cue_category_name   =   "Cue Names",
     cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
+    window_pos_x        =   false,
+    window_pos_y        =   false,
 }
 
 local configuration = require("library.configuration")
@@ -44,7 +45,8 @@ local clef = require("library.clef")
 local layer = require("library.layer")
 local mixin = require("library.mixin")
 
-configuration.get_user_settings("cue_notes_create", config, true)
+local script_name = "cue_notes_create"
+configuration.get_user_settings(script_name, config, true)
 
 function show_error(error_code)
     local errors = {
@@ -75,6 +77,21 @@ function region_contains_notes(region, layer_number)
     return false
 end
 
+function dialog_set_position(dialog)
+    if config.window_pos_x and config.window_pos_y then
+        dialog:StorePosition()
+        dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
+        dialog:RestorePosition()
+    end
+end
+
+function dialog_save_position(dialog)
+    dialog:StorePosition()
+    config.window_pos_x = dialog.StoredX
+    config.window_pos_y = dialog.StoredY
+    configuration.save_user_settings(script_name, config)
+end
+
 function new_cue_name(source_staff)
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:CreateStatic(0, 20):SetText("New cue name:"):SetWidth(100)
@@ -84,6 +101,8 @@ function new_cue_name(source_staff)
     local the_name = dialog:CreateEdit(0, 40):SetWidth(200):SetText(staff:CreateDisplayFullNameString())
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
+    dialog_set_position(dialog)
+    dialog:RegisterHandleOkButtonPressed(function(self) dialog_save_position(self) end)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
     return ok, the_name:GetText()
 end
@@ -98,6 +117,8 @@ function choose_name_index(name_list)
     end
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
+    dialog_set_position(dialog)
+    dialog:RegisterHandleOkButtonPressed(function(self) dialog_save_position(self) end)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
     return ok, staff_list:GetSelectedItem() -- returns the chosen (0-based) INDEX number
 end
@@ -110,6 +131,8 @@ function create_new_expression(exp_name, category_number)
     str.LuaString = "^fontTxt"
         .. tfi:CreateEnigmaString(finale.FCString()).LuaString
         .. exp_name
+
+    -- DUE FOR MIXIN UPDATE: mixin:FCMTextExpressionDef()
     local ted = finale.FCTextExpressionDef()
     ted:SaveNewTextBlock(str)
     ted:AssignToCategory(cat_def)
@@ -146,7 +169,7 @@ function choose_destination_staff(source_staff)
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:CreateStatic(0, 20):SetText("Select cue name:"):SetWidth(100)
     local max_rows = #checks + #integers + 2
-    local num_rows = #staff_list > (max_rows + 2) and max_rows or (#staff_list + 2)
+    local num_rows = (#staff_list > (max_rows + 2)) and max_rows or (#staff_list + 2)
     local data_list = dialog:CreateDataList(0, 0)
         :SetUseCheckboxes(true)
         :SetHeight(num_rows * y_step)
@@ -214,10 +237,10 @@ function choose_destination_staff(source_staff)
     -- run the dialog
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    dialog_set_position(dialog)
     local chosen_staves = {} -- save user choice of destination staves
 
-    if ok then -- save changed User Prefs
+    dialog:RegisterHandleOkButtonPressed(function(self)
         local selection = data_list:GetSelectedLine() + 1
         if selection > 0 then -- user selected a line (not necessairly the line's checkbox)
             table.insert(chosen_staves, staff_list[selection][1])
@@ -231,10 +254,10 @@ function choose_destination_staff(source_staff)
         -- udpate config values
         local max = layer.max_layers()
         for _, v in ipairs(checks) do
-            config[v] = (dialog:GetControl(v):GetCheck() == 1)
+            config[v] = (self:GetControl(v):GetCheck() == 1)
         end
         for _, v in ipairs(integers) do
-            config[v] = dialog:GetControl(v):GetInteger()
+            config[v] = self:GetControl(v):GetInteger()
             if string.find(v, "layer") and (config[v] < 1 or config[v] > max) then -- legitimate layer choice?
                 config[v] = (v == "source_layer") and 1 or max -- make sure layer number is in range
             end
@@ -245,7 +268,9 @@ function choose_destination_staff(source_staff)
             config.rest_layer = (config.source_layer % max) + 1
         end
         config.freeze_up_down = stem_popup:GetSelectedItem() -- 0-based index
-    end
+        dialog_save_position(self)
+    end)
+    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
     return ok, chosen_staves
 end
 
@@ -295,11 +320,10 @@ function copy_to_destination(source_region, destination_staff)
             entry.Playback = false
         end
         entry:SetNoteDetailFlag(true)
-        local entry_mod = finale.FCEntryAlterMod()
-        entry_mod:SetNoteEntry(entry)
-        entry_mod:SetResize(config.cuenote_percent)
-        entry_mod:Save()
-
+        mixin.FCMEntryAlterMod()
+            :SetNoteEntry(entry)
+            :SetResize(config.cuenote_percent)
+            :Save()
         if entry.ArticulationFlag and not config.copy_articulations then
             for articulation in each(entry:CreateArticulations()) do
                 articulation:DeleteData()
@@ -384,11 +408,11 @@ function new_expression_category(new_name)
 end
 
 function create_cue_notes()
-    local cue_names = { }	-- compile NAME/ItemNo of all pre-existing CUE_NAME expressions
+    local cue_names = { } -- compile NAME/ItemNo of all pre-existing CUE_NAME expressions
     local source_region = finenv.Region()
     local start_staff = source_region.StartStaff
     -- declare other local variables
-    local ok, expression_ID, name_index, new_expression
+    local ok, expression_ID, name_index, new_expression, destination_staves
 
     if source_region:CalcStaffSpan() > 1 then
         return show_error("only_one_staff")
@@ -416,6 +440,7 @@ function create_cue_notes()
                 table.insert(cue_names, { str.LuaString, text_def.ItemNo } ) -- save expresion NAME and ItemNo
             end
         end
+        table.sort(cue_names, function(a, b) return string.lower(a[1]) < string.lower(b[1]) end)
     end
 
     -- test for pre-existing names
@@ -434,14 +459,13 @@ function create_cue_notes()
         if not ok or new_expression == "" then return end
         expression_ID = create_new_expression(new_expression, cat_ID)
     else  -- otherwise get the ItemNo of chosen pre-existing expression
-        expression_ID = cue_names[name_index][2] --([name_index][1] is the item name)
+        expression_ID = cue_names[name_index][2] --([name_index][1] is the expression's name)
     end
+
     -- choose destination staff
     ok, destination_staves = choose_destination_staff(start_staff)
     if not ok then return end
 
-    -- save revised config file
-    configuration.save_user_settings("cue_notes_create", config)
     -- make the cue copy
     for _, one_staff in ipairs(destination_staves) do
         if copy_to_destination(source_region, one_staff) then
