@@ -8,6 +8,8 @@ A library of helper functions to improve code reuse in mixins.
 - [create_standard_control_event(name)](#create_standard_control_event)
 - [create_custom_control_change_event()](#create_custom_control_change_event)
 - [create_custom_window_change_event()](#create_custom_window_change_event)
+- [to_fcstring(value, fcstr)](#to_fcstring)
+- [boolean_to_error(object, method)](#boolean_to_error)
 
 ### disable_methods
 
@@ -15,7 +17,7 @@ A library of helper functions to improve code reuse in mixins.
 mixin_helper.disable_methods(props)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L24)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L25)
 
 Disables mixin methods by setting an empty function that throws an error.
 
@@ -31,7 +33,7 @@ Disables mixin methods by setting an empty function that throws an error.
 mixin_helper.create_standard_control_event(name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L39)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L40)
 
 A helper function for creating a standard control event. standard refers to the `Handle*` methods from `FCCustomLuaWindow` (not including `HandleControlEvent`).
 For example usage, refer to the source for the `FCMControl` mixin.
@@ -50,7 +52,7 @@ For example usage, refer to the source for the `FCMControl` mixin.
 mixin_helper.create_custom_control_change_event()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L232)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L233)
 
 Helper function for creating a custom event for a control.
 Custom events are bootstrapped to InitWindow and HandleCommand, in addition be being able to be triggered manually.
@@ -76,8 +78,45 @@ This function returns 4 values which are all functions:
 mixin_helper.create_custom_window_change_event()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L322)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L323)
 
 Creates a custom change event for a window class. For details, see the documentation for `create_custom_control_change_event`, which works in exactly the same way as this function except for controls.
 
 @ ... (table)
+
+### to_fcstring
+
+```lua
+mixin_helper.to_fcstring(value, fcstr)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L388)
+
+Casts a value to an `FCString` object. If the value is already an `FCString`, it will be returned.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `value` | `any` |  |
+| `fcstr` (optional) | `FCString` | An optional `FCString` object to populate to skip creating a new object. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `FCString` |  |
+
+### boolean_to_error
+
+```lua
+mixin_helper.boolean_to_error(object, method)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L409)
+
+There are many PDK methods that return a boolean value to indicate success / failure instead of throwing an error.
+This function captures that result and throws an error in case of failure.
+
+@ [...] (any) Any arguments to pass to the method.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `object` | `__FCMBase` | Any `FCM` or `FCX` object. |
+| `method` | `string` | The name of the method to call (no trailing underscore, it will be added automatically). |

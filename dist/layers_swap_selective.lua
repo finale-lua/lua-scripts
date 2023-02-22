@@ -2662,6 +2662,91 @@ __imports["mixin.FCMStrings"] = __imports["mixin.FCMStrings"] or function()
     end
     return props
 end
+__imports["mixin.FCMTextExpressionDef"] = __imports["mixin.FCMTextExpressionDef"] or function()
+
+
+
+
+    local mixin = require("library.mixin")
+    local mixin_helper = require("library.mixin_helper")
+    local meta = {}
+    local public = {}
+    local private = setmetatable({}, {__mode = "k"})
+    local temp_str = finale.FCString()
+
+    function public:SaveNewTextBlock(str)
+        mixin.assert_argument(str, {"string", "FCString"}, 2)
+        str = mixin_helper.to_fcstring(str, temp_str)
+        mixin_helper.boolean_to_error(self, "SaveNewTextBlock", str)
+    end
+
+    function public:AssignToCategory(cat_def)
+        mixin.assert_argument(cat_def, "FCCategoryDef", 2)
+        mixin_helper.boolean_to_error(self, "AssignToCategory", cat_def)
+    end
+
+    function public:SetUseCategoryPos(enable)
+        mixin.assert_argument(enable, "boolean", 2)
+        mixin_helper.boolean_to_error(self, "SetUseCategoryPos", enable)
+    end
+
+    function public:SetUseCategoryFont(enable)
+        mixin.assert_argument(enable, "boolean", 2)
+        mixin_helper.boolean_to_error(self, "SetUseCategoryFont", enable)
+    end
+
+    function public:MakeRehearsalMark(str, measure)
+        local do_return = false
+        if type(measure) == "nil" then
+            measure = str
+            str = temp_str
+            do_return = true
+        else
+            mixin.assert_argument(str, "FCString", 2)
+        end
+        mixin.assert_argument(measure, "number", do_return and 2 or 3)
+        mixin_helper.boolean_to_error(self, "MakeRehearsalMark", str, measure)
+        if do_return then
+            return str.LuaString
+        end
+    end
+
+    function public:SaveTextString(str)
+        mixin.assert_argument(str, {"string", "FCString"}, 2)
+        str = mixin_helper.to_fcstring(str, temp_str)
+        mixin_helper.boolean_to_error(self, "SaveTextString", str)
+    end
+
+    function public:DeleteTextBlock()
+        mixin_helper.boolean_to_error(self, "DeleteTextBlock")
+    end
+
+    function public:SetDescription(str)
+        mixin.assert_argument(str, {"string", "FCString"}, 2)
+        str = mixin_helper.to_fcstring(str, temp_str)
+        self:SetDescription_(str)
+    end
+
+    function public:GetDescription(str)
+        mixin.assert_argument(str, {"nil", "FCString"}, 2)
+        local do_return = not str
+        str = str or temp_str
+        self:GetDescription_(str)
+        if do_return then
+            return str.LuaString
+        end
+    end
+
+    function public:DeepSaveAs(item_num)
+        mixin.assert_argument(item_num, "number", 2)
+        mixin_helper.boolean_to_error(self, "DeepSaveAs", item_num)
+    end
+
+    function public:DeepDeleteData()
+        mixin_helper.boolean_to_error(self, "DeepDeleteData")
+    end
+    return {meta, public}
+end
 __imports["mixin.FCMTreeNode"] = __imports["mixin.FCMTreeNode"] or function()
 
 
@@ -3487,6 +3572,7 @@ end
 __imports["library.mixin_helper"] = __imports["library.mixin_helper"] or function()
 
 
+
      local utils = require("library.utils")
     local mixin = require("library.mixin")
     local mixin_helper = {}
@@ -3752,6 +3838,21 @@ __imports["library.mixin_helper"] = __imports["library.mixin_helper"] or functio
             end
         end
         return add_func, remove_func, trigger_func, event.history_iterator
+    end
+
+    function mixin_helper.to_fcstring(value, fcstr)
+        if mixin.is_instance_of(value, "FCString") then
+            return value
+        end
+        fcstr = fcstr or finale.FCString()
+        fcstr.LuaString = tostring(value)
+        return fcstr
+    end
+
+    function mixin_helper.boolean_to_error(object, method, ...)
+        if not object[method .. "_"](object, ...) then
+            error("'" .. object.MixinClass .. "." .. method .. "' has encountered an error.", 3)
+        end
     end
     return mixin_helper
 end
