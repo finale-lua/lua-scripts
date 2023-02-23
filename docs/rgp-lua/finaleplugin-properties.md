@@ -114,6 +114,16 @@ finaleplugin.LoadLuaSocket = true
 
 Default is `false`.
 
+#### LoadOSUtils\* (boolean)
+
+Setting this value to `true` tells _RGP Lua_ to pre-load its embedded version of `luaosutils` package. Note that you must still `require` it to use it. See the [this link](/docs/rgp-lua#the-luaosutils-library) for more information.
+
+```lua
+finaleplugin.LoadOSUtils = true
+```
+
+Default is `false`.
+
 #### MinFinaleVersion (number)
 
 The minimum version of Finale that can run the script. The number should match that returned by `finenv.FinaleVersion`. _JW Lua_ reads this value every time a script runs and displays an error message if the running Finale version is too low. _RGP Lua_ reads the value once and omits it from Finale's Plug-in menu if the running Finale version is too low. Examples:
