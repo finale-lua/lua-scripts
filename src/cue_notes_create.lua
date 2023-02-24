@@ -73,12 +73,12 @@ function show_error(error_code)
     local errors = {
         only_one_staff = "Please select just one staff\n as the source for the new cue",
         empty_region = "Please select a region\nwith some notes in it!",
-        no_notes_in_source_layer = "The music selected contains\nno notes in layer " .. config.source_layer,
+        no_notes_in_source_layer = "The selected music contains\nno notes in layer " .. config.source_layer,
         first_make_expression_category = "You must first create a new Text Expression Category called \""..config.cue_category_name.."\" containing at least one entry",
-        no_cue_notes = "The region selected contains \nno cue notes in layer " .. config.cuenote_layer
+        no_cue_notes = "The selected music contains \nno cue notes in layer " .. config.cuenote_layer
     }
     local msg = errors[error_code] or "Unknown error condition"
-    finenv.UI():AlertInfo("script: " .. plugindef(), msg)
+    finenv.UI():AlertInfo(msg, nil)
     return -1
 end
 
@@ -86,7 +86,7 @@ function dont_overwrite_existing_music(staff_number)
     local staff = finale.FCStaff()
     staff:Load(staff_number) -- staff number of this slot
     local msg = "Overwrite existing music on staff: " .. staff:CreateDisplayFullNameString().LuaString .. "?"
-    local alert = finenv.UI():AlertOkCancel("script: " .. plugindef(), msg)
+    local alert = finenv.UI():AlertOkCancel(msg, nil)
     return (alert ~= finale.OKRETURN)
 end
 
