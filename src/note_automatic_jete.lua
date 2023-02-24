@@ -233,7 +233,7 @@ function note_automatic_jete()
                     for key, entry in pairs(entries) do
                         if (entry.EntryNumber ~= first_entry_num) and (entry.EntryNumber ~= last_entry_num) then
                             local artic, arg_point = find_staccato_articulation(entry, dot_artic_def)
-                            if nil ~= artic then
+                            if artic and arg_point then
                                 local new_y = linear_multplier * arg_point.X + linear_constant -- apply linear equation
                                 local old_vpos = artic.VerticalPos
                                 artic.VerticalPos = artic.VerticalPos -
