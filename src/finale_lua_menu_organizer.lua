@@ -83,13 +83,14 @@ if finenv.UI():IsOnMac() then
     win_kbdshortcut = ""
 end
 
-local min_index_for_plugin_menu = 6 -- Finale's Plug-Ins menu is always at or after this index in the main menu
+local top_level_menu = menu.get_top_level_menu(finenv.GetFinaleMainWindow())
+local min_index_for_plugin_menu = 6 -- Finale's Plug-ins menu is always at or after this index in the main menu
 
 local get_lua_menu = function()
-    local lua_menu, lua_menu_index = menu.find_item(finenv.GetFinaleMainWindow(), "RGP Lua...", min_index_for_plugin_menu)
+    local lua_menu, lua_menu_index = menu.find_item(top_level_menu, "RGP Lua...", min_index_for_plugin_menu)
     if lua_menu then return lua_menu, lua_menu_index end
     -- we should never get here, because the script requires RGP Lua to run, but just in case:
-    lua_menu, lua_menu_index = menu.find_item(finenv.GetFinaleMainWindow(), "JW Lua...", min_index_for_plugin_menu)
+    lua_menu, lua_menu_index = menu.find_item(top_level_menu, "JW Lua...", min_index_for_plugin_menu)
     return lua_menu, lua_menu_index
 end
 
@@ -188,7 +189,7 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
         if #line > 0 then
             if line:find(menuname_keyword, 1, true) == 1 then
                 line = extract_keyword_value(menuname_keyword, line)
-                from_menu = menu.find_item(finenv.GetFinaleMainWindow(), line, min_index_for_plugin_menu)
+                from_menu = menu.find_item(top_level_menu, line, min_index_for_plugin_menu)
                 to_menu = to_menu or from_menu
             elseif line:find(usemainmenu_keyword, 1, true) == 1 then
                 line = extract_keyword_value(usemainmenu_keyword, line)
@@ -211,7 +212,7 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
                 elseif line:find(separator_indicator, 1, true) == 1 then
                     menu.insert_separator(to_menu)
                 else
-                    local item_menu, item_index = menu.find_item_in_menu(from_menu, line)
+                    local item_menu, item_index = menu.find_item(from_menu, line)
                     if item_menu then
                         if menu.move_item(item_menu, item_index, to_menu) then
                             menus_to_delete[item_menu] = true
@@ -223,7 +224,7 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
                             local original_text = utils.lrtrim(line:sub(1, found - 1))
                             local replacement_text = utils.lrtrim(line:sub(found + #replacement_indicator))
                             if #replacement_text > 0 then
-                                item_menu, item_index = menu.find_item_in_menu(from_menu, original_text)
+                                item_menu, item_index = menu.find_item(from_menu, original_text)
                                 if item_menu then
                                     local success, index = menu.move_item(item_menu, item_index, to_menu)
                                     if success then
