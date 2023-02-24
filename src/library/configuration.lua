@@ -119,6 +119,8 @@ without having to worry about older configuration files or user settings affecti
 
 local configuration = {}
 
+local utils = require("library.utils")
+
 local script_settings_dir = "script_settings" -- the parent of this directory is the running lua path
 local comment_marker = "--"
 local parameter_delimiter = "="
@@ -131,10 +133,6 @@ local file_exists = function(file_path)
         return true
     end
     return false
-end
-
-local strip_leading_trailing_whitespace = function(str)
-    return str:match("^%s*(.-)%s*$") -- lua pattern magic taken from the Internet
 end
 
 parse_parameter = function(val_string)
@@ -165,8 +163,8 @@ local get_parameters_from_file = function(file_path, parameter_list)
         end
         local delimiter_at = string.find(line, parameter_delimiter, 1, true)
         if nil ~= delimiter_at then
-            local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
-            local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
+            local name = utils.lrtrim(string.sub(line, 1, delimiter_at - 1))
+            local val_string = utils.lrtrim(string.sub(line, delimiter_at + 1))
             file_parameters[name] = parse_parameter(val_string)
         end
     end

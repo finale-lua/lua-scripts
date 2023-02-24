@@ -161,4 +161,28 @@ function utils.ltrim(str)
     return string.match(str, "^%s*(.*)")
 end
 
+--[[
+% ltrim
+
+Removes whitespace from the end of a string.
+
+@ str (string)
+: (string)
+]]
+function utils.rtrim(str)
+    return string.match(str, "(.-)%s*$")
+end
+
+--[[
+% ltrim
+
+Removes whitespace from the start and end of a string.
+
+@ str (string)
+: (string)
+]]
+function utils.lrtrim(str)
+    return utils.ltrim(utils.rtrim(str))
+end
+
 return utils
