@@ -42,7 +42,7 @@ function plugindef()
 
     ```
     MENUNAME    RGP Lua        // selects the subfolder containing the RGP Lua plugin.
-    USEMAINMENU    &RGP        // creates a new menu called 'RGP' in Finale's main menu bar
+    USEMAINMENU    &Lua        // creates a new menu called 'Lua' in Finale's main menu bar (omit this to create the menu in place)
 
     >Articulations
         Autoposition Rolled Chord Articulations
