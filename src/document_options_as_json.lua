@@ -129,7 +129,7 @@ function confirm_file_import(meta)
         { "Music File", meta.File or meta.MusicFile},
         { "Date", meta.Date },
         { "Finale Version", simplify_finale_version(meta.FinaleVersion) },
-        { "Description", "Some file description"}
+        { "Description", meta.Description }
     }
 
     for row, labels in ipairs(t) do
@@ -1043,17 +1043,7 @@ end
 
 -- endregion
 
-function get_last_key(t)
-    local result
-    for k, _ in pairsbykeys(t) do result = k end
-    return result
-end
 
-function quote_and_escape(s)
-    s = string.gsub(s, "\\", "\\\\")
-    s = string.gsub(s, '"', '\\"')
-    return string.format('"%s"', s)
-end
 
 --[[
     Simple implementation of JSON serialization because we know
@@ -1063,6 +1053,19 @@ end
     so that the output can be diffed.
   ]]
 function get_as_ordered_json(t, indent_level, in_array)
+    local function get_last_key(this_table)
+        local result
+        for k, _ in pairsbykeys(this_table) do result = k end
+        return result
+    end
+
+    local function quote_and_escape(s)
+        s = string.gsub(s, "\\", "\\\\")
+        s = string.gsub(s, '"', '\\"')
+        return string.format('"%s"', s)
+    end
+
+    
     indent_level = indent_level or 0
     local result = {}
 
