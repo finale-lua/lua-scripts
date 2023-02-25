@@ -66,7 +66,7 @@ function plugindef()
         "Organizes the Lua menus in Finale's Plug-Ins menu as specified in a configuration file."
 end
 
-local create_template_if_not_found = true      -- change this value to `true` if you want the script to create a template file.
+local create_template_if_not_found = false      -- change this value to `true` if you want the script to create a template file.
 
 local utils = require("library.utils")
 local osutils = require("luaosutils")
