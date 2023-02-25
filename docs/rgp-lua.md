@@ -82,15 +82,15 @@ It also allows for direct interaction with the Lua plugin itself. A full descrip
 
 ### The 'luosutils' library
 
-_RGP Lua_ (starting in version 0.66) optionally preloads an embedded version of the [`luosutils`](https://github.com/finale-lua/luaosutils) library. This is a library of functions specifically written to help Lua scripts running on Finale. It allows them to interact with the host operating system or the Finale executable in ways that are not directly supported by either the Lua language or the PDK Framework.
+_RGP Lua_ (starting in version 0.66) optionally preloads an embedded version of the [`luaosutils`](https://github.com/finale-lua/luaosutils) library. This is a library of functions specifically written to help Lua scripts running on Finale. It allows them to interact with the host operating system or the Finale executable in ways that are not directly supported by either the Lua language or the PDK Framework.
 
-For _RGP Lua_ to preload `luaosutils`, set `finaleplugin.LoadOSUtils = true` in your `plugindef` function. _RGP Lua_ does not load the library into a global namespace, however. You must explicitly `require` it into a varable of your choosing similar to what is shown in the following example.
+For _RGP Lua_ to preload `luaosutils`, set `finaleplugin.LoadLuaOSUtils = true` in your `plugindef` function. _RGP Lua_ does not load the library into a global namespace, however. You must explicitly `require` it into a varable of your choosing similar to what is shown in the following example.
 
 ```lua
 local osutils = require('luaosutils')
 ```
 
-The advantage to this approach is that you do not need to change the body of your script if you wish to use an external version of `luaosutils` instead of the version embedded in _RGP Lua_. Simply disable the `LoadOSUtils` option in `plugindef` and the script will pick up the external version instead, provided it is in your `path` list.
+The advantage to this approach is that you do not need to change the body of your script if you wish to use an external version of `luaosutils` instead of the version embedded in _RGP Lua_. Simply disable the `LoadLuaOSUtils` option in `plugindef` and the script will pick up the external version instead, provided it is in your `path` list.
 
 ### The 'socket' namespace
 

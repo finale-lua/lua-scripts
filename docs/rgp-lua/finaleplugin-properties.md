@@ -114,12 +114,12 @@ finaleplugin.LoadLuaSocket = true
 
 Default is `false`.
 
-#### LoadOSUtils\* (boolean)
+#### LoadLuaOSUtils\* (boolean)
 
 Setting this value to `true` tells _RGP Lua_ to pre-load its embedded version of `luaosutils` package. Note that you must still `require` it to use it. See the [this link](/docs/rgp-lua#the-luaosutils-library) for more information.
 
 ```lua
-finaleplugin.LoadOSUtils = true
+finaleplugin.LoadLuaOSUtils = true
 ```
 
 Default is `false`.

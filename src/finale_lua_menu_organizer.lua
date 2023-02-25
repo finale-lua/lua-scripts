@@ -6,7 +6,7 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.ExecuteAtStartup = true
     finaleplugin.IncludeInPluginMenu = false
-    finaleplugin.LoadOSUtils = true
+    finaleplugin.LoadLuaOSUtils = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "2023"
     finaleplugin.Version = "1.0"
@@ -19,7 +19,8 @@ function plugindef()
     1. The running folder where this script resides.
     2. The Finale Plug-Ins main folder.
 
-    If not found, it offers to create a template with all the Lua menu items that you may then edit to taste. It creates it in the script's running folder.
+    If the file is not found, the script exits without doing anything. However, you can have it create a template with all the Lua menu items
+    by changing the `create_template_if_not_found` variable to `true`. You may then edit the template to taste. It creates it in the script's running folder.
 
     The format of `finale_lua_menus.txt` is fully compatible with the format of the JWLuaMenu plugin, which this script is intended to replace.
     It supports the following keywords and tokens. Empty lines are skipped.
@@ -64,6 +65,8 @@ function plugindef()
     return "Finale Lua Menu Organizer", "Finale Lua Menu Organizer",
         "Organizes the Lua menus in Finale's Plug-Ins menu as specified in a configuration file."
 end
+
+local create_template_if_not_found = true      -- change this value to `true` if you want the script to create a template file.
 
 local utils = require("library.utils")
 local osutils = require("luaosutils")
@@ -247,6 +250,9 @@ end
 local function organize_finale_lua_menus()
     local file_path, exists = get_config_file()
     if not exists then
+        if not create_template_if_not_found then
+            return
+        end
         if not create_layout_template() then
             finenv.UI():AlertError(plugindef() .. " was unable to create a layout template.", "")
             return
