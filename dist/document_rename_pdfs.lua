@@ -4757,7 +4757,7 @@ function plugindef()
         to include any combination of the score filename, score title, part name, part number,
         total number of parts, current date, and current time.
         A simple use of the script would be to prepend the part number so that your PDFs can be sorted in
-        score order.
+        the order they appear in the "Manage Parts" dialog.
         The script will also fix filename artifacts that result from certain Finale versions and
         PDF drivers – for example, an extra "x" after the score filename or a truncated filename
         if the part names contains a "/".
