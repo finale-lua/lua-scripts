@@ -34,11 +34,12 @@ end
 
 local mixin = require("library.mixin")
 local configuration = require("library.configuration")
+local library = require("library.general_library")
 
 local config = {
     last_template = "%n %t - %p.pdf"
 }
-local script_name = "document_rename_pdfs"
+local script_name = library.calc_script_name()
 configuration.get_user_settings(script_name, config)
 
 local function get_current_path_file_and_extension()
