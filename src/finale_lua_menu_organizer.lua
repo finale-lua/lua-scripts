@@ -166,7 +166,7 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
     local menus_to_delete = {}
     local function function_exit(success) -- all function exits must use this exit function
         for k, _ in pairs(menus_to_delete) do
-            menu.delete_submenu(k)
+            menu.delete_submenu(k, finenv.GetFinaleMainWindow())
         end
         return success
     end
