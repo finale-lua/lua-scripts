@@ -90,7 +90,7 @@ For _RGP Lua_ to preload `luaosutils`, set `finaleplugin.LoadLuaOSUtils = true` 
 local osutils = require('luaosutils')
 ```
 
-The advantage to this approach is that you do not need to change the body of your script if you wish to use an external version of `luaosutils` instead of the version embedded in _RGP Lua_. Simply disable the `LoadLuaOSUtils` option in `plugindef` and the script will pick up the external version instead, provided it is in your `path` list.
+The advantage to this approach is that you do not need to change the body of your script if you wish to use an external version of `luaosutils` instead of the version embedded in _RGP Lua_. Simply disable the `LoadLuaOSUtils` option in `plugindef` and the script will pick up the external version instead, provided it is in your `cpath` list. (_RGP Lua_ automatically adds the script’s running folder path to the `cpath` list.)
 
 ### The 'socket' namespace
 
@@ -138,7 +138,7 @@ If you are planning to use the standard installation of `luasocket`, you may be 
 
 ### The 'utf8' namespace
 
-Lua 5.3 added a standard `utf8` library for parsing utf8-encoded strings. Especially with the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ (beginning in version 0.63) embeds the utf8 library from Lua 5.3 back-ported into Lua 5.2. The [Lua 5.3 Reference Manual](https://www.lua.org/manual/5.3/manual.html) describes how to use these functions. Any code you write for this version of `utf8` is source-compatible with Lua 5.3 and beyond.
+Lua 5.3 and higher added a standard `utf8` library for parsing utf8-encoded strings. Especially with the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ embeds the `utf8` library from Lua 5.4.4 back-ported into Lua 5.2. The [Lua 5.4 Reference Manual](https://www.lua.org/manual/5.4/manual.html) describes how to use these functions. Any code you write for this version of `utf8` is source-compatible with Lua 5.4 and beyond. (This version is also backwards compatible with Lua 5.3 code.)
 
 Dialog Boxes
 ------------
