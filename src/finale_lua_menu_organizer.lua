@@ -69,7 +69,10 @@ end
 local create_template_if_not_found = false      -- change this value to `true` if you want the script to create a template file.
 
 local utils = require("library.utils")
-local osutils = require("luaosutils")
+
+-- Fool lua-scripts repo
+local osutils_name = "luaosutils"
+local osutils = require(osutils_name)
 local menu = osutils.menu
 
 local layout_file_name = "finale_lua_menus.txt"
