@@ -188,6 +188,24 @@ if not success then
 end
 ```
 
+#### QueryInitializationInProgress\* (function)
+
+A function that returns `true` if the script is currently running at Finale startup. You can request your script to run at startup with `finaleplugin.ExecuteAtStartup = true` in your `plugindef` function.
+
+|Output Type|Description|
+|------|------|
+|boolean|True if Finale startup in progress.|
+
+Example:
+
+```lua
+if finenv.QueryInitializationInProgress() then
+    -- execute expensive global variable initialization here
+    finenv.RetainLuaState = true -- retain their values so that it only happens once
+    return
+end
+```
+
 #### QueryInvokedModifierKeys\* (function)
 
 A function that returns `true` if the input modifier key(s) were pressed when the menu item was invoked that started the script. The input value is any combination of [COMMAND\_MOD\_KEYS](https://pdk.finalelua.com/class_____f_c_user_window.html#af07ed05132bac987ff3acab63a001e47). You can create combinations by adding together the key codes.

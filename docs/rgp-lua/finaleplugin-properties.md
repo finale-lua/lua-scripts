@@ -44,6 +44,22 @@ finaleplugin.NoStore = true
 
 Default is `false`.
 
+#### ExecuteAtStartup\* (boolean)
+
+If this value is `true` _RGP Lua_ executes the script during Finale initialization. The script executes after the Finale application has completely finished initializing and is ready for user input. However, there is no guarantee in which order scripts will run if multiple scripts have requested to execute at startup. Some other 3rd-party plugins (notably TGTools, Patterson Plugins, and JWLuaMenu) rearrange Finale's menus at this time, and there is no guarantee in which order they run.
+
+You can check if a script is running at startup with `finenv.QueryInitializationInProgress()`. Only the primary script runs at startup. If the script specifies `AdditionalMenuOptions`, the additional options are added to Finale's plugin menu, but they do not run at startup. 
+
+You can set `IncludeInPluginMenu` to `false` to suppress the script from Finale's plugin menu. In this case the script *only* runs at startup.
+
+Example:
+
+```lua
+finaleplugin.ExecuteAtStartup = true
+```
+
+Default is `false`.
+
 #### HandlesUndo\* (boolean)
 
 Both _JW Lua_ and _RGP Lua_ (by default) automatically run scripts within an undo block named according the undo string returned by the `plugindef()` function. However, it is possible for a script to notify _RGP Lua_ that it will handle undo blocks on its own by setting this value to `true`. One primary reason a script might enable this option is to open a modeless dialog window. Example:
@@ -53,6 +69,30 @@ finaleplugin.HandlesUndo = true
 ```
 
 Default is `false`.
+
+#### IgnoreReturnValue\* (boolean)
+
+_RGP Lua_ displays to the user any non-nil value returned by a script, regardless of whether an error occurred. You can suppress this display when there is no error by setting this value to `true`. Example:
+
+```lua
+finaleplugin.IgnoreReturnValue = true
+```
+
+Default is `false`.
+
+#### IncludeInPluginMenu\* (boolean)
+
+If this value is `false`, _RGP Lua_ does not include the script in Finale's plugin menu. A typical case where your might do this is in combination with `ExecuteAtStartup` set to `true`. This would allow your script to run at startup but not be accessible for the user to run from the menu.
+
+This value applies only to the primary menu option. Any additional menu items specified with `AdditionalMenuOptions` *are* included in Finale's plugin menu.
+
+Example:
+
+```lua
+finaleplugin.IncludeInPluginMenu = false
+```
+
+Default is `true`.
 
 #### LoadAsString\* (boolean)
 
@@ -70,6 +110,16 @@ Setting this value to `true` tells _RGP Lua_ to load the complete embedded `luas
 
 ```lua
 finaleplugin.LoadLuaSocket = true
+```
+
+Default is `false`.
+
+#### LoadLuaOSUtils\* (boolean)
+
+Setting this value to `true` tells _RGP Lua_ to pre-load its embedded version of `luaosutils` package. Note that you must still `require` it to use it. See the [this link](/docs/rgp-lua#the-luaosutils-library) for more information.
+
+```lua
+finaleplugin.LoadLuaOSUtils = true
 ```
 
 Default is `false`.

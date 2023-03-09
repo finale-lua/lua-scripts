@@ -62,7 +62,7 @@ print (math.random(1, 10))
 
 ### The 'finale' namespace
 
-All functionality that accesses Finale through the [Lua/PDK Framework](https://pdk.finalelua.com/) resides within the `finale` namespace. (Namespaces use the dot separator.)
+All functionality that accesses Finale through the [Finale PDK Framework](https://pdk.finalelua.com/) resides within the `finale` namespace. (Namespaces use the dot separator.)
 
 For example:
 
@@ -79,6 +79,18 @@ local sel_rgn = finenv.Region()
 ```
 
 It also allows for direct interaction with the Lua plugin itself. A full description of available functions and properties can be found on the [finenv properties](/docs/rgp-lua/finenv-properties) page.
+
+### The 'luosutils' library
+
+_RGP Lua_ (starting in version 0.66) optionally preloads an embedded version of the [`luaosutils`](https://github.com/finale-lua/luaosutils) library. This is a library of functions specifically written to help Lua scripts running on Finale. It allows them to interact with the host operating system or the Finale executable in ways that are not directly supported by either the Lua language or the PDK Framework.
+
+For _RGP Lua_ to preload `luaosutils`, set `finaleplugin.LoadLuaOSUtils = true` in your `plugindef` function. _RGP Lua_ does not load the library into a global namespace, however. You must explicitly `require` it into a varable of your choosing similar to what is shown in the following example.
+
+```lua
+local osutils = require('luaosutils')
+```
+
+The advantage to this approach is that you do not need to change the body of your script if you wish to use an external version of `luaosutils` instead of the version embedded in _RGP Lua_. Simply disable the `LoadLuaOSUtils` option in `plugindef` and the script will pick up the external version instead, provided it is in your `cpath` list. (_RGP Lua_ automatically adds the script’s running folder path to the `cpath` list.)
 
 ### The 'socket' namespace
 
@@ -126,7 +138,7 @@ If you are planning to use the standard installation of `luasocket`, you may be 
 
 ### The 'utf8' namespace
 
-Lua 5.3 added a standard `utf8` library for parsing utf8-encoded strings. Especially with the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ (beginning in version 0.63) embeds the utf8 library from Lua 5.3 back-ported into Lua 5.2. The [Lua 5.3 Reference Manual](https://www.lua.org/manual/5.3/manual.html) describes how to use these functions. Any code you write for this version of `utf8` is source-compatible with Lua 5.3 and beyond.
+Lua 5.3 and higher added a standard `utf8` library for parsing utf8-encoded strings. Especially with the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ embeds the `utf8` library from Lua 5.4.4 back-ported into Lua 5.2. The [Lua 5.4 Reference Manual](https://www.lua.org/manual/5.4/manual.html) describes how to use these functions. Any code you write for this version of `utf8` is source-compatible with Lua 5.4 and beyond. (This version is also backwards compatible with Lua 5.3 code.)
 
 Dialog Boxes
 ------------
@@ -274,10 +286,14 @@ end
 
 `dumpproperties()` creates a table consisting of all available properties for an object and their values. The keys in the table is the property names; the values in the table are the property values. Use the `pairsbykeys()` iterator (see below) to get the properties sorted in alphabetical order.
 
+The first parameter to the function is an instance of a PDK Framework class.
+
+The second parameter is optional, but can be used to specify if properties from base classes should be included as well. If omitted, properties from base classes are not included.
+
 ```lua
 page = finale.FCPage()
 page:Load(1)
-properties = dumpproperties(page)
+properties = dumpproperties(page, true) -- true: include base class properties
 for k, v in pairsbykeys(properties) do
    print (k, "=", v)
 end
@@ -325,7 +341,7 @@ end
 
 `eachentry()` feeds a `for` loop with all the note entry objects in a region, without saving them back. Mirror entries are processed with `eachentry()`.
 
-First parameter to this function is the region to process, where you could use `finenv.Region()` to get the current selection.
+The first parameter to this function is the region to process, where you could use `finenv.Region()` to get the current selection.
 
 The second parameter is optional, but can be used to indicate the note entry layer(s) to load in Finale. The default is to load all visible layers. These values are available:
 

@@ -198,6 +198,49 @@ function transposition.enharmonic_transpose(note, direction, ignore_error)
     return true
 end
 
+
+--[[
+% enharmonic_transpose_default
+
+Transpose the note enharmonically in Finale's default direction. This function should be used when performing an
+unlinked enharmonic flip in a part. Only a default enharmonic flip unlinks. Any other enharmonic flip appears in the
+score as well. This code is based on observed Finale behavior in Finale 27.
+
+@ note (FCNote) input and modified output
+@ direction (number) positive = up, negative = down (normally 1 or -1, but any positive or negative numbers work)
+@ [ignore_error] (boolean) default false. If true, always return success. External callers should omit this parameter.
+: (boolean) success or failure
+]]
+function transposition.enharmonic_transpose_default(note, ignore_error)
+    if note.RaiseLower ~= 0 then
+        return transposition.enharmonic_transpose(note, sign(note.RaiseLower), ignore_error)
+    end
+    local original_displacement = note.Displacement
+    local original_raiselower = note.RaiseLower
+    if not transposition.enharmonic_transpose(note, 1, ignore_error) then
+        return false
+    end
+    -- This is observed Finale behavior, relevant in the context of microtone custom key signatures.
+    -- A possibly more correct version would omit this hard-coded comparison to the number 2, but it
+    -- seems to be what Finale does.
+    if math.abs(note.RaiseLower) ~= 2 then
+        return true
+    end
+    local up_displacement = note.Displacement
+    local up_raiselower = note.RaiseLower
+    note.Displacement = original_displacement
+    note.RaiseLower = original_raiselower
+    if not transposition.enharmonic_transpose(note, -1, ignore_error) then
+        return false
+    end
+    if math.abs(note.RaiseLower) < math.abs(up_raiselower) then
+        return true
+    end
+    note.Displacement = up_displacement
+    note.RaiseLower = up_raiselower
+    return true
+end
+
 --
 -- CHROMATIC transposition (affect Displacement and RaiseLower)
 --
