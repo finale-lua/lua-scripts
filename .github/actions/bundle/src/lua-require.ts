@@ -5,9 +5,10 @@ export const generateLuaRequire = () => {
         '__imports = __imports or {}',
         '__import_results = __import_results or {}',
         '',
+        '__aaa_original_require_for_deployment__ = require'
         'function require(item)',
         '    if not __imports[item] then',
-        '        error("module \'" .. item .. "\' not found")',
+        '        __aaa_original_require_for_deployment__(item) -- attempt to require it with the original require, since it may be a C library.',
         '    end',
         '',
         '    if __import_results[item] == nil then',
