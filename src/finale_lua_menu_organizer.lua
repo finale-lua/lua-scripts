@@ -27,8 +27,8 @@ function plugindef()
 
     |Token|Description|
     |-----|-----------|
-    |MENUNAME&nbsp;[text]|Identifies the source menu from which to take menu items. The plugin searches Finale's Plug-Ins menu and submenus for a menu item that starts with this text. The menu containing that item becomes the menu from which items are taken. If this value is omitted, it defaults to JW Lua.|
-    |USEMAINMENU&nbsp;[text]|Specifies a new menu item to be created in Finale's main menu bar. If omitted, the menu items will be copied to the same menu as specified by MENUNAME. You can include an ampersand (&) for a Windows menu hotkey. This will be stripped out and ignored if the file is used with Mac Finale.|
+    |MENUNAME [text]|Identifies the source menu from which to take menu items. The plugin searches Finale's Plug-Ins menu and submenus for a menu item that starts with this text. The menu containing that item becomes the menu from which items are taken. If this value is omitted, it defaults to JW Lua.|
+    |USEMAINMENU [text]|Specifies a new menu item to be created in Finale's main menu bar. If omitted, the menu items will be copied to the same menu as specified by MENUNAME. You can include an ampersand (&) for a Windows menu hotkey. This will be stripped out and ignored if the file is used with Mac Finale.|
     |>[text]|Starts a submenu with name [text].|
     |<|Ends the current submenu.|
     |=>|Changes the menu item text from the original text to new text.|
