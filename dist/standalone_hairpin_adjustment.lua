@@ -995,11 +995,101 @@ __imports["library.note_entry"] = __imports["library.note_entry"] or function()
     end
     return note_entry
 end
+__imports["library.utils"] = __imports["library.utils"] or function()
+
+    local utils = {}
+
+    function utils.copy_table(t)
+        if type(t) == "table" then
+            local new = {}
+            for k, v in pairs(t) do
+                new[utils.copy_table(k)] = utils.copy_table(v)
+            end
+            setmetatable(new, utils.copy_table(getmetatable(t)))
+            return new
+        else
+            return t
+        end
+    end
+
+    function utils.table_remove_first(t, value)
+        for k = 1, #t do
+            if t[k] == value then
+                table.remove(t, k)
+                return
+            end
+        end
+    end
+
+    function utils.iterate_keys(t)
+        local a, b, c = pairs(t)
+        return function()
+            c = a(b, c)
+            return c
+        end
+    end
+
+    function utils.round(value, places)
+        places = places or 0
+        local multiplier = 10^places
+        return math.floor(value * multiplier + 0.5) / multiplier
+    end
+
+    function utils.calc_roman_numeral(num)
+        local thousands = {'M','MM','MMM'}
+        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
+        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
+        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
+        local roman_numeral = ''
+        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
+        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
+        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
+        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
+        return roman_numeral
+    end
+
+    function utils.calc_ordinal(num)
+        local units = num % 10
+        local tens = num % 100
+        if units == 1 and tens ~= 11 then
+            return num .. "st"
+        elseif units == 2 and tens ~= 12 then
+            return num .. "nd"
+        elseif units == 3 and tens ~= 13 then
+            return num .. "rd"
+        end
+        return num .. "th"
+    end
+
+    function utils.calc_alphabet(num)
+        local letter = ((num - 1) % 26) + 1
+        local n = math.floor((num - 1) / 26)
+        return string.char(64 + letter) .. (n > 0 and n or "")
+    end
+
+    function utils.clamp(num, minimum, maximum)
+        return math.min(math.max(num, minimum), maximum)
+    end
+
+    function utils.ltrim(str)
+        return string.match(str, "^%s*(.*)")
+    end
+
+    function utils.rtrim(str)
+        return string.match(str, "(.-)%s*$")
+    end
+
+    function utils.lrtrim(str)
+        return utils.ltrim(utils.rtrim(str))
+    end
+    return utils
+end
 __imports["library.configuration"] = __imports["library.configuration"] or function()
 
 
 
     local configuration = {}
+    local utils = require("library.utils")
     local script_settings_dir = "script_settings"
     local comment_marker = "--"
     local parameter_delimiter = "="
@@ -1011,9 +1101,6 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
             return true
         end
         return false
-    end
-    local strip_leading_trailing_whitespace = function(str)
-        return str:match("^%s*(.-)%s*$")
     end
     parse_parameter = function(val_string)
         if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
@@ -1041,8 +1128,8 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
             end
             local delimiter_at = string.find(line, parameter_delimiter, 1, true)
             if nil ~= delimiter_at then
-                local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
-                local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
+                local name = utils.lrtrim(string.sub(line, 1, delimiter_at - 1))
+                local val_string = utils.lrtrim(string.sub(line, delimiter_at + 1))
                 file_parameters[name] = parse_parameter(val_string)
             end
         end

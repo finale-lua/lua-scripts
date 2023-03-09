@@ -12,245 +12,6 @@ function require(item)
     end
     return __import_results[item]
 end
-__imports["library.notehead"] = __imports["library.notehead"] or function()
-
-    local notehead = {}
-    local configuration = require("library.configuration")
-    local library = require("library.general_library")
-    local config = {
-        diamond = {
-            quarter = { glyph = 79, size = 110 },
-            half  = { glyph = 79, size = 110 },
-            whole = { glyph = 79, size = 110, offset = 5 },
-            breve = { glyph = 79, size = 110, offset = 14 },
-        },
-        diamond_guitar = {
-            quarter = { glyph = 226, size = 110 },
-            half  = { glyph = 79, size = 110 },
-            whole = { glyph = 79, size = 110, offset = 5 },
-            breve = { glyph = 79, size = 110, offset = 14 },
-        },
-        x = {
-            quarter = { glyph = 192 },
-            half  = { glyph = 192 },
-            whole = { glyph = 192 },
-            breve = { glyph = 192, size = 120 },
-        },
-        triangle = {
-
-
-
-            quarter = { glyph = 209 },
-            half  = { glyph = 177 },
-            whole = { glyph = 177 },
-            breve = { glyph = 177 },
-        },
-        triangle_down = {
-            quarter = { glyph = 224 },
-            half  = { glyph = 198 },
-            whole = { glyph = 198 },
-            breve = { glyph = 198 },
-        },
-        triangle_up = {
-            quarter = { glyph = 209 },
-            half  = { glyph = 177 },
-            whole = { glyph = 177 },
-            breve = { glyph = 177 },
-        },
-        slash = {
-            quarter = { glyph = 243 },
-            half  = { glyph = 203 },
-            whole = { glyph = 213 },
-            breve = { glyph = 213 },
-        },
-        square = {
-            quarter = { glyph = 208 },
-            half  = { glyph = 173 },
-            whole = { glyph = 194 },
-            breve = { glyph = 221 },
-        },
-        wedge = {
-            quarter = { glyph = 108 },
-            half  = { glyph = 231 },
-            whole = { glyph = 231 },
-            breve = { glyph = 231 },
-        },
-        strikethrough = {
-            quarter = { glyph = 191 },
-            half  = { glyph = 191 },
-            whole = { glyph = 191 },
-            breve = { glyph = 191 },
-        },
-        circled = {
-            quarter = { glyph = 76 },
-            half  = { glyph = 76 },
-            whole = { glyph = 76 },
-            breve = { glyph = 76 },
-        },
-        round = {
-            quarter = { glyph = 76 },
-            half  = { glyph = 76 },
-            whole = { glyph = 191 },
-            breve = { glyph = 191 },
-        },
-        hidden = {
-            quarter = { glyph = 202 },
-            half  = { glyph = 202 },
-            whole = { glyph = 202 },
-            breve = { glyph = 202 },
-        },
-        default = {
-            quarter = { glyph = 207 }
-        },
-    }
-
-    if library.is_font_smufl_font() then
-        config = {
-            diamond = {
-                quarter = { glyph = 0xe0e1, size = 110 },
-                half  = { glyph = 0xe0e1, size = 110 },
-                whole = { glyph = 0xe0d8, size = 110 },
-                breve = { glyph = 0xe0d7, size = 110 },
-            },
-            diamond_guitar = {
-                quarter = { glyph = 0xe0e2, size = 110 },
-                half  = { glyph = 0xe0e1, size = 110 },
-                whole = { glyph = 0xe0d8, size = 110 },
-                breve = { glyph = 0xe0d7, size = 110 },
-            },
-            x = {
-                quarter = { glyph = 0xe0a9 },
-                half  = { glyph = 0xe0a8 },
-                whole = { glyph = 0xe0a7 },
-                breve = { glyph = 0xe0a6 },
-            },
-            triangle = {
-
-
-
-                quarter = { glyph = 0xe0be },
-                half  = { glyph = 0xe0bd },
-                whole = { glyph = 0xe0bc },
-                breve = { glyph = 0xe0bb },
-            },
-            triangle_down = {
-                quarter = { glyph = 0xe0c7 },
-                half  = { glyph = 0xe0c6 },
-                whole = { glyph = 0xe0c5 },
-                breve = { glyph = 0xe0c4 },
-            },
-            triangle_up = {
-                quarter = { glyph = 0xe0be },
-                half  = { glyph = 0xe0bd },
-                whole = { glyph = 0xe0bc },
-                breve = { glyph = 0xe0bb },
-            },
-            slash = {
-                quarter = { glyph = 0xe100 },
-                half  = { glyph = 0xe103 },
-                whole = { glyph = 0xe102 },
-                breve = { glyph = 0xe10a },
-            },
-            square = {
-                quarter = { glyph = 0xe934 },
-                half  = { glyph = 0xe935 },
-                whole = { glyph = 0xe937 },
-                breve = { glyph = 0xe933 },
-            },
-            wedge = {
-                quarter = { glyph = 0xe1c5 },
-                half  = { glyph = 0xe1c8, size = 120 },
-                whole = { glyph = 0xe1c4, size = 120 },
-                breve = { glyph = 0xe1ca, size = 120 },
-            },
-            strikethrough = {
-                quarter = { glyph = 0xe0cf },
-                half  = { glyph = 0xe0d1 },
-                whole = { glyph = 0xe0d3 },
-                breve = { glyph = 0xe0d5 },
-            },
-            circled = {
-                quarter = { glyph = 0xe0e4 },
-                half  = { glyph = 0xe0e5 },
-                whole = { glyph = 0xe0e6 },
-                breve = { glyph = 0xe0e7 },
-            },
-            round = {
-                quarter = { glyph = 0xe113 },
-                half  = { glyph = 0xe114 },
-                whole = { glyph = 0xe115 },
-                breve = { glyph = 0xe112 },
-            },
-            hidden = {
-                quarter = { glyph = 0xe0a5 },
-                half  = { glyph = 0xe0a5 },
-                whole = { glyph = 0xe0a5 },
-                breve = { glyph = 0xe0a5 },
-            },
-            default = {
-                quarter = { glyph = 0xe0a4 }
-            },
-        }
-    end
-    configuration.get_parameters("notehead.config.txt", config)
-
-    function notehead.change_shape(note, shape)
-        local notehead_mod = finale.FCNoteheadMod()
-        notehead_mod:EraseAt(note)
-        local notehead_char = config.default.quarter.glyph
-        if type(shape) == "number" then
-            notehead_char = shape
-            shape = "number"
-        elseif not config[shape] then
-            shape = "default"
-        end
-        if shape == "default" then
-            notehead_mod:ClearChar()
-            notehead_mod.Resize = 100
-            notehead_mod.HorizontalPos = 0
-        else
-            local entry = note:GetEntry()
-            if not entry then return end
-            local duration = entry.Duration
-            local offset = 0
-            local resize = 100
-            if shape ~= "number" then
-                local note_type = "quarter"
-                if duration >= finale.BREVE then
-                    note_type = "breve"
-                elseif duration >= finale.WHOLE_NOTE then
-                    note_type = "whole"
-                elseif duration >= finale.HALF_NOTE then
-                    note_type = "half"
-                end
-                local ref_table = config[shape][note_type]
-                if shape == "triangle" and entry:CalcStemUp() then
-                    ref_table = config["triangle_down"][note_type]
-                end
-                if ref_table.glyph then
-                    notehead_char = ref_table.glyph
-                end
-                if ref_table.size then
-                    resize = ref_table.size
-                end
-                if ref_table.offset then
-                    offset = ref_table.offset
-                end
-            end
-
-            notehead_mod.CustomChar = notehead_char
-            if resize > 0 and resize ~= 100 then
-                notehead_mod.Resize = resize
-            end
-            if offset ~= 0 then
-                notehead_mod.HorizontalPos = (entry:CalcStemUp()) and (-1 * offset) or offset
-            end
-        end
-        notehead_mod:SaveAt(note)
-        return notehead_mod
-    end
-    return notehead
-end
 __imports["mixin.FCMControl"] = __imports["mixin.FCMControl"] or function()
 
 
@@ -3627,6 +3388,95 @@ __imports["mixin.FCXCtrlUpDown"] = __imports["mixin.FCXCtrlUpDown"] or function(
     end
     return props
 end
+__imports["library.utils"] = __imports["library.utils"] or function()
+
+    local utils = {}
+
+    function utils.copy_table(t)
+        if type(t) == "table" then
+            local new = {}
+            for k, v in pairs(t) do
+                new[utils.copy_table(k)] = utils.copy_table(v)
+            end
+            setmetatable(new, utils.copy_table(getmetatable(t)))
+            return new
+        else
+            return t
+        end
+    end
+
+    function utils.table_remove_first(t, value)
+        for k = 1, #t do
+            if t[k] == value then
+                table.remove(t, k)
+                return
+            end
+        end
+    end
+
+    function utils.iterate_keys(t)
+        local a, b, c = pairs(t)
+        return function()
+            c = a(b, c)
+            return c
+        end
+    end
+
+    function utils.round(value, places)
+        places = places or 0
+        local multiplier = 10^places
+        return math.floor(value * multiplier + 0.5) / multiplier
+    end
+
+    function utils.calc_roman_numeral(num)
+        local thousands = {'M','MM','MMM'}
+        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
+        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
+        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
+        local roman_numeral = ''
+        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
+        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
+        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
+        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
+        return roman_numeral
+    end
+
+    function utils.calc_ordinal(num)
+        local units = num % 10
+        local tens = num % 100
+        if units == 1 and tens ~= 11 then
+            return num .. "st"
+        elseif units == 2 and tens ~= 12 then
+            return num .. "nd"
+        elseif units == 3 and tens ~= 13 then
+            return num .. "rd"
+        end
+        return num .. "th"
+    end
+
+    function utils.calc_alphabet(num)
+        local letter = ((num - 1) % 26) + 1
+        local n = math.floor((num - 1) / 26)
+        return string.char(64 + letter) .. (n > 0 and n or "")
+    end
+
+    function utils.clamp(num, minimum, maximum)
+        return math.min(math.max(num, minimum), maximum)
+    end
+
+    function utils.ltrim(str)
+        return string.match(str, "^%s*(.*)")
+    end
+
+    function utils.rtrim(str)
+        return string.match(str, "(.-)%s*$")
+    end
+
+    function utils.lrtrim(str)
+        return utils.ltrim(utils.rtrim(str))
+    end
+    return utils
+end
 __imports["library.mixin_helper"] = __imports["library.mixin_helper"] or function()
 
 
@@ -4763,446 +4613,2265 @@ __imports["library.mixin"] = __imports["library.mixin"] or function()
 
     return mixin
 end
-__imports["library.utils"] = __imports["library.utils"] or function()
-
-    local utils = {}
-
-    function utils.copy_table(t)
-        if type(t) == "table" then
-            local new = {}
-            for k, v in pairs(t) do
-                new[utils.copy_table(k)] = utils.copy_table(v)
-            end
-            setmetatable(new, utils.copy_table(getmetatable(t)))
-            return new
-        else
-            return t
-        end
+__imports["lunajson.decoder"] = __imports["lunajson.decoder"] or function()
+    local setmetatable, tonumber, tostring =
+          setmetatable, tonumber, tostring
+    local floor, inf =
+          math.floor, math.huge
+    local mininteger, tointeger =
+          math.mininteger or nil, math.tointeger or nil
+    local byte, char, find, gsub, match, sub =
+          string.byte, string.char, string.find, string.gsub, string.match, string.sub
+    local function _decode_error(pos, errmsg)
+    	error("parse error at " .. pos .. ": " .. errmsg, 2)
     end
-
-    function utils.table_remove_first(t, value)
-        for k = 1, #t do
-            if t[k] == value then
-                table.remove(t, k)
-                return
-            end
-        end
+    local f_str_ctrl_pat
+    if _VERSION == "Lua 5.1" then
+    	
+    	f_str_ctrl_pat = '[^\32-\255]'
+    else
+    	f_str_ctrl_pat = '[\0-\31]'
     end
-
-    function utils.iterate_keys(t)
-        local a, b, c = pairs(t)
-        return function()
-            c = a(b, c)
-            return c
-        end
+    local _ENV = nil
+    local function newdecoder()
+    	local json, pos, nullv, arraylen, rec_depth
+    	
+    	
+    	local dispatcher, f
+    	
+    	local function decode_error(errmsg)
+    		return _decode_error(pos, errmsg)
+    	end
+    	
+    	local function f_err()
+    		decode_error('invalid value')
+    	end
+    	
+    	
+    	local function f_nul()
+    		if sub(json, pos, pos+2) == 'ull' then
+    			pos = pos+3
+    			return nullv
+    		end
+    		decode_error('invalid value')
+    	end
+    	
+    	local function f_fls()
+    		if sub(json, pos, pos+3) == 'alse' then
+    			pos = pos+4
+    			return false
+    		end
+    		decode_error('invalid value')
+    	end
+    	
+    	local function f_tru()
+    		if sub(json, pos, pos+2) == 'rue' then
+    			pos = pos+3
+    			return true
+    		end
+    		decode_error('invalid value')
+    	end
+    	
+    	
+    	local radixmark = match(tostring(0.5), '[^0-9]')
+    	local fixedtonumber = tonumber
+    	if radixmark ~= '.' then
+    		if find(radixmark, '%W') then
+    			radixmark = '%' .. radixmark
+    		end
+    		fixedtonumber = function(s)
+    			return tonumber(gsub(s, '.', radixmark))
+    		end
+    	end
+    	local function number_error()
+    		return decode_error('invalid number')
+    	end
+    	
+    	local function f_zro(mns)
+    		local num, c = match(json, '^(%.?[0-9]*)([-+.A-Za-z]?)', pos)
+    		if num == '' then
+    			if c == '' then
+    				if mns then
+    					return -0.0
+    				end
+    				return 0
+    			end
+    			if c == 'e' or c == 'E' then
+    				num, c = match(json, '^([^eE]*[eE][-+]?[0-9]+)([-+.A-Za-z]?)', pos)
+    				if c == '' then
+    					pos = pos + #num
+    					if mns then
+    						return -0.0
+    					end
+    					return 0.0
+    				end
+    			end
+    			number_error()
+    		end
+    		if byte(num) ~= 0x2E or byte(num, -1) == 0x2E then
+    			number_error()
+    		end
+    		if c ~= '' then
+    			if c == 'e' or c == 'E' then
+    				num, c = match(json, '^([^eE]*[eE][-+]?[0-9]+)([-+.A-Za-z]?)', pos)
+    			end
+    			if c ~= '' then
+    				number_error()
+    			end
+    		end
+    		pos = pos + #num
+    		c = fixedtonumber(num)
+    		if mns then
+    			c = -c
+    		end
+    		return c
+    	end
+    	
+    	local function f_num(mns)
+    		pos = pos-1
+    		local num, c = match(json, '^([0-9]+%.?[0-9]*)([-+.A-Za-z]?)', pos)
+    		if byte(num, -1) == 0x2E then
+    			number_error()
+    		end
+    		if c ~= '' then
+    			if c ~= 'e' and c ~= 'E' then
+    				number_error()
+    			end
+    			num, c = match(json, '^([^eE]*[eE][-+]?[0-9]+)([-+.A-Za-z]?)', pos)
+    			if not num or c ~= '' then
+    				number_error()
+    			end
+    		end
+    		pos = pos + #num
+    		c = fixedtonumber(num)
+    		if mns then
+    			c = -c
+    			if c == mininteger and not find(num, '[^0-9]') then
+    				c = mininteger
+    			end
+    		end
+    		return c
+    	end
+    	
+    	local function f_mns()
+    		local c = byte(json, pos)
+    		if c then
+    			pos = pos+1
+    			if c > 0x30 then
+    				if c < 0x3A then
+    					return f_num(true)
+    				end
+    			else
+    				if c > 0x2F then
+    					return f_zro(true)
+    				end
+    			end
+    		end
+    		decode_error('invalid number')
+    	end
+    	
+    	local f_str_hextbl = {
+    		0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
+    		0x8, 0x9, inf, inf, inf, inf, inf, inf,
+    		inf, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF, inf,
+    		inf, inf, inf, inf, inf, inf, inf, inf,
+    		inf, inf, inf, inf, inf, inf, inf, inf,
+    		inf, inf, inf, inf, inf, inf, inf, inf,
+    		inf, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF,
+    		__index = function()
+    			return inf
+    		end
+    	}
+    	setmetatable(f_str_hextbl, f_str_hextbl)
+    	local f_str_escapetbl = {
+    		['"']  = '"',
+    		['\\'] = '\\',
+    		['/']  = '/',
+    		['b']  = '\b',
+    		['f']  = '\f',
+    		['n']  = '\n',
+    		['r']  = '\r',
+    		['t']  = '\t',
+    		__index = function()
+    			decode_error("invalid escape sequence")
+    		end
+    	}
+    	setmetatable(f_str_escapetbl, f_str_escapetbl)
+    	local function surrogate_first_error()
+    		return decode_error("1st surrogate pair byte not continued by 2nd")
+    	end
+    	local f_str_surrogate_prev = 0
+    	local function f_str_subst(ch, ucode)
+    		if ch == 'u' then
+    			local c1, c2, c3, c4, rest = byte(ucode, 1, 5)
+    			ucode = f_str_hextbl[c1-47] * 0x1000 +
+    			        f_str_hextbl[c2-47] * 0x100 +
+    			        f_str_hextbl[c3-47] * 0x10 +
+    			        f_str_hextbl[c4-47]
+    			if ucode ~= inf then
+    				if ucode < 0x80 then
+    					if rest then
+    						return char(ucode, rest)
+    					end
+    					return char(ucode)
+    				elseif ucode < 0x800 then
+    					c1 = floor(ucode / 0x40)
+    					c2 = ucode - c1 * 0x40
+    					c1 = c1 + 0xC0
+    					c2 = c2 + 0x80
+    					if rest then
+    						return char(c1, c2, rest)
+    					end
+    					return char(c1, c2)
+    				elseif ucode < 0xD800 or 0xE000 <= ucode then
+    					c1 = floor(ucode / 0x1000)
+    					ucode = ucode - c1 * 0x1000
+    					c2 = floor(ucode / 0x40)
+    					c3 = ucode - c2 * 0x40
+    					c1 = c1 + 0xE0
+    					c2 = c2 + 0x80
+    					c3 = c3 + 0x80
+    					if rest then
+    						return char(c1, c2, c3, rest)
+    					end
+    					return char(c1, c2, c3)
+    				elseif 0xD800 <= ucode and ucode < 0xDC00 then
+    					if f_str_surrogate_prev == 0 then
+    						f_str_surrogate_prev = ucode
+    						if not rest then
+    							return ''
+    						end
+    						surrogate_first_error()
+    					end
+    					f_str_surrogate_prev = 0
+    					surrogate_first_error()
+    				else
+    					if f_str_surrogate_prev ~= 0 then
+    						ucode = 0x10000 +
+    						        (f_str_surrogate_prev - 0xD800) * 0x400 +
+    						        (ucode - 0xDC00)
+    						f_str_surrogate_prev = 0
+    						c1 = floor(ucode / 0x40000)
+    						ucode = ucode - c1 * 0x40000
+    						c2 = floor(ucode / 0x1000)
+    						ucode = ucode - c2 * 0x1000
+    						c3 = floor(ucode / 0x40)
+    						c4 = ucode - c3 * 0x40
+    						c1 = c1 + 0xF0
+    						c2 = c2 + 0x80
+    						c3 = c3 + 0x80
+    						c4 = c4 + 0x80
+    						if rest then
+    							return char(c1, c2, c3, c4, rest)
+    						end
+    						return char(c1, c2, c3, c4)
+    					end
+    					decode_error("2nd surrogate pair byte appeared without 1st")
+    				end
+    			end
+    			decode_error("invalid unicode codepoint literal")
+    		end
+    		if f_str_surrogate_prev ~= 0 then
+    			f_str_surrogate_prev = 0
+    			surrogate_first_error()
+    		end
+    		return f_str_escapetbl[ch] .. ucode
+    	end
+    	
+    	local f_str_keycache = setmetatable({}, {__mode="v"})
+    	local function f_str(iskey)
+    		local newpos = pos
+    		local tmppos, c1, c2
+    		repeat
+    			newpos = find(json, '"', newpos, true)
+    			if not newpos then
+    				decode_error("unterminated string")
+    			end
+    			tmppos = newpos-1
+    			newpos = newpos+1
+    			c1, c2 = byte(json, tmppos-1, tmppos)
+    			if c2 == 0x5C and c1 == 0x5C then
+    				repeat
+    					tmppos = tmppos-2
+    					c1, c2 = byte(json, tmppos-1, tmppos)
+    				until c2 ~= 0x5C or c1 ~= 0x5C
+    				tmppos = newpos-2
+    			end
+    		until c2 ~= 0x5C
+    		local str = sub(json, pos, tmppos)
+    		pos = newpos
+    		if iskey then
+    			tmppos = f_str_keycache[str]
+    			if tmppos then
+    				return tmppos
+    			end
+    			tmppos = str
+    		end
+    		if find(str, f_str_ctrl_pat) then
+    			decode_error("unescaped control string")
+    		end
+    		if find(str, '\\', 1, true) then
+    			
+    			
+    			
+    			
+    			
+    			str = gsub(str, '\\(.)([^\\]?[^\\]?[^\\]?[^\\]?[^\\]?)', f_str_subst)
+    			if f_str_surrogate_prev ~= 0 then
+    				f_str_surrogate_prev = 0
+    				decode_error("1st surrogate pair byte not continued by 2nd")
+    			end
+    		end
+    		if iskey then
+    			f_str_keycache[tmppos] = str
+    		end
+    		return str
+    	end
+    	
+    	
+    	local function f_ary()
+    		rec_depth = rec_depth + 1
+    		if rec_depth > 1000 then
+    			decode_error('too deeply nested json (> 1000)')
+    		end
+    		local ary = {}
+    		pos = match(json, '^[ \n\r\t]*()', pos)
+    		local i = 0
+    		if byte(json, pos) == 0x5D then
+    			pos = pos+1
+    		else
+    			local newpos = pos
+    			repeat
+    				i = i+1
+    				f = dispatcher[byte(json,newpos)]
+    				pos = newpos+1
+    				ary[i] = f()
+    				newpos = match(json, '^[ \n\r\t]*,[ \n\r\t]*()', pos)
+    			until not newpos
+    			newpos = match(json, '^[ \n\r\t]*%]()', pos)
+    			if not newpos then
+    				decode_error("no closing bracket of an array")
+    			end
+    			pos = newpos
+    		end
+    		if arraylen then
+    			ary[0] = i
+    		end
+    		rec_depth = rec_depth - 1
+    		return ary
+    	end
+    	
+    	local function f_obj()
+    		rec_depth = rec_depth + 1
+    		if rec_depth > 1000 then
+    			decode_error('too deeply nested json (> 1000)')
+    		end
+    		local obj = {}
+    		pos = match(json, '^[ \n\r\t]*()', pos)
+    		if byte(json, pos) == 0x7D then
+    			pos = pos+1
+    		else
+    			local newpos = pos
+    			repeat
+    				if byte(json, newpos) ~= 0x22 then
+    					decode_error("not key")
+    				end
+    				pos = newpos+1
+    				local key = f_str(true)
+    				
+    				
+    				
+    				f = f_err
+    				local c1, c2, c3 = byte(json, pos, pos+3)
+    				if c1 == 0x3A then
+    					if c2 ~= 0x20 then
+    						f = dispatcher[c2]
+    						newpos = pos+2
+    					else
+    						f = dispatcher[c3]
+    						newpos = pos+3
+    					end
+    				end
+    				if f == f_err then
+    					newpos = match(json, '^[ \n\r\t]*:[ \n\r\t]*()', pos)
+    					if not newpos then
+    						decode_error("no colon after a key")
+    					end
+    					f = dispatcher[byte(json, newpos)]
+    					newpos = newpos+1
+    				end
+    				pos = newpos
+    				obj[key] = f()
+    				newpos = match(json, '^[ \n\r\t]*,[ \n\r\t]*()', pos)
+    			until not newpos
+    			newpos = match(json, '^[ \n\r\t]*}()', pos)
+    			if not newpos then
+    				decode_error("no closing bracket of an object")
+    			end
+    			pos = newpos
+    		end
+    		rec_depth = rec_depth - 1
+    		return obj
+    	end
+    	
+    	dispatcher = { [0] =
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_str, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_mns, f_err, f_err,
+    		f_zro, f_num, f_num, f_num, f_num, f_num, f_num, f_num,
+    		f_num, f_num, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_ary, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_fls, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_nul, f_err,
+    		f_err, f_err, f_err, f_err, f_tru, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_obj, f_err, f_err, f_err, f_err,
+    		__index = function()
+    			decode_error("unexpected termination")
+    		end
+    	}
+    	setmetatable(dispatcher, dispatcher)
+    	
+    	local function decode(json_, pos_, nullv_, arraylen_)
+    		json, pos, nullv, arraylen = json_, pos_, nullv_, arraylen_
+    		rec_depth = 0
+    		pos = match(json, '^[ \n\r\t]*()', pos)
+    		f = dispatcher[byte(json, pos)]
+    		pos = pos+1
+    		local v = f()
+    		if pos_ then
+    			return v, pos
+    		else
+    			f, pos = find(json, '^[ \n\r\t]*', pos)
+    			if pos ~= #json then
+    				decode_error('json ended')
+    			end
+    			return v
+    		end
+    	end
+    	return decode
     end
-
-    function utils.round(value, places)
-        places = places or 0
-        local multiplier = 10^places
-        return math.floor(value * multiplier + 0.5) / multiplier
-    end
-
-    function utils.calc_roman_numeral(num)
-        local thousands = {'M','MM','MMM'}
-        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
-        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
-        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
-        local roman_numeral = ''
-        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
-        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
-        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
-        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
-        return roman_numeral
-    end
-
-    function utils.calc_ordinal(num)
-        local units = num % 10
-        local tens = num % 100
-        if units == 1 and tens ~= 11 then
-            return num .. "st"
-        elseif units == 2 and tens ~= 12 then
-            return num .. "nd"
-        elseif units == 3 and tens ~= 13 then
-            return num .. "rd"
-        end
-        return num .. "th"
-    end
-
-    function utils.calc_alphabet(num)
-        local letter = ((num - 1) % 26) + 1
-        local n = math.floor((num - 1) / 26)
-        return string.char(64 + letter) .. (n > 0 and n or "")
-    end
-
-    function utils.clamp(num, minimum, maximum)
-        return math.min(math.max(num, minimum), maximum)
-    end
-
-    function utils.ltrim(str)
-        return string.match(str, "^%s*(.*)")
-    end
-
-    function utils.rtrim(str)
-        return string.match(str, "(.-)%s*$")
-    end
-
-    function utils.lrtrim(str)
-        return utils.ltrim(utils.rtrim(str))
-    end
-    return utils
+    return newdecoder
 end
-__imports["library.configuration"] = __imports["library.configuration"] or function()
-
-
-
-    local configuration = {}
-    local utils = require("library.utils")
-    local script_settings_dir = "script_settings"
-    local comment_marker = "--"
-    local parameter_delimiter = "="
-    local path_delimiter = "/"
-    local file_exists = function(file_path)
-        local f = io.open(file_path, "r")
-        if nil ~= f then
-            io.close(f)
-            return true
-        end
-        return false
+__imports["lunajson.encoder"] = __imports["lunajson.encoder"] or function()
+    local error = error
+    local byte, find, format, gsub, match = string.byte, string.find, string.format,  string.gsub, string.match
+    local concat = table.concat
+    local tostring = tostring
+    local pairs, type = pairs, type
+    local setmetatable = setmetatable
+    local huge, tiny = 1/0, -1/0
+    local f_string_esc_pat
+    if _VERSION == "Lua 5.1" then
+    	
+    	f_string_esc_pat = '[^ -!#-[%]^-\255]'
+    else
+    	f_string_esc_pat = '[\0-\31"\\]'
     end
-    parse_parameter = function(val_string)
-        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "\"(.+)\"", "%1")
-        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "'(.+)'", "%1")
-        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-            return load("return " .. val_string)()
-        elseif "true" == val_string then
-            return true
-        elseif "false" == val_string then
-            return false
-        end
-        return tonumber(val_string)
+    local _ENV = nil
+    local function newencoder()
+    	local v, nullv
+    	local i, builder, visited
+    	local function f_tostring(v)
+    		builder[i] = tostring(v)
+    		i = i+1
+    	end
+    	local radixmark = match(tostring(0.5), '[^0-9]')
+    	local delimmark = match(tostring(12345.12345), '[^0-9' .. radixmark .. ']')
+    	if radixmark == '.' then
+    		radixmark = nil
+    	end
+    	local radixordelim
+    	if radixmark or delimmark then
+    		radixordelim = true
+    		if radixmark and find(radixmark, '%W') then
+    			radixmark = '%' .. radixmark
+    		end
+    		if delimmark and find(delimmark, '%W') then
+    			delimmark = '%' .. delimmark
+    		end
+    	end
+    	local f_number = function(n)
+    		if tiny < n and n < huge then
+    			local s = format("%.17g", n)
+    			if radixordelim then
+    				if delimmark then
+    					s = gsub(s, delimmark, '')
+    				end
+    				if radixmark then
+    					s = gsub(s, radixmark, '.')
+    				end
+    			end
+    			builder[i] = s
+    			i = i+1
+    			return
+    		end
+    		error('invalid number')
+    	end
+    	local doencode
+    	local f_string_subst = {
+    		['"'] = '\\"',
+    		['\\'] = '\\\\',
+    		['\b'] = '\\b',
+    		['\f'] = '\\f',
+    		['\n'] = '\\n',
+    		['\r'] = '\\r',
+    		['\t'] = '\\t',
+    		__index = function(_, c)
+    			return format('\\u00%02X', byte(c))
+    		end
+    	}
+    	setmetatable(f_string_subst, f_string_subst)
+    	local function f_string(s)
+    		builder[i] = '"'
+    		if find(s, f_string_esc_pat) then
+    			s = gsub(s, f_string_esc_pat, f_string_subst)
+    		end
+    		builder[i+1] = s
+    		builder[i+2] = '"'
+    		i = i+3
+    	end
+    	local function f_table(o)
+    		if visited[o] then
+    			error("loop detected")
+    		end
+    		visited[o] = true
+    		local tmp = o[0]
+    		if type(tmp) == 'number' then
+    			builder[i] = '['
+    			i = i+1
+    			for j = 1, tmp do
+    				doencode(o[j])
+    				builder[i] = ','
+    				i = i+1
+    			end
+    			if tmp > 0 then
+    				i = i-1
+    			end
+    			builder[i] = ']'
+    		else
+    			tmp = o[1]
+    			if tmp ~= nil then
+    				builder[i] = '['
+    				i = i+1
+    				local j = 2
+    				repeat
+    					doencode(tmp)
+    					tmp = o[j]
+    					if tmp == nil then
+    						break
+    					end
+    					j = j+1
+    					builder[i] = ','
+    					i = i+1
+    				until false
+    				builder[i] = ']'
+    			else
+    				builder[i] = '{'
+    				i = i+1
+    				local tmp = i
+    				for k, v in pairs(o) do
+    					if type(k) ~= 'string' then
+    						error("non-string key")
+    					end
+    					f_string(k)
+    					builder[i] = ':'
+    					i = i+1
+    					doencode(v)
+    					builder[i] = ','
+    					i = i+1
+    				end
+    				if i > tmp then
+    					i = i-1
+    				end
+    				builder[i] = '}'
+    			end
+    		end
+    		i = i+1
+    		visited[o] = nil
+    	end
+    	local dispatcher = {
+    		boolean = f_tostring,
+    		number = f_number,
+    		string = f_string,
+    		table = f_table,
+    		__index = function()
+    			error("invalid type value")
+    		end
+    	}
+    	setmetatable(dispatcher, dispatcher)
+    	function doencode(v)
+    		if v == nullv then
+    			builder[i] = 'null'
+    			i = i+1
+    			return
+    		end
+    		return dispatcher[type(v)](v)
+    	end
+    	local function encode(v_, nullv_)
+    		v, nullv = v_, nullv_
+    		i, builder, visited = 1, {}, {}
+    		doencode(v)
+    		return concat(builder)
+    	end
+    	return encode
     end
-    local get_parameters_from_file = function(file_path, parameter_list)
-        local file_parameters = {}
-        if not file_exists(file_path) then
-            return false
-        end
-        for line in io.lines(file_path) do
-            local comment_at = string.find(line, comment_marker, 1, true)
-            if nil ~= comment_at then
-                line = string.sub(line, 1, comment_at - 1)
-            end
-            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
-            if nil ~= delimiter_at then
-                local name = utils.lrtrim(string.sub(line, 1, delimiter_at - 1))
-                local val_string = utils.lrtrim(string.sub(line, delimiter_at + 1))
-                file_parameters[name] = parse_parameter(val_string)
-            end
-        end
-        local function process_table(param_table, param_prefix)
-            param_prefix = param_prefix and param_prefix.."." or ""
-            for param_name, param_val in pairs(param_table) do
-                local file_param_name = param_prefix .. param_name
-                local file_param_val = file_parameters[file_param_name]
-                if nil ~= file_param_val then
-                    param_table[param_name] = file_param_val
-                elseif type(param_val) == "table" then
-                        process_table(param_val, param_prefix..param_name)
-                end
-            end
-        end
-        process_table(parameter_list)
-        return true
-    end
-
-    function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
-        if finenv.IsRGPLua then
-            path = finenv.RunningLuaFolderPath()
-        else
-            local str = finale.FCString()
-            str:SetRunningLuaFolderPath()
-            path = str.LuaString
-        end
-        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
-        return get_parameters_from_file(file_path, parameter_list)
-    end
-
-
-    local calc_preferences_filepath = function(script_name)
-        local str = finale.FCString()
-        str:SetUserOptionsPath()
-        local folder_name = str.LuaString
-        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
-
-            folder_name = os.getenv("HOME") .. folder_name:sub(2)
-        end
-        if finenv.UI():IsOnWindows() then
-            folder_name = folder_name .. path_delimiter .. "FinaleLua"
-        end
-        local file_path = folder_name .. path_delimiter
-        if finenv.UI():IsOnMac() then
-            file_path = file_path .. "com.finalelua."
-        end
-        file_path = file_path .. script_name .. ".settings.txt"
-        return file_path, folder_name
-    end
-
-    function configuration.save_user_settings(script_name, parameter_list)
-        local file_path, folder_path = calc_preferences_filepath(script_name)
-        local file = io.open(file_path, "w")
-        if not file and finenv.UI():IsOnWindows() then
-            os.execute('mkdir "' .. folder_path ..'"')
-            file = io.open(file_path, "w")
-        end
-        if not file then
-            return false
-        end
-        file:write("-- User settings for " .. script_name .. ".lua\n\n")
-        for k,v in pairs(parameter_list) do
-            if type(v) == "string" then
-                v = "\"" .. v .."\""
-            else
-                v = tostring(v)
-            end
-            file:write(k, " = ", v, "\n")
-        end
-        file:close()
-        return true
-    end
-
-    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
-        if create_automatically == nil then create_automatically = true end
-        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
-        if not exists and create_automatically then
-            configuration.save_user_settings(script_name, parameter_list)
-        end
-        return exists
-    end
-    return configuration
+    return newencoder
 end
-__imports["library.layer"] = __imports["library.layer"] or function()
-
-    local layer = {}
-
-
-    function layer.copy(region, source_layer, destination_layer, clone_articulations)
-        local start = region.StartMeasure
-        local stop = region.EndMeasure
-        local sysstaves = finale.FCSystemStaves()
-        sysstaves:LoadAllForRegion(region)
-        source_layer = source_layer - 1
-        destination_layer = destination_layer - 1
-        for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
-            noteentry_source_layer:SetUseVisibleLayer(false)
-            noteentry_source_layer:Load()
-            local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
-                destination_layer, staffNum, start)
-            noteentry_destination_layer:Save()
-            noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
-
-            if clone_articulations and noteentry_source_layer.Count == noteentry_destination_layer.Count then
-                for index = 0, noteentry_destination_layer.Count - 1 do
-                    local source_entry = noteentry_source_layer:GetItemAt(index)
-                    local destination_entry = noteentry_destination_layer:GetItemAt(index)
-                    local source_artics = source_entry:CreateArticulations()
-                    for articulation in each (source_artics) do
-                        articulation:SetNoteEntry(destination_entry)
-                        articulation:SaveNew()
-                    end
-                end
-            end
-            noteentry_destination_layer:Save()
-        end
+__imports["lunajson.sax"] = __imports["lunajson.sax"] or function()
+    local setmetatable, tonumber, tostring =
+          setmetatable, tonumber, tostring
+    local floor, inf =
+          math.floor, math.huge
+    local mininteger, tointeger =
+          math.mininteger or nil, math.tointeger or nil
+    local byte, char, find, gsub, match, sub =
+          string.byte, string.char, string.find, string.gsub, string.match, string.sub
+    local function _parse_error(pos, errmsg)
+    	error("parse error at " .. pos .. ": " .. errmsg, 2)
     end
-
-
-    function layer.clear(region, layer_to_clear)
-        layer_to_clear = layer_to_clear - 1
-        local start = region.StartMeasure
-        local stop = region.EndMeasure
-        local sysstaves = finale.FCSystemStaves()
-        sysstaves:LoadAllForRegion(region)
-        for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
-            noteentry_layer:SetUseVisibleLayer(false)
-            noteentry_layer:Load()
-            noteentry_layer:ClearAllEntries()
-        end
+    local f_str_ctrl_pat
+    if _VERSION == "Lua 5.1" then
+    	
+    	f_str_ctrl_pat = '[^\32-\255]'
+    else
+    	f_str_ctrl_pat = '[\0-\31]'
     end
-
-
-    function layer.swap(region, swap_a, swap_b)
-
-        swap_a = swap_a - 1
-        swap_b = swap_b - 1
-        for measure, staff_number in eachcell(region) do
-            local cell_frame_hold = finale.FCCellFrameHold()
-            cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-            local loaded = cell_frame_hold:Load()
-            local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
-            local  noteentry_layer_one = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
-            noteentry_layer_one:SetUseVisibleLayer(false)
-            noteentry_layer_one:Load()
-            noteentry_layer_one.LayerIndex = swap_b
-
-            local  noteentry_layer_two = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
-            noteentry_layer_two:SetUseVisibleLayer(false)
-            noteentry_layer_two:Load()
-            noteentry_layer_two.LayerIndex = swap_a
-            noteentry_layer_one:Save()
-            noteentry_layer_two:Save()
-            if loaded then
-                local new_cell_frame_hold = finale.FCCellFrameHold()
-                new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-                if new_cell_frame_hold:Load() then
-                    if cell_frame_hold.IsClefList then
-                        if new_cell_frame_hold.SetCellClefChanges then
-                            new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
-                        end
-
-                    else
-                        new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
-                    end
-                    new_cell_frame_hold:Save()
-                end
-            end
-        end
+    local type, unpack = type, table.unpack or unpack
+    local open = io.open
+    local _ENV = nil
+    local function nop() end
+    local function newparser(src, saxtbl)
+    	local json, jsonnxt, rec_depth
+    	local jsonlen, pos, acc = 0, 1, 0
+    	
+    	
+    	local dispatcher, f
+    	
+    	if type(src) == 'string' then
+    		json = src
+    		jsonlen = #json
+    		jsonnxt = function()
+    			json = ''
+    			jsonlen = 0
+    			jsonnxt = nop
+    		end
+    	else
+    		jsonnxt = function()
+    			acc = acc + jsonlen
+    			pos = 1
+    			repeat
+    				json = src()
+    				if not json then
+    					json = ''
+    					jsonlen = 0
+    					jsonnxt = nop
+    					return
+    				end
+    				jsonlen = #json
+    			until jsonlen > 0
+    		end
+    		jsonnxt()
+    	end
+    	local sax_startobject = saxtbl.startobject or nop
+    	local sax_key = saxtbl.key or nop
+    	local sax_endobject = saxtbl.endobject or nop
+    	local sax_startarray = saxtbl.startarray or nop
+    	local sax_endarray = saxtbl.endarray or nop
+    	local sax_string = saxtbl.string or nop
+    	local sax_number = saxtbl.number or nop
+    	local sax_boolean = saxtbl.boolean or nop
+    	local sax_null = saxtbl.null or nop
+    	
+    	local function tryc()
+    		local c = byte(json, pos)
+    		if not c then
+    			jsonnxt()
+    			c = byte(json, pos)
+    		end
+    		return c
+    	end
+    	local function parse_error(errmsg)
+    		return _parse_error(acc + pos, errmsg)
+    	end
+    	local function tellc()
+    		return tryc() or parse_error("unexpected termination")
+    	end
+    	local function spaces()
+    		while true do
+    			pos = match(json, '^[ \n\r\t]*()', pos)
+    			if pos <= jsonlen then
+    				return
+    			end
+    			if jsonlen == 0 then
+    				parse_error("unexpected termination")
+    			end
+    			jsonnxt()
+    		end
+    	end
+    	
+    	local function f_err()
+    		parse_error('invalid value')
+    	end
+    	
+    	
+    	local function generic_constant(target, targetlen, ret, sax_f)
+    		for i = 1, targetlen do
+    			local c = tellc()
+    			if byte(target, i) ~= c then
+    				parse_error("invalid char")
+    			end
+    			pos = pos+1
+    		end
+    		return sax_f(ret)
+    	end
+    	
+    	local function f_nul()
+    		if sub(json, pos, pos+2) == 'ull' then
+    			pos = pos+3
+    			return sax_null(nil)
+    		end
+    		return generic_constant('ull', 3, nil, sax_null)
+    	end
+    	
+    	local function f_fls()
+    		if sub(json, pos, pos+3) == 'alse' then
+    			pos = pos+4
+    			return sax_boolean(false)
+    		end
+    		return generic_constant('alse', 4, false, sax_boolean)
+    	end
+    	
+    	local function f_tru()
+    		if sub(json, pos, pos+2) == 'rue' then
+    			pos = pos+3
+    			return sax_boolean(true)
+    		end
+    		return generic_constant('rue', 3, true, sax_boolean)
+    	end
+    	
+    	
+    	local radixmark = match(tostring(0.5), '[^0-9]')
+    	local fixedtonumber = tonumber
+    	if radixmark ~= '.' then
+    		if find(radixmark, '%W') then
+    			radixmark = '%' .. radixmark
+    		end
+    		fixedtonumber = function(s)
+    			return tonumber(gsub(s, '.', radixmark))
+    		end
+    	end
+    	local function number_error()
+    		return parse_error('invalid number')
+    	end
+    	
+    	local function generic_number(mns)
+    		local buf = {}
+    		local i = 1
+    		local is_int = true
+    		local c = byte(json, pos)
+    		pos = pos+1
+    		local function nxt()
+    			buf[i] = c
+    			i = i+1
+    			c = tryc()
+    			pos = pos+1
+    		end
+    		if c == 0x30 then
+    			nxt()
+    			if c and 0x30 <= c and c < 0x3A then
+    				number_error()
+    			end
+    		else
+    			repeat nxt() until not (c and 0x30 <= c and c < 0x3A)
+    		end
+    		if c == 0x2E then
+    			is_int = false
+    			nxt()
+    			if not (c and 0x30 <= c and c < 0x3A) then
+    				number_error()
+    			end
+    			repeat nxt() until not (c and 0x30 <= c and c < 0x3A)
+    		end
+    		if c == 0x45 or c == 0x65 then
+    			is_int = false
+    			nxt()
+    			if c == 0x2B or c == 0x2D then
+    				nxt()
+    			end
+    			if not (c and 0x30 <= c and c < 0x3A) then
+    				number_error()
+    			end
+    			repeat nxt() until not (c and 0x30 <= c and c < 0x3A)
+    		end
+    		if c and (0x41 <= c and c <= 0x5B or
+    		          0x61 <= c and c <= 0x7B or
+    		          c == 0x2B or c == 0x2D or c == 0x2E) then
+    			number_error()
+    		end
+    		pos = pos-1
+    		local num = char(unpack(buf))
+    		num = fixedtonumber(num)
+    		if mns then
+    			num = -num
+    			if num == mininteger and is_int then
+    				num = mininteger
+    			end
+    		end
+    		return sax_number(num)
+    	end
+    	
+    	local function f_zro(mns)
+    		local num, c = match(json, '^(%.?[0-9]*)([-+.A-Za-z]?)', pos)
+    		if num == '' then
+    			if pos > jsonlen then
+    				pos = pos - 1
+    				return generic_number(mns)
+    			end
+    			if c == '' then
+    				if mns then
+    					return sax_number(-0.0)
+    				end
+    				return sax_number(0)
+    			end
+    			if c == 'e' or c == 'E' then
+    				num, c = match(json, '^([^eE]*[eE][-+]?[0-9]+)([-+.A-Za-z]?)', pos)
+    				if c == '' then
+    					pos = pos + #num
+    					if pos > jsonlen then
+    						pos = pos - #num - 1
+    						return generic_number(mns)
+    					end
+    					if mns then
+    						return sax_number(-0.0)
+    					end
+    					return sax_number(0.0)
+    				end
+    			end
+    			pos = pos-1
+    			return generic_number(mns)
+    		end
+    		if byte(num) ~= 0x2E or byte(num, -1) == 0x2E then
+    			pos = pos-1
+    			return generic_number(mns)
+    		end
+    		if c ~= '' then
+    			if c == 'e' or c == 'E' then
+    				num, c = match(json, '^([^eE]*[eE][-+]?[0-9]+)([-+.A-Za-z]?)', pos)
+    			end
+    			if c ~= '' then
+    				pos = pos-1
+    				return generic_number(mns)
+    			end
+    		end
+    		pos = pos + #num
+    		if pos > jsonlen then
+    			pos = pos - #num - 1
+    			return generic_number(mns)
+    		end
+    		c = fixedtonumber(num)
+    		if mns then
+    			c = -c
+    		end
+    		return sax_number(c)
+    	end
+    	
+    	local function f_num(mns)
+    		pos = pos-1
+    		local num, c = match(json, '^([0-9]+%.?[0-9]*)([-+.A-Za-z]?)', pos)
+    		if byte(num, -1) == 0x2E then
+    			return generic_number(mns)
+    		end
+    		if c ~= '' then
+    			if c ~= 'e' and c ~= 'E' then
+    				return generic_number(mns)
+    			end
+    			num, c = match(json, '^([^eE]*[eE][-+]?[0-9]+)([-+.A-Za-z]?)', pos)
+    			if not num or c ~= '' then
+    				return generic_number(mns)
+    			end
+    		end
+    		pos = pos + #num
+    		if pos > jsonlen then
+    			pos = pos - #num
+    			return generic_number(mns)
+    		end
+    		c = fixedtonumber(num)
+    		if mns then
+    			c = -c
+    			if c == mininteger and not find(num, '[^0-9]') then
+    				c = mininteger
+    			end
+    		end
+    		return sax_number(c)
+    	end
+    	
+    	local function f_mns()
+    		local c = byte(json, pos) or tellc()
+    		if c then
+    			pos = pos+1
+    			if c > 0x30 then
+    				if c < 0x3A then
+    					return f_num(true)
+    				end
+    			else
+    				if c > 0x2F then
+    					return f_zro(true)
+    				end
+    			end
+    		end
+    		parse_error("invalid number")
+    	end
+    	
+    	local f_str_hextbl = {
+    		0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
+    		0x8, 0x9, inf, inf, inf, inf, inf, inf,
+    		inf, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF, inf,
+    		inf, inf, inf, inf, inf, inf, inf, inf,
+    		inf, inf, inf, inf, inf, inf, inf, inf,
+    		inf, inf, inf, inf, inf, inf, inf, inf,
+    		inf, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF,
+    		__index = function()
+    			return inf
+    		end
+    	}
+    	setmetatable(f_str_hextbl, f_str_hextbl)
+    	local f_str_escapetbl = {
+    		['"']  = '"',
+    		['\\'] = '\\',
+    		['/']  = '/',
+    		['b']  = '\b',
+    		['f']  = '\f',
+    		['n']  = '\n',
+    		['r']  = '\r',
+    		['t']  = '\t',
+    		__index = function()
+    			parse_error("invalid escape sequence")
+    		end
+    	}
+    	setmetatable(f_str_escapetbl, f_str_escapetbl)
+    	local function surrogate_first_error()
+    		return parse_error("1st surrogate pair byte not continued by 2nd")
+    	end
+    	local f_str_surrogate_prev = 0
+    	local function f_str_subst(ch, ucode)
+    		if ch == 'u' then
+    			local c1, c2, c3, c4, rest = byte(ucode, 1, 5)
+    			ucode = f_str_hextbl[c1-47] * 0x1000 +
+    			        f_str_hextbl[c2-47] * 0x100 +
+    			        f_str_hextbl[c3-47] * 0x10 +
+    			        f_str_hextbl[c4-47]
+    			if ucode ~= inf then
+    				if ucode < 0x80 then
+    					if rest then
+    						return char(ucode, rest)
+    					end
+    					return char(ucode)
+    				elseif ucode < 0x800 then
+    					c1 = floor(ucode / 0x40)
+    					c2 = ucode - c1 * 0x40
+    					c1 = c1 + 0xC0
+    					c2 = c2 + 0x80
+    					if rest then
+    						return char(c1, c2, rest)
+    					end
+    					return char(c1, c2)
+    				elseif ucode < 0xD800 or 0xE000 <= ucode then
+    					c1 = floor(ucode / 0x1000)
+    					ucode = ucode - c1 * 0x1000
+    					c2 = floor(ucode / 0x40)
+    					c3 = ucode - c2 * 0x40
+    					c1 = c1 + 0xE0
+    					c2 = c2 + 0x80
+    					c3 = c3 + 0x80
+    					if rest then
+    						return char(c1, c2, c3, rest)
+    					end
+    					return char(c1, c2, c3)
+    				elseif 0xD800 <= ucode and ucode < 0xDC00 then
+    					if f_str_surrogate_prev == 0 then
+    						f_str_surrogate_prev = ucode
+    						if not rest then
+    							return ''
+    						end
+    						surrogate_first_error()
+    					end
+    					f_str_surrogate_prev = 0
+    					surrogate_first_error()
+    				else
+    					if f_str_surrogate_prev ~= 0 then
+    						ucode = 0x10000 +
+    						        (f_str_surrogate_prev - 0xD800) * 0x400 +
+    						        (ucode - 0xDC00)
+    						f_str_surrogate_prev = 0
+    						c1 = floor(ucode / 0x40000)
+    						ucode = ucode - c1 * 0x40000
+    						c2 = floor(ucode / 0x1000)
+    						ucode = ucode - c2 * 0x1000
+    						c3 = floor(ucode / 0x40)
+    						c4 = ucode - c3 * 0x40
+    						c1 = c1 + 0xF0
+    						c2 = c2 + 0x80
+    						c3 = c3 + 0x80
+    						c4 = c4 + 0x80
+    						if rest then
+    							return char(c1, c2, c3, c4, rest)
+    						end
+    						return char(c1, c2, c3, c4)
+    					end
+    					parse_error("2nd surrogate pair byte appeared without 1st")
+    				end
+    			end
+    			parse_error("invalid unicode codepoint literal")
+    		end
+    		if f_str_surrogate_prev ~= 0 then
+    			f_str_surrogate_prev = 0
+    			surrogate_first_error()
+    		end
+    		return f_str_escapetbl[ch] .. ucode
+    	end
+    	local function f_str(iskey)
+    		local pos2 = pos
+    		local newpos
+    		local str = ''
+    		local bs
+    		while true do
+    			while true do
+    				newpos = find(json, '[\\"]', pos2)
+    				if newpos then
+    					break
+    				end
+    				str = str .. sub(json, pos, jsonlen)
+    				if pos2 == jsonlen+2 then
+    					pos2 = 2
+    				else
+    					pos2 = 1
+    				end
+    				jsonnxt()
+    				if jsonlen == 0 then
+    					parse_error("unterminated string")
+    				end
+    			end
+    			if byte(json, newpos) == 0x22 then
+    				break
+    			end
+    			pos2 = newpos+2
+    			bs = true
+    		end
+    		str = str .. sub(json, pos, newpos-1)
+    		pos = newpos+1
+    		if find(str, f_str_ctrl_pat) then
+    			parse_error("unescaped control string")
+    		end
+    		if bs then
+    			
+    			
+    			
+    			
+    			
+    			str = gsub(str, '\\(.)([^\\]?[^\\]?[^\\]?[^\\]?[^\\]?)', f_str_subst)
+    			if f_str_surrogate_prev ~= 0 then
+    				f_str_surrogate_prev = 0
+    				parse_error("1st surrogate pair byte not continued by 2nd")
+    			end
+    		end
+    		if iskey then
+    			return sax_key(str)
+    		end
+    		return sax_string(str)
+    	end
+    	
+    	
+    	local function f_ary()
+    		rec_depth = rec_depth + 1
+    		if rec_depth > 1000 then
+    			parse_error('too deeply nested json (> 1000)')
+    		end
+    		sax_startarray()
+    		spaces()
+    		if byte(json, pos) == 0x5D then
+    			pos = pos+1
+    		else
+    			local newpos
+    			while true do
+    				f = dispatcher[byte(json, pos)]
+    				pos = pos+1
+    				f()
+    				newpos = match(json, '^[ \n\r\t]*,[ \n\r\t]*()', pos)
+    				if newpos then
+    					pos = newpos
+    				else
+    					newpos = match(json, '^[ \n\r\t]*%]()', pos)
+    					if newpos then
+    						pos = newpos
+    						break
+    					end
+    					spaces()
+    					local c = byte(json, pos)
+    					pos = pos+1
+    					if c == 0x2C then
+    						spaces()
+    					elseif c == 0x5D then
+    						break
+    					else
+    						parse_error("no closing bracket of an array")
+    					end
+    				end
+    				if pos > jsonlen then
+    					spaces()
+    				end
+    			end
+    		end
+    		rec_depth = rec_depth - 1
+    		return sax_endarray()
+    	end
+    	
+    	local function f_obj()
+    		rec_depth = rec_depth + 1
+    		if rec_depth > 1000 then
+    			parse_error('too deeply nested json (> 1000)')
+    		end
+    		sax_startobject()
+    		spaces()
+    		if byte(json, pos) == 0x7D then
+    			pos = pos+1
+    		else
+    			local newpos
+    			while true do
+    				if byte(json, pos) ~= 0x22 then
+    					parse_error("not key")
+    				end
+    				pos = pos+1
+    				f_str(true)
+    				newpos = match(json, '^[ \n\r\t]*:[ \n\r\t]*()', pos)
+    				if newpos then
+    					pos = newpos
+    				else
+    					spaces()
+    					if byte(json, pos) ~= 0x3A then
+    						parse_error("no colon after a key")
+    					end
+    					pos = pos+1
+    					spaces()
+    				end
+    				if pos > jsonlen then
+    					spaces()
+    				end
+    				f = dispatcher[byte(json, pos)]
+    				pos = pos+1
+    				f()
+    				newpos = match(json, '^[ \n\r\t]*,[ \n\r\t]*()', pos)
+    				if newpos then
+    					pos = newpos
+    				else
+    					newpos = match(json, '^[ \n\r\t]*}()', pos)
+    					if newpos then
+    						pos = newpos
+    						break
+    					end
+    					spaces()
+    					local c = byte(json, pos)
+    					pos = pos+1
+    					if c == 0x2C then
+    						spaces()
+    					elseif c == 0x7D then
+    						break
+    					else
+    						parse_error("no closing bracket of an object")
+    					end
+    				end
+    				if pos > jsonlen then
+    					spaces()
+    				end
+    			end
+    		end
+    		rec_depth = rec_depth - 1
+    		return sax_endobject()
+    	end
+    	
+    	dispatcher = { [0] =
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_str, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_mns, f_err, f_err,
+    		f_zro, f_num, f_num, f_num, f_num, f_num, f_num, f_num,
+    		f_num, f_num, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_ary, f_err, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_fls, f_err,
+    		f_err, f_err, f_err, f_err, f_err, f_err, f_nul, f_err,
+    		f_err, f_err, f_err, f_err, f_tru, f_err, f_err, f_err,
+    		f_err, f_err, f_err, f_obj, f_err, f_err, f_err, f_err,
+    	}
+    	
+    	local function run()
+    		rec_depth = 0
+    		spaces()
+    		f = dispatcher[byte(json, pos)]
+    		pos = pos+1
+    		f()
+    	end
+    	local function read(n)
+    		if n < 0 then
+    			error("the argument must be non-negative")
+    		end
+    		local pos2 = (pos-1) + n
+    		local str = sub(json, pos, pos2)
+    		while pos2 > jsonlen and jsonlen ~= 0 do
+    			jsonnxt()
+    			pos2 = pos2 - (jsonlen - (pos-1))
+    			str = str .. sub(json, pos, pos2)
+    		end
+    		if jsonlen ~= 0 then
+    			pos = pos2+1
+    		end
+    		return str
+    	end
+    	local function tellpos()
+    		return acc + pos
+    	end
+    	return {
+    		run = run,
+    		tryc = tryc,
+    		read = read,
+    		tellpos = tellpos,
+    	}
     end
-
-
-
-    function layer.max_layers()
-        return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
+    local function newfileparser(fn, saxtbl)
+    	local fp = open(fn)
+    	local function gen()
+    		local s
+    		if fp then
+    			s = fp:read(8192)
+    			if not s then
+    				fp:close()
+    				fp = nil
+    			end
+    		end
+    		return s
+    	end
+    	return newparser(gen, saxtbl)
     end
+    return {
+    	newparser = newparser,
+    	newfileparser = newfileparser
+    }
+end
+__imports["lunajson.lunajson"] = __imports["lunajson.lunajson"] or function()
+    local newdecoder = require('lunajson.decoder')
+    local newencoder = require('lunajson.encoder')
+    local sax = require('lunajson.sax')
 
-    return layer
+
+    return {
+    	decode = newdecoder(),
+    	encode = newencoder(),
+    	newparser = sax.newparser,
+    	newfileparser = sax.newfileparser,
+    }
 end
 function plugindef()
-    finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.16"
-
-    finaleplugin.Date = "2023/02/12"
-    finaleplugin.MinJWLuaVersion = 0.62
-    finaleplugin.Notes = [[
-        Change notehead shapes on a specific layer of the current selection to one of these shapes:
-        Circled / Default / Diamond / Guitar Diamond / Hidden / Number
-        Round / Slash / Square / Strikethrough / Triangle / Wedge / X
-        In SMuFL fonts like Finale Maestro, shapes will correspond to appropriate duration values.
-        Most duration-dependent shapes are not available in Finale's old (non-SMuFL) Maestro font.
-        "Diamond (Guitar)" is like "Diamond" except quarter notes and shorter use filled diamonds.
-        "Number" lets you specify any shape character numerically including SMuFL numbers like "0xe0e1".
-        This script offers the same functionality as "noteheads_change.lua" but offers
-        layer filtering with one menu item and a single confirmation dialog.
+    finaleplugin.RequireScore = false
+    finaleplugin.RequireSelection = false
+    finaleplugin.RequireDocument = true
+    finaleplugin.Author = "Aaron Sherber"
+    finaleplugin.AuthorURL = "https://aaron.sherber.com"
+    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
+    finaleplugin.Version = "2.0.1"
+    finaleplugin.Date = "2023-02-24"
+    finaleplugin.CategoryTags = "Report"
+    finaleplugin.Id = "9c05a4c4-9508-4608-bb1b-2819cba96101"
+    finaleplugin.AdditionalMenuOptions = [[
+        Import Document Options from JSON...
     ]]
-    return "Noteheads Change by Layer...", "Noteheads Change by Layer", "Change notehead shapes on a specific layer of the current selection"
+    finaleplugin.AdditionalPrefixes = [[
+        action = "import"
+    ]]
+    finaleplugin.RevisionNotes = [[
+        v2.0.1      Add ability to import
+        v1.2.1      Add Grid/Guide snap-tos; better organization of SmartShapes
+        v1.1.2      First public release
+    ]]
+    finaleplugin.Notes = [[
+        While other plugins exist that let you copy document options directly from one document to another,
+        this script saves the options from the current document in an organized human-readable form, as a
+        JSON file. You can then use a diff program to compare the JSON files generated from
+        two Finale documents, or you can keep track of how the settings in a document have changed
+        over time. The script will also let you import settings from a full or partial JSON file.
+        Please see https://url.sherber.com/finalelua/options-as-json for more information.
+
+        The focus is on document-specific settings, rather than program-wide ones, and in particular on
+        the ones that affect the look of a document. Most of these come from the Document Options dialog
+        in Finale, although some come from the Category Designer, the Page Format dialog, and the
+        SmartShape menu.
+        All physical measurements are given in EVPUs, except for a couple of values that Finale always
+        displays as spaces. (1 EVPU is 1/288 of an inch, 1/24 of a space, or 1/4 of a point.) So if your
+        measurement units are set to EVPUs, the values given here should match what you see in Finale.
+    ]]
+    return "Save Document Options as JSON...", "", "Saves all current document options to a JSON file"
 end
-local notehead = require("library.notehead")
-local mixin = require("library.mixin")
-local configuration = require("library.configuration")
-local layer = require("library.layer")
-local config = {
-    layer = 0,
-    shape = "default",
-    glyph = "0xe0e1",
-    window_pos_x = false,
-    window_pos_y = false
+action = action or "export"
+local debug = {
+    raw_categories = false,
+    raw_units = false
 }
-local script_name = "noteheads_change_by_layer"
-function dialog_set_position(dialog)
-    if config.window_pos_x and config.window_pos_y then
-        dialog:StorePosition()
-        dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
-        dialog:RestorePosition()
-    end
+local mixin = require('library.mixin')
+local json = require("lunajson.lunajson")
+local fcstr = function(str)
+    return mixin.FCMString():SetLuaString(str)
 end
-function dialog_save_position(dialog)
-    dialog:StorePosition()
-    config.window_pos_x = dialog.StoredX
-    config.window_pos_y = dialog.StoredY
-    configuration.save_user_settings(script_name, config)
-end
-function user_chooses_glyph()
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    local x = 230
-    local y_diff = finenv.UI():IsOnMac() and 3 or 0
-    dialog:CreateStatic(0, y_diff):SetWidth(x + 70)
-        :SetText("Enter required character (glyph) number:")
-    dialog:CreateStatic(0, y_diff + 25):SetWidth(x + 100)
-        :SetText("(as plain integer, or hex value like 0xe0e1 or 0xE0E1)")
-    local glyph = tonumber(config.glyph)
-    if glyph >= 0xe000 then
-        config.glyph = string.format("0x%x", glyph)
+function simplify_finale_version(ver)
+    if type(ver) == "number" then
+        return ver < 10000 and ver or (ver - 10000)
     else
-        config.glyph = tostring(glyph)
+        return nil
     end
-    local answer = dialog:CreateEdit(x, 0):SetText(config.glyph)
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    dialog_set_position(dialog)
-    dialog:RegisterHandleOkButtonPressed(function(self)
-        config.glyph = answer:GetText()
-        dialog_save_position(self)
-    end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
-function user_chooses_shape()
-    local shapes = { "Circled", "Default", "Diamond", "Diamond_Guitar", "Hidden",
-        "Number", "Round", "Slash", "Square", "Strikethrough", "Triangle", "Wedge", "X"
+function get_file_options_tag()
+    local temp_table = {}
+    if debug.raw_categories then table.insert(temp_table, "raw prefs") end
+    if debug.raw_units then table.insert(temp_table, "raw units") end
+    local result = table.concat(temp_table, ", ")
+    if #result > 0 then result = " - " .. result end
+    return result
+end
+function get_path_and_file(document)
+    local file_name = mixin.FCMString()
+    local path_name = mixin.FCMString()
+    local file_path = mixin.FCMString()
+    document:GetPath(file_path)
+    file_path:SplitToPathAndFile(path_name, file_name)
+    return path_name, file_name
+end
+function do_file_open_dialog(document)
+    local text_extension = ".json"
+    local filter_text = "JSON files"
+    local path_name, file_name = get_path_and_file(document)
+    local open_dialog = mixin.FCMFileOpenDialog(finenv.UI())
+            :SetWindowTitle(fcstr("Open JSON Settings"))
+            :SetInitFolder(path_name)
+            :AddFilter(fcstr("*" .. text_extension), fcstr(filter_text))
+    if not open_dialog:Execute() then
+        return nil
+    end
+    local selected_file_name = finale.FCString()
+    open_dialog:GetFileName(selected_file_name)
+    return selected_file_name.LuaString
+end
+function confirm_file_import(meta)
+
+    if meta == nil then return true end
+    local col_1_width = 85
+    local width_factor = 6
+    local row_height = 17
+    local max_string_length = 0
+    local dialog = mixin.FCMCustomWindow()
+        :SetTitle("Confirm Import")
+    local t = {
+        { "Import these settings?" },
+        {},
+        { "Music File", meta.File or meta.MusicFile},
+        { "Date", meta.Date },
+        { "Finale Version", simplify_finale_version(meta.FinaleVersion) },
+        { "Description", meta.Description }
     }
-    local x_offset = 190
-    local y_step = 20
-    local mac_offset = finenv.UI():IsOnMac() and 3 or 0
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    dialog:CreateStatic(0, 0):SetText("Select note shape:"):SetWidth(150)
-    local shape_list = dialog:CreateListBox(0, y_step):SetWidth(x_offset - 20):SetHeight(y_step * 11)
-    for i, v in ipairs(shapes) do
-        shape_list:AddString((i == 4) and "Guitar Diamond" or v)
-        if v:lower() == config.shape then
-            shape_list:SetSelectedItem(i - 1)
+    for row, labels in ipairs(t) do
+        for col, label in ipairs(labels) do
+            max_string_length = math.max(max_string_length, string.len(label or ""))
+            dialog:CreateStatic((col - 1) * col_1_width, (row - 1) * row_height)
+                :SetText(label)
         end
     end
-    local max = layer.max_layers()
-    dialog:CreateStatic(x_offset, y_step * 4):SetText("Layer number (0-" .. max .. "):"):SetWidth(150)
-    dialog:CreateEdit(x_offset, (y_step * 5) - mac_offset, "layer"):SetWidth(50):SetInteger(config.layer or 0)
-    dialog:CreateStatic(x_offset, y_step * 6):SetText("(\"0\" = all layers)"):SetWidth(150)
+    for ctrl in each(dialog) do
+        ctrl:SetWidth(max_string_length * width_factor)
+    end
+
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    dialog_set_position(dialog)
-    dialog:RegisterHandleOkButtonPressed(function(self)
-
-        config.shape = string.lower( shapes[shape_list:GetSelectedItem() + 1] )
-        local n = self:GetControl("layer"):GetInteger()
-        if n < 0 or n > max then
-            n = 0
-        end
-        config.layer = n
-        dialog_save_position(self)
-    end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    return dialog:ExecuteModal(nil) == finale.EXECMODAL_OK
 end
-function change_noteheads()
-    configuration.get_user_settings(script_name, config, true)
-    if not user_chooses_shape() then return end
-
-    if config.shape == "number" then
-        if not user_chooses_glyph() then return end
-        config.shape = tonumber(config.glyph)
+function do_save_as_dialog(document)
+    local text_extension = ".json"
+    local filter_text = "JSON files"
+    local path_name, file_name = get_path_and_file(document)
+    local full_file_name = file_name.LuaString
+    local extension = mixin.FCMString()
+                            :SetLuaString(file_name.LuaString)
+                            :ExtractFileExtension()
+    if extension.Length > 0 then
+        file_name:TruncateAt(file_name:FindLast("." .. extension.LuaString))
     end
-    for entry in eachentrysaved(finenv.Region(), config.layer) do
-        if entry:IsNote() then
-            for note in each(entry) do
-                notehead.change_shape(note, config.shape)
+    file_name:AppendLuaString(" settings")
+            :AppendLuaString(get_file_options_tag())
+            :AppendLuaString(text_extension)
+    local save_dialog = mixin.FCMFileSaveAsDialog(finenv.UI())
+            :SetWindowTitle(fcstr("Save As"))
+            :AddFilter(fcstr("*" .. text_extension), fcstr(filter_text))
+            :SetInitFolder(path_name)
+            :SetFileName(file_name)
+    if not save_dialog:Execute() then
+        return nil
+    end
+    save_dialog:AssureFileExtension(text_extension)
+    local selected_file_name = finale.FCString()
+    save_dialog:GetFileName(selected_file_name)
+    return selected_file_name.LuaString
+end
+function get_description()
+    local dialog = mixin.FCMCustomWindow():SetTitle("Save As")
+    dialog:CreateStatic(0, 0):SetText("Settings Description"):SetWidth(120)
+    dialog:CreateEdit(0, 17, "input"):SetWidth(360)
+    dialog:CreateOkButton()
+    if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
+        return dialog:GetControl("input"):GetText()
+    else
+        return ""
+    end
+end
+
+function getter_name(...) return "Get" .. table.concat{...} end
+function setter_name(...) return "Set" .. table.concat{...} end
+function delete_from_table(prefs_table, exclusions)
+    if not prefs_table or not exclusions then return end
+    for _, e in pairs(exclusions) do prefs_table[e] = nil end
+end
+function add_props_to_table(prefs_table, prefs_obj, tag, exclusions)
+    if tag then
+        prefs_table[tag] = {}
+        prefs_table = prefs_table[tag]
+    end
+    for k, v in pairs(dumpproperties(prefs_obj)) do
+        prefs_table[k] = v
+    end
+    delete_from_table(prefs_table, exclusions)
+end
+function set_props_from_table(prefs_table, prefs_obj, exclusions)
+    prefs_table = prefs_table or {}
+    delete_from_table(prefs_table, exclusions)
+    for k, v in pairs(prefs_table) do
+        if type(v) ~= "table" then
+            local setter = prefs_obj[setter_name(k)]
+            if setter then setter(prefs_obj, v) end
+        end
+    end
+end
+function handle_page_format_prefs(prefs_obj, prefs_table, load)
+    local SCORE, PARTS = "Score", "Parts"
+    if load then
+        prefs_obj:LoadScore()
+        add_props_to_table(prefs_table, prefs_obj, SCORE)
+        prefs_obj:LoadParts()
+        add_props_to_table(prefs_table, prefs_obj, PARTS)
+    else
+        prefs_obj:LoadScore()
+        set_props_from_table(prefs_table[SCORE], prefs_obj)
+        prefs_obj:Save()
+        prefs_obj:LoadParts()
+        set_props_from_table(prefs_table[PARTS], prefs_obj)
+        prefs_obj:Save()
+    end
+end
+function handle_name_position_prefs(prefs_obj, prefs_table, load)
+    local FULL, ABBREVIATED = "Full", "Abbreviated"
+    if load then
+        prefs_obj:LoadFull()
+        add_props_to_table(prefs_table, prefs_obj, FULL)
+        prefs_obj:LoadAbbreviated()
+        add_props_to_table(prefs_table, prefs_obj, ABBREVIATED)
+    else
+        prefs_obj:LoadFull()
+        set_props_from_table(prefs_table[FULL], prefs_obj)
+        prefs_obj:Save()
+        prefs_obj:LoadAbbreviated()
+        set_props_from_table(prefs_table[ABBREVIATED], prefs_obj)
+        prefs_obj:Save()
+    end
+end
+function handle_layer_prefs(prefs_obj, prefs_table, load)
+    for i = 0, 3 do
+        prefs_obj:Load(i)
+        local layer_name = "Layer" .. i + 1
+        if load then
+            add_props_to_table(prefs_table, prefs_obj, layer_name)
+        else
+            set_props_from_table(prefs_table[layer_name], prefs_obj)
+            prefs_obj:Save()
+        end
+    end
+end
+local FONT_EXCLUSIONS = { "EnigmaStyles", "IsSMuFLFont", "Size" }
+function handle_font_prefs(prefs_obj, prefs_table, load)
+    local font_pref_types = {
+        [finale.FONTPREF_MUSIC]              = 'Music',
+        [finale.FONTPREF_KEYSIG]             = 'KeySignatures',
+        [finale.FONTPREF_CLEF]               = 'Clefs',
+        [finale.FONTPREF_TIMESIG]            = 'TimeSignatureScore',
+        [finale.FONTPREF_CHORDSYMBOL]        = 'ChordSymbols',
+        [finale.FONTPREF_CHORDALTERATION]    = 'ChordAlterations',
+        [finale.FONTPREF_ENDING]             = 'EndingRepeats',
+        [finale.FONTPREF_TUPLET]             = 'Tuplets',
+        [finale.FONTPREF_TEXTBLOCK]          = 'TextBlocks',
+        [finale.FONTPREF_LYRICSVERSE]        = 'LyricVerses',
+        [finale.FONTPREF_LYRICSCHORUS]       = 'LyricChoruses',
+        [finale.FONTPREF_LYRICSSECTION]      = 'LyricSections',
+        [finale.FONTPREF_MULTIMEASUREREST]   = 'MultimeasureRests',
+        [finale.FONTPREF_CHORDSUFFIX]        = 'ChordSuffixes',
+        [finale.FONTPREF_EXPRESSION]         = 'Expressions',
+        [finale.FONTPREF_REPEAT]             = 'TextRepeats',
+        [finale.FONTPREF_CHORDFRETBOARD]     = 'ChordFretboards',
+        [finale.FONTPREF_FLAG]               = 'Flags',
+        [finale.FONTPREF_ACCIDENTAL]         = 'Accidentals',
+        [finale.FONTPREF_ALTERNATESLASH]     = 'AlternateNotation',
+        [finale.FONTPREF_ALTERNATENUMBER]    = 'AlternateNotationNumbers',
+        [finale.FONTPREF_REST]               = 'Rests',
+        [finale.FONTPREF_REPEATDOT]          = 'RepeatDots',
+        [finale.FONTPREF_NOTEHEAD]           = 'Noteheads',
+        [finale.FONTPREF_AUGMENTATIONDOT]    = 'AugmentationDots',
+        [finale.FONTPREF_TIMESIGPLUS]        = 'TimeSignaturePlusScore',
+        [finale.FONTPREF_ARTICULATION]       = 'Articulations',
+        [finale.FONTPREF_DEFTABLATURE]       = 'Tablature',
+        [finale.FONTPREF_PERCUSSION]         = 'PercussionNoteheads',
+        [finale.FONTPREF_8VA]                = 'SmartShape8va',
+        [finale.FONTPREF_MEASURENUMBER]      = 'MeasureNumbers',
+        [finale.FONTPREF_STAFFNAME]          = 'StaffNames',
+        [finale.FONTPREF_ABRVSTAFFNAME]      = 'StaffNamesAbbreviated',
+        [finale.FONTPREF_GROUPNAME]          = 'GroupNames',
+        [finale.FONTPREF_8VB]                = 'SmartShape8vb',
+        [finale.FONTPREF_15MA]               = 'SmartShape15ma',
+        [finale.FONTPREF_15MB]               = 'SmartShape15mb',
+        [finale.FONTPREF_TR]                 = 'SmartShapeTrill',
+        [finale.FONTPREF_WIGGLE]             = 'SmartShapeWiggle',
+        [finale.FONTPREF_ABRVGROUPNAME]      = 'GroupNamesAbbreviated',
+        [finale.FONTPREF_GUITARBENDFULL]     = 'GuitarBendFull',
+        [finale.FONTPREF_GUITARBENDNUMBER]   = 'GuitarBendNumber',
+        [finale.FONTPREF_GUITARBENDFRACTION] = 'GuitarBendFraction',
+        [finale.FONTPREF_TIMESIG_PARTS]      = 'TimeSignatureParts',
+        [finale.FONTPREF_TIMESIGPLUS_PARTS]  = 'TimeSignaturePlusParts',
+    }
+    for pref_type, tag in pairs(font_pref_types) do
+        if load then
+            prefs_obj:LoadFontPrefs(pref_type)
+            add_props_to_table(prefs_table, prefs_obj, tag, FONT_EXCLUSIONS)
+        else
+            set_props_from_table(prefs_table[tag], prefs_obj, FONT_EXCLUSIONS)
+            prefs_obj:SaveFontPrefs(pref_type)
+        end
+    end
+end
+function handle_tie_placement_prefs(prefs_obj, prefs_table, load)
+    local tie_placement_types = {
+        [finale.TIEPLACE_OVERINNER]      = "Over/Inner",
+        [finale.TIEPLACE_UNDERINNER]     = "Under/Inner",
+        [finale.TIEPLACE_OVEROUTERNOTE]  = "Over/Outer/Note",
+        [finale.TIEPLACE_UNDEROUTERNOTE] = "Under/Outer/Note",
+        [finale.TIEPLACE_OVEROUTERSTEM]  = "Over/Outer/Stem",
+        [finale.TIEPLACE_UNDEROUTERSTEM] = "Under/Outer/Stem"
+    }
+    local prop_names = {
+        "HorizontalStart",
+        "VerticalStart",
+        "HorizontalEnd",
+        "VerticalEnd"
+    }
+    for placement_type, tag in pairs(tie_placement_types) do
+        prefs_obj:Load(placement_type)
+        if load then
+            local t = {}
+            for _, name in pairs(prop_names) do
+                t[name] = prefs_obj[getter_name(name)](prefs_obj, placement_type)
+            end
+            prefs_table[tag] = t
+        else
+            local t = prefs_table[tag]
+            for _, name in pairs(prop_names) do
+                prefs_obj[setter_name(name)](prefs_obj, placement_type, t[name])
+            end
+            prefs_obj:Save()
+        end
+    end
+end
+function handle_tie_contour_prefs(prefs_obj, prefs_table, load)
+    local tie_contour_types = {
+        [finale.TCONTOURIDX_SHORT]   = "Short",
+        [finale.TCONTOURIDX_MEDIUM]  = "Medium",
+        [finale.TCONTOURIDX_LONG]    = "Long",
+        [finale.TCONTOURIDX_TIEENDS] = "TieEnds"
+    }
+    local prop_names = {
+        "Span",
+        "LeftRelativeInset",
+        "LeftRawRelativeInset",
+        "LeftHeight",
+        "LeftFixedInset",
+        "RightRelativeInset",
+        "RightRawRelativeInset",
+        "RightHeight",
+        "RightFixedInset",
+    }
+
+    for contour_type, tag in pairs(tie_contour_types) do
+        prefs_obj:Load(contour_type)
+        if load then
+            local t = {}
+            for _, name in pairs(prop_names) do
+                t[name] = prefs_obj[getter_name(name)](prefs_obj, contour_type)
+            end
+            prefs_table[tag] = t
+        else
+            local t = prefs_table[tag]
+            for _, name in pairs(prop_names) do
+                prefs_obj[setter_name(name)](prefs_obj, contour_type, t[name])
+            end
+            prefs_obj:Save()
+        end
+    end
+end
+function handle_base_prefs(prefs_obj, prefs_table, load, exclusions)
+    exclusions = exclusions or {}
+    prefs_obj:Load(1)
+    if load then
+        add_props_to_table(prefs_table, prefs_obj, nil, exclusions)
+    else
+        set_props_from_table(prefs_table, prefs_obj, exclusions)
+        prefs_obj:Save()
+    end
+end
+function handle_tie_prefs(prefs_obj, prefs_table, load)
+    handle_base_prefs(prefs_obj, prefs_table, load)
+    local TIE_CONTOURS, TIE_PLACEMENT = "TieContours", "TiePlacement"
+    if load then
+        local function load_sub_prefs(sub_prefs, handler, tag)
+            local t = {}
+            handler(sub_prefs, t, true)
+            prefs_table[tag] = t
+        end
+        load_sub_prefs(prefs_obj:CreateTieContourPrefs(), handle_tie_contour_prefs, TIE_CONTOURS)
+        load_sub_prefs(prefs_obj:CreateTiePlacementPrefs(), handle_tie_placement_prefs, TIE_PLACEMENT)
+    else
+        handle_tie_contour_prefs(prefs_obj:CreateTieContourPrefs(), prefs_table[TIE_CONTOURS], false)
+        handle_tie_placement_prefs(prefs_obj:CreateTiePlacementPrefs(), prefs_table[TIE_PLACEMENT], false)
+    end
+end
+function handle_category_prefs(prefs_obj, prefs_table, load)
+    local font = finale.FCFontInfo()
+    local font_types = { "Text", "Music", "Number" }
+    local FONTS, FONT_INFO, TYPE = "Fonts", "FontInfo", "Type"
+    local EXCLUSIONS = { "ID" }
+    local function get_cat_tag(cat) return cat:CreateName().LuaString:gsub(" ", "") end
+    local function humanize(tag) return string.gsub(tag, "(%l)(%u)", "%1 %2") end
+    prefs_obj:LoadAll()
+    if load then
+        for raw_cat in each(prefs_obj) do
+            if raw_cat:IsDefaultMiscellaneous() then
+                goto cat_continue
+            end
+            local raw_cat_tag = get_cat_tag(raw_cat)
+            add_props_to_table(prefs_table, raw_cat, raw_cat_tag, EXCLUSIONS)
+            local font_table = {}
+            prefs_table[raw_cat_tag][FONTS] = font_table
+            for _, font_type in pairs(font_types) do
+                if raw_cat[getter_name(font_type, FONT_INFO)](raw_cat, font) then
+                    add_props_to_table(font_table, font, font_type, FONT_EXCLUSIONS)
+                end
+            end
+            ::cat_continue::
+        end
+    else
+        local function populate_raw_cat(cat_values, raw_cat)
+            set_props_from_table(cat_values, raw_cat, EXCLUSIONS)
+            for _, font_type in pairs(font_types) do
+                if raw_cat[getter_name(font_type, FONT_INFO)](raw_cat, font) then
+                    set_props_from_table(cat_values[FONTS][font_type], font, FONT_EXCLUSIONS)
+                    raw_cat[setter_name(font_type, FONT_INFO)](raw_cat, font)
+                end
+            end
+        end
+        for cat_tag, cat_values in pairs(prefs_table) do
+            local this_cat = nil
+            for raw_cat in each(prefs_obj) do
+                if get_cat_tag(raw_cat) == cat_tag then
+                    this_cat = raw_cat
+                    break
+                end
+            end
+            if this_cat then
+                populate_raw_cat(cat_values, this_cat)
+                this_cat:Save()
+            else
+                local new_cat = finale.FCCategoryDef()
+                local cat_type = cat_values[TYPE]
+                new_cat:Load(cat_type)
+                new_cat:SetName(mixin.FCMString():SetLuaString(humanize(cat_tag)))
+                populate_raw_cat(cat_values, new_cat)
+                new_cat:SaveNewWithType(cat_type)
             end
         end
     end
 end
-change_noteheads()
+function handle_smart_shape_prefs(prefs_obj, prefs_table, load)
+    handle_base_prefs(prefs_obj, prefs_table, load)
+    local contour_prefs = prefs_obj:CreateSlurContourPrefs()
+    local span_types = { 'Short', 'Medium', 'Long', 'ExtraLong' }
+    local prop_names = { 'Span', 'Inset', 'Height' }
+    local SLUR_CONTOURS = "SlurContours"
+    if load then
+        local contour_table = {}
+        prefs_table[SLUR_CONTOURS] = contour_table
+
+        for _, type in pairs(span_types) do
+            local t = {}
+            for _, name in pairs(prop_names) do
+                t[name] = contour_prefs[getter_name(type, name)](contour_prefs)
+            end
+            contour_table[type] = t
+        end
+    else
+        for _, type in pairs(span_types) do
+            for _, name in pairs(prop_names) do
+                local contour_table = prefs_table[SLUR_CONTOURS]
+                if contour_table and contour_table[type] and contour_table[type][name] then
+                    contour_prefs[setter_name(type, name)](contour_prefs, contour_table[type][name])
+                end
+            end
+        end
+        contour_prefs:Save()
+    end
+end
+function handle_grid_prefs(prefs_obj, prefs_table, load)
+    local snap_items = {
+        [finale.SNAPITEM_BRACKETS ] = "Brackets",
+        [finale.SNAPITEM_CHORDS ] = "Chords",
+        [finale.SNAPITEM_EXPRESSIONS ] = "Expressions",
+        [finale.SNAPITEM_FRETBOARDS ] = "Fretboards",
+        [finale.SNAPITEM_GRAPHICSMOVE ] = "GraphicsMove",
+        [finale.SNAPITEM_GRAPHICSSIZING ] = "GraphicsSizing",
+        [finale.SNAPITEM_MEASURENUMBERS ] = "MeasureNumbers",
+        [finale.SNAPITEM_REPEATS ] = "Repeats",
+        [finale.SNAPITEM_SPECIALTOOLS ] = "SpecialTools",
+        [finale.SNAPITEM_STAFFNAMES ] = "StaffNames",
+        [finale.SNAPITEM_STAVES ] = "Staves",
+        [finale.SNAPITEM_TEXTBLOCKMOVE ] = "TextBlockMove",
+        [finale.SNAPITEM_TEXTBLOCKSIZING ] = "TextBlockSizing",
+    }
+    local SNAP_TO_GRID, SNAP_TO_GUIDE = "SnapToGrid", "SnapToGuide"
+    handle_base_prefs(prefs_obj, prefs_table, load, { "HorizontalGuideCount", "VerticalGuideCount" })
+    if load then
+        prefs_table[SNAP_TO_GRID] = {}
+        prefs_table[SNAP_TO_GUIDE] = {}
+        for item, name in pairs(snap_items) do
+            prefs_table[SNAP_TO_GRID][name] = prefs_obj:GetGridSnapToItem(item)
+            prefs_table[SNAP_TO_GUIDE][name] = prefs_obj:GetGuideSnapToItem(item)
+        end
+    else
+        for item, name in pairs(snap_items) do
+            prefs_obj:SetGridSnapToItem(item, prefs_table[SNAP_TO_GRID][name])
+            prefs_obj:SetGuideSnapToItem(item, prefs_table[SNAP_TO_GUIDE][name])
+        end
+        prefs_obj:Save()
+    end
+end
+function handle_music_spacing_prefs(prefs_obj, prefs_table, load)
+    handle_base_prefs(prefs_obj, prefs_table, load, { "ScalingValue" })
+end
+local raw_pref_definitions = {
+    { prefs = finale.FCCategoryDefs(), handler = handle_category_prefs },
+    { prefs = finale.FCChordPrefs() },
+    { prefs = finale.FCDistancePrefs() },
+    { prefs = finale.FCFontInfo(), handler = handle_font_prefs },
+    { prefs = finale.FCGridsGuidesPrefs(), handler = handle_grid_prefs },
+    { prefs = finale.FCGroupNamePositionPrefs(), handler = handle_name_position_prefs },
+    { prefs = finale.FCLayerPrefs(), handler = handle_layer_prefs },
+    { prefs = finale.FCLyricsPrefs() },
+    { prefs = finale.FCMiscDocPrefs() },
+    { prefs = finale.FCMultiMeasureRestPrefs() },
+    { prefs = finale.FCMusicCharacterPrefs() },
+    { prefs = finale.FCMusicSpacingPrefs(), handler = handle_music_spacing_prefs },
+    { prefs = finale.FCPageFormatPrefs(), handler = handle_page_format_prefs },
+    { prefs = finale.FCPianoBracePrefs() },
+    { prefs = finale.FCRepeatPrefs() },
+    { prefs = finale.FCSizePrefs() },
+    { prefs = finale.FCSmartShapePrefs(), handler = handle_smart_shape_prefs },
+    { prefs = finale.FCStaffNamePositionPrefs(), handler = handle_name_position_prefs },
+    { prefs = finale.FCTiePrefs(), handler = handle_tie_prefs },
+    { prefs = finale.FCTupletPrefs() },
+}
+function load_all_raw_prefs()
+    local result = {}
+
+    for _, obj in ipairs(raw_pref_definitions) do
+        local tag = obj.prefs:ClassName()
+        if obj.handler == nil then
+            obj.prefs:Load(1)
+            add_props_to_table(result, obj.prefs, tag)
+        else
+            result[tag] = {}
+            obj.handler(obj.prefs, result[tag], true)
+        end
+        if not debug.raw_units then
+            normalize_units_for_raw_section(result[tag], tag)
+        end
+    end
+    return result
+end
+function save_all_raw_prefs(prefs_table)
+    for _, obj in pairs(raw_pref_definitions) do
+        local tag = obj.prefs:ClassName()
+        denormalize_units_for_raw_section(prefs_table[tag], tag)
+        if obj.handler == nil then
+            obj.prefs:Load(1)
+            set_props_from_table(prefs_table[tag], obj.prefs)
+            obj.prefs:Save()
+        else
+            obj.handler(obj.prefs, prefs_table[tag], false)
+        end
+    end
+end
+local transform_definitions = {
+    Accidentals = {
+        FCDistancePrefs  = { "^Accidental" },
+        FCMusicSpacingPrefs = { "AccidentalsGutter" },
+        FCMusicCharacterPrefs = {
+            "SymbolNatural", "SymbolFlat", "SymbolSharp", "SymbolDoubleFlat",
+            "SymbolDoubleSharp", "SymbolPar."
+        },
+    },
+    AlternateNotation = {
+        FCDistancePrefs = { "^Alternate" },
+        FCMusicCharacterPrefs = {
+            "VerticalTwoMeasureRepeatOffset", ".Slash",
+            "SymbolOneBarRepeat", "SymbolTwoBarRepeat",
+        },
+    },
+    AugmentationDots = {
+        FCMiscDocPrefs = { "AdjustDotForMultiVoices" },
+        FCMusicCharacterPrefs = { "SymbolAugmentationDot" },
+        FCDistancePrefs = { "^AugmentationDot" }
+    },
+    Barlines = {
+        FCDistancePrefs = { "^Barline" },
+        FCSizePrefs = { "Barline." },
+        FCMiscDocPrefs = { ".Barline" }
+    },
+    Beams = {
+        FCDistancePrefs = { "Beam." },
+        FCSizePrefs = { "Beam." },
+        FCMiscDocPrefs = { "Beam.", "IncludeRestsInFour", "AllowFloatingRests" }
+    },
+    Chords = {
+        FCChordPrefs = { "." },
+        FCMusicCharacterPrefs = { "Chord." },
+        FCMiscDocPrefs = { "Chord.", "Fretboard." }
+    },
+    Clefs = {
+        FCMiscDocPrefs = { "ClefResize", ".Clef" },
+        FCDistancePrefs = { "^Clef" }
+    },
+    Flags = {
+        FCMusicCharacterPrefs = { ".Flag", "VerticalSecondaryGroupAdjust" }
+    },
+    Fonts = {
+        FCFontInfo = {
+            "^Lyric", "^Text", "^Time", ".Names", "Noteheads$", "^Chord",
+            "^Alternate", "Dots$", "EndingRepeats",  "MeasureNumbers",
+            "Tablature",  "Accidentals",  "Flags", "Rests", "Clefs",
+            "KeySignatures", "MultimeasureRests",
+            "Tuplets", "Articulations", "Expressions"
+        }
+    },
+    GraceNotes = {
+        FCSizePrefs = { "Grace." },
+        FCDistancePrefs = { "GraceNoteSpacing" },
+        FCMiscDocPrefs = { "Grace." },
+    },
+    GridsAndGuides = {
+        FCGridsGuidesPrefs = { "." }
+    },
+    KeySignatures = {
+        FCDistancePrefs = { "^Key" },
+        FCMusicCharacterPrefs = { "^SymbolKey" },
+        FCMiscDocPrefs = { "^Key", "CourtesyKeySigAtSystemEnd" }
+    },
+    Layers = {
+        FCLayerPrefs = { "." },
+        FCMiscDocPrefs = { "ConsolidateRestsAcrossLayers" }
+    },
+    LinesAndCurves = {
+        FCSizePrefs = { "^Ledger", "EnclosureThickness", "StaffLineThickness", "ShapeSlurTipWidth" },
+        FCMiscDocPrefs = { "CurveResolution" }
+    },
+    Lyrics = {
+        FCLyricsPrefs = { "." }
+    },
+    MultimeasureRests = {
+        FCMultiMeasureRestPrefs = { "." }
+    },
+    MusicSpacing = {
+        FCMusicSpacingPrefs = { "!Gutter$" },
+        FCMiscDocPrefs = { "ScaleManualNotePositioning" }
+    },
+    NotesAndRests = {
+        FCMiscDocPrefs = { "UseNoteShapes", "CrossStaffNotesInOriginal" },
+        FCDistancePrefs = { "^Space" },
+        FCMusicCharacterPrefs = { "^Symbol.*Rest$", "^Symbol.*Notehead$", "^Vertical.*Rest$"}
+    },
+    PianoBracesAndBrackets = {
+        FCPianoBracePrefs = { "." },
+        FCDistancePrefs = { "GroupBracketDefaultDistance" }
+    },
+    Repeats = {
+        FCRepeatPrefs = { "." },
+        FCMusicCharacterPrefs = { "RepeatDot$" }
+    },
+    Stems = {
+        FCSizePrefs = { "Stem." },
+        FCDistancePrefs = { "StemVerticalNoteheadOffset" },
+        FCMiscDocPrefs = { "UseStemConnections", "DisplayReverseStemming" }
+    },
+    Text = {
+        FCMiscDocPrefs = { "DateFormat", "SecondsInTimeStamp", "TextTabCharacters" },
+    },
+    Ties = {
+        FCTiePrefs = { "." }
+    },
+    TimeSignatures = {
+        FCMiscDocPrefs = { ".TimeSig", "TimeSigCompositeDecimals" },
+        FCMusicCharacterPrefs = { ".TimeSig" },
+        FCDistancePrefs = { "^TimeSig" },
+    },
+    Tuplets = {
+        FCTupletPrefs = { "." }
+    },
+    Categories = {
+        FCCategoryDefs = { "." }
+    },
+    PageFormat = {
+        FCPageFormatPrefs = { "." }
+    },
+    SmartShapes = {
+        FCSmartShapePrefs = { "^Symbol", "^Hairpin", "^Line", "HookLength", "OctavesAsText", "ID$" },
+        FCMusicCharacterPrefs = { ".Octave", "SymbolTrill", "SymbolWiggle" },
+        ["FCFontInfo>Fonts"] = { "^SmartShape" },
+        ["FCSmartShapePrefs>SmartSlur"] = { "Slur." },
+        ["FCSmartShapePrefs>GuitarBend"] = { "GuitarBend[^D]" },
+        ["FCFontInfo>GuitarBend>Fonts"] = { "^Guitar" }
+    },
+    NamePositions = {
+        ["FCGroupNamePositionPrefs>GroupNames"] = { "." },
+        ["FCStaffNamePositionPrefs>StaffNames"] = { "." },
+    },
+    DefaultMusicFont = {
+        ["FCFontInfo/Music"] = { "." }
+    }
+}
+function is_pattern(s) return string.find(s, "[^%a%d]") end
+function matches_negatable_pattern(s, pattern)
+    local negate = pattern:sub(1, 1) == '!'
+    if negate then pattern = pattern:sub(2) end
+    local found = string.find(s, pattern)
+    return (found ~= nil) ~= negate
+end
+function transform_to_friendly(all_raw_prefs)
+    local function copy_items(source_table, dest_table, all_defs)
+        local target
+        local function copy_matching(pattern, category)
+            local source = source_table[category];
+            if string.find(category, "/") then
+                local main, sub = string.match(category, "([%a%d]+)/([%a%d]+)")
+                source = source_table[main][sub]
+            end
+            for k, v in pairs(source) do
+                if matches_negatable_pattern(k, pattern) then target[k] = v end
+            end
+        end
+        for category, locators in pairs(all_defs) do
+            if string.find(category, ">") then
+                target = dest_table
+                for dest_menu in string.gmatch(category, ">(%a+)") do
+                    if target[dest_menu] == nil then target[dest_menu] = {} end
+                    target = target[dest_menu]
+                end
+                category = string.match(category, "^%a+")
+            else
+                target = dest_table
+            end
+
+            for _, locator in pairs(locators) do
+                if is_pattern(locator) then
+                    copy_matching(locator, category)
+                else
+                    target[locator] = source_table[category][locator]
+                end
+            end
+        end
+    end
+    local result = {}
+    for transformed_category, all_defs in pairs(transform_definitions) do
+        result[transformed_category] = {}
+        copy_items(all_raw_prefs, result[transformed_category], all_defs)
+    end
+    return result
+end
+function transform_to_raw(prefs_to_import)
+    local function copy_matching(import_items, raw_items, pattern)
+        if not import_items then return end
+        for k, _ in pairs(raw_items) do
+            if matches_negatable_pattern(k, pattern) then
+                if type(raw_items[k]) == "table" then
+                    copy_matching(import_items[k], raw_items[k], ".")
+                elseif import_items[k] ~= nil then
+                    raw_items[k] = import_items[k]
+                end
+            end
+        end
+    end
+    local function copy_section(import_items, raw_items, locators)
+        if raw_items then
+            for _, locator in pairs(locators) do
+                if not is_pattern(locator) then
+                    locator = "^" .. locator .. "$"
+                end
+                copy_matching(import_items, raw_items, locator)
+            end
+        end
+    end
+    local raw_prefs = load_all_raw_prefs()
+    for import_cat, import_values in pairs(prefs_to_import) do
+        local transform_defs = transform_definitions[import_cat]
+        if transform_defs then
+            for raw_cat, locators in pairs(transform_defs) do
+                local source = import_values
+                local dest = raw_prefs[raw_cat]
+                if string.find(raw_cat, ">") then
+                    local first = true
+                    for segment in string.gmatch(raw_cat, "[%a%d]+") do
+                        if first then
+                            dest = raw_prefs[segment]
+                            first = false
+                        else
+                            source = source and source[segment]
+                        end
+                    end
+                elseif string.find(raw_cat, "/") then
+                    for segment in string.gmatch(raw_cat, "[%a%d]+") do
+                        dest = raw_prefs[segment] or dest[segment]
+                    end
+                end
+                copy_section(source, dest, locators)
+            end
+        end
+    end
+
+    local cat_defs_to_import = prefs_to_import["Categories"]
+    if cat_defs_to_import then
+        local raw_cat_defs = raw_prefs["FCCategoryDefs"]
+        for k, v in pairs(cat_defs_to_import) do
+            if not raw_cat_defs[k] then raw_cat_defs[k] = v end
+        end
+    end
+    return raw_prefs
+end
+local norm_func_selectors = {
+    FCDistancePrefs = {
+        BarlineDoubleSpace = "d64",
+        BarlineFinalSpace = "d64",
+        StemVerticalNoteheadOffset = "d64"
+    },
+    FCGridsGuidesPrefs = {
+        GravityZoneSize = "d64",
+        GridDistance = "d64"
+    },
+    FCLyricsPrefs = {
+        WordExtLineThickness = "d64"
+    },
+    FCMiscDocPrefs = {
+        FretboardsResizeFraction = "d10000"
+    },
+    FCMusicCharacterPrefs = {
+        DefaultStemLift = "d64",
+        ["[HV].+Flag[UD]"] = "d64",
+    },
+    FCPageFormatPrefs = {
+        SystemStaffHeight = "d16"
+    },
+    FCPianoBracePrefs = {
+        ["."] = "d10000"
+    },
+    FCRepeatPrefs = {
+        ["Thickness$"] = "d64",
+        SpaceBetweenLines = "d64",
+    },
+    FCSizePrefs = {
+        ["Thickness$"] = "d64",
+        ShapeSlurTipWidth = "d10000",
+    },
+    FCSmartShapePrefs = {
+        EngraverSlurMaxAngle = "d100",
+        EngraverSlurMaxLift = "d64",
+        EngraverSlurMaxStretchFixed = "d64",
+        EngraverSlurMaxStretchPercent = "d100",
+        EngraverSlurSymmetryPercent = "d100",
+        HairpinLineWidth = "d64",
+        ["^LineWidth$"] = "d64",
+        SlurTipWidth = "d10000",
+        Inset = "d20.48",
+    },
+    FCTiePrefs = {
+        TipWidth = "d10000",
+        ["tRelativeInset"] = "m100"
+    },
+    FCTupletPrefs = {
+        BracketThickness = "d64",
+        MaxSlope = "d10"
+    }
+}
+function modify_units_for_selected(t, pattern, op)
+    local operation, operand = string.match(op, "(.)(.+)")
+    for key, value in pairs(t) do
+        if type(value) == "table" then
+            modify_units_for_selected(value, pattern, op)
+        elseif string.find(key, pattern) then
+            local new_value = operation == "m" and (value * operand) or (value / operand)
+            t[key] = new_value
+        end
+    end
+end
+function modify_units_for_raw_section(section_table, tag, invert)
+    local selectors = norm_func_selectors[tag]
+    if selectors then
+        for pattern, op in pairs(selectors) do
+            if invert then
+                op = (op:sub(1, 1) == "m" and "d" or "m") .. op:sub(2)
+            end
+            modify_units_for_selected(section_table, pattern, op)
+        end
+    end
+end
+function normalize_units_for_raw_section(section_table, tag)
+    modify_units_for_raw_section(section_table, tag, false)
+end
+function denormalize_units_for_raw_section(section_table, tag)
+    modify_units_for_raw_section(section_table, tag, true)
+end
+function get_as_ordered_json(t, indent_level, in_array)
+    local function get_last_key(this_table)
+        local result
+        for k, _ in pairsbykeys(this_table) do result = k end
+        return result
+    end
+    local function quote_and_escape(s)
+        s = string.gsub(s, "\\", "\\\\")
+        s = string.gsub(s, '"', '\\"')
+        return string.format('"%s"', s)
+    end
+
+    indent_level = indent_level or 0
+    local result = {}
+    table.insert(result, (in_array and '[' or '{') .. '\n')
+    indent_level = indent_level + 1
+    local indent = string.rep(" ", indent_level * 2)
+    local last_key = get_last_key(t)
+    for key, val in pairsbykeys(t) do
+        local maybe_comma_plus_newline = key ~= last_key and ',\n' or '\n'
+        local maybe_element_name = in_array and '' or quote_and_escape(key) .. ': '
+        if type(val) == "table" then
+            local val_is_array = val[1] ~= nil
+            local new_line = table.concat({
+                indent,
+                maybe_element_name,
+                get_as_ordered_json(val, indent_level, val_is_array),
+                indent,
+                val_is_array and ']' or '}',
+                maybe_comma_plus_newline
+            })
+            table.insert(result, new_line)
+        elseif type(val) == "string" or type(val) == "number" or type(val) == "boolean" then
+            local new_line = table.concat({
+                indent,
+                maybe_element_name,
+                type(val) == "string" and quote_and_escape(val) or tostring(val),
+                maybe_comma_plus_newline
+            })
+            table.insert(result, new_line)
+        end
+    end
+    if indent_level == 1 then
+        table.insert(result, "}")
+    end
+    return table.concat(result)
+end
+function insert_header(prefs_table, document, description)
+    local file_path = finale.FCString()
+    document:GetPath(file_path)
+    local key = "@Meta"
+    prefs_table[key] = {
+        MusicFile = file_path.LuaString,
+        Date =  os.date(),
+        FinaleVersion = simplify_finale_version(finenv.FinaleVersion),
+        PluginVersion = finaleplugin.Version,
+        Description = description
+    }
+    if debug.raw_categories then
+        prefs_table[key].Transformed = false
+    end
+    if not debug.raw_units then
+        prefs_table[key].DefaultUnit = "ev"
+    end
+end
+function get_current_document()
+    local documents = finale.FCDocuments()
+    documents:LoadAll()
+    return documents:FindCurrent()
+end
+function open_file(file_path, mode)
+    local file = io.open(file_path, mode)
+    if not file then
+        finenv.UI():AlertError("Unable to open " .. file_path .. ". Please check folder permissions.", "")
+    else
+        return file
+    end
+end
+function options_import_from_json()
+    local file_to_open = do_file_open_dialog(get_current_document())
+    if file_to_open then
+        local file = open_file(file_to_open, "r")
+        if file then
+            local prefs_json = file:read("*a")
+            file:close()
+            local prefs_to_import = json.decode(prefs_json)
+
+            if confirm_file_import(prefs_to_import["@Meta"]) then
+                local raw_prefs = transform_to_raw(prefs_to_import)
+                save_all_raw_prefs(raw_prefs)
+                finenv.UI():AlertInfo("Done.", "Import Settings")
+            end
+        end
+    end
+end
+function options_save_as_json()
+    local document = get_current_document()
+    local file_to_write = do_save_as_dialog(document)
+    if file_to_write then
+        local file = open_file(file_to_write, "w")
+        if file then
+            local raw_prefs = load_all_raw_prefs()
+            local prefs_to_save = debug.raw_categories and raw_prefs or transform_to_friendly(raw_prefs)
+            insert_header(prefs_to_save, document, get_description())
+            file:write(get_as_ordered_json(prefs_to_save))
+            file:close()
+        end
+    end
+end
+if action == "export" then
+    options_save_as_json()
+elseif action == "import" then
+    options_import_from_json()
+end

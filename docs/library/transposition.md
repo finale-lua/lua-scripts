@@ -14,6 +14,7 @@ is ignored.
 - [diatonic_transpose(note, interval)](#diatonic_transpose)
 - [change_octave(note, number_of_octaves)](#change_octave)
 - [enharmonic_transpose(note, direction, ignore_error)](#enharmonic_transpose)
+- [enharmonic_transpose_default(note, direction, ignore_error)](#enharmonic_transpose_default)
 - [chromatic_transpose(note, interval, alteration, simplify)](#chromatic_transpose)
 - [stepwise_transpose(note, number_of_steps)](#stepwise_transpose)
 - [chromatic_major_third_down(note)](#chromatic_major_third_down)
@@ -71,13 +72,35 @@ Failure occurs if the note's `RaiseLower` value exceeds an absolute value of 7. 
 | ----------- | ----------- |
 | `boolean` | success or failure |
 
+### enharmonic_transpose_default
+
+```lua
+transposition.enharmonic_transpose_default(note, direction, ignore_error)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua#L214)
+
+Transpose the note enharmonically in Finale's default direction. This function should be used when performing an
+unlinked enharmonic flip in a part. Only a default enharmonic flip unlinks. Any other enharmonic flip appears in the
+score as well. This code is based on observed Finale behavior in Finale 27.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `note` | `FCNote` | input and modified output |
+| `direction` | `number` | positive = up, negative = down (normally 1 or -1, but any positive or negative numbers work) |
+| `ignore_error` (optional) | `boolean` | default false. If true, always return success. External callers should omit this parameter. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` | success or failure |
+
 ### chromatic_transpose
 
 ```lua
 transposition.chromatic_transpose(note, interval, alteration, simplify)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua#L221)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua#L264)
 
 Transposes a note chromatically by the input chromatic interval. Supports custom key signatures
 and microtone systems by means of a `custom_key_sig.config.txt` file. In Finale, chromatic intervals
@@ -103,7 +126,7 @@ allows for downwards transposition.
 transposition.stepwise_transpose(note, number_of_steps)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua#L260)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua#L303)
 
 Transposes the note by the input number of steps and simplifies the spelling.
 For predefined key signatures, each step is a half-step.
@@ -125,7 +148,7 @@ each step is the smallest division of the octave defined by the custom key signa
 transposition.chromatic_major_third_down(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua#L279)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua#L322)
 
 Transpose the note down by a major third.
 
@@ -139,7 +162,7 @@ Transpose the note down by a major third.
 transposition.chromatic_perfect_fourth_up(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua#L290)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua#L333)
 
 Transpose the note up by a perfect fourth.
 
@@ -153,7 +176,7 @@ Transpose the note up by a perfect fourth.
 transposition.chromatic_perfect_fifth_down(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua#L301)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/transposition.lua#L344)
 
 Transpose the note down by a perfect fifth.
 

@@ -3990,6 +3990,14 @@ __imports["library.utils"] = __imports["library.utils"] or function()
     function utils.ltrim(str)
         return string.match(str, "^%s*(.*)")
     end
+
+    function utils.rtrim(str)
+        return string.match(str, "(.-)%s*$")
+    end
+
+    function utils.lrtrim(str)
+        return utils.ltrim(utils.rtrim(str))
+    end
     return utils
 end
 __imports["library.mixin_helper"] = __imports["library.mixin_helper"] or function()

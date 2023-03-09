@@ -17,6 +17,7 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
 
 
     local configuration = {}
+    local utils = require("library.utils")
     local script_settings_dir = "script_settings"
     local comment_marker = "--"
     local parameter_delimiter = "="
@@ -28,9 +29,6 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
             return true
         end
         return false
-    end
-    local strip_leading_trailing_whitespace = function(str)
-        return str:match("^%s*(.-)%s*$")
     end
     parse_parameter = function(val_string)
         if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
@@ -58,8 +56,8 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
             end
             local delimiter_at = string.find(line, parameter_delimiter, 1, true)
             if nil ~= delimiter_at then
-                local name = strip_leading_trailing_whitespace(string.sub(line, 1, delimiter_at - 1))
-                local val_string = strip_leading_trailing_whitespace(string.sub(line, delimiter_at + 1))
+                local name = utils.lrtrim(string.sub(line, 1, delimiter_at - 1))
+                local val_string = utils.lrtrim(string.sub(line, delimiter_at + 1))
                 file_parameters[name] = parse_parameter(val_string)
             end
         end
@@ -286,6 +284,36 @@ __imports["library.transposition"] = __imports["library.transposition"] or funct
             note.RaiseLower = curr_alt
             return false
         end
+        return true
+    end
+
+    function transposition.enharmonic_transpose_default(note, ignore_error)
+        if note.RaiseLower ~= 0 then
+            return transposition.enharmonic_transpose(note, sign(note.RaiseLower), ignore_error)
+        end
+        local original_displacement = note.Displacement
+        local original_raiselower = note.RaiseLower
+        if not transposition.enharmonic_transpose(note, 1, ignore_error) then
+            return false
+        end
+
+
+
+        if math.abs(note.RaiseLower) ~= 2 then
+            return true
+        end
+        local up_displacement = note.Displacement
+        local up_raiselower = note.RaiseLower
+        note.Displacement = original_displacement
+        note.RaiseLower = original_raiselower
+        if not transposition.enharmonic_transpose(note, -1, ignore_error) then
+            return false
+        end
+        if math.abs(note.RaiseLower) < math.abs(up_raiselower) then
+            return true
+        end
+        note.Displacement = up_displacement
+        note.RaiseLower = up_raiselower
         return true
     end
 
@@ -3796,6 +3824,14 @@ __imports["library.utils"] = __imports["library.utils"] or function()
 
     function utils.ltrim(str)
         return string.match(str, "^%s*(.*)")
+    end
+
+    function utils.rtrim(str)
+        return string.match(str, "(.-)%s*$")
+    end
+
+    function utils.lrtrim(str)
+        return utils.ltrim(utils.rtrim(str))
     end
     return utils
 end
