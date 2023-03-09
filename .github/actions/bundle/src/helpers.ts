@@ -4,7 +4,7 @@ export const requireRegex = new RegExp([
     /[\s]*/, // Any number of whitespace characters are allowed between a function name and its arguments
     // Module. Match one single- or double-quoted string, optionally enclosed in parentheses, capturing only its contents
     /(?:"([\w.]+?)"|'([\w.]+?)'|\("([\w.]+?)"\)|\('([\w.]+?)'\))/,
-    ].map(r => r.source).join(''),
+].map(r => r.source).join(''),
     'iu'); // Flags
 
 export const getImport = (line: string): { importedFile: string; isImport: boolean } => {
@@ -15,12 +15,15 @@ export const getImport = (line: string): { importedFile: string; isImport: boole
     };
 }
 
+const ignoreValues: string[] = ["luaosutils", "mime.core"]
+
 export const getAllImports = (file: string): string[] => {
     const imports: Set<string> = new Set()
     const lines = file.split('\n')
     for (const line of lines) {
         const { isImport, importedFile } = getImport(line)
-        if (isImport) imports.add(importedFile)
+        if (isImport && !ignoreValues.includes(importedFile))
+            imports.add(importedFile)
     }
     return [...imports]
 }
