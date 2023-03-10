@@ -15,7 +15,7 @@ Summary of modifications:
 fcmnoteentry.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L21)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L22)
 
 **[Internal]**
 
@@ -29,7 +29,7 @@ fcmnoteentry.Init(self)
 fcmnoteentry.RegisterParent(self, parent)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L34)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L35)
 
 **[Fluid]**
 Registers the collection to which this object belongs.
@@ -45,7 +45,7 @@ Registers the collection to which this object belongs.
 fcmnoteentry.GetParent(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L50)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L51)
 
 Returns the collection to which this object belongs.
 

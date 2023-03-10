@@ -424,6 +424,51 @@ __imports["library.general_library"] = __imports["library.general_library"] or f
         return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
     end
 
+    function library.get_parent_class(classname)
+        local class = finale[classname]
+        if type(class) ~= "table" then return nil end
+        if not finenv.IsRGPLua then
+            local classt = class.__class
+            if classt and classname ~= "__FCBase" then
+                local classtp = classt.__parent
+                if classtp and type(classtp) == "table" then
+                    for k, v in pairs(finale) do
+                        if type(v) == "table" then
+                            if v.__class and v.__class == classtp then
+                                return tostring(k)
+                            end
+                        end
+                    end
+                end
+            end
+        else
+            for k, _ in pairs(class.__parent) do
+                return tostring(k)
+            end
+        end
+        return nil
+    end
+
+    function library.get_class_name(object)
+        local class_name = object:ClassName(object)
+        if class_name == "__FCCollection" and object.ExecuteModal then
+            return object.RegisterHandleCommand and "FCCustomLuaWindow" or "FCCustomWindow"
+        elseif class_name == "FCControl" then
+            if object.GetCheck then
+                return "FCCtrlCheckbox"
+            elseif object.GetThumbPosition then
+                return "FCCtrlSlider"
+            elseif object.AddPage then
+                return "FCCtrlSwitcher"
+            else
+                return "FCCtrlButton"
+            end
+        elseif class_name == "FCCtrlButton" and object.GetThumbPosition then
+            return "FCCtrlSlider"
+        end
+        return class_name
+    end
+
     function library.system_indent_set_to_prefs(system, page_format_prefs)
         page_format_prefs = page_format_prefs or library.get_page_format_prefs()
         local first_meas = finale.FCMeasure()

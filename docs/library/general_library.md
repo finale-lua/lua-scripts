@@ -21,6 +21,8 @@
 - [is_font_smufl_font(font_info)](#is_font_smufl_font)
 - [simple_input(title, text)](#simple_input)
 - [is_finale_object(object)](#is_finale_object)
+- [get_parent_class(classname)](#get_parent_class)
+- [get_class_name(object)](#get_class_name)
 - [system_indent_set_to_prefs(system, page_format_prefs)](#system_indent_set_to_prefs)
 - [calc_script_name(include_extension)](#calc_script_name)
 - [get_default_music_font_name()](#get_default_music_font_name)
@@ -349,13 +351,49 @@ Attempts to determine if an object is a Finale object through ducktyping
 | ----------- | ----------- |
 | `bool` |  |
 
+### get_parent_class
+
+```lua
+library.get_parent_class(classname)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L491)
+
+Returns the name of the parent of a class.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `classname` | `string` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string \\| nil` | The parent classname or `nil` if the class has no parent (ie `__FCBase`). |
+
+### get_class_name
+
+```lua
+library.get_class_name(object)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L524)
+
+Returns the real class name of a Finale object. Some classes in older JW/RGPLua versions have incorrect class names, so this function attempts to resolve them with ducktyping
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `object` | `__FCBase` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` |  |
+
 ### system_indent_set_to_prefs
 
 ```lua
 library.system_indent_set_to_prefs(system, page_format_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L493)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L556)
 
 Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
 The page preferences may be provided optionally to avoid loading them for each call.
@@ -375,7 +413,7 @@ The page preferences may be provided optionally to avoid loading them for each c
 library.calc_script_name(include_extension)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L518)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L581)
 
 Returns the running script name, with or without extension.
 
@@ -393,7 +431,7 @@ Returns the running script name, with or without extension.
 library.get_default_music_font_name()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L547)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/general_library.lua#L610)
 
 Fetches the default music font from document options and processes the name into a usable format.
 

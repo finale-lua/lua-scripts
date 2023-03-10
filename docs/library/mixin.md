@@ -181,6 +181,7 @@ Below is a basic template for creating an `FCM` mixin. Replace the example metho
 ```lua
 -- Include the mixin namespace and helper methods (include any additional libraries below)
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 
 -- Table for storing private data for this mixin
 local private = setmetatable({}, {__mode = "k"})
@@ -203,7 +204,7 @@ end
 function public:SetExample(value)
     -- Ensure argument is the correct type for testing
     -- The argument number is 2 because when using a colon in the method signature, it will automatically be passed `self` as the first argument.
-    mixin.assert_argument(value, "string", 2)
+    mixin_helper.assert_argument_type(2, value, "string")
 
     private[self].ExamplePrivateProperty = value
 end
@@ -227,6 +228,7 @@ Below is a template for creating an `FCX` mixin. It is almost identical to defin
 ```lua
 -- Include the mixin namespace and helper methods (include any additional libraries below)
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 
 -- Table for storing private data for this mixin
 local private = setmetatable({}, {__mode = "k"})
@@ -280,14 +282,114 @@ Personal mixins take precedence over public mixins, so if a mixin with the same 
 
 ## Functions
 
+- [is_fc_class_name(class_name)](#is_fc_class_name)
+- [is_fcm_class_name(class_name)](#is_fcm_class_name)
+- [is_fcx_class_name(class_name)](#is_fcx_class_name)
+- [fc_to_fcm_class_name(class_name)](#fc_to_fcm_class_name)
+- [fcm_to_fc_class_name(class_name)](#fcm_to_fc_class_name)
 - [subclass(object, class_name)](#subclass)
-- [is_instance_of(object, class_name)](#is_instance_of)
-- [assert_argument(value, expected_type, argument_number)](#assert_argument)
-- [force_assert_argument(value, expected_type, argument_number)](#force_assert_argument)
-- [assert(condition, message, no_level)](#assert)
-- [force_assert(condition, message, no_level)](#force_assert)
 - [UI()](#ui)
 - [eachentry(region, layer)](#eachentry)
+
+### is_fc_class_name
+
+```lua
+mixin.is_fc_class_name(class_name)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L740)
+
+
+Checks if a class name is an `FC` class name.
+
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `class_name` | `string` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` |  |
+
+### is_fcm_class_name
+
+```lua
+mixin.is_fcm_class_name(class_name)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L750)
+
+
+Checks if a class name is an `FCM` class name.
+
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `class_name` | `string` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` |  |
+
+### is_fcx_class_name
+
+```lua
+mixin.is_fcx_class_name(class_name)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L760)
+
+
+Checks if a class name is an `FCX` class name.
+
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `class_name` | `string` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` |  |
+
+### fc_to_fcm_class_name
+
+```lua
+mixin.fc_to_fcm_class_name(class_name)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L770)
+
+
+Converts an `FC` class name to an `FCM` class name.
+
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `class_name` | `string` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` |  |
+
+### fcm_to_fc_class_name
+
+```lua
+mixin.fcm_to_fc_class_name(class_name)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L780)
+
+
+Converts an `FCM` class name to an `FC` class name.
+
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `class_name` | `string` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` |  |
 
 ### subclass
 
@@ -295,7 +397,7 @@ Personal mixins take precedence over public mixins, so if a mixin with the same 
 mixin.subclass(object, class_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L850)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L794)
 
 
 Takes a mixin-enabled finale object and migrates it to an `FCX` subclass. Any conflicting property or method names will be overwritten.
@@ -313,122 +415,13 @@ If the current `MixinClass` is the same as `class_name`, this function will do n
 | ----------- | ----------- |
 | `__FCMBase\\|nil` | The object that was passed with mixin applied. |
 
-### is_instance_of
-
-```lua
-mixin.is_instance_of(object, class_name)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L866)
-
-
-Checks if an object is an instance of a class.
-Conditions:
-- Parent cannot be instance of child.
-- `FC` object cannot be an instance of an `FCM` or `FCX` class
-- `FCM` object cannot be an instance of an `FCX` class
-- `FCX` object cannot be an instance of an `FC` class
-
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `object` | `__FCBase` | Any finale object, including mixin enabled objects. |
-| `class_name` | `string` | An `FC`, `FCM`, or `FCX` class name. Can be the name of a parent class. |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `boolean` |  |
-
-### assert_argument
-
-```lua
-mixin.assert_argument(value, expected_type, argument_number)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L937)
-
-
-Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
-
-NOTE: For performance reasons, this function will only assert if in debug mode (ie `finenv.DebugEnabled == true`). If assertions are always required, use `force_assert_argument` instead.
-
-If not a valid type, will throw a bad argument error at the level above where this function is called.
-Types can be Lua types (eg `string`, `number`, `bool`, etc), finale class (eg `FCString`, `FCMeasure`, etc), or mixin class (eg `FCMString`, `FCMMeasure`, etc)
-Parent classes cannot be specified as this function does not examine the class hierarchy.
-
-Note that mixin classes may satisfy the condition for the underlying `FC` class.
-For example, if the expected type is `FCString`, an `FCMString` object will pass the test, but an `FCXString` object will not.
-If the expected type is `FCMString`, an `FCXString` object will pass the test but an `FCString` object will not.
-
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `value` | `mixed` | The value to test. |
-| `expected_type` | `string\|table` | If there are multiple valid types, pass a table of strings. |
-| `argument_number` | `number` | The REAL argument number for the error message (self counts as #1). |
-
-### force_assert_argument
-
-```lua
-mixin.force_assert_argument(value, expected_type, argument_number)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L973)
-
-
-The same as `assert_argument` except this function always asserts, regardless of whether debug mode is enabled.
-
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `value` | `mixed` | The value to test. |
-| `expected_type` | `string\|table` | If there are multiple valid types, pass a table of strings. |
-| `argument_number` | `number` | The REAL argument number for the error message (self counts as #1). |
-
-### assert
-
-```lua
-mixin.assert(condition, message, no_level)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L985)
-
-
-Asserts a condition in a mixin method. If the condition is false, an error is thrown one level above where this function is called.
-Only asserts when in debug mode. If assertion is required on all executions, use `force_assert` instead
-
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `condition` | `any` | Can be any value or expression. If a function, it will be called (with zero arguments) and the result will be tested. |
-| `message` | `string` | The error message. |
-| `no_level` (optional) | `boolean` | If true, error will be thrown with no level (ie level 0) |
-
-### force_assert
-
-```lua
-mixin.force_assert(condition, message, no_level)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L1004)
-
-
-The same as `assert` except this function always asserts, regardless of whether debug mode is enabled.
-
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `condition` | `any` | Can be any value or expression. |
-| `message` | `string` | The error message. |
-| `no_level` (optional) | `boolean` | If true, error will be thrown with no level (ie level 0) |
-
 ### UI
 
 ```lua
 mixin.UI()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L1019)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L803)
 
 
 Returns a mixin enabled UI object from `finenv.UI`
@@ -444,7 +437,7 @@ Returns a mixin enabled UI object from `finenv.UI`
 mixin.eachentry(region, layer)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L1032)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin.lua#L816)
 
 
 A modified version of the JW/RGPLua `eachentry` function that allows items to be stored and used outside of a loop.

@@ -28,7 +28,7 @@ Summary of modifications:
 fcmstring.GetMeasurement(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L55)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L56)
 
 **[Override]**
 Fixes issue with incorrect rounding of returned value.
@@ -49,7 +49,7 @@ Also changes handling of overrides to match the behaviour of `FCCtrlEdit` on Win
 fcmstring.GetRangeMeasurement(self, measurementunit, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L128)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L129)
 
 **[Override]**
 See `FCMString.GetMeasurement`.
@@ -71,7 +71,7 @@ See `FCMString.GetMeasurement`.
 fcmstring.SetMeasurement(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L147)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L148)
 
 **[Override] [Fluid]**
 Fixes issue with displayed numbers being truncated at 2 decimal places.
@@ -89,7 +89,7 @@ Emulates the behaviour of `FCCtrlEdit.SetMeasurement` on Windows while the windo
 fcmstring.GetMeasurementInteger(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L184)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L185)
 
 Returns the measurement in whole EVPUs.
 
@@ -108,7 +108,7 @@ Returns the measurement in whole EVPUs.
 fcmstring.GetRangeMeasurementInteger(self, measurementunit, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L202)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L203)
 
 Returns the measurement in whole EVPUs, clamped between two values.
 Also ensures that any decimal places in `minimum` are correctly taken into account instead of being discarded.
@@ -130,7 +130,7 @@ Also ensures that any decimal places in `minimum` are correctly taken into accou
 fcmstring.SetMeasurementInteger(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L220)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L221)
 
 **[Fluid]**
 Sets a measurement in whole EVPUs.
@@ -147,7 +147,7 @@ Sets a measurement in whole EVPUs.
 fcmstring.GetMeasurementEfix(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L236)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L237)
 
 Returns the measurement in whole EFIXes (1/64th of an EVPU)
 
@@ -166,7 +166,7 @@ Returns the measurement in whole EFIXes (1/64th of an EVPU)
 fcmstring.GetRangeMeasurementEfix(self, measurementunit, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L253)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L254)
 
 Returns the measurement in whole EFIXes (1/64th of an EVPU), clamped between two values.
 
@@ -187,7 +187,7 @@ Returns the measurement in whole EFIXes (1/64th of an EVPU), clamped between two
 fcmstring.SetMeasurementEfix(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L271)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L272)
 
 **[Fluid]**
 Sets a measurement in whole EFIXes.
@@ -204,7 +204,7 @@ Sets a measurement in whole EFIXes.
 fcmstring.GetMeasurement10000th(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L287)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L288)
 
 Returns the measurement in 10,000ths of an EVPU.
 
@@ -223,7 +223,7 @@ Returns the measurement in 10,000ths of an EVPU.
 fcmstring.GetRangeMeasurement10000th(self, measurementunit, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L305)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L306)
 
 Returns the measurement in 10,000ths of an EVPU, clamped between two values.
 Also ensures that any decimal places in `minimum` are handled correctly instead of being discarded.
@@ -245,7 +245,7 @@ Also ensures that any decimal places in `minimum` are handled correctly instead 
 fcmstring.SetMeasurement10000th(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L323)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMString.lua#L324)
 
 **[Fluid]**
 Sets a measurement in 10,000ths of an EVPU.

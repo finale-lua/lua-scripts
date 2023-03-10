@@ -402,7 +402,7 @@ Override Changes:
 fcmcustomluawindow.RegisterHandleOkButtonPressed(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L941)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L942)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -636,7 +636,7 @@ Override Changes:
 fcmcustomluawindow.HandleTimer(self, timerid)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L616)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L617)
 
 **[Breaking Change] [Callback Template] [Override]**
 
@@ -654,7 +654,7 @@ Override Changes:
 fcmcustomluawindow.RegisterHandleTimer(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L627)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L628)
 
 **[>= v0.56] [Breaking Change] [Fluid] [Override]**
 
@@ -673,7 +673,7 @@ Override Changes:
 fcmcustomluawindow.AddHandleTimer(self, timerid, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L645)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L646)
 
 **[>= v0.56] [Fluid]**
 
@@ -692,7 +692,7 @@ If a handler is added for a timer that hasn't been set, the timer ID will no lon
 fcmcustomluawindow.RemoveHandleTimer(self, timerid, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L665)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L666)
 
 **[>= v0.56] [Fluid]**
 
@@ -710,7 +710,7 @@ Removes a handler added with `AddHandleTimer`.
 fcmcustomluawindow.SetTimer(self, timerid, msinterval)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L688)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L689)
 
 **[>= v0.56] [Fluid] [Override]**
 
@@ -729,7 +729,7 @@ Override Changes:
 fcmcustomluawindow.GetNextTimerID(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L707)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L708)
 
 **[>= v0.56]**
 
@@ -749,7 +749,7 @@ Returns the next available timer ID.
 fcmcustomluawindow.SetNextTimer(self, msinterval)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L726)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L727)
 
 **[>= v0.56]**
 
@@ -770,7 +770,7 @@ Sets a timer using the next available ID (according to `GetNextTimerID`) and ret
 fcmcustomluawindow.SetEnableAutoRestorePosition(self, enabled)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L749)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L750)
 
 **[>= v0.60] [Fluid]**
 
@@ -788,7 +788,7 @@ This is disabled by default.
 fcmcustomluawindow.GetEnableAutoRestorePosition(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L765)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L766)
 
 **[>= v0.60]**
 
@@ -808,7 +808,7 @@ Returns whether automatic restoration of window position is enabled.
 fcmcustomluawindow.SetRestorePositionData(self, x, y, width, height)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L783)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L784)
 
 **[>= v0.60] [Fluid] [Override]**
 
@@ -829,7 +829,7 @@ Override Changes:
 fcmcustomluawindow.SetRestorePositionOnlyData(self, x, y)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L809)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L810)
 
 **[>= v0.60] [Fluid] [Override]**
 
@@ -848,7 +848,7 @@ Override Changes:
 fcmcustomluawindow.SetEnableDebugClose(self, enabled)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L834)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L835)
 
 **[Fluid]**
 
@@ -867,7 +867,7 @@ This is disabled by default.
 fcmcustomluawindow.GetEnableDebugClose(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L848)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L849)
 
 Returns the enabled state of the `DebugClose` option.
 
@@ -885,7 +885,7 @@ Returns the enabled state of the `DebugClose` option.
 fcmcustomluawindow.SetRestoreControlState(self, enabled)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L863)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L864)
 
 **[Fluid]**
 
@@ -903,7 +903,7 @@ This is disabled by default.
 fcmcustomluawindow.GetRestoreControlState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L877)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L878)
 
 Checks if control state restoration is enabled.
 
@@ -921,7 +921,7 @@ Checks if control state restoration is enabled.
 fcmcustomluawindow.HasBeenShown(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L889)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L890)
 
 Checks if the window has been shown at least once prior, either as a modal or modeless.
 
@@ -939,7 +939,7 @@ Checks if the window has been shown at least once prior, either as a modal or mo
 fcmcustomluawindow.ExecuteModal(self, parent)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L906)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L907)
 
 **[Override]**
 
@@ -962,7 +962,7 @@ Override Changes:
 fcmcustomluawindow.ShowModeless(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L927)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L928)
 
 **[Override]**
 
@@ -984,7 +984,7 @@ Override Changes:
 fcmcustomluawindow.RunModeless(self, selection_not_required, default_action_override)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L948)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L949)
 
 **[Fluid]**
 
@@ -1006,7 +1006,7 @@ Runs the window as a self-contained modeless plugin, performing the following st
 fcmcustomluawindow.GetMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L984)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L985)
 
 Returns the window's current measurement unit.
 
@@ -1024,7 +1024,7 @@ Returns the window's current measurement unit.
 fcmcustomluawindow.SetMeasurementUnit(self, unit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1000)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1001)
 
 **[Fluid]**
 
@@ -1043,7 +1043,7 @@ All controls that have an `UpdateMeasurementUnit` method will have that method c
 fcmcustomluawindow.GetMeasurementUnitName(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1034)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1035)
 
 Returns the name of the window's current measurement unit.
 
@@ -1061,7 +1061,7 @@ Returns the name of the window's current measurement unit.
 fcmcustomluawindow.GetUseParentMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1046)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1047)
 
 Returns a boolean indicating whether this window will use the measurement unit of its parent window when opened.
 
@@ -1079,7 +1079,7 @@ Returns a boolean indicating whether this window will use the measurement unit o
 fcmcustomluawindow.SetUseParentMeasurementUnit(self, enabled)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1060)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1061)
 
 **[Fluid]**
 
@@ -1096,7 +1096,7 @@ Sets whether to use the parent window's measurement unit when opening this windo
 fcmcustomluawindow.HandleMeasurementUnitChange(self, last_unit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1078)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1079)
 
 **[Callback Template]**
 
@@ -1113,7 +1113,7 @@ Template for MeasurementUnitChange handlers.
 fcmcustomluawindow.AddHandleMeasurementUnitChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1097)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1098)
 
 **[Fluid]**
 
@@ -1134,7 +1134,7 @@ The even will fire when:
 fcmcustomluawindow.RemoveHandleMeasurementUnitChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1102)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1103)
 
 **[Fluid]**
 
@@ -1151,7 +1151,7 @@ Removes a handler added with `AddHandleMeasurementUnitChange`.
 fcmcustomluawindow.CreateMeasurementEdit(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1123)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1124)
 
 Creates an `FCXCtrlMeasurementEdit` control.
 
@@ -1172,7 +1172,7 @@ Creates an `FCXCtrlMeasurementEdit` control.
 fcmcustomluawindow.CreateMeasurementUnitPopup(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1143)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1144)
 
 Creates a popup which allows the user to change the window's measurement unit.
 
@@ -1193,7 +1193,7 @@ Creates a popup which allows the user to change the window's measurement unit.
 fcmcustomluawindow.CreatePageSizePopup(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1163)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1164)
 
 Creates a popup which allows the user to select a page size.
 

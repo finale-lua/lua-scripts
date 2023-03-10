@@ -16,7 +16,7 @@ Summary of modifications:
 fcmctrlstatic.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L24)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L25)
 
 **[Internal]**
 
@@ -30,7 +30,7 @@ fcmctrlstatic.Init(self)
 fcmctrlstatic.SetTextColor(self, red, green, blue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L40)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L41)
 
 **[Fluid] [Override]**
 Displays the new text color immediately.
@@ -49,7 +49,7 @@ Also hooks into control state restoration.
 fcmctrlstatic.RestoreState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L65)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L66)
 
 **[Fluid] [Internal]**
 Restores the control's stored state.

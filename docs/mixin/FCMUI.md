@@ -13,7 +13,7 @@ Summary of modifications:
 fcmui.GetDecimalSeparator(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMUI.lua#L25)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMUI.lua#L26)
 
 **[Override]**
 Returns a Lua `string` and makes passing an `FCString` optional.

@@ -15,6 +15,8 @@ A library of general Lua utility functions.
 - [ltrim(str)](#ltrim)
 - [ltrim(str)](#ltrim)
 - [ltrim(str)](#ltrim)
+- [call_and_rethrow(levels, tryfunczzz)](#call_and_rethrow)
+- [rethrow_placeholder()](#rethrow_placeholder)
 
 ### copy_table
 
@@ -22,7 +24,7 @@ A library of general Lua utility functions.
 utility_functions.copy_table(t)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L16)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L19)
 
 If a table is passed, returns a copy, otherwise returns the passed value.
 
@@ -40,7 +42,7 @@ If a table is passed, returns a copy, otherwise returns the passed value.
 utility_functions.table_remove_first(t, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L37)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L40)
 
 Removes the first occurrence of a value from an array table.
 
@@ -55,7 +57,7 @@ Removes the first occurrence of a value from an array table.
 utility_functions.iterate_keys(t)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L54)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L57)
 
 Returns an unordered iterator for the keys in a table.
 
@@ -73,7 +75,7 @@ Returns an unordered iterator for the keys in a table.
 utility_functions.round(num, places)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L72)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L75)
 
 Rounds a number to the nearest integer or the specified number of decimal places.
 
@@ -92,7 +94,7 @@ Rounds a number to the nearest integer or the specified number of decimal places
 utility_functions.calc_roman_numeral(num)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L86)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L89)
 
 Calculates the roman numeral for the input number. Adapted from https://exercism.org/tracks/lua/exercises/roman-numerals/solutions/Nia11 on 2022-08-13
 
@@ -110,7 +112,7 @@ Calculates the roman numeral for the input number. Adapted from https://exercism
 utility_functions.calc_ordinal(num)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L107)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L110)
 
 Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
 
@@ -128,7 +130,7 @@ Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
 utility_functions.calc_alphabet(num)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L131)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L134)
 
 This returns one of the ways that Finale handles numbering things alphabetically, such as rehearsal marks or measure numbers.
 
@@ -148,7 +150,7 @@ This function was written to emulate the way Finale numbers saves when Autonumbe
 utility_functions.clamp(num, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L148)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L151)
 
 Clamps a number between two values.
 
@@ -168,7 +170,7 @@ Clamps a number between two values.
 utility_functions.ltrim(str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L160)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L163)
 
 Removes whitespace from the start of a string.
 
@@ -186,7 +188,7 @@ Removes whitespace from the start of a string.
 utility_functions.ltrim(str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L177)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L180)
 
 Removes whitespace from the end of a string.
 
@@ -204,13 +206,53 @@ Removes whitespace from the end of a string.
 utility_functions.ltrim(str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L185)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L188)
 
 Removes whitespace from the start and end of a string.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `str` | `string` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` |  |
+
+### call_and_rethrow
+
+```lua
+utility_functions.call_and_rethrow(levels, tryfunczzz)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L207)
+
+Calls a function and returns any returned values. If any errors are thrown at the level this function is called, they will be rethrown at the specified level with new level information.
+If the error message contains the rethrow placeholder enclosed in single quotes (see `utils.rethrow_placeholder`), it will be replaced with the correct function name for the new level.
+
+*The first argument must have the same name as the `rethrow_placeholder`, chosen for uniqueness.*
+
+@ ... (any) Any arguments to be passed to the function.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `levels` | `number` | Number of levels to rethrow. |
+| `tryfunczzz` | `function` | The function to call. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `any` | If no error is caught, returns the returned values from `tryfunczzz` |
+
+### rethrow_placeholder
+
+```lua
+utility_functions.rethrow_placeholder()
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L275)
+
+Returns the function name placeholder (enclosed in single quotes, the same as in Lua's internal errors) used in `call_and_rethrow`.
+
+Use this in error messages where the function name is variable or unknown (eg because the error is thrown up multiple levels) and needs to be replaced with the correct one at runtime by `call_and_rethrow`.
 
 | Return type | Description |
 | ----------- | ----------- |

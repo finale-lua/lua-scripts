@@ -13,7 +13,7 @@ Summary of modifications:
 fcmnoteentrycell.GetItemAt(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntryCell.lua#L25)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntryCell.lua#L26)
 
 **[Override]**
 Registers this collection as the parent of the item before returning it.
