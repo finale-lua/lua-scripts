@@ -28,7 +28,7 @@ Ensures that `Change` event is triggered.
 @ str (FCString|string|number)
 ]]
 function props:SetText(str)
-    mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     mixin.FCMControl.SetText(self, str)
     trigger_change(self)
@@ -76,8 +76,8 @@ Also hooks into control state restoration.
 @ value (number)
 ]]
 for method, valid_types in pairs({
-    Integer = "number",
-    Float = "number",
+    Integer = {"number"},
+    Float = {"number"},
 }) do
     props["Get" .. method] = function(self)
         -- This is the long way around, but it ensures that the correct control value is used
@@ -86,7 +86,7 @@ for method, valid_types in pairs({
     end
 
     props["Set" .. method] = function(self, value)
-        mixin.assert_argument(value, valid_types, 2)
+        mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
 
         temp_str["Set" .. method](temp_str, value)
         mixin.FCMControl.SetText(self, temp_str)
@@ -236,30 +236,30 @@ Sets a measurement in 10000ths of an EVPU.
 @ measurementunit (number)
 ]]
 for method, valid_types in pairs({
-    Measurement = "number",
-    MeasurementEfix = "number",
-    MeasurementInteger = "number",
-    Measurement10000th = "number",
+    Measurement = {"number"},
+    MeasurementEfix = {"number"},
+    MeasurementInteger = {"number"},
+    Measurement10000th = {"number"},
 }) do
     props["Get" .. method] = function(self, measurementunit)
-        mixin.assert_argument(measurementunit, "number", 2)
+        mixin_helper.assert_argument_type(2, measurementunit, "number")
 
         mixin.FCMControl.GetText(self, temp_str)
         return temp_str["Get" .. method](temp_str, measurementunit)
     end
 
     props["GetRange" .. method] = function(self, measurementunit, minimum, maximum)
-        mixin.assert_argument(measurementunit, "number", 2)
-        mixin.assert_argument(minimum, "number", 3)
-        mixin.assert_argument(maximum, "number", 4)
+        mixin_helper.assert_argument_type(2, measurementunit, "number")
+        mixin_helper.assert_argument_type(3, minimum, "number")
+        mixin_helper.assert_argument_type(4, maximum, "number")
 
         mixin.FCMControl.GetText(self, temp_str)
         return temp_str["GetRange" .. method](temp_str, measurementunit, minimum, maximum)
     end
 
     props["Set" .. method] = function(self, value, measurementunit)
-        mixin.assert_argument(value, valid_types, 2)
-        mixin.assert_argument(measurementunit, "number", 3)
+        mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
+        mixin_helper.assert_argument_type(3, measurementunit, "number")
 
         temp_str["Set" .. method](temp_str, value, measurementunit)
         mixin.FCMControl.SetText(self, temp_str)
@@ -280,8 +280,8 @@ Fixes issue with decimal places in `minimum` being discarded instead of being co
 : (number)
 ]]
 function props:GetRangeInteger(minimum, maximum)
-    mixin.assert_argument(minimum, "number", 2)
-    mixin.assert_argument(maximum, "number", 3)
+    mixin_helper.assert_argument_type(2, minimum, "number")
+    mixin_helper.assert_argument_type(3, maximum, "number")
 
     return utils.clamp(mixin.FCMCtrlEdit.GetInteger(self), math.ceil(minimum), math.floor(maximum))
 end

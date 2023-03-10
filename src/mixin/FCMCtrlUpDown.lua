@@ -49,9 +49,9 @@ end
 : (boolean) `true` on success
 ]]
 function props:ConnectIntegerEdit(control, minvalue, maxvalue)
-    mixin.assert_argument(control, "FCMCtrlEdit", 2)
-    mixin.assert_argument(minvalue, "number", 3)
-    mixin.assert_argument(maxvalue, "number", 4)
+    mixin_helper.assert_argument_type(2, control, "FCMCtrlEdit")
+    mixin_helper.assert_argument_type(3, minvalue, "number")
+    mixin_helper.assert_argument_type(4, maxvalue, "number")
 
     local ret = self:ConnectIntegerEdit_(control, minvalue, maxvalue)
 
@@ -74,9 +74,9 @@ end
 : (boolean) `true` on success
 ]]
 function props:ConnectMeasurementEdit(control, minvalue, maxvalue)
-    mixin.assert_argument(control, "FCMCtrlEdit", 2)
-    mixin.assert_argument(minvalue, "number", 3)
-    mixin.assert_argument(maxvalue, "number", 4)
+    mixin_helper.assert_argument_type(2, control, "FCMCtrlEdit")
+    mixin_helper.assert_argument_type(3, minvalue, "number")
+    mixin_helper.assert_argument_type(4, maxvalue, "number")
 
     local ret = self:ConnectMeasurementEdit_(control, minvalue, maxvalue)
 

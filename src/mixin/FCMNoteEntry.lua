@@ -7,6 +7,7 @@ Summary of modifications:
 - Added methods to keep parent collection in scope
 ]] --
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 
 local private = setmetatable({}, {__mode = "k"})
 local props = {}
@@ -32,7 +33,7 @@ Registers the collection to which this object belongs.
 @ parent (FCNoteEntryCell)
 ]]
 function props:RegisterParent(parent)
-    mixin.assert_argument(parent, 'FCNoteEntryCell', 2)
+    mixin_helper.assert_argument_type(2, parent, "FCNoteEntryCell")
 
     if not private[self].Parent then
         private[self].Parent = parent

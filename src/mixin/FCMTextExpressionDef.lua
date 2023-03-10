@@ -34,7 +34,7 @@ Override Changes:
 ]]
 
 function public:SaveNewTextBlock(str)
-    mixin.assert_argument(str, {"string", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "string", "FCString")
 
     str = mixin_helper.to_fcstring(str, temp_str)
     mixin_helper.boolean_to_error(self, "SaveNewTextBlock", str)
@@ -53,7 +53,7 @@ Override Changes:
 ]]
 
 function public:AssignToCategory(cat_def)
-    mixin.assert_argument(cat_def, "FCCategoryDef", 2)
+    mixin_helper.assert_argument_type(2, cat_def, "FCCategoryDef")
 
     mixin_helper.boolean_to_error(self, "AssignToCategory", cat_def)
 end
@@ -71,7 +71,7 @@ Override Changes:
 ]]
 
 function public:SetUseCategoryPos(enable)
-    mixin.assert_argument(enable, "boolean", 2)
+    mixin_helper.assert_argument_type(2, enable, "boolean")
 
     mixin_helper.boolean_to_error(self, "SetUseCategoryPos", enable)
 end
@@ -89,7 +89,7 @@ Override Changes:
 ]]
 
 function public:SetUseCategoryFont(enable)
-    mixin.assert_argument(enable, "boolean", 2)
+    mixin_helper.assert_argument_type(2, enable, "boolean")
 
     mixin_helper.boolean_to_error(self, "SetUseCategoryFont", enable)
 end
@@ -118,10 +118,10 @@ function public:MakeRehearsalMark(str, measure)
         str = temp_str
         do_return = true
     else
-        mixin.assert_argument(str, "FCString", 2)
+        mixin_helper.assert_argument_type(2, str, "FCString")
     end
 
-    mixin.assert_argument(measure, "number", do_return and 2 or 3)
+    mixin_helper.assert_argument_type(do_return and 2 or 3, measure, "number")
 
     mixin_helper.boolean_to_error(self, "MakeRehearsalMark", str, measure)
 
@@ -144,7 +144,7 @@ Override Changes:
 ]]
 
 function public:SaveTextString(str)
-    mixin.assert_argument(str, {"string", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "string", "FCString")
 
     str = mixin_helper.to_fcstring(str, temp_str)
     mixin_helper.boolean_to_error(self, "SaveTextString", str)
@@ -180,7 +180,7 @@ Override Changes:
 ]]
 
 function public:SetDescription(str)
-    mixin.assert_argument(str, {"string", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "string", "FCString")
 
     str = mixin_helper.to_fcstring(str, temp_str)
     self:SetDescription_(str)
@@ -200,7 +200,7 @@ Override Changes:
 ]]
 
 function public:GetDescription(str)
-    mixin.assert_argument(str, {"nil", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "nil", "FCString")
 
     local do_return = not str
     str = str or temp_str
@@ -224,7 +224,7 @@ Override Changes:
 ]]
 
 function public:DeepSaveAs(item_num)
-    mixin.assert_argument(item_num, "number", 2)
+    mixin_helper.assert_argument_type(2, item_num, "number")
 
     mixin_helper.boolean_to_error(self, "DeepSaveAs", item_num)
 end

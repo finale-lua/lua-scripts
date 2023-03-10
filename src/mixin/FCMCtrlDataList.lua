@@ -25,8 +25,8 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 @ columnwidth (number)
 ]]
 function props:AddColumn(title, columnwidth)
-    mixin.assert_argument(title, {"string", "number", "FCString"}, 2)
-    mixin.assert_argument(columnwidth, "number", 3)
+    mixin_helper.assert_argument_type(2, title, "string", "number", "FCString")
+    mixin_helper.assert_argument_type(3, columnwidth, "number")
 
     if type(title) ~= "userdata" then
         temp_str.LuaString = tostring(title)
@@ -47,8 +47,8 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 @ title (FCString|string|number)
 ]]
 function props:SetColumnTitle(columnindex, title)
-    mixin.assert_argument(columnindex, "number", 2)
-    mixin.assert_argument(title, {"string", "number", "FCString"}, 3)
+    mixin_helper.assert_argument_type(2, columnindex, "number")
+    mixin_helper.assert_argument_type(3, title, "string", "number", "FCString")
 
     if type(title) ~= "userdata" then
         temp_str.LuaString = tostring(title)

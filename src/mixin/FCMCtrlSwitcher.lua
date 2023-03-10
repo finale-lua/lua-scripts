@@ -40,7 +40,7 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 @ title (FCString|string|number)
 ]]
 function props:AddPage(title)
-    mixin.assert_argument(title, {"string", "number", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, title, "string", "number", "FCString")
 
     if type(title) ~= "userdata" then
         temp_str.LuaString = tostring(title)
@@ -63,7 +63,7 @@ Adds multiple pages, one page for each argument.
 function props:AddPages(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
-        mixin.assert_argument(v, {"string", "number", "FCString"}, i + 1)
+        mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString")
         mixin.FCMCtrlSwitcher.AddPage(self, v)
     end
 end
@@ -79,8 +79,8 @@ Attaches a control to a page.
 : (boolean)
 ]]
 function props:AttachControlByTitle(control, title)
-    -- Given the number of possibilities, control argument is not asserted for now
-    mixin.assert_argument(title, {"string", "number", "FCString"}, 3)
+    mixin_helper.assert_argument_type(2, control, "FCControl", "FCMControl")
+    mixin_helper.assert_argument_type(3, title, "string", "number", "FCString")
 
     title = type(title) == "userdata" and title.LuaString or tostring(title)
 
@@ -91,7 +91,7 @@ function props:AttachControlByTitle(control, title)
         end
     end
 
-    mixin.force_assert(index ~= -1, "No page titled '" .. title .. "'")
+    mixin_helper.force_assert(index ~= -1, "No page titled '" .. title .. "'")
 
     return self:AttachControl_(control, index)
 end
@@ -105,7 +105,7 @@ end
 @ index (number)
 ]]
 function props:SetSelectedPage(index)
-    mixin.assert_argument(index, "number", 2)
+    mixin_helper.assert_argument_type(2, index, "number")
 
     self:SetSelectedPage_(index)
 
@@ -122,7 +122,7 @@ Set the selected page by its title. If the page is not found, an error will be t
 @ title (FCString|string|number) Title of page to select. Must be an exact match.
 ]]
 function props:SetSelectedPageByTitle(title)
-    mixin.assert_argument(title, {"string", "number", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, title, "string", "number", "FCString")
 
     title = type(title) == "userdata" and title.LuaString or tostring(title)
 
@@ -146,7 +146,7 @@ Returns the title of the currently selected page.
 : (string|nil) Nil if no page is selected
 ]]
 function props:GetSelectedPageTitle(title)
-    mixin.assert_argument(title, {"nil", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, title, "nil", "FCString")
 
     local index = self:GetSelectedPage_()
     if index == -1 then
@@ -177,8 +177,8 @@ Returns the title of a page.
 : (string)
 ]]
 function props:GetPageTitle(index, str)
-    mixin.assert_argument(index, "number", 2)
-    mixin.assert_argument(str, {"nil", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, index, "number")
+    mixin_helper.assert_argument_type(3, str, "nil", "FCString")
 
     local text = private[self].Index[index + 1]
     mixin.force_assert(text, "No page at index " .. tostring(index))

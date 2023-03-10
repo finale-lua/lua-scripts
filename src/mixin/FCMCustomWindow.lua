@@ -9,6 +9,7 @@ Summary of modifications:
 - Added `Each` method for iterating over controls by class name.
 ]] --
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 
 local private = setmetatable({}, {__mode = "k"})
 local props = {}
@@ -53,7 +54,7 @@ Add optional `control_name` parameter.
 -- Also adds an optional parameter at the end for a control name
 for _, f in ipairs({"CancelButton", "OkButton"}) do
     props["Create" .. f] = function(self, control_name)
-        mixin.assert_argument(control_name, {"string", "nil", "FCString"}, 2)
+        mixin_helper.assert_argument_type(2, control_name, "string", "nil", "FCString")
 
         local control = self["Create" .. f .. "_"](self)
         private[self].Controls[control:GetControlID()] = control
@@ -221,9 +222,9 @@ for _, f in ipairs(
         "Button", "Checkbox", "DataList", "Edit", "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
     }) do
     props["Create" .. f] = function(self, x, y, control_name)
-        mixin.assert_argument(x, "number", 2)
-        mixin.assert_argument(y, "number", 3)
-        mixin.assert_argument(control_name, {"string", "nil", "FCString"}, 4)
+        mixin_helper.assert_argument_type(2, x, "number")
+        mixin_helper.assert_argument_type(3, y, "number")
+        mixin_helper.assert_argument_type(4, control_name, "string", "nil", "FCString")
 
         local control = self["Create" .. f .. "_"](self, x, y)
         private[self].Controls[control:GetControlID()] = control
@@ -273,10 +274,10 @@ Add optional `control_name` parameter.
 
 for _, f in ipairs({"HorizontalLine", "VerticalLine"}) do
     props["Create" .. f] = function(self, x, y, length, control_name)
-        mixin.assert_argument(x, "number", 2)
-        mixin.assert_argument(y, "number", 3)
-        mixin.assert_argument(length, "number", 4)
-        mixin.assert_argument(control_name, {"string", "nil", "FCString"}, 5)
+        mixin_helper.assert_argument_type(2, x, "number")
+        mixin_helper.assert_argument_type(3, y, "number")
+        mixin_helper.assert_argument_type(4, length, "number")
+        mixin_helper.assert_argument_type(5, control_name, "string", "nil", "FCString")
 
         local control = self["Create" .. f .. "_"](self, x, y, length)
         private[self].Controls[control:GetControlID()] = control
@@ -307,7 +308,7 @@ Finds a control based on its ID.
 : (FCMControl|nil)
 ]]
 function props:FindControl(control_id)
-    mixin.assert_argument(control_id, "number", 2)
+    mixin_helper.assert_argument_type(2, control_id, "number")
 
     return private[self].Controls[control_id]
 end
@@ -322,7 +323,8 @@ Finds a control based on its name.
 : (FCMControl|nil)
 ]]
 function props:GetControl(control_name)
-    mixin.assert_argument(control_name, {"string", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, control_name, "string", "FCString")
+
     return private[self].NamedControls[control_name]
 end
 
@@ -342,7 +344,7 @@ function props:Each(class_filter)
         repeat
             i = i + 1
             v = mixin.FCMCustomWindow.GetItemAt(self, i)
-        until not v or not class_filter or mixin.is_instance_of(v, class_filter)
+        until not v or not class_filter or mixin_helper.is_instance_of(v, class_filter)
 
         return v
     end
@@ -379,9 +381,9 @@ Add optional `control_name` parameter.
 ]]
 if finenv.MajorVersion > 0 or finenv.MinorVersion >= 56 then
     function props.CreateCloseButton(self, x, y, control_name)
-        mixin.assert_argument(x, "number", 2)
-        mixin.assert_argument(y, "number", 3)
-        mixin.assert_argument(control_name, {"string", "nil", "FCString"}, 4)
+        mixin_helper.assert_argument_type(2, x, "number")
+        mixin_helper.assert_argument_type(3, y, "number")
+        mixin_helper.assert_argument_type(4, control_name, "string", "nil", "FCString")
 
         local control = self:CreateCloseButton_(x, y)
         private[self].Controls[control:GetControlID()] = control

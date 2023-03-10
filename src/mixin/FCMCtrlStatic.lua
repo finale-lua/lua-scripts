@@ -8,6 +8,7 @@ Summary of modifications:
 - SetTextColor updates visible color immediately if window is showing
 ]] --
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 local utils = require("library.utils")
 
 local private = setmetatable({}, {__mode = "k"})
@@ -38,9 +39,9 @@ Also hooks into control state restoration.
 @ blue (number)
 ]]
 function props:SetTextColor(red, green, blue)
-    mixin.assert_argument(red, "number", 2)
-    mixin.assert_argument(green, "number", 3)
-    mixin.assert_argument(blue, "number", 4)
+    mixin_helper.assert_argument_type(2, red, "number")
+    mixin_helper.assert_argument_type(3, green, "number")
+    mixin_helper.assert_argument_type(4, blue, "number")
 
     private[self].TextColor = {red, green, blue}
 

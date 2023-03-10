@@ -185,6 +185,7 @@ Below is a basic template for creating an `FCM` mixin. Replace the example metho
 ```lua
 -- Include the mixin namespace and helper methods (include any additional libraries below)
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 
 -- Table for storing private data for this mixin
 local private = setmetatable({}, {__mode = "k"})
@@ -207,7 +208,7 @@ end
 function public:SetExample(value)
     -- Ensure argument is the correct type for testing
     -- The argument number is 2 because when using a colon in the method signature, it will automatically be passed `self` as the first argument.
-    mixin.assert_argument(value, "string", 2)
+    mixin_helper.assert_argument_type(2, value, "string")
 
     private[self].ExamplePrivateProperty = value
 end
@@ -231,6 +232,7 @@ Below is a template for creating an `FCX` mixin. It is almost identical to defin
 ```lua
 -- Include the mixin namespace and helper methods (include any additional libraries below)
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 
 -- Table for storing private data for this mixin
 local private = setmetatable({}, {__mode = "k"})
@@ -336,6 +338,11 @@ local mixin = setmetatable({}, {
     end
 })
 
+
+function mixin_private.is_fc_class_name(class_name)
+    return type(class_name) == "string" and not mixin_private.is_fcm_class_name(class_name) and not mixin_private.is_fcx_class_name(class_name) and (class_name:match("^FC%u") or class_name:match("^__FC%u")) and true or false
+end
+
 function mixin_private.is_fcm_class_name(class_name)
     return type(class_name) == "string" and (class_name:match("^FCM%u") or class_name:match("^__FCM%u")) and true or false
 end
@@ -366,60 +373,6 @@ function mixin_private.assert_valid_property_name(name, error_level, suffix)
     elseif reserved_props[name] then
         error("'" .. name .. "' is a reserved name and cannot be used for propertiea or methods" .. suffix, error_level)
     end
-end
-
--- Gets the real class name of a Finale object
--- Some classes have incorrect class names, so this function attempts to resolve them with ducktyping
--- Does not check if the object is a Finale object
-function mixin_private.get_class_name(object)
-    -- If we're dealing with mixin objects, methods may have been added so we need the originals
-    local suffix = object.MixinClass and "_" or ""
-    local class_name = object["ClassName" .. suffix](object)
-
-    if class_name == "__FCCollection" and object["ExecuteModal" ..suffix] then
-        return object["RegisterHandleCommand" .. suffix] and "FCCustomLuaWindow" or "FCCustomWindow"
-    elseif class_name == "FCControl" then
-        if object["GetCheck" .. suffix] then
-            return "FCCtrlCheckbox"
-        elseif object["GetThumbPosition" .. suffix] then
-            return "FCCtrlSlider"
-        elseif object["AddPage" .. suffix] then
-            return "FCCtrlSwitcher"
-        else
-            return "FCCtrlButton"
-        end
-    elseif class_name == "FCCtrlButton" and object["GetThumbPosition" .. suffix] then
-        return "FCCtrlSlider"
-    end
-
-    return class_name
-end
-
--- Returns the name of the parent class
--- This function should only be called for classnames that start with "FC" or "__FC"
-function mixin_private.get_parent_class(classname)
-    local class = finale[classname]
-    if type(class) ~= "table" then return nil end
-    if not finenv.IsRGPLua then -- old jw lua
-        classt = class.__class
-        if classt and classname ~= "__FCBase" then
-            classtp = classt.__parent -- this line crashes Finale (in jw lua 0.54) if "__parent" doesn't exist, so we excluded "__FCBase" above, the only class without a parent
-            if classtp and type(classtp) == "table" then
-                for k, v in pairs(finale) do
-                    if type(v) == "table" then
-                        if v.__class and v.__class == classtp then
-                            return tostring(k)
-                        end
-                    end
-                end
-            end
-        end
-    else
-        for k, _ in pairs(class.__parent) do
-            return tostring(k)  -- in RGP Lua the v is just a dummy value, and the key is the classname of the parent
-        end
-    end
-    return nil
 end
 
 -- Attempts to load a module
@@ -489,7 +442,7 @@ function mixin_private.load_mixin_class(class_name)
     -- FCM specific
     if is_fcm then
         -- Temporarily store the FC class name
-        class.meta.Parent = mixin_private.get_parent_class(mixin_private.fcm_to_fc_class_name(class_name))
+        class.meta.Parent = library.get_parent_class(mixin_private.fcm_to_fc_class_name(class_name))
 
         if class.meta.Parent then
             -- Turn it back into an FCM class name
@@ -537,65 +490,6 @@ function mixin_private.load_mixin_class(class_name)
     mixin_classes[class_name] = class
 end
 
--- Catches an error and throws it at the specified level (relative to where this function was called)
--- First argument is called tryfunczzz for uniqueness
--- Tail calls aren't counted as levels in the call stack. Adding an additional return value (in this case, 1) forces this level to be included, which enables the error to be accurately captured
-local pcall_line = debug.getinfo(1, "l").currentline + 2 -- This MUST refer to the pcall 2 lines below
-local function catch_and_rethrow(tryfunczzz, levels, ...)
-    return mixin_private.pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
-end
-
--- Get the name of this file.
-local mixin_file_name = debug.getinfo(1, "S").source
-mixin_file_name = mixin_file_name:sub(1, 1) == "@" and mixin_file_name:sub(2) or nil
-
--- Processes the results from the pcall in catch_and_rethrow
-function mixin_private.pcall_wrapper(levels, success, result, ...)
-    if not success then
-        local file
-        local line
-        local msg
-        file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
-        msg = msg or result
-
-        local file_is_truncated = file and file:sub(1, 3) == "..."
-        file = file_is_truncated and file:sub(4) or file
-
-        -- Conditions for rethrowing at a higher level:
-        -- Ignore errors thrown with no level info (ie. level = 0), as we can't make any assumptions
-        -- Both the file and line number indicate that it was thrown at this level
-        if file
-            and line
-            and mixin_file_name
-            and (file_is_truncated and mixin_file_name:sub(-1 * file:len()) == file or file == mixin_file_name)
-            and tonumber(line) == pcall_line
-        then
-            local d = debug.getinfo(levels, "n")
-
-            -- Replace the method name with the correct one, for bad argument errors etc
-            msg = msg:gsub("'tryfunczzz'", "'" .. (d.name or "") .. "'")
-
-            -- Shift argument numbers down by one for colon function calls
-            if d.namewhat == "method" then
-                local arg = msg:match("^bad argument #(%d+)")
-
-                if arg then
-                    msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
-                end
-            end
-
-            error(msg, levels + 1)
-
-        -- Otherwise, it's either an internal function error or we couldn't be certain that it isn't
-        -- So, rethrow with original file and line number to be 'safe'
-        else
-            error(result, 0)
-        end
-    end
-
-    return ...
-end
-
 -- Proxy function for all mixin method calls
 -- Handles the fluid interface and automatic promotion of all returned Finale objects to mixin objects
 local function proxy(t, ...)
@@ -615,7 +509,7 @@ end
 -- Returns a function that handles the fluid interface, mixin enabling, and error re-throwing
 function mixin_private.create_fluid_proxy(func, func_name)
     return function(t, ...)
-        return proxy(t, catch_and_rethrow(func, 2, t, ...))
+        return proxy(t, utils.call_and_rethrow(2, func, t, ...))
     end
 end
 
@@ -626,7 +520,7 @@ function mixin_private.enable_mixin(object, fcm_class_name)
     end
 
     mixin_private.apply_mixin_foundation(object)
-    fcm_class_name = fcm_class_name or mixin_private.fc_to_fcm_class_name(mixin_private.get_class_name(object))
+    fcm_class_name = fcm_class_name or mixin_private.fc_to_fcm_class_name(library.get_class_name(object))
 
     mixin_private.load_mixin_class(fcm_class_name)
     mixin_props[object] = {MixinClass = fcm_class_name}
@@ -650,7 +544,7 @@ function mixin_private.apply_mixin_foundation(object)
     local original_index = meta.__index 
     local original_newindex = meta.__newindex
 
-    local fcm_class_name = mixin_private.fc_to_fcm_class_name(mixin_private.get_class_name(object))
+    local fcm_class_name = mixin_private.fc_to_fcm_class_name(library.get_class_name(object))
 
     meta.__index = function(t, k)
         -- Return a flag that this class has been modified
@@ -701,7 +595,7 @@ function mixin_private.apply_mixin_foundation(object)
     -- Using methods instead of properties will avoid this
     meta.__newindex = function(t, k, v)
         -- Return early if this is not mixin-enabled
-        if not mixin_props[t] then return catch_and_rethrow(original_newindex, 2, t, k, v) end
+        if not mixin_props[t] then return utils.call_and_rethrow(2, original_newindex, t, k, v) end
 
         mixin_private.assert_valid_property_name(k, 3)
 
@@ -734,7 +628,7 @@ function mixin_private.apply_mixin_foundation(object)
 
         -- Otherwise, try and store it on the original property. If it's read-only, it will fail and we show the error
         else
-            catch_and_rethrow(original_newindex, 2, t, k, v)
+            utils.call_and_rethrow(2, original_newindex, t, k, v)
         end
     end
 end
@@ -745,7 +639,7 @@ function mixin_private.subclass(object, class_name)
         error("Object is not a finale object.", 2)
     end
 
-    if not catch_and_rethrow(mixin_private.subclass_helper, 2, object, class_name) then
+    if not utils.call_and_rethrow(2, mixin_private.subclass_helper, object, class_name) then
         error(class_name .. " is not a subclass of " .. object.MixinClass, 2)
     end
 
@@ -790,7 +684,7 @@ function mixin_private.subclass_helper(object, class_name, suppress_errors)
 
     -- If loading the parent of class_name fails, then it's not a subclass of the object
     if mixin_classes[class_name].meta.Parent ~= object.MixinClass then
-        if not catch_and_rethrow(mixin_private.subclass_helper, 2, object, mixin_classes[class_name].meta.Parent) then
+        if not utils.call_and_rethrow(2, mixin_private.subclass_helper, object, mixin_classes[class_name].meta.Parent) then
             return false
         end
     end
@@ -805,7 +699,7 @@ function mixin_private.subclass_helper(object, class_name, suppress_errors)
 
     -- Run initialiser, if there is one
     if mixin_classes[class_name].meta.Init then
-        catch_and_rethrow(mixin_classes[class_name].meta.Init, 2, object)
+        utils.call_and_rethrow(2, mixin_classes[class_name].meta.Init, object)
     end
 
     return true
@@ -816,7 +710,7 @@ function mixin_private.create_fcm(class_name, ...)
     mixin_private.load_mixin_class(class_name)
     if not mixin_classes[class_name] then return nil end
 
-    return mixin_private.enable_mixin(catch_and_rethrow(finale[mixin_private.fcm_to_fc_class_name(class_name)], 2, ...))
+    return mixin_private.enable_mixin(utils.call_and_rethrow(2, finale[mixin_private.fcm_to_fc_class_name(class_name)], ...))
 end
 
 -- Silently returns nil on failure
@@ -828,12 +722,62 @@ function mixin_private.create_fcx(class_name, ...)
 
     if not object then return nil end
 
-    if not catch_and_rethrow(mixin_private.subclass_helper, 2, object, class_name, false) then
+    if not utils.call_and_rethrow(2, mixin_private.subclass_helper, object, class_name, false) then
         return nil
     end
 
     return object
 end
+
+--[[
+% is_fc_class_name
+
+Checks if a class name is an `FC` class name.
+
+@ class_name (string)
+: (boolean)
+]]
+mixin_public.is_fc_class_name = mixin_private.is_fc_class_name
+
+--[[
+% is_fcm_class_name
+
+Checks if a class name is an `FCM` class name.
+
+@ class_name (string)
+: (boolean)
+]]
+mixin_public.is_fcm_class_name = mixin_private.is_fcm_class_name
+
+--[[
+% is_fcx_class_name
+
+Checks if a class name is an `FCX` class name.
+
+@ class_name (string)
+: (boolean)
+]]
+mixin_public.is_fcx_class_name = mixin_private.is_fcx_class_name
+
+--[[
+% fc_to_fcm_class_name
+
+Converts an `FC` class name to an `FCM` class name.
+
+@ class_name (string)
+: (string)
+]]
+mixin_public.fc_to_fcm_class_name = mixin_private.fc_to_fcm_class_name
+
+--[[
+% fcm_to_fc_class_name
+
+Converts an `FCM` class name to an `FC` class name.
+
+@ class_name (string)
+: (string)
+]]
+mixin_public.fcm_to_fc_class_name = mixin_private.fcm_to_fc_class_name
 
 --[[
 % subclass
@@ -848,166 +792,6 @@ If the current `MixinClass` is the same as `class_name`, this function will do n
 : (__FCMBase|nil) The object that was passed with mixin applied.
 ]]
 mixin_public.subclass = mixin_private.subclass
-
---[[
-% is_instance_of
-
-Checks if an object is an instance of a class.
-Conditions:
-- Parent cannot be instance of child.
-- `FC` object cannot be an instance of an `FCM` or `FCX` class
-- `FCM` object cannot be an instance of an `FCX` class
-- `FCX` object cannot be an instance of an `FC` class
-
-@ object (__FCBase) Any finale object, including mixin enabled objects.
-@ class_name (string) An `FC`, `FCM`, or `FCX` class name. Can be the name of a parent class.
-: (boolean)
-]]
-function mixin_public.is_instance_of(object, class_name)
-    if not library.is_finale_object(object) then
-        return false
-    end
-
-    -- 0 = FC
-    -- 1 = FCM
-    -- 2 = FCX
-    local object_type = (mixin_private.is_fcx_class_name(object.MixinClass) and 2) or (mixin_private.is_fcm_class_name(object.MixinClass) and 1) or 0
-    local class_type = (mixin_private.is_fcx_class_name(class_name) and 2) or (mixin_private.is_fcm_class_name(class_name) and 1) or 0
-
-    -- See doc block for explanation of conditions
-    if (object_type == 0 and class_type == 1) or (object_type == 0 and class_type == 2) or (object_type == 1 and class_type == 2) or (object_type == 2 and class_type == 0) then
-        return false
-    end
-
-    local parent = object_type == 0 and mixin_private.get_class_name(object) or object.MixinClass
-
-    -- Traverse FCX hierarchy until we get to an FCM base
-    if object_type == 2 then
-        repeat
-            if parent == class_name then
-                return true
-            end
-
-            -- We can assume that since we have an object, all parent classes have been loaded
-            parent = mixin_classes[parent].meta.Parent
-        until mixin_private.is_fcm_class_name(parent)
-    end
-
-    -- Since FCM classes follow the same hierarchy as FC classes, convert to FC
-    if object_type > 0 then
-        parent = mixin_private.fcm_to_fc_class_name(parent)
-    end
-
-    if class_type > 0 then
-        class_name = mixin_private.fcm_to_fc_class_name(class_name)
-    end
-
-    -- Traverse FC hierarchy
-    repeat
-        if parent == class_name then
-            return true
-        end
-
-        parent = mixin_private.get_parent_class(parent)
-    until not parent
-
-    -- Nothing found
-    return false
-end
-
---[[
-% assert_argument
-
-Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
-
-NOTE: For performance reasons, this function will only assert if in debug mode (ie `finenv.DebugEnabled == true`). If assertions are always required, use `force_assert_argument` instead.
-
-If not a valid type, will throw a bad argument error at the level above where this function is called.
-Types can be Lua types (eg `string`, `number`, `bool`, etc), finale class (eg `FCString`, `FCMeasure`, etc), or mixin class (eg `FCMString`, `FCMMeasure`, etc)
-Parent classes cannot be specified as this function does not examine the class hierarchy.
-
-Note that mixin classes may satisfy the condition for the underlying `FC` class.
-For example, if the expected type is `FCString`, an `FCMString` object will pass the test, but an `FCXString` object will not.
-If the expected type is `FCMString`, an `FCXString` object will pass the test but an `FCString` object will not.
-
-@ value (mixed) The value to test.
-@ expected_type (string|table) If there are multiple valid types, pass a table of strings.
-@ argument_number (number) The REAL argument number for the error message (self counts as #1).
-]]
-function mixin_public.assert_argument(value, expected_type, argument_number)
-    local t, tt
-
-    if library.is_finale_object(value) then
-        t = value.MixinClass
-        tt = mixin_private.is_fcx_class_name(t) and value.MixinBase or mixin_private.get_class_name(value)
-    else
-        t = type(value)
-    end
-
-    if type(expected_type) == "table" then
-        for _, v in ipairs(expected_type) do
-            if t == v or tt == v then
-                return
-            end
-        end
-
-        expected_type = table.concat(expected_type, " or ")
-    else
-        if t == expected_type or tt == expected_type then
-            return
-        end
-    end
-
-    error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. expected_type .. " expected, got " .. (t or tt) .. ")", 3)
-end
-
---[[
-% force_assert_argument
-
-The same as `assert_argument` except this function always asserts, regardless of whether debug mode is enabled.
-
-@ value (mixed) The value to test.
-@ expected_type (string|table) If there are multiple valid types, pass a table of strings.
-@ argument_number (number) The REAL argument number for the error message (self counts as #1).
-]]
-mixin_public.force_assert_argument = mixin_public.assert_argument
-
---[[
-% assert
-
-Asserts a condition in a mixin method. If the condition is false, an error is thrown one level above where this function is called.
-Only asserts when in debug mode. If assertion is required on all executions, use `force_assert` instead
-
-@ condition (any) Can be any value or expression. If a function, it will be called (with zero arguments) and the result will be tested.
-@ message (string) The error message.
-@ [no_level] (boolean) If true, error will be thrown with no level (ie level 0)
-]]
-function mixin_public.assert(condition, message, no_level)
-    if type(condition) == 'function' then
-        condition = condition()
-    end
-
-    if not condition then
-        error(message, no_level and 0 or 3)
-    end
-end
-
---[[
-% force_assert
-
-The same as `assert` except this function always asserts, regardless of whether debug mode is enabled.
-
-@ condition (any) Can be any value or expression.
-@ message (string) The error message.
-@ [no_level] (boolean) If true, error will be thrown with no level (ie level 0)
-]]
-mixin_public.force_assert = mixin_public.assert
-
--- Replace assert functions with dummy function when not in debug mode
-if finenv.IsRGPLua and not finenv.DebugEnabled then
-    mixin_public.assert_argument = function() end
-    mixin_public.assert = mixin_public.assert_argument
-end
 
 --[[
 % UI

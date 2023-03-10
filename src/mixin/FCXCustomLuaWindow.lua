@@ -42,9 +42,9 @@ Creates an `FCXCtrlStatic` control.
 : (FCXCtrlStatic)
 ]]
 function props:CreateStatic(x, y, control_name)
-    mixin.assert_argument(x, "number", 2)
-    mixin.assert_argument(y, "number", 3)
-    mixin.assert_argument(control_name, {"string", "nil"}, 4)
+    mixin_helper.assert_argument_type(2, x, "number")
+    mixin_helper.assert_argument_type(3, y, "number")
+    mixin_helper.assert_argument_type(4, control_name, "string", "nil")
 
     local popup = mixin.FCMCustomWindow.CreateStatic(self, x, y, control_name)
     return mixin.subclass(popup, "FCXCtrlStatic")
@@ -63,9 +63,9 @@ Creates an `FCXCtrlUpDown` control.
 : (FCXCtrlUpDown)
 ]]
 function props:CreateUpDown(x, y, control_name)
-    mixin.assert_argument(x, "number", 2)
-    mixin.assert_argument(y, "number", 3)
-    mixin.assert_argument(control_name, {"string", "nil"}, 4)
+    mixin_helper.assert_argument_type(2, x, "number")
+    mixin_helper.assert_argument_type(3, y, "number")
+    mixin_helper.assert_argument_type(4, control_name, "string", "nil")
 
     local updown = mixin.FCMCustomWindow.CreateUpDown(self, x, y, control_name)
     return mixin.subclass(updown, "FCXCtrlUpDown")

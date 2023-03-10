@@ -10,6 +10,7 @@ Summary of changes:
 - Added methods for setting and displaying measurements
 ]] --
 local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 local measurement = require("library.measurement")
 local utils = require("library.utils")
 
@@ -36,7 +37,7 @@ end
 @ self (FCXCtrlStatic)
 ]]
 function props:Init()
-    mixin.assert(mixin.is_instance_of(self:GetParent(), "FCXCustomLuaWindow"), "FCXCtrlStatic must have a parent window that is an instance of FCXCustomLuaWindow")
+    mixin_helper.assert(function() return mixin_helper.is_instance_of(self:GetParent(), "FCXCustomLuaWindow") end, "FCXCtrlStatic must have a parent window that is an instance of FCXCustomLuaWindow")
 
     private[self] = private[self] or {
         ShowMeasurementSuffix = true,
@@ -54,7 +55,7 @@ Switches the control's measurement status off.
 @ str (FCString|string|number)
 ]]
 function props:SetText(str)
-    mixin.assert_argument(str, {"string", "number", "FCString"}, 2)
+    mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     mixin.FCMCtrlStatic.SetText(self, str)
 
@@ -72,7 +73,7 @@ Sets a measurement in EVPUs which will be displayed in the parent window's curre
 @ value (number) Value in EVPUs
 ]]
 function props:SetMeasurement(value)
-    mixin.assert_argument(value, "number", 2)
+    mixin_helper.assert_argument_type(2, value, "number")
 
     local unit = self:GetParent():GetMeasurementUnit()
     temp_str:SetMeasurement(value, unit)
@@ -94,7 +95,7 @@ Sets a measurement in whole EVPUs which will be displayed in the parent window's
 @ value (number) Value in whole EVPUs (fractional part will be rounded to nearest integer)
 ]]
 function props:SetMeasurementInteger(value)
-    mixin.assert_argument(value, "number", 2)
+    mixin_helper.assert_argument_type(2, value, "number")
 
     value = utils.round(value)
     local unit = self:GetParent():GetMeasurementUnit()
@@ -117,7 +118,7 @@ Sets a measurement in EFIXes which will be displayed in the parent window's curr
 @ value (number) Value in EFIXes
 ]]
 function props:SetMeasurementEfix(value)
-    mixin.assert_argument(value, "number", 2)
+    mixin_helper.assert_argument_type(2, value, "number")
 
     local evpu = value / 64
     local unit = self:GetParent():GetMeasurementUnit()
@@ -140,7 +141,7 @@ Sets whether to show a suffix at the end of a measurement (eg `cm` in `2.54cm`).
 @ enabled (boolean)
 ]]
 function props:SetShowMeasurementSuffix(enabled)
-    mixin.assert_argument(enabled, "boolean", 2)
+    mixin_helper.assert_argument_type(2, enabled, "boolean")
 
     private[self].ShowMeasurementSuffix = enabled and true or false
     mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)

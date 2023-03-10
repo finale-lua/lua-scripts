@@ -5,10 +5,191 @@
 $module Mixin Helper
 
 A library of helper functions to improve code reuse in mixins.
-]] local utils = require("library.utils")
+]]--
+local utils = require("library.utils")
 local mixin = require("library.mixin")
+local library = require("library.general_library")
 
 local mixin_helper = {}
+
+local debug_enabled = finenv.DebugEnabled
+
+--[[
+% is_instance_of
+
+Checks if a Finale object is an instance of a class or classes. This function examines the full class hierarchy, so parent classes are also supported.
+
+Table of Matching Conditions:
+```
+|            | FC  Class | FCM Class | FCX Class |
+--------------------------------------------------
+| FC  Object |     O     |     X     |     X     |
+| FCM Object |     O     |     O     |     X     |
+| FCX Object |     X     |     O     |     O     |
+```
+*Key: `O` = match, `X` = no match*
+
+Summary:
+- Parent cannot be instance of child class.
+- `FC` object cannot be an instance of an `FCM` or `FCX` class.
+- `FCM` object can be an instance of an `FC` class but cannot be an instance of an `FCX` class.
+- `FCX` object can be an instance of an `FCM` class but cannot be an instance of an `FC` class.
+
+*NOTE: The break points are due to differences in backwards compatibility between `FCM` and `FCX` mixins.*
+
+@ object (__FCBase) Any finale object, including mixin enabled objects.
+@ ... (string) Class names (as many as needed). Can be an `FC`, `FCM`, or `FCX` class name. Can also be the name of a parent class.
+: (boolean)
+]]
+function mixin_helper.is_instance_of(object, ...)
+    if not library.is_finale_object(object) then
+        return false
+    end
+
+    -- 0 = FC
+    -- 1 = FCM
+    -- 2 = FCX
+    local class_names = {[0] = {}, [1] = {}, [2] = {}}
+    for i = 1, select("#", ...) do
+        local class_name = select(i, ...)
+        -- Skip over anything that isn't a class name (for easy integration with `assert_argument_type`)
+        local class_type = (mixin.is_fcx_class_name(class_name) and 2) or (mixin.is_fcm_class_name(class_name) and 1) or (mixin.is_fc_class_name(class_name) and 0) or false
+        if class_type then
+            -- Convert FCM to FC for easier checking later
+            class_names[class_type][class_type == 1 and mixin.fcm_to_fc_class_name(class_name) or class_name] = true
+        end
+    end
+
+    local object_type = (mixin.is_fcx_class_name(object.MixinClass) and 2) or (mixin.is_fcm_class_name(object.MixinClass) and 1) or 0
+    local parent = object_type == 0 and library.get_class_name(object) or object.MixinClass
+
+    -- Traverse FCX hierarchy until we get to an FCM base
+    if object_type == 2 then
+        repeat
+            if class_names[2][parent] then
+                return true
+            end
+
+            -- We can assume that since we have an object, all parent classes have been loaded
+            parent = object.MixinParent
+        until mixin.is_fcm_class_name(parent)
+    end
+
+    -- Since FCM classes follow the same hierarchy as FC classes, convert to FC
+    if object_type > 0 then
+        parent = mixin.fcm_to_fc_class_name(parent)
+    end
+
+    -- Traverse FC hierarchy
+    repeat
+        if (object_type < 2 and class_names[0][parent])
+            or (object_type > 0 and class_names[1][parent])
+        then
+            return true
+        end
+
+        parent = library.get_parent_class(parent)
+    until not parent
+
+    -- Nothing found
+    return false
+end
+
+local function assert_argument_type(levels, argument_number, value, ...)
+    local value_type = type(value)
+
+    for i = 1, select("#", ...) do
+        if value_type == select(i, ...) then
+            return
+        end
+    end
+
+    if mixin_helper.is_instance_of(value, ...) then
+        return
+    end
+
+    -- Determine type for error message
+    if library.is_finale_object(value) then
+        value_type = value.MixinClass or value.ClassName
+    end
+
+    error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. value_type .. ")", levels)
+end
+
+--[[
+% assert_argument_type
+
+Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
+
+If not a valid type, will throw a bad argument error at the level above where this function is called.
+Types can be Lua types (eg `string`, `number`, `bool`, etc), finale class (eg `FCString`, `FCMeasure`, etc), or mixin class (eg `FCMString`, `FCMMeasure`, etc).
+Parent classes can also be specified.
+For details about what types a Finale object will satisfy, see `mixin_helper.is_instance_of`.
+
+*NOTE: This function will only assert if in debug mode (ie `finenv.DebugEnabled == true`). If assertions are always required, use `force_assert_argument_type` instead.*
+
+@ argument_number (number) The REAL argument number for the error message (self counts as argument #1).
+@ value (any) The value to test.
+@ ... (string) Valid types (as many as needed). Can be standard Lua types, Finale class names, or mixin class names.
+]]
+function mixin_helper.assert_argument_type(argument_number, value, ...)
+    if debug_enabled then
+        assert_argument_type(4, argument_number, value, ...)
+    end
+end
+
+--[[
+% force_assert_argument_type
+
+The same as `assert_argument_type` except this function always asserts, regardless of whether debug mode is enabled.
+
+@ argument_number (number) The REAL argument number for the error message (self counts as argument #1).
+@ value (any) The value to test.
+@ ... (string) Valid types (as many as needed). Can be standard Lua types, Finale class names, or mixin class names.
+]]
+function mixin_helper.force_assert_argument_type(argument_number, value, ...)
+    assert_argument_type(4, argument_number, value, ...)
+end
+
+local function assert_func(condition, message, level)
+    if type(condition) == 'function' then
+        condition = condition()
+    end
+
+    if not condition then
+        error(message, level)
+    end
+end
+
+--[[
+% assert
+
+Asserts a condition in a mixin method. If the condition is false, an error is thrown one level above where this function is called.
+
+*NOTE: This function will only assert if in debug mode (ie `finenv.DebugEnabled == true`). If assertions are always required, use `force_assert` instead.*
+
+@ condition (any) Can be any value or expression. If a function, it will be called (with zero arguments) and the result will be tested.
+@ message (string) The error message.
+@ [no_level] (boolean) If true, error will be thrown with no level (ie level 0)
+]]
+function mixin_helper.assert(condition, message, no_level)
+    if debug_enabled then
+        assert_func(condition, message, no_level and 0 or 4)
+    end
+end
+
+--[[
+% force_assert
+
+The same as `assert` except this function always asserts, regardless of whether debug mode is enabled.
+
+@ condition (any) Can be any value or expression.
+@ message (string) The error message.
+@ [no_level] (boolean) If true, error will be thrown with no level (ie level 0)
+]]
+function mixin_helper.force_assert(condition, message, no_level)
+    assert_func(condition, message, no_level and 0 or 4)
+end
 
 local disabled_method = function()
     error("Attempt to call disabled method 'tryfunczzz'", 2)
@@ -62,10 +243,10 @@ function mixin_helper.create_standard_control_event(name)
     end
 
     local function add_func(control, callback)
-        mixin.assert_argument(callback, "function", 3)
+        mixin_helper.assert_argument_type(3, callback, "function")
         local window = control:GetParent()
-        mixin.assert(window, "Cannot add handler to control with no parent window.")
-        mixin.assert(
+        mixin_helper.assert(window, "Cannot add handler to control with no parent window.")
+        mixin_helper.assert(
             (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
             "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
 
@@ -75,7 +256,7 @@ function mixin_helper.create_standard_control_event(name)
     end
 
     local function remove_func(control, callback)
-        mixin.assert_argument(callback, "function", 3)
+        mixin_helper.assert_argument_type(3, callback, "function")
 
         utils.table_remove_first(callbacks[control], callback)
     end
@@ -252,13 +433,13 @@ function mixin_helper.create_custom_control_change_event(...)
     end
 
     local function add_func(self, callback)
-        mixin.assert_argument(callback, "function", 2)
+        mixin_helper.assert_argument_type(2, callback, "function")
         local window = self:GetParent()
-        mixin.assert(window, "Cannot add handler to self with no parent window.")
-        mixin.assert(
+        mixin_helper.assert(window, "Cannot add handler to self with no parent window.")
+        mixin_helper.assert(
             (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
             "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
-        mixin.force_assert(
+        mixin_helper.force_assert(
             not event.callback_exists(self, callback), "The callback has already been added as a handler.")
 
         init_window(window)
@@ -266,7 +447,7 @@ function mixin_helper.create_custom_control_change_event(...)
     end
 
     local function remove_func(self, callback)
-        mixin.assert_argument(callback, "function", 2)
+        mixin_helper.assert_argument_type(2, callback, "function")
 
         event.remove(self, callback)
     end
@@ -325,16 +506,16 @@ function mixin_helper.create_custom_window_change_event(...)
     local queued = setmetatable({}, {__mode = "k"})
 
     local function add_func(self, callback)
-        mixin.assert_argument(self, "FCMCustomLuaWindow", 1)
-        mixin.assert_argument(callback, "function", 2)
-        mixin.force_assert(
+        mixin_helper.assert_argument_type(1, self, "FCMCustomLuaWindow")
+        mixin_helper.assert_argument_type(2, callback, "function")
+        mixin_helper.force_assert(
             not event.callback_exists(self, callback), "The callback has already been added as a handler.")
 
         event.add(self, callback)
     end
 
     local function remove_func(self, callback)
-        mixin.assert_argument(callback, "function", 2)
+        mixin_helper.assert_argument_type(2, callback, "function")
 
         event.remove(self, callback)
     end
@@ -374,7 +555,6 @@ function mixin_helper.create_custom_window_change_event(...)
     return add_func, remove_func, trigger_func, event.history_iterator
 end
 
-
 --[[
 % to_fcstring
 
@@ -386,7 +566,7 @@ Casts a value to an `FCString` object. If the value is already an `FCString`, it
 ]]
 
 function mixin_helper.to_fcstring(value, fcstr)
-    if mixin.is_instance_of(value, "FCString") then
+    if mixin_helper.is_instance_of(value, "FCString") then
         return value
     end
 

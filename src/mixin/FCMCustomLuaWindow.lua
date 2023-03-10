@@ -64,19 +64,19 @@ end
 local function create_handle_methods(event)
     -- Check if methods are available
     props["Register" .. event] = function(self, callback)
-        mixin.assert_argument(callback, "function", 2)
+        mixin_helper.assert_argument_type(2, callback, "function")
 
         private[self][event].Registered = callback
     end
 
     props["Add" .. event] = function(self, callback)
-        mixin.assert_argument(callback, "function", 2)
+        mixin_helper.assert_argument_type(2, callback, "function")
 
         table.insert(private[self][event].Added, callback)
     end
 
     props["Remove" .. event] = function(self, callback)
-        mixin.assert_argument(callback, "function", 2)
+        mixin_helper.assert_argument_type(2, callback, "function")
 
         utils.table_remove_first(private[self][event].Added, callback)
     end
@@ -568,7 +568,7 @@ The callback will not be passed any arguments.
 @ callback (function)
 ]]
 function props:QueueHandleCustom(callback)
-    mixin.assert_argument(callback, "function", 2)
+    mixin_helper.assert_argument_type(2, callback, "function")
 
     table.insert(private[self].HandleCustomQueue, callback)
 end
@@ -589,7 +589,8 @@ Override Changes:
 @ callback (function) See `FCCustomLuaWindow.HandleControlEvent` in the PDK for callback signature.
 ]]
     function props:RegisterHandleControlEvent(control, callback)
-        mixin.assert_argument(callback, "function", 3)
+        mixin_helper.assert_argument_type(2, control, "FCControl", "FCMControl")
+        mixin_helper.assert_argument_type(3, callback, "function")
 
         if not self:RegisterHandleControlEvent_(control, function(ctrl)
             callback(self:FindControl(ctrl:GetControlID()))
@@ -625,7 +626,7 @@ Override Changes:
 @ callback (function) See `HandleTimer` for callback signature (note the change in arguments).
 ]]
     function props:RegisterHandleTimer(callback)
-        mixin.assert_argument(callback, "function", 2)
+        mixin_helper.assert_argument_type(2, callback, "function")
 
         private[self].HandleTimer.Registered = callback
     end
@@ -643,8 +644,8 @@ If a handler is added for a timer that hasn't been set, the timer ID will no lon
 @ callback (function) See `HandleTimer` for callback signature.
 ]]
     function props:AddHandleTimer(timerid, callback)
-        mixin.assert_argument(timerid, "number", 2)
-        mixin.assert_argument(callback, "function", 3)
+        mixin_helper.assert_argument_type(2, timerid, "number")
+        mixin_helper.assert_argument_type(3, callback, "function")
 
         private[self].HandleTimer[timerid] = private[self].HandleTimer[timerid] or {}
 
@@ -663,8 +664,8 @@ Removes a handler added with `AddHandleTimer`.
 @ callback (function)
 ]]
     function props:RemoveHandleTimer(timerid, callback)
-        mixin.assert_argument(timerid, "number", 2)
-        mixin.assert_argument(callback, "function", 3)
+        mixin_helper.assert_argument_type(2, timerid, "number")
+        mixin_helper.assert_argument_type(3, callback, "function")
 
         if not private[self].HandleTimer[timerid] then
             return
@@ -686,8 +687,8 @@ Override Changes:
 @ msinterval (number)
 ]]
     function props:SetTimer(timerid, msinterval)
-        mixin.assert_argument(timerid, "number", 2)
-        mixin.assert_argument(msinterval, "number", 3)
+        mixin_helper.assert_argument_type(2, timerid, "number")
+        mixin_helper.assert_argument_type(3, msinterval, "number")
 
         self:SetTimer_(timerid, msinterval)
 
@@ -724,7 +725,7 @@ Sets a timer using the next available ID (according to `GetNextTimerID`) and ret
 : (number) The ID of the newly created timer.
 ]]
     function props:SetNextTimer(msinterval)
-        mixin.assert_argument(msinterval, "number", 2)
+        mixin_helper.assert_argument_type(2, msinterval, "number")
 
         local timerid = mixin.FCMCustomLuaWindow.GetNextTimerID(self)
         mixin.FCMCustomLuaWindow.SetTimer(self, timerid, msinterval)
@@ -747,7 +748,7 @@ This is disabled by default.
 @ enabled (boolean)
 ]]
     function props:SetEnableAutoRestorePosition(enabled)
-        mixin.assert_argument(enabled, "boolean", 2)
+        mixin_helper.assert_argument_type(2, enabled, "boolean")
 
         private[self].EnableAutoRestorePosition = enabled
     end
@@ -781,10 +782,10 @@ Override Changes:
 @ height (number)
 ]]
     function props:SetRestorePositionData(x, y, width, height)
-        mixin.assert_argument(x, "number", 2)
-        mixin.assert_argument(y, "number", 3)
-        mixin.assert_argument(width, "number", 4)
-        mixin.assert_argument(height, "number", 5)
+        mixin_helper.assert_argument_type(2, x, "number")
+        mixin_helper.assert_argument_type(3, y, "number")
+        mixin_helper.assert_argument_type(4, width, "number")
+        mixin_helper.assert_argument_type(5, height, "number")
 
         self:SetRestorePositionOnlyData_(x, y, width, height)
 
@@ -807,8 +808,8 @@ Override Changes:
 @ y (number)
 ]]
     function props:SetRestorePositionOnlyData(x, y)
-        mixin.assert_argument(x, "number", 2)
-        mixin.assert_argument(y, "number", 3)
+        mixin_helper.assert_argument_type(2, x, "number")
+        mixin_helper.assert_argument_type(3, y, "number")
 
         self:SetRestorePositionOnlyData_(x, y)
 
@@ -832,7 +833,7 @@ This is disabled by default.
 @ enabled (boolean)
 ]]
 function props:SetEnableDebugClose(enabled)
-    mixin.assert_argument(enabled, "boolean", 2)
+    mixin_helper.assert_argument_type(2, enabled, "boolean")
 
     private[self].EnableDebugClose = enabled and true or false
 end
@@ -861,7 +862,7 @@ This is disabled by default.
 @ enabled (boolean) `true` to enable, `false` to disable.
 ]]
 function props:SetRestoreControlState(enabled)
-    mixin.assert_argument(enabled, "boolean", 2)
+    mixin_helper.assert_argument_type(2, enabled, "boolean")
 
     private[self].RestoreControlState = enabled and true or false
 end
@@ -904,7 +905,7 @@ Override Changes:
 : (number)
 ]]
 function props:ExecuteModal(parent)
-  if mixin.is_instance_of(parent, "FCMCustomLuaWindow") and private[self].UseParentMeasurementUnit then
+    if mixin_helper.is_instance_of(parent, "FCMCustomLuaWindow") and private[self].UseParentMeasurementUnit then
         self:SetMeasurementUnit(parent:GetMeasurementUnit())
     end
 
@@ -998,7 +999,7 @@ All controls that have an `UpdateMeasurementUnit` method will have that method c
 @ unit (number) One of the finale MEASUREMENTUNIT constants.
 ]]
 function props:SetMeasurementUnit(unit)
-    mixin.assert_argument(unit, "number", 2)
+    mixin_helper.assert_argument_type(2, unit, "number")
 
     if unit == private[self].MeasurementUnit then
         return
@@ -1058,7 +1059,7 @@ Sets whether to use the parent window's measurement unit when opening this windo
 @ enabled (boolean)
 ]]
 function props:SetUseParentMeasurementUnit(enabled)
-    mixin.assert_argument(enabled, "boolean", 2)
+    mixin_helper.assert_argument_type(2, enabled, "boolean")
 
     private[self].UseParentMeasurementUnit = enabled and true or false
 end
@@ -1121,9 +1122,9 @@ Creates an `FCXCtrlMeasurementEdit` control.
 : (FCXCtrlMeasurementEdit)
 ]]
 function props:CreateMeasurementEdit(x, y, control_name)
-    mixin.assert_argument(x, "number", 2)
-    mixin.assert_argument(y, "number", 3)
-    mixin.assert_argument(control_name, {"string", "nil"}, 4)
+    mixin_helper.assert_argument_type(2, x, "number")
+    mixin_helper.assert_argument_type(3, y, "number")
+    mixin_helper.assert_argument_type(4, control_name, "string", "nil")
 
     local edit = mixin.FCMCustomWindow.CreateEdit(self, x, y, control_name)
     return mixin.subclass(edit, "FCXCtrlMeasurementEdit")
@@ -1141,9 +1142,9 @@ Creates a popup which allows the user to change the window's measurement unit.
 : (FCXCtrlMeasurementUnitPopup)
 ]]
 function props:CreateMeasurementUnitPopup(x, y, control_name)
-    mixin.assert_argument(x, "number", 2)
-    mixin.assert_argument(y, "number", 3)
-    mixin.assert_argument(control_name, {"string", "nil"}, 4)
+    mixin_helper.assert_argument_type(2, x, "number")
+    mixin_helper.assert_argument_type(3, y, "number")
+    mixin_helper.assert_argument_type(4, control_name, "string", "nil")
 
     local popup = mixin.FCMCustomWindow.CreatePopup(self, x, y, control_name)
     return mixin.subclass(popup, "FCXCtrlMeasurementUnitPopup")
@@ -1161,9 +1162,9 @@ Creates a popup which allows the user to select a page size.
 : (FCXCtrlPageSizePopup)
 ]]
 function props:CreatePageSizePopup(x, y, control_name)
-    mixin.assert_argument(x, "number", 2)
-    mixin.assert_argument(y, "number", 3)
-    mixin.assert_argument(control_name, {"string", "nil"}, 4)
+    mixin_helper.assert_argument_type(2, x, "number")
+    mixin_helper.assert_argument_type(3, y, "number")
+    mixin_helper.assert_argument_type(4, control_name, "string", "nil")
 
     local popup = mixin.FCMCustomWindow.CreatePopup(self, x, y, control_name)
     return mixin.subclass(popup, "FCXCtrlPageSizePopup")

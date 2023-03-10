@@ -481,6 +481,69 @@ function library.is_finale_object(object)
 end
 
 --[[
+% get_parent_class
+
+Returns the name of the parent of a class.
+
+@ classname (string)
+: (string | nil) The parent classname or `nil` if the class has no parent (ie `__FCBase`).
+]]
+function library.get_parent_class(classname)
+    local class = finale[classname]
+    if type(class) ~= "table" then return nil end
+    if not finenv.IsRGPLua then -- old jw lua
+        local classt = class.__class
+        if classt and classname ~= "__FCBase" then
+            local classtp = classt.__parent -- this line crashes Finale (in jw lua 0.54) if "__parent" doesn't exist, so we excluded "__FCBase" above, the only class without a parent
+            if classtp and type(classtp) == "table" then
+                for k, v in pairs(finale) do
+                    if type(v) == "table" then
+                        if v.__class and v.__class == classtp then
+                            return tostring(k)
+                        end
+                    end
+                end
+            end
+        end
+    else
+        for k, _ in pairs(class.__parent) do
+            return tostring(k)  -- in RGP Lua the v is just a dummy value, and the key is the classname of the parent
+        end
+    end
+    return nil
+end
+
+--[[
+% get_class_name
+
+Returns the real class name of a Finale object. Some classes in older JW/RGPLua versions have incorrect class names, so this function attempts to resolve them with ducktyping
+
+@ object (__FCBase)
+: (string)
+]]
+function library.get_class_name(object)
+    local class_name = object:ClassName(object)
+
+    if class_name == "__FCCollection" and object.ExecuteModal then
+        return object.RegisterHandleCommand and "FCCustomLuaWindow" or "FCCustomWindow"
+    elseif class_name == "FCControl" then
+        if object.GetCheck then
+            return "FCCtrlCheckbox"
+        elseif object.GetThumbPosition then
+            return "FCCtrlSlider"
+        elseif object.AddPage then
+            return "FCCtrlSwitcher"
+        else
+            return "FCCtrlButton"
+        end
+    elseif class_name == "FCCtrlButton" and object.GetThumbPosition then
+        return "FCCtrlSlider"
+    end
+
+    return class_name
+end
+
+--[[
 % system_indent_set_to_prefs
 
 Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)

@@ -77,7 +77,7 @@ Ensures that `ThumbPositionChange` event is triggered.
 @ position (number)
 ]]
 function props:SetThumbPosition(position)
-    mixin.assert_argument(position, "number", 2)
+    mixin_helper.assert_argument_type(2, position, "number")
 
     self:SetThumbPosition_(position)
 
@@ -94,7 +94,7 @@ Ensures that `ThumbPositionChange` is triggered.
 @ minvalue (number)
 ]]
 function props:SetMinValue(minvalue)
-    mixin.assert_argument(minvalue, "number", 2)
+    mixin_helper.assert_argument_type(2, minvalue, "number")
 
     self:SetMinValue_(minvalue)
 
@@ -111,7 +111,7 @@ Ensures that `ThumbPositionChange` is triggered.
 @ maxvalue (number)
 ]]
 function props:SetMaxValue(maxvalue)
-    mixin.assert_argument(maxvalue, "number", 2)
+    mixin_helper.assert_argument_type(2, maxvalue, "number")
 
     self:SetMaxValue_(maxvalue)
 

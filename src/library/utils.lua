@@ -13,6 +13,9 @@ If a table is passed, returns a copy, otherwise returns the passed value.
 @ t (mixed)
 : (mixed)
 ]]
+---@generic T
+---@param t T
+---@return T
 function utils.copy_table(t)
     if type(t) == "table" then
         local new = {}
@@ -183,6 +186,94 @@ Removes whitespace from the start and end of a string.
 ]]
 function utils.lrtrim(str)
     return utils.ltrim(utils.rtrim(str))
+end
+
+--[[
+% call_and_rethrow
+
+Calls a function and returns any returned values. If any errors are thrown at the level this function is called, they will be rethrown at the specified level with new level information.
+If the error message contains the rethrow placeholder enclosed in single quotes (see `utils.rethrow_placeholder`), it will be replaced with the correct function name for the new level.
+
+*The first argument must have the same name as the `rethrow_placeholder`, chosen for uniqueness.*
+
+@ levels (number) Number of levels to rethrow.
+@ tryfunczzz (function) The function to call.
+@ ... (any) Any arguments to be passed to the function.
+: (any) If no error is caught, returns the returned values from `tryfunczzz`
+]]
+local pcall_wrapper
+local rethrow_placeholder = "tryfunczzz" -- If changing this, make sure to do a search and replace for all instances in this file, including the argument to `rethrow_error`
+local pcall_line = debug.getinfo(1, "l").currentline + 2 -- This MUST refer to the pcall 2 lines below
+function utils.call_and_rethrow(levels, tryfunczzz, ...)
+    return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
+    -- ^Tail calls aren't counted as levels in the call stack. Adding an additional return value (in this case, 1) forces this level to be included, which enables the error to be accurately captured
+end
+
+-- Get the name of this file.
+local source = debug.getinfo(1, "S").source
+local source_is_file = source:sub(1, 1) == "@"
+if source_is_file then
+    source = source:sub(2)
+end
+
+-- Processes the results from the pcall in catch_and_rethrow
+pcall_wrapper = function(levels, success, result, ...)
+    if not success then
+        local file
+        local line
+        local msg
+        file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
+        msg = msg or result
+
+        local file_is_truncated = file and file:sub(1, 3) == "..."
+        file = file_is_truncated and file:sub(4) or file
+
+        -- Conditions for rethrowing at a higher level:
+        -- Ignore errors thrown with no level info (ie. level = 0), as we can't make any assumptions
+        -- Both the file and line number indicate that it was thrown at this level
+        if file
+            and line
+            and source_is_file
+            and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
+            and tonumber(line) == pcall_line
+        then
+            local d = debug.getinfo(levels, "n")
+
+            -- Replace the method name with the correct one, for bad argument errors etc
+            msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
+
+            -- Shift argument numbers down by one for colon function calls
+            if d.namewhat == "method" then
+                local arg = msg:match("^bad argument #(%d+)")
+
+                if arg then
+                    msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
+                end
+            end
+
+            error(msg, levels + 1)
+
+        -- Otherwise, it's either an internal function error or we couldn't be certain that it isn't
+        -- So, rethrow with original file and line number to be 'safe'
+        else
+            error(result, 0)
+        end
+    end
+
+    return ...
+end
+
+--[[
+% rethrow_placeholder
+
+Returns the function name placeholder (enclosed in single quotes, the same as in Lua's internal errors) used in `call_and_rethrow`.
+
+Use this in error messages where the function name is variable or unknown (eg because the error is thrown up multiple levels) and needs to be replaced with the correct one at runtime by `call_and_rethrow`.
+
+: (string)
+]]
+function utils.rethrow_placeholder()
+    return "'" .. rethrow_placeholder .. "'"
 end
 
 return utils
