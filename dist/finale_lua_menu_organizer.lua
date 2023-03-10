@@ -360,7 +360,13 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
                 elseif line:find(separator_indicator, 1, true) == 1 then
                     menu.insert_separator(to_menu)
                 else
-                    local item_menu, item_index = menu.find_item(from_menu, line)
+                    local find_item = function(start_menu, str)
+                        if finenv.UI():IsOnWindows() then
+                            str = str:gsub("&", "")
+                        end
+                        return menu.find_item(start_menu, str)
+                    end
+                    local item_menu, item_index = find_item(from_menu, line)
                     if item_menu then
                         if menu.move_item(item_menu, item_index, to_menu) then
                             menus_to_delete[item_menu] = true
@@ -372,7 +378,7 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
                             local original_text = utils.trim(line:sub(1, found - 1))
                             local replacement_text = utils.trim(line:sub(found + #replacement_indicator))
                             if #replacement_text > 0 then
-                                item_menu, item_index = menu.find_item(from_menu, original_text)
+                                item_menu, item_index = find_item(from_menu, original_text)
                                 if item_menu then
                                     local success, index = menu.move_item(item_menu, item_index, to_menu)
                                     if success then
