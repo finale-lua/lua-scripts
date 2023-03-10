@@ -163,8 +163,8 @@ local get_parameters_from_file = function(file_path, parameter_list)
         end
         local delimiter_at = string.find(line, parameter_delimiter, 1, true)
         if nil ~= delimiter_at then
-            local name = utils.lrtrim(string.sub(line, 1, delimiter_at - 1))
-            local val_string = utils.lrtrim(string.sub(line, delimiter_at + 1))
+            local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
+            local val_string = utils.trim(string.sub(line, delimiter_at + 1))
             file_parameters[name] = parse_parameter(val_string)
         end
     end

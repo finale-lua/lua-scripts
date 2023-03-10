@@ -174,7 +174,7 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
         return success
     end
     local function extract_keyword_value(keyword, line)
-        local result = utils.lrtrim(line:sub(#keyword + 1))
+        local result = utils.trim(line:sub(#keyword + 1))
         if not finenv.UI():IsOnWindows() then
             result = result:gsub("&", "")
         end
@@ -191,7 +191,7 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
         if comment_start then
             line = line:sub(1, comment_start-1)
         end
-        line = utils.lrtrim(line)
+        line = utils.trim(line)
         if #line > 0 then
             if line:find(menuname_keyword, 1, true) == 1 then
                 line = extract_keyword_value(menuname_keyword, line)
@@ -227,8 +227,8 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
                     else
                         local found = line:find(replacement_indicator, -#line, true)
                         if found then
-                            local original_text = utils.lrtrim(line:sub(1, found - 1))
-                            local replacement_text = utils.lrtrim(line:sub(found + #replacement_indicator))
+                            local original_text = utils.trim(line:sub(1, found - 1))
+                            local replacement_text = utils.trim(line:sub(found + #replacement_indicator))
                             if #replacement_text > 0 then
                                 item_menu, item_index = menu.find_item(from_menu, original_text)
                                 if item_menu then
