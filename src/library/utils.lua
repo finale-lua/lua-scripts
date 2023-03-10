@@ -165,7 +165,7 @@ function utils.ltrim(str)
 end
 
 --[[
-% ltrim
+% rtrim
 
 Removes whitespace from the end of a string.
 
@@ -177,14 +177,14 @@ function utils.rtrim(str)
 end
 
 --[[
-% ltrim
+% trim
 
 Removes whitespace from the start and end of a string.
 
 @ str (string)
 : (string)
 ]]
-function utils.lrtrim(str)
+function utils.trim(str)
     return utils.ltrim(utils.rtrim(str))
 end
 
