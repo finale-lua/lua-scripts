@@ -5,7 +5,7 @@ export const generateLuaRequire = () => {
         '__imports = __imports or {}',
         '__import_results = __import_results or {}',
         '',
-        '__aaa_original_require_for_deployment__ = require',
+        '__aaa_original_require_for_deployment__ = __aaa_original_require_for_deployment__ or require',
         'function require(item)',
         '    if not __imports[item] then',
         '        return __aaa_original_require_for_deployment__(item) -- attempt to require it with the original require, since it may be a C library.',
