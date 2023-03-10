@@ -3527,7 +3527,7 @@ __imports["library.utils"] = __imports["library.utils"] or function()
         return string.match(str, "(.-)%s*$")
     end
 
-    function utils.lrtrim(str)
+    function utils.trim(str)
         return utils.ltrim(utils.rtrim(str))
     end
 

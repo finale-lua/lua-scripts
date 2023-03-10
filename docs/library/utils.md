@@ -13,8 +13,8 @@ A library of general Lua utility functions.
 - [calc_alphabet(num)](#calc_alphabet)
 - [clamp(num, minimum, maximum)](#clamp)
 - [ltrim(str)](#ltrim)
-- [ltrim(str)](#ltrim)
-- [ltrim(str)](#ltrim)
+- [rtrim(str)](#rtrim)
+- [trim(str)](#trim)
 - [call_and_rethrow(levels, tryfunczzz)](#call_and_rethrow)
 - [rethrow_placeholder()](#rethrow_placeholder)
 
@@ -182,13 +182,13 @@ Removes whitespace from the start of a string.
 | ----------- | ----------- |
 | `string` |  |
 
-### ltrim
+### rtrim
 
 ```lua
-utility_functions.ltrim(str)
+utility_functions.rtrim(str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L180)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L175)
 
 Removes whitespace from the end of a string.
 
@@ -200,13 +200,13 @@ Removes whitespace from the end of a string.
 | ----------- | ----------- |
 | `string` |  |
 
-### ltrim
+### trim
 
 ```lua
-utility_functions.ltrim(str)
+utility_functions.trim(str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L188)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/utils.lua#L187)
 
 Removes whitespace from the start and end of a string.
 

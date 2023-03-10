@@ -605,7 +605,7 @@ __imports["library.utils"] = __imports["library.utils"] or function()
         return string.match(str, "(.-)%s*$")
     end
 
-    function utils.lrtrim(str)
+    function utils.trim(str)
         return utils.ltrim(utils.rtrim(str))
     end
 
@@ -710,8 +710,8 @@ __imports["library.configuration"] = __imports["library.configuration"] or funct
             end
             local delimiter_at = string.find(line, parameter_delimiter, 1, true)
             if nil ~= delimiter_at then
-                local name = utils.lrtrim(string.sub(line, 1, delimiter_at - 1))
-                local val_string = utils.lrtrim(string.sub(line, delimiter_at + 1))
+                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
+                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
                 file_parameters[name] = parse_parameter(val_string)
             end
         end
