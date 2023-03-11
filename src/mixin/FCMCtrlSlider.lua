@@ -3,19 +3,20 @@
 --[[
 $module FCMCtrlSlider
 
-Summary of modifications:
+## Summary of Modifications
 - Added `ThumbPositionChange` custom control event *(see note)*.
 
-**Note on `ThumbPositionChange` event:**
-Command events do not fire for `FCCtrlSlider` controls, so a workaround is used to make the `ThumbPositionChange` events work.
-If using JW/RGPLua version 0.55 or lower, then the event dispatcher will run with the next Command event for a different control. In these versions the event is unreliable as the user will need to interact with another control for the change in thumb position to be registered.
-If using version 0.56 or later, then the dispatcher will run every 1 second. This is more reliable than in earlier versions but it still will not fire immediately.
+## Note on `ThumbPositionChange` and `Command` Events
+Command events do not fire for `FCCtrlSlider` controls before RGPLua 0.64, so a workaround is used to make the `ThumbPositionChange` events fire.
+- If using JW/RGPLua version 0.55 or lower, then the event dispatcher will run with the next Command event for a different control. In these versions the event is unreliable as the user will need to interact with another control for the change in thumb position to be registered.
+- If using version 0.56 or later, then the dispatcher will run every 1 second. This is more reliable than in earlier versions but it still will not fire immediately.
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
+local meta = {}
+local public = {}
 local windows = setmetatable({}, {__mode = "k"})
-local props = {}
 
 local trigger_thumb_position_change
 local each_last_thumb_position_change
@@ -48,13 +49,16 @@ end
 
 **[Internal] [Override]**
 
+Override Changes:
+- Bootstrap workaround for command events not firing on `FCCtrlSlider` controls
+
 @ self (FCMCtrlSlider)
-@ window (FCMCustomLuaWindow)
+@ window (FCMCustomWindow)
 ]]
-function props:RegisterParent(window)
+function public:RegisterParent(window)
     mixin.FCMControl.RegisterParent(self, window)
 
-    if not windows[window] then
+    if finenv.MajorVersion == 0 and finenv.MinorVersion < 64 and not windows[window] and mixin_helper.is_instance_of(window, "FCMCustomLuaWindow") then
         -- Bootstrap to command events for every other control
         window:AddHandleCommand(bootstrap_command)
 
@@ -71,12 +75,14 @@ end
 % SetThumbPosition
 
 **[Fluid] [Override]**
-Ensures that `ThumbPositionChange` event is triggered.
+
+Override Changes:
+- Ensure that `ThumbPositionChange` event is triggered.
 
 @ self (FCMCtrlSlider)
 @ position (number)
 ]]
-function props:SetThumbPosition(position)
+function public:SetThumbPosition(position)
     mixin_helper.assert_argument_type(2, position, "number")
 
     self:SetThumbPosition_(position)
@@ -88,12 +94,14 @@ end
 % SetMinValue
 
 **[Fluid] [Override]**
-Ensures that `ThumbPositionChange` is triggered.
+
+Override Changes:
+- Ensure that `ThumbPositionChange` is triggered.
 
 @ self (FCMCtrlSlider)
 @ minvalue (number)
 ]]
-function props:SetMinValue(minvalue)
+function public:SetMinValue(minvalue)
     mixin_helper.assert_argument_type(2, minvalue, "number")
 
     self:SetMinValue_(minvalue)
@@ -105,12 +113,14 @@ end
 % SetMaxValue
 
 **[Fluid] [Override]**
-Ensures that `ThumbPositionChange` is triggered.
+
+Override Changes:
+- Ensure that `ThumbPositionChange` event is triggered.
 
 @ self (FCMCtrlSlider)
 @ maxvalue (number)
 ]]
-function props:SetMaxValue(maxvalue)
+function public:SetMaxValue(maxvalue)
     mixin_helper.assert_argument_type(2, maxvalue, "number")
 
     self:SetMaxValue_(maxvalue)
@@ -131,10 +141,11 @@ end
 % AddHandleChange
 
 **[Fluid]**
+
 Adds a handler for when the slider's thumb position changes.
 The even will fire when:
 - The window is created
-- The slider is moved by the user
+- The slider is moved by the user (see note regarding command events)
 - The slider's postion is changed programmatically (if the thumb position is changed within a handler, that *same* handler will not be called again for that change.)
 
 @ self (FCMCtrlSlider)
@@ -145,13 +156,18 @@ The even will fire when:
 % RemoveHandleThumbPositionChange
 
 **[Fluid]**
+
 Removes a handler added with `AddHandleThumbPositionChange`.
 
 @ self (FCMCtrlSlider)
 @ callback (function)
 ]]
-props.AddHandleThumbPositionChange, props.RemoveHandleThumbPositionChange, trigger_thumb_position_change, each_last_thumb_position_change =
-    mixin_helper.create_custom_control_change_event(
-        {name = "last_position", get = "GetThumbPosition_", initial = -1})
+public.AddHandleThumbPositionChange, public.RemoveHandleThumbPositionChange, trigger_thumb_position_change, each_last_thumb_position_change = mixin_helper.create_custom_control_change_event(
+    {
+        name = "last_position",
+        get = "GetThumbPosition_",
+        initial = -1,
+    }
+)
 
-return props
+return {meta, public}

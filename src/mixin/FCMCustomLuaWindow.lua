@@ -1009,7 +1009,7 @@ function props:SetMeasurementUnit(unit)
         unit = measurement.get_real_default_unit()
     end
 
-    mixin.force_assert(measurement.is_valid_unit(unit), "Measurement unit is not valid.")
+    mixin_helper.force_assert(measurement.is_valid_unit(unit), "Measurement unit is not valid.")
 
     private[self].MeasurementUnit = unit
 

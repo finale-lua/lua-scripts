@@ -3,7 +3,7 @@
 --[[
 $module FCMCustomWindow
 
-Summary of modifications:
+## Summary of Modifications
 - `Create*` methods have an additional optional parameter for specifying a control name. Named controls can be retrieved via `GetControl`.
 - Cache original control objects to preserve mixin data and override control getters to return the original objects.
 - Added `Each` method for iterating over controls by class name.
@@ -11,8 +11,28 @@ Summary of modifications:
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
+local meta = {}
+local public = {}
 local private = setmetatable({}, {__mode = "k"})
-local props = {}
+
+local function create_control(self, func, num_args, ...)
+    local control = self["Create" .. func .. "_"](self, ...)
+    private[self].Controls[control:GetControlID()] = control
+    control:RegisterParent(self)
+
+    local control_name = select(num_args + 1, ...)
+    if control_name then
+        control_name = type(control_name) == "userdata" and control_name.LuaString or control_name
+
+        if private[self].NamedControls[control_name] then
+            error("A control is already registered with the name '" .. control_name .. "'", 2)
+        end
+
+        private[self].NamedControls[control_name] = control
+    end
+
+    return control
+end
 
 --[[
 % Init
@@ -21,8 +41,12 @@ local props = {}
 
 @ self (FCMCustomWindow)
 ]]
-function props:Init()
-    private[self] = private[self] or {
+function meta:Init()
+    if private[self] then
+        return
+    end
+
+    private[self] = {
         Controls = {},
         NamedControls = {},
     }
@@ -32,10 +56,13 @@ end
 % CreateCancelButton
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlButton)
 ]]
 
@@ -43,47 +70,29 @@ Add optional `control_name` parameter.
 % CreateOkButton
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlButton)
 ]]
-
--- Override Create* methods to store a reference to the original created object and its control ID
--- Also adds an optional parameter at the end for a control name
-for _, f in ipairs({"CancelButton", "OkButton"}) do
-    props["Create" .. f] = function(self, control_name)
-        mixin_helper.assert_argument_type(2, control_name, "string", "nil", "FCString")
-
-        local control = self["Create" .. f .. "_"](self)
-        private[self].Controls[control:GetControlID()] = control
-        control:RegisterParent(self)
-
-        if control_name then
-            control_name = type(control_name) == "userdata" and control_name.LuaString or control_name
-
-            if private[self].NamedControls[control_name] then
-                error("A control is already registered with the name '" .. control_name .. "'", 2)
-            end
-
-            private[self].NamedControls[control_name] = control
-        end
-
-        return control
-    end
-end
 
 --[[
 % CreateButton
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlButton)
 ]]
 
@@ -91,25 +100,46 @@ Add optional `control_name` parameter.
 % CreateCheckbox
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
+
+@ self (FCMCustomWindow)
+@ x (number)
+@ y (number)
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
+: (FCMCtrlCheckbox)
+]]
+
+--[[
+% CreateCloseButton
+
+**[>= v0.56] [Override]**
+
+Override Changes:
+- Added optional `control_name` parameter.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
 @ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
-: (FCMCtrlCheckbox)
+: (FCMCtrlButton)
 ]]
 
 --[[
 % CreateDataList
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlDataList)
 ]]
 
@@ -117,12 +147,15 @@ Add optional `control_name` parameter.
 % CreateEdit
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlEdit)
 ]]
 
@@ -130,12 +163,15 @@ Add optional `control_name` parameter.
 % CreateListBox
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlListBox)
 ]]
 
@@ -143,12 +179,15 @@ Add optional `control_name` parameter.
 % CreatePopup
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlPopup)
 ]]
 
@@ -156,12 +195,15 @@ Add optional `control_name` parameter.
 % CreateSlider
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlSlider)
 ]]
 
@@ -169,12 +211,15 @@ Add optional `control_name` parameter.
 % CreateStatic
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlStatic)
 ]]
 
@@ -182,12 +227,15 @@ Add optional `control_name` parameter.
 % CreateSwitcher
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlSwitcher)
 ]]
 
@@ -195,12 +243,15 @@ Add optional `control_name` parameter.
 % CreateTree
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlTree)
 ]]
 
@@ -208,53 +259,32 @@ Add optional `control_name` parameter.
 % CreateUpDown
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlUpDown)
 ]]
-
-for _, f in ipairs(
-                {
-        "Button", "Checkbox", "DataList", "Edit", "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
-    }) do
-    props["Create" .. f] = function(self, x, y, control_name)
-        mixin_helper.assert_argument_type(2, x, "number")
-        mixin_helper.assert_argument_type(3, y, "number")
-        mixin_helper.assert_argument_type(4, control_name, "string", "nil", "FCString")
-
-        local control = self["Create" .. f .. "_"](self, x, y)
-        private[self].Controls[control:GetControlID()] = control
-        control:RegisterParent(self)
-
-        if control_name then
-            control_name = type(control_name) == "userdata" and control_name.LuaString or control_name
-
-            if private[self].NamedControls[control_name] then
-                error("A control is already registered with the name '" .. control_name .. "'", 2)
-            end
-
-            private[self].NamedControls[control_name] = control
-        end
-
-        return control
-    end
-end
 
 --[[
 % CreateHorizontalLine
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
 @ length (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlLine)
 ]]
 
@@ -262,38 +292,43 @@ Add optional `control_name` parameter.
 % CreateVerticalLine
 
 **[Override]**
-Add optional `control_name` parameter.
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
 
 @ self (FCMCustomWindow)
 @ x (number)
 @ y (number)
 @ length (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
 : (FCMCtrlLine)
 ]]
 
-for _, f in ipairs({"HorizontalLine", "VerticalLine"}) do
-    props["Create" .. f] = function(self, x, y, length, control_name)
-        mixin_helper.assert_argument_type(2, x, "number")
-        mixin_helper.assert_argument_type(3, y, "number")
-        mixin_helper.assert_argument_type(4, length, "number")
-        mixin_helper.assert_argument_type(5, control_name, "string", "nil", "FCString")
-
-        local control = self["Create" .. f .. "_"](self, x, y, length)
-        private[self].Controls[control:GetControlID()] = control
-        control:RegisterParent(self)
-
-        if control_name then
-            control_name = type(control_name) == "userdata" and control_name.LuaString or control_name
-
-            if private[self].NamedControls[control_name] then
-                error("A control is already registered with the name '" .. control_name .. "'", 2)
-            end
-
-            private[self].NamedControls[control_name] = control
+-- Override Create* methods to store a reference to the original created object and its control ID
+-- Also adds an optional parameter at the end for a control name
+for num_args, ctrl_types in pairs({
+    [0] = {"CancelButton", "OpenButton",},
+    [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit",
+        "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
+    },
+    [3] = {"HorizontalLine", "VerticalLine",},
+}) do
+    for _, control_type in pairs(ctrl_types) do
+        if not finale.FCCustomWindow.__class["Create" .. control_type] then
+            goto continue
         end
 
-        return control
+        public["Create" .. control_type] = function(self, ...)
+            for i = 1, num_args do
+                mixin_helper.assert_argument_type(i + 1, select(i, ...), "number")
+            end
+            mixin_helper.assert_argument_type(num_args + 2, select(num_args + 1, ...), "string", "nil", "FCString")
+
+            return create_control(self, control_type, num_args, ...)
+        end
+
+        :: continue ::
     end
 end
 
@@ -301,13 +336,17 @@ end
 % FindControl
 
 **[PDK Port]**
+
 Finds a control based on its ID.
+
+Port Changes:
+- Returns the original control object.
 
 @ self (FCMCustomWindow)
 @ control_id (number)
-: (FCMControl|nil)
+: (FCMControl | nil)
 ]]
-function props:FindControl(control_id)
+function public:FindControl(control_id)
     mixin_helper.assert_argument_type(2, control_id, "number")
 
     return private[self].Controls[control_id]
@@ -319,10 +358,10 @@ end
 Finds a control based on its name.
 
 @ self (FCMCustomWindow)
-@ control_name (FCString|string)
-: (FCMControl|nil)
+@ control_name (FCString | string)
+: (FCMControl | nil)
 ]]
-function props:GetControl(control_name)
+function public:GetControl(control_name)
     mixin_helper.assert_argument_type(2, control_name, "string", "FCString")
 
     return private[self].NamedControls[control_name]
@@ -337,7 +376,7 @@ An iterator for controls that can filter by class.
 @ [class_filter] (string) A class name, can be a parent class. See documentation `mixin.is_instance_of` for details on class filtering.
 : (function) An iterator function.
 ]]
-function props:Each(class_filter)
+function public:Each(class_filter)
     local i = -1
     local v
     local iterator = function()
@@ -356,63 +395,30 @@ end
 % GetItemAt
 
 **[Override]**
-Ensures that the original control object is returned.
+
+Override Changes:
+- Returns the original control object.
 
 @ self (FCMCustomWindow)
 @ index (number)
 : (FCMControl)
 ]]
-function props:GetItemAt(index)
+function public:GetItemAt(index)
     local item = self:GetItemAt_(index)
     return item and private[self].Controls[item:GetControlID()] or item
-end
-
---[[
-% CreateCloseButton
-
-**[>= v0.56] [Override]**
-Add optional `control_name` parameter.
-
-@ self (FCMCustomWindow)
-@ x (number)
-@ y (number)
-@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
-: (FCMCtrlButton)
-]]
-if finenv.MajorVersion > 0 or finenv.MinorVersion >= 56 then
-    function props.CreateCloseButton(self, x, y, control_name)
-        mixin_helper.assert_argument_type(2, x, "number")
-        mixin_helper.assert_argument_type(3, y, "number")
-        mixin_helper.assert_argument_type(4, control_name, "string", "nil", "FCString")
-
-        local control = self:CreateCloseButton_(x, y)
-        private[self].Controls[control:GetControlID()] = control
-        control:RegisterParent(self)
-
-        if control_name then
-            control_name = type(control_name) == "userdata" and control_name.LuaString or control_name
-
-            if private[self].NamedControls[control_name] then
-                error("A control is already registered with the name '" .. control_name .. "'", 2)
-            end
-
-            private[self].NamedControls[control_name] = control
-        end
-
-        return control
-    end
 end
 
 --[[
 % GetParent
 
 **[PDK Port]**
+
 Returns the parent window. The parent will only be available while the window is showing.
 
 @ self (FCMCustomWindow)
-: (FCMCustomWindow|nil) `nil` if no parent
+: (FCMCustomWindow | nil) `nil` if no parent
 ]]
-function props:GetParent()
+function public:GetParent()
     return private[self].Parent
 end
 
@@ -420,17 +426,19 @@ end
 % ExecuteModal
 
 **[Override]**
-Stores the parent window to make it available via `GetParent`.
+
+Override Changes:
+- Stores the parent window to make it available via `GetParent`.
 
 @ self (FCMCustomWindow)
-@ parent (FCCustomWindow|FCMCustomWindow|nil)
+@ parent (FCCustomWindow | FCMCustomWindow | nil)
 : (number)
 ]]
-function props:ExecuteModal(parent)
+function public:ExecuteModal(parent)
     private[self].Parent = parent
     local ret = self:ExecuteModal_(parent)
     private[self].Parent = nil
     return ret
 end
 
-return props
+return {meta, public}

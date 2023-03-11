@@ -3,57 +3,61 @@
 --[[
 $module FCMTreeNode
 
-Summary of modifications:
-- Setters that accept `FCString` now also accept Lua `string` and `number`.
-- In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
+## Summary of Modifications
+- Setters that accept `FCString` also accept a Lua `string` or `number`.
+- `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local props = {}
+local meta = {}
+local public = {}
 
 local temp_str = finale.FCString()
 
 --[[
 % GetText
 
-**[Override]**
-Returns a Lua `string` and makes passing an `FCString` optional.
+**[?Fluid] [Override]**
+
+Override Changes:
+- Passing an `FCString` is optional. If omitted, the result is returned as a Lua `string`. If passed, nothing is returned and the method is fluid.
 
 @ self (FCMTreeNode)
 @ [str] (FCString)
-: (string)
+: (string) Returned if `str` is omitted.
 ]]
-function props:GetText(str)
+function public:GetText(str)
     mixin_helper.assert_argument_type(2, str, "nil", "FCString")
 
+    local do_return = false
     if not str then
         str = temp_str
+        do_return = true
     end
 
     self:GetText_(str)
 
-    return str.LuaString
+    if do_return then
+        return str.LuaString
+    end
 end
 
 --[[
 % SetText
 
 **[Fluid] [Override]**
-Accepts Lua `string` and `number` in addition to `FCString`.
+
+Override Changes:
+- Accepts Lua `string` or `number` in addition to `FCString`.
 
 @ self (FCMTreeNode)
-@ str (FCString|string|number)
+@ str (FCString | string | number)
 ]]
-function props:SetText(str)
+function public:SetText(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
-    if type(str) ~= "userdata" then
-        temp_str.LuaString = tostring(str)
-        str = temp_str
-    end
-
-    self:SetText_(str)
+    self:SetText_(mixin_helper.to_fcstring(str, temp_str))
 end
 
-return props
+return {meta, public}

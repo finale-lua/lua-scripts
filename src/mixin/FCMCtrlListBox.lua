@@ -3,21 +3,22 @@
 --[[
 $module FCMCtrlListBox
 
-Summary of modifications:
-- Setters that accept `FCString` now also accept Lua `string` and `number`.
-- In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
-- Setters that accept `FCStrings` now also accept multiple arguments of `FCString`, Lua `string`, or `number`.
-- Numerous additional methods for accessing and modifying listbox items.
+## Summary of Modifications
+- Setters that accept `FCString` will also accept a Lua `string` or `number`.
+- `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
+- Setters that accept `FCStrings` will also accept multiple arguments of `FCString`, Lua `string`, or `number`.
+- Added numerous methods for accessing and modifying listbox items.
 - Added `SelectionChange` custom control event.
-- Added hooks for restoring control state
+- Added hooks into control state preservation.
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local library = require("library.general_library")
 local utils = require("library.utils")
 
+local meta = {}
+local public = {}
 local private = setmetatable({}, {__mode = "k"})
-local props = {}
 
 local trigger_selection_change
 local each_last_selection_change
@@ -30,8 +31,12 @@ local temp_str = finale.FCString()
 
 @ self (FCMCtrlListBox)
 ]]
-function props:Init()
-    private[self] = private[self] or {
+function meta:Init()
+    if private[self] then
+        return
+    end
+
+    private[self] = {
         Items = {},
     }
 end
@@ -40,12 +45,15 @@ end
 % StoreState
 
 **[Fluid] [Internal] [Override]**
-Stores the control's current state.
-Do not disable this method. Override as needed but call the parent first.
+
+Override Changes:
+- Stores `FCMCtrlListBox`-specific properties.
+
+*Do not disable this method. Override as needed but call the parent first.*
 
 @ self (FCMCtrlListBox)
 ]]
-function props:StoreState()
+function public:StoreState()
     mixin.FCMControl.StoreState(self)
     private[self].SelectedItem = self:GetSelectedItem_()
 end
@@ -54,12 +62,15 @@ end
 % RestoreState
 
 **[Fluid] [Internal] [Override]**
-Restores the control's stored state.
-Do not disable this method. Override as needed but call the parent first.
+
+Override Changes:
+- Restores `FCMCtrlListBox`-specific properties.
+
+*Do not disable this method. Override as needed but call the parent first.*
 
 @ self (FCMCtrlListBox)
 ]]
-function props:RestoreState()
+function public:RestoreState()
     mixin.FCMControl.RestoreState(self)
 
     self:Clear_()
@@ -76,9 +87,13 @@ end
 
 **[Fluid] [Override]**
 
+Override Changes:
+- Ensures that `SelectionChange` event is triggered.
+- Hooks into control state preservation.
+
 @ self (FCMCtrlListBox)
 ]]
-function props:Clear()
+function public:Clear()
     if not mixin.FCMControl.UseStoredState(self) then
         self:Clear_()
     end
@@ -98,12 +113,14 @@ end
 % GetCount
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 @ self (FCMCtrlListBox)
 : (number)
 ]]
-function props:GetCount()
+function public:GetCount()
     if mixin.FCMControl.UseStoredState(self) then
         return #private[self].Items
     end
@@ -115,12 +132,14 @@ end
 % GetSelectedItem
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 @ self (FCMCtrlListBox)
 : (number)
 ]]
-function props:GetSelectedItem()
+function public:GetSelectedItem()
     if mixin.FCMControl.UseStoredState(self) then
         return private[self].SelectedItem
     end
@@ -132,13 +151,15 @@ end
 % SetSelectedItem
 
 **[Fluid] [Override]**
-Ensures that SelectionChange is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `SelectionChange` event is triggered.
+- Hooks into control state preservation.
 
 @ self (FCMCtrlListBox)
 @ index (number)
 ]]
-function props:SetSelectedItem(index)
+function public:SetSelectedItem(index)
     mixin_helper.assert_argument_type(2, index, "number")
 
     if mixin.FCMControl.UseStoredState(self) then
@@ -154,17 +175,20 @@ end
 % SetSelectedLast
 
 **[Override]**
-Ensures that `SelectionChange` is triggered.
+
+Override Changes:
+- Ensures that `SelectionChange` event is triggered.
+- Hooks into control state preservation.
 
 @ self (FCMCtrlListBox)
 : (boolean) `true` if a selection was possible.
 ]]
-function props:SetSelectedLast()
+function public:SetSelectedLast()
     local return_value
 
     if mixin.FCMControl.UseStoredState(self) then
         local count = mixin.FCMCtrlListBox.GetCount(self)
-        mixin.FCMCtrlListBox.SetSelectedItem(count - 1)
+        mixin.FCMCtrlListBox.SetSelectedItem(self, count - 1)
         return_value = count > 0 and true or false
     else
         return_value = self:SetSelectedLast_()
@@ -175,14 +199,14 @@ function props:SetSelectedLast()
 end
 
 --[[
-% IsItemSelected
+% HasSelection
 
 Checks if the popup has a selection. If the parent window does not exist (ie `WindowExists() == false`), this result is theoretical.
 
 @ self (FCMCtrlListBox)
 : (boolean) `true` if something is selected, `false` if no selection.
 ]]
-function props:IsItemSelected()
+function public:HasSelection()
     return mixin.FCMCtrlListBox.GetSelectedItem(self) >= 0
 end
 
@@ -195,7 +219,7 @@ Checks if there is an item at the specified index.
 @ index (number) 0-based item index.
 : (boolean) `true` if the item exists, `false` if it does not exist.
 ]]
-function props:ItemExists(index)
+function public:ItemExists(index)
     mixin_helper.assert_argument_type(2, index, "number")
 
     return private[self].Items[index + 1] and true or false
@@ -206,18 +230,17 @@ end
 
 **[Fluid] [Override]**
 
-Accepts Lua `string` and `number` in addition to `FCString`.
+Override Changes:
+- Accepts Lua `string` or `number` in addition to `FCString`.
+- Hooks into control state preservation.
 
 @ self (FCMCtrlListBox)
-@ str (FCString|string|number)
+@ str (FCString | string | number)
 ]]
-function props:AddString(str)
+function public:AddString(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
-    if type(str) ~= "userdata" then
-        temp_str.LuaString = tostring(str)
-        str = temp_str
-    end
+    str = mixin_helper.to_fcstring(str, temp_str)
 
     if not mixin.FCMControl.UseStoredState(self) then
         self:AddString_(str)
@@ -231,12 +254,13 @@ end
 % AddStrings
 
 **[Fluid]**
+
 Adds multiple strings to the list box.
 
 @ self (FCMCtrlListBox)
-@ ... (FCStrings|FCString|string|number)
+@ ... (FCStrings | FCString | string | number)
 ]]
-function props:AddStrings(...)
+function public:AddStrings(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
         mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings")
@@ -254,51 +278,54 @@ end
 --[[
 % GetStrings
 
+**[?Fluid]**
+
 Returns a copy of all strings in the list box.
 
 @ self (FCMCtrlListBox)
 @ [strs] (FCStrings) An optional `FCStrings` object to populate with strings.
-: (table) A table of strings (1-indexed - beware if accessing keys!).
+: (table) If `strs` is omitted, a table of strings (1-indexed - beware if accessing by key!).
 ]]
-function props:GetStrings(strs)
+function public:GetStrings(strs)
     mixin_helper.assert_argument_type(2, strs, "nil", "FCStrings")
 
     if strs then
-        strs:ClearAll()
-        for _, v in ipairs(private[self].Items) do
-            temp_str.LuaString = v
-            strs:AddCopy(temp_str)
-        end
+        mixin.FCMStrings.CopyFromStringTable(strs, private[self].Items)
+    else
+        return utils.copy_table(private[self].Items)
     end
-
-    return utils.copy_table(private[self].Items)
 end
 
 --[[
 % SetStrings
 
 **[Fluid] [Override]**
-Accepts multiple arguments.
+
+Override Changes:
+- Accepts multiple arguments.
+- Accepts `FCString`, Lua `string` or `number` in addition to `FCStrings`.
+- Hooks into control state preservation.
 
 @ self (FCMCtrlListBox)
-@ ... (FCStrings|FCString|string|number) `number`s will be automatically cast to `string`
+@ ... (FCStrings | FCString | string | number) `number`s will be automatically cast to `string`
 ]]
-function props:SetStrings(...)
-    -- No argument validation in this method for now...
+function public:SetStrings(...)
+    for i = 1, select("#", ...) do
+        mixin_helper.assert_argument_type(i + 1, select(i, ...), "FCStrings", "FCString", "string", "number")
+    end
+
     local strs = select(1, ...)
-    if select("#", ...) ~= 1 or not library.is_finale_object(strs) or strs:ClassName() ~= "FCStrings" then
+    if select("#", ...) ~= 1 or not mixin_helper.is_instance_of(strs, "FCStrings") then
         strs = mixin.FCMStrings()
-        strs:CopyFrom(...)
+        strs:AddCopies(...)
     end
 
     if not mixin.FCMControl.UseStoredState(self) then
         self:SetStrings_(strs)
     end
 
-    private[self].Items = {}
-    for str in each(strs) do
-        table.insert(private[self].Items, str.LuaString)
-    end
+    -- Call statically, since there's no guarantee that strs is mixin-enabled
+    private[self].Items = mixin.FCMStrings.CreateStringTable(strs)
 
     for v in each_last_selection_change(self) do
         if v.last_item >= 0 then
@@ -312,15 +339,17 @@ end
 --[[
 % GetItemText
 
+**[?Fluid]**
+
 Returns the text for an item in the list box.
 This method works in all JW/RGP Lua versions and irrespective of whether `InitWindow` has been called.
 
 @ self (FCMCtrlListBox)
 @ index (number) 0-based index of item.
 @ [str] (FCString) Optional `FCString` object to populate with text.
-: (string)
+: (string) Returned if `str` is omitted.
 ]]
-function props:GetItemText(index, str)
+function public:GetItemText(index, str)
     mixin_helper.assert_argument_type(2, index, "number")
     mixin_helper.assert_argument_type(3, str, "nil", "FCString")
 
@@ -330,22 +359,26 @@ function props:GetItemText(index, str)
 
     if str then
         str.LuaString = private[self].Items[index + 1]
+    else
+        return private[self].Items[index + 1]
     end
-
-    return private[self].Items[index + 1]
 end
 
 --[[
 % SetItemText
 
-**[Fluid] [PDK Port]**
-Sets the text for an item.
+**[Fluid] [Override]**
+
+Override Changes:
+- Added polyfill for JWLua.
+- Is valid irrespective of whether `InitWindow` has been called.
+- Hooks into control state preservation.
 
 @ self (FCMCtrlListBox)
 @ index (number) 0-based index of item.
-@ str (FCString|string|number)
+@ str (FCString | string | number)
 ]]
-function props:SetItemText(index, str)
+function public:SetItemText(index, str)
     mixin_helper.assert_argument_type(2, index, "number")
     mixin_helper.assert_argument_type(3, str, "string", "number", "FCString")
 
@@ -353,31 +386,24 @@ function props:SetItemText(index, str)
         error("No item at index " .. tostring(index), 2)
     end
 
-    str = type(str) == "userdata" and str.LuaString or tostring(str)
+    str = mixin_helper.to_fcstring(str, temp_str)
 
     -- If the text is the same, then there is nothing to do
     if private[self].Items[index + 1] == str then
         return
     end
 
-    private[self].Items[index + 1] = str
+    private[self].Items[index + 1] = str.LuaString
 
     if not mixin.FCMControl.UseStoredState(self) then
         -- SetItemText was added to RGPLua in v0.56 and only works once the window has been created
         if self.SetItemText_ and self:GetParent():WindowExists_() then
-            temp_str.LuaString = private[self].Items[index + 1]
-            self:SetItemText_(index, temp_str)
+            self:SetItemText_(index, str)
 
         -- Otherwise, use a polyfill
         else
-            local strs = finale.FCStrings()
-            for _, v in ipairs(private[self].Items) do
-                temp_str.LuaString = v
-                strs:AddCopy(temp_str)
-            end
-
             local curr_item = mixin.FCMCtrlListBox.GetSelectedItem(self)
-            self:SetStrings_(strs)
+            self:SetStrings_(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
             self:SetSelectedItem_(curr_item)
         end
     end
@@ -386,29 +412,23 @@ end
 --[[
 % GetSelectedString
 
+**[?Fluid]**
+
 Returns the text for the item that is currently selected.
 
 @ self (FCMCtrlListBox)
 @ [str] (FCString) Optional `FCString` object to populate with text. If no item is currently selected, it will be populated with an empty string.
-: (string|nil) `nil` if no item is currently selected.
+: (string | nil) Returned if `str` is omitted. `nil` if no item is selected.
 ]]
-function props:GetSelectedString(str)
+function public:GetSelectedString(str)
     mixin_helper.assert_argument_type(2, str, "nil", "FCString")
 
     local index = mixin.FCMCtrlListBox.GetSelectedItem(self)
 
-    if index ~= -1 then
-        if str then
-            str.LuaString = private[self].Items[index + 1]
-        end
-
-        return private[self].Items[index + 1]
+    if str then
+        str.LuaString = index ~= -1 and private[self].Items[index + 1] or ""
     else
-        if str then
-            str.LuaString = ""
-        end
-
-        return nil
+        return index ~= -1 and private[self].Items[index + 1] or nil
     end
 end
 
@@ -416,13 +436,14 @@ end
 % SetSelectedString
 
 **[Fluid]**
+
 Sets the currently selected item to the first item with a matching text value.
 If no match is found, the current selected item will remain selected. Matches are case-sensitive.
 
 @ self (FCMCtrlListBox)
-@ str (FCString|string|number)
+@ str (FCString | string | number)
 ]]
-function props:SetSelectedString(str)
+function public:SetSelectedString(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     str = type(str) == "userdata" and str.LuaString or tostring(str)
@@ -439,15 +460,16 @@ end
 % InsertItem
 
 **[Fluid] [PDKPort]**
+
 Inserts a string at the specified index.
 If index is <= 0, will insert at the start.
-If index is >= Count, will insert at the end.
+If index is >= GetCount(), will insert at the end.
 
 @ self (FCMCtrlListBox)
 @ index (number) 0-based index to insert new item.
-@ str (FCString|string|number) The value to insert.
+@ str (FCString | string | number) The value to insert.
 ]]
-function props:InsertItem(index, str)
+function public:InsertItem(index, str)
     mixin_helper.assert_argument_type(2, index, "number")
     mixin_helper.assert_argument_type(3, str, "string", "number", "FCString")
 
@@ -463,16 +485,10 @@ function props:InsertItem(index, str)
     local current_selection = mixin.FCMCtrlListBox.GetSelectedItem(self)
 
     if not mixin.FCMControl.UseStoredState(self) then
-        local strs = finale.FCStrings()
-        for _, v in ipairs(private[self].Items) do
-            temp_str.LuaString = v
-            strs:AddCopy(temp_str)
-        end
-
-        self:SetStrings_(strs)
+        self:SetStrings_(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
     end
 
-    local new_selection = current_selection >= index and current_selection + 1 or current_selection
+    local new_selection = current_selection + (index <= current_selection and 1 or 0)
     mixin.FCMCtrlListBox.SetSelectedItem(self, new_selection)
 
     for v in each_last_selection_change(self) do
@@ -492,7 +508,7 @@ If the currently selected item is deleted, items will be deselected (ie set to -
 @ self (FCMCtrlListBox)
 @ index (number) 0-based index of item to delete.
 ]]
-function props:DeleteItem(index)
+function public:DeleteItem(index)
     mixin_helper.assert_argument_type(2, index, "number")
 
     if index < 0 or index >= mixin.FCMCtrlListBox.GetCount(self) then
@@ -504,19 +520,13 @@ function props:DeleteItem(index)
     local current_selection = mixin.FCMCtrlListBox.GetSelectedItem(self)
 
     if not mixin.FCMControl.UseStoredState(self) then
-        local strs = finale.FCStrings()
-        for _, v in ipairs(private[self].Items) do
-            temp_str.LuaString = v
-            strs:AddCopy(temp_str)
-        end
-
-        self:SetStrings_(strs)
+        self:SetStrings_(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
     end
 
     local new_selection
-    if current_selection > index then
+    if index < current_selection then
         new_selection = current_selection - 1
-    elseif current_selection == index then
+    elseif index == current_selection then
         new_selection = -1
     else
         new_selection = current_selection
@@ -533,7 +543,7 @@ function props:DeleteItem(index)
     end
 
     -- Only need to trigger event if the current selection was deleted
-    if current_selection == index then
+    if index == current_selection then
         trigger_selection_change(self)
     end
 end
@@ -553,6 +563,7 @@ end
 % AddHandleSelectionChange
 
 **[Fluid]**
+
 Adds a handler for SelectionChange events.
 If the selected item is changed by a handler, that same handler will not be called again for that change.
 
@@ -571,12 +582,13 @@ The event will fire in the following cases:
 % RemoveHandleSelectionChange
 
 **[Fluid]**
+
 Removes a handler added with `AddHandleSelectionChange`.
 
 @ self (FCMCtrlListBox)
 @ callback (function) Handler to remove.
 ]]
-props.AddHandleSelectionChange, props.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change = mixin_helper.create_custom_control_change_event(
+public.AddHandleSelectionChange, public.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change = mixin_helper.create_custom_control_change_event(
     {
         name = "last_item",
         get = function(ctrl)
@@ -598,4 +610,4 @@ props.AddHandleSelectionChange, props.RemoveHandleSelectionChange, trigger_selec
     }
 )
 
-return props
+return {meta, public}
