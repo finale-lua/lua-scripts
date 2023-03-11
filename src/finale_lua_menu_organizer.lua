@@ -41,25 +41,25 @@ function plugindef()
     The format of `finale_lua_menus.txt` is fully compatible with the format of the JWLuaMenu plugin, which this script is intended to replace.
     It supports the following keywords and tokens. Empty lines are skipped.
 
-    <b>MENUNAME [text]</b>
+    **MENUNAME [text]**
 
     Identifies the source menu from which to take menu items. The plugin searches Finale's Plug-Ins menu and submenus for a menu item that starts with this text.
     The menu containing that item becomes the menu from which items are taken. If this value is omitted, it defaults to JW Lua.
 
-    <b>USEMAINMENU [text]</b>
+    **USEMAINMENU [text]**
 
     Specifies a new menu item to be created in Finale's main menu bar. If omitted, the menu items will be copied to the same menu as specified by MENUNAME.
     You can include an ampersand (&) for a Windows menu hotkey. This will be stripped out and ignored if the file is used with Mac Finale.
 
-    <b>>[text]</b> Starts a submenu with name [text].
+    **>[text]** Starts a submenu with name [text].
 
-    <b><</b> Ends the current submenu.
+    **<** Ends the current submenu.
 
-    <b>=></b> Changes the menu item text from the original text to new text.
+    **=>** Changes the menu item text from the original text to new text.
 
-    <b>-</b> A single hyphen by itself inserts a divider into the menu.
+    **-** A single hyphen by itself inserts a divider into the menu.
 
-    <b>//</b> Delimits a comment. Everything after the comment delimiter is ignored.
+    **//** Delimits a comment. Everything after the comment delimiter is ignored.
 
     Tabs and other whitespace are ignored, but it may be useful to use tabs to show submenus.
     If any of the source menus are empty after the menu layout is complete, the script removes that submenu from Finale's plugin menu.
@@ -68,7 +68,7 @@ function plugindef()
 
     ```
     MENUNAME    RGP Lua        // selects the subfolder containing the RGP Lua plugin.
-    USEMAINMENU    &Lua        // creates a new menu called 'Lua' in Finale's main menu bar (omit this to create the menu in place)
+    USEMAINMENU    &Lua        // creates a new menu called 'Lua' in Finale's main menu bar (optional)
     >Articulations
         Autoposition Rolled Chord Articulations
         Remove Duplicate Articulations
