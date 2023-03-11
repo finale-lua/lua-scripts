@@ -12,6 +12,22 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "2023-02-24"
     finaleplugin.MinJWLuaVersion = 0.66 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
+        --[[
+    As of March 10, 2023, the documentation generator for the finale-lua/lua-scripts GitHub repository does not
+    support Markdown tables, so I rewrote the Notes string not to use one. However, if it ever does support them,
+    here is the original table.
+
+    |Token|Description|
+    |-----|-----------|
+    |MENUNAME&nbsp;[text]|Identifies the source menu from which to take menu items. The plugin searches Finale's Plug-Ins menu and submenus for a menu item that starts with this text. The menu containing that item becomes the menu from which items are taken. If this value is omitted, it defaults to JW Lua.|
+    |USEMAINMENU&nbsp;[text]|Specifies a new menu item to be created in Finale's main menu bar. If omitted, the menu items will be copied to the same menu as specified by MENUNAME. You can include an ampersand (&) for a Windows menu hotkey. This will be stripped out and ignored if the file is used with Mac Finale.|
+    |>[text]|Starts a submenu with name [text].|
+    |<|Ends the current submenu.|
+    |=>|Changes the menu item text from the original text to new text.|
+    |-|A single hyphen by itself inserts a divider into the menu.|
+    |//|Delimits a comment. Everything after the comment delimiter is ignored.|
+
+    ]]
     finaleplugin.Notes = [[
     This plug-in runs when Finale starts up and organizes the menus according to a configuration file called `finale_lua_menus.txt`.
     The plugin searches for the file in two locations:
@@ -25,15 +41,35 @@ function plugindef()
     The format of `finale_lua_menus.txt` is fully compatible with the format of the JWLuaMenu plugin, which this script is intended to replace.
     It supports the following keywords and tokens. Empty lines are skipped.
 
-    |Token|Description|
-    |-----|-----------|
-    |MENUNAME&nbsp;[text]|Identifies the source menu from which to take menu items. The plugin searches Finale's Plug-Ins menu and submenus for a menu item that starts with this text. The menu containing that item becomes the menu from which items are taken. If this value is omitted, it defaults to JW Lua.|
-    |USEMAINMENU&nbsp;[text]|Specifies a new menu item to be created in Finale's main menu bar. If omitted, the menu items will be copied to the same menu as specified by MENUNAME. You can include an ampersand (&) for a Windows menu hotkey. This will be stripped out and ignored if the file is used with Mac Finale.|
-    |>[text]|Starts a submenu with name [text].|
-    |<|Ends the current submenu.|
-    |=>|Changes the menu item text from the original text to new text.|
-    |-|A single hyphen by itself inserts a divider into the menu.|
-    |//|Delimits a comment. Everything after the comment delimiter is ignored.|
+    #### MENUNAME [text]
+
+    Identifies the source menu from which to take menu items. The plugin searches Finale's Plug-Ins menu and submenus for a menu item that starts with this text.
+    The menu containing that item becomes the menu from which items are taken. If this value is omitted, it defaults to JW Lua.
+
+    #### USEMAINMENU [text]
+
+    Specifies a new menu item to be created in Finale's main menu bar. If omitted, the menu items will be copied to the same menu as specified by MENUNAME.
+    You can include an ampersand (&) for a Windows menu hotkey. This will be stripped out and ignored if the file is used with Mac Finale.
+
+    #### \>[text]
+
+    Starts a submenu with name [text].
+
+    #### <
+
+    Ends the current submenu.
+
+    #### =>
+
+    Changes the menu item text from the original text to new text.
+
+    #### -
+
+    A single hyphen by itself inserts a divider into the menu.
+
+    #### //
+
+    Delimits a comment. Everything after the comment delimiter is ignored.
 
     Tabs and other whitespace are ignored, but it may be useful to use tabs to show submenus.
     If any of the source menus are empty after the menu layout is complete, the script removes that submenu from Finale's plugin menu.
