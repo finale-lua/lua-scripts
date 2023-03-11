@@ -1,10 +1,10 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
+    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.21"
-    finaleplugin.Date = "2022/08/04"
+    finaleplugin.Version = "v1.23"
+    finaleplugin.Date = "2022/03/10"
     finaleplugin.CategoryTags = "MIDI, Playback"
     finaleplugin.Notes = [[
     Change the playback Key Velocity for every note in the selected area in one or all layers. 
@@ -20,16 +20,19 @@ end
 
 -- RetainLuaState retains one global:
 config = config or {}
+local mixin = require("library.mixin")
+local layer = require("library.layer")
 
 function is_error()
+    local max = layer.max_layers()
     local msg = ""
     if config.velocity < 0 or config.velocity > 127 then
         msg = "Velocity must be an\ninteger between 0 and 127\n(not " .. config.velocity .. ")"
     elseif config.layer < 0 or config.layer > 4 then
-        msg = "Layer number must be an\ninteger between zero and 4\n(not " .. config.layer .. ")"
+        msg = "Layer number must be an\ninteger between zero and " .. max .. "\n(not " .. config.layer .. ")"
     end
     if msg ~= "" then
-        finenv.UI():AlertNeutral("script: " .. plugindef(), msg)
+        finenv.UI():AlertInfo(msg, "User Error")
         return true
     end
     return false
@@ -40,36 +43,26 @@ function user_choices(basekey)
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
     local edit_horiz = 110
 
-    local dialog = finale.FCCustomLuaWindow()
-    local str = finale.FCString()
-    str.LuaString = plugindef()
-    dialog:SetTitle(str)
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
 
-    local answer = {}
-    local texts = { -- static text, default value
-        { "Key Velocity (0-127):", config.velocity or basekey },
-        { "Layer 1-4 (0 = all):", config.layer or 0 },
+    local edit_boxes = { -- static text, default value
+        { "Key Velocity (0-127):", config.velocity or basekey, "velocity" },
+        { "Layer 1-4 (0 = all):", config.layer or 0, "layer" },
     }
-    for i,v in ipairs(texts) do
-        str.LuaString = v[1]
-        local static = dialog:CreateStatic(0, current_vert)
-        static:SetText(str)
-        static:SetWidth(edit_horiz)
-        answer[i] = dialog:CreateEdit(edit_horiz, current_vert - mac_offset)
-        answer[i]:SetInteger(v[2])
+    for _,v in ipairs(edit_boxes) do
+        dialog:CreateStatic(0, current_vert):SetText(v[1]):SetWidth(edit_horiz)
+        dialog:CreateEdit(edit_horiz, current_vert - mac_offset, v[3]):SetInteger(v[2])
         current_vert = current_vert + vert_step
     end
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    dialog:RegisterHandleOkButtonPressed(function()
-        config.velocity = answer[1]:GetInteger()
-        config.layer = answer[2]:GetInteger()
-    end)
-    dialog:RegisterCloseWindow(function()
-        dialog:StorePosition()
-        config.pos_x = dialog.StoredX
-        config.pos_y = dialog.StoredY
+    dialog:RegisterHandleOkButtonPressed(function(self)
+        config.velocity = self:GetControl("velocity"):GetInteger()
+        config.layer = self:GetControl("layer"):GetInteger()
+        self:StorePosition()
+        config.pos_x = self.StoredX
+        config.pos_y = self.StoredY
     end)
     return dialog
 end
@@ -80,15 +73,15 @@ function make_the_change(basekey)
     end
     for entry in eachentrysaved(finenv.Region(), config.layer) do
         local pm = finale.FCPerformanceMod()
-        if entry:IsNote() then
-            pm:SetNoteEntry(entry)
-            for note in each(entry) do
-                pm:LoadAt(note)
-                pm.VelocityDelta = config.velocity - basekey
-                pm:SaveAt(note)
-            end
-        end
-    end
+		if entry:IsNote() then
+		    pm:SetNoteEntry(entry)
+    		for note in each(entry) do
+    		    pm:LoadAt(note)
+    		    pm.VelocityDelta = config.velocity - basekey
+    		    pm:SaveAt(note)
+    		end
+    	end
+	end
 end
 
 function change_velocity()
@@ -102,11 +95,8 @@ function change_velocity()
         dialog:SetRestorePositionOnlyData(config.pos_x, config.pos_y)
         dialog:RestorePosition()
     end
-    if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK then
-        return -- user cancelled
-    end
-    if is_error() then
-        return
+    if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK or is_error() then
+        return -- user cancelled or made a mistake
     end
     make_the_change(basekey)
 end
