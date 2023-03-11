@@ -1377,7 +1377,7 @@ __imports["mixin.FCMCustomLuaWindow"] = __imports["mixin.FCMCustomLuaWindow"] or
 
                     local real_control = self:FindControl(control:GetControlID())
                     if not real_control then
-                        error("Control with ID #" .. tostring(control:GetControlID()) .. " not found in '" .. f .. "'")
+                        error("Control with ID #" .. tostring(control:GetControlID()) .. " not found in '" .. event .. "'")
                     end
                     dispatch_event_handlers(self, event, real_control, ...)
 
