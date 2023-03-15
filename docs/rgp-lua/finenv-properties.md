@@ -105,7 +105,7 @@ Accepts an instance of [`FCLuaScriptItem`](https://pdk.finalelua.com/class_f_c_l
 |string|the returned message in a Lua string or `nil` if none|
 |number|one of the `finenv.MessageResultType` constants if there is a message or `nil` if none|
 
-If the boolean return value is `false` (_i.e._, an error occurred), the message is an error message that describes the error. If the return value it `true`, the message is the last returned value from the executed script converted to a string. If the executed script returns nothing or `nil`, the message and message type are both `nil`.
+If the boolean return value is `false` (_i.e._, an error occurred), the message is an error message that describes the error. If the return value `true`, the message is the first returned value from the executed script converted to a string. If the executed script returns nothing or `nil`, the message and message type are both `nil`.
 
 Example:
 
