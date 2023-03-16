@@ -5896,8 +5896,8 @@ function plugindef()
     finaleplugin.Author = "Aaron Sherber"
     finaleplugin.AuthorURL = "https://aaron.sherber.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0.1"
-    finaleplugin.Date = "2023-02-24"
+    finaleplugin.Version = "2.1.1"
+    finaleplugin.Date = "2023-03-16"
     finaleplugin.CategoryTags = "Report"
     finaleplugin.Id = "9c05a4c4-9508-4608-bb1b-2819cba96101"
     finaleplugin.AdditionalMenuOptions = [[
@@ -5907,6 +5907,7 @@ function plugindef()
         action = "import"
     ]]
     finaleplugin.RevisionNotes = [[
+        v2.1.1      Add music spacing allotments (requires RGPLua v0.66)
         v2.0.1      Add ability to import
         v1.2.1      Add Grid/Guide snap-tos; better organization of SmartShapes
         v1.1.2      First public release
@@ -5917,7 +5918,8 @@ function plugindef()
         JSON file. You can then use a diff program to compare the JSON files generated from
         two Finale documents, or you can keep track of how the settings in a document have changed
         over time. The script will also let you import settings from a full or partial JSON file.
-        Please see https://url.sherber.com/finalelua/options-as-json for more information.
+        Please see <a href="https://url.sherber.com/finalelua/options-as-json">url.sherber.com/finalelua/options-as-json</a>
+        for more information.
 
         The focus is on document-specific settings, rather than program-wide ones, and in particular on
         the ones that affect the look of a document. Most of these come from the Document Options dialog
@@ -6392,56 +6394,88 @@ end
 function handle_music_spacing_prefs(prefs_obj, prefs_table, load)
     handle_base_prefs(prefs_obj, prefs_table, load, { "ScalingValue" })
 end
+function handle_allotment_prefs(prefs_obj, prefs_table, load)
+    if load then
+        for a in loadall(prefs_obj) do
+            table.insert(prefs_table, { Duration = a.ItemNo, Width = a.Width })
+        end
+    else
+
+        for a in loadall(prefs_obj) do
+            a:DeleteData()
+        end
+        for _, a in ipairs(prefs_table) do
+            local new_allotment = finale.FCAllotment()
+            new_allotment.Width = a.Width
+            new_allotment:SaveAs(a.Duration)
+        end
+    end
+end
 local raw_pref_definitions = {
-    { prefs = finale.FCCategoryDefs(), handler = handle_category_prefs },
-    { prefs = finale.FCChordPrefs() },
-    { prefs = finale.FCDistancePrefs() },
-    { prefs = finale.FCFontInfo(), handler = handle_font_prefs },
-    { prefs = finale.FCGridsGuidesPrefs(), handler = handle_grid_prefs },
-    { prefs = finale.FCGroupNamePositionPrefs(), handler = handle_name_position_prefs },
-    { prefs = finale.FCLayerPrefs(), handler = handle_layer_prefs },
-    { prefs = finale.FCLyricsPrefs() },
-    { prefs = finale.FCMiscDocPrefs() },
-    { prefs = finale.FCMultiMeasureRestPrefs() },
-    { prefs = finale.FCMusicCharacterPrefs() },
-    { prefs = finale.FCMusicSpacingPrefs(), handler = handle_music_spacing_prefs },
-    { prefs = finale.FCPageFormatPrefs(), handler = handle_page_format_prefs },
-    { prefs = finale.FCPianoBracePrefs() },
-    { prefs = finale.FCRepeatPrefs() },
-    { prefs = finale.FCSizePrefs() },
-    { prefs = finale.FCSmartShapePrefs(), handler = handle_smart_shape_prefs },
-    { prefs = finale.FCStaffNamePositionPrefs(), handler = handle_name_position_prefs },
-    { prefs = finale.FCTiePrefs(), handler = handle_tie_prefs },
-    { prefs = finale.FCTupletPrefs() },
+    { prefs = finale.FCAllotments, handler = handle_allotment_prefs },
+    { prefs = finale.FCCategoryDefs, handler = handle_category_prefs },
+    { prefs = finale.FCChordPrefs },
+    { prefs = finale.FCDistancePrefs },
+    { prefs = finale.FCFontInfo, handler = handle_font_prefs },
+    { prefs = finale.FCGridsGuidesPrefs, handler = handle_grid_prefs },
+    { prefs = finale.FCGroupNamePositionPrefs, handler = handle_name_position_prefs },
+    { prefs = finale.FCLayerPrefs, handler = handle_layer_prefs },
+    { prefs = finale.FCLyricsPrefs },
+    { prefs = finale.FCMiscDocPrefs },
+    { prefs = finale.FCMultiMeasureRestPrefs },
+    { prefs = finale.FCMusicCharacterPrefs },
+    { prefs = finale.FCMusicSpacingPrefs, handler = handle_music_spacing_prefs },
+    { prefs = finale.FCPageFormatPrefs, handler = handle_page_format_prefs },
+    { prefs = finale.FCPianoBracePrefs },
+    { prefs = finale.FCRepeatPrefs },
+    { prefs = finale.FCSizePrefs },
+    { prefs = finale.FCSmartShapePrefs, handler = handle_smart_shape_prefs },
+    { prefs = finale.FCStaffNamePositionPrefs, handler = handle_name_position_prefs },
+    { prefs = finale.FCTiePrefs, handler = handle_tie_prefs },
+    { prefs = finale.FCTupletPrefs },
 }
+local function instantiate_prefs()
+    for _, obj in pairs(raw_pref_definitions) do
+        if type(obj.prefs) == "table" then
+            local ok, prefs = pcall(function() return obj.prefs() end)
+            obj.prefs = ok and prefs or nil
+        end
+    end
+end
 function load_all_raw_prefs()
+    instantiate_prefs()
     local result = {}
 
-    for _, obj in ipairs(raw_pref_definitions) do
-        local tag = obj.prefs:ClassName()
-        if obj.handler == nil then
-            obj.prefs:Load(1)
-            add_props_to_table(result, obj.prefs, tag)
-        else
-            result[tag] = {}
-            obj.handler(obj.prefs, result[tag], true)
-        end
-        if not debug.raw_units then
-            normalize_units_for_raw_section(result[tag], tag)
+    for _, obj in pairs(raw_pref_definitions) do
+        if obj.prefs then
+            local tag = obj.prefs:ClassName()
+            if obj.handler == nil then
+                obj.prefs:Load(1)
+                add_props_to_table(result, obj.prefs, tag)
+            else
+                result[tag] = {}
+                obj.handler(obj.prefs, result[tag], true)
+            end
+            if not debug.raw_units then
+                normalize_units_for_raw_section(result[tag], tag)
+            end
         end
     end
     return result
 end
 function save_all_raw_prefs(prefs_table)
+    instantiate_prefs()
     for _, obj in pairs(raw_pref_definitions) do
-        local tag = obj.prefs:ClassName()
-        denormalize_units_for_raw_section(prefs_table[tag], tag)
-        if obj.handler == nil then
-            obj.prefs:Load(1)
-            set_props_from_table(prefs_table[tag], obj.prefs)
-            obj.prefs:Save()
-        else
-            obj.handler(obj.prefs, prefs_table[tag], false)
+        if obj.prefs then
+            local tag = obj.prefs:ClassName()
+            denormalize_units_for_raw_section(prefs_table[tag], tag)
+            if obj.handler == nil then
+                obj.prefs:Load(1)
+                set_props_from_table(prefs_table[tag], obj.prefs)
+                obj.prefs:Save()
+            else
+                obj.handler(obj.prefs, prefs_table[tag], false)
+            end
         end
     end
 end
@@ -6526,7 +6560,8 @@ local transform_definitions = {
     },
     MusicSpacing = {
         FCMusicSpacingPrefs = { "!Gutter$" },
-        FCMiscDocPrefs = { "ScaleManualNotePositioning" }
+        FCMiscDocPrefs = { "ScaleManualNotePositioning" },
+        ["FCAllotments>Allotments"] = { "." }
     },
     NotesAndRests = {
         FCMiscDocPrefs = { "UseNoteShapes", "CrossStaffNotesInOriginal" },
@@ -6598,20 +6633,19 @@ function transform_to_friendly(all_raw_prefs)
                 local main, sub = string.match(category, "([%a%d]+)/([%a%d]+)")
                 source = source_table[main][sub]
             end
+            if not source then return end
             for k, v in pairs(source) do
                 if matches_negatable_pattern(k, pattern) then target[k] = v end
             end
         end
         for category, locators in pairs(all_defs) do
+            target = dest_table
             if string.find(category, ">") then
-                target = dest_table
                 for dest_menu in string.gmatch(category, ">(%a+)") do
                     if target[dest_menu] == nil then target[dest_menu] = {} end
                     target = target[dest_menu]
                 end
                 category = string.match(category, "^%a+")
-            else
-                target = dest_table
             end
 
             for _, locator in pairs(locators) do
@@ -6633,12 +6667,22 @@ end
 function transform_to_raw(prefs_to_import)
     local function copy_matching(import_items, raw_items, pattern)
         if not import_items then return end
-        for k, _ in pairs(raw_items) do
-            if matches_negatable_pattern(k, pattern) then
-                if type(raw_items[k]) == "table" then
-                    copy_matching(import_items[k], raw_items[k], ".")
-                elseif import_items[k] ~= nil then
-                    raw_items[k] = import_items[k]
+        if raw_items[1] and import_items[1] then
+
+            while #raw_items > 0 do
+                table.remove(raw_items)
+            end
+            for k, v in ipairs(import_items) do
+                raw_items[k] = v
+            end
+        else
+            for k, _ in pairs(raw_items) do
+                if matches_negatable_pattern(k, pattern) then
+                    if type(raw_items[k]) == "table" then
+                        copy_matching(import_items[k], raw_items[k], ".")
+                    elseif import_items[k] ~= nil then
+                        raw_items[k] = import_items[k]
+                    end
                 end
             end
         end
@@ -6782,6 +6826,10 @@ function get_as_ordered_json(t, indent_level, in_array)
         s = string.gsub(s, '"', '\\"')
         return string.format('"%s"', s)
     end
+    local function has_entries(this_table)
+        for _ in pairs(this_table) do return true end
+        return false
+    end
 
     indent_level = indent_level or 0
     local result = {}
@@ -6792,7 +6840,7 @@ function get_as_ordered_json(t, indent_level, in_array)
     for key, val in pairsbykeys(t) do
         local maybe_comma_plus_newline = key ~= last_key and ',\n' or '\n'
         local maybe_element_name = in_array and '' or quote_and_escape(key) .. ': '
-        if type(val) == "table" then
+        if type(val) == "table" and has_entries(val) then
             local val_is_array = val[1] ~= nil
             local new_line = table.concat({
                 indent,
