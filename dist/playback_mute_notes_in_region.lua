@@ -1,6 +1,7 @@
 function plugindef()
+    finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk, Peter DeVita"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     return "Playback - Mute Notes", "Playback - Mute Notes", "Mute all the notes in the selected region"
 end
 function playback_entries_mute(layers_input)
