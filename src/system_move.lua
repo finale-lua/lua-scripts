@@ -7,9 +7,15 @@ function plugindef()
     finaleplugin.CategoryTags = "System"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.MinJWLuaVersion = 0.62
-    finaleplugin.AdditionalMenuOptions = "Move System Down"
-    finaleplugin.AdditionalDescriptions = "Moves the selected system down one space"
-    finaleplugin.AdditionalPrefixes = "move_direction = 1"
+    finaleplugin.AdditionalMenuOptions = [[
+        Move System Down
+    ]]
+    finaleplugin.AdditionalDescriptions = [[
+        Moves the selected system down one space
+    ]]
+    finaleplugin.AdditionalPrefixes = [[
+        move_direction = 1
+    ]]
     return "Move System Up", "Move System Up", "Moves the selected system up one space"
 end
 config = {

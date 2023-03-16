@@ -1,8 +1,9 @@
 function plugindef()
+    finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.0"
-    finaleplugin.Date = "March 26, 2022"
+    finaleplugin.Version = "1.0.1"
+    finaleplugin.Date = "March 16, 2023"
     finaleplugin.CategoryTags = "Playback"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.Notes = [[
