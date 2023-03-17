@@ -27,7 +27,7 @@ function plugindef()
         JSON file. You can then use a diff program to compare the JSON files generated from 
         two Finale documents, or you can keep track of how the settings in a document have changed 
         over time. The script will also let you import settings from a full or partial JSON file.
-        Please see <a href="https://url.sherber.com/finalelua/options-as-json">url.sherber.com/finalelua/options-as-json</a>
+        Please see https://url.sherber.com/finalelua/options-as-json
         for more information.
         
         The focus is on document-specific settings, rather than program-wide ones, and in particular on 
