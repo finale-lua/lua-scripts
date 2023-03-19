@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.17"
+    finaleplugin.Version = "v0.18"
     finaleplugin.Date = "2023/03/19"
     finaleplugin.AdditionalMenuOptions = [[
         Measure Span Join
@@ -170,8 +170,8 @@ function user_options()
     dlg:CreateHorizontalLine(0, y - 1, x_grid[4] + i_width)
     dlg:CreateHorizontalLine(0, y - 3, x_grid[4] + i_width)
     yd(8)
-    dlg:CreateCheckbox(0, y, "note_spacing")
-        :SetText("Respace notes on completion"):SetCheck(config.note_spacing and 1 or 0):SetWidth(x_grid[5])
+    dlg:CreateCheckbox(0, y, "note_spacing"):SetText("Respace notes on completion")
+        :SetCheck(config.note_spacing and 1 or 0):SetWidth(x_grid[5])
     dlg:CreateButton(x_grid[5] - 10, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() finenv.UI():AlertInfo(info, "Measure Span Info") end)
     yd(22)
@@ -322,39 +322,46 @@ function pad_or_truncate_cells(measure_rgn, measure_duration)
     end
 end
 
-function spread_measure_pair(measure_num, selection)
-    local measure_1, measure_2 = mixin.FCMMeasure(), mixin.FCMMeasure()
-    measure_1:Load(measure_num)
-    measure_2:Load(measure_num + 1)
+function note_spacing(rgn)
+    if config.note_spacing then
+        rgn:SetFullMeasureStack()
+        rgn:SetInDocument()
+        finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
+    end
+end
 
-    local time_sig_1 = measure_1:GetTimeSignature()
-    local time_sig_2 = measure_2:GetTimeSignature()
-    local top_1 = time_sig_1.Beats
-    local top_2 = top_1
-    local bottom = time_sig_1.BeatDuration
+function spread_measure_pair(measure_num, selection)
+    local measure = { mixin.FCMMeasure(), mixin.FCMMeasure() }
+    measure[1]:Load(measure_num)
+    measure[2]:Load(measure_num + 1)
+
+    local time_sig = { measure[1]:GetTimeSignature(), measure[2]:GetTimeSignature() }
+    local top =  { time_sig[1].Beats, time_sig[1].Beats }
+    local bottom = time_sig[1].BeatDuration
     if config.halve_numerator then -- HALVE the numerator
-        top_1 = top_1 / 2
-        if (time_sig_1.Beats % 2) ~= 0 then -- ODD number of beats
-            top_1 = math.floor(top_1)
+        top[1] = top[1] / 2
+        if (time_sig[1].Beats % 2) ~= 0 then -- ODD number of beats
+            top[1] = math.floor(top[1])
             if config.odd_more_first then
-                top_1 = top_1 + 1
+                top[1] = top[1] + 1
             end
         end
-        top_2 = time_sig_1.Beats - top_1
+        top[2] = time_sig[1].Beats - top[1]
     else -- "DOUBLE" the denominator
         bottom = bottom / 2
     end
 
     local pair_rgn = mixin.FCMMusicRegion()
     pair_rgn:SetRegion(selection):SetStartMeasure(measure_num):SetEndMeasure(measure_num):SetFullMeasureStack()
-    pad_or_truncate_cells(pair_rgn, measure_1:GetDuration())
+    pad_or_truncate_cells(pair_rgn, measure[1]:GetDuration())
 
-    time_sig_1:SetBeats(top_1):SetBeatDuration(bottom)
-    measure_1:Save()
-    time_sig_2:SetBeats(top_2):SetBeatDuration(bottom)
-    measure_2:Save()
+    time_sig[1]:SetBeats(top[1]):SetBeatDuration(bottom)
+    measure[1]:Save()
+    time_sig[2]:SetBeats(top[2]):SetBeatDuration(bottom)
+    measure[2]:Save()
     pair_rgn.EndMeasure = measure_num + 1 -- rebar BOTH measures
     pair_rgn:RebarMusic(finale.REBARSTOP_REGIONEND, true, false)
+    note_spacing(pair_rgn)
 end
 
 function expand_compound_values(top, bottom)
@@ -368,46 +375,44 @@ end
 function join_measures(selection)
     if (selection.EndMeasure - selection.StartMeasure) % 2 ~= 1 then
         finenv.UI():AlertInfo("Please select an EVEN number of measures for the \"Measure Span Join\" action", "User Error")
-        return
+        return false
     end
     -- run through selection backwards by pairs of measures
+    local composite_error = false
     local measures_removed = 0
     for measure_num = selection.EndMeasure - 1, selection.StartMeasure, -2 do
-        local measure_1, measure_2 = finale.FCMeasure(), finale.FCMeasure()
-        measure_1:Load(measure_num)
-        measure_2:Load(measure_num + 1)
+        local measure = { finale.FCMeasure(), finale.FCMeasure() }
+        measure[1]:Load(measure_num)
+        measure[2]:Load(measure_num + 1)
 
-        local time_sig_1 = measure_1:GetTimeSignature()
-        local time_sig_2 = measure_2:GetTimeSignature()
-        local top_1 = time_sig_1.Beats
-        local top_2 = time_sig_2.Beats
-        local bottom_1 = time_sig_1.BeatDuration
-        local bottom_2 = time_sig_2.BeatDuration
-        local measure_1_dur = measure_1:GetDuration()
-        local measure_2_dur = measure_2:GetDuration()
+        local time_sig = { measure[1]:GetTimeSignature(), measure[2]:GetTimeSignature()}
+        local top = { time_sig[1].Beats, time_sig[2].Beats }
+        local bottom = { time_sig[1].BeatDuration, time_sig[2].BeatDuration }
+        local measure_dur = { measure[1]:GetDuration(), measure[2]:GetDuration() }
 
-        -- won't deal with composite meters
-        if not time_sig_1.CompositeTop and not time_sig_1.CompositeBottom
-            and not time_sig_2.CompositeTop and not time_sig_2.CompositeBottom then
-
-            eliminate_display_meter(measure_1)
-            if top_1 == top_2 and bottom_1 == bottom_2 then
+        -- don't deal with composite meters
+        if time_sig[1].CompositeTop or time_sig[1].CompositeBottom
+            or time_sig[2].CompositeTop or time_sig[2].CompositeBottom then
+                composite_error = true
+        else
+            eliminate_display_meter(measure[1])
+            if top[1] == top[2] and bottom[1] == bottom[2] then -- identical meters
                 if config.double_join then
-                    top_1 = top_1 * 2 -- double numerator
+                    top[1] = top[1] * 2 -- double numerator
                 else
-                    bottom_1 = bottom_1 * 2 -- halve denominator
+                    bottom[1] = bottom[1] * 2 -- halve denominator
                 end
             else
                 if not config.composite_join then -- CONSOLIDATE the meters
-                    top_1, bottom_1 = expand_compound_values(top_1, bottom_1)
-                    top_2, bottom_2 = expand_compound_values(top_2, bottom_2)
-                    if bottom_1 == bottom_2 then
-                        top_1 = top_1 + top_2
-                    elseif bottom_1 < bottom_2 then
-                        top_1 = top_1 + (top_2 * bottom_2 / bottom_1)
-                    else -- bottom_1 > bottom_2
-                        top_1 = top_2 +(top_1 * bottom_1 / bottom_2)
-                        bottom_1 = bottom_2
+                    top[1], bottom[1] = expand_compound_values(top[1], bottom[1])
+                    top[2], bottom[2] = expand_compound_values(top[2], bottom[2])
+                    if bottom[1] == bottom[2] then
+                        top[1] = top[1] + top[2]
+                    elseif bottom[1] < bottom[2] then
+                        top[1] = top[1] + (top[2] * bottom[2] / bottom[1])
+                    else -- bottom[1] > bottom[2]
+                        top[1] = top[2] +(top[1] * bottom[1] / bottom[2])
+                        bottom[1] = bottom[2]
                     end
                 end
             end
@@ -415,64 +420,70 @@ function join_measures(selection)
             local paste_rgn = mixin.FCMMusicRegion()
             paste_rgn:SetRegion(selection):SetFullMeasureStack()
             paste_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num)
-            pad_or_truncate_cells(paste_rgn, measure_1_dur)
+            pad_or_truncate_cells(paste_rgn, measure_dur[1])
             paste_rgn:SetStartMeasure(measure_num + 1):SetEndMeasure(measure_num + 1)
-            pad_or_truncate_cells(paste_rgn, measure_2_dur)
+            pad_or_truncate_cells(paste_rgn, measure_dur[2])
 
             paste_rgn:CopyMusic()
             paste_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num)
 
-            if config.composite_join then -- create COMPOSITE meter
+            if config.composite_join then -- create COMPOSITE meter ** HERE **
                 local comp_top = finale.FCCompositeTimeSigTop()
                 local comp_bot = finale.FCCompositeTimeSigBottom()
                 local group_bot = comp_bot:AddGroup(1)
-                comp_bot:SetGroupElementBeatDuration(group_bot, 0, bottom_1)
+                comp_bot:SetGroupElementBeatDuration(group_bot, 0, bottom[1])
 
-                if bottom_1 == bottom_2 then -- only one composite group
+                if bottom[1] == bottom[2] then -- only one composite group
                     local group_top = comp_top:AddGroup(2)
-                    comp_top:SetGroupElementBeats(group_top, 0, top_1)
-                    comp_top:SetGroupElementBeats(group_top, 1, top_2)
+                    comp_top:SetGroupElementBeats(group_top, 0, top[1])
+                    comp_top:SetGroupElementBeats(group_top, 1, top[2])
                 else -- TWO composite meter groups
                     local group_top = comp_top:AddGroup(1)
-                    comp_top:SetGroupElementBeats(group_top, 0, top_1)
+                    comp_top:SetGroupElementBeats(group_top, 0, top[1])
                     group_top = comp_top:AddGroup(1)
-                    comp_top:SetGroupElementBeats(group_top, 0, top_2)
+                    comp_top:SetGroupElementBeats(group_top, 0, top[2])
                     group_bot = comp_bot:AddGroup(1)
-                    comp_bot:SetGroupElementBeatDuration(group_bot, 0, bottom_2)
+                    comp_bot:SetGroupElementBeatDuration(group_bot, 0, bottom[2])
                 end
                 comp_top:SaveAll()
                 comp_bot:SaveAll()
-                time_sig_1:SaveNewCompositeTop(comp_top)
-                time_sig_1:SaveNewCompositeBottom(comp_bot)
+                time_sig[1]:SaveNewCompositeTop(comp_top)
+                time_sig[1]:SaveNewCompositeBottom(comp_bot)
             else
-                time_sig_1.Beats = top_1
-                time_sig_1.BeatDuration = bottom_1
+                time_sig[1].Beats = top[1]
+                time_sig[1].BeatDuration = bottom[1]
             end
-            measure_1:Save()
-            paste_rgn:SetStartMeasurePos(measure_1_dur):SetEndMeasurePosRight():PasteMusic()
+            measure[1]:Save()
+            paste_rgn:SetStartMeasurePos(measure_dur[1]):SetEndMeasurePosRight():PasteMusic()
             paste_rgn:ReleaseMusic()
-            measure_1:Save()
+            measure[1]:Save()
             paste_rgn:SetStartMeasurePos(0):RebarMusic(finale.REBARSTOP_REGIONEND, true, false)
             -- delete the copied (second) measure
             paste_rgn:SetStartMeasure(measure_num + 1):SetEndMeasure(measure_num + 1):CutDeleteMusic()
             paste_rgn:ReleaseMusic()
             paste_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num)
+            note_spacing(paste_rgn)
         end
         measures_removed = measures_removed + 1
     end
     selection.EndMeasure = selection.EndMeasure - measures_removed
+    return composite_error
 end
 
 function divide_measures(selection)
     local extra_measures = 0
+    local composite_error = false
     for measure_number = selection.EndMeasure, selection.StartMeasure, -1 do
         local add = insert_blank_measure_after(measure_number)
         if add > 0 then -- valid new measure added
             spread_measure_pair(measure_number, selection)
             extra_measures = extra_measures + add
+        else
+            composite_error = true
         end
     end
     selection.EndMeasure = selection.EndMeasure + extra_measures
+    return composite_error
 end
 
 function measure_span()
@@ -485,21 +496,18 @@ function measure_span()
         if not ok or span_action == "options" then return end -- USER cancelled, or doesn't want further action
     end
 
+    local composite_error = false
     local selection = mixin.FCMMusicRegion()
     selection:SetRegion(finenv.Region())
     if span_action == "join" then
-        join_measures(selection)
+        composite_error = join_measures(selection)
     elseif span_action == "divide" then
-        divide_measures(selection)
+        composite_error = divide_measures(selection)
     else
         return -- unidentified request
     end
-
-    if config.note_spacing then
-        local space_rgn = mixin.FCMMusicRegion()
-        space_rgn:SetRegion(selection):SetFullMeasureStack()
-        space_rgn:SetInDocument()
-        finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
+    if composite_error then
+        finenv.UI():AlertInfo("One or more measures contained COMPOSITE time signatures and could not be used", "User Error")
     end
     selection:SetInDocument()
     if config.repaginate then
