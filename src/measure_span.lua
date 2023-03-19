@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.18"
-    finaleplugin.Date = "2023/03/19"
+    finaleplugin.Version = "v0.18b"
+    finaleplugin.Date = "2023/03/20"
     finaleplugin.AdditionalMenuOptions = [[
         Measure Span Join
         Measure Span Divide
@@ -42,11 +42,14 @@ function plugindef()
         If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3). 
 
         *IN ALL CASES:*  
-        Any measure in the selection containing a composite meter (e.g. [3+4/8]) will not be modified. 
-        Time signatures "for display only" will be removed, as will notes at the end of any measure beyond its "real" duration. 
+        Incomplete measures will be filled with rests before Join/Divide. 
+        Measures containing too many notes will be trimmed to their "real" duration. 
+        Any measure in the selection containing a composite meter (e.g. [3+4/8]) will not be modified (for now). 
+        Time signatures "for display only" will be removed. 
+        If you want "display only" time signatures on the result, add them after the Join/Divide.
 
         *OPTIONS:*  
-        To configure the option settings either select the "Measure Span Options..." menu item, 
+        To configure script settings either select the "Measure Span Options..." menu item, 
         or hold down the `shift` or `alt` (option) key when invoking "Join" or "Divide".
     ]]
     return "Measure Span Options...", "Measure Span Options", "Change the default behaviour of the Measure Span script"
@@ -56,7 +59,7 @@ end
 local info = "This script changes the \"span\" of every measure in the selection by either dividing it into two "
 .. "or combining it with the following measure. The options are arranged so that many measures with "
 .. "different time signatures can be modified at once.\n\n"
-.. "MEASURE SPAN JOIN: Combine each pair of measures in the selection into one by consolidating their time signatures. "
+.. "MEASURE SPAN JOIN: \nCombine each pair of measures in the selection into one by consolidating their time signatures. "
 .. "If both measures have the same time signature, choose to either double the numerator ([3/4][3/4] -> [6/4]) "
 .. "or halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures aren't equal, choose to either "
 .. "COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]). "
@@ -64,9 +67,12 @@ local info = "This script changes the \"span\" of every measure in the selection
 .. "MEASURE SPAN DIVIDE: \nDivide every selected measure into two, changing the time signature by either "
 .. "HALVING its numerator ([6/4] -> [3/4][3/4]) or DOUBLING its denominator ([6/4] -> [6/8][6/8]). "
 .. "If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3).\n\n"
-.. "IN ALL CASES: \nAny measure in the selection containing a composite meter (e.g. [3+4/8]) will not be modified. "
-.. "Time signatures \"for display only\" will be removed, as will notes at the end of any measure beyond its \"real\" duration.\n\n"
-.. "MEASURE SPAN OPTIONS: \nTo configure the option settings either select the \"Measure Span Options...\" menu item, "
+.. "IN ALL CASES: \nIncomplete measures will be filled with rests before Join/Divide. "
+.. "Measures containing too many notes will be trimmed to their \"real\" duration. "
+.. "Any measure in the selection containing a composite meter (e.g. [3+4/8]) will not be modified (for now). "
+.. "Time signatures \"for display only\" will be removed. "
+.. "If you want \"display only\" time signatures on the result, add them after the Join/Divide. \n\n"
+.. "MEASURE SPAN OPTIONS: \nTo configure script settings either select the \"Measure Span Options...\" menu item, "
 .. "or hold down the `shift` or `alt` (option) key when invoking \"Join\" or \"Divide\". \n\n"
 
 span_action = span_action or "options"
