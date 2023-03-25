@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.23"
+    finaleplugin.Version = "v0.24"
     finaleplugin.Date = "2023/03/26"
     finaleplugin.AdditionalMenuOptions = [[
         Measure Span Join
@@ -448,7 +448,6 @@ function divide_measures(selection)
                     new_composite_bottom(time_sig[2], comp_array.bottom.groups, 2, 0)
                 end
             end
-            comp_array = {} -- clear out for other measures
         else
             -- NON-COMPOSITE METER
             if config.halve_numerator then -- HALVE the numerator
