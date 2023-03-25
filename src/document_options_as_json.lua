@@ -1202,7 +1202,15 @@ function options_import_from_json()
         if file then
             local prefs_json = file:read("*a")
             file:close()
-            local prefs_to_import = json.decode(prefs_json)
+            
+            local prefs_to_import
+            local ok, err_msg = pcall(function() prefs_to_import = json.decode(prefs_json) end)
+            if not ok then
+                err_msg = err_msg or "Unknown error"
+                err_msg = err_msg:gsub("^.-%d:", "")
+                finenv.UI():AlertError(err_msg, "JSON Error")
+                return
+            end
             
             if confirm_file_import(prefs_to_import["@Meta"]) then
                 local raw_prefs = transform_to_raw(prefs_to_import)
