@@ -1,15 +1,15 @@
 function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "June 18, 2021"
+    finaleplugin.Version = "2.0"
+    finaleplugin.Date = "March 24, 2023"
     finaleplugin.CategoryTags = "Layout"
+    finaleplugin.MinJWLuaVersion = 0.67 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     return "Load SMuFL Engraving Defaults", "Load SMuFL Engraving Defaults", "Loads engraving defaults for the current SMuFL Default Music Font."
 end
 
-
-local luna = require("lunajson.lunajson")
 local library = require("library.general_library")
+local cjson = library.require_embedded("cjson")
 
 function smufl_load_engraving_defaults()
     local font_info = finale.FCFontInfo()
@@ -21,7 +21,7 @@ function smufl_load_engraving_defaults()
     end
     local json = font_json_file:read("*all")
     io.close(font_json_file)
-    local font_metadata = luna.decode(json)
+    local font_metadata = cjson.decode(json)
 
     local evpuPerSpace = 24.0
     local efixPerEvpu = 64.0

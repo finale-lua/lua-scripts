@@ -616,4 +616,16 @@ function library.get_default_music_font_name()
     end
 end
 
+--[[
+% require_embedded
+
+Bypasses the deployment rewrite of `require` to allow for requiring of libraries embedded in RGP Lua.
+
+: (string) The name of the embedded library to require.
+]]
+function library.require_embedded(library_name)
+    return require(library_name)
+end
+
+
 return library

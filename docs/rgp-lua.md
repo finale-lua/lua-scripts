@@ -41,7 +41,7 @@ The methods names (and as a result, the Lua properties) in the PDK Framework are
 The Lua Language
 ----------------
 
-_RGP Lua_ and _JW Lua_ are based on Lua 5.2. More information about the Lua computer language (and books about Lua) is available at the [Lua](http://www.lua.org/) home page, including [the Lua 5.2 Reference Manual](http://www.lua.org/manual/5.2/manual.html) and the online version of ["Programming in Lua", First Edition](http://www.lua.org/pil/) (this book covers Lua 5.0, but for Finale Lua programming purposes, it should cover what you need.)
+_RGP Lua_ as of version 0.67 is based on Lua 5.4. (_JW Lua_ is based on Lua 5.2.) More information about the Lua computer language (and books about Lua) is available at the [Lua](http://www.lua.org/) home page, including [the Lua 5.4 Reference Manual](https://www.lua.org/manual/5.4/) and the online version of ["Programming in Lua", First Edition](http://www.lua.org/pil/). (This book covers Lua 5.0, but for Finale Lua programming purposes, it should cover what you need.)
 
 Lua is case sensitive. The basic Lua syntax is very similar to other computer languages and Lua is an easy language to learn. To be able to write plug-in scripts there are just a few concepts in Lua you need to be aware of, such as:
 
@@ -52,13 +52,28 @@ Lua is case sensitive. The basic Lua syntax is very similar to other computer la
 * `for … do … end` loops
 * `if … then … end` conditional statements
 
-However, to really take advantage of the full power of Lua, there are other very powerful tools (such as iterators, closures and coroutines) to explore.
+However, to really take advantage of the full power of Lua, there are other very powerful tools (such as iterators, closures, and coroutines) to explore.
 
-Both _RGP Lua_ and _JW Lua_ include all the standard Lua 5.2 modules (`string`, `math`, `file`, etc). These modules can be used in any Finale Lua script, such as :
+Both _RGP Lua_ and _JW Lua_ include all the standard Lua modules (`string`, `math`, `file`, etc). These modules can be used in any Finale Lua script, such as :
 
 ```lua
 print (math.random(1, 10))
 ```
+
+### The 'bit32' namespace
+
+The `bit32` library in Lua 5.2 was removed in Lua 5.4. These functions were replaced with bitwise operators such as `&`, `|`, `>>`, `<<`, etc, directly in Lua. To maintain script interoperability with _JW Lua_ (which includes the `bit32` library as part of Lua 5.2), _RGP Lua_ embeds a [compatible version](https://github.com/finale-lua/lua-source/blob/master/built-in-functions/bit32_for_Lua54.lua) of `bit32` implemented using the Lua 5.4 operators.
+
+### The 'cjson' library
+
+_RGP Lua_ (starting in version 0.67) pre-loads the lua-cjson 2.1.0 library, which is embedded in the plugin. This allows for frictionless encoding of Lua tables to and from JSON strings. Access it as follows:
+
+```lua
+local cjson = require('cjson')
+```
+
+More information on how to use the libray is available here:  
+[https://www.kyne.com.au/~mark/software/lua-cjson-manual.html](https://www.kyne.com.au/~mark/software/lua-cjson-manual.html)
 
 ### The 'finale' namespace
 
@@ -138,7 +153,7 @@ If you are planning to use the standard installation of `luasocket`, you may be 
 
 ### The 'utf8' namespace
 
-Lua 5.3 and higher added a standard `utf8` library for parsing utf8-encoded strings. Especially with the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ embeds the `utf8` library from Lua 5.4.4 back-ported into Lua 5.2. The [Lua 5.4 Reference Manual](https://www.lua.org/manual/5.4/manual.html) describes how to use these functions. Any code you write for this version of `utf8` is source-compatible with Lua 5.4 and beyond. (This version is also backwards compatible with Lua 5.3 code.)
+Lua 5.4 includes a standard `utf8` library for parsing utf8-encoded strings. With the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ versions before 0.67 embedded a back-ported version of the `utf8` library from Lua 5.4. Since version 0.67 it is part of the Lua languge. The [Lua 5.4 Reference Manual](https://www.lua.org/manual/5.4/manual.html) describes how to use these functions.
 
 Dialog Boxes
 ------------
