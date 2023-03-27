@@ -151,9 +151,22 @@ require = __original_require or require
 
 If you are planning to use the standard installation of `luasocket`, you may be better off disabling the embedded version in _RGP Lua_ altogether.
 
+### The 'tinyxml2' namespace
+
+The Lua plugin for Finale has included the `tinyxml2` XML parser for many years. Both _JW Lua_ and _RGP Lua_ use it for reading and saving preference files, among other tasks. It is a lightweight parser implemented as a C++ class framework. It has the advantage of being very fast and possessing a simple API.
+
+Starting with version 0.67 of _RGP Lua_, the `tinyxml2` framework is available to Lua scripts. You enable it by setting `finaleplugin.LoadTinyXML2 = true` in your `plugindef()` function. This causes _RGP Lua_ to load the class framework into the global namespace `tinyxml2`.
+
+The original C++ documentation for `tinyxml2` is available here:  
+[http://leethomason.github.io/tinyxml2/](http://leethomason.github.io/tinyxml2/)
+
+Much as with the PDK Framework, technical limitations prevent some methods from being available in Lua. Also, the `XMLVisitor` and `XMLPrinter` classes are currently unavailable as well.
+
+To aid in debugging and other tasks, each of the classes has a `ClassName` method added that is not in the original documentation. That latest version of the [RGP Lua Class Browser](https://github.com/finale-lua/rgplua-class-browser) provides a working example of a script that uses `tinyxml2`.
+
 ### The 'utf8' namespace
 
-Lua 5.4 includes a standard `utf8` library for parsing utf8-encoded strings. With the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ versions before 0.67 embedded a back-ported version of the `utf8` library from Lua 5.4. Since version 0.67 it is part of the Lua languge. The [Lua 5.4 Reference Manual](https://www.lua.org/manual/5.4/manual.html) describes how to use these functions.
+Lua 5.4 includes a standard `utf8` library for parsing utf8-encoded strings. With the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ versions before 0.67 embedded a back-ported version of the `utf8` library into Lua 5.2. Since version 0.67 it is part of the standard set of Lua libraries. The [Lua 5.4 Reference Manual](https://www.lua.org/manual/5.4/manual.html) describes how to use these functions.
 
 Dialog Boxes
 ------------
