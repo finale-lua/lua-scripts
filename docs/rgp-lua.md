@@ -160,9 +160,32 @@ Starting with version 0.67 of _RGP Lua_, the `tinyxml2` framework is available t
 The original C++ documentation for `tinyxml2` is available here:  
 [http://leethomason.github.io/tinyxml2/](http://leethomason.github.io/tinyxml2/)
 
-Much as with the PDK Framework, technical limitations prevent some methods from being available in Lua. Also, the `XMLVisitor` and `XMLPrinter` classes are currently unavailable as well.
+The Lua implemenation differs from the original documentation as follows:
 
-To aid in debugging and other tasks, each of the classes has a `ClassName` method added that is not in the original documentation. That latest version of the [RGP Lua Class Browser](https://github.com/finale-lua/rgplua-class-browser) provides a working example of a script that uses `tinyxml2`.
+- Much as with the PDK Framework, technical limitations prevent some methods from being available in Lua. Also, the `XMLVisitor` and `XMLPrinter` classes are currently unavailable as well.
+- Several of the `Set...` functions use C++ overloading that is not available in Lua. For Lua, each numerical setter is named parallel to its getter. For example, the setter `XMLAttribute.SetIntAttribute` corresponds to `XMLAttribute.IntAttribute`.
+- Each of the classes has a `ClassName` method added that is not in the original documentation.
+- The constructor for `XMLDocument` is a plain constructor with no arguments. There are properties to change the values that the C++ version accepts as optional arguments on the constructor. Compare:
+
+C++
+
+```c++
+tinyxml2::XMLDocument doc_with_defaults;
+//
+tinyxml2::XMLDocument doc_with_settings(false, tinyxml2::COLLAPSE_WHITESPACE);
+```
+
+Lua:
+
+```lua
+local doc_with_defaults = tinyxml2.XMLDocument()
+--
+local doc_with_settings = tinyxml2.XMLDocument()
+doc_with_settings.ProcessEntities = false
+doc_with_settings.WhitespaceMode = tinyxml2.COLLAPSE_WHITESPACE)
+```
+
+The latest version of the [RGP Lua Class Browser](https://github.com/finale-lua/rgplua-class-browser) provides a working example of a script that uses `tinyxml2`.
 
 ### The 'utf8' namespace
 
