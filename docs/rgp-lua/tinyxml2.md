@@ -68,22 +68,25 @@ end
 
 `xml2table()` converts a node to a value or a Lua table. The return is as follows:
 
-- If the input node has no attributes and no children, it returns a string (or optionally a number) containing the value of the node. Otherwise it returns a table.
+- If the input node has no value, attributes, or children, the function returns `nil`.
+- If the input node has no attributes and no children, the function returns the value of the node. Otherwise it returns a table.
 - If the input node has attributes, the return table includes an embedded table with the `_attr` key that contains the attributes as key/value pairs.
-- If the input node has child nodes, the return table includes all the child nodes from recursive calls to `xml2table`.
+- If the input node has child nodes, the return table includes all the nested child nodes from recursive calls to `xml2table`.
 - If the input node has a value in addition to attributes and/or child nodes, the return table includes the value with the `_value` key.
 
-The optional `options` parameter is a table with options to modify the behavior of `xml2table`. Currently only one option is supported:
+The optional `options` parameter is a table with options to modify the behavior of `xml2table`. The following options are supported:
 
-- `usenumbers`: if this is set, then `xml2table` converts any values it can to numbers. Otherwise all values are strings.
+- `stringsonly`: By default, `xml2table` converts any values it can to numbers or booleans. This option overrides that behavior (if true) and returns all values as strings.
+- `boolyesno`: By default, the values `true` and `false` identify boolean values. Setting this option to true causes `xml2table` to identify booleans with `yes` and `no` instead. If `stringsonly` is true, this value is ignored.
 
 Example:
 
 ```lua
 local xml = tinyxml2.XMLDocument()
 xml:LoadFile("myxml.xml")
-local tab_with_numbers = xml2table(xml, { usenumbers = true })
-local tab_with_strings = xml2table(xml)
+local tab_with_typed_values = xml2table(xml)
+local tab_with_string_values = xml2table(xml, { stringsonly = true })
+local tab_with_yesno_bools = xml2table(xml, { boolyesno = true })
 ```
 
 
