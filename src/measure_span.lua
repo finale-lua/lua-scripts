@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.24"
-    finaleplugin.Date = "2023/03/26"
+    finaleplugin.Version = "v0.32"
+    finaleplugin.Date = "2023/03/29"
     finaleplugin.AdditionalMenuOptions = [[
         Measure Span Join
         Measure Span Divide
@@ -41,6 +41,7 @@ function plugindef()
         Divide every selected measure into two, changing the time signature by either 
         halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]). 
         If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3). 
+        Measures containing composite meters will be divided after the first composite group, or after the first element if there is only one group. 
 
         *IN ALL CASES:*  
         Incomplete measures will be filled with rests before Join/Divide. 
@@ -54,14 +55,14 @@ function plugindef()
     return "Measure Span Options...", "Measure Span Options", "Change the default behaviour of the Measure Span script"
 end
 
--- TEXT DATA for the "?" INFO button in the configuration dialog
+-- TEXT DATA for the "?" INFO button in the configuration dialog (copied from finaleplugin.Notes minus line breaks)
 local info = [[This script changes the "span" of every measure in the selection by either dividing it into two or combining it with the following measure. Options are organised so that many measures with different time signatures can be modified at once.
 
 JOIN:  
 Combine each pair of measures in the selection into one by consolidating their time signatures. If both measures have the same time signature, choose to either double the numerator ([3/4][3/4] -> [6/4]) or halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures aren't equal, choose to either COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]). (Consolidation will lose all beam groupings). A "display only" time signature can be created automatically when joining composite meters. "JOIN" will only work on an EVEN number of measures.  
 
 DIVIDE:  
-Divide every selected measure into two, changing the time signature by either halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]). If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3). 
+Divide every selected measure into two, changing the time signature by either halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]). If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3). Measures containing composite meters will be divided after the first composite group, or after the first element if there is only one group. 
 
 IN ALL CASES:  
 Incomplete measures will be filled with rests before Join/Divide. Measures containing too many notes will be trimmed to their "real" duration. Time signatures "for display only" will be removed. 
@@ -77,17 +78,19 @@ local config = {
     odd_more_first  =   true, -- otherwise more beats in SECOND bar if odd beats
     double_join     =   true, -- double the numerator on JOIN (otherwise halve the denominator)
     composite_join  =   true, -- JOIN measure by COMPOSITING two unequal time signatures (otherwise CONSOLIDATE them)
-    note_spacing    =   true,
-    repaginate      =   false,
-    display_meter   =   true,
-    window_pos_x    =   false,
+    note_spacing    =   true, -- implement note spacing after each operation
+    repaginate      =   false, -- repaginate after each operation
+    display_meter   =   true, -- include a courtesy "display" time signature with composite joins
+    window_pos_x    =   false, -- saved dialog window position
     window_pos_y    =   false,
 }
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local layer = require("library.layer")
-local script_name = "meter_span"
+local tie = require("library.tie")
+local smartshape = require("library.smartshape")
+local script_name = "measure_span"
 configuration.get_user_settings(script_name, config, true)
 
 function dialog_set_position(dialog)
@@ -124,6 +127,7 @@ function user_options()
     end
 
     local dlg = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+
     local shadow = dlg:CreateStatic(1, y + 1):SetText("DIVIDE EACH MEASURE INTO TWO:"):SetWidth(x_grid[4])
     if shadow.SetTextColor then shadow:SetTextColor(120, 120, 120) end
     dlg:CreateStatic(0, y):SetText("DIVIDE EACH MEASURE INTO TWO:"):SetWidth(x_grid[4])
@@ -280,8 +284,9 @@ function insert_blank_measure_after(measure_num)
     return 1 -- added one measure
 end
 
-function pad_or_truncate_cells(measure_rgn, measure_duration)
-    local measure_num = measure_rgn.StartMeasure -- should be just one measure wide
+function pad_or_truncate_cells(measure_rgn, measure_num, measure_duration)
+    measure_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num) -- one bar width
+
     for slot = measure_rgn.StartSlot, measure_rgn.EndSlot do
         local staff = measure_rgn:CalcStaffNumber(slot)
         local cell_rgn = mixin.FCMMusicRegion()
@@ -362,7 +367,7 @@ function flatten_comp_numerators(comp)
             small_denom = dur
         end
     end
-    local total_top = 0 -- add up numerators over smallest denominator
+    local total_top = 0 -- add numerators over the smallest denominator
     for group = 1, #comp.top.groups do
         for el = 1, #comp.top.groups[group] do
             total_top = total_top + (comp.top.groups[group][el] * comp.bottom.groups[group] / small_denom)
@@ -419,8 +424,8 @@ function divide_measures(selection)
         local bottom = { time_sig[1].BeatDuration, time_sig[1].BeatDuration }
 
         local pair_rgn = mixin.FCMMusicRegion()
-        pair_rgn:SetRegion(selection):SetStartMeasure(measure_num):SetEndMeasure(measure_num):SetFullMeasureStack()
-        pad_or_truncate_cells(pair_rgn, measure[1]:GetDuration())
+        pair_rgn:SetRegion(selection):SetFullMeasureStack()
+        pad_or_truncate_cells(pair_rgn, measure_num, measure[1]:GetDuration())
 
         if time_sig[1].CompositeTop then
             -- COMPOSITE METER
@@ -469,12 +474,139 @@ function divide_measures(selection)
 
         measure[1]:Save()
         measure[2]:Save()
-        pair_rgn.EndMeasure = measure_num + 1 -- rebar BOTH measures
+        pair_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num + 1) -- rebar BOTH measures
         pair_rgn:RebarMusic(finale.REBARSTOP_REGIONEND, true, false)
-        note_spacing(pair_rgn)
+        note_spacing(pair_rgn) -- (conditional on config)
         extra_measures = extra_measures + 1
     end
     selection.EndMeasure = selection.EndMeasure + extra_measures
+end
+
+function entry_from_enum(measure, staff_num, entry_num)
+    local cell = finale.FCNoteEntryCell(measure, staff_num)
+    cell:Load()
+    return cell:FindEntryNumber(entry_num)
+end
+
+function shift_smart_shapes(rgn, measure_num, dur_offset)
+    local slurs = {}
+    local right_extend = 5
+    local region = mixin.FCMMusicRegion()
+    region:SetRegion(rgn):SetStartMeasure(measure_num):SetEndMeasure(measure_num + right_extend):SetFullMeasureStack()
+    local marks = finale.FCSmartShapeMeasureMarks()
+    marks:LoadAllForRegion(region, true)
+    for mark in each(marks) do
+        local shape = mark:CreateSmartShape()
+        local leftseg = shape:GetTerminateSegmentLeft()
+        local rightseg = shape:GetTerminateSegmentRight()
+        local m = { left = leftseg.Measure, right = rightseg.Measure }
+
+        if m.left < (measure_num + 2) and m.left ~= m.right then -- crosses deleted measure 2
+            if not shape.EntryBased then -- MEASURE ATTACHED
+                if m.left > measure_num then
+                    leftseg.Measure = m.left - 1
+                    if m.left == measure_num + 1 then
+                        leftseg.MeasurePos = leftseg.MeasurePos + dur_offset
+                    end
+                end
+                if m.right > measure_num then
+                    rightseg.Measure = m.right - 1
+                    if m.right == measure_num + 1 then
+                        rightseg.MeasurePos = rightseg.MeasurePos + dur_offset
+                    end
+                end
+                shape:Save()
+            else -- SHAPE ATTACHED ( == SLURS etc)
+                local entry = {
+                    entry_from_enum(m.left, leftseg.Staff, leftseg.EntryNumber),
+                    entry_from_enum(m.right, rightseg.Staff, rightseg.EntryNumber)
+                }
+                local slur =  { -- [left end] [right end]
+                { m = m.left, staff = leftseg.Staff },
+                { m = m.right - 1, staff = rightseg.Staff }
+                }
+                if m.left == measure_num then
+                    slur[1].entry = entry[1]
+                else -- == measure_num + 1
+                    slur[1].m = m.left - 1
+                    slur[1].pos = (entry[1] and entry[1].MeasurePos or 0) + dur_offset
+                end
+                if m.right > measure_num + 1 then
+                    slur[2].entry = entry[2]
+                else
+                    slur[2].pos = (entry[2] and entry[2].MeasurePos or 0) + dur_offset
+                end
+                table.insert(slurs, slur)
+            end
+        end
+    end
+    return slurs
+end
+
+function restore_slurs(slurs)
+    if #slurs > 0 then
+        for _, slur in ipairs(slurs) do
+            for i = 1, 2 do
+                if not slur[i].entry then
+                    local cell = finale.FCNoteEntryCell(slur[i].m, slur[i].staff)
+                    cell:Load()
+                    slur[i].entry = cell:FindClosestPos(slur[i].pos)
+                end
+            end
+            if slur[1].entry ~= nil and slur[2].entry ~= nil then
+                smartshape.add_entry_based_smartshape(slur[1].entry, slur[2].entry, "auto_slur")
+            end
+        end
+    end
+end
+
+function save_tie_ends(region, measure)
+    local ties = {}
+    for slot = region.StartSlot, region.EndSlot do -- assumes FullMeasureStack
+        local staff = region:CalcStaffNumber(slot)
+        ties[staff] = {}
+        for layer_num = 1, layer.max_layers() do
+            local entry_layer = finale.FCNoteEntryLayer(layer_num - 1, staff, measure, measure)
+            entry_layer:Load()
+            ties[staff][layer_num] = {}
+            if entry_layer.Count > 0 then -- layer contains some notes
+                local last_entry = entry_layer:GetItemAt(entry_layer.Count - 1)
+                local pos = last_entry.MeasurePos
+                ties[staff][layer_num][pos] = {}
+                for note in each(last_entry) do
+                    if note.Tie then
+                        table.insert(ties[staff][layer_num][pos], note.NoteID )
+                    end
+                end
+            end
+        end
+    end
+    return ties
+end
+
+function restore_tie_ends(region, measure, ties)
+    for slot = region.StartSlot, region.EndSlot do
+        local staff = region:CalcStaffNumber(slot)
+        if not ties[staff] then return end
+        for layer_num = 1, layer.max_layers() do
+            local entry_layer = finale.FCNoteEntryLayer(layer_num - 1, staff, measure, measure)
+            if not ties[staff][layer_num] then return end
+            entry_layer:Load()
+            for entry in each(entry_layer) do
+                if ties[staff][layer_num][entry.MeasurePos] ~= nil then
+                    for _, v in ipairs(ties[staff][layer_num][entry.MeasurePos]) do
+                        local note = entry:FindNoteID(v)
+                        local tied_to_note = tie.calc_tied_to(note)
+                        if tied_to_note then
+                            note.Tie = true
+                            tied_to_note.TieBackwards = true
+                        end
+                    end
+                end
+            end
+            entry_layer:Save()
+        end
+    end
 end
 
 function join_measures(selection)
@@ -482,13 +614,13 @@ function join_measures(selection)
         finenv.UI():AlertInfo("Please select an EVEN number of measures for the \"Measure Span Join\" action", "User Error")
         return false
     end
-    -- run through selection backwards by pairs of measures
+    -- run through selection backwards by measure pairs
     local measures_removed = 0
     for measure_num = selection.EndMeasure - 1, selection.StartMeasure, -2 do
         local measure = { finale.FCMeasure(), finale.FCMeasure() }
         measure[1]:Load(measure_num)
         measure[2]:Load(measure_num + 1)
-        measure[1].UseTimeSigForDisplay = false -- now irrelevant
+        measure[1].UseTimeSigForDisplay = false -- no longer relevant
         measure[1].Barline = measure[2].Barline -- before [2] is erased
 
         local time_sig = { measure[1]:GetTimeSignature(), measure[2]:GetTimeSignature()}
@@ -496,19 +628,18 @@ function join_measures(selection)
         local bottom = { time_sig[1].BeatDuration, time_sig[2].BeatDuration }
         local measure_dur = { measure[1]:GetDuration(), measure[2]:GetDuration() }
 
-        -- paste all of measure[2] into last bit of measure[1]
+        -- paste all of measure[2] onto end of measure[1]
         local paste_rgn = mixin.FCMMusicRegion()
         paste_rgn:SetRegion(selection):SetFullMeasureStack()
-        paste_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num)
-        pad_or_truncate_cells(paste_rgn, measure_dur[1])
-        paste_rgn:SetStartMeasure(measure_num + 1):SetEndMeasure(measure_num + 1)
-        pad_or_truncate_cells(paste_rgn, measure_dur[2])
-        paste_rgn:CopyMusic()
-        paste_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num)
+        local saved_tie_ends = save_tie_ends(paste_rgn, measure_num)
+        local saved_slurs = shift_smart_shapes(paste_rgn, measure_num, measure_dur[1])
+        pad_or_truncate_cells(paste_rgn, measure_num + 1, measure_dur[2])
+        paste_rgn:CopyMusic() -- copy measure[2]
+        pad_or_truncate_cells(paste_rgn, measure_num, measure_dur[1])
 
         local comp_array = {}
         if time_sig[1].CompositeTop or time_sig[2].CompositeTop then
-            -- at least ONE composite
+            -- at least ONE composite in this pair
             for cnt = 1, 2 do
                 comp_array[cnt] = {}
                 if time_sig[cnt].CompositeTop then
@@ -516,13 +647,13 @@ function join_measures(selection)
                     if not time_sig[cnt].CompositeBottom then
                         comp_array[cnt].bottom = { groups = { bottom[cnt] } }
                     end
-                else -- create dummy comps
+                else -- create dummy composite
                     comp_array[cnt].top = { groups = { { top[cnt] } } }
                     comp_array[cnt].bottom = { groups = { bottom[cnt] } }
                 end
             end
-            -- COMBINE both sets into comp[1]
-            for i = 1, #comp_array[2].top.groups do
+
+            for i = 1, #comp_array[2].top.groups do -- COMBINE both sets into comp_array[1]
                 table.insert(comp_array[1].top.groups, comp_array[2].top.groups[i])
                 table.insert(comp_array[1].bottom.groups, comp_array[2].bottom.groups[i])
             end
@@ -531,10 +662,10 @@ function join_measures(selection)
             else
                 new_composite_top(time_sig[1], comp_array[1].top.groups, 1, 0, 1)
                 new_composite_bottom(time_sig[1], comp_array[1].bottom.groups, 1, 0)
-                make_display_meter(measure[1], comp_array[1])
+                make_display_meter(measure[1], comp_array[1]) -- conditional on config
             end
         else
-            -- NO COMPOSITES in the selection
+            -- NO COMPOSITES in this measure pair
             if top[1] == top[2] and bottom[1] == bottom[2] then -- identical meters
                 if config.double_join then
                     top[1] = top[1] * 2 -- double numerator
@@ -544,22 +675,22 @@ function join_measures(selection)
                 time_sig[1].Beats = top[1]
                 time_sig[1].BeatDuration = bottom[1]
             else
-                local comp = {
+                comp_array = {
                     top = { groups = { {top[1], top[2]} } },
                     bottom = { groups = { bottom[1] } }
                 }
                 if not config.composite_join then -- CONSOLIDATE the meters
-                    time_sig[1].Beats, time_sig[1].BeatDuration = flatten_comp_numerators(comp)
+                    time_sig[1].Beats, time_sig[1].BeatDuration = flatten_comp_numerators(comp_array)
                 else -- fabricate COMPOSITE
                     if bottom[1] == bottom[2] then -- no bottom composite, one top group
                         time_sig[1].BeatDuration = bottom[1]
-                    else
-                        comp.top.groups =  { { top[1] }, { top[2] } }
-                        comp.bottom.groups = { bottom[1], bottom[2] }
-                        new_composite_bottom(time_sig[1], comp.bottom.groups, 1, 0)
+                    else -- composite bottoms
+                        comp_array.top.groups =  { { top[1] }, { top[2] } }
+                        comp_array.bottom.groups = { bottom[1], bottom[2] }
+                        new_composite_bottom(time_sig[1], comp_array.bottom.groups, 1, 0)
                     end
-                    new_composite_top(time_sig[1], comp.top.groups, 1, 0, 1)
-                    make_display_meter(measure[1], comp) -- (if requested)
+                    new_composite_top(time_sig[1], comp_array.top.groups, 1, 0, 1)
+                    make_display_meter(measure[1], comp_array) -- (conditional on config)
                 end
             end
         end
@@ -568,6 +699,9 @@ function join_measures(selection)
         paste_rgn:PasteMusic()
         paste_rgn:ReleaseMusic()
         measure[1]:Save()
+        restore_tie_ends(paste_rgn, measure_num, saved_tie_ends)
+        restore_slurs(saved_slurs)
+
         paste_rgn:SetStartMeasurePos(0):RebarMusic(finale.REBARSTOP_REGIONEND, true, false)
         -- delete the copied (second) measure
         paste_rgn:SetStartMeasure(measure_num + 1):SetEndMeasure(measure_num + 1):CutDeleteMusic()
@@ -591,7 +725,7 @@ function measure_span()
     end
 
     local selection = mixin.FCMMusicRegion()
-    selection:SetRegion(finenv.Region())
+    selection:SetRegion(finenv.Region()):SetStartMeasurePosLeft():SetEndMeasurePosRight()
     if span_action == "divide" then
         divide_measures(selection)
     elseif span_action == "join" then
