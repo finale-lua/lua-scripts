@@ -208,16 +208,15 @@ score as well. This code is based on observed Finale behavior in Finale 27.
 
 @ note (FCNote) input and modified output
 @ direction (number) positive = up, negative = down (normally 1 or -1, but any positive or negative numbers work)
-@ [ignore_error] (boolean) default false. If true, always return success. External callers should omit this parameter.
 : (boolean) success or failure
 ]]
-function transposition.enharmonic_transpose_default(note, ignore_error)
+function transposition.enharmonic_transpose_default(note)
     if note.RaiseLower ~= 0 then
-        return transposition.enharmonic_transpose(note, sign(note.RaiseLower), ignore_error)
+        return transposition.enharmonic_transpose(note, sign(note.RaiseLower))
     end
     local original_displacement = note.Displacement
     local original_raiselower = note.RaiseLower
-    if not transposition.enharmonic_transpose(note, 1, ignore_error) then
+    if not transposition.enharmonic_transpose(note, 1) then
         return false
     end
     -- This is observed Finale behavior, relevant in the context of microtone custom key signatures.
@@ -230,7 +229,7 @@ function transposition.enharmonic_transpose_default(note, ignore_error)
     local up_raiselower = note.RaiseLower
     note.Displacement = original_displacement
     note.RaiseLower = original_raiselower
-    if not transposition.enharmonic_transpose(note, -1, ignore_error) then
+    if not transposition.enharmonic_transpose(note, -1) then
         return false
     end
     if math.abs(note.RaiseLower) < math.abs(up_raiselower) then
