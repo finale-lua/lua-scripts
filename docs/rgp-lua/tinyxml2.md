@@ -89,6 +89,32 @@ local tab_with_string_values = xml2table(xml, { stringsonly = true })
 local tab_with_yesno_bools = xml2table(xml, { boolyesno = true })
 ```
 
+### table2xml(table, node [, options])
 
+`table2xml()` embeds a Lua table inside an XMLNode. Typically this node will either be an `XMLElement` instance or an `XMLDocument` instance. If it is not an `XMLElement`, the function returns an error if the Lua table contains anything but sub-tables.
+
+The goal of `table2xml` is to reverse the result of `xml2table()`, but there are some limitations.
+
+- The order of elements in the final XML is not guaranteed. If your schema specifies an order of elements at higher levels, you can still use this function at the lower levels where order does not matter.
+- If a key of `_attr` is encountered, its value must be a table. These are inserted as attributes of the element. If the value is not a table, the function returns an error message.
+- If a key of `_value` is encountered, its value must be a string, a number, or a boolean. These are inserted as the text of the element. If its value is not one of those, the function returns an error message.
+- If a value is a subtable and the subtable is enumerable, the subtable's members are inserted as sibling child nodes.
+- If a value is a subtable and the subtable is not enumerable, the subtable itself is inserted as a child node.
+- If a value is a function or a userdata item, the function returns an error message.
+
+The optional `options` parameter is a table with options the same as for `xml2table`. However, the `stringsonly` option is unused by `table2xml`.
+
+Example:
+
+```lua
+-- assume 'my_table' is a Lua table containing data to encode:
+local xml = tinyxml2.XMLDocument()
+local result = table2xml(my_table, xml)
+if result then
+   print(error)
+else
+   xml:SaveFile("myxmlout.xml")
+end 	
+```
 
 
