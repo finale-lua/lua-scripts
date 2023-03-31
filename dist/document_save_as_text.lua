@@ -406,6 +406,43 @@ __imports["library.expression"] = __imports["library.expression"] or function()
         end
         return false
     end
+
+    function expression.resync_expressions_for_category(category_id)
+        for expression_def in loadall(finale.FCTextExpressionDefs()) do
+            if expression_def.CategoryID == category_id then
+                expression.resync_to_category(expression_def)
+            end
+        end
+    end
+
+    function expression.resync_to_category(expression_def)
+        local cat = finale.FCCategoryDef()
+        cat:Load(expression_def.CategoryID)
+
+        if expression_def.UseCategoryFont then
+            local str = expression_def:CreateTextString()
+            if str then
+                str:ReplaceCategoryFonts(cat, finale.CATEGORYMODE_TEXT, false)
+                str:ReplaceCategoryFonts(cat, finale.CATEGORYMODE_MUSIC, false)
+                str:ReplaceCategoryFonts(cat, finale.CATEGORYMODE_NUMBER, false)
+                expression_def:SaveTextString(str)
+            end
+        end
+        if expression_def.UseCategoryPos then
+            local pos_props = {
+                "HorizontalJustification",
+                "HorizontalAlignmentPoint",
+                "HorizontalOffset",
+                "VerticalAlignmentPoint",
+                "VerticalBaselineOffset",
+                "VerticalEntryOffset"
+            }
+            for _, prop in pairs(pos_props) do
+                expression_def[prop] = cat[prop]
+            end
+            expression_def:Save()
+        end
+    end
     return expression
 end
 __imports["library.enigma_string"] = __imports["library.enigma_string"] or function()

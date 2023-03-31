@@ -8,6 +8,8 @@
 - [calc_text_width(expression_def, expand_tags)](#calc_text_width)
 - [is_for_current_part(exp_assign, current_part)](#is_for_current_part)
 - [is_dynamic(exp)](#is_dynamic)
+- [resync_expressions_for_category(category_id)](#resync_expressions_for_category)
+- [resync_to_category(expression_def)](#resync_to_category)
 
 ### get_music_region
 
@@ -118,3 +120,31 @@ Returns true if the expression appears to be a dynamic.
 | Return type | Description |
 | ----------- | ----------- |
 | `boolean` |  |
+
+### resync_expressions_for_category
+
+```lua
+expression.resync_expressions_for_category(category_id)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L165)
+
+Updates the fonts and positioning of all expression definitions linked to a category after making changes to the category.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `category_id` | `number` |  |
+
+### resync_to_category
+
+```lua
+expression.resync_to_category(expression_def)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L181)
+
+Updates the fonts and positioning of an expression definition to match its category after making changes to the category.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `expression_def` | `FCTextExpessionDef` |  |
