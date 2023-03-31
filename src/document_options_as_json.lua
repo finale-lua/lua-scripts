@@ -5,8 +5,8 @@ function plugindef()
     finaleplugin.Author = "Aaron Sherber"
     finaleplugin.AuthorURL = "https://aaron.sherber.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.1.1"
-    finaleplugin.Date = "2023-03-16"
+    finaleplugin.Version = "2.1.2"
+    finaleplugin.Date = "2023-03-25"
     finaleplugin.CategoryTags = "Report"   
     finaleplugin.Id = "9c05a4c4-9508-4608-bb1b-2819cba96101" 
     finaleplugin.AdditionalMenuOptions = [[
@@ -16,6 +16,7 @@ function plugindef()
         action = "import"
     ]]
     finaleplugin.RevisionNotes = [[
+        v2.1.2      Resync expression definitions
         v2.1.1      Add music spacing allotments (requires RGPLua v0.66)
         v2.0.1      Add ability to import
         v1.2.1      Add Grid/Guide snap-tos; better organization of SmartShapes
@@ -27,8 +28,7 @@ function plugindef()
         JSON file. You can then use a diff program to compare the JSON files generated from 
         two Finale documents, or you can keep track of how the settings in a document have changed 
         over time. The script will also let you import settings from a full or partial JSON file.
-        Please see <a href="https://url.sherber.com/finalelua/options-as-json">url.sherber.com/finalelua/options-as-json</a>
-        for more information.
+        Please see https://url.sherber.com/finalelua/options-as-json for more information.
         
         The focus is on document-specific settings, rather than program-wide ones, and in particular on 
         the ones that affect the look of a document. Most of these come from the Document Options dialog 
@@ -62,6 +62,7 @@ local debug = {
 
 local mixin = require('library.mixin')
 local json = require("lunajson.lunajson")
+local expr = require("library.expression")
 
 -- region DIALOGS
 
@@ -676,6 +677,10 @@ function save_all_raw_prefs(prefs_table)
             end
         end
     end
+
+    for cat in loadall(finale.FCCategoryDefs()) do
+        expr.resync_expressions_for_category(cat.ID)
+    end
 end
 
 -- endregion
@@ -1197,7 +1202,15 @@ function options_import_from_json()
         if file then
             local prefs_json = file:read("*a")
             file:close()
-            local prefs_to_import = json.decode(prefs_json)
+            
+            local prefs_to_import
+            local ok, err_msg = pcall(function() prefs_to_import = json.decode(prefs_json) end)
+            if not ok then
+                err_msg = err_msg or "Unknown error"
+                err_msg = err_msg:gsub("^.-%d:", "")
+                finenv.UI():AlertError(err_msg, "JSON Error")
+                return
+            end
             
             if confirm_file_import(prefs_to_import["@Meta"]) then
                 local raw_prefs = transform_to_raw(prefs_to_import)

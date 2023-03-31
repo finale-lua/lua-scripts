@@ -154,4 +154,58 @@ function expression.is_dynamic(exp)
     return false
 end
 
+--[[
+% resync_expressions_for_category
+
+Updates the fonts and positioning of all expression definitions linked to a category after making changes to the category.
+
+@ category_id (number)
+]]
+
+function expression.resync_expressions_for_category(category_id)
+    for expression_def in loadall(finale.FCTextExpressionDefs()) do
+        if expression_def.CategoryID == category_id then
+            expression.resync_to_category(expression_def)
+        end
+    end
+end
+
+--[[
+% resync_to_category
+
+Updates the fonts and positioning of an expression definition to match its category after making changes to the category.
+
+@ expression_def (FCTextExpessionDef)
+]]
+
+function expression.resync_to_category(expression_def)
+    local cat = finale.FCCategoryDef()
+    cat:Load(expression_def.CategoryID)
+    
+    if expression_def.UseCategoryFont then
+        local str = expression_def:CreateTextString()
+        if str then
+            str:ReplaceCategoryFonts(cat, finale.CATEGORYMODE_TEXT, false)
+            str:ReplaceCategoryFonts(cat, finale.CATEGORYMODE_MUSIC, false)
+            str:ReplaceCategoryFonts(cat, finale.CATEGORYMODE_NUMBER, false)
+            expression_def:SaveTextString(str)
+        end
+    end
+
+    if expression_def.UseCategoryPos then
+        local pos_props = {
+            "HorizontalJustification",
+            "HorizontalAlignmentPoint",
+            "HorizontalOffset",
+            "VerticalAlignmentPoint",
+            "VerticalBaselineOffset",
+            "VerticalEntryOffset"
+        }
+        for _, prop in pairs(pos_props) do
+            expression_def[prop] = cat[prop]
+        end
+        expression_def:Save()
+    end
+end 
+
 return expression
