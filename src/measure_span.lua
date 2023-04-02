@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.41"
+    finaleplugin.Version = "v0.42"
     finaleplugin.Date = "2023/04/01"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.63
@@ -36,56 +36,57 @@ function plugindef()
         or halve the denominator ([3/4][3/4] -> [3/2]). 
         If the time signatures aren't equal, choose to either COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) 
         or CONSOLIDATE them ([2/4][3/8] -> [7/8]). (Consolidation will lose current beam groupings). 
-        You can choose that a consolidated "display" time signature is created automatically when joining composite meters. 
+        You can choose that a consolidated "display" time signature is created automatically when compositing meters. 
         "JOIN" only works on an even number of measures.  
 
         *DIVIDE:*  
         Divide every selected measure into two, changing the time signature by either 
         halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]). 
         If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3). 
-        Measures containing composite meters will be divided after the first composite group, or if there is only one group after its first element.  
+        Measures containing composite meters will be divided after the first composite group, or if there is only one group, after its first element.  
 
         *IN ALL CASES:*  
         Incomplete measures will be filled with rests before Join/Divide. 
         Measures containing too many notes will be trimmed to their "real" duration. 
         Time signatures "for display only" will be removed. 
         Measures are either deleted or shifted in every operation so smart shapes spanning the area need to be "restored". 
-        Selecting a SPAN of "5" will look for smart shapes to restore from 5 measures before until 5 after the affected region. 
+        Selecting a SPAN of "5" will look for smart shapes to restore from 5 measures before until 5 after the selected region. 
         (This takes noticeably more time than a SPAN of "2").
 
         *OPTIONS:*  
-        To configure script settings either select the "Measure Span Options..." menu item, 
-        or hold down the `shift` or `alt` (option) key when invoking "Join" or "Divide".
+        To configure script settings select the "Measure Span Options..." menu item, 
+        or else hold down the `shift` or `alt` (option) key when invoking "Join" or "Divide".
     ]]
     return "Measure Span Options...", "Measure Span Options", "Change the default behaviour of the Measure Span script"
 end
 
 -- TEXT DATA for the "?" INFO button in the configuration dialog (copied from finaleplugin.Notes minus line breaks)
 local info = [[This script changes the "span" of every measure in the currently selected music by manipulating its time signature, either dividing it into two or combining it with the following measure. Many measures with different time signatures can be modified at once.
-JOIN:
-Combine each pair of measures in the selection into one by consolidating their time signatures. If both measures have the same time signature, choose to either double the numerator ([3/4][3/4] -> [6/4]) or halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures aren't equal, choose to either COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]). (Consolidation will lose current beam groupings). You can choose that a consolidated "display" time signature is created automatically when joining composite meters. "JOIN" only works on an even number of measures.  
 
-DIVIDE:  
-Divide every selected measure into two, changing the time signature by either halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]). If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3). Measures containing composite meters will be divided after the first composite group, or if there is only one group after its first element.  
+*JOIN:*  
+Combine each pair of measures in the selection into one by consolidating their time signatures. If both measures have the same time signature, choose to either double the numerator ([3/4][3/4] -> [6/4]) or halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures aren't equal, choose to either COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]). (Consolidation will lose current beam groupings). You can choose that a consolidated "display" time signature is created automatically when compositing meters. "JOIN" only works on an even number of measures.  
 
-IN ALL CASES:
-Incomplete measures will be filled with rests before Join/Divide. Measures containing too many notes will be trimmed to their "real" duration. Time signatures "for display only" will be removed. Measures are either deleted or shifted in every operation so smart shapes spanning the area need to be "restored". Selecting a SPAN of "5" will look for smart shapes to restore from 5 measures before until 5 after the affected region. (This takes noticeably more time than a SPAN of "2").
+*DIVIDE:*  
+Divide every selected measure into two, changing the time signature by either halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]). If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3). Measures containing composite meters will be divided after the first composite group, or if there is only one group, after its first element.  
 
-OPTIONS:
-To configure script settings either select the "Measure Span Options..." menu item, or hold down the `shift` or `alt` (option) key when invoking "Join" or "Divide".
+*IN ALL CASES:*  
+Incomplete measures will be filled with rests before Join/Divide. Measures containing too many notes will be trimmed to their "real" duration. Time signatures "for display only" will be removed. Measures are either deleted or shifted in every operation so smart shapes spanning the area need to be "restored". Selecting a SPAN of "5" will look for smart shapes to restore from 5 measures before until 5 after the selected region. (This takes noticeably more time than a SPAN of "2").
+
+*OPTIONS:*  
+To configure script settings select the "Measure Span Options..." menu item, or else hold down the `shift` or `alt` (option) key when invoking "Join" or "Divide".
 ]]
 
 span_action = span_action or "options"
 
 local config = {
-    halve_numerator =   true, -- otherwise double the denominator on DIVIDE
-    odd_more_first  =   true, -- otherwise more beats in SECOND bar if odd beats
+    halve_numerator =   true, -- halve the numerator on DIVIDE otherwise double the denominator
+    odd_more_first  =   true, -- if dividing odd beats, more beats in FIRST measure (otherwise the second)
     double_join     =   true, -- double the numerator on JOIN (otherwise halve the denominator)
     composite_join  =   true, -- JOIN measure by COMPOSITING two unequal time signatures (otherwise CONSOLIDATE them)
     note_spacing    =   true, -- implement note spacing after each operation
     repaginate      =   false, -- repaginate after each operation
-    display_meter   =   true, -- include a courtesy "display" time signature with composite joins
-    shape_extend    =   2,    -- how many extra measures to span for shape extensions
+    display_meter   =   true, -- create a composite "display" time signature with composite joins
+    shape_extend    =   2,    -- how many measures either side of the selection to span for smart shapes
     window_pos_x    =   false, -- saved dialog window position
     window_pos_y    =   false,
 }
@@ -156,9 +157,9 @@ function user_options()
     dlg:CreateStatic(x_grid[1], y):SetText("More beats in second measure:"):SetWidth(x_grid[4] + 20)
     dlg:CreateCheckbox(x_grid[3], y, "4"):SetCheck(config.odd_more_first and 0 or 1):SetText(" 3 -> 1 + 2 etc."):SetWidth(i_width)
     yd(27)
-    dlg:CreateHorizontalLine(0, y + 3, x_grid[4] + i_width)
-    dlg:CreateHorizontalLine(0, y + 2, x_grid[4] + i_width)
     dlg:CreateHorizontalLine(0, y, x_grid[4] + i_width)
+    dlg:CreateHorizontalLine(0, y + 2, x_grid[4] + i_width)
+    dlg:CreateHorizontalLine(0, y + 3, x_grid[4] + i_width)
     yd(10)
     shadow = dlg:CreateStatic(1, y + 1):SetText("JOIN PAIRS OF MEASURES:"):SetWidth(x_grid[3])
     if shadow.SetTextColor then shadow:SetTextColor(120, 120, 120) end
@@ -191,9 +192,9 @@ function user_options()
         :SetText(" Create \"display\" time signature when compositing\n"
         .. " ( [2/4][3/8] -> [2/4+3/8] displaying \"7/8\" )")
     yd(36)
-    dlg:CreateHorizontalLine(0, y + 3, x_grid[4] + i_width)
-    dlg:CreateHorizontalLine(0, y + 2, x_grid[4] + i_width)
     dlg:CreateHorizontalLine(0, y, x_grid[4] + i_width)
+    dlg:CreateHorizontalLine(0, y + 2, x_grid[4] + i_width)
+    dlg:CreateHorizontalLine(0, y + 3, x_grid[4] + i_width)
     yd(12)
 
     dlg:CreateStatic(0, y):SetText("Preserve smart shapes within\n(Larger spans take longer)"):SetWidth(x_grid[3]):SetHeight(30)
@@ -565,9 +566,9 @@ function shift_smart_shapes(rgn, measure_num, pos_offset)
                     { staff = segment[1].Staff, m = m[1] },
                     { staff = segment[2].Staff, m = m[2] - 1 }
                 }
-                if m[1] == measure_num then
-                    slur[1].entry = entry[1]
-                else -- m[1] == measure_num + 1
+                if m[1] <= measure_num then
+                    slur[1].entry = entry[1] -- entry stays put
+                else
                     slur[1].m = m[1] - 1 -- move to previous measure
                     slur[1].pos = (entry[1] and entry[1].MeasurePos or 0) + pos_offset -- by position
                 end
