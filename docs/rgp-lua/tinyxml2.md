@@ -7,10 +7,11 @@ The original C++ documentation for `tinyxml2` is available here:
 
 The Lua implemenation differs from the original documentation as follows:
 
-- Much as with the PDK Framework, technical limitations prevent some methods from being available in Lua. Also, the `XMLVisitor` and `XMLPrinter` classes are currently unavailable as well.
-- Several of the `Set...` functions use C++ overloading that is not available in Lua. For Lua, each numerical setter is named parallel to its getter. For example, the setter `XMLAttribute.SetIntAttribute` corresponds to `XMLAttribute.IntAttribute`.
+- Much as with the PDK Framework, technical limitations prevent some methods from being available in Lua.
+- Many of the `Set...` or `Push...` functions use C++ overloading that is not available in Lua. For Lua, each numerical setter is named parallel to its getter. For example, the setter `XMLAttribute.SetIntAttribute` corresponds to `XMLAttribute.IntAttribute`.
 - Each of the classes has a `ClassName` method added that is not in the original documentation.
-- The constructor for `XMLDocument` is a plain constructor with no arguments. There are properties to change the values that the C++ version accepts as optional arguments on the constructor. Compare:
+- `XMLPrinter` is available for memory buffer printing only. If you need to write to a file, use `io.write` to write the `CStr` of the `XMLPrinter` to the file.
+- The constructor for `XMLDocument` is a plain constructor with no arguments that uses default values for `processEntities` and `whitespaceMode`. Use the static function `CreateDocument` to create an instance with values other than the defaults. Compare:
 
 C++
 
@@ -25,9 +26,7 @@ Lua:
 ```lua
 local doc_with_defaults = tinyxml2.XMLDocument()
 --
-local doc_with_settings = tinyxml2.XMLDocument()
-doc_with_settings.ProcessEntities = false
-doc_with_settings.WhitespaceMode = tinyxml2.COLLAPSE_WHITESPACE)
+local doc_with_settings = tinyxml2.XMLDocument.CreateDocument(false, tinyxml2.COLLAPSE_WHITESPACE)
 ```
 
 The latest version of the [RGP Lua Class Browser](https://github.com/finale-lua/rgplua-class-browser) provides a working example of a script that uses `tinyxml2`.
