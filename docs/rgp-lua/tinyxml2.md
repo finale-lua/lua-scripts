@@ -11,7 +11,7 @@ The Lua implemenation differs from the original documentation as follows:
 - Many of the `Set...` or `Push...` functions use C++ overloading that is not available in Lua. For Lua, each numerical setter is named parallel to its getter. For example, the setter `XMLAttribute.SetIntAttribute` corresponds to `XMLAttribute.IntAttribute`.
 - Each of the classes has a `ClassName` method added that is not in the original documentation.
 - `XMLPrinter` is available for memory buffer printing only. If you need to write to a file, use `io.write` to write the `CStr` of the `XMLPrinter` to the file.
-- The constructor for `XMLDocument` is a plain constructor with no arguments that uses default values for `processEntities` and `whitespaceMode`. Use the static function `CreateDocument` to create an instance with values other than the defaults. Compare:
+- The constructor for `XMLDocument` is a plain constructor with no arguments that uses default values for `processEntities` and `whitespaceMode`.
 
 C++
 
@@ -26,7 +26,7 @@ Lua:
 ```lua
 local doc_with_defaults = tinyxml2.XMLDocument()
 --
-local doc_with_settings = tinyxml2.XMLDocument.CreateDocument(false, tinyxml2.COLLAPSE_WHITESPACE)
+local doc_with_settings -- not currently possible
 ```
 
 The latest version of the [RGP Lua Class Browser](https://github.com/finale-lua/rgplua-class-browser) provides a working example of a script that uses `tinyxml2`.
