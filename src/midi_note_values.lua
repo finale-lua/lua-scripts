@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.12"
-    finaleplugin.Date = "2023/04/06"
+    finaleplugin.Version = "v0.13"
+    finaleplugin.Date = "2023/04/07"
     finaleplugin.CategoryTags = "MIDI"
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.AdditionalMenuOptions = [[
@@ -98,13 +98,9 @@ end
 function user_choices(basekey)
     local offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac EDIT box
     local y, y_step = offset, 25
-    local edit_x, e_wide = 110, 45
+    local edit_x, e_wide = 120, 45
 
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    dialog:CreateStatic(0, y):SetText("Layer 1-4 (0 = all):"):SetWidth(edit_x)
-    dialog:CreateEdit(edit_x, y - offset, "layer"):SetInteger(config.layer or 0):SetWidth(e_wide)
-    y = y + y_step
-
     if (action <= 1) then -- "duration" or both
         dialog:CreateStatic(0, y):SetText("Start time (EDU):"):SetWidth(edit_x)
         dialog:CreateEdit(edit_x, y - offset, "start"):SetInteger(config.start_offset or 0):SetWidth(e_wide)
@@ -116,7 +112,10 @@ function user_choices(basekey)
     if (action >= 1) then -- "velocity" or both
         dialog:CreateStatic(0, y):SetText("Key Velocity (0-127):"):SetWidth(edit_x)
         dialog:CreateEdit(edit_x, y - offset, "velocity"):SetInteger(config.velocity or basekey):SetWidth(e_wide)
+        y = y + y_step
     end
+    dialog:CreateStatic(0, y):SetText("Layer 1-4 (0 = all):"):SetWidth(edit_x)
+    dialog:CreateEdit(edit_x, y - offset, "layer"):SetInteger(config.layer or 0):SetWidth(e_wide)
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
