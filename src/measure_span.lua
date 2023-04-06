@@ -42,8 +42,10 @@ function plugindef()
         *DIVIDE:*  
         Divide every selected measure into two, changing the time signature by either 
         halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]). 
-        If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3). 
-        Measures containing composite meters will be divided after the first composite group, or if there is only one group, after its first element.  
+        If the measure has an odd number of beats, choose whether to put more beats in the 
+        first measure (5->3+2) or the second (5->2+3). 
+        Measures containing composite meters will be divided after the first composite group, 
+        or if there is only one group, after its first element.  
 
         *IN ALL CASES:*  
         Incomplete measures will be filled with rests before Join/Divide. 
@@ -55,7 +57,7 @@ function plugindef()
 
         *OPTIONS:*  
         To configure script settings select the "Measure Span Options..." menu item, 
-        or else hold down the `shift` or `alt` (option) key when invoking "Join" or "Divide".
+        or else hold down the SHIFT or ALT (option) key when invoking "Join" or "Divide".
     ]]
     return "Measure Span Options...", "Measure Span Options", "Change the default behaviour of the Measure Span script"
 end
@@ -73,7 +75,7 @@ Divide every selected measure into two, changing the time signature by either ha
 Incomplete measures will be filled with rests before Join/Divide. Measures containing too many notes will be trimmed to their "real" duration. Time signatures "for display only" will be removed. Measures are either deleted or shifted in every operation so smart shapes spanning the area need to be "restored". Selecting a SPAN of "5" will look for smart shapes to restore from 5 measures before until 5 after the selected region. (This takes noticeably more time than a SPAN of "2").
 
 *OPTIONS:*  
-To configure script settings select the "Measure Span Options..." menu item, or else hold down the `shift` or `alt` (option) key when invoking "Join" or "Divide".
+To configure script settings select the "Measure Span Options..." menu item, or else hold down the SHIFT or ALT (option) key when invoking "Join" or "Divide".
 ]]
 
 span_action = span_action or "options"
@@ -644,24 +646,26 @@ end
 function restore_tie_ends(region, measure, ties)
     for slot = region.StartSlot, region.EndSlot do
         local staff = region:CalcStaffNumber(slot)
-        if not ties[staff] then return end
-        for layer_num = 1, layer.max_layers() do
-            local entry_layer = finale.FCNoteEntryLayer(layer_num - 1, staff, measure, measure)
-            if not ties[staff][layer_num] then return end
-            entry_layer:Load()
-            for entry in each(entry_layer) do
-                if ties[staff][layer_num][entry.MeasurePos] ~= nil then
-                    for _, v in ipairs(ties[staff][layer_num][entry.MeasurePos]) do
-                        local note = entry:FindNoteID(v)
-                        local tied_to_note = tie.calc_tied_to(note)
-                        if tied_to_note then
-                            note.Tie = true
-                            tied_to_note.TieBackwards = true
+        if ties[staff] then
+            for layer_num = 1, layer.max_layers() do
+                if ties[staff][layer_num] then
+                    local entry_layer = finale.FCNoteEntryLayer(layer_num - 1, staff, measure, measure)
+                    entry_layer:Load()
+                    for entry in each(entry_layer) do
+                        if ties[staff][layer_num][entry.MeasurePos] ~= nil then
+                            for _, v in ipairs(ties[staff][layer_num][entry.MeasurePos]) do
+                                local note = entry:FindNoteID(v)
+                                local tied_to_note = tie.calc_tied_to(note)
+                                if tied_to_note then
+                                    note.Tie = true
+                                    tied_to_note.TieBackwards = true
+                                end
+                            end
                         end
                     end
+                    entry_layer:Save()
                 end
             end
-            entry_layer:Save()
         end
     end
 end
@@ -691,7 +695,7 @@ function join_measures(selection)
         local saved_tie_ends = save_tie_ends(paste_rgn, measure_num)
         local saved_slurs, saved_expressions = shift_smart_shapes(paste_rgn, measure_num, measure_dur[1])
         pad_or_truncate_cells(paste_rgn, measure_num + 1, measure_dur[2])
-        paste_rgn:CopyMusic() -- copy measure[2]
+        paste_rgn:SetStartMeasure(measure_num + 1):SetEndMeasure(measure_num + 1):CopyMusic()
         pad_or_truncate_cells(paste_rgn, measure_num, measure_dur[1])
 
         local comp_array = {}
