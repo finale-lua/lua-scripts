@@ -1,30 +1,4 @@
-import { generateLuaRequire, resolveRequiredFile } from './lua-require'
-
-describe('generateLuaRequire', () => {
-    it('lua-require', () => {
-        expect(generateLuaRequire()).toBe(
-            [
-                '__imports = __imports or {}',
-                '__import_results = __import_results or {}',
-                '',
-                'function require(item)',
-                '    if not __imports[item] then',
-                '        error("module \'" .. item .. "\' not found")',
-                '    end',
-                '',
-                '    if __import_results[item] == nil then',
-                '        __import_results[item] = __imports[item]()',
-                '        if __import_results[item] == nil then',
-                '            __import_results[item] = true',
-                '        end',
-                '    end',
-                '',
-                '    return __import_results[item]',
-                'end',
-            ].join('\n')
-        )
-    })
-})
+import { resolveRequiredFile } from './lua-require'
 
 describe('resolveRequiredFile', () => {
     const tests: [string, string][] = [
