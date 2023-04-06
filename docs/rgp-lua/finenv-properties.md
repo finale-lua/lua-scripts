@@ -128,15 +128,15 @@ if finenv.FinaleVersion > 10025 then
 end
 ```
 
-#### LoadedAsString\* (read-only property)
+#### IsFinaleDemo\* (read-only property)
 
-A read-only property that returns the setting of “Load As String”, either from _RGP Lua’s_ configuration dialog or from the `plugindef()` function, whichever is in effect.
+Returns `true` if the version of Finale that is currently running is the demo version that cannot save or print. (Available starting in version 0.67 of _RGP Lua_.)
 
 Example:
 
 ```lua
-if finenv.LoadedAsString then
-   -- read binary data from the end of the script file
+if finenv.IsFinaleDemo then
+   -- take some action based on the fact that Finale cannot save or print.
 end
 ```
 
@@ -152,6 +152,22 @@ if finenv.IsRGPLua then
 end
 ```
 
+#### LoadedAsString\* (read-only property)
+
+A read-only property that returns the setting of “Load As String”, either from _RGP Lua’s_ configuration dialog or from the `plugindef()` function, whichever is in effect.
+
+Example:
+
+```lua
+if finenv.LoadedAsString then
+   -- read binary data from the end of the script file
+end
+```
+
+#### LuaBridgeVersion\* (read-only property)
+
+Returns a string with the current version of LuaBridge that is embedded in _RGP Lua_. LuaBridge is an open-source C++ library that allows a C++ program to import classes from a C++ class framework into Lua. This property exists for diagnostic purposes and is probably not of interest to general users of the plugin.
+ 
 #### MajorVersion & MinorVersion (read-only properties)
 
 Return the major and minor version numbers, respectively, of the running Lua plugin. (Either _RGP Lua_ or _JW Lua_.)

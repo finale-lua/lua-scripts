@@ -99,7 +99,7 @@ It also allows for direct interaction with the Lua plugin itself. A full descrip
 
 _RGP Lua_ (starting in version 0.66) optionally preloads an embedded version of the [`luaosutils`](https://github.com/finale-lua/luaosutils) library. This is a library of functions specifically written to help Lua scripts running on Finale. It allows them to interact with the host operating system or the Finale executable in ways that are not directly supported by either the Lua language or the PDK Framework.
 
-For _RGP Lua_ to preload `luaosutils`, set `finaleplugin.LoadLuaOSUtils = true` in your `plugindef` function. _RGP Lua_ does not load the library into a global namespace, however. You must explicitly `require` it into a varable of your choosing similar to what is shown in the following example.
+_RGP Lua_ does not load the library into a global namespace, however. You must explicitly `require` it into a varable of your choosing similar to what is shown in the following example.
 
 ```lua
 local osutils = require('luaosutils')
@@ -155,9 +155,15 @@ If you are planning to use the standard installation of `luasocket`, you may be 
 
 The Lua plugin for Finale has included the `tinyxml2` XML parser for many years. Both _JW Lua_ and _RGP Lua_ use it for reading and saving preference files, among other tasks. It is a lightweight parser implemented as a C++ class framework. It has the advantage of being very fast and possessing a simple API.
 
-Starting with version 0.67 of _RGP Lua_, the `tinyxml2` framework is available to Lua scripts. You enable it by setting `finaleplugin.LoadTinyXML2 = true` in your `plugindef()` function. This causes _RGP Lua_ to load the class framework into the global namespace `tinyxml2`.
+Starting with version 0.67 of _RGP Lua_, the `tinyxml2` framework is available to Lua scripts in the namespace `tinyxml2`. You do not need to do anything extra in order to use it.
 
-See the [tinyxml2]([configure](/docs/rgp-lua/docs/rgp-lua/tinyxml2) documentation page details on how to use it.
+Example:
+
+```lua
+local xml = tinyxml2.XMLDocument()
+```
+
+See the [tinyxml2](/docs/rgp-lua/docs/rgp-lua/tinyxml2) documentation page for details on how to use it.
 
 ### The 'utf8' namespace
 

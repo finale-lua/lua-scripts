@@ -116,23 +116,13 @@ Default is `false`.
 
 #### LoadLuaOSUtils\* (boolean)
 
-Setting this value to `true` tells _RGP Lua_ to pre-load its embedded version of `luaosutils` package. Note that you must still `require` it to use it. See the [this link](/docs/rgp-lua) for more information.
+By default, _RGP Lua_ pre-loads an embedded version of `luaosutils` package. Note that you must still `require` it to use it. See the [this link](/docs/rgp-lua) for more information. You can suppress this by setting the value to `false`. This allows you to load an external version.
 
 ```lua
-finaleplugin.LoadLuaOSUtils = true
+finaleplugin.LoadLuaOSUtils = false
 ```
 
-Default is `false`.
-
-#### LoadTinyXML2\* (boolean)
-
-Setting this value to `true` tells _RGP Lua_ to load its embedded class framework for `tinyxml2` into a global namespace with the same name. See the [this link](/docs/rgp-lua) for more information.
-
-```lua
-finaleplugin.LoadTinyXML2 = true
-```
-
-Default is `false`.
+Default is `true`.
 
 #### MinFinaleVersion (number)
 

@@ -1,9 +1,11 @@
 # tinyxml2
 
-Starting with version 0.67 of _RGP Lua_, the `tinyxml2` framework is available to Lua scripts. You enable it by setting `finaleplugin.LoadTinyXML2 = true` in your `plugindef()` function. This causes _RGP Lua_ to load the class framework into the global namespace `tinyxml2`.
+Starting with version 0.67 of _RGP Lua_, the `tinyxml2` framework is available to Lua scripts in the global namespace `tinyxml2`.
 
 The original C++ documentation for `tinyxml2` is available here:  
 [http://leethomason.github.io/tinyxml2/](http://leethomason.github.io/tinyxml2/)
+
+That documentaion is somewhat sparse. You can get fuller explanations from [ChatGPT](https://chat.openai.com/). A question like, "What is the purpose of the processEntities and whitespaceMode parameters when contructing tinyxml2.XMLDocument?" yields quite helpful results. (However, the results are not always 100% accurate, so use them with your brain turned on.)
 
 The Lua implemenation differs from the original documentation as follows:
 
@@ -11,7 +13,6 @@ The Lua implemenation differs from the original documentation as follows:
 - Many of the `Set...` or `Push...` functions use C++ overloading that is not available in Lua. For Lua, each numerical setter is named parallel to its getter. For example, the setter `XMLAttribute.SetIntAttribute` corresponds to `XMLAttribute.IntAttribute`.
 - Each of the classes has a `ClassName` method added that is not in the original documentation.
 - `XMLPrinter` is available for memory buffer printing only. If you need to write to a file, use `io.write` to write the `CStr` of the `XMLPrinter` to the file.
-- The constructor for `XMLDocument` is a plain constructor with no arguments that uses default values for `processEntities` and `whitespaceMode`.
 
 C++
 
@@ -91,6 +92,8 @@ local tab_with_yesno_bools = xml2table(xml, { boolyesno = true })
 ### table2xml(table, node [, options])
 
 `table2xml()` embeds a Lua table inside an XMLNode. Typically this node will either be an `XMLElement` instance or an `XMLDocument` instance. If it is not an `XMLElement`, the function returns an error if the Lua table contains anything but sub-tables.
+
+`xml2table` returns `nil` if no errors occurred or else an error message describing the error.
 
 The goal of `table2xml` is to reverse the result of `xml2table()`, but there are some limitations.
 
