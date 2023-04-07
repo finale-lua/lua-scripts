@@ -1,0 +1,474 @@
+__imports = __imports or {}
+__import_results = __import_results or {}
+__aaa_original_require_for_deployment__ = __aaa_original_require_for_deployment__ or require
+function require(item)
+    if not __imports[item] then
+        return __aaa_original_require_for_deployment__(item)
+    end
+    if __import_results[item] == nil then
+        __import_results[item] = __imports[item]()
+        if __import_results[item] == nil then
+            __import_results[item] = true
+        end
+    end
+    return __import_results[item]
+end
+__imports["library.utils"] = __imports["library.utils"] or function()
+
+    local utils = {}
+
+
+
+
+    function utils.copy_table(t)
+        if type(t) == "table" then
+            local new = {}
+            for k, v in pairs(t) do
+                new[utils.copy_table(k)] = utils.copy_table(v)
+            end
+            setmetatable(new, utils.copy_table(getmetatable(t)))
+            return new
+        else
+            return t
+        end
+    end
+
+    function utils.table_remove_first(t, value)
+        for k = 1, #t do
+            if t[k] == value then
+                table.remove(t, k)
+                return
+            end
+        end
+    end
+
+    function utils.iterate_keys(t)
+        local a, b, c = pairs(t)
+        return function()
+            c = a(b, c)
+            return c
+        end
+    end
+
+    function utils.round(value, places)
+        places = places or 0
+        local multiplier = 10^places
+        return math.floor(value * multiplier + 0.5) / multiplier
+    end
+
+    function utils.calc_roman_numeral(num)
+        local thousands = {'M','MM','MMM'}
+        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
+        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
+        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
+        local roman_numeral = ''
+        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
+        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
+        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
+        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
+        return roman_numeral
+    end
+
+    function utils.calc_ordinal(num)
+        local units = num % 10
+        local tens = num % 100
+        if units == 1 and tens ~= 11 then
+            return num .. "st"
+        elseif units == 2 and tens ~= 12 then
+            return num .. "nd"
+        elseif units == 3 and tens ~= 13 then
+            return num .. "rd"
+        end
+        return num .. "th"
+    end
+
+    function utils.calc_alphabet(num)
+        local letter = ((num - 1) % 26) + 1
+        local n = math.floor((num - 1) / 26)
+        return string.char(64 + letter) .. (n > 0 and n or "")
+    end
+
+    function utils.clamp(num, minimum, maximum)
+        return math.min(math.max(num, minimum), maximum)
+    end
+
+    function utils.ltrim(str)
+        return string.match(str, "^%s*(.*)")
+    end
+
+    function utils.rtrim(str)
+        return string.match(str, "(.-)%s*$")
+    end
+
+    function utils.trim(str)
+        return utils.ltrim(utils.rtrim(str))
+    end
+
+    local pcall_wrapper
+    local rethrow_placeholder = "tryfunczzz"
+    local pcall_line = debug.getinfo(1, "l").currentline + 2
+    function utils.call_and_rethrow(levels, tryfunczzz, ...)
+        return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
+
+    end
+
+    local source = debug.getinfo(1, "S").source
+    local source_is_file = source:sub(1, 1) == "@"
+    if source_is_file then
+        source = source:sub(2)
+    end
+
+    pcall_wrapper = function(levels, success, result, ...)
+        if not success then
+            local file
+            local line
+            local msg
+            file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
+            msg = msg or result
+            local file_is_truncated = file and file:sub(1, 3) == "..."
+            file = file_is_truncated and file:sub(4) or file
+
+
+
+            if file
+                and line
+                and source_is_file
+                and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
+                and tonumber(line) == pcall_line
+            then
+                local d = debug.getinfo(levels, "n")
+
+                msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
+
+                if d.namewhat == "method" then
+                    local arg = msg:match("^bad argument #(%d+)")
+                    if arg then
+                        msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
+                    end
+                end
+                error(msg, levels + 1)
+
+
+            else
+                error(result, 0)
+            end
+        end
+        return ...
+    end
+
+    function utils.rethrow_placeholder()
+        return "'" .. rethrow_placeholder .. "'"
+    end
+    return utils
+end
+__imports["library.configuration"] = __imports["library.configuration"] or function()
+
+
+
+    local configuration = {}
+    local utils = require("library.utils")
+    local script_settings_dir = "script_settings"
+    local comment_marker = "--"
+    local parameter_delimiter = "="
+    local path_delimiter = "/"
+    local file_exists = function(file_path)
+        local f = io.open(file_path, "r")
+        if nil ~= f then
+            io.close(f)
+            return true
+        end
+        return false
+    end
+    parse_parameter = function(val_string)
+        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "\"(.+)\"", "%1")
+        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "'(.+)'", "%1")
+        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
+            return load("return " .. val_string)()
+        elseif "true" == val_string then
+            return true
+        elseif "false" == val_string then
+            return false
+        end
+        return tonumber(val_string)
+    end
+    local get_parameters_from_file = function(file_path, parameter_list)
+        local file_parameters = {}
+        if not file_exists(file_path) then
+            return false
+        end
+        for line in io.lines(file_path) do
+            local comment_at = string.find(line, comment_marker, 1, true)
+            if nil ~= comment_at then
+                line = string.sub(line, 1, comment_at - 1)
+            end
+            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
+            if nil ~= delimiter_at then
+                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
+                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
+                file_parameters[name] = parse_parameter(val_string)
+            end
+        end
+        local function process_table(param_table, param_prefix)
+            param_prefix = param_prefix and param_prefix.."." or ""
+            for param_name, param_val in pairs(param_table) do
+                local file_param_name = param_prefix .. param_name
+                local file_param_val = file_parameters[file_param_name]
+                if nil ~= file_param_val then
+                    param_table[param_name] = file_param_val
+                elseif type(param_val) == "table" then
+                        process_table(param_val, param_prefix..param_name)
+                end
+            end
+        end
+        process_table(parameter_list)
+        return true
+    end
+
+    function configuration.get_parameters(file_name, parameter_list)
+        local path = ""
+        if finenv.IsRGPLua then
+            path = finenv.RunningLuaFolderPath()
+        else
+            local str = finale.FCString()
+            str:SetRunningLuaFolderPath()
+            path = str.LuaString
+        end
+        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+        return get_parameters_from_file(file_path, parameter_list)
+    end
+
+
+    local calc_preferences_filepath = function(script_name)
+        local str = finale.FCString()
+        str:SetUserOptionsPath()
+        local folder_name = str.LuaString
+        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+
+            folder_name = os.getenv("HOME") .. folder_name:sub(2)
+        end
+        if finenv.UI():IsOnWindows() then
+            folder_name = folder_name .. path_delimiter .. "FinaleLua"
+        end
+        local file_path = folder_name .. path_delimiter
+        if finenv.UI():IsOnMac() then
+            file_path = file_path .. "com.finalelua."
+        end
+        file_path = file_path .. script_name .. ".settings.txt"
+        return file_path, folder_name
+    end
+
+    function configuration.save_user_settings(script_name, parameter_list)
+        local file_path, folder_path = calc_preferences_filepath(script_name)
+        local file = io.open(file_path, "w")
+        if not file and finenv.UI():IsOnWindows() then
+            os.execute('mkdir "' .. folder_path ..'"')
+            file = io.open(file_path, "w")
+        end
+        if not file then
+            return false
+        end
+        file:write("-- User settings for " .. script_name .. ".lua\n\n")
+        for k,v in pairs(parameter_list) do
+            if type(v) == "string" then
+                v = "\"" .. v .."\""
+            else
+                v = tostring(v)
+            end
+            file:write(k, " = ", v, "\n")
+        end
+        file:close()
+        return true
+    end
+
+    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+        if create_automatically == nil then create_automatically = true end
+        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+        if not exists and create_automatically then
+            configuration.save_user_settings(script_name, parameter_list)
+        end
+        return exists
+    end
+    return configuration
+end
+function plugindef()
+    finaleplugin.RequireSelection = true
+    finaleplugin.MinFinaleVersion = "2012"
+    finaleplugin.Author = "Jari Williamsson"
+    finaleplugin.Version = "0.01"
+    finaleplugin.Notes = [[
+        This script will only process 7-tuplets that appears on staves that has been defined as "Harp" in the Score Manager.
+    ]]
+    finaleplugin.CategoryTags = "Idiomatic, Note, Plucked Strings, Region, Tuplet, Woodwinds"
+    return "Harp gliss", "Harp gliss", "Transforms 7-tuplets to harp gliss notation."
+end
+local configuration = require("library.configuration")
+local config = {
+    stem_length = 84,
+    small_note_size = 70,
+}
+configuration.get_parameters("harp_gliss.config.txt", config)
+function change_beam_info(primary_beam, entry)
+    local current_length = entry:CalcStemLength()
+    primary_beam.Thickness = 0
+    if entry:CalcStemUp() then
+        primary_beam.LeftVerticalOffset = primary_beam.LeftVerticalOffset + config.stem_length - current_length
+    else
+        primary_beam.LeftVerticalOffset = primary_beam.LeftVerticalOffset - config.stem_length + current_length
+    end
+end
+function change_primary_beam(entry)
+    local primary_beams = finale.FCPrimaryBeamMods(entry)
+    primary_beams:LoadAll()
+    if primary_beams.Count > 0 then
+
+        local primary_beam = primary_beams:GetItemAt(0)
+        change_beam_info(primary_beam, entry)
+        primary_beam:Save()
+    else
+
+        local primary_beam = finale.FCBeamMod(false)
+        primary_beam:SetNoteEntry(entry)
+        change_beam_info(primary_beam, entry)
+        primary_beam:SaveNew()
+    end
+end
+function verify_entries(entry, tuplet)
+    local entry_staff_spec = finale.FCCurrentStaffSpec()
+    entry_staff_spec:LoadForEntry(entry)
+    if entry_staff_spec.InstrumentUUID ~= finale.FFUUID_HARP then
+        return false
+    end
+    local symbolic_duration = 0
+    local first_entry = entry
+    for _ = 0, 6 do
+        if entry == nil then
+            return false
+        end
+        if entry:IsRest() then
+            return false
+        end
+        if entry.Duration >= finale.QUARTER_NOTE then
+            return false
+        end
+        if entry.Staff ~= first_entry.Staff then
+            return false
+        end
+        if entry.Layer ~= first_entry.Layer then
+            return false
+        end
+        if entry:CalcDots() > 0 then
+            return false
+        end
+        symbolic_duration = symbolic_duration + entry.Duration
+        entry = entry:Next()
+    end
+    return (symbolic_duration == tuplet:CalcFullSymbolicDuration())
+end
+function get_matching_tuplet(entry)
+    local tuplets = entry:CreateTuplets()
+    for tuplet in each(tuplets) do
+        if tuplet.SymbolicNumber == 7 and verify_entries(entry, tuplet) then
+            return tuplet
+        end
+    end
+    return nil
+end
+function hide_tuplet(tuplet)
+    tuplet.ShapeStyle = finale.TUPLETSHAPE_NONE
+    tuplet.NumberStyle = finale.TUPLETNUMBER_NONE
+    tuplet.Visible = false
+    tuplet:Save()
+end
+function hide_stems(entry, tuplet)
+    local hide_first_entry = (tuplet:CalcFullReferenceDuration() >= finale.WHOLE_NOTE)
+    for i = 0, 6 do
+        if i > 0 or hide_first_entry then
+            local stem = finale.FCCustomStemMod()
+            stem:SetNoteEntry(entry)
+            stem:UseUpStemData(entry:CalcStemUp())
+            if stem:LoadFirst() then
+                stem.ShapeID = 0
+                stem:Save()
+            else
+                stem.ShapeID = 0
+                stem:SaveNew()
+            end
+        end
+        entry = entry:Next()
+    end
+end
+function set_noteheads(entry, tuplet)
+    for i = 0, 6 do
+        for chord_note in each(entry) do
+            local notehead = finale.FCNoteheadMod()
+            if i == 0 then
+                local reference_duration = tuplet:CalcFullReferenceDuration()
+                if reference_duration >= finale.WHOLE_NOTE then
+                    notehead.CustomChar = 119
+                elseif reference_duration >= finale.HALF_NOTE then
+                    notehead.CustomChar = 250
+                end
+            else
+                notehead.Resize = config.small_note_size
+            end
+            notehead:SaveAt(chord_note)
+        end
+        entry = entry:Next()
+    end
+end
+function change_dotted_first_entry(entry, tuplet)
+    local reference_duration = tuplet:CalcFullReferenceDuration()
+    local tuplet_dots = finale.FCNoteEntry.CalcDotsForDuration(reference_duration)
+    local entry_dots = entry:CalcDots()
+    if tuplet_dots == 0 then
+        return
+    end
+    if tuplet_dots > 3 then
+        return
+    end
+    if entry_dots > 0 then
+        return
+    end
+
+    local next_entry = entry:Next()
+    local next_duration = next_entry.Duration / 2
+    for _ = 1, tuplet_dots do
+        entry.Duration = entry.Duration + next_duration
+        next_entry.Duration = next_entry.Duration - next_duration
+        next_duration = next_duration / 2
+    end
+end
+function harp_gliss()
+
+    local harp_tuplets_exist = false
+    for entry in eachentrysaved(finenv.Region()) do
+        local harp_tuplet = get_matching_tuplet(entry)
+        if harp_tuplet then
+            harp_tuplets_exist = true
+            for i = 1, 6 do
+                entry = entry:Next()
+                entry.BeamBeat = false
+            end
+        end
+    end
+    if not harp_tuplets_exist then
+        return
+    end
+
+
+    finale.FCNoteEntry.MarkEntryMetricsForUpdate()
+
+    for entry in eachentrysaved(finenv.Region()) do
+        local harp_tuplet = get_matching_tuplet(entry)
+        if harp_tuplet then
+            change_dotted_first_entry(entry, harp_tuplet)
+            change_primary_beam(entry)
+            hide_tuplet(harp_tuplet)
+            hide_stems(entry, harp_tuplet)
+            set_noteheads(entry, harp_tuplet)
+        end
+    end
+end
+harp_gliss()
