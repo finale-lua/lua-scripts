@@ -1,9 +1,9 @@
 # FCMCtrlEdit
 
-Summary of modifications:
+## Summary of Modifications
 - Added `Change` custom control event.
-- Added hooks for restoring control state
-- `GetMeasurement*` and `SetMeasurement*` methods have been overridden to use the `FCMString` versions of those methods under the hood. For more details on any changes, see the documentation for `FCMString`.
+- Added hooks into control state preservation.
+- `GetMeasurement*` and `SetMeasurement*` methods have been overridden to use the `FCMString` versions of those methods internally. For more details on any changes, see the documentation for `FCMString`.
 
 ## Functions
 
@@ -35,15 +35,17 @@ Summary of modifications:
 fcmctrledit.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L30)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L33)
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlEdit` |  |
-| `str` | `FCString\|string\|number` |  |
+| `str` | `FCString \| string \| number` |  |
 
 ### GetInteger
 
@@ -51,10 +53,12 @@ Ensures that `Change` event is triggered.
 fcmctrledit.GetInteger(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L286)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L316)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -73,8 +77,10 @@ fcmctrledit.SetInteger(self, anint)
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -90,7 +96,9 @@ fcmctrledit.GetFloat(self)
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -109,8 +117,10 @@ fcmctrledit.SetFloat(self, value)
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -123,10 +133,11 @@ Also hooks into control state restoration.
 fcmctrledit.GetMeasurement(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L134)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L150)
 
 **[Override]**
-Hooks into control state restoration.
+
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -143,10 +154,12 @@ Hooks into control state restoration.
 fcmctrledit.GetRangeMeasurement(self, measurementunit, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L145)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L163)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -165,11 +178,13 @@ Hooks into control state restoration.
 fcmctrledit.SetMeasurement(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L158)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L178)
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -186,7 +201,9 @@ fcmctrledit.GetMeasurementEfix(self, measurementunit)
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -206,7 +223,9 @@ fcmctrledit.GetRangeMeasurementEfix(self, measurementunit, minimum, maximum)
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -228,8 +247,10 @@ fcmctrledit.SetMeasurementEfix(self, value, measurementunit)
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -246,7 +267,9 @@ fcmctrledit.GetMeasurementInteger(self, measurementunit)
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -266,8 +289,10 @@ fcmctrledit.GetRangeMeasurementInteger(self, measurementunit, minimum, maximum)
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
-Hooks into control state restoration.
-Also fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account (see `FCMString.GetRangeMeasurementInteger`).
+
+Override Changes:
+- Hooks into control state preservation.
+- Fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account (see `FCMString.GetRangeMeasurementInteger`).
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -289,8 +314,10 @@ fcmctrledit.SetMeasurementInteger(self, value, measurementunit)
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -361,11 +388,13 @@ Sets a measurement in 10000ths of an EVPU.
 fcmctrledit.GetRangeInteger(self, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L282)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L312)
 
 **[Override]**
-Hooks into control state restoration.
-Fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account.
+
+Override Changes:
+- Hooks into control state preservation.
+- Fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -383,7 +412,7 @@ Fixes issue with decimal places in `minimum` being discarded instead of being co
 fcmctrledit.HandleChange(control, last_value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L299)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L329)
 
 **[Callback Template]**
 
@@ -398,9 +427,10 @@ fcmctrledit.HandleChange(control, last_value)
 fcmctrledit.AddHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L316)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L348)
 
 **[Fluid]**
+
 Adds a handler for when the value of the control changes.
 The even will fire when:
 - The window is created (if the value of the control is not an empty string)
@@ -418,9 +448,10 @@ The even will fire when:
 fcmctrledit.RemoveHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L321)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L353)
 
 **[Fluid]**
+
 Removes a handler added with `AddHandleChange`.
 
 | Input | Type | Description |

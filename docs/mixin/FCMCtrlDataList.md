@@ -1,8 +1,8 @@
 # FCMCtrlDataList
 
-Summary of modifications:
-- Setters that accept `FCString` now also accept Lua `string` and `number`.
-- Handlers for the `DataListCheck` and `DataListSelect` events can now be set on a control.
+## Summary of Modifications
+- Setters that accept `FCString` will also accept a Lua `string` or `number`.
+- Added methods to allow handlers for the `DataListCheck` and `DataListSelect` events be set directly on the control.
 
 ## Functions
 
@@ -19,15 +19,17 @@ Summary of modifications:
 fcmctrldatalist.AddColumn(self, title, columnwidth)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L27)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L30)
 
 **[Fluid] [Override]**
-Accepts Lua `string` and `number` in addition to `FCString`.
+
+Override Changes:
+- Accepts Lua `string` or `number` in addition to `FCString`.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlDataList` |  |
-| `title` | `FCString\|string\|number` |  |
+| `title` | `FCString \| string \| number` |  |
 | `columnwidth` | `number` |  |
 
 ### SetColumnTitle
@@ -39,13 +41,15 @@ fcmctrldatalist.SetColumnTitle(self, columnindex, title)
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L49)
 
 **[Fluid] [Override]**
-Accepts Lua `string` and `number` in addition to `FCString`.
+
+Override Changes:
+- Accepts Lua `string` or `number` in addition to `FCString`.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlDataList` |  |
 | `columnindex` | `number` |  |
-| `title` | `FCString\|string\|number` |  |
+| `title` | `FCString \| string \| number` |  |
 
 ### AddHandleCheck
 
@@ -53,9 +57,10 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 fcmctrldatalist.AddHandleCheck(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L75)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L72)
 
 **[Fluid]**
+
 Adds a handler for DataListCheck events.
 
 | Input | Type | Description |
@@ -69,9 +74,10 @@ Adds a handler for DataListCheck events.
 fcmctrldatalist.RemoveHandleCheck(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L80)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L77)
 
 **[Fluid]**
+
 Removes a handler added with `AddHandleCheck`.
 
 | Input | Type | Description |
@@ -85,14 +91,15 @@ Removes a handler added with `AddHandleCheck`.
 fcmctrldatalist.AddHandleSelect(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L96)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L95)
 
 **[Fluid]**
-Adds a handler for DataListSelect events.
+
+Adds a handler for `DataListSelect` events.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
-| `self` | `FCMControl` |  |
+| `self` | `FCMCtrlDataList` |  |
 | `callback` | `function` | See `FCCustomLuaWindow.HandleDataListSelect` in the PDK for callback signature. |
 
 ### RemoveHandleSelect
@@ -101,12 +108,13 @@ Adds a handler for DataListSelect events.
 fcmctrldatalist.RemoveHandleSelect(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L101)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlDataList.lua#L100)
 
 **[Fluid]**
+
 Removes a handler added with `AddHandleSelect`.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
-| `self` | `FCMControl` |  |
+| `self` | `FCMCtrlDataList` |  |
 | `callback` | `function` |  |

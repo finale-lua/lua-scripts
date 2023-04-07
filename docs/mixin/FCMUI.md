@@ -1,7 +1,7 @@
 # FCMUI
 
-Summary of modifications:
-- In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned.
+## Summary of Modifications
+- `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
 
 ## Functions
 
@@ -13,10 +13,12 @@ Summary of modifications:
 fcmui.GetDecimalSeparator(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMUI.lua#L26)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMUI.lua#L29)
 
-**[Override]**
-Returns a Lua `string` and makes passing an `FCString` optional.
+**[?Fluid] [Override]**
+
+Override Changes:
+- Passing an `FCString` is optional. If omitted, the result is returned as a Lua `string`. If passed, nothing is returned and the method is fluid.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |

@@ -1,12 +1,12 @@
 # FCMCtrlPopup
 
-Summary of modifications:
-- Setters that accept `FCString` now also accept Lua `string` and `number`.
-- In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
-- Setters that accept `FCStrings` now also accept multiple arguments of `FCString`, Lua `string`, or `number`.
-- Numerous additional methods for accessing and modifying popup items.
+## Summary of Modifications
+- Setters that accept `FCString` will also accept a Lua `string` or `number`.
+- `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
+- Setters that accept `FCStrings` will also accept multiple arguments of `FCString`, Lua `string`, or `number`.
+- Added numerous methods for accessing and modifying popup items.
 - Added `SelectionChange` custom control event.
-- Added hooks for restoring control state
+- Added hooks for preserving control state
 
 ## Functions
 
@@ -18,7 +18,7 @@ Summary of modifications:
 - [GetSelectedItem(self)](#getselecteditem)
 - [SetSelectedItem(self, index)](#setselecteditem)
 - [SetSelectedLast(self)](#setselectedlast)
-- [IsItemSelected(self)](#isitemselected)
+- [HasSelection(self)](#hasselection)
 - [ItemExists(self, index)](#itemexists)
 - [AddString(self, str)](#addstring)
 - [AddStrings(self)](#addstrings)
@@ -40,7 +40,7 @@ Summary of modifications:
 fcmctrlpopup.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L34)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L35)
 
 **[Internal]**
 
@@ -54,11 +54,14 @@ fcmctrlpopup.Init(self)
 fcmctrlpopup.StoreState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L50)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L58)
 
 **[Fluid] [Internal] [Override]**
-Stores the control's current state.
-Do not disable this method. Override as needed but call the parent first.
+
+Override Changes:
+- Stores `FCMCtrlPopup`-specific properties.
+
+*Do not disable this method. Override as needed but call the parent first.*
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -70,11 +73,14 @@ Do not disable this method. Override as needed but call the parent first.
 fcmctrlpopup.RestoreState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L64)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L75)
 
 **[Fluid] [Internal] [Override]**
-Restores the control's stored state.
-Do not disable this method. Override as needed but call the parent first.
+
+Override Changes:
+- Restores `FCMCtrlPopup`-specific properties.
+
+*Do not disable this method. Override as needed but call the parent first.*
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -86,9 +92,13 @@ Do not disable this method. Override as needed but call the parent first.
 fcmctrlpopup.Clear(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L83)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L98)
 
 **[Fluid] [Override]**
+
+Override Changes:
+- Ensures that `SelectionChange` event is triggered.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -100,10 +110,12 @@ fcmctrlpopup.Clear(self)
 fcmctrlpopup.GetCount(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L109)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L126)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -119,10 +131,12 @@ Hooks into control state restoration.
 fcmctrlpopup.GetSelectedItem(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L126)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L145)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -138,11 +152,13 @@ Hooks into control state restoration.
 fcmctrlpopup.SetSelectedItem(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L144)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L165)
 
 **[Fluid] [Override]**
-Ensures that SelectionChange is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `SelectionChange` event is triggered.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -155,22 +171,23 @@ Also hooks into control state restoration.
 fcmctrlpopup.SetSelectedLast(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L164)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L186)
 
 **[Fluid]**
-Selects the last item in the popup. If popup is empty, will be set to -1.
+
+Selects the last item in the popup. If the popup is empty, `SelectedItem` will be set to -1.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlPopup` |  |
 
-### IsItemSelected
+### HasSelection
 
 ```lua
-fcmctrlpopup.IsItemSelected(self)
+fcmctrlpopup.HasSelection(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L176)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L198)
 
 Checks if the popup has a selection. If the parent window does not exist (ie `WindowExists() == false`), this result is theoretical.
 
@@ -188,7 +205,7 @@ Checks if the popup has a selection. If the parent window does not exist (ie `Wi
 fcmctrlpopup.ItemExists(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L189)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L211)
 
 Checks if there is an item at the specified index.
 
@@ -207,17 +224,18 @@ Checks if there is an item at the specified index.
 fcmctrlpopup.AddString(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L206)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L229)
 
 **[Fluid] [Override]**
 
-Accepts Lua `string` and `number` in addition to `FCString`.
-Also hooks into control state restoration.
+Override Changes:
+- Accepts Lua `string` or `number` in addition to `FCString`.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlPopup` |  |
-| `str` | `FCString\|string\|number` |  |
+| `str` | `FCString \| string \| number` |  |
 
 ### AddStrings
 
@@ -225,12 +243,13 @@ Also hooks into control state restoration.
 fcmctrlpopup.AddStrings(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L231)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L252)
 
 **[Fluid]**
+
 Adds multiple strings to the popup.
 
-@ ... (FCStrings|FCString|string|number)
+@ ... (FCStrings | FCString | string | number)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -242,7 +261,9 @@ Adds multiple strings to the popup.
 fcmctrlpopup.GetStrings(self, strs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L255)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L278)
+
+**[?Fluid]**
 
 Returns a copy of all strings in the popup.
 
@@ -253,7 +274,7 @@ Returns a copy of all strings in the popup.
 
 | Return type | Description |
 | ----------- | ----------- |
-| `table` | A table of strings (1-indexed - beware when accessing by key!). |
+| `table` | Returned if `strs` is omitted. A table of strings (1-indexed - beware when accessing by key!). |
 
 ### SetStrings
 
@@ -261,12 +282,16 @@ Returns a copy of all strings in the popup.
 fcmctrlpopup.SetStrings(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L278)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L301)
 
 **[Fluid] [Override]**
-Accepts multiple arguments.
 
-@ ... (FCStrings|FCString|string|number) `number`s will be automatically cast to `string`
+Override Changes:
+- Acccepts `FCString` or Lua `string` or `number` in addition to `FCStrings`.
+- Accepts multiple arguments.
+- Hooks into control state preservation.
+
+@ ... (FCStrings | FCString | string | number) `number`s will be automatically cast to `string`
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -278,19 +303,21 @@ Accepts multiple arguments.
 fcmctrlpopup.GetItemText(self, index, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L314)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L340)
+
+**[?Fluid]**
 
 Returns the text for an item in the popup.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlPopup` |  |
-| `index` | `number` | 0-based index of item. |
+| `index` | `number` | 0-based index of the item. |
 | `str` (optional) | `FCString` | Optional `FCString` object to populate with text. |
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string\\|nil` | `nil` if the item doesn't exist |
+| `string \\| nil` | Returned if `str` is omitted. `nil` if the item doesn't exist |
 
 ### SetItemText
 
@@ -298,16 +325,21 @@ Returns the text for an item in the popup.
 fcmctrlpopup.SetItemText(self, index, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L339)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L370)
 
 **[Fluid] [PDK Port]**
+
 Sets the text for an item.
+
+Port Changes:
+- Accepts Lua `string` or `number` in addition to `FCString`.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlPopup` |  |
-| `index` | `number` | 0-based index of item. |
-| `str` | `FCString\|string\|number` |  |
+| `index` | `number` | 0-based index of the item. |
+| `str` | `FCString \| string \| number` |  |
 
 ### GetSelectedString
 
@@ -315,7 +347,9 @@ Sets the text for an item.
 fcmctrlpopup.GetSelectedString(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L378)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L405)
+
+**[?Fluid]**
 
 Returns the text for the item that is currently selected.
 
@@ -326,7 +360,7 @@ Returns the text for the item that is currently selected.
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string\\|nil` | `nil` if no item is currently selected. |
+| `string \\| nil` | Returned if `str` is omitted. `nil` if no item is currently selected. |
 
 ### SetSelectedString
 
@@ -334,9 +368,10 @@ Returns the text for the item that is currently selected.
 fcmctrlpopup.SetSelectedString(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L409)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L429)
 
 **[Fluid]**
+
 Sets the currently selected item to the first item with a matching text value.
 
 If no match is found, the current selected item will remain selected. Matching is case-sensitive.
@@ -344,7 +379,7 @@ If no match is found, the current selected item will remain selected. Matching i
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlPopup` |  |
-| `str` | `FCString\|string\|number` |  |
+| `str` | `FCString \| string \| number` |  |
 
 ### InsertString
 
@@ -352,18 +387,23 @@ If no match is found, the current selected item will remain selected. Matching i
 fcmctrlpopup.InsertString(self, index, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L434)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L459)
 
 **[Fluid] [PDKPort]**
+
 Inserts a string at the specified index.
 If index is <= 0, will insert at the start.
-If index is >= Count, will insert at the end.
+If index is >= GetCount(), will insert at the end.
+
+Port Changes:
+- Accepts Lua `string` or `number` in addition to `FCString`.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlPopup` |  |
 | `index` | `number` | 0-based index to insert new item. |
-| `str` | `FCString\|string\|number` | The value to insert. |
+| `str` | `FCString \| string \| number` | The value to insert. |
 
 ### DeleteItem
 
@@ -371,11 +411,12 @@ If index is >= Count, will insert at the end.
 fcmctrlpopup.DeleteItem(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L479)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L499)
 
 **[Fluid] [PDK Port]**
+
 Deletes an item from the popup.
-If the currently selected item is deleted, items will be deselected (ie set to -1)
+If the currently selected item is deleted, it will be deselected (ie `SelectedItem = -1`)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -388,7 +429,7 @@ If the currently selected item is deleted, items will be deselected (ie set to -
 fcmctrlpopup.HandleSelectionChange(control, last_item, last_item_text, is_deleted)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L537)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L551)
 
 **[Callback Template]**
 
@@ -405,9 +446,10 @@ fcmctrlpopup.HandleSelectionChange(control, last_item, last_item_text, is_delete
 fcmctrlpopup.AddHandleSelectionChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L558)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L574)
 
 **[Fluid]**
+
 Adds a handler for SelectionChange events.
 If the selected item is changed by a handler, that same handler will not be called again for that change.
 
@@ -429,9 +471,10 @@ The event will fire in the following cases:
 fcmctrlpopup.RemoveHandleSelectionChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L563)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlPopup.lua#L579)
 
 **[Fluid]**
+
 Removes a handler added with `AddHandleSelectionChange`.
 
 | Input | Type | Description |

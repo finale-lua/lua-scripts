@@ -1,8 +1,9 @@
 # FCMCtrlSwitcher
 
-Summary of modifications:
-- Setters that accept `FCString` now also accept Lua `string` and `number`.
-- Additional methods for accessing and adding pages and page titles.
+## Summary of Modifications
+- Setters that accept `FCString` will also accept Lua `string` and `number`.
+- Methods that returned a boolean to indicate success/failure now throw an error instead.
+- Added methods for accessing and adding pages.
 - Added `PageChange` custom control event.
 
 ## Functions
@@ -10,6 +11,7 @@ Summary of modifications:
 - [Init(self)](#init)
 - [AddPage(self, title)](#addpage)
 - [AddPages(self)](#addpages)
+- [AttachControl(self, control, pageindex)](#attachcontrol)
 - [AttachControlByTitle(self, control, title)](#attachcontrolbytitle)
 - [SetSelectedPage(self, index)](#setselectedpage)
 - [SetSelectedPageByTitle(self, title)](#setselectedpagebytitle)
@@ -25,7 +27,7 @@ Summary of modifications:
 fcmctrlswitcher.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L29)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L30)
 
 **[Internal]**
 
@@ -39,15 +41,17 @@ fcmctrlswitcher.Init(self)
 fcmctrlswitcher.AddPage(self, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L42)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L52)
 
 **[Fluid] [Override]**
-Accepts Lua `string` and `number` in addition to `FCString`.
+
+Override Changes:
+- Accepts Lua `string` or `number` in addition to `FCString`.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlSwitcher` |  |
-| `title` | `FCString\|string\|number` |  |
+| `title` | `FCString \| string \| number` |  |
 
 ### AddPages
 
@@ -55,16 +59,36 @@ Accepts Lua `string` and `number` in addition to `FCString`.
 fcmctrlswitcher.AddPages(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L63)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L72)
 
 **[Fluid]**
+
 Adds multiple pages, one page for each argument.
 
-@ ... (FCString|string|number)
+@ ... (FCString | string | number)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlSwitcher` |  |
+
+### AttachControl
+
+```lua
+fcmctrlswitcher.AttachControl(self, control, pageindex)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L92)
+
+**[Breaking Change] [Fluid] [Override]**
+
+Override Changes:
+- Throws an error instead of returning a boolean for success/failure.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCtrlSwitcher` |  |
+| `control` | `FCControl \| FCMControl` |  |
+| `pageindex` | `number` |  |
 
 ### AttachControlByTitle
 
@@ -72,19 +96,17 @@ Adds multiple pages, one page for each argument.
 fcmctrlswitcher.AttachControlByTitle(self, control, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L81)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L110)
 
-Attaches a control to a page.
+**[Fluid]**
+
+Attaches a control to a page by its title.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlSwitcher` |  |
-| `control` | `FCMControl` | The control to attach. |
-| `title` | `FCString\|string\|number` | The title of the page. Must be an exact match. |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `boolean` |  |
+| `control` | `FCControl \| FCMControl` | The control to attach. |
+| `title` | `FCString \| string \| number` | The title of the page. Must be an exact match. |
 
 ### SetSelectedPage
 
@@ -92,9 +114,12 @@ Attaches a control to a page.
 fcmctrlswitcher.SetSelectedPage(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L107)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L134)
 
 **[Fluid] [Override]**
+
+Override Changes:
+- Ensures that `PageChange` event is triggered.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -107,15 +132,16 @@ fcmctrlswitcher.SetSelectedPage(self, index)
 fcmctrlswitcher.SetSelectedPageByTitle(self, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L124)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L152)
 
 **[Fluid]**
+
 Set the selected page by its title. If the page is not found, an error will be thrown.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlSwitcher` |  |
-| `title` | `FCString\|string\|number` | Title of page to select. Must be an exact match. |
+| `title` | `FCString \| string \| number` | Title of page to select. Must be an exact, case-sensitive match. |
 
 ### GetSelectedPageTitle
 
@@ -123,9 +149,11 @@ Set the selected page by its title. If the page is not found, an error will be t
 fcmctrlswitcher.GetSelectedPageTitle(self, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L148)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L173)
 
-Returns the title of the currently selected page.
+**[?Fluid]**
+
+Retrieves the title of the currently selected page.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -134,7 +162,7 @@ Returns the title of the currently selected page.
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string\\|nil` | Nil if no page is selected |
+| `string \\| nil` | Returned if `title` is omitted. `nil` if no page is selected |
 
 ### GetPageTitle
 
@@ -142,9 +170,11 @@ Returns the title of the currently selected page.
 fcmctrlswitcher.GetPageTitle(self, index, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L179)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L201)
 
-Returns the title of a page.
+**[?Fluid]**
+
+Retrieves the title of a page.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -154,7 +184,7 @@ Returns the title of a page.
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string` |  |
+| `string` | Returned if `str` is omitted. |
 
 ### HandlePageChange
 
@@ -162,7 +192,7 @@ Returns the title of a page.
 fcmctrlswitcher.HandlePageChange(control, last_page, last_page_title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L204)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L226)
 
 **[Callback Template]**
 
@@ -178,9 +208,10 @@ fcmctrlswitcher.HandlePageChange(control, last_page, last_page_title)
 fcmctrlswitcher.AddHandlePageChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L221)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L245)
 
 **[Fluid]**
+
 Adds an event listener for PageChange events.
 The event fires when:
 - The window is created (if pages have been added)
@@ -198,9 +229,10 @@ The event fires when:
 fcmctrlswitcher.RemoveHandlePageChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L226)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlSwitcher.lua#L250)
 
 **[Fluid]**
+
 Removes a handler added with `AddHandlePageChange`.
 
 | Input | Type | Description |

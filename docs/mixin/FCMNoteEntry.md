@@ -1,7 +1,7 @@
 # FCMNoteEntry
 
-Summary of modifications:
-- Added methods to keep parent collection in scope
+## Summary of Modifications
+- Added methods to keep parent collection in scope.
 
 ## Functions
 
@@ -15,7 +15,7 @@ Summary of modifications:
 fcmnoteentry.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L22)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L23)
 
 **[Internal]**
 
@@ -29,9 +29,10 @@ fcmnoteentry.Init(self)
 fcmnoteentry.RegisterParent(self, parent)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L35)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L41)
 
 **[Fluid]**
+
 Registers the collection to which this object belongs.
 
 | Input | Type | Description |
@@ -45,7 +46,7 @@ Registers the collection to which this object belongs.
 fcmnoteentry.GetParent(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L51)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntry.lua#L57)
 
 Returns the collection to which this object belongs.
 
@@ -55,4 +56,4 @@ Returns the collection to which this object belongs.
 
 | Return type | Description |
 | ----------- | ----------- |
-| `FCMNoteEntryCell\\|nil` |  |
+| `FCMNoteEntryCell \\| nil` |  |

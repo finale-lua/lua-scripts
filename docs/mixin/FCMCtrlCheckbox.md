@@ -1,6 +1,6 @@
 # FCMCtrlCheckbox
 
-Summary of modifications:
+## Summary of Modifications
 - Added `CheckChange` custom control event.
 
 ## Functions
@@ -16,10 +16,12 @@ Summary of modifications:
 fcmctrlcheckbox.SetCheck(self, checked)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua#L26)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua#L29)
 
 **[Fluid] [Override]**
-Ensures that `CheckChange` event is triggered.
+
+Override Changes:
+- Ensures that `CheckChange` event is triggered.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -32,7 +34,7 @@ Ensures that `CheckChange` event is triggered.
 fcmctrlcheckbox.HandleCheckChange(control, last_check)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua#L54)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua#L58)
 
 **[Callback Template]**
 
@@ -50,8 +52,9 @@ fcmctrlcheckbox.AddHandleChange(self, callback)
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua#L-1)
 
 **[Fluid]**
+
 Adds a handler for when the value of the control's check state changes.
-The even will fire when:
+The event will fire when:
 - The window is created (if the check state is not `0`)
 - The control is checked/unchecked by the user
 - The control's check state is changed programmatically (if the check state is changed within a handler, that *same* handler will not be called again for that change.)
@@ -67,9 +70,10 @@ The even will fire when:
 fcmctrlcheckbox.RemoveHandleCheckChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua#L66)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua#L71)
 
 **[Fluid]**
+
 Removes a handler added with `AddHandleCheckChange`.
 
 | Input | Type | Description |

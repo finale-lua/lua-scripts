@@ -1,8 +1,8 @@
 # __FCMUserWindow
 
-Summary of modifications:
-- Setters that accept `FCString` now also accept Lua `string` and `number`.
-- In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned.
+## Summary of Modifications
+- Setters that accept `FCString` will also accept a Lua `string`.
+- `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
 
 ## Functions
 
@@ -15,10 +15,12 @@ Summary of modifications:
 __fcmuserwindow.GetTitle(self, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/__FCMUserWindow.lua#L27)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/__FCMUserWindow.lua#L30)
 
-**[Override]**
-Returns a Lua `string` and makes passing an `FCString` optional.
+**[?Fluid] [Override]**
+
+Override Changes:
+- Passing an `FCString` is optional. If omitted, the result is returned as a Lua `string`. If passed, nothing is returned and the method is fluid.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -27,7 +29,7 @@ Returns a Lua `string` and makes passing an `FCString` optional.
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string` |  |
+| `string` | Returned if `title` is omitted. |
 
 ### SetTitle
 
@@ -35,12 +37,14 @@ Returns a Lua `string` and makes passing an `FCString` optional.
 __fcmuserwindow.SetTitle(self, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/__FCMUserWindow.lua#L48)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/__FCMUserWindow.lua#L57)
 
 **[Fluid] [Override]**
-Accepts Lua `string` and `number` in addition to `FCString`.
+
+Override Changes:
+- Accepts Lua `string` or `number` in addition to `FCString`.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `__FCMUserWindow` |  |
-| `title` | `FCString\|string\|number` |  |
+| `title` | `FCString \| string \| number` |  |

@@ -1,8 +1,8 @@
 # FCMCtrlStatic
 
-Summary of modifications:
-- Added hooks for control state restoration
-- SetTextColor updates visible color immediately if window is showing
+## Summary of Modifications
+- Added hooks for control state preservation.
+- SetTextColor updates visible color immediately if window is showing.
 
 ## Functions
 
@@ -16,7 +16,7 @@ Summary of modifications:
 fcmctrlstatic.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L25)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L27)
 
 **[Internal]**
 
@@ -30,11 +30,13 @@ fcmctrlstatic.Init(self)
 fcmctrlstatic.SetTextColor(self, red, green, blue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L41)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L49)
 
 **[Fluid] [Override]**
-Displays the new text color immediately.
-Also hooks into control state restoration.
+
+Override Changes:
+- Displays the new text color immediately.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -49,11 +51,14 @@ Also hooks into control state restoration.
 fcmctrlstatic.RestoreState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L66)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L77)
 
-**[Fluid] [Internal]**
-Restores the control's stored state.
-Do not disable this method. Override as needed but call the parent first.
+**[Fluid] [Internal] [Override]**
+
+Override Changes:
+- Restores `FCMCtrlStatic`-specific properties.
+
+*Do not disable this method. Override as needed but call the parent first.*
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |

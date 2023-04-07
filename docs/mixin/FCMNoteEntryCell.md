@@ -13,10 +13,12 @@ Summary of modifications:
 fcmnoteentrycell.GetItemAt(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntryCell.lua#L26)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMNoteEntryCell.lua#L29)
 
 **[Override]**
-Registers this collection as the parent of the item before returning it.
+
+Override Changes:
+- Registers this collection as the parent of the item before returning it.
 This allows the item to be used outside of a `mixin.eachentry` loop.
 
 | Input | Type | Description |
@@ -26,4 +28,4 @@ This allows the item to be used outside of a `mixin.eachentry` loop.
 
 | Return type | Description |
 | ----------- | ----------- |
-| `FCMNoteEntry\\|nil` |  |
+| `FCMNoteEntry \\| nil` |  |

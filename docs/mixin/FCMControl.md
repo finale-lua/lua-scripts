@@ -1,11 +1,11 @@
 # FCMControl
 
-Summary of modifications:
-- Setters that accept `FCString` now also accept Lua `string` and `number`.
-- In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
+## Summary of Modifications
+- Setters that accept `FCString` also accept a Lua `string` or `number`.
+- `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
 - Ported `GetParent` from PDK to allow the parent window to be accessed from a control.
-- Handlers for the `Command` event can now be set on a control.
-- Added methods for storing and restoring control state, which allows controls to correctly maintain their values across multiple script executions
+- Added methods to allow handlers for the `Command` event to be set directly on the control.
+- Added methods for storing and restoring control state, allowing controls to preserve their values across multiple script executions.
 
 ## Functions
 
@@ -38,7 +38,7 @@ Summary of modifications:
 fcmcontrol.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L30)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L31)
 
 **[Internal]**
 
@@ -52,11 +52,13 @@ fcmcontrol.Init(self)
 fcmcontrol.GetParent(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L44)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L51)
 
 **[PDK Port]**
+
 Returns the control's parent window.
-Do not override or disable this method.
+
+*Do not override or disable this method.*
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -72,11 +74,13 @@ Do not override or disable this method.
 fcmcontrol.RegisterParent(self, window)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L58)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L67)
 
 **[Fluid] [Internal]**
+
 Used to register the parent window when the control is created.
-Do not disable this method.
+
+*Do not disable this method.*
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -89,10 +93,12 @@ Do not disable this method.
 fcmcontrol.GetEnable(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L300)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L343)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -108,10 +114,12 @@ Hooks into control state restoration.
 fcmcontrol.SetEnable(self, enable)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L318)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L363)
 
 **[Fluid] [Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -124,10 +132,12 @@ Hooks into control state restoration.
 fcmcontrol.GetVisible(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L301)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L344)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -143,10 +153,12 @@ Hooks into control state restoration.
 fcmcontrol.SetVisible(self, visible)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L319)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L364)
 
 **[Fluid] [Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -159,10 +171,12 @@ Hooks into control state restoration.
 fcmcontrol.GetLeft(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L302)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L345)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -178,10 +192,12 @@ Hooks into control state restoration.
 fcmcontrol.SetLeft(self, left)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L320)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L365)
 
 **[Fluid] [Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -194,10 +210,12 @@ Hooks into control state restoration.
 fcmcontrol.GetTop(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L303)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L346)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -213,10 +231,12 @@ Hooks into control state restoration.
 fcmcontrol.SetTop(self, top)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L321)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L366)
 
 **[Fluid] [Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -229,10 +249,12 @@ Hooks into control state restoration.
 fcmcontrol.GetHeight(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L304)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L347)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -248,10 +270,12 @@ Hooks into control state restoration.
 fcmcontrol.SetHeight(self, height)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L322)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L367)
 
 **[Fluid] [Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -264,10 +288,12 @@ Hooks into control state restoration.
 fcmcontrol.GetWidth(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L305)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L348)
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -283,10 +309,12 @@ Hooks into control state restoration.
 fcmcontrol.SetWidth(self, width)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L323)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L368)
 
 **[Fluid] [Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -299,11 +327,13 @@ Hooks into control state restoration.
 fcmcontrol.GetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L232)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L267)
 
-**[Override]**
-Returns a Lua `string` and makes passing an `FCString` optional.
-Also hooks into control state restoration.
+**[?Fluid] [Override]**
+
+Override Changes:
+- Passing an `FCString` is optional. If omitted, the result is returned as a Lua `string`. If passed, nothing is returned and the method is fluid.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -312,7 +342,7 @@ Also hooks into control state restoration.
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string` |  |
+| `string` | Returned if `str` is omitted. |
 
 ### SetText
 
@@ -320,16 +350,18 @@ Also hooks into control state restoration.
 fcmcontrol.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L258)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L300)
 
 **[Fluid] [Override]**
-Accepts Lua `string` and `number` in addition to `FCString`.
-Also hooks into control state restoration.
+
+Override Changes:
+- Accepts Lua `string` or `number` in addition to `FCString`.
+- Hooks into control state preservation.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `self` | `FCMControl` |  |
-| `str` | `FCString\|string\|number` |  |
+| `str` | `FCString \| string \| number` |  |
 
 ### UseStoredState
 
@@ -337,11 +369,13 @@ Also hooks into control state restoration.
 fcmcontrol.UseStoredState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L283)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L324)
 
 **[Internal]**
+
 Checks if this control should use its stored state instead of the live state from the control.
-Do not override or disable this method.
+
+*Do not override or disable this method.*
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -357,11 +391,13 @@ Do not override or disable this method.
 fcmcontrol.StoreState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L297)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L340)
 
 **[Fluid] [Internal]**
+
 Stores the control's current state.
-Do not disable this method. Override as needed but call the parent first.
+
+*Do not disable this method. Override as needed but call the parent first.*
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -373,11 +409,13 @@ Do not disable this method. Override as needed but call the parent first.
 fcmcontrol.RestoreState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L317)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L362)
 
 **[Fluid] [Internal]**
+
 Restores the control's stored state.
-Do not disable this method. Override as needed but call the parent first.
+
+*Do not disable this method. Override as needed but call the parent first.*
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -389,9 +427,10 @@ Do not disable this method. Override as needed but call the parent first.
 fcmcontrol.AddHandleCommand(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L344)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L391)
 
 **[Fluid]**
+
 Adds a handler for command events.
 
 | Input | Type | Description |
@@ -405,9 +444,10 @@ Adds a handler for command events.
 fcmcontrol.RemoveHandleCommand(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L349)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMControl.lua#L396)
 
 **[Fluid]**
+
 Removes a handler added with `AddHandleCommand`.
 
 | Input | Type | Description |
