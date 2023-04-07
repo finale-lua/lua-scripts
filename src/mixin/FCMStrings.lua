@@ -3,214 +3,226 @@
 --[[
 $module FCMStrings
 
-Summary of modifications:
-- Methods that accept `FCString` now also accept Lua `string` and `number` (except for folder loading methods which do not accept `number`).
-- Setters that accept `FCStrings` now also accept multiple arguments of `FCString`, Lua `string`, or `number`.
+## Summary of Modifications
+- Setters that accept `FCString` also accept a Lua `string`.
+- Methods that returned a boolean to indicate success/failure now throw an error instead.
+- Added polyfill for `CopyFromStringTable`.
+- Added `CreateStringTable` method.
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local library = require("library.general_library")
 
-local props = {}
+local meta = {}
+local public = {}
 
 local temp_str = finale.FCString()
 
 --[[
 % AddCopy
 
-**[Override]**
-Accepts Lua `string` and `number` in addition to `FCString`.
+**[Breaking Change] [Fluid] [Override]**
+
+Override Changes:
+- Accepts Lua `string` and `number` in addition to `FCString`.
+- Throws an error instead of returning a boolean for success/failure.
 
 @ self (FCMStrings)
-@ str (FCString|string|number)
-: (boolean) True on success.
+@ str (FCString | string | number)
 ]]
-function props:AddCopy(str)
+function public:AddCopy(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
-    if type(str) ~= "userdata" then
-        temp_str.LuaString = tostring(str)
-        str = temp_str
-    end
-
-    return self:AddCopy_(str)
+    mixin_helper.boolean_to_error(self, "AddCopy", mixin_helper.to_fcstring(str, temp_str))
 end
 
 --[[
 % AddCopies
 
-**[Override]**
-Same as `AddCopy`, but accepts multiple arguments so that multiple strings can be added at a time.
+Same as `AddCopy`, but accepts multiple arguments so that multiple values can be added at a time.
 
 @ self (FCMStrings)
-@ ... (FCStrings|FCString|string|number) `number`s will be cast to `string`
-: (boolean) `true` if successful
+@ ... (FCStrings | FCString | string | number) `number`s will be cast to `string`
 ]]
-function props:AddCopies(...)
+function public:AddCopies(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
         mixin_helper.assert_argument_type(i + 1, v, "FCStrings", "FCString", "string", "number")
-        if type(v) == "userdata" and v:ClassName() == "FCStrings" then
+        if mixin_helper.is_instance_of(v, "FCStrings") then
             for str in each(v) do
-                v:AddCopy_(str)
+                self:AddCopy_(str)
             end
         else
             mixin.FCStrings.AddCopy(self, v)
         end
     end
-
-    return true
-end
-
---[[
-% CopyFrom
-
-**[Override]**
-Accepts multiple arguments.
-
-@ self (FCMStrings)
-@ ... (FCStrings|FCString|string|number) `number`s will be cast to `string`
-: (boolean) `true` if successful
-]]
-function props:CopyFrom(...)
-    local num_args = select("#", ...)
-    local first = select(1, ...)
-    mixin_helper.assert_argument_type(2, first, "FCStrings", "FCString", "string", "number")
-
-    if library.is_finale_object(first) and first:ClassName() == "FCStrings" then
-        self:CopyFrom_(first)
-    else
-        self:ClearAll_()
-        mixin.FCMStrings.AddCopy(self, first)
-    end
-
-    for i = 2, num_args do
-        local v = select(i, ...)
-        mixin_helper.assert_argument_type(i + 1, v, "FCStrings", "FCString", "string", "number")
-
-        if type(v) == "userdata" then
-            if v:ClassName() == "FCString" then
-                self:AddCopy_(v)
-            elseif v:ClassName() == "FCStrings" then
-                for str in each(v) do
-                    v:AddCopy_(str)
-                end
-            end
-        else
-            temp_str.LuaString = tostring(v)
-            self:AddCopy_(temp_str)
-        end
-    end
-
-    return true
 end
 
 --[[
 % Find
 
 **[Override]**
-Accepts Lua `string` and `number` in addition to `FCString`.
+
+Override Changes:
+- Accepts Lua `string` and `number` in addition to `FCString`.
 
 @ self (FCMStrings)
-@ str (FCString|string|number)
-: (FCMString|nil)
+@ str (FCString | string | number)
+: (FCMString | nil)
 ]]
-function props:Find(str)
+function public:Find(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
-    if type(str) ~= "userdata" then
-        temp_str.LuaString = tostring(str)
-        str = temp_str
-    end
-
-    return self:Find_(str)
+    return self:Find_(mixin_helper.to_fcstring(str, temp_str))
 end
 
 --[[
 % FindNocase
 
 **[Override]**
-Accepts Lua `string` and `number` in addition to `FCString`.
+
+Override Changes:
+- Accepts Lua `string` and `number` in addition to `FCString`.
 
 @ self (FCMStrings)
-@ str (FCString|string|number)
-: (FCMString|nil)
+@ str (FCString | string | number)
+: (FCMString | nil)
 ]]
-function props:FindNocase(str)
+function public:FindNocase(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
-    if type(str) ~= "userdata" then
-        temp_str.LuaString = tostring(str)
-        str = temp_str
-    end
-
-    return self:FindNocase_(str)
+    return self:FindNocase_(mixin_helper.to_fcstring(str, temp_str))
 end
 
 --[[
 % LoadFolderFiles
 
-**[Override]**
-Accepts Lua `string` in addition to `FCString`.
+**[Breaking Change] [Fluid] [Override]**
+
+Override Changes:
+- Accepts Lua `string` in addition to `FCString`.
+- Throws an error instead of returning a boolean for success/failure.
 
 @ self (FCMStrings)
-@ folderstring (FCString|string)
-: (boolean) True on success.
+@ folderstring (FCString | string)
 ]]
-function props:LoadFolderFiles(folderstring)
+function public:LoadFolderFiles(folderstring)
     mixin_helper.assert_argument_type(2, folderstring, "string", "FCString")
 
-    if type(folderstring) ~= "userdata" then
-        temp_str.LuaString = tostring(folderstring)
-        folderstring = temp_str
-    end
-
-    return self:LoadFolderFiles_(folderstring)
+    mixin_helper.boolean_to_error(self, "LoadFolderFiles", mixin_helper.to_fcstring(folderstring, temp_str))
 end
 
 --[[
 % LoadSubfolders
 
-**[Override]**
-Accepts Lua `string` in addition to `FCString`.
+**[Breaking Change] [Fluid] [Override]**
+
+Override Changes:
+- Accepts Lua `string` in addition to `FCString`.
+- Throws an error instead of returning a boolean for success/failure.
 
 @ self (FCMStrings)
-@ folderstring (FCString|string)
-: (boolean) True on success.
+@ folderstring (FCString | string)
 ]]
-function props:LoadSubfolders(folderstring)
+function public:LoadSubfolders(folderstring)
     mixin_helper.assert_argument_type(2, folderstring, "string", "FCString")
 
-    if type(folderstring) ~= "userdata" then
-        temp_str.LuaString = tostring(folderstring)
-        folderstring = temp_str
-    end
+    mixin_helper.boolean_to_error(self, "LoadSubfolders", mixin_helper.to_fcstring(folderstring, temp_str))
+end
 
-    return self:LoadSubfolders_(folderstring)
+--[[
+% LoadSymbolFonts
+
+**[Breaking Change] [Fluid] [Override]**
+
+Override Changes:
+- Throws an error instead of returning a boolean for success/failure.
+
+@ self (FCMStrings)
+]]
+function public:LoadSymbolFonts()
+    mixin_helper.boolean_to_error(self, "LoadSymbolFonts")
+end
+
+--[[
+% LoadSystemFontNames
+
+**[Breaking Change] [Fluid] [Override]**
+
+Override Changes:
+- Throws an error instead of returning a boolean for success/failure.
+
+@ self (FCMStrings)
+]]
+function public:LoadSystemFontNames()
+    mixin_helper.boolean_to_error(self, "LoadSystemFontNames")
 end
 
 --[[
 % InsertStringAt
 
 **[>= v0.59] [Fluid] [Override]**
-Accepts Lua `string` and `number` in addition to `FCString`.
+
+Override Changes:
+- Accepts Lua `string` and `number` in addition to `FCString`.
 
 @ self (FCMStrings)
-@ str (FCString|string|number)
+@ str (FCString | string | number)
 @ index (number)
 ]]
 if finenv.MajorVersion > 0 or finenv.MinorVersion >= 59 then
-    function props:InsertStringAt(str, index)
+    function public:InsertStringAt(str, index)
         mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
         mixin_helper.assert_argument_type(3, index, "number")
 
-        if type(str) ~= "userdata" then
-            temp_str.LuaString = tostring(str)
-            str = temp_str
-        end
-
-        self:InsertStringAt_(str, index)
+        self:InsertStringAt_(mixin_helper.to_fcstring(str, temp_str), index)
     end
 end
 
-return props
+--[[
+% CopyFromStringTable
+
+**[Fluid] [Polyfill]**
+
+Polyfills `FCStrings.CopyFromStringTable` for earlier RGP/JWLua versions.
+
+*Note: This method can also be called statically with a non-mixin `FCStrings` object.*
+
+@ self (FCMStrings | FCStrings)
+@ strings (table)
+]]
+function public:CopyFromStringTable(strings)
+    mixin_helper.assert_argument_type(2, strings, "table")
+
+    local suffix = self.MixinClass and "_" or ""
+
+    if finenv.MajorVersion == 0 and finenv.MinorVersion < 64 then
+        self:ClearAll()
+        for _, v in pairs(strings) do
+            temp_str.LuaString = tostring(v)
+            self["AddCopy" .. suffix](self, temp_str)
+        end
+    else
+        self["CopyFromStringTable" .. suffix](self, strings)
+    end
+end
+
+--[[
+% CreateStringTable
+
+Creates a table of Lua `string`s from the `FCString`s in this collection.
+
+*Note: This method can also be called statically with a non-mixin `FCStrings` object.*
+
+@ self (FCMStrings | FCStrings)
+: (table)
+]]
+function public:CreateStringTable()
+    local t = {}
+    for str in each(self) do
+        table.insert(t, str.LuaString)
+    end
+    return t
+end
+
+return {meta, public}

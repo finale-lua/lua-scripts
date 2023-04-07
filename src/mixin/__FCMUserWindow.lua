@@ -3,57 +3,61 @@
 --[[
 $module __FCMUserWindow
 
-Summary of modifications:
-- Setters that accept `FCString` now also accept Lua `string` and `number`.
-- In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
+## Summary of Modifications
+- Setters that accept `FCString` will also accept a Lua `string`.
+- `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local props = {}
+local meta = {}
+local public = {}
 
 local temp_str = finale.FCString()
 
 --[[
 % GetTitle
 
-**[Override]**
-Returns a Lua `string` and makes passing an `FCString` optional.
+**[?Fluid] [Override]**
+
+Override Changes:
+- Passing an `FCString` is optional. If omitted, the result is returned as a Lua `string`. If passed, nothing is returned and the method is fluid.
 
 @ self (__FCMUserWindow)
 @ [title] (FCString)
-: (string)
+: (string) Returned if `title` is omitted.
 ]]
-function props:GetTitle(title)
+function public:GetTitle(title)
     mixin_helper.assert_argument_type(2, title, "nil", "FCString")
 
+    local do_return = false
     if not title then
         title = temp_str
+        do_return = true
     end
 
     self:GetTitle_(title)
 
-    return title.LuaString
+    if do_return then
+        return title.LuaString
+    end
 end
 
 --[[
 % SetTitle
 
 **[Fluid] [Override]**
-Accepts Lua `string` and `number` in addition to `FCString`.
+
+Override Changes:
+- Accepts Lua `string` or `number` in addition to `FCString`.
 
 @ self (__FCMUserWindow)
-@ title (FCString|string|number)
+@ title (FCString | string | number)
 ]]
-function props:SetTitle(title)
+function public:SetTitle(title)
     mixin_helper.assert_argument_type(2, title, "string", "number", "FCString")
 
-    if type(title) ~= "userdata" then
-        temp_str.LuaString = tostring(title)
-        title = temp_str
-    end
-
-    self:SetTitle_(title)
+    self:SetTitle_(mixin_helper.to_fcstring(title, temp_str))
 end
 
-return props
+return {meta, public}

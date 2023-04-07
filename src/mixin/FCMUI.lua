@@ -3,36 +3,43 @@
 --[[
 $module FCMUI
 
-Summary of modifications:
-- In getters with an `FCString` parameter, the parameter is now optional and a Lua `string` is returned. 
+## Summary of Modifications
+- `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local props = {}
+local meta = {}
+local public = {}
 
 local temp_str = finale.FCString()
 
 --[[
 % GetDecimalSeparator
 
-**[Override]**
-Returns a Lua `string` and makes passing an `FCString` optional.
+**[?Fluid] [Override]**
+
+Override Changes:
+- Passing an `FCString` is optional. If omitted, the result is returned as a Lua `string`. If passed, nothing is returned and the method is fluid.
 
 @ self (FCMUI)
 @ [str] (FCString)
 : (string)
 ]]
-function props:GetDecimalSeparator(str)
+function public:GetDecimalSeparator(str)
     mixin_helper.assert_argument_type(2, str, "nil", "FCString")
 
+    local do_return = false
     if not str then
         str = temp_str
+        do_return = true
     end
 
     self:GetDecimalSeparator_(str)
 
-    return str.LuaString
+    if do_return then
+        return str.LuaString
+    end
 end
 
-return props
+return {meta, public}

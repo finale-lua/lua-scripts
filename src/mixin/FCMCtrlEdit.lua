@@ -3,16 +3,17 @@
 --[[
 $module FCMCtrlEdit
 
-Summary of modifications:
+## Summary of Modifications
 - Added `Change` custom control event.
-- Added hooks for restoring control state
-- `GetMeasurement*` and `SetMeasurement*` methods have been overridden to use the `FCMString` versions of those methods under the hood. For more details on any changes, see the documentation for `FCMString`.
+- Added hooks into control state preservation.
+- `GetMeasurement*` and `SetMeasurement*` methods have been overridden to use the `FCMString` versions of those methods internally. For more details on any changes, see the documentation for `FCMString`.
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local utils = require("library.utils")
 
-local props = {}
+local meta = {}
+local public = {}
 
 local trigger_change
 local each_last_change
@@ -22,12 +23,14 @@ local temp_str = mixin.FCMString()
 % SetText
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
 
 @ self (FCMCtrlEdit)
-@ str (FCString|string|number)
+@ str (FCString | string | number)
 ]]
-function props:SetText(str)
+function public:SetText(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     mixin.FCMControl.SetText(self, str)
@@ -38,7 +41,9 @@ end
 % GetInteger
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 : (number)
@@ -48,8 +53,10 @@ Hooks into control state restoration.
 % SetInteger
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 @ anint (number)
@@ -59,7 +66,9 @@ Also hooks into control state restoration.
 % GetFloat
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 : (number)
@@ -69,8 +78,10 @@ Hooks into control state restoration.
 % SetFloat
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 @ value (number)
@@ -79,13 +90,13 @@ for method, valid_types in pairs({
     Integer = {"number"},
     Float = {"number"},
 }) do
-    props["Get" .. method] = function(self)
+    public["Get" .. method] = function(self)
         -- This is the long way around, but it ensures that the correct control value is used
         mixin.FCMControl.GetText(self, temp_str)
         return temp_str["Get" .. method](temp_str, 0)
     end
 
-    props["Set" .. method] = function(self, value)
+    public["Set" .. method] = function(self, value)
         mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
 
         temp_str["Set" .. method](temp_str, value)
@@ -98,7 +109,8 @@ end
 % GetMeasurement
 
 **[Override]**
-Hooks into control state restoration.
+
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 @ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
@@ -109,7 +121,9 @@ Hooks into control state restoration.
 % GetRangeMeasurement
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 @ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
@@ -122,8 +136,10 @@ Hooks into control state restoration.
 % SetMeasurement
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 @ value (number)
@@ -134,7 +150,9 @@ Also hooks into control state restoration.
 % GetMeasurementEfix
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 @ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
@@ -145,7 +163,9 @@ Hooks into control state restoration.
 % GetRangeMeasurementEfix
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 @ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
@@ -158,8 +178,10 @@ Hooks into control state restoration.
 % SetMeasurementEfix
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 @ value (number)
@@ -170,7 +192,9 @@ Also hooks into control state restoration.
 % GetMeasurementInteger
 
 **[Override]**
-Hooks into control state restoration.
+
+Override Changes:
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 @ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
@@ -181,8 +205,10 @@ Hooks into control state restoration.
 % GetRangeMeasurementInteger
 
 **[Override]**
-Hooks into control state restoration.
-Also fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account (see `FCMString.GetRangeMeasurementInteger`).
+
+Override Changes:
+- Hooks into control state preservation.
+- Fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account (see `FCMString.GetRangeMeasurementInteger`).
 
 @ self (FCMCtrlEdit)
 @ measurementunit (number) Any of the finale.MEASUREMENTUNIT_* constants.
@@ -195,8 +221,10 @@ Also fixes issue with decimal places in `minimum` being discarded instead of bei
 % SetMeasurementInteger
 
 **[Fluid] [Override]**
-Ensures that `Change` event is triggered.
-Also hooks into control state restoration.
+
+Override Changes:
+- Ensures that `Change` event is triggered.
+- Hooks into control state preservation.
 
 @ self (FCMCtrlEdit)
 @ value (number)
@@ -241,14 +269,14 @@ for method, valid_types in pairs({
     MeasurementInteger = {"number"},
     Measurement10000th = {"number"},
 }) do
-    props["Get" .. method] = function(self, measurementunit)
+    public["Get" .. method] = function(self, measurementunit)
         mixin_helper.assert_argument_type(2, measurementunit, "number")
 
         mixin.FCMControl.GetText(self, temp_str)
         return temp_str["Get" .. method](temp_str, measurementunit)
     end
 
-    props["GetRange" .. method] = function(self, measurementunit, minimum, maximum)
+    public["GetRange" .. method] = function(self, measurementunit, minimum, maximum)
         mixin_helper.assert_argument_type(2, measurementunit, "number")
         mixin_helper.assert_argument_type(3, minimum, "number")
         mixin_helper.assert_argument_type(4, maximum, "number")
@@ -257,7 +285,7 @@ for method, valid_types in pairs({
         return temp_str["GetRange" .. method](temp_str, measurementunit, minimum, maximum)
     end
 
-    props["Set" .. method] = function(self, value, measurementunit)
+    public["Set" .. method] = function(self, value, measurementunit)
         mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
         mixin_helper.assert_argument_type(3, measurementunit, "number")
 
@@ -271,15 +299,17 @@ end
 % GetRangeInteger
 
 **[Override]**
-Hooks into control state restoration.
-Fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account.
+
+Override Changes:
+- Hooks into control state preservation.
+- Fixes issue with decimal places in `minimum` being discarded instead of being correctly taken into account.
 
 @ self (FCMCtrlEdit)
 @ minimum (number)
 @ maximum (number)
 : (number)
 ]]
-function props:GetRangeInteger(minimum, maximum)
+function public:GetRangeInteger(minimum, maximum)
     mixin_helper.assert_argument_type(2, minimum, "number")
     mixin_helper.assert_argument_type(3, maximum, "number")
 
@@ -299,6 +329,7 @@ end
 % AddHandleChange
 
 **[Fluid]**
+
 Adds a handler for when the value of the control changes.
 The even will fire when:
 - The window is created (if the value of the control is not an empty string)
@@ -313,12 +344,13 @@ The even will fire when:
 % RemoveHandleChange
 
 **[Fluid]**
+
 Removes a handler added with `AddHandleChange`.
 
 @ self (FCMCtrlEdit)
 @ callback (function)
 ]]
-props.AddHandleChange, props.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
+public.AddHandleChange, public.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
     {
         name = "last_value",
         get = mixin.FCMControl.GetText,
@@ -326,4 +358,4 @@ props.AddHandleChange, props.RemoveHandleChange, trigger_change, each_last_chang
     }
 )
 
-return props
+return {meta, public}

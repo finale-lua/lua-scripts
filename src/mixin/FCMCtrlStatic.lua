@@ -3,16 +3,18 @@
 --[[
 $module FCMCtrlStatic
 
-Summary of modifications:
-- Added hooks for control state restoration
-- SetTextColor updates visible color immediately if window is showing
+## Summary of Modifications
+- Added hooks for control state preservation.
+- SetTextColor updates visible color immediately if window is showing.
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local utils = require("library.utils")
 
+local meta = {}
+local public = {}
 local private = setmetatable({}, {__mode = "k"})
-local props = {}
+
 local temp_str = finale.FCString()
 
 --[[
@@ -22,23 +24,29 @@ local temp_str = finale.FCString()
 
 @ self (FCMCtrlStatic)
 ]]
-function props:Init()
-    private[self] = private[self] or {}
+function meta:Init()
+    if private[self] then
+        return
+    end
+
+    private[self] = {}
 end
 
 --[[
 % SetTextColor
 
 **[Fluid] [Override]**
-Displays the new text color immediately.
-Also hooks into control state restoration.
+
+Override Changes:
+- Displays the new text color immediately.
+- Hooks into control state preservation.
 
 @ self (FCMCtrlStatic)
 @ red (number)
 @ green (number)
 @ blue (number)
 ]]
-function props:SetTextColor(red, green, blue)
+function public:SetTextColor(red, green, blue)
     mixin_helper.assert_argument_type(2, red, "number")
     mixin_helper.assert_argument_type(3, green, "number")
     mixin_helper.assert_argument_type(4, blue, "number")
@@ -57,18 +65,22 @@ end
 --[[
 % RestoreState
 
-**[Fluid] [Internal]**
-Restores the control's stored state.
-Do not disable this method. Override as needed but call the parent first.
+**[Fluid] [Internal] [Override]**
+
+Override Changes:
+- Restores `FCMCtrlStatic`-specific properties.
+
+*Do not disable this method. Override as needed but call the parent first.*
 
 @ self (FCMCtrlStatic)
 ]]
-function props:RestoreState()
+function public:RestoreState()
     mixin.FCMControl.RestoreState(self)
 
+    -- Only need to restore color if it has been changed from the default
     if private[self].TextColor then
         mixin.FCMCtrlStatic.SetTextColor(self, private[self].TextColor[1], private[self].TextColor[2], private[self].TextColor[3])
     end
 end
 
-return props
+return {meta, public}

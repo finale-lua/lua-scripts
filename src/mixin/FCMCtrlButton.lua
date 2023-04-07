@@ -3,16 +3,18 @@
 --[[
 $module FCMCtrlButton
 
-The following methods have been disabled from `FCMCtrlCheckbox`:
+## Disabled Methods
+As `FCCtrlButton` inherits from `FCCtrlCheckbox`, the following methods have been disabled from `FCMCtrlCheckbox`:
 - `AddHandleCheckChange`
 - `RemoveHandleCheckChange`
 
-To handle button presses, use `AddHandleCommand` inherited from `FCMControl`.
+To handle button presses, use `AddHandleCommand`, inherited from `FCMControl`.
 ]] --
 local mixin_helper = require("library.mixin_helper")
 
-local props = {}
+local meta = {}
+local public = {}
 
-mixin_helper.disable_methods(props, "AddHandleCheckChange", "RemoveHandleCheckChange")
+mixin_helper.disable_methods(public, "AddHandleCheckChange", "RemoveHandleCheckChange")
 
-return props
+return {meta, public}
