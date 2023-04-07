@@ -23,7 +23,7 @@ describe('wrapImport', () => {
     it('stuff', () => {
         expect(wrapImport('stuff', stuff)).toBe(
             [
-                '__imports["stuff"] = __imports["stuff"] or function()',
+                'package.preload["stuff"] = package.preload["stuff"] or function()',
                 '    local stuff = {}',
                 '',
                 '    function stuff.hello()',
@@ -39,7 +39,7 @@ describe('wrapImport', () => {
     it('stuff2', () => {
         expect(wrapImport('stuff2', stuff2)).toBe(
             [
-                '__imports["stuff2"] = __imports["stuff2"] or function()',
+                'package.preload["stuff2"] = package.preload["stuff2"] or function()',
                 '    local stuff = {}',
                 '',
                 '    function stuff.hello()',
@@ -55,7 +55,7 @@ describe('wrapImport', () => {
     it('works with a dot in the name', () => {
         expect(wrapImport('my.stuff', stuff)).toBe(
             [
-                '__imports["my.stuff"] = __imports["my.stuff"] or function()',
+                'package.preload["my.stuff"] = package.preload["my.stuff"] or function()',
                 '    local stuff = {}',
                 '',
                 '    function stuff.hello()',

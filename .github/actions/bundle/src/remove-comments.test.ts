@@ -26,7 +26,7 @@ const tests: [string, string][] = [
     ],
     [
         `
-    __imports["library.client"] = function()
+    package.preload["library.client"] = function()
         --[[
         $module Client
         Get information about the current client. For the purposes of Finale Lua, the client is
@@ -42,7 +42,7 @@ const tests: [string, string][] = [
             return string.gsub(feature, "_", " ")
         end`,
         `
-    __imports["library.client"] = function()
+    package.preload["library.client"] = function()
 
         local client = {}
         local function to_human_string(feature)

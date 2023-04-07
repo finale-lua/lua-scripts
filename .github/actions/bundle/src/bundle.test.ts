@@ -1,5 +1,4 @@
 import { bundleFileBase, ImportedFiles, importFileBase } from './bundle'
-import { generateLuaRequire } from './lua-require'
 
 describe('importFile', () => {
     it('files can be imported', () => {
@@ -9,7 +8,11 @@ describe('importFile', () => {
 
         expect(importedFilesMock['my-lib']).toEqual({
             dependencies: ['hello'],
-            wrapped: ['__imports["my-lib"] = __imports["my-lib"] or function()', "    local hello = require('hello')", 'end'].join('\n'),
+            wrapped: [
+                'package.preload["my-lib"] = package.preload["my-lib"] or function()',
+                "    local hello = require('hello')",
+                'end'
+            ].join('\n'),
         })
     })
     it('files are imported only once', () => {
@@ -40,13 +43,11 @@ describe('bundle', () => {
         const bundle = bundleFileBase('a.lua', {}, [], fetcher)
         expect(bundle).toBe(
             [
-                generateLuaRequire(),
-                '',
-                '__imports["b"] = __imports["b"] or function()',
+                'package.preload["b"] = package.preload["b"] or function()',
                 "    local b = require('b')",
                 'end',
                 '',
-                '__imports["c"] = __imports["c"] or function()',
+                'package.preload["c"] = package.preload["c"] or function()',
                 '    return {}',
                 'end',
                 '',
@@ -70,17 +71,15 @@ describe('bundle', () => {
         const bundle = bundleFileBase('mixin.lua', {}, ['mixin.FCMControl', 'mixin.FCMString'], fetcher)
         expect(bundle).toBe(
             [
-                generateLuaRequire(),
-                '',
-                '__imports["mixin.FCMControl"] = __imports["mixin.FCMControl"] or function()',
+                'package.preload["mixin.FCMControl"] = package.preload["mixin.FCMControl"] or function()',
                 '    return {}',
                 'end',
                 '',
-                '__imports["mixin.FCMString"] = __imports["mixin.FCMString"] or function()',
+                'package.preload["mixin.FCMString"] = package.preload["mixin.FCMString"] or function()',
                 '    return {}',
                 'end',
                 '',
-                '__imports["library.mixin"] = __imports["library.mixin"] or function()',
+                'package.preload["library.mixin"] = package.preload["library.mixin"] or function()',
                 '    return {}',
                 'end',
                 '',
