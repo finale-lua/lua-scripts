@@ -160,7 +160,7 @@ function public:SetMeasurement(value, measurementunit)
         local whole = math.floor(value / 48)
         local fractional = value - whole * 48
         fractional = fractional < 0 and fractional * -1 or fractional
-        self.LuaString = whole .. "p" .. utils.round(fractional / 4, 4)
+        self.LuaString = whole .. "p" .. utils.to_integer_if_whole(utils.round(fractional / 4, 4))
         return
     end
 
@@ -177,7 +177,7 @@ function public:SetMeasurement(value, measurementunit)
         value = value / 288 * 25.4
     end
 
-    self.LuaString = tostring(utils.round(value, 5))
+    self.LuaString = tostring(utils.to_integer_if_whole(utils.round(value, 5)))
 end
 
 --[[

@@ -6,6 +6,7 @@ $module Mixin Helper
 
 A library of helper functions to improve code reuse in mixins.
 ]]--
+require("library.lua_compatibility")
 local utils = require("library.utils")
 local mixin = require("library.mixin")
 local library = require("library.general_library")
@@ -96,10 +97,15 @@ function mixin_helper.is_instance_of(object, ...)
 end
 
 local function assert_argument_type(levels, argument_number, value, ...)
-    local value_type = type(value)
+    local primary_type = type(value)
+    local secondary_type
+    if primary_type == "number" then
+        secondary_type = math.type(value)
+    end
 
     for i = 1, select("#", ...) do
-        if value_type == select(i, ...) then
+        local t = select(i, ...)
+        if t == primary_type or (secondary_type and t == secondary_type) then
             return
         end
     end
@@ -110,10 +116,10 @@ local function assert_argument_type(levels, argument_number, value, ...)
 
     -- Determine type for error message
     if library.is_finale_object(value) then
-        value_type = value.MixinClass or value.ClassName
+        secondary_type = value.MixinClass or value.ClassName
     end
 
-    error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. value_type .. ")", levels)
+    error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) .. ")", levels)
 end
 
 --[[
@@ -122,9 +128,13 @@ end
 Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
 
 If not a valid type, will throw a bad argument error at the level above where this function is called.
-Types can be Lua types (eg `string`, `number`, `bool`, etc), finale class (eg `FCString`, `FCMeasure`, etc), or mixin class (eg `FCMString`, `FCMMeasure`, etc).
-Parent classes can also be specified.
-For details about what types a Finale object will satisfy, see `mixin_helper.is_instance_of`.
+
+The followimg types can be specified:
+- Standard Lua types (`string`, `number`, `boolean`, `table`, `function`, `nil`, etc),
+- Number types (`integer` or `float`).
+- Finale classes, including parent classes (eg `FCString`, `FCMeasure`, etc).
+- Mixin classes, including parent classes (eg `FCMString`, `FCMMeasure`, etc).
+*For details about what types a Finale object will satisfy, see `mixin_helper.is_instance_of`.*
 
 *NOTE: This function will only assert if in debug mode (ie `finenv.DebugEnabled == true`). If assertions are always required, use `force_assert_argument_type` instead.*
 
