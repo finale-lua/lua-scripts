@@ -7,6 +7,8 @@ The original C++ documentation for `tinyxml2` is available here:
 
 That documentaion is somewhat sparse. You can get fuller explanations from [ChatGPT](https://chat.openai.com/). A question like, "What is the purpose of the processEntities and whitespaceMode parameters when contructing tinyxml2.XMLDocument?" yields quite helpful results. (However, the results are not always 100% accurate, so use them with your brain turned on.)
 
+## API differences
+
 The Lua implemenation differs from the original documentation as follows:
 
 - Much as with the PDK Framework, technical limitations prevent some methods from being available in Lua.
@@ -14,6 +16,14 @@ The Lua implemenation differs from the original documentation as follows:
 - Many of the `Set...` or `Push...` functions use C++ overloading that is not available in Lua. For Lua, each numerical setter is named parallel to its getter. For example, the setter `XMLAttribute.SetIntAttribute` corresponds to `XMLAttribute.IntAttribute`.
 - Each of the classes has a `ClassName` method added that is not in the original documentation.
 - `XMLPrinter` is available for memory buffer printing only. If you need to write to a file, use `io.write` to write the `CStr` of the `XMLPrinter` to the file.
+- `XMLDocument` defines `XMLDocument::Clear` as a close function with Lua 5.4+. That means you can use the Lua `<close>` keyword to specify that the document is cleared immediately on any exit path from the block in which it is defined.
+
+```lua
+local xml <close> = tinyxml2.XMLDocument()
+```
+
+- Similarly `XMLPrinter` defines `XMLPrinter::ClearBuffer` as a close function with Lua 5.4.
+- The Lua constructors for `XMLDocument` and `XMLPrinter` are only available for the default values. 
 
 C++
 
@@ -32,6 +42,8 @@ local doc_with_settings -- not currently possible
 ```
 
 The latest version of the [RGP Lua Class Browser](https://github.com/finale-lua/rgplua-class-browser) provides a working example of a script that uses `tinyxml2`.
+
+## Built-in functions for XML
 
 When _RGP Lua_ loads the `tinyxml2` library, it also loads the following built-in functions to facilitate iterating xml.
 
