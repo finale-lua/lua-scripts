@@ -10,6 +10,7 @@ That documentaion is somewhat sparse. You can get fuller explanations from [Chat
 The Lua implemenation differs from the original documentation as follows:
 
 - Much as with the PDK Framework, technical limitations prevent some methods from being available in Lua.
+- An example is `XMLNode::SetUserData`. Due to memory handling incompatibilities between Lua and C++ this is not implemented for Lua. You can perhaps use a parallel Lua table if you need to track user data per node.
 - Many of the `Set...` or `Push...` functions use C++ overloading that is not available in Lua. For Lua, each numerical setter is named parallel to its getter. For example, the setter `XMLAttribute.SetIntAttribute` corresponds to `XMLAttribute.IntAttribute`.
 - Each of the classes has a `ClassName` method added that is not in the original documentation.
 - `XMLPrinter` is available for memory buffer printing only. If you need to write to a file, use `io.write` to write the `CStr` of the `XMLPrinter` to the file.
