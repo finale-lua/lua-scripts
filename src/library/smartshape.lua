@@ -48,13 +48,13 @@ Creates an entry based SmartShape based on two input notes. If a type is not spe
 function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
     local smartshape = finale.FCSmartShape()
     smartshape:SetEntryAttachedFlags(true)
+
     local shape
-    if shape_type and type(shape_type) == "number" then -- legit finale.SMARTSHAPE_TYPES number provided
-        shape = shape_type
+    if shape_type and type(shape_type) == "number" and shape_type <= finale.SMARTSHAPE_DASHEDSLURAUTO then
+        shape = shape_type -- legit finale.SMARTSHAPE_TYPES number provided
     else
         shape_type = shape_type or "slur"
-        shape_type = string.lower(shape_type)
-        shape = smartshape_type[shape_type]
+        shape = smartshape_type[string.lower(shape_type)]
     end
     smartshape:SetShapeType(shape)
     smartshape.PresetShape = true
@@ -125,12 +125,11 @@ Creates an entry based SmartShape based on two input notes. If a type is not spe
 ]]
 function smartshape.delete_entry_based_smartshape(music_region, shape_type)
     local shape
-    if shape_type and type(shape_type) == "number" then -- legit finale.SMARTSHAPE_TYPES number provided
-        shape = shape_type
+    if shape_type and type(shape_type) == "number" and shape_type <= finale.SMARTSHAPE_DASHEDSLURAUTO then
+        shape = shape_type -- legit finale.SMARTSHAPE_TYPES number provided
     else
         shape_type = shape_type or "slur"
-        shape_type = string.lower(shape_type)
-        shape = smartshape_type[shape_type]
+        shape = smartshape_type[string.lower(shape_type)]
     end
     for noteentry in eachentrysaved(music_region) do
         local smartshape_entry_marks = finale.FCSmartShapeEntryMarks(noteentry)
