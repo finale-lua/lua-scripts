@@ -9,7 +9,7 @@ function plugindef()
 end
 
 local library = require("library.general_library")
-local json = library.require_embedded("cjson")
+local cjson = library.require_embedded("cjson")
 
 function smufl_load_engraving_defaults()
     local font_info = finale.FCFontInfo()
@@ -21,7 +21,7 @@ function smufl_load_engraving_defaults()
     end
     local json = font_json_file:read("*all")
     io.close(font_json_file)
-    local font_metadata = json.decode(json)
+    local font_metadata = cjson.decode(json)
 
     local evpuPerSpace = 24.0
     local efixPerEvpu = 64.0
