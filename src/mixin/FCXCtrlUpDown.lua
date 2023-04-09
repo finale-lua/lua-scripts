@@ -4,9 +4,10 @@
 $module FCXCtrlUpDown
 
 *Extends `FCMCtrlUpDown`*
+
 An up down control that is created by `FCXCustomLuaWindow`.
 
-Summary of modifications:
+## Summary of Modifications
 - The ability to set the step size on a per-measurement unit basis.
 - Step size for integers can also be changed.
 - Added a setting for forcing alignment to the next step when moving up or down.
@@ -17,8 +18,9 @@ Summary of modifications:
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
+local meta = {Parent = "FCMCtrlUpDown"}
+local public = {}
 local private = setmetatable({}, {__mode = "k"})
-local props = {MixinParent = "FCMCtrlUpDown"}
 
 local temp_str = finale.FCString()
 
@@ -62,95 +64,104 @@ local default_efix_steps = {
 
 @ self (FCXCtrlUpDown)
 ]]
-function props:Init()
+function meta:Init()
+    if private[self] then
+        return
+    end
+
     mixin_helper.assert(function() return mixin_helper.is_instance_of(self:GetParent(), "FCXCustomLuaWindow") end, "FCXCtrlUpDown must have a parent window that is an instance of FCXCustomLuaWindow")
-    private[self] = private[self] or {IntegerStepSize = 1, MeasurementSteps = {}, AlignWhenMoving = true}
 
-    self:AddHandlePress(
-        function(self, delta)
-            if not private[self].ConnectedEdit then
-                return
-            end
+    private[self] = {
+        IntegerStepSize = 1,
+        MeasurementSteps = {},
+        AlignWhenMoving = true,
+    }
 
-            local edit = private[self].ConnectedEdit
-            local edit_type = enum_edit_type(edit, private[self].ConnectedEditType)
-            local unit = self:GetParent():GetMeasurementUnit()
-            local separator = mixin.UI():GetDecimalSeparator()
-            local step_def
+    self:AddHandlePress(function(self, delta)
+        if not private[self].ConnectedEdit then
+            return
+        end
 
-            if edit_type == 1 then
-                step_def = {value = private[self].IntegerStepSize}
+        local edit = private[self].ConnectedEdit
+        local edit_type = enum_edit_type(edit, private[self].ConnectedEditType)
+        local unit = self:GetParent():GetMeasurementUnit()
+        local separator = mixin.UI():GetDecimalSeparator()
+        local step_def
+
+        if edit_type == 1 then
+            step_def = {value = private[self].IntegerStepSize}
+        else
+            step_def = private[self].MeasurementSteps[unit] or (edit_type == 4 and default_efix_steps[unit]) or default_measurement_steps[unit]
+        end
+
+        -- Get real value
+        local value
+        if edit_type == 1 then
+            value = edit:GetText():match("^%-*[0-9%.%,%" .. separator .. "-]+")
+            value = value and tonumber(value) or 0
+        else
+            if step_def.is_evpus then
+                value = edit:GetMeasurement()
             else
-                step_def = private[self].MeasurementSteps[unit] or (edit_type == 4 and default_efix_steps[unit]) or
-                               default_measurement_steps[unit]
+                -- Strings like '2.75i' allow the unit to be overridden, so doing this extra step guarantees that it's normalised to the current unit
+                temp_str:SetMeasurement(edit:GetMeasurement(), unit)
+                value = temp_str.LuaString:gsub("%" .. separator, ".")
+                value = tonumber(value)
             end
+        end
 
-            -- Get real value
-            local value
-            if edit_type == 1 then
-                value = edit:GetText():match("^%-*[0-9%.%,%" .. separator .. "-]+")
-                value = value and tonumber(value) or 0
+        -- Align to closest step if needed
+        if private[self].AlignWhenMoving then
+            -- Casting back and forth works around floating point issues, such as 0.3/0.1 not being equal to 3 (even though 3 is displayed)
+            local num_steps = tonumber(tostring(value / step_def.value))
+
+            if num_steps ~= math.floor(num_steps) then
+                if delta > 0 then
+                    value = math.ceil(num_steps) * step_def.value
+                    delta = delta - 1
+                elseif delta < 0 then
+                    value = math.floor(num_steps) * step_def.value
+                    delta = delta + 1
+                end
+            end
+        end
+
+        -- Calculate new value
+        local new_value = value + delta * step_def.value
+
+        -- Set new value
+        if edit_type == 1 then
+            self:SetValue(new_value)
+        else
+            if step_def.is_evpus then
+                self:SetValue(edit_type == 4 and new_value * 64 or new_value)
             else
-                if step_def.is_evpus then
-                    value = edit:GetMeasurement()
+                -- If we're not in EVPUs, we need the EVPU value to determine whether clamping is required
+                temp_str.LuaString = tostring(new_value)
+                local new_evpus = temp_str:GetMeasurement(unit)
+                if new_evpus < private[self].Minimum or new_evpus > private[self].Maximum then
+                    self:SetValue(edit_type == 4 and new_evpus * 64 or new_evpus)
                 else
-                    -- Strings like '2.75i' allow the unit to be overridden, so doing this extra step guarantees that it's normalised to the current unit
-                    temp_str:SetMeasurement(edit:GetMeasurement(), unit)
-                    value = temp_str.LuaString:gsub("%" .. separator, ".")
-                    value = tonumber(value)
+                    edit:SetText(temp_str.LuaString:gsub("%.", separator))
                 end
             end
+        end
 
-            -- Align to closest step if needed
-            if private[self].AlignWhenMoving then
-                -- Casting back and forth works around floating point issues, such as 0.3/0.1 not being equal to 3 (even though 3 is displayed)
-                local num_steps = tonumber(tostring(value / step_def.value))
-
-                if num_steps ~= math.floor(num_steps) then
-                    if delta > 0 then
-                        value = math.ceil(num_steps) * step_def.value
-                        delta = delta - 1
-                    elseif delta < 0 then
-                        value = math.floor(num_steps) * step_def.value
-                        delta = delta + 1
-                    end
-                end
-            end
-
-            -- Calculate new value
-            local new_value = value + delta * step_def.value
-
-            -- Set new value
-            if edit_type == 1 then
-                self:SetValue(new_value)
-            else
-                if step_def.is_evpus then
-                    self:SetValue(edit_type == 4 and new_value * 64 or new_value)
-                else
-                    -- If we're not in EVPUs, we need the EVPU value to determine whether clamping is required
-                    temp_str.LuaString = tostring(new_value)
-                    local new_evpus = temp_str:GetMeasurement(unit)
-                    if new_evpus < private[self].Minimum or new_evpus > private[self].Maximum then
-                        self:SetValue(edit_type == 4 and new_evpus * 64 or new_evpus)
-                    else
-                        edit:SetText(temp_str.LuaString:gsub("%.", separator))
-                    end
-                end
-            end
-
-        end)
+    end)
 end
 
 --[[
 % GetConnectedEdit
 
 **[Override]**
-Ensures that original edit control is returned.
+
+Override Changes:
+- Ensures that original edit control is returned.
 
 @ self (FCXCtrlUpDown)
-: (FCXCtrlEdit|nil) `nil` if there is no edit connected.
+: (FCMCtrlEdit | nil) `nil` if there is no edit connected.
 ]]
-function props:GetConnectedEdit()
+function public:GetConnectedEdit()
     return private[self].ConnectedEdit
 end
 
@@ -158,6 +169,7 @@ end
 % ConnectIntegerEdit
 
 **[Fluid] [Override]**
+
 Connects an integer edit.
 The underlying methods used in `GetValue` and `SetValue` will be `GetRangeInteger` and `SetInteger` respectively.
 
@@ -166,7 +178,7 @@ The underlying methods used in `GetValue` and `SetValue` will be `GetRangeIntege
 @ minimum (number)
 @ maximum (maximum)
 ]]
-function props:ConnectIntegerEdit(control, minimum, maximum)
+function public:ConnectIntegerEdit(control, minimum, maximum)
     mixin_helper.assert_argument_type(2, control, "FCMCtrlEdit")
     mixin_helper.assert_argument_type(3, minimum, "number")
     mixin_helper.assert_argument_type(4, maximum, "number")
@@ -190,7 +202,7 @@ The underlying methods used in `GetValue` and `SetValue` will depend on the meas
 @ minimum (number)
 @ maximum (maximum)
 ]]
-function props:ConnectMeasurementEdit(control, minimum, maximum)
+function public:ConnectMeasurementEdit(control, minimum, maximum)
     mixin_helper.assert_argument_type(2, control, "FCXCtrlMeasurementEdit")
     mixin_helper.assert_argument_type(3, minimum, "number")
     mixin_helper.assert_argument_type(4, maximum, "number")
@@ -205,12 +217,13 @@ end
 % SetIntegerStepSize
 
 **[Fluid]**
+
 Sets the step size for integer edits.
 
 @ self (FCXCtrlUpDown)
 @ value (number)
 ]]
-function props:SetIntegerStepSize(value)
+function public:SetIntegerStepSize(value)
     mixin_helper.assert_argument_type(2, value, "number")
 
     private[self].IntegerStepSize = value
@@ -220,12 +233,13 @@ end
 % SetEVPUsStepSize
 
 **[Fluid]**
+
 Sets the step size for measurement edits that are currently displaying in EVPUs.
 
 @ self (FCXCtrlUpDown)
 @ value (number)
 ]]
-function props:SetEVPUsStepSize(value)
+function public:SetEVPUsStepSize(value)
     mixin_helper.assert_argument_type(2, value, "number")
 
     private[self].MeasurementSteps[finale.MEASUREMENTUNIT_EVPUS] = {value = value, is_evpus = true}
@@ -235,13 +249,14 @@ end
 % SetInchesStepSize
 
 **[Fluid]**
+
 Sets the step size for measurement edits that are currently displaying in Inches.
 
 @ self (FCXCtrlUpDown)
 @ value (number)
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Inches.
 ]]
-function props:SetInchesStepSize(value, is_evpus)
+function public:SetInchesStepSize(value, is_evpus)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
@@ -255,13 +270,14 @@ end
 % SetCentimetersStepSize
 
 **[Fluid]**
+
 Sets the step size for measurement edits that are currently displaying in Centimeters.
 
 @ self (FCXCtrlUpDown)
 @ value (number)
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Centimeters.
 ]]
-function props:SetCentimetersStepSize(value, is_evpus)
+function public:SetCentimetersStepSize(value, is_evpus)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
@@ -275,13 +291,14 @@ end
 % SetPointsStepSize
 
 **[Fluid]**
+
 Sets the step size for measurement edits that are currently displaying in Points.
 
 @ self (FCXCtrlUpDown)
 @ value (number)
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Points.
 ]]
-function props:SetPointsStepSize(value, is_evpus)
+function public:SetPointsStepSize(value, is_evpus)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
@@ -295,13 +312,14 @@ end
 % SetPicasStepSize
 
 **[Fluid]**
+
 Sets the step size for measurement edits that are currently displaying in Picas.
 
 @ self (FCXCtrlUpDown)
 @ value (number|string)
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Picas.
 ]]
-function props:SetPicasStepSize(value, is_evpus)
+function public:SetPicasStepSize(value, is_evpus)
     mixin_helper.assert_argument_type(2, value, "number", "string")
 
     if not is_evpus then
@@ -316,13 +334,14 @@ end
 % SetSpacesStepSize
 
 **[Fluid]**
+
 Sets the step size for measurement edits that are currently displaying in Spaces.
 
 @ self (FCXCtrlUpDown)
 @ value (number)
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Spaces.
 ]]
-function props:SetSpacesStepSize(value, is_evpus)
+function public:SetSpacesStepSize(value, is_evpus)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
@@ -336,12 +355,13 @@ end
 % AlignWSetAlignWhenMovinghenMoving
 
 **[Fluid]**
+
 Sets whether to align to the next multiple of a step when moving.
 
 @ self (FCXCtrlUpDown)
 @ on (boolean)
 ]]
-function props:SetAlignWhenMoving(on)
+function public:SetAlignWhenMoving(on)
     mixin_helper.assert_argument_type(2, on, "boolean")
 
     private[self].AlignWhenMoving = on
@@ -351,6 +371,7 @@ end
 % GetValue
 
 **[Override]**
+
 Returns the value of the connected edit, clamped according to the set minimum and maximum.
 
 Different types of connected edits will return different types and use different methods to access the value of the edit. The methods are:
@@ -362,7 +383,7 @@ Different types of connected edits will return different types and use different
 @ self (FCXCtrlUpDown)
 : (number) An integer for an integer edit, EVPUs for a measurement edit, whole EVPUs for a measurement integer edit, or EFIXes for a measurement EFIX edit.
 ]]
-function props:GetValue()
+function public:GetValue()
     if not private[self].ConnectedEdit then
         return
     end
@@ -380,6 +401,7 @@ end
 % SetValue
 
 **[Fluid] [Override]**
+
 Sets the value of the attached control, clamped according to the set minimum and maximum.
 
 Different types of connected edits will accept different types and use different methods to set the value of the edit. The methods are:
@@ -391,7 +413,7 @@ Different types of connected edits will accept different types and use different
 @ self (FCXCtrlUpDown)
 @ value (number) An integer for an integer edit, EVPUs for a measurement edit, whole EVPUs for a measurement integer edit, or EFIXes for a measurement EFIX edit.
 ]]
-function props:SetValue(value)
+function public:SetValue(value)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert(private[self].ConnectedEdit, "Unable to set value: no connected edit.")
 
@@ -416,7 +438,7 @@ end
 @ self (FCMCtrlUpDown)
 : (number) An integer for integer edits or EVPUs for measurement edits.
 ]]
-function props:GetMinimum()
+function public:GetMinimum()
     return private[self].Minimum
 end
 
@@ -429,7 +451,7 @@ end
 : (number) An integer for integer edits or EVPUs for measurement edits.
 ]]
 
-function props:GetMaximum()
+function public:GetMaximum()
     return private[self].Maximum
 end
 
@@ -442,7 +464,7 @@ end
 @ minimum (number) An integer for integer edits or EVPUs for measurement edits.
 @ maximum (number) An integer for integer edits or EVPUs for measurement edits.
 ]]
-function props:SetRange(minimum, maximum)
+function public:SetRange(minimum, maximum)
     mixin_helper.assert_argument_type(2, minimum, "number")
     mixin_helper.assert_argument_type(3, maximum, "number")
 
@@ -450,4 +472,4 @@ function props:SetRange(minimum, maximum)
     private[self].Maximum = maximum
 end
 
-return props
+return {meta, public}

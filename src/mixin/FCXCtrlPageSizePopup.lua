@@ -7,10 +7,11 @@ $module FCXCtrlPageSizePopup
 
 A popup for selecting a defined page size. The dimensions in the current unit are displayed along side each page size in the same way as the Page Format dialog.
 
-Summary of modifications:
-- `SelectionChange` has been overridden to match the specialised functionality.
-- Setting and getting is now only done base on page size.
+## Summary of Modifications
+- `SelectionChange` has been overridden with a new event, `PageSizeChange`, to match the specialised functionality.
+- Setting and getting is now only performed based on page size.
 
+## Disabled Methods
 The following inherited methods have been disabled:
 - `Clear`
 - `AddString`
@@ -32,8 +33,9 @@ local mixin_helper = require("library.mixin_helper")
 local measurement = require("library.measurement")
 local page_size = require("library.page_size")
 
+local meta = {Parent = "FCMCtrlPopup"}
+local public = {}
 local private = setmetatable({}, {__mode = "k"})
-local props = {MixinParent = "FCMCtrlPopup"}
 
 local trigger_page_size_change
 local each_last_page_size_change
@@ -41,7 +43,7 @@ local each_last_page_size_change
 local temp_str = finale.FCString()
 
 -- Disabled methods
-mixin_helper.disable_methods(props, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
+mixin_helper.disable_methods(public, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
     "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange", "RemoveHandleSelectionChange")
 
 local function repopulate(control)
@@ -78,8 +80,12 @@ end
 
 @ self (FCXCtrlPageSizePopup)
 ]]
-function props:Init()
-    private[self] = private[self] or {}
+function meta:Init()
+    if private[self] then
+        return
+    end
+
+    private[self] = {}
 
     repopulate(self)
 end
@@ -87,38 +93,49 @@ end
 --[[
 % GetSelectedPageSize
 
+**[?Fluid]**
+
 Returns the selected page size.
 
 @ self (FCXCtrlPageSizePopup)
-: (string|nil) The page size or `nil` if nothing is selected.
+@ [str] (FCString) Optional `FCString` to populate with page size.
+: (string | nil) Returned if `str` is omitted. The page size or `nil` if nothing is selected.
 ]]
-function props:GetSelectedPageSize()
-    local str = mixin.FCMCtrlPopup.GetSelectedString(self)
-    if not str then
-        return nil
+function public:GetSelectedPageSize(str)
+    mixin_helper.assert_argument_type(2, str, "FCString", "nil")
+
+    local size = mixin.FCMCtrlPopup.GetSelectedString(self)
+    if size then
+       size = size:match("(.+) %(")
     end
 
-    return str:match("(.+) %(")
+    if str then
+        str.LuaString = size or ""
+    else
+        return size
+    end
 end
 
 --[[
 % SetSelectedPageSize
 
 **[Fluid]**
+
 Sets the selected page size. Must be a valid page size.
 
 @ self (FCXCtrlPageSizePopup)
-@ size (FCString|string)
+@ size (FCString | string) Name of page size (case-sensitive).
 ]]
-function props:SetSelectedPageSize(size)
+function public:SetSelectedPageSize(size)
     mixin_helper.assert_argument_type(2, size, "string", "FCString")
+    
     size = type(size) == "userdata" and size.LuaString or tostring(size)
     mixin_helper.assert(page_size.is_size(size), "'" .. size .. "' is not a valid page size.")
 
     local index = 0
     for s in page_size.pairs() do
         if size == s then
-            if index ~= self:GetSelectedItem_() then
+            if index ~= mixin.FCMCtrlPopup.GetSelectedItem(self) then
                 mixin.FCMCtrlPopup.SetSelectedItem(self, index)
                 trigger_page_size_change(self)
             end
@@ -134,11 +151,12 @@ end
 % UpdateMeasurementUnit
 
 **[Fluid] [Internal]**
+
 Checks the parent window's measurement and updates the displayed page dimensions if necessary.
 
 @ self (FCXCtrlPageSizePopup)
 ]]
-function props:UpdateMeasurementUnit()
+function public:UpdateMeasurementUnit()
     repopulate(self)
 end
 
@@ -155,7 +173,8 @@ end
 % AddHandlePageSizeChange
 
 **[Fluid]**
-Adds a handler for PageSizeChange events.
+
+Adds a handler for `PageSizeChange` events.
 If the selected item is changed by a handler, that same handler will not be called again for that change.
 
 The event will fire in the following cases:
@@ -170,12 +189,13 @@ The event will fire in the following cases:
 % RemoveHandlePageSizeChange
 
 **[Fluid]**
+
 Removes a handler added with `AddHandlePageSizeChange`.
 
 @ self (FCXCtrlPageSizePopup)
 @ callback (function) Handler to remove.
 ]]
-props.AddHandlePageSizeChange, props.RemoveHandlePageSizeChange, trigger_page_size_change, each_last_page_size_change = mixin_helper.create_custom_control_change_event(
+public.AddHandlePageSizeChange, public.RemoveHandlePageSizeChange, trigger_page_size_change, each_last_page_size_change = mixin_helper.create_custom_control_change_event(
     {
         name = "last_page_size",
         get = function(ctrl)
@@ -185,4 +205,4 @@ props.AddHandlePageSizeChange, props.RemoveHandlePageSizeChange, trigger_page_si
     }
 )
 
-return props
+return {meta, public}
