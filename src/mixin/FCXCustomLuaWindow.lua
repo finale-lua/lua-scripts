@@ -5,7 +5,7 @@ $module FCXCustomLuaWindow
 
 *Extends `FCMCustomLuaWindow`*
 
-Summary of modifications:
+## Summary of Modifications
 - DebugClose is enabled by default
 ]] --
 local mixin = require("library.mixin")
@@ -13,7 +13,8 @@ local utils = require("library.utils")
 local mixin_helper = require("library.mixin_helper")
 local measurement = require("library.measurement")
 
-local props = {MixinParent = "FCMCustomLuaWindow"}
+local meta = {Parent = "FCMCustomLuaWindow"}
+local public = {}
 
 local trigger_measurement_unit_change
 local each_last_measurement_unit_change
@@ -25,36 +26,17 @@ local each_last_measurement_unit_change
 
 @ self (FCXCustomLuaWindow)
 ]]
-function props:Init()
+function meta:Init()
     self:SetEnableDebugClose(true)
-end
-
---[[
-% CreateStatic
-
-**[Override]**
-Creates an `FCXCtrlStatic` control.
-
-@ self (FCXCustomLuaWindow)
-@ x (number)
-@ y (number)
-@ [control_name] (string)
-: (FCXCtrlStatic)
-]]
-function props:CreateStatic(x, y, control_name)
-    mixin_helper.assert_argument_type(2, x, "number")
-    mixin_helper.assert_argument_type(3, y, "number")
-    mixin_helper.assert_argument_type(4, control_name, "string", "nil")
-
-    local popup = mixin.FCMCustomWindow.CreateStatic(self, x, y, control_name)
-    return mixin.subclass(popup, "FCXCtrlStatic")
 end
 
 --[[
 % CreateUpDown
 
 **[Override]**
-Creates an `FCXCtrlUpDown` control.
+
+Override Changes:
+- Creates an `FCXCtrlUpDown` control.
 
 @ self (FCXCustomLuaWindow)
 @ x (number)
@@ -62,7 +44,7 @@ Creates an `FCXCtrlUpDown` control.
 @ [control_name] (string)
 : (FCXCtrlUpDown)
 ]]
-function props:CreateUpDown(x, y, control_name)
+function public:CreateUpDown(x, y, control_name)
     mixin_helper.assert_argument_type(2, x, "number")
     mixin_helper.assert_argument_type(3, y, "number")
     mixin_helper.assert_argument_type(4, control_name, "string", "nil")
@@ -71,4 +53,4 @@ function props:CreateUpDown(x, y, control_name)
     return mixin.subclass(updown, "FCXCtrlUpDown")
 end
 
-return props
+return {meta, public}

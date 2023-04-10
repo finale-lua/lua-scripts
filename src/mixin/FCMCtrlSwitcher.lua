@@ -155,7 +155,7 @@ function public:SetSelectedPageByTitle(title)
     title = type(title) == "userdata" and title.LuaString or tostring(title)
 
     local index = private[self].TitleIndex[title] or -1
-    mixin_helper.force_assert(index ~= -1, "No page titled '" .. title .. "'", 2)
+    mixin_helper.force_assert(index ~= -1, "No page titled '" .. title .. "'")
     mixin.FCMCtrlSwitcher.SetSelectedPage(self, index)
 end
 

@@ -170,11 +170,11 @@ Asserts a condition in a mixin method. If the condition is false, an error is th
 
 @ condition (any) Can be any value or expression. If a function, it will be called (with zero arguments) and the result will be tested.
 @ message (string) The error message.
-@ [no_level] (boolean) If true, error will be thrown with no level (ie level 0)
+@ [level] (number) Optional level to throw the error message at (default is 2).
 ]]
-function mixin_helper.assert(condition, message, no_level)
+function mixin_helper.assert(condition, message, level)
     if debug_enabled then
-        assert_func(condition, message, no_level and 0 or 4)
+        assert_func(condition, message, level == 0 and 0 or 2 + (level or 2))
     end
 end
 
@@ -185,10 +185,10 @@ The same as `assert` except this function always asserts, regardless of whether 
 
 @ condition (any) Can be any value or expression.
 @ message (string) The error message.
-@ [no_level] (boolean) If true, error will be thrown with no level (ie level 0)
+@ [level] (number) Optional level to throw the error message at (default is 2).
 ]]
-function mixin_helper.force_assert(condition, message, no_level)
-    assert_func(condition, message, no_level and 0 or 4)
+function mixin_helper.force_assert(condition, message, level)
+    assert_func(condition, message, level == 0 and 0 or 2 + (level or 2))
 end
 
 local disabled_method = function()
