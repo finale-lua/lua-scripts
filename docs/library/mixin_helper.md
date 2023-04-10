@@ -7,8 +7,8 @@ A library of helper functions to improve code reuse in mixins.
 - [is_instance_of(object)](#is_instance_of)
 - [assert_argument_type(argument_number, value)](#assert_argument_type)
 - [force_assert_argument_type(argument_number, value)](#force_assert_argument_type)
-- [assert(condition, message, no_level)](#assert)
-- [force_assert(condition, message, no_level)](#force_assert)
+- [assert(condition, message, level)](#assert)
+- [force_assert(condition, message, level)](#force_assert)
 - [disable_methods(props)](#disable_methods)
 - [create_standard_control_event(name)](#create_standard_control_event)
 - [create_custom_control_change_event()](#create_custom_control_change_event)
@@ -98,7 +98,7 @@ The same as `assert_argument_type` except this function always asserts, regardle
 ### assert
 
 ```lua
-mixin_helper.assert(condition, message, no_level)
+mixin_helper.assert(condition, message, level)
 ```
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L175)
@@ -111,12 +111,12 @@ Asserts a condition in a mixin method. If the condition is false, an error is th
 | ----- | ---- | ----------- |
 | `condition` | `any` | Can be any value or expression. If a function, it will be called (with zero arguments) and the result will be tested. |
 | `message` | `string` | The error message. |
-| `no_level` (optional) | `boolean` | If true, error will be thrown with no level (ie level 0) |
+| `level` (optional) | `number` | Optional level to throw the error message at (default is 2). |
 
 ### force_assert
 
 ```lua
-mixin_helper.force_assert(condition, message, no_level)
+mixin_helper.force_assert(condition, message, level)
 ```
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L190)
@@ -127,7 +127,7 @@ The same as `assert` except this function always asserts, regardless of whether 
 | ----- | ---- | ----------- |
 | `condition` | `any` | Can be any value or expression. |
 | `message` | `string` | The error message. |
-| `no_level` (optional) | `boolean` | If true, error will be thrown with no level (ie level 0) |
+| `level` (optional) | `number` | Optional level to throw the error message at (default is 2). |
 
 ### disable_methods
 

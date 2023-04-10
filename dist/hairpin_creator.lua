@@ -1628,16 +1628,45 @@ package.preload["mixin.FCMCtrlStatic"] = package.preload["mixin.FCMCtrlStatic"] 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
     local utils = require("library.utils")
+    local measurement = require("library.measurement")
     local meta = {}
     local public = {}
     local private = setmetatable({}, {__mode = "k"})
-    local temp_str = finale.FCString()
+    local temp_str = mixin.FCMString()
+    local function get_suffix(unit, suffix_type)
+        if suffix_type == 1 then
+            return measurement.get_unit_suffix(unit)
+        elseif suffix_type == 2 then
+            return measurement.get_unit_abbreviation(unit)
+        elseif suffix_type == 3 then
+            return " " .. string.lower(measurement.get_unit_name(unit))
+        end
+    end
+    local function set_measurement(self, measurementtype, measurementunit, value)
+        mixin_helper.force_assert(private[self].MeasurementEnabled or measurementunit, "'measurementunit' can only be omitted if parent window is an instance of 'FCMCustomLuaWindow'", 3)
+        private[self].MeasurementAutoUpdate = not measurementunit and true or false
+        measurementunit = measurementunit or self:GetParent():GetMeasurementUnit()
+        temp_str["Set" .. measurementtype](temp_str, value, measurementunit)
+        temp_str:AppendLuaString(private[self].ShowMeasurementSuffix and get_suffix(measurementunit, private[self].MeasurementSuffixType) or "")
+        mixin.FCMControl.SetText(self, temp_str)
+        private[self].Measurement = value
+        private[self].MeasurementType = measurementtype
+    end
 
     function meta:Init()
         if private[self] then
             return
         end
-        private[self] = {}
+        private[self] = {
+            ShowMeasurementSuffix = true,
+            MeasurementSuffixType = 2,
+            MeasurementEnabled = false,
+        }
+    end
+
+    function public:RegisterParent(window)
+        mixin.FCMControl.RegisterParent(self, window)
+        private[self].MeasurementEnabled = mixin_helper.is_instance_of(window, "FCMCustomLuaWindow")
     end
 
     function public:SetTextColor(red, green, blue)
@@ -1658,6 +1687,64 @@ package.preload["mixin.FCMCtrlStatic"] = package.preload["mixin.FCMCtrlStatic"] 
 
         if private[self].TextColor then
             mixin.FCMCtrlStatic.SetTextColor(self, private[self].TextColor[1], private[self].TextColor[2], private[self].TextColor[3])
+        end
+    end
+
+    function public:SetText(str)
+        mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
+        mixin.FCMControl.SetText(self, str)
+        private[self].Measurement = nil
+        private[self].MeasurementType = nil
+    end
+
+    function public:SetMeasurement(value, measurementunit)
+        mixin_helper.assert_argument_type(2, value, "number")
+        mixin_helper.assert_argument_type(3, measurementunit, "number", "nil")
+        set_measurement(self, "Measurement", measurementunit, value)
+    end
+
+    function public:SetMeasurementInteger(value, measurementunit)
+        mixin_helper.assert_argument_type(2, value, "number")
+        mixin_helper.assert_argument_type(3, measurementunit, "number", "nil")
+        set_measurement(self, "MeasurementInteger", measurementunit, value)
+    end
+
+    function public:SetMeasurementEfix(value, measurementunit)
+        mixin_helper.assert_argument_type(2, value, "number")
+        mixin_helper.assert_argument_type(3, measurementunit, "number", "nil")
+        set_measurement(self, "MeasurementEfix", measurementunit, value)
+    end
+
+    function public:SetMeasurementEfix(value, measurementunit)
+        mixin_helper.assert_argument_type(2, value, "number")
+        mixin_helper.assert_argument_type(3, measurementunit, "number", "nil")
+        set_measurement(self, "Measurement10000th", measurementunit, value)
+    end
+
+    function public:SetShowMeasurementSuffix(enabled)
+        mixin_helper.assert_argument_type(2, enabled, "boolean")
+        private[self].ShowMeasurementSuffix = enabled and true or false
+        mixin.FCMCtrlStatic.UpdateMeasurementUnit(self)
+    end
+
+    function public:SetMeasurementSuffixShort()
+        private[self].MeasurementSuffixType = 1
+        mixin.FCMCtrlStatic.UpdateMeasurementUnit(self)
+    end
+
+    function public:SetMeasurementSuffixAbbreviated()
+        private[self].MeasurementSuffixType = 2
+        mixin.FCMCtrlStatic.UpdateMeasurementUnit(self)
+    end
+
+    function public:SetMeasurementSuffixFull()
+        private[self].MeasurementSuffixType = 3
+        mixin.FCMCtrlStatic.UpdateMeasurementUnit(self)
+    end
+
+    function public:UpdateMeasurementUnit()
+        if private[self].Measurement then
+            mixin.FCMCtrlStatic["Set" .. private[self].MeasurementType](self, private[self].Measurement)
         end
     end
     return {meta, public}
@@ -1726,7 +1813,7 @@ package.preload["mixin.FCMCtrlSwitcher"] = package.preload["mixin.FCMCtrlSwitche
         mixin_helper.assert_argument_type(2, title, "string", "number", "FCString")
         title = type(title) == "userdata" and title.LuaString or tostring(title)
         local index = private[self].TitleIndex[title] or -1
-        mixin_helper.force_assert(index ~= -1, "No page titled '" .. title .. "'", 2)
+        mixin_helper.force_assert(index ~= -1, "No page titled '" .. title .. "'")
         mixin.FCMCtrlSwitcher.SetSelectedPage(self, index)
     end
 
@@ -3201,102 +3288,6 @@ package.preload["mixin.FCXCtrlPageSizePopup"] = package.preload["mixin.FCXCtrlPa
     )
     return props
 end
-package.preload["mixin.FCXCtrlStatic"] = package.preload["mixin.FCXCtrlStatic"] or function()
-
-
-
-    local mixin = require("library.mixin")
-    local mixin_helper = require("library.mixin_helper")
-    local measurement = require("library.measurement")
-    local utils = require("library.utils")
-    local private = setmetatable({}, {__mode = "k"})
-    local props = {MixinParent = "FCMCtrlStatic"}
-    local temp_str = finale.FCString()
-    local function get_suffix(unit, suffix_type)
-        if suffix_type == 1 then
-            return measurement.get_unit_suffix(unit)
-        elseif suffix_type == 2 then
-            return measurement.get_unit_abbreviation(unit)
-        elseif suffix_type == 3 then
-            return " " .. string.lower(measurement.get_unit_name(unit))
-        end
-    end
-
-    function props:Init()
-        mixin_helper.assert(function() return mixin_helper.is_instance_of(self:GetParent(), "FCXCustomLuaWindow") end, "FCXCtrlStatic must have a parent window that is an instance of FCXCustomLuaWindow")
-        private[self] = private[self] or {
-            ShowMeasurementSuffix = true,
-            MeasurementSuffixType = 2,
-        }
-    end
-
-    function props:SetText(str)
-        mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
-        mixin.FCMCtrlStatic.SetText(self, str)
-        private[self].Measurement = nil
-        private[self].MeasurementType = nil
-    end
-
-    function props:SetMeasurement(value)
-        mixin_helper.assert_argument_type(2, value, "number")
-        local unit = self:GetParent():GetMeasurementUnit()
-        temp_str:SetMeasurement(value, unit)
-        temp_str:AppendLuaString(private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
-        mixin.FCMCtrlStatic.SetText(self, temp_str)
-        private[self].Measurement = value
-        private[self].MeasurementType = "Measurement"
-    end
-
-    function props:SetMeasurementInteger(value)
-        mixin_helper.assert_argument_type(2, value, "number")
-        value = utils.round(value)
-        local unit = self:GetParent():GetMeasurementUnit()
-        temp_str:SetMeasurement(value, unit)
-        temp_str:AppendLuaString(private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
-        mixin.FCMCtrlStatic.SetText(self, temp_str)
-        private[self].Measurement = value
-        private[self].MeasurementType = "MeasurementInteger"
-    end
-
-    function props:SetMeasurementEfix(value)
-        mixin_helper.assert_argument_type(2, value, "number")
-        local evpu = value / 64
-        local unit = self:GetParent():GetMeasurementUnit()
-        temp_str:SetMeasurement(evpu, unit)
-        temp_str:AppendLuaString(private[self].ShowMeasurementSuffix and get_suffix(unit, private[self].MeasurementSuffixType) or "")
-        mixin.FCMCtrlStatic.SetText(self, temp_str)
-        private[self].Measurement = value
-        private[self].MeasurementType = "MeasurementEfix"
-    end
-
-    function props:SetShowMeasurementSuffix(enabled)
-        mixin_helper.assert_argument_type(2, enabled, "boolean")
-        private[self].ShowMeasurementSuffix = enabled and true or false
-        mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
-    end
-
-    function props:SetMeasurementSuffixShort()
-        private[self].MeasurementSuffixType = 1
-        mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
-    end
-
-    function props:SetMeasurementSuffixAbbreviated()
-        private[self].MeasurementSuffixType = 2
-        mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
-    end
-
-    function props:SetMeasurementSuffixFull()
-        private[self].MeasurementSuffixType = 3
-        mixin.FCXCtrlStatic.UpdateMeasurementUnit(self)
-    end
-
-    function props:UpdateMeasurementUnit()
-        if private[self].Measurement then
-            mixin.FCXCtrlStatic["Set" .. private[self].MeasurementType](self, private[self].Measurement)
-        end
-    end
-    return props
-end
 package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] or function()
 
 
@@ -3622,30 +3613,23 @@ package.preload["mixin.FCXCustomLuaWindow"] = package.preload["mixin.FCXCustomLu
     local utils = require("library.utils")
     local mixin_helper = require("library.mixin_helper")
     local measurement = require("library.measurement")
-    local props = {MixinParent = "FCMCustomLuaWindow"}
+    local meta = {Parent = "FCMCustomLuaWindow"}
+    local public = {}
     local trigger_measurement_unit_change
     local each_last_measurement_unit_change
 
-    function props:Init()
+    function meta:Init()
         self:SetEnableDebugClose(true)
     end
 
-    function props:CreateStatic(x, y, control_name)
-        mixin_helper.assert_argument_type(2, x, "number")
-        mixin_helper.assert_argument_type(3, y, "number")
-        mixin_helper.assert_argument_type(4, control_name, "string", "nil")
-        local popup = mixin.FCMCustomWindow.CreateStatic(self, x, y, control_name)
-        return mixin.subclass(popup, "FCXCtrlStatic")
-    end
-
-    function props:CreateUpDown(x, y, control_name)
+    function public:CreateUpDown(x, y, control_name)
         mixin_helper.assert_argument_type(2, x, "number")
         mixin_helper.assert_argument_type(3, y, "number")
         mixin_helper.assert_argument_type(4, control_name, "string", "nil")
         local updown = mixin.FCMCustomWindow.CreateUpDown(self, x, y, control_name)
         return mixin.subclass(updown, "FCXCtrlUpDown")
     end
-    return props
+    return {meta, public}
 end
 package.preload["library.utils"] = package.preload["library.utils"] or function()
 
@@ -4391,14 +4375,14 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         end
     end
 
-    function mixin_helper.assert(condition, message, no_level)
+    function mixin_helper.assert(condition, message, level)
         if debug_enabled then
-            assert_func(condition, message, no_level and 0 or 4)
+            assert_func(condition, message, level == 0 and 0 or 2 + (level or 2))
         end
     end
 
-    function mixin_helper.force_assert(condition, message, no_level)
-        assert_func(condition, message, no_level and 0 or 4)
+    function mixin_helper.force_assert(condition, message, level)
+        assert_func(condition, message, level == 0 and 0 or 2 + (level or 2))
     end
     local disabled_method = function()
         error("Attempt to call disabled method 'tryfunczzz'", 2)
