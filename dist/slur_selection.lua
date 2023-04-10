@@ -37,10 +37,13 @@ package.preload["library.smartshape"] = package.preload["library.smartshape"] or
     function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
         local smartshape = finale.FCSmartShape()
         smartshape:SetEntryAttachedFlags(true)
-        shape_type = shape_type or "slur"
-
-        shape_type = string.lower(shape_type)
-        local shape = smartshape_type[shape_type]
+        local shape
+        if shape_type and type(shape_type) == "number" and shape_type <= finale.SMARTSHAPE_DASHEDSLURAUTO then
+            shape = shape_type
+        else
+            shape_type = shape_type or "slur"
+            shape = smartshape_type[string.lower(shape_type)]
+        end
         smartshape:SetShapeType(shape)
         smartshape.PresetShape = true
         if smartshape:IsAutoSlur() then
@@ -98,7 +101,13 @@ package.preload["library.smartshape"] = package.preload["library.smartshape"] or
     end
 
     function smartshape.delete_entry_based_smartshape(music_region, shape_type)
-        local shape = smartshape_type[shape_type]
+        local shape
+        if shape_type and type(shape_type) == "number" and shape_type <= finale.SMARTSHAPE_DASHEDSLURAUTO then
+            shape = shape_type
+        else
+            shape_type = shape_type or "slur"
+            shape = smartshape_type[string.lower(shape_type)]
+        end
         for noteentry in eachentrysaved(music_region) do
             local smartshape_entry_marks = finale.FCSmartShapeEntryMarks(noteentry)
             smartshape_entry_marks:LoadAll(music_region)
