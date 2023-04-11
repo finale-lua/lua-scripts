@@ -56,3 +56,11 @@ FromRGPLuaDirectory (Script tag)
 A setting of `true` causes _RGP Lua_ to prepend its running folder to the file path specified by the `Path` tag. It allows you to create a stand-alone configuration that is not dependent on any particular user's setup. If any `Script` element sets this value to `true`, it is advisable also to set `IncludeUI` to `false`.
 
 To keep the user experience as simple as possible, it is **strongly recommended** to suppress _RGP Lua’s_  configuration option for these kinds of installations. The goal should be that users only see configuration options for instances of the plugin that they have installed themselves.
+
+```
+AllowStartup (Script tag)
+```
+
+Special care must be given to the configuration of scripts that request `ExecuteAtStartup`. In addition to setting this value to `true`, you must also provide a hash value that verifies the contents of the script file. The easiest way to do this is to configure the file in RGP Lua and then copy the Script tag for it (including "Hash" xml tag) directly to your custom configuration file.
+
+Keep in mind that `ExecuteAtStartup` scripts are not included as part of an Auto Folder. You must provide a separate per-script Script tag for each.

@@ -37,7 +37,7 @@ Add/Edit Dialog
 
 **Select File.** Selects a single `.lua` or `.luac` file to be included in Finale's plugin menu.
 
-**Select Folder.** Selects a folder containing `.lua` and/or `.luac` files as an Auto Folder. _RGP Lua_ inserts every `.lua` or `.luac` file in an Auto Folder into Finale's plugin menu except `mobdebug.lua`, if it happens to exist.
+**Select Folder.** Selects a folder containing `.lua` and/or `.luac` files as an Auto Folder. _RGP Lua_ inserts every `.lua` or `.luac` file in an Auto Folder into Finale's plugin menu except `mobdebug.lua`, if it happens to exist. However, if a script has requested to execute at startup, it will not be included. Those scripts must be explicitly configured with `Select File`. See `ExecuteAtStartup` in the [finaleplugin properties](/docs/rgp-lua/finaleplugin-properties).
 
 **Active.** If this option is unchecked, _RGP Lua_ skips this item when Finale loads. It allows you keep items in the list even if you do not wish them to appear in Finale. You can activate them later if you wish them to appear in Finale again.
 
