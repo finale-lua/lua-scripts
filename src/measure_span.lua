@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.45"
+    finaleplugin.Version = "v0.47"
     finaleplugin.Date = "2023/04/11"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.63
@@ -97,7 +97,6 @@ local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local layer = require("library.layer")
 local tie = require("library.tie")
-local smartshape = require("library.smartshape")
 local script_name = "measure_span"
 configuration.get_user_settings(script_name, config, true)
 
@@ -531,6 +530,42 @@ function entry_from_enum(measure, staff_num, entry_num)
     return cell:FindEntryNumber(entry_num)
 end
 
+function make_entry_smartshape(start_entry, end_entry, shape_type, offset1, offset2)
+    local smart_shape = mixin.FCMSmartShape()
+    smart_shape:SetEntryAttachedFlags(true)
+        :SetShapeType(shape_type)
+        :SetPresetShape(true)
+    if smart_shape:IsAutoSlur() then
+        smart_shape:SetSlurFlags(true):SetEngraverSlur(finale.SS_AUTOSTATE)
+    end
+    local segment = { smart_shape:GetTerminateSegmentLeft(), smart_shape:GetTerminateSegmentRight() }
+    segment[1]:SetEntry(start_entry)
+        :SetStaff(start_entry.Staff)
+        :SetMeasure(start_entry.Measure)
+        :SetCustomOffset(false) -- set for LEFT side
+    segment[2]:SetEntry(end_entry)
+        :SetStaff(end_entry.Staff)
+        :SetMeasure(end_entry.Measure)
+        :SetCustomOffset(true)
+
+    if (shape_type == finale.SMARTSHAPE_TABSLIDE) or (shape_type == finale.SMARTSHAPE_GLISSANDO) then
+        if shape_type == finale.SMARTSHAPE_GLISSANDO then
+            smart_shape.LineID = 1
+        elseif shape_type == finale.SMARTSHAPE_TABSLIDE then
+            smart_shape.LineID = 2
+        end
+        segment[1].NoteID = 1
+        segment[2].NoteID = 1
+    end
+    if offset1 and (offset1[1] ~= 0 or offset1[2] ~= 0) then
+        segment[1]:SetEndpointOffsetX(offset1[1]):SetEndpointOffsetY(offset1[2])
+    end
+    if offset2 and (offset2[1] ~= 0 or offset2[2] ~= 0) then
+        segment[2]:SetEndpointOffsetX(offset2[1]):SetEndpointOffsetY(offset2[2])
+    end
+    smart_shape:SaveNewEverything(start_entry, end_entry)
+end
+
 function shift_smart_shapes(rgn, measure_num, pos_offset)
     local slurs = {}
     local shift_rgn = mixin.FCMMusicRegion()
@@ -560,14 +595,16 @@ function shift_smart_shapes(rgn, measure_num, pos_offset)
                     end
                 end
                 shape:Save()
-            elseif (m[2] < measure_num + 2) or m[1] > measure_num then -- SHAPE ATTACHED ( == SLURS etc)
+            elseif (m[2] < measure_num + 2) or m[1] > measure_num then -- ENTRYBASED SHAPE ( == SLURS etc)
                 local entry = { -- left end entry, right end entry
                     entry_from_enum(m[1], segment[1].Staff, segment[1].EntryNumber),
                     entry_from_enum(m[2], segment[2].Staff, segment[2].EntryNumber)
                 }
                 local slur =  { -- left end / right end
-                    { staff = segment[1].Staff, m = m[1], type = shape.ShapeType },
-                    { staff = segment[2].Staff, m = m[2] - 1 }
+                    { staff = segment[1].Staff, m = m[1], type = shape.ShapeType,
+                        offset = { segment[1].EndpointOffsetX, segment[1].EndpointOffsetY } },
+                    { staff = segment[2].Staff, m = m[2] - 1,
+                        offset = { segment[2].EndpointOffsetX, segment[2].EndpointOffsetY } },
                 }
                 if m[1] <= measure_num then
                     slur[1].entry = entry[1] -- entry stays put
@@ -608,7 +645,7 @@ function restore_slurs(measure_num, pos_offset, slurs, expressions)
                 end
             end
             if slur[1].entry ~= nil and slur[2].entry ~= nil then
-                smartshape.add_entry_based_smartshape(slur[1].entry, slur[2].entry, slur[1].type)
+                make_entry_smartshape(slur[1].entry, slur[2].entry, slur[1].type, slur[1].offset, slur[2].offset)
             end
         end
     end
