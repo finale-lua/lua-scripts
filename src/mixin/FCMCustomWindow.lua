@@ -308,7 +308,7 @@ Override Changes:
 -- Override Create* methods to store a reference to the original created object and its control ID
 -- Also adds an optional parameter at the end for a control name
 for num_args, ctrl_types in pairs({
-    [0] = {"CancelButton", "OpenButton",},
+    [0] = {"CancelButton", "OkButton",},
     [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit",
         "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
     },
