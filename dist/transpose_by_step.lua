@@ -2065,7 +2065,7 @@ package.preload["mixin.FCMCustomWindow"] = package.preload["mixin.FCMCustomWindo
 
 
     for num_args, ctrl_types in pairs({
-        [0] = {"CancelButton", "OpenButton",},
+        [0] = {"CancelButton", "OkButton",},
         [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit",
             "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
         },
