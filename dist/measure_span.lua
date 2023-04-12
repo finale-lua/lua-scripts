@@ -5746,157 +5746,13 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
 
     return tie
 end
-package.preload["library.smartshape"] = package.preload["library.smartshape"] or function()
-
-    local smartshape = {}
-    local smartshape_type = {
-        ["slurauto"] = finale.SMARTSHAPE_SLURAUTO,
-        ["slur_auto"] = finale.SMARTSHAPE_SLURAUTO,
-        ["autoslur"] = finale.SMARTSHAPE_SLURAUTO,
-        ["auto_slur"] = finale.SMARTSHAPE_SLURAUTO,
-        ["slur"] = finale.SMARTSHAPE_SLURAUTO,
-        ["slurdown"] = finale.SMARTSHAPE_SLURDOWN,
-        ["slur_down"] = finale.SMARTSHAPE_SLURDOWN,
-        ["slurup"] = finale.SMARTSHAPE_SLURUP,
-        ["slur_up"] = finale.SMARTSHAPE_SLURUP,
-        ["dashed"] = finale.SMARTSHAPE_DASHEDSLURAUTO,
-        ["dashedslur"] = finale.SMARTSHAPE_DASHEDSLURAUTO,
-        ["dashed_slur"] = finale.SMARTSHAPE_DASHEDSLURAUTO,
-        ["dashedslurdown"] = finale.SMARTSHAPE_DASHEDSLURDOWN,
-        ["dashedslurup"] = finale.SMARTSHAPE_DASHEDSLURDOWN,
-        ["dashedcurve"] = finale.SMARTSHAPE_DASHCURVEAUTO,
-        ["dashed_curve"] = finale.SMARTSHAPE_DASHCURVEAUTO,
-        ["curve"] = finale.SMARTSHAPE_DASHCURVEAUTO,
-        ["dashedcurvedown"] = finale.SMARTSHAPE_DASHCURVEDOWN,
-        ["dashedcurveup"] = finale.SMARTSHAPE_DASHCURVEUP,
-        ["tabslide"] = finale.SMARTSHAPE_TABSLIDE,
-        ["tab"] = finale.SMARTSHAPE_TABSLIDE,
-        ["slide"] = finale.SMARTSHAPE_TABSLIDE,
-        ["glissando"] = finale.SMARTSHAPE_GLISSANDO,
-        ["gliss"] = finale.SMARTSHAPE_GLISSANDO,
-        ["bendhat"] = finale.SMARTSHAPE_BEND_HAT,
-        ["bend_hat"] = finale.SMARTSHAPE_BEND_HAT,
-        ["hat"] = finale.SMARTSHAPE_BEND_HAT,
-        ["bend"] = finale.SMARTSHAPE_BEND_HAT,
-        ["bendcurve"] = finale.SMARTSHAPE_BEND_CURVE,
-        ["bend_curve"] = finale.SMARTSHAPE_BEND_CURVE
-    }
-
-    function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
-        local smartshape = finale.FCSmartShape()
-        smartshape:SetEntryAttachedFlags(true)
-        local shape
-        if shape_type and type(shape_type) == "number" and shape_type <= finale.SMARTSHAPE_DASHEDSLURAUTO then
-            shape = shape_type
-        else
-            shape_type = shape_type or "slur"
-            shape = smartshape_type[string.lower(shape_type)]
-        end
-        smartshape:SetShapeType(shape)
-        smartshape.PresetShape = true
-        if smartshape:IsAutoSlur() then
-            smartshape:SetSlurFlags(true)
-            smartshape:SetEngraverSlur(finale.SS_AUTOSTATE)
-        end
-
-        local left_segment = smartshape:GetTerminateSegmentLeft()
-        local right_segment = smartshape:GetTerminateSegmentRight()
-
-        left_segment:SetEntry(start_note)
-        left_segment:SetStaff(start_note.Staff)
-        left_segment:SetMeasure(start_note.Measure)
-
-        right_segment:SetEntry(end_note)
-        right_segment:SetStaff(end_note.Staff)
-        right_segment:SetMeasure(end_note.Measure)
-        if (shape == finale.SMARTSHAPE_TABSLIDE) or (shape == finale.SMARTSHAPE_GLISSANDO) then
-            if shape == finale.SMARTSHAPE_GLISSANDO then
-                smartshape.LineID = 1
-            elseif shape == finale.SMARTSHAPE_TABSLIDE then
-                smartshape.LineID = 2
-            end
-
-            left_segment.NoteID = 1
-            right_segment.NoteID = 1
-            right_segment:SetCustomOffset(true)
-            local accidentals = 0
-            local start_note_staff_pos = 0
-            local end_note_staff_pos = 0
-            local offset_y_add = 4
-            local offset_x_add = 12
-            for note in each(start_note) do
-                if note.NoteID == 1 then
-                    start_note_staff_pos = note:CalcStaffPosition()
-                end
-            end
-
-            for note in each(end_note) do
-                if note:CalcAccidental() then
-                    accidentals = accidentals + 1
-                end
-                if note.NoteID == 1 then
-                    end_note_staff_pos = note:CalcStaffPosition()
-                end
-            end
-            local staff_pos_difference = start_note_staff_pos - end_note_staff_pos
-            if accidentals > 0 then
-                offset_x_add = offset_x_add + 28
-            end
-            right_segment:SetEndpointOffsetX(right_segment.EndpointOffsetX - offset_x_add)
-            right_segment:SetEndpointOffsetY(right_segment.EndpointOffsetY + offset_y_add + (staff_pos_difference/2))
-        end
-        smartshape:SaveNewEverything(start_note, end_note)
-    end
-
-    function smartshape.delete_entry_based_smartshape(music_region, shape_type)
-        local shape
-        if shape_type and type(shape_type) == "number" and shape_type <= finale.SMARTSHAPE_DASHEDSLURAUTO then
-            shape = shape_type
-        else
-            shape_type = shape_type or "slur"
-            shape = smartshape_type[string.lower(shape_type)]
-        end
-        for noteentry in eachentrysaved(music_region) do
-            local smartshape_entry_marks = finale.FCSmartShapeEntryMarks(noteentry)
-            smartshape_entry_marks:LoadAll(music_region)
-            for ss_entry_mark in each(smartshape_entry_marks) do
-                local smartshape = ss_entry_mark:CreateSmartShape()
-                if smartshape ~= nil then
-                    if ss_entry_mark:CalcLeftMark() or (ss_entry_mark:CalcRightMark()) then
-                        if smartshape.ShapeType == shape then
-                            smartshape:DeleteData()
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    function smartshape.delete_all_slurs(music_region)
-        local slurs = {
-            "slurauto",
-            "slurdown",
-            "slurup",
-            "dashed",
-            "dashedslurdown",
-            "dashedslurup",
-            "dashedcurve",
-            "dashedcurvedown",
-            "dashedcurveup"
-        }
-        for key, val in pairs(slurs) do
-            smartshape.delete_entry_based_smartshape(music_region, val)
-        end
-    end
-    return smartshape
-end
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.42"
-    finaleplugin.Date = "2023/04/01"
+    finaleplugin.Version = "v0.49"
+    finaleplugin.Date = "2023/04/12"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.AdditionalMenuOptions = [[
@@ -5921,42 +5777,42 @@ function plugindef()
         This script changes the "span" of every measure in the currently selected music by manipulating its time signature,
         either dividing it into two or combining it with the following measure.
         Many measures with different time signatures can be modified at once.
-        *JOIN:*
-        Combine each pair of measures in the selection into one by consolidating their time signatures.
-        If both measures have the same time signature, choose to either double the numerator ([3/4][3/4] -> [6/4])
+        JOIN:
+        Combine each pair of measures in the selection into one by combining their time signatures.
+        If they have the same time signature either double the numerator ([3/4][3/4] -> [6/4])
         or halve the denominator ([3/4][3/4] -> [3/2]).
         If the time signatures aren't equal, choose to either COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8])
-        or CONSOLIDATE them ([2/4][3/8] -> [7/8]). (Consolidation will lose current beam groupings).
+        or CONSOLIDATE them ([2/4][3/8] -> [7/8]). (Consolidation loses current beam groupings).
         You can choose that a consolidated "display" time signature is created automatically when compositing meters.
         "JOIN" only works on an even number of measures.
-        *DIVIDE:*
+        DIVIDE:
         Divide every selected measure into two, changing the time signature by either
         halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]).
         If the measure has an odd number of beats, choose whether to put more beats in the
         first measure (5->3+2) or the second (5->2+3).
         Measures containing composite meters will be divided after the first composite group,
         or if there is only one group, after its first element.
-        *IN ALL CASES:*
+        IN ALL CASES:
         Incomplete measures will be filled with rests before Join/Divide.
         Measures containing too many notes will be trimmed to their "real" duration.
         Time signatures "for display only" will be removed.
         Measures are either deleted or shifted in every operation so smart shapes spanning the area need to be "restored".
         Selecting a SPAN of "5" will look for smart shapes to restore from 5 measures before until 5 after the selected region.
-        (This takes noticeably more time than a SPAN of "2").
-        *OPTIONS:*
+        (This takes noticeably longer than a SPAN of "2").
+        OPTIONS:
         To configure script settings select the "Measure Span Options..." menu item,
         or else hold down the SHIFT or ALT (option) key when invoking "Join" or "Divide".
     ]]
     return "Measure Span Options...", "Measure Span Options", "Change the default behaviour of the Measure Span script"
 end
 local info = [[This script changes the "span" of every measure in the currently selected music by manipulating its time signature, either dividing it into two or combining it with the following measure. Many measures with different time signatures can be modified at once.
-*JOIN:*
-Combine each pair of measures in the selection into one by consolidating their time signatures. If both measures have the same time signature, choose to either double the numerator ([3/4][3/4] -> [6/4]) or halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures aren't equal, choose to either COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]). (Consolidation will lose current beam groupings). You can choose that a consolidated "display" time signature is created automatically when compositing meters. "JOIN" only works on an even number of measures.
-*DIVIDE:*
+JOIN:
+Combine each pair of measures in the selection into one by combining their time signatures. If they have the same time signature either double the numerator ([3/4][3/4] -> [6/4]) or halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures aren't equal, choose to either COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]). (Consolidation loses current beam groupings). You can choose that a consolidated "display" time signature is created automatically when compositing meters. "JOIN" only works on an even number of measures.
+DIVIDE:
 Divide every selected measure into two, changing the time signature by either halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]). If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3). Measures containing composite meters will be divided after the first composite group, or if there is only one group, after its first element.
-*IN ALL CASES:*
-Incomplete measures will be filled with rests before Join/Divide. Measures containing too many notes will be trimmed to their "real" duration. Time signatures "for display only" will be removed. Measures are either deleted or shifted in every operation so smart shapes spanning the area need to be "restored". Selecting a SPAN of "5" will look for smart shapes to restore from 5 measures before until 5 after the selected region. (This takes noticeably more time than a SPAN of "2").
-*OPTIONS:*
+IN ALL CASES:
+Incomplete measures will be filled with rests before Join/Divide. Measures containing too many notes will be trimmed to their "real" duration. Time signatures "for display only" will be removed. Measures are either deleted or shifted in every operation so smart shapes spanning the area need to be "restored". Selecting a SPAN of "5" will look for smart shapes to restore from 5 measures before until 5 after the selected region. (This takes noticeably longer than a SPAN of "2").
+OPTIONS:
 To configure script settings select the "Measure Span Options..." menu item, or else hold down the SHIFT or ALT (option) key when invoking "Join" or "Divide".
 ]]
 span_action = span_action or "options"
@@ -5976,7 +5832,6 @@ local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local layer = require("library.layer")
 local tie = require("library.tie")
-local smartshape = require("library.smartshape")
 local script_name = "measure_span"
 configuration.get_user_settings(script_name, config, true)
 function dialog_set_position(dialog)
@@ -6001,12 +5856,11 @@ function note_spacing(rgn)
 end
 function user_options()
     local x_grid = { 15, 70, 190, 210, 305 }
-    local i_width = 140
+    local i_width = 142
     local y = 0
     local function yd(delta)
-        if delta then y = y + delta
-        else y = y + 15
-        end
+        delta = delta or 15
+        y = y + delta
     end
     local dlg = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     local shadow = dlg:CreateStatic(1, y + 1):SetText("DIVIDE EACH MEASURE INTO TWO:"):SetWidth(x_grid[4])
@@ -6044,26 +5898,27 @@ function user_options()
     dlg:CreateStatic(x_grid[1], y):SetText("If both measures have the same time signature ..."):SetWidth(x_grid[5])
     yd(17)
     dlg:CreateStatic(x_grid[1], y):SetText("Double the numerator:"):SetWidth(x_grid[3])
-    dlg:CreateCheckbox(x_grid[3], y, "5"):SetCheck(config.double_join and 1 or 0):SetText(" [3/4][3/4] -> [6/4]"):SetWidth(i_width)
+    dlg:CreateCheckbox(x_grid[3], y, "5"):SetCheck(config.double_join and 1 or 0):SetText(" [3/8][3/8] -> [6/8]"):SetWidth(i_width)
     yd()
     dlg:CreateStatic(x_grid[2], y):SetText("OR")
     yd()
     dlg:CreateStatic(x_grid[1], y):SetText("Halve the denominator:"):SetWidth(x_grid[3])
-    dlg:CreateCheckbox(x_grid[3], y, "6"):SetCheck(config.double_join and 0 or 1):SetText(" [6/8][6/8] -> [6/4]"):SetWidth(i_width)
+    dlg:CreateCheckbox(x_grid[3], y, "6"):SetCheck(config.double_join and 0 or 1):SetText(" [3/8][3/8] -> [3/4]"):SetWidth(i_width)
     yd(25)
     dlg:CreateHorizontalLine(x_grid[1], y, x_grid[3] + i_width)
     yd(5)
     dlg:CreateStatic(x_grid[1], y):SetText("otherwise ..."):SetWidth(x_grid[2])
     yd(17)
-    dlg:CreateStatic(x_grid[1], y):SetText("Composite time signature:"):SetWidth(x_grid[3])
-    dlg:CreateCheckbox(x_grid[3], y, "7"):SetCheck(config.composite_join and 1 or 0):SetText(" [2/4][3/8] -> [2/4+3/8]"):SetWidth(i_width)
-    yd()
+    dlg:CreateStatic(x_grid[1], y):SetWidth(x_grid[5]):SetHeight(30):SetText("Consolidate time signatures:")
+    dlg:CreateCheckbox(x_grid[3], y, "8"):SetCheck(config.composite_join and 0 or 1)
+        :SetText(" [2/4][3/8] -> [7/8]\n (lose beaming groups)"):SetWidth(i_width):SetHeight(30)
+    yd(17)
     dlg:CreateStatic(x_grid[2], y):SetText("OR")
-    yd()
-    dlg:CreateStatic(x_grid[1], y):SetWidth(x_grid[5]):SetHeight(30)
-        :SetText("Consolidate time signatures: \n(beam groupings will be lost)")
-    dlg:CreateCheckbox(x_grid[3], y, "8"):SetCheck(config.composite_join and 0 or 1):SetText(" [2/4][3/8] -> [7/8]"):SetWidth(i_width)
-    yd(40)
+    yd(17)
+    dlg:CreateStatic(x_grid[1], y):SetText("Composite time signature:"):SetWidth(x_grid[3])
+    dlg:CreateCheckbox(x_grid[3], y, "7"):SetCheck(config.composite_join and 1 or 0)
+        :SetText(" [2/4][3/8] -> [2/4+3/8]\n (keep beaming groups)"):SetWidth(i_width):SetHeight(30)
+    yd(30)
     dlg:CreateCheckbox(x_grid[1], y, "display"):SetCheck(config.display_meter and 1 or 0):SetWidth(x_grid[5] + 10):SetHeight(30)
         :SetText(" Create \"display\" time signature when compositing\n"
         .. " ( [2/4][3/8] -> [2/4+3/8] displaying \"7/8\" )")
@@ -6073,17 +5928,17 @@ function user_options()
     dlg:CreateHorizontalLine(0, y + 3, x_grid[4] + i_width)
     yd(12)
     dlg:CreateStatic(0, y):SetText("Preserve smart shapes within\n(Larger spans take longer)"):SetWidth(x_grid[3]):SetHeight(30)
-    local popup = dlg:CreatePopup(x_grid[3] - 23, y, "extend"):SetWidth(35):SetSelectedItem(config.shape_extend - 2)
-    dlg:CreateStatic(x_grid[3] + 17, y):SetText("measure span")
+    local popup = dlg:CreatePopup(x_grid[3] - 25, y - 1, "extend"):SetWidth(35):SetSelectedItem(config.shape_extend - 2)
+    dlg:CreateStatic(x_grid[3] + 15, y):SetText("measure span")
     for i = 2, 5 do
         popup:AddString(i)
     end
-    yd(40)
+    yd(35)
     dlg:CreateCheckbox(0, y, "spacing"):SetText("Respace notes on completion")
         :SetCheck(config.note_spacing and 1 or 0):SetWidth(x_grid[5])
     dlg:CreateButton(x_grid[5] - 10, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() finenv.UI():AlertInfo(info, "Measure Span Info") end)
-    yd(22)
+    yd(18)
     dlg:CreateCheckbox(0, y, "repaginate"):SetText("Repaginate entire score on completion")
         :SetCheck(config.repaginate and 1 or 0):SetWidth(x_grid[5])
 
@@ -6100,7 +5955,8 @@ function user_options()
     dlg:RegisterHandleOkButtonPressed(function(self)
         for k, v in pairs(
             { halve_numerator = "1", odd_more_first = "3", double_join = "5", composite_join = "7",
-              display_meter = "display", note_spacing = "spacing", repaginate = "repaginate" } ) do
+              display_meter = "display", note_spacing = "spacing", repaginate = "repaginate" }
+            ) do
             config[k] = (self:GetControl(v):GetCheck() == 1)
         end
         config.shape_extend = (self:GetControl("extend"):GetSelectedItem() + 2)
@@ -6391,7 +6247,7 @@ function shift_smart_shapes(rgn, measure_num, pos_offset)
         local shape = mark:CreateSmartShape()
         local segment = { shape:GetTerminateSegmentLeft(), shape:GetTerminateSegmentRight() }
         local m = { segment[1].Measure, segment[2].Measure }
-        if m[1] < (measure_num + 2) and m[1] ~= m[2] and m[2] > measure_num then
+        if shape.Visible and m[1] < (measure_num + 2) and m[1] ~= m[2] and m[2] > measure_num then
             if not shape.EntryBased then
                 if m[1] > measure_num then
                     segment[1].Measure = m[1] - 1
@@ -6412,8 +6268,8 @@ function shift_smart_shapes(rgn, measure_num, pos_offset)
                     entry_from_enum(m[2], segment[2].Staff, segment[2].EntryNumber)
                 }
                 local slur =  {
-                    { staff = segment[1].Staff, m = m[1] },
-                    { staff = segment[2].Staff, m = m[2] - 1 }
+                    { staff = segment[1].Staff, m = m[1], shape = shape },
+                    { staff = segment[2].Staff, m = m[2] - 1 },
                 }
                 if m[1] <= measure_num then
                     slur[1].entry = entry[1]
@@ -6442,6 +6298,23 @@ function shift_smart_shapes(rgn, measure_num, pos_offset)
     end
     return slurs, saved_expressions
 end
+function make_entry_smartshape(start_entry, end_entry, old_shape)
+    local smart_shape = mixin.FCMSmartShape()
+    local segment = { smart_shape:GetTerminateSegmentLeft(), smart_shape:GetTerminateSegmentRight() }
+    local old_seg = { old_shape:GetTerminateSegmentLeft(), old_shape:GetTerminateSegmentRight() }
+    smart_shape:SetEntryAttachedFlags(true)
+    for _, v in ipairs( {"ShapeType", "PresetShape", "LineID", "EngraverSlur", "MakeHorizontal", "MaintainAngle"} ) do
+        smart_shape[v] = old_shape[v]
+    end
+    segment[1]:SetEntry(start_entry):SetCustomOffset(false)
+    segment[2]:SetEntry(end_entry):SetCustomOffset(true)
+    for _, v in ipairs( {"Staff", "Measure", "EndpointOffsetX", "EndpointOffsetY", "NoteID", "BreakOffsetX", "BreakOffsetY" } ) do
+
+        segment[1][v] = old_seg[1][v]
+        segment[2][v] = old_seg[2][v]
+    end
+    smart_shape:SaveNewEverything(start_entry, end_entry)
+end
 function restore_slurs(measure_num, pos_offset, slurs, expressions)
     if #slurs > 0 then
         for _, slur in ipairs(slurs) do
@@ -6453,7 +6326,7 @@ function restore_slurs(measure_num, pos_offset, slurs, expressions)
                 end
             end
             if slur[1].entry ~= nil and slur[2].entry ~= nil then
-                smartshape.add_entry_based_smartshape(slur[1].entry, slur[2].entry, "auto_slur")
+                make_entry_smartshape(slur[1].entry, slur[2].entry, slur[1].shape)
             end
         end
     end
