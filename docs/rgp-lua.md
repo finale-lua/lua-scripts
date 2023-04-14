@@ -470,6 +470,11 @@ for k, v in pairsbykeys(t) do
 end
 ```
 
+### xml functions
+
+See the [tinyxml2](/docs/rgp-lua/docs/rgp-lua/tinyxml2) documentation page for details on other built-in functions available starting with v0.67 of _RGP Lua_ .
+
+
 Memory Management
 -----------------
 
