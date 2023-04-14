@@ -1137,7 +1137,14 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.round(value, places)
         places = places or 0
         local multiplier = 10^places
-        return math.floor(value * multiplier + 0.5) / multiplier
+        local ret = math.floor(value * multiplier + 0.5)
+
+        return places == 0 and ret or ret / multiplier
+    end
+
+    function utils.to_integer_if_whole(value)
+        local int = math.floor(value)
+        return value == int and int or value
     end
 
     function utils.calc_roman_numeral(num)

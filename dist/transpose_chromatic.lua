@@ -2585,7 +2585,7 @@ package.preload["mixin.FCMString"] = package.preload["mixin.FCMString"] or funct
             local whole = math.floor(value / 48)
             local fractional = value - whole * 48
             fractional = fractional < 0 and fractional * -1 or fractional
-            self.LuaString = whole .. "p" .. utils.round(fractional / 4, 4)
+            self.LuaString = whole .. "p" .. utils.to_integer_if_whole(utils.round(fractional / 4, 4))
             return
         end
 
@@ -2600,7 +2600,7 @@ package.preload["mixin.FCMString"] = package.preload["mixin.FCMString"] or funct
         elseif measurementunit == finale.MEASUREMENTUNIT_MILLIMETERS then
             value = value / 288 * 25.4
         end
-        self.LuaString = tostring(utils.round(value, 5))
+        self.LuaString = tostring(utils.to_integer_if_whole(utils.round(value, 5)))
     end
 
     function public:GetMeasurementInteger(measurementunit)
@@ -3588,6 +3588,26 @@ package.preload["mixin.FCXCustomLuaWindow"] = package.preload["mixin.FCXCustomLu
     end
     return {meta, public}
 end
+package.preload["library.lua_compatibility"] = package.preload["library.lua_compatibility"] or function()
+
+
+
+    if not math.type then
+        math.type = function(value)
+            if type(value) == "number" then
+                local _, fractional = math.modf(value)
+                return fractional == 0 and "integer" or "float"
+            end
+            return nil
+        end
+    end
+    if not math.tointeger then
+        math.tointeger = function(value)
+            return type(value) == "number" and math.floor(value) or nil
+        end
+    end
+    return true
+end
 package.preload["library.utils"] = package.preload["library.utils"] or function()
 
     local utils = {}
@@ -3628,7 +3648,14 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.round(value, places)
         places = places or 0
         local multiplier = 10^places
-        return math.floor(value * multiplier + 0.5) / multiplier
+        local ret = math.floor(value * multiplier + 0.5)
+
+        return places == 0 and ret or ret / multiplier
+    end
+
+    function utils.to_integer_if_whole(value)
+        local int = math.floor(value)
+        return value == int and int or value
     end
 
     function utils.calc_roman_numeral(num)
@@ -4246,6 +4273,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
 
 
 
+    require("library.lua_compatibility")
     local utils = require("library.utils")
     local mixin = require("library.mixin")
     local library = require("library.general_library")
@@ -4298,9 +4326,14 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         return false
     end
     local function assert_argument_type(levels, argument_number, value, ...)
-        local value_type = type(value)
+        local primary_type = type(value)
+        local secondary_type
+        if primary_type == "number" then
+            secondary_type = math.type(value)
+        end
         for i = 1, select("#", ...) do
-            if value_type == select(i, ...) then
+            local t = select(i, ...)
+            if t == primary_type or (secondary_type and t == secondary_type) then
                 return
             end
         end
@@ -4309,9 +4342,9 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         end
 
         if library.is_finale_object(value) then
-            value_type = value.MixinClass or value.ClassName
+            secondary_type = value.MixinClass or value.ClassName
         end
-        error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. value_type .. ")", levels)
+        error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) .. ")", levels)
     end
 
     function mixin_helper.assert_argument_type(argument_number, value, ...)
