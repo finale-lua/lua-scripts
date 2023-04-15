@@ -5784,10 +5784,10 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.49"
-    finaleplugin.Date = "2023/04/12"
+    finaleplugin.Version = "v0.54"
+    finaleplugin.Date = "2023/04/15"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
-    finaleplugin.MinJWLuaVersion = 0.63
+    finaleplugin.MinJWLuaVersion = 0.64
     finaleplugin.AdditionalMenuOptions = [[
         Measure Span Join
         Measure Span Divide
@@ -5888,7 +5888,7 @@ function note_spacing(rgn)
     end
 end
 function user_options()
-    local x_grid = { 15, 70, 190, 210, 305 }
+    local x_grid = { 15, 70, 190, 210, 305, 110 }
     local i_width = 142
     local y = 0
     local function yd(delta)
@@ -5897,7 +5897,7 @@ function user_options()
     end
     local dlg = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     local shadow = dlg:CreateStatic(1, y + 1):SetText("DIVIDE EACH MEASURE INTO TWO:"):SetWidth(x_grid[4])
-    if shadow.SetTextColor then shadow:SetTextColor(120, 120, 120) end
+    if shadow.SetTextColor then shadow:SetTextColor(180, 180, 180) end
     dlg:CreateStatic(0, y):SetText("DIVIDE EACH MEASURE INTO TWO:"):SetWidth(x_grid[4])
     yd(20)
     dlg:CreateStatic(x_grid[1], y):SetText("Halve the numerator:"):SetWidth(x_grid[3])
@@ -5908,7 +5908,7 @@ function user_options()
     dlg:CreateStatic(x_grid[1], y):SetText("Double the denominator:"):SetWidth(x_grid[3])
     dlg:CreateCheckbox(x_grid[3], y, "2"):SetCheck(config.halve_numerator and 0 or 1):SetText(" [6/4] -> [6/8][6/8]"):SetWidth(i_width)
     yd(25)
-    dlg:CreateHorizontalLine(x_grid[1], y, x_grid[3] + i_width)
+    dlg:CreateHorizontalLine(x_grid[1], y, x_grid[5])
     yd(10)
     dlg:CreateStatic(x_grid[1], y):SetText("If halving a numerator with an ODD number of beats:"):SetWidth(x_grid[5])
     yd(17)
@@ -5920,12 +5920,12 @@ function user_options()
     dlg:CreateStatic(x_grid[1], y):SetText("More beats in second measure:"):SetWidth(x_grid[4] + 20)
     dlg:CreateCheckbox(x_grid[3], y, "4"):SetCheck(config.odd_more_first and 0 or 1):SetText(" 3 -> 1 + 2 etc."):SetWidth(i_width)
     yd(27)
-    dlg:CreateHorizontalLine(0, y, x_grid[4] + i_width)
-    dlg:CreateHorizontalLine(0, y + 2, x_grid[4] + i_width)
-    dlg:CreateHorizontalLine(0, y + 3, x_grid[4] + i_width)
+    dlg:CreateHorizontalLine(0, y, x_grid[3] + i_width)
+    dlg:CreateHorizontalLine(0, y + 2, x_grid[3] + i_width)
+    dlg:CreateHorizontalLine(0, y + 3, x_grid[3] + i_width)
     yd(10)
     shadow = dlg:CreateStatic(1, y + 1):SetText("JOIN PAIRS OF MEASURES:"):SetWidth(x_grid[3])
-    if shadow.SetTextColor then shadow:SetTextColor(120, 120, 120) end
+    if shadow.SetTextColor then shadow:SetTextColor(180, 180, 180) end
     dlg:CreateStatic(0, y):SetText("JOIN PAIRS OF MEASURES:"):SetWidth(x_grid[3])
     yd(20)
     dlg:CreateStatic(x_grid[1], y):SetText("If both measures have the same time signature ..."):SetWidth(x_grid[5])
@@ -5938,7 +5938,7 @@ function user_options()
     dlg:CreateStatic(x_grid[1], y):SetText("Halve the denominator:"):SetWidth(x_grid[3])
     dlg:CreateCheckbox(x_grid[3], y, "6"):SetCheck(config.double_join and 0 or 1):SetText(" [3/8][3/8] -> [3/4]"):SetWidth(i_width)
     yd(25)
-    dlg:CreateHorizontalLine(x_grid[1], y, x_grid[3] + i_width)
+    dlg:CreateHorizontalLine(x_grid[1], y, x_grid[5])
     yd(5)
     dlg:CreateStatic(x_grid[1], y):SetText("otherwise ..."):SetWidth(x_grid[2])
     yd(17)
@@ -5956,9 +5956,9 @@ function user_options()
         :SetText(" Create \"display\" time signature when compositing\n"
         .. " ( [2/4][3/8] -> [2/4+3/8] displaying \"7/8\" )")
     yd(36)
-    dlg:CreateHorizontalLine(0, y, x_grid[4] + i_width)
-    dlg:CreateHorizontalLine(0, y + 2, x_grid[4] + i_width)
-    dlg:CreateHorizontalLine(0, y + 3, x_grid[4] + i_width)
+    dlg:CreateHorizontalLine(0, y, x_grid[3] + i_width)
+    dlg:CreateHorizontalLine(0, y + 2, x_grid[3] + i_width)
+    dlg:CreateHorizontalLine(0, y + 3, x_grid[3] + i_width)
     yd(12)
     dlg:CreateStatic(0, y):SetText("Preserve smart shapes within\n(Larger spans take longer)"):SetWidth(x_grid[3]):SetHeight(30)
     local popup = dlg:CreatePopup(x_grid[3] - 25, y - 1, "extend"):SetWidth(35):SetSelectedItem(config.shape_extend - 2)
@@ -5967,13 +5967,14 @@ function user_options()
         popup:AddString(i)
     end
     yd(35)
-    dlg:CreateCheckbox(0, y, "spacing"):SetText("Respace notes on completion")
-        :SetCheck(config.note_spacing and 1 or 0):SetWidth(x_grid[5])
-    dlg:CreateButton(x_grid[5] - 10, y):SetText("?"):SetWidth(20)
+    dlg:CreateStatic(0, y):SetText("ON COMPLETION:"):SetWidth(i_width)
+    dlg:CreateCheckbox(x_grid[6], y, "spacing"):SetText("Respace notes")
+        :SetCheck(config.note_spacing and 1 or 0):SetWidth(i_width)
+    dlg:CreateButton(x_grid[5], y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() finenv.UI():AlertInfo(info, "Measure Span Info") end)
     yd(18)
-    dlg:CreateCheckbox(0, y, "repaginate"):SetText("Repaginate entire score on completion")
-        :SetCheck(config.repaginate and 1 or 0):SetWidth(x_grid[5])
+    dlg:CreateCheckbox(x_grid[6], y, "repaginate"):SetText("Repaginate entire score")
+        :SetCheck(config.repaginate and 1 or 0):SetWidth(i_width)
 
     local function radio_change(id, check)
         local matching_id = (id % 2 == 0) and (id - 1) or (id + 1)
@@ -6137,11 +6138,12 @@ function flatten_comp_numerators(comp)
     return total_top, small_denom
 end
 function make_display_meter(fc_measure, comp)
-    if not config.display_meter then return end
-    fc_measure.UseTimeSigForDisplay = true
-    local display_sig = fc_measure:GetTimeSignatureForDisplay()
-    if display_sig then
-        display_sig.Beats, display_sig.BeatDuration = flatten_comp_numerators(comp)
+    if config.display_meter then
+        fc_measure.UseTimeSigForDisplay = true
+        local display_sig = fc_measure:GetTimeSignatureForDisplay()
+        if display_sig then
+            display_sig.Beats, display_sig.BeatDuration = flatten_comp_numerators(comp)
+        end
     end
 end
 function new_composite_top(time_sig, group_array, first, last, from_element)
@@ -6170,9 +6172,13 @@ function new_composite_bottom(time_sig, group_array, first, last)
 end
 function extend_smart_shape_ends(rgn, measure_num, measure_duration)
     local extend_rgn = mixin.FCMMusicRegion()
+    local measures = finale.FCMeasures()
+    measures:LoadAll()
+    local extend_count = measure_num + config.shape_extend
+    if extend_count > measures.Count then extend_count = measures.Count end
     extend_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
-        :SetEndMeasure(measure_num + config.shape_extend)
+        :SetEndMeasure(extend_count)
         :SetFullMeasureStack()
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAllForRegion(extend_rgn, true)
@@ -6207,7 +6213,6 @@ function divide_measures(selection)
         local pair_rgn = mixin.FCMMusicRegion()
         pair_rgn:SetRegion(selection):SetFullMeasureStack()
         pad_or_truncate_cells(pair_rgn, measure_num, measure[1]:GetDuration())
-
         if time_sig[1].CompositeTop then
 
             local comp_array = extract_composite(time_sig[1])
@@ -6237,14 +6242,25 @@ function divide_measures(selection)
         else
 
             if config.halve_numerator then
-                top[1] = top[1] / 2
-                if (time_sig[1].Beats % 2) ~= 0 then
-                    top[1] = math.floor(top[1])
-                    if config.odd_more_first then
-                        top[1] = top[1] + 1
+                if top[1] == 1 then
+                    if bottom[1] % 3 == 0 then
+                        bottom[1] = bottom[1] / 3
+                        top[1] = config.odd_more_first and 2 or 1
+                        top[2] = 3 - top[1]
+                    else
+                        top[2] = 1
+                        bottom[1] = bottom[1] / 2
                     end
+                else
+                    top[1] = top[1] / 2
+                    if (time_sig[1].Beats % 2) ~= 0 then
+                        top[1] = math.floor(top[1])
+                        if config.odd_more_first then
+                            top[1] = top[1] + 1
+                        end
+                    end
+                    top[2] = time_sig[1].Beats - top[1]
                 end
-                top[2] = time_sig[1].Beats - top[1]
             else
                 bottom[1] = bottom[1] / 2
             end
@@ -6269,10 +6285,14 @@ function entry_from_enum(measure, staff_num, entry_num)
 end
 function shift_smart_shapes(rgn, measure_num, pos_offset)
     local slurs = {}
+    local measures = finale.FCMeasures()
+    measures:LoadAll()
+    local extend_count = measure_num + config.shape_extend + 1
+    if extend_count > measures.Count then extend_count = measures.Count end
     local shift_rgn = mixin.FCMMusicRegion()
     shift_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
-        :SetEndMeasure(measure_num + config.shape_extend + 1)
+        :SetEndMeasure(extend_count)
         :SetFullMeasureStack()
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAllForRegion(shift_rgn, true)
@@ -6332,21 +6352,21 @@ function shift_smart_shapes(rgn, measure_num, pos_offset)
     return slurs, saved_expressions
 end
 function make_entry_smartshape(start_entry, end_entry, old_shape)
-    local smart_shape = mixin.FCMSmartShape()
-    local segment = { smart_shape:GetTerminateSegmentLeft(), smart_shape:GetTerminateSegmentRight() }
+    local new_shape = mixin.FCMSmartShape()
+    local new_seg = { new_shape:GetTerminateSegmentLeft(), new_shape:GetTerminateSegmentRight() }
     local old_seg = { old_shape:GetTerminateSegmentLeft(), old_shape:GetTerminateSegmentRight() }
-    smart_shape:SetEntryAttachedFlags(true)
-    for _, v in ipairs( {"ShapeType", "PresetShape", "LineID", "EngraverSlur", "MakeHorizontal", "MaintainAngle"} ) do
-        smart_shape[v] = old_shape[v]
+    new_shape:SetEntryAttachedFlags(true)
+    for _, v in ipairs( {"ShapeType", "PresetShape", "LineID", "EngraverSlur",
+            "MakeHorizontal", "MaintainAngle", "AvoidAccidentals", "BeatAttached"} ) do
+        new_shape[v] = old_shape[v]
     end
-    segment[1]:SetEntry(start_entry):SetCustomOffset(false)
-    segment[2]:SetEntry(end_entry):SetCustomOffset(true)
-    for _, v in ipairs( {"Staff", "Measure", "EndpointOffsetX", "EndpointOffsetY", "NoteID", "BreakOffsetX", "BreakOffsetY" } ) do
-
-        segment[1][v] = old_seg[1][v]
-        segment[2][v] = old_seg[2][v]
+    new_seg[1]:SetEntry(start_entry):SetCustomOffset(false)
+    new_seg[2]:SetEntry(end_entry):SetCustomOffset(true)
+    for _, v in ipairs( {"Staff", "Measure", "NoteID", "EndpointOffsetX", "EndpointOffsetY" } ) do
+        new_seg[1][v] = old_seg[1][v]
+        new_seg[2][v] = old_seg[2][v]
     end
-    smart_shape:SaveNewEverything(start_entry, end_entry)
+    new_shape:SaveNewEverything(start_entry, end_entry)
 end
 function restore_slurs(measure_num, pos_offset, slurs, expressions)
     if #slurs > 0 then
@@ -6464,7 +6484,10 @@ function join_measures(selection)
                 table.insert(comp_array[1].bottom.groups, comp_array[2].bottom.groups[i])
             end
             if not config.composite_join then
-                time_sig[1].Beats, time_sig[1].BeatDuration = flatten_comp_numerators(comp_array[1])
+                local beats, dur = flatten_comp_numerators(comp_array[1])
+                clear_composite(time_sig[1], beats, dur)
+                time_sig[1].Beats = beats
+                time_sig[1].BeatDuration = dur
             else
                 new_composite_top(time_sig[1], comp_array[1].top.groups, 1, 0, 1)
                 new_composite_bottom(time_sig[1], comp_array[1].bottom.groups, 1, 0)
@@ -6482,19 +6505,13 @@ function join_measures(selection)
                 time_sig[1].BeatDuration = bottom[1]
             else
                 comp_array = {
-                    top = { groups = { {top[1], top[2]} } },
-                    bottom = { groups = { bottom[1] } }
+                    top = { groups = { { top[1] }, { top[2] } } },
+                    bottom = { groups = { bottom[1], bottom[2] } }
                 }
                 if not config.composite_join then
                     time_sig[1].Beats, time_sig[1].BeatDuration = flatten_comp_numerators(comp_array)
                 else
-                    if bottom[1] == bottom[2] then
-                        time_sig[1].BeatDuration = bottom[1]
-                    else
-                        comp_array.top.groups =  { { top[1] }, { top[2] } }
-                        comp_array.bottom.groups = { bottom[1], bottom[2] }
-                        new_composite_bottom(time_sig[1], comp_array.bottom.groups, 1, 0)
-                    end
+                    new_composite_bottom(time_sig[1], comp_array.bottom.groups, 1, 0)
                     new_composite_top(time_sig[1], comp_array.top.groups, 1, 0, 1)
                     make_display_meter(measure[1], comp_array)
                 end
@@ -6507,7 +6524,8 @@ function join_measures(selection)
         measure[1]:Save()
         restore_tie_ends(paste_rgn, measure_num, saved_tie_ends)
         restore_slurs(measure_num, measure_dur[1], saved_slurs, saved_expressions)
-        paste_rgn:SetStartMeasurePos(0):RebarMusic(finale.REBARSTOP_REGIONEND, true, false)
+        paste_rgn:SetStartMeasurePos(0)
+            :RebarMusic(finale.REBARSTOP_REGIONEND, true, false)
 
         paste_rgn:SetStartMeasure(measure_num + 1):SetEndMeasure(measure_num + 1):CutDeleteMusic()
         paste_rgn:ReleaseMusic()
