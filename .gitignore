@@ -12,7 +12,7 @@ jwlua64.fxtco
 *.mus
 *.musx
 
-# script_settings folder is for settting user-specific parameters
+# script_settings folder is for setting user-specific parameters
 # and should not be tracked in this repo
 script_settings
 
