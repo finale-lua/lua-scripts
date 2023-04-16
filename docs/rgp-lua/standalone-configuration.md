@@ -63,6 +63,20 @@ To keep the user experience as simple as possible, it is **strongly recommended*
 AllowStartup (Script tag)
 ```
 
-Special care must be given to the configuration of scripts that request `ExecuteAtStartup`. In addition to setting this value to `true`, you must also provide a hash value that verifies the contents of the script file. The easiest way to do this is to configure the file in RGP Lua and then copy the Script tag for it (including "Hash" xml tag) directly to your custom configuration file.
+Special care must be given to the configuration of scripts that request `ExecuteAtStartup`. In addition to setting this value to `true`, you must also provide a hash value that verifies the contents of the script file. There are a number of simple ways to get the hash of a file.
+
+- MacOS command prompt:
+
+```
+shasum -a 512 <filename>
+```
+
+- Windows command prompt:
+
+```
+certutil -hashfile <filename> SHA512
+```
+
+- Configure the file in RGP Lua and then copy the Script tag for it (including "Hash" xml tag) directly to your custom configuration file.
 
 Keep in mind that `ExecuteAtStartup` scripts are not included as part of an Auto Folder. You must provide a separate per-script Script tag for each.
