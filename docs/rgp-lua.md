@@ -60,6 +60,23 @@ Both _RGP Lua_ and _JW Lua_ include all the standard Lua modules (`string`, `mat
 print (math.random(1, 10))
 ```
 
+### Trusted Code
+
+To gain full access to the language features of Lua and _RGP Lua_, you must be running as trusted code. (Enforcement of trusted code will be mandatory starting in a release following v0.67. As of now you can switch enforcement off in the configuration dialog.) The vast majority of scripts do not need to run as trusted code, and it is recommended not to do so if you do not need to. A script is trusted if
+
+- it is sourced from a known website such as the [Finale Lua](https://www.finalelua.com/) website and it has not been modified. The Finale Lua organization on GitHub maintains a whitelist of known, trusted websites.
+- it is marked "Trusted" in the configurator. The "Trusted" option exists for script developers to mark their own code as trusted. If you are not the developer of the script, do not enable this option. And even if you are, do not enable it unless you have to.
+
+The limitations placed on untrusted scripts are fairly mild. They cannot
+
+- modify Finale's menus
+- execute external code
+- load binary C libraries
+- send https `post` requests
+- modify the metatables of bound Finale classes
+
+There have not been any reported abuses of these or any other features with either of the Lua plugins for Finale. Furthermore, the Finale environment is a low risk environment. But these restrictions seem like due diligence measures that do not in any way interfere with the main goal of improving Finale productivity.
+
 ### The 'bit32' namespace
 
 The `bit32` library in Lua 5.2 was removed in Lua 5.4. These functions were replaced with bitwise operators such as `&`, `|`, `>>`, `<<`, etc, directly in Lua. To maintain script interoperability with _JW Lua_ (which includes the `bit32` library as part of Lua 5.2), _RGP Lua_ embeds a [compatible version](https://github.com/finale-lua/lua-source/blob/master/built-in-functions/bit32_for_Lua54.lua) of `bit32` implemented using the Lua 5.4 operators.
@@ -107,12 +124,14 @@ local osutils = require('luaosutils')
 
 The advantage to this approach is that you do not need to change the body of your script if you wish to use an external version of `luaosutils` instead of the version embedded in _RGP Lua_. Simply disable the `LoadLuaOSUtils` option in `plugindef` and the script will pick up the external version instead, provided it is in your `cpath` list. (_RGP Lua_ automatically adds the script’s running folder path to the `cpath` list.)
 
+You must be running as trusted code to gain full access to the functions in the library. See the [readme file](https://github.com/finale-lua/luaosutils#readme) for details.
+
 ### The 'socket' namespace
 
 _RGP Lua_ contains an embedded version of [`luasocket`](https://aiq0.github.io/luasocket/index.html). You can elect for it to be available in the `socket` namespace in one of the following ways.
 
 - Select **Enable Debugging** when you [configure](/docs/rgp-lua/docs/rgp-lua/rgp-lua-configuration) your script.
-- Add `finaleplugin.LoadLuaSocket = true` to your `plugindef` function.
+- Add `finaleplugin.LoadLuaSocket = true` to your `plugindef` function and be running as trusted code.
 
 When you request the `socket` namespace, _RGP Lua_ takes the following actions.
 
