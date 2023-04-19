@@ -1,9 +1,10 @@
 function plugindef()
     finaleplugin.Author = "CJ Garcia"
     finaleplugin.Copyright = "© 2020 CJ Garcia Music"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "June 22, 2020"
     finaleplugin.CategoryTags = "Articulation"
+    finaleplugin.RequireSelection = true
     return "Remove Duplicate Articulations", "Remove Duplicate Articulations", "Remove Duplicate Articulations"
 end
 

@@ -1,8 +1,9 @@
 function plugindef()
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "1.1"
+    finaleplugin.Version = "1.1.1"
     finaleplugin.Date = "8/1/2022"
+    finaleplugin.RequireSelection = true
     finaleplugin.Notes = [[
         USING THE 'BARIOLAGE' SCRIPT
 

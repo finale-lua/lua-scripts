@@ -1,11 +1,12 @@
 function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "February 28, 2020"
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.MinFinaleVersionRaw = 0x1a000000
     finaleplugin.MinJWLuaVersion = 0.58
+    finaleplugin.RequireSelection = true
     finaleplugin.Notes = [[
 This script resets all selected articulations to their default positions but only if they are not manually positioned.
 Due to complications arising from how Finale stored articulation positions before Finale 26, it requires Finale 26 or higher.
