@@ -14,6 +14,7 @@ The Lua implemenation differs from the original documentation as follows:
 - Much as with the PDK Framework, technical limitations prevent some methods from being available in Lua.
 - An example is `XMLNode::SetUserData`. Due to memory handling incompatibilities between Lua and C++ this is not implemented for Lua. You can perhaps use a parallel Lua table if you need to track user data per node.
 - Many of the `Set...` or `Push...` functions use C++ overloading that is not available in Lua. For Lua, each numerical setter is named parallel to its getter. For example, the setter `XMLAttribute.SetIntAttribute` corresponds to `XMLAttribute.IntAttribute`.
+- The `Query...` APIs return two values. The first is an error code and the second is the queried value if there is no error. This second returned value replaces the final pointer paremeters in the C++ versions.
 - Each of the classes has a `ClassName` method added that is not in the original documentation.
 - `XMLPrinter` is available for memory buffer printing only. If you need to write to a file, use `io.write` to write the `CStr` of the `XMLPrinter` to the file.
 - `XMLDocument` defines `XMLDocument::Clear` as a close function with Lua 5.4+. That means you can use the Lua `<close>` keyword to specify that the document is cleared immediately on any exit path from the block in which it is defined.
@@ -23,7 +24,7 @@ local xml <close> = tinyxml2.XMLDocument()
 ```
 
 - Similarly `XMLPrinter` defines `XMLPrinter::ClearBuffer` as a close function with Lua 5.4.
-- The Lua constructors for `XMLDocument` and `XMLPrinter` are only available for the default values. 
+- The Lua constructors for `XMLDocument` and `XMLPrinter` accept a variable number of parameters with default values the same as documented for C++.
 
 C++
 
@@ -38,14 +39,14 @@ Lua:
 ```lua
 local doc_with_defaults = tinyxml2.XMLDocument()
 --
-local doc_with_settings -- not currently possible
+local doc_with_settings = tinyxml2.XMLDocument(false, tinyxml2.COLLAPSE_WHITESPACE)
 ```
 
 The latest version of the [RGP Lua Class Browser](https://github.com/finale-lua/rgplua-class-browser) provides a working example of a script that uses `tinyxml2`.
 
 ## Built-in functions for XML
 
-When _RGP Lua_ loads the `tinyxml2` library, it also loads the following built-in functions to facilitate iterating xml.
+When _RGP Lua_ loads the `tinyxml2` library, it also loads the following built-in functions to facilitate iterating xml documents.
 
 ### xmlelements(node [, nodename])
 
@@ -70,9 +71,9 @@ Example:
 ```lua
 local xml = tinyxml2.XMLDocument()
 xml:LoadFile("myxml.xml")
-for element in xmlelements(xml) do
+for element in xmlelements(xml:FirstChildElement()) do
 	for attr in xmlattributes(element) do
-	   print ("Name: ", attr:Name(), "Text: ",attr:Value())
+	   print ("Name: ", attr:Name(), "Text: ", attr:Value())
 	end
 end
 ```

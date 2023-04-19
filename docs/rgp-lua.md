@@ -62,7 +62,11 @@ print (math.random(1, 10))
 
 ### Trusted Code
 
-To gain full access to the language features of Lua and _RGP Lua_, you must be running as trusted code. (Enforcement of trusted code will be mandatory starting in a release following v0.67. As of now you can switch enforcement off in the configuration dialog.) The vast majority of scripts do not need to run as trusted code, and it is recommended not to do so if you do not need to. A script is trusted if
+Lua is a powerful language that has components that allow a script to access many low-level and system-level features outside of the Finale environment. For that reason, users must exercise caution when installing scripts from third party sources. A blatantly destructive script could in theory wreak havoc on your personal files, for example. Neither _RGP Lua_ nor _JW Lua_ offer any way to prevent this, since file system access is an essential productive feature of the plugin. Your operating system files should be safe, but your personal files might not be.
+
+The good news is that in the grand scheme of the internet, Finale is a niche, single-user environment. Only plugins you install will run, and even then they will run only if you invoke them or allow them to be invoked. Consequently there is little motivation for bad actors to create malicious scripts, and the risk is extremely low. As of this writing there have been no reported examples on either _RGP Lua_ or _JW Lua_. Nevertheless, if you are in any doubt, scan the script for uses of `io.write`, `os.remove`, `os.rename`, or other similar calls.
+
+_RGP Lua_ (starting with version 0.67) adds a layer of protection with the concept of trusted code. To gain full access to the language features of Lua and _RGP Lua_, you must be running as trusted. (Enforcement of trusted code will be mandatory starting in a release following v0.67. As of now you can switch enforcement off in the configuration dialog.) The vast majority of scripts do not need to run as trusted code, and it is recommended not to do so if you do not need to. A script is trusted if
 
 - it is sourced from a known website such as the [Finale Lua](https://www.finalelua.com/) website, and it has not been modified. The Finale Lua organization on GitHub maintains a whitelist of known, trusted websites.
 - it is marked "Trusted" in the configurator. The "Trusted" option exists for script developers to mark their own code as trusted. If you are not the developer of the script, do not enable this option. And even if you are, do not enable it unless you have to.
@@ -75,7 +79,7 @@ The limitations placed on untrusted scripts are relatively mild. They cannot
 - send https `post` requests.
 - modify the metatables of bound Finale classes.
 
-There have not been any reported abuses of these or any other features with either of the Lua plugins for Finale. Furthermore, the Finale environment is a low risk environment. But these restrictions seem like due diligence measures that do not in any way interfere with the main goal of improving Finale productivity.
+Note that both trusted and untrusted scripts can access your file system with user level permission. The main goal of the trusted code restrictions is to limit the ability of a script to remain hidden while taking control of your computer for its own purposes.
 
 ### The 'bit32' namespace
 
@@ -172,7 +176,7 @@ If you are planning to use the standard installation of `luasocket`, you may be 
 
 ### The 'tinyxml2' namespace
 
-The Lua plugin for Finale has included the `tinyxml2` XML parser for many years. Both _JW Lua_ and _RGP Lua_ use it for reading and saving preference files, among other tasks. It is a lightweight parser implemented as a C++ class framework. It has the advantage of being very fast and possessing a simple API.
+The Lua plugin for Finale has included the `tinyxml2` XML parser for many years. Both _JW Lua_ and _RGP Lua_ use it for reading and saving preference files, among other tasks. It is a lightweight parser implemented as a C++ class framework. It has the advantages of being very fast and possessing a simple API.
 
 Starting with version 0.67 of _RGP Lua_, the `tinyxml2` framework is available to Lua scripts in the namespace `tinyxml2`. You do not need to do anything extra in order to use it.
 
