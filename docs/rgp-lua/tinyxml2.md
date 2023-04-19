@@ -11,10 +11,38 @@ That documentaion is somewhat sparse. You can get fuller explanations from [Chat
 
 The Lua implemenation differs from the original documentation as follows:
 
-- Much as with the PDK Framework, technical limitations prevent some methods from being available in Lua.
-- An example is `XMLNode::SetUserData`. Due to memory handling incompatibilities between Lua and C++ this is not implemented for Lua. You can perhaps use a parallel Lua table if you need to track user data per node.
-- Many of the `Set...` or `Push...` functions use C++ overloading that is not available in Lua. For Lua, each numerical setter is named parallel to its getter. For example, the setter `XMLAttribute.SetIntAttribute` corresponds to `XMLAttribute.IntAttribute`.
-- The `Query...` APIs return two values. The first is an error code and the second is the queried value if there is no error. This second returned value replaces the final pointer paremeters in the C++ versions.
+- `XMLNode::SetUserData` is not implemented for Lua. (This is due to memory handling incompatibilities between Lua and C++.)
+- Many of the `Set...` or `Push...` functions use C++ overloading that is not available in Lua. For Lua, each numerical setter is named parallel to its getter. Example:
+
+C++:
+
+```c++
+uint64_t x = element->Unsigned64Text() + 1;
+element->SetText(x); // uses uint64_t-typed overload of SetText
+```
+
+Lua:
+
+```lua
+local x = element.Unsigned64Text() + 1
+element.SetUnsigned64Text(x) -- typed name parallel to its getter.
+```
+
+- The `Query...` APIs return two values. The first is an error code and the second is the queried value if there is no error. This second returned value eliminates the need for the final pointer paremeters in the C++ versions.
+
+C++:
+
+```c++
+double x = 0;
+tinyxml2::XMLError result = element->QueryDoubleAttribute("percent", &x) // 2 parameters
+```
+
+Lua:
+
+```lua
+local result, x = element.QueryDoubleAttribute("percent") -- 1 parameter
+```
+
 - Each of the classes has a `ClassName` method added that is not in the original documentation.
 - `XMLPrinter` is available for memory buffer printing only. If you need to write to a file, use `io.write` to write the `CStr` of the `XMLPrinter` to the file.
 - `XMLDocument` defines `XMLDocument::Clear` as a close function with Lua 5.4+. That means you can use the Lua `<close>` keyword to specify that the document is cleared immediately on any exit path from the block in which it is defined.
