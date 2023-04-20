@@ -4,6 +4,7 @@ on:
     push:
         branches:
             - 'master'
+            - 'RGP/add-hashes-to-deploy-yml'
 
 jobs:
     deploy:
