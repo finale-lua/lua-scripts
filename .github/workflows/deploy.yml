@@ -15,6 +15,7 @@ jobs:
                   persist-credentials: false
                   fetch-depth: 0
                   path: './lua'
+              run: 'rm -f ./lua/dist/*'
             - name: Checkout docs website repository
               uses: actions/checkout@v3
               with:
@@ -28,6 +29,15 @@ jobs:
               with:
                   source: ./lua/src
                   output: ./lua/dist
+            - name: build hashes
+              with:
+                  path: '.lua'
+              run: |
+                  rm -rf ./hash
+                  mkdir ./hash
+                  cd dist
+                  for file in *; do sha512sum "$file" > "../hash/$(basename "$file" .lua).hash"; done
+                  cd ..
             - name: parse scripts
               uses: ./lua/.github/actions/get-metadata
               with:
