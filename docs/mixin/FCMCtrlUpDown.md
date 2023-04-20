@@ -1,8 +1,9 @@
 # FCMCtrlUpDown
 
-Summary of modifications:
+## Summary of Modifications
+- Methods that returned a boolean to indicate success/failure now throw an error instead.
 - `GetConnectedEdit` returns the original control object.
-- Handlers for the `UpDownPressed` event can now be set on a control.
+- Added methods to allow handlers for the `UpDownPressed` event to be set directly on the control.
 
 ## Functions
 
@@ -19,7 +20,7 @@ Summary of modifications:
 fcmctrlupdown.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L23)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L25)
 
 **[Internal]**
 
@@ -33,10 +34,12 @@ fcmctrlupdown.Init(self)
 fcmctrlupdown.GetConnectedEdit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L36)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L44)
 
 **[Override]**
-Ensures that original edit control is returned.
+
+Override Changes:
+- Ensures that original edit control is returned.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -44,7 +47,7 @@ Ensures that original edit control is returned.
 
 | Return type | Description |
 | ----------- | ----------- |
-| `FCMCtrlEdit\\|nil` | `nil` if there is no edit connected. |
+| `FCMCtrlEdit \\| nil` | `nil` if there is no edit connected. |
 
 ### ConnectIntegerEdit
 
@@ -52,9 +55,13 @@ Ensures that original edit control is returned.
 fcmctrlupdown.ConnectIntegerEdit(self, control, minvalue, maxvalue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L51)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L62)
 
-**[Override]**
+**[Breaking Change] [Fluid] [Override]**
+
+Override Changes:
+- Stores original control object.
+- Throws an error instead of returning a boolean for success/failure.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -62,10 +69,6 @@ fcmctrlupdown.ConnectIntegerEdit(self, control, minvalue, maxvalue)
 | `control` | `FCCtrlEdit` |  |
 | `minvalue` | `number` |  |
 | `maxvalue` | `number` |  |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `boolean` | `true` on success |
 
 ### ConnectMeasurementEdit
 
@@ -73,9 +76,13 @@ fcmctrlupdown.ConnectIntegerEdit(self, control, minvalue, maxvalue)
 fcmctrlupdown.ConnectMeasurementEdit(self, control, minvalue, maxvalue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L76)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L87)
 
-**[Override]**
+**[Breaking Change] [Fluid] [Override]**
+
+Override Changes:
+- Stores original control object.
+- Throws an error instead of returning a boolean for success/failure.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -84,17 +91,13 @@ fcmctrlupdown.ConnectMeasurementEdit(self, control, minvalue, maxvalue)
 | `minvalue` | `number` |  |
 | `maxvalue` | `number` |  |
 
-| Return type | Description |
-| ----------- | ----------- |
-| `boolean` | `true` on success |
-
 ### AddHandlePress
 
 ```lua
 fcmctrlupdown.AddHandlePress(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L104)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L112)
 
 **[Fluid]**
 Adds a handler for UpDownPressed events.
@@ -110,7 +113,7 @@ Adds a handler for UpDownPressed events.
 fcmctrlupdown.RemoveHandlePress(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L109)
+[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L117)
 
 **[Fluid]**
 Removes a handler added with `AddHandlePress`.

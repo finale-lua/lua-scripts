@@ -1553,42 +1553,42 @@ package.preload["mixin.FCMCtrlUpDown"] = package.preload["mixin.FCMCtrlUpDown"] 
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
+    local meta = {}
+    local public = {}
     local private = setmetatable({}, {__mode = "k"})
-    local props = {}
 
-    function props:Init()
-        private[self] = private[self] or {}
+    function meta:Init()
+        if private[self] then
+            return
+        end
+        private[self] = {}
     end
 
-    function props:GetConnectedEdit()
+    function public:GetConnectedEdit()
         return private[self].ConnectedEdit
     end
 
-    function props:ConnectIntegerEdit(control, minvalue, maxvalue)
+    function public:ConnectIntegerEdit(control, minvalue, maxvalue)
         mixin_helper.assert_argument_type(2, control, "FCMCtrlEdit")
         mixin_helper.assert_argument_type(3, minvalue, "number")
         mixin_helper.assert_argument_type(4, maxvalue, "number")
-        local ret = self:ConnectIntegerEdit_(control, minvalue, maxvalue)
-        if ret then
-            private[self].ConnectedEdit = control
-        end
-        return ret
+        mixin_helper.boolean_to_error(self, "ConnectIntegerEdit", control, minvalue, maxvalue)
+
+        private[self].ConnectedEdit = control
     end
 
-    function props:ConnectMeasurementEdit(control, minvalue, maxvalue)
+    function public:ConnectMeasurementEdit(control, minvalue, maxvalue)
         mixin_helper.assert_argument_type(2, control, "FCMCtrlEdit")
         mixin_helper.assert_argument_type(3, minvalue, "number")
         mixin_helper.assert_argument_type(4, maxvalue, "number")
-        local ret = self:ConnectMeasurementEdit_(control, minvalue, maxvalue)
-        if ret then
-            private[self].ConnectedEdit = control
-        end
-        return ret
+        mixin_helper.boolean_to_error(self, "ConnectMeasurementEdit", control, minvalue, maxvalue)
+
+        private[self].ConnectedEdit = control
     end
 
 
-    props.AddHandlePress, props.RemoveHandlePress = mixin_helper.create_standard_control_event("HandleUpDownPressed")
-    return props
+    public.AddHandlePress, public.RemoveHandlePress = mixin_helper.create_standard_control_event("HandleUpDownPressed")
+    return {meta, public}
 end
 package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLuaWindow"] or function()
 
@@ -1598,8 +1598,9 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
     local mixin_helper = require("library.mixin_helper")
     local utils = require("library.utils")
     local measurement = require("library.measurement")
+    local meta = {}
+    local public = {}
     local private = setmetatable({}, {__mode = "k"})
-    local props = {}
     local trigger_measurement_unit_change
     local each_last_measurement_unit_change
 
@@ -1631,22 +1632,25 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
     end
     local function create_handle_methods(event)
 
-        props["Register" .. event] = function(self, callback)
+        public["Register" .. event] = function(self, callback)
             mixin_helper.assert_argument_type(2, callback, "function")
             private[self][event].Registered = callback
         end
-        props["Add" .. event] = function(self, callback)
+        public["Add" .. event] = function(self, callback)
             mixin_helper.assert_argument_type(2, callback, "function")
             table.insert(private[self][event].Added, callback)
         end
-        props["Remove" .. event] = function(self, callback)
+        public["Remove" .. event] = function(self, callback)
             mixin_helper.assert_argument_type(2, callback, "function")
             utils.table_remove_first(private[self][event].Added, callback)
         end
     end
 
-    function props:Init()
-        private[self] = private[self] or {
+    function meta:Init()
+        if private[self] then
+            return
+        end
+        private[self] = {
             HandleTimer = {},
             HandleCustomQueue = {},
             HasBeenShown = false,
@@ -1784,13 +1788,13 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
         create_handle_methods(event)
     end
 
-    function props:QueueHandleCustom(callback)
+    function public:QueueHandleCustom(callback)
         mixin_helper.assert_argument_type(2, callback, "function")
         table.insert(private[self].HandleCustomQueue, callback)
     end
     if finenv.MajorVersion > 0 or finenv.MinorVersion >= 56 then
 
-        function props:RegisterHandleControlEvent(control, callback)
+        function public:RegisterHandleControlEvent(control, callback)
             mixin_helper.assert_argument_type(2, control, "FCControl", "FCMControl")
             mixin_helper.assert_argument_type(3, callback, "function")
             if not self:RegisterHandleControlEvent_(control, function(ctrl)
@@ -1803,19 +1807,19 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
     if finenv.MajorVersion > 0 or finenv.MinorVersion >= 56 then
 
 
-        function props:RegisterHandleTimer(callback)
+        function public:RegisterHandleTimer(callback)
             mixin_helper.assert_argument_type(2, callback, "function")
             private[self].HandleTimer.Registered = callback
         end
 
-        function props:AddHandleTimer(timerid, callback)
+        function public:AddHandleTimer(timerid, callback)
             mixin_helper.assert_argument_type(2, timerid, "number")
             mixin_helper.assert_argument_type(3, callback, "function")
             private[self].HandleTimer[timerid] = private[self].HandleTimer[timerid] or {}
             table.insert(private[self].HandleTimer[timerid], callback)
         end
 
-        function props:RemoveHandleTimer(timerid, callback)
+        function public:RemoveHandleTimer(timerid, callback)
             mixin_helper.assert_argument_type(2, timerid, "number")
             mixin_helper.assert_argument_type(3, callback, "function")
             if not private[self].HandleTimer[timerid] then
@@ -1824,21 +1828,21 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
             utils.table_remove_first(private[self].HandleTimer[timerid], callback)
         end
 
-        function props:SetTimer(timerid, msinterval)
+        function public:SetTimer(timerid, msinterval)
             mixin_helper.assert_argument_type(2, timerid, "number")
             mixin_helper.assert_argument_type(3, msinterval, "number")
             self:SetTimer_(timerid, msinterval)
             private[self].HandleTimer[timerid] = private[self].HandleTimer[timerid] or {}
         end
 
-        function props:GetNextTimerID()
+        function public:GetNextTimerID()
             while private[self].HandleTimer[private[self].NextTimerID] do
                 private[self].NextTimerID = private[self].NextTimerID + 1
             end
             return private[self].NextTimerID
         end
 
-        function props:SetNextTimer(msinterval)
+        function public:SetNextTimer(msinterval)
             mixin_helper.assert_argument_type(2, msinterval, "number")
             local timerid = mixin.FCMCustomLuaWindow.GetNextTimerID(self)
             mixin.FCMCustomLuaWindow.SetTimer(self, timerid, msinterval)
@@ -1847,16 +1851,16 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
     end
     if finenv.MajorVersion > 0 or finenv.MinorVersion >= 60 then
 
-        function props:SetEnableAutoRestorePosition(enabled)
+        function public:SetEnableAutoRestorePosition(enabled)
             mixin_helper.assert_argument_type(2, enabled, "boolean")
             private[self].EnableAutoRestorePosition = enabled
         end
 
-        function props:GetEnableAutoRestorePosition()
+        function public:GetEnableAutoRestorePosition()
             return private[self].EnableAutoRestorePosition
         end
 
-        function props:SetRestorePositionData(x, y, width, height)
+        function public:SetRestorePositionData(x, y, width, height)
             mixin_helper.assert_argument_type(2, x, "number")
             mixin_helper.assert_argument_type(3, y, "number")
             mixin_helper.assert_argument_type(4, width, "number")
@@ -1868,7 +1872,7 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
             end
         end
 
-        function props:SetRestorePositionOnlyData(x, y)
+        function public:SetRestorePositionOnlyData(x, y)
             mixin_helper.assert_argument_type(2, x, "number")
             mixin_helper.assert_argument_type(3, y, "number")
             self:SetRestorePositionOnlyData_(x, y)
@@ -1879,29 +1883,29 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
         end
     end
 
-    function props:SetEnableDebugClose(enabled)
+    function public:SetEnableDebugClose(enabled)
         mixin_helper.assert_argument_type(2, enabled, "boolean")
         private[self].EnableDebugClose = enabled and true or false
     end
 
-    function props:GetEnableDebugClose()
+    function public:GetEnableDebugClose()
         return private[self].EnableDebugClose
     end
 
-    function props:SetRestoreControlState(enabled)
+    function public:SetRestoreControlState(enabled)
         mixin_helper.assert_argument_type(2, enabled, "boolean")
         private[self].RestoreControlState = enabled and true or false
     end
 
-    function props:GetRestoreControlState()
+    function public:GetRestoreControlState()
         return private[self].RestoreControlState
     end
 
-    function props:HasBeenShown()
+    function public:HasBeenShown()
         return private[self].HasBeenShown
     end
 
-    function props:ExecuteModal(parent)
+    function public:ExecuteModal(parent)
         if mixin_helper.is_instance_of(parent, "FCMCustomLuaWindow") and private[self].UseParentMeasurementUnit then
             self:SetMeasurementUnit(parent:GetMeasurementUnit())
         end
@@ -1909,13 +1913,13 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
         return mixin.FCMCustomWindow.ExecuteModal(self, parent)
     end
 
-    function props:ShowModeless()
+    function public:ShowModeless()
         finenv.RegisterModelessDialog(self)
         restore_position(self)
         return self:ShowModeless_()
     end
 
-    function props:RunModeless(selection_not_required, default_action_override)
+    function public:RunModeless(selection_not_required, default_action_override)
         local modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
         local default_action = default_action_override == nil and private[self].HandleOkButtonPressed.Registered or default_action_override
         if modifier_keys_on_invoke and self:HasBeenShown() and default_action then
@@ -1939,11 +1943,11 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
         end
     end
 
-    function props:GetMeasurementUnit()
+    function public:GetMeasurementUnit()
         return private[self].MeasurementUnit
     end
 
-    function props:SetMeasurementUnit(unit)
+    function public:SetMeasurementUnit(unit)
         mixin_helper.assert_argument_type(2, unit, "number")
         if unit == private[self].MeasurementUnit then
             return
@@ -1963,22 +1967,22 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
         trigger_measurement_unit_change(self)
     end
 
-    function props:GetMeasurementUnitName()
+    function public:GetMeasurementUnitName()
         return measurement.get_unit_name(private[self].MeasurementUnit)
     end
 
-    function props:GetUseParentMeasurementUnit(enabled)
+    function public:GetUseParentMeasurementUnit(enabled)
         return private[self].UseParentMeasurementUnit
     end
 
-    function props:SetUseParentMeasurementUnit(enabled)
+    function public:SetUseParentMeasurementUnit(enabled)
         mixin_helper.assert_argument_type(2, enabled, "boolean")
         private[self].UseParentMeasurementUnit = enabled and true or false
     end
 
 
 
-    props.AddHandleMeasurementUnitChange, props.RemoveHandleMeasurementUnitChange, trigger_measurement_unit_change, each_last_measurement_unit_change = mixin_helper.create_custom_window_change_event(
+    public.AddHandleMeasurementUnitChange, public.RemoveHandleMeasurementUnitChange, trigger_measurement_unit_change, each_last_measurement_unit_change = mixin_helper.create_custom_window_change_event(
         {
             name = "last_unit",
             get = function(window)
@@ -1988,7 +1992,7 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
         }
     )
 
-    function props:CreateMeasurementEdit(x, y, control_name)
+    function public:CreateMeasurementEdit(x, y, control_name)
         mixin_helper.assert_argument_type(2, x, "number")
         mixin_helper.assert_argument_type(3, y, "number")
         mixin_helper.assert_argument_type(4, control_name, "string", "nil")
@@ -1996,7 +2000,7 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
         return mixin.subclass(edit, "FCXCtrlMeasurementEdit")
     end
 
-    function props:CreateMeasurementUnitPopup(x, y, control_name)
+    function public:CreateMeasurementUnitPopup(x, y, control_name)
         mixin_helper.assert_argument_type(2, x, "number")
         mixin_helper.assert_argument_type(3, y, "number")
         mixin_helper.assert_argument_type(4, control_name, "string", "nil")
@@ -2004,14 +2008,14 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
         return mixin.subclass(popup, "FCXCtrlMeasurementUnitPopup")
     end
 
-    function props:CreatePageSizePopup(x, y, control_name)
+    function public:CreatePageSizePopup(x, y, control_name)
         mixin_helper.assert_argument_type(2, x, "number")
         mixin_helper.assert_argument_type(3, y, "number")
         mixin_helper.assert_argument_type(4, control_name, "string", "nil")
         local popup = mixin.FCMCustomWindow.CreatePopup(self, x, y, control_name)
         return mixin.subclass(popup, "FCXCtrlPageSizePopup")
     end
-    return props
+    return {meta, public}
 end
 package.preload["mixin.FCMCustomWindow"] = package.preload["mixin.FCMCustomWindow"] or function()
 
@@ -2181,22 +2185,23 @@ package.preload["mixin.FCMPage"] = package.preload["mixin.FCMPage"] or function(
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
     local page_size = require("library.page_size")
-    local props = {}
+    local meta = {}
+    local public = {}
 
-    function props:GetSize()
+    function public:GetSize()
         return page_size.get_page_size(self)
     end
 
-    function props:SetSize(size)
+    function public:SetSize(size)
         mixin_helper.assert_argument_type(2, size, "string")
         mixin_helper.assert(page_size.is_size(size), "'" .. size .. "' is not a valid page size.")
         page_size.set_page_size(self, size)
     end
 
-    function props:IsBlank()
+    function public:IsBlank()
         return self:GetFirstSystem() == -1
     end
-    return props
+    return {meta, public}
 end
 package.preload["mixin.FCMString"] = package.preload["mixin.FCMString"] or function()
 
@@ -2602,8 +2607,9 @@ package.preload["mixin.FCXCtrlMeasurementEdit"] = package.preload["mixin.FCXCtrl
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
     local utils = require("library.utils")
+    local meta = {Parent = "FCMCtrlEdit"}
+    local public = {}
     local private = setmetatable({}, {__mode = "k"})
-    local props = {MixinParent = "FCMCtrlEdit"}
     local trigger_change
     local each_last_change
 
@@ -2631,10 +2637,13 @@ package.preload["mixin.FCXCtrlMeasurementEdit"] = package.preload["mixin.FCXCtrl
         return utils.round(value)
     end
 
-    function props:Init()
+    function meta:Init()
+        if private[self] then
+            return
+        end
         local parent = self:GetParent()
-        mixin_helper.assert(function() return mixin_helper.is_instance_of(parent, "FCXCustomLuaWindow") end, "FCXCtrlMeasurementEdit must have a parent window that is an instance of FCXCustomLuaWindow")
-        private[self] = private[self] or {
+        mixin_helper.assert(function() return mixin_helper.is_instance_of(parent, "FCMCustomLuaWindow") end, "FCXCtrlMeasurementEdit must have a parent window that is an instance of FCMCustomLuaWindow")
+        private[self] = {
             Type = "MeasurementInteger",
             LastMeasurementUnit = parent:GetMeasurementUnit(),
             LastText = mixin.FCMCtrlEdit.GetText(self),
@@ -2649,14 +2658,14 @@ package.preload["mixin.FCXCtrlMeasurementEdit"] = package.preload["mixin.FCXCtrl
         Integer = {"number"},
         Float = {"number"},
     }) do
-        props["Set" .. method] = function(self, value)
+        public["Set" .. method] = function(self, value)
             mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
             mixin.FCMCtrlEdit["Set" .. method](self, value)
             trigger_change(self)
         end
     end
 
-    function props:GetType()
+    function public:GetType()
         return private[self].Type
     end
 
@@ -2685,7 +2694,7 @@ package.preload["mixin.FCXCtrlMeasurementEdit"] = package.preload["mixin.FCXCtrl
         MeasurementEfix = {"number"},
         Measurement10000th = {"number"},
     }) do
-        props["Get" .. method] = function(self)
+        public["Get" .. method] = function(self)
             local text = mixin.FCMCtrlEdit.GetText(self)
             if (text ~= private[self].LastText) then
                 private[self].Value = mixin.FCMCtrlEdit["Get" .. private[self].Type](self, private[self].LastMeasurementUnit)
@@ -2693,24 +2702,24 @@ package.preload["mixin.FCXCtrlMeasurementEdit"] = package.preload["mixin.FCXCtrl
             end
             return convert_type(private[self].Value, private[self].Type, method)
         end
-        props["GetRange" .. method] = function(self, minimum, maximum)
+        public["GetRange" .. method] = function(self, minimum, maximum)
             mixin_helper.assert_argument_type(2, minimum, "number")
             mixin_helper.assert_argument_type(3, maximum, "number")
             minimum = method ~= "Measurement" and math.ceil(minimum) or minimum
             maximum = method ~= "Measurement" and math.floor(maximum) or maximum
             return utils.clamp(mixin.FCXCtrlMeasurementEdit["Get" .. method](self), minimum, maximum)
         end
-        props["Set" .. method] = function (self, value)
+        public["Set" .. method] = function (self, value)
             mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
             private[self].Value = convert_type(value, method, private[self].Type)
             mixin.FCMCtrlEdit["Set" .. private[self].Type](self, private[self].Value, private[self].LastMeasurementUnit)
             private[self].LastText = mixin.FCMCtrlEdit.GetText(self)
             trigger_change(self)
         end
-        props["IsType" .. method] = function(self)
+        public["IsType" .. method] = function(self)
             return private[self].Type == method
         end
-        props["SetType" .. method] = function(self)
+        public["SetType" .. method] = function(self)
             private[self].Value = convert_type(private[self].Value, private[self].Type, method)
             for v in each_last_change(self) do
                 v.last_value = convert_type(v.last_value, private[self].Type, method)
@@ -2719,7 +2728,7 @@ package.preload["mixin.FCXCtrlMeasurementEdit"] = package.preload["mixin.FCXCtrl
         end
     end
 
-    function props:UpdateMeasurementUnit()
+    function public:UpdateMeasurementUnit()
         local new_unit = self:GetParent():GetMeasurementUnit()
         if private[self].LastMeasurementUnit ~= new_unit then
             local value = mixin.FCXCtrlMeasurementEdit["Get" .. private[self].Type](self)
@@ -2730,7 +2739,7 @@ package.preload["mixin.FCXCtrlMeasurementEdit"] = package.preload["mixin.FCXCtrl
 
 
 
-    props.AddHandleChange, props.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
+    public.AddHandleChange, public.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
         {
             name = "last_value",
             get = function(self)
@@ -2739,7 +2748,7 @@ package.preload["mixin.FCXCtrlMeasurementEdit"] = package.preload["mixin.FCXCtrl
             initial = 0,
         }
     )
-    return props
+    return {meta, public}
 end
 package.preload["mixin.FCXCtrlMeasurementUnitPopup"] = package.preload["mixin.FCXCtrlMeasurementUnitPopup"] or function()
 
@@ -2748,7 +2757,9 @@ package.preload["mixin.FCXCtrlMeasurementUnitPopup"] = package.preload["mixin.FC
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
     local measurement = require("library.measurement")
-    local props = {MixinParent = "FCMCtrlPopup"}
+    local meta = {Parent = "FCMCtrlPopup"}
+    local public = {}
+    local private = setmetatable({}, {__mode = "k"})
     local unit_order = {
         finale.MEASUREMENTUNIT_EVPUS, finale.MEASUREMENTUNIT_INCHES, finale.MEASUREMENTUNIT_CENTIMETERS,
         finale.MEASUREMENTUNIT_POINTS, finale.MEASUREMENTUNIT_PICAS, finale.MEASUREMENTUNIT_SPACES,
@@ -2759,12 +2770,15 @@ package.preload["mixin.FCXCtrlMeasurementUnitPopup"] = package.preload["mixin.FC
     end
 
     mixin_helper.disable_methods(
-        props, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
+        public, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
         "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange",
         "RemoveHandleSelectionChange")
 
-    function props:Init()
-        mixin_helper.assert(function() return mixin_helper.is_instance_of(self:GetParent(), "FCXCustomLuaWindow") end, "FCXCtrlMeasurementUnitPopup must have a parent window that is an instance of FCXCustomLuaWindow")
+    function meta:Init()
+        if private[self] then
+            return
+        end
+        mixin_helper.assert(function() return mixin_helper.is_instance_of(self:GetParent(), "FCMCustomLuaWindow") end, "FCXCtrlMeasurementUnitPopup must have a parent window that is an instance of FCMCustomLuaWindow")
         for _, v in ipairs(unit_order) do
             mixin.FCMCtrlPopup.AddString(self, measurement.get_unit_name(v))
         end
@@ -2772,16 +2786,17 @@ package.preload["mixin.FCXCtrlMeasurementUnitPopup"] = package.preload["mixin.FC
         mixin.FCMCtrlPopup.AddHandleSelectionChange(self, function(control)
             control:GetParent():SetMeasurementUnit(unit_order[mixin.FCMCtrlPopup.GetSelectedItem(control) + 1])
         end)
+        private[self] = true
     end
 
-    function props:UpdateMeasurementUnit()
+    function public:UpdateMeasurementUnit()
         local unit = self:GetParent():GetMeasurementUnit()
         if unit == unit_order[mixin.FCMCtrlPopup.GetSelectedItem(self) + 1] then
             return
         end
         mixin.FCMCtrlPopup.SetSelectedItem(self, flipped_unit_order[unit] - 1)
     end
-    return props
+    return {meta, public}
 end
 package.preload["library.page_size"] = package.preload["library.page_size"] or function()
 
@@ -2879,13 +2894,14 @@ package.preload["mixin.FCXCtrlPageSizePopup"] = package.preload["mixin.FCXCtrlPa
     local mixin_helper = require("library.mixin_helper")
     local measurement = require("library.measurement")
     local page_size = require("library.page_size")
+    local meta = {Parent = "FCMCtrlPopup"}
+    local public = {}
     local private = setmetatable({}, {__mode = "k"})
-    local props = {MixinParent = "FCMCtrlPopup"}
     local trigger_page_size_change
     local each_last_page_size_change
     local temp_str = finale.FCString()
 
-    mixin_helper.disable_methods(props, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
+    mixin_helper.disable_methods(public, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
         "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange", "RemoveHandleSelectionChange")
     local function repopulate(control)
         local unit = mixin_helper.is_instance_of(control:GetParent(), "FCXCustomLuaWindow") and control:GetParent():GetMeasurementUnit() or measurement.get_real_default_unit()
@@ -2908,27 +2924,36 @@ package.preload["mixin.FCXCtrlPageSizePopup"] = package.preload["mixin.FCXCtrlPa
         private[control].LastUnit = unit
     end
 
-    function props:Init()
-        private[self] = private[self] or {}
+    function meta:Init()
+        if private[self] then
+            return
+        end
+        private[self] = {}
         repopulate(self)
     end
 
-    function props:GetSelectedPageSize()
-        local str = mixin.FCMCtrlPopup.GetSelectedString(self)
-        if not str then
-            return nil
+    function public:GetSelectedPageSize(str)
+        mixin_helper.assert_argument_type(2, str, "FCString", "nil")
+        local size = mixin.FCMCtrlPopup.GetSelectedString(self)
+        if size then
+           size = size:match("(.+) %(")
         end
-        return str:match("(.+) %(")
+        if str then
+            str.LuaString = size or ""
+        else
+            return size
+        end
     end
 
-    function props:SetSelectedPageSize(size)
+    function public:SetSelectedPageSize(size)
         mixin_helper.assert_argument_type(2, size, "string", "FCString")
+
         size = type(size) == "userdata" and size.LuaString or tostring(size)
         mixin_helper.assert(page_size.is_size(size), "'" .. size .. "' is not a valid page size.")
         local index = 0
         for s in page_size.pairs() do
             if size == s then
-                if index ~= self:GetSelectedItem_() then
+                if index ~= mixin.FCMCtrlPopup.GetSelectedItem(self) then
                     mixin.FCMCtrlPopup.SetSelectedItem(self, index)
                     trigger_page_size_change(self)
                 end
@@ -2938,13 +2963,13 @@ package.preload["mixin.FCXCtrlPageSizePopup"] = package.preload["mixin.FCXCtrlPa
         end
     end
 
-    function props:UpdateMeasurementUnit()
+    function public:UpdateMeasurementUnit()
         repopulate(self)
     end
 
 
 
-    props.AddHandlePageSizeChange, props.RemoveHandlePageSizeChange, trigger_page_size_change, each_last_page_size_change = mixin_helper.create_custom_control_change_event(
+    public.AddHandlePageSizeChange, public.RemoveHandlePageSizeChange, trigger_page_size_change, each_last_page_size_change = mixin_helper.create_custom_control_change_event(
         {
             name = "last_page_size",
             get = function(ctrl)
@@ -2953,7 +2978,7 @@ package.preload["mixin.FCXCtrlPageSizePopup"] = package.preload["mixin.FCXCtrlPa
             initial = false,
         }
     )
-    return props
+    return {meta, public}
 end
 package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] or function()
 
@@ -2961,8 +2986,9 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
+    local meta = {Parent = "FCMCtrlUpDown"}
+    local public = {}
     local private = setmetatable({}, {__mode = "k"})
-    local props = {MixinParent = "FCMCtrlUpDown"}
     local temp_str = finale.FCString()
 
     local function enum_edit_type(edit, edit_type)
@@ -2995,81 +3021,86 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
         [finale.MEASUREMENTUNIT_SPACES] = {value = 0.03125, is_evpus = false},
     }
 
-    function props:Init()
+    function meta:Init()
+        if private[self] then
+            return
+        end
         mixin_helper.assert(function() return mixin_helper.is_instance_of(self:GetParent(), "FCXCustomLuaWindow") end, "FCXCtrlUpDown must have a parent window that is an instance of FCXCustomLuaWindow")
-        private[self] = private[self] or {IntegerStepSize = 1, MeasurementSteps = {}, AlignWhenMoving = true}
-        self:AddHandlePress(
-            function(self, delta)
-                if not private[self].ConnectedEdit then
-                    return
-                end
-                local edit = private[self].ConnectedEdit
-                local edit_type = enum_edit_type(edit, private[self].ConnectedEditType)
-                local unit = self:GetParent():GetMeasurementUnit()
-                local separator = mixin.UI():GetDecimalSeparator()
-                local step_def
-                if edit_type == 1 then
-                    step_def = {value = private[self].IntegerStepSize}
-                else
-                    step_def = private[self].MeasurementSteps[unit] or (edit_type == 4 and default_efix_steps[unit]) or
-                                   default_measurement_steps[unit]
-                end
+        private[self] = {
+            IntegerStepSize = 1,
+            MeasurementSteps = {},
+            AlignWhenMoving = true,
+        }
+        self:AddHandlePress(function(self, delta)
+            if not private[self].ConnectedEdit then
+                return
+            end
+            local edit = private[self].ConnectedEdit
+            local edit_type = enum_edit_type(edit, private[self].ConnectedEditType)
+            local unit = self:GetParent():GetMeasurementUnit()
+            local separator = mixin.UI():GetDecimalSeparator()
+            local step_def
+            if edit_type == 1 then
+                step_def = {value = private[self].IntegerStepSize}
+            else
+                step_def = private[self].MeasurementSteps[unit] or (edit_type == 4 and default_efix_steps[unit]) or default_measurement_steps[unit]
+            end
 
-                local value
-                if edit_type == 1 then
-                    value = edit:GetText():match("^%-*[0-9%.%,%" .. separator .. "-]+")
-                    value = value and tonumber(value) or 0
+            local value
+            if edit_type == 1 then
+                value = edit:GetText():match("^%-*[0-9%.%,%" .. separator .. "-]+")
+                value = value and tonumber(value) or 0
+            else
+                if step_def.is_evpus then
+                    value = edit:GetMeasurement()
                 else
-                    if step_def.is_evpus then
-                        value = edit:GetMeasurement()
+
+                    temp_str:SetMeasurement(edit:GetMeasurement(), unit)
+                    value = temp_str.LuaString:gsub("%" .. separator, ".")
+                    value = tonumber(value)
+                end
+            end
+
+            if private[self].AlignWhenMoving then
+
+                local num_steps = tonumber(tostring(value / step_def.value))
+                if num_steps ~= math.floor(num_steps) then
+                    if delta > 0 then
+                        value = math.ceil(num_steps) * step_def.value
+                        delta = delta - 1
+                    elseif delta < 0 then
+                        value = math.floor(num_steps) * step_def.value
+                        delta = delta + 1
+                    end
+                end
+            end
+
+            local new_value = value + delta * step_def.value
+
+            if edit_type == 1 then
+                self:SetValue(new_value)
+            else
+                if step_def.is_evpus then
+                    self:SetValue(edit_type == 4 and new_value * 64 or new_value)
+                else
+
+                    temp_str.LuaString = tostring(new_value)
+                    local new_evpus = temp_str:GetMeasurement(unit)
+                    if new_evpus < private[self].Minimum or new_evpus > private[self].Maximum then
+                        self:SetValue(edit_type == 4 and new_evpus * 64 or new_evpus)
                     else
-
-                        temp_str:SetMeasurement(edit:GetMeasurement(), unit)
-                        value = temp_str.LuaString:gsub("%" .. separator, ".")
-                        value = tonumber(value)
+                        edit:SetText(temp_str.LuaString:gsub("%.", separator))
                     end
                 end
-
-                if private[self].AlignWhenMoving then
-
-                    local num_steps = tonumber(tostring(value / step_def.value))
-                    if num_steps ~= math.floor(num_steps) then
-                        if delta > 0 then
-                            value = math.ceil(num_steps) * step_def.value
-                            delta = delta - 1
-                        elseif delta < 0 then
-                            value = math.floor(num_steps) * step_def.value
-                            delta = delta + 1
-                        end
-                    end
-                end
-
-                local new_value = value + delta * step_def.value
-
-                if edit_type == 1 then
-                    self:SetValue(new_value)
-                else
-                    if step_def.is_evpus then
-                        self:SetValue(edit_type == 4 and new_value * 64 or new_value)
-                    else
-
-                        temp_str.LuaString = tostring(new_value)
-                        local new_evpus = temp_str:GetMeasurement(unit)
-                        if new_evpus < private[self].Minimum or new_evpus > private[self].Maximum then
-                            self:SetValue(edit_type == 4 and new_evpus * 64 or new_evpus)
-                        else
-                            edit:SetText(temp_str.LuaString:gsub("%.", separator))
-                        end
-                    end
-                end
-            end)
+            end
+        end)
     end
 
-    function props:GetConnectedEdit()
+    function public:GetConnectedEdit()
         return private[self].ConnectedEdit
     end
 
-    function props:ConnectIntegerEdit(control, minimum, maximum)
+    function public:ConnectIntegerEdit(control, minimum, maximum)
         mixin_helper.assert_argument_type(2, control, "FCMCtrlEdit")
         mixin_helper.assert_argument_type(3, minimum, "number")
         mixin_helper.assert_argument_type(4, maximum, "number")
@@ -3080,7 +3111,7 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
         private[self].Maximum = maximum
     end
 
-    function props:ConnectMeasurementEdit(control, minimum, maximum)
+    function public:ConnectMeasurementEdit(control, minimum, maximum)
         mixin_helper.assert_argument_type(2, control, "FCXCtrlMeasurementEdit")
         mixin_helper.assert_argument_type(3, minimum, "number")
         mixin_helper.assert_argument_type(4, maximum, "number")
@@ -3090,17 +3121,17 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
         private[self].Maximum = maximum
     end
 
-    function props:SetIntegerStepSize(value)
+    function public:SetIntegerStepSize(value)
         mixin_helper.assert_argument_type(2, value, "number")
         private[self].IntegerStepSize = value
     end
 
-    function props:SetEVPUsStepSize(value)
+    function public:SetEVPUsStepSize(value)
         mixin_helper.assert_argument_type(2, value, "number")
         private[self].MeasurementSteps[finale.MEASUREMENTUNIT_EVPUS] = {value = value, is_evpus = true}
     end
 
-    function props:SetInchesStepSize(value, is_evpus)
+    function public:SetInchesStepSize(value, is_evpus)
         mixin_helper.assert_argument_type(2, value, "number")
         mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
         private[self].MeasurementSteps[finale.MEASUREMENTUNIT_INCHES] = {
@@ -3109,7 +3140,7 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
         }
     end
 
-    function props:SetCentimetersStepSize(value, is_evpus)
+    function public:SetCentimetersStepSize(value, is_evpus)
         mixin_helper.assert_argument_type(2, value, "number")
         mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
         private[self].MeasurementSteps[finale.MEASUREMENTUNIT_CENTIMETERS] = {
@@ -3118,7 +3149,7 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
         }
     end
 
-    function props:SetPointsStepSize(value, is_evpus)
+    function public:SetPointsStepSize(value, is_evpus)
         mixin_helper.assert_argument_type(2, value, "number")
         mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
         private[self].MeasurementSteps[finale.MEASUREMENTUNIT_POINTS] = {
@@ -3127,7 +3158,7 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
         }
     end
 
-    function props:SetPicasStepSize(value, is_evpus)
+    function public:SetPicasStepSize(value, is_evpus)
         mixin_helper.assert_argument_type(2, value, "number", "string")
         if not is_evpus then
             temp_str:SetText(tostring(value))
@@ -3136,7 +3167,7 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
         private[self].MeasurementSteps[finale.MEASUREMENTUNIT_PICAS] = {value = value, is_evpus = true}
     end
 
-    function props:SetSpacesStepSize(value, is_evpus)
+    function public:SetSpacesStepSize(value, is_evpus)
         mixin_helper.assert_argument_type(2, value, "number")
         mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
         private[self].MeasurementSteps[finale.MEASUREMENTUNIT_SPACES] = {
@@ -3145,12 +3176,12 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
         }
     end
 
-    function props:SetAlignWhenMoving(on)
+    function public:SetAlignWhenMoving(on)
         mixin_helper.assert_argument_type(2, on, "boolean")
         private[self].AlignWhenMoving = on
     end
 
-    function props:GetValue()
+    function public:GetValue()
         if not private[self].ConnectedEdit then
             return
         end
@@ -3162,7 +3193,7 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
         end
     end
 
-    function props:SetValue(value)
+    function public:SetValue(value)
         mixin_helper.assert_argument_type(2, value, "number")
         mixin_helper.assert(private[self].ConnectedEdit, "Unable to set value: no connected edit.")
 
@@ -3176,21 +3207,21 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
         end
     end
 
-    function props:GetMinimum()
+    function public:GetMinimum()
         return private[self].Minimum
     end
 
-    function props:GetMaximum()
+    function public:GetMaximum()
         return private[self].Maximum
     end
 
-    function props:SetRange(minimum, maximum)
+    function public:SetRange(minimum, maximum)
         mixin_helper.assert_argument_type(2, minimum, "number")
         mixin_helper.assert_argument_type(3, maximum, "number")
         private[self].Minimum = minimum
         private[self].Maximum = maximum
     end
-    return props
+    return {meta, public}
 end
 package.preload["library.measurement"] = package.preload["library.measurement"] or function()
 

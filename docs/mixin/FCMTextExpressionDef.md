@@ -160,7 +160,7 @@ fcmtextexpressiondef.SetDescription(self, str)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMTextExpressionDef.lua#L182)
 
-**[Breaking Change] [Fluid] [Override]**
+**[Fluid] [Override]**
 
 Override Changes:
 - Accepts Lua `string` in addition to `FCString`.
@@ -178,7 +178,7 @@ fcmtextexpressiondef.GetDescription(self, str)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMTextExpressionDef.lua#L202)
 
-**[Breaking Change] [Fluid] [Override]**
+**[?Fluid] [Override]**
 
 Override Changes:
 - Passing an `FCString` is optional. If omitted, the result is returned as a Lua `string`. If passed, nothing is returned and the method is fluid.
@@ -190,7 +190,7 @@ Override Changes:
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string` | If `FCString` is omitted. |
+| `string` | Returned if `str` is omitted. |
 
 ### DeepSaveAs
 
