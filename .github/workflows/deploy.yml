@@ -35,7 +35,6 @@ jobs:
                   rm -rf ./lua/hash
                   mkdir ./lua/hash
                   cd ./lua/dist
-                  for file in *; do sha512sum "$file"; done
                   for file in *; do sha512sum "$file" > "../hash/$(basename "$file" .lua).hash"; done
                   cd ../../
             - name: parse scripts
