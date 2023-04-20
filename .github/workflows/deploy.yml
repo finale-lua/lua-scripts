@@ -32,7 +32,7 @@ jobs:
                   output: ./lua/dist
             - name: build hashes
               run: |
-                  rm -rf ./lua/hash
+                  rm -rfv ./lua/hash
                   mkdir ./lua/hash
                   for file in ./lua/dist/*; do sha512sum "$file" > ".lua/hash/$(basename "$file" .lua).hash"; done
             - name: parse scripts
