@@ -3,8 +3,9 @@ function plugindef()
     -- are both reserved for the plug-in definition.
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "2022-09-25"
+    finaleplugin.RequireSelection = true
 --    finaleplugin.MinJWLuaVersion = 0.64 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Notes = [[
