@@ -1,19 +1,31 @@
 function plugindef()
 	finaleplugin.RequireSelection = true
-    finaleplugin.MinJWLuaVersion = 0.60
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.57"
-    finaleplugin.Date = "2022/05/22"
-    finaleplugin.AuthorURL = "http://carlvine.com"
+    finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
+    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
+    finaleplugin.Version = "0.59"
+    finaleplugin.Date = "2023/03/07"
+    finaleplugin.MinJWLuaVersion = 0.60
     finaleplugin.Notes = [[
-This script requires RGPLua 0.60 or later and does not work under JWLua.
-(see: https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html)
-This script is keyboard focussed with minimal mouse action allowing rapid entry of complex time signatures with a few keystrokes. It supports composite numerators allowing meters like (3+2+3/16) in conjunction with further composites (e.g. (3+2+3/16)+(1/4)+(5+4/8)). Alternate "display" time signatures can be equally complex. At startup the script shows the time signature of the first selected measure. Click the "Clear All" button to revert to a simple 4/4 with no other options. (or, ideally, use a keyboard macro app like Keyboard Maestro to click the button in response to a keystroke!)
-All measures in the currently selected region will be assigned the new time signature. If one measure is selected only it will be affected. (Unlike the default Finale behaviour of "change every measure until next meter change").
-"Bottom" numbers (denominators) are the usual "note" numbers - 2, 4, 8, 16, 32 or 64. "Top" numbers (numerators) must be integers, optionally joined by '+' signs. Multiples of 3 will automatically convert to compound signatures so, for instance, (9/16) will convert to three groups of dotted 8ths. To suppress automatic compounding, instead of the bottom 'note' number enter its EDU equivalent (quarter note = 1024; eighth note = 512 etc) but be careful since Finale can get confused if the number is inappropriate.
-Empty and zero "Top" numbers are ignored. If the "Secondary" Top is zero, "Tertiary" values are ignored. Finale's Time Signature tool will also accept "Top" numbers with decimals but I haven't allowed for that in this script.
-]]
+        This script is keyboard focussed with minimal mouse action allowing rapid entry of complex time signatures with a few keystrokes.
+        It supports composite numerators allowing meters like (3+2+3/16) in conjunction with further composites (e.g. (3+2+3/16)+(1/4)+(5+4/8)).
+        Alternate "display" time signatures can be equally complex.
+        At startup the script shows the time signature of the first selected measure.
+        Click the "Clear All" button to revert to a simple 4/4 with no other options or, ideally,
+        use a keyboard macro app like Keyboard Maestro to click the button in response to a keystroke!)
+        All measures in the currently selected region will be assigned the new time signature.
+        If one measure is selected only it will be affected.
+        (Unlike the default Finale behaviour of "change every measure until next meter change").
+        "Bottom" numbers (denominators) are the usual "note" numbers - 2, 4, 8, 16, 32 or 64.
+        "Top" numbers (numerators) must be integers, optionally joined by '+' signs.
+        Multiples of 3 will automatically convert to compound signatures so, for instance,
+        (9/16) will convert to three groups of dotted 8ths.
+        To suppress automatic compounding, instead of the bottom 'note' number enter its EDU equivalent
+        (quarter note = 1024; eighth note = 512 etc) but be careful since Finale can get confused if the number is inappropriate.
+        Empty and zero "Top" numbers are ignored.
+        If the "Secondary" Top is zero, "Tertiary" values are ignored.
+        Finale's Time Signature tool will also accept "Top" numbers with decimals but I haven't allowed for that in this script.
+    ]]
 	return "Meter Set Numeric", "Meter Set Numeric", "Set the Meter Numerically"
 end
 function user_chooses_meter(meters, region)
@@ -59,7 +71,7 @@ function user_chooses_meter(meters, region)
         local top_bottom = 4 - (i % 2)
         user_entry[i] = dialog:CreateEdit(horiz[top_bottom], vert[vert_step] - mac_offset)
         user_entry[i]:SetWidth(70)
-        str.LuaString = v
+        str.LuaString = tostring(v)
         if i % 2 == 1 then
             user_entry[i]:SetText(str)
         else
@@ -72,14 +84,14 @@ function user_chooses_meter(meters, region)
     clear_button:SetWidth(80)
     clear_button:SetText(str)
     dialog:RegisterHandleControlEvent ( clear_button,
-        function(control)
-            local str = finale.FCString()
-            str.LuaString = "4"
-            user_entry[1]:SetText(str)
+        function()
+            local str2 = finale.FCString()
+            str2.LuaString = "4"
+            user_entry[1]:SetText(str2)
             user_entry[2]:SetInteger(4)
-            str.LuaString = "0"
+            str2.LuaString = "0"
             for i = 3, 11, 2 do
-                user_entry[i]:SetText(str)
+                user_entry[i]:SetText(str2)
                 user_entry[i + 1]:SetInteger(0)
             end
             user_entry[1]:SetFocus()
@@ -193,7 +205,6 @@ function convert_meter_pairs_to_numbers(top_index, meters)
     end
 
 
-
     local bottom_index = top_index + 1
     local denominator = meters[bottom_index]
     if denominator == 0 then
@@ -248,7 +259,6 @@ function new_composite_bottom(denominatorA, denominatorB, denominatorC)
     local composite_bottom = finale.FCCompositeTimeSigBottom()
     local new_group = composite_bottom:AddGroup(1)
     composite_bottom:SetGroupElementBeatDuration(new_group, 0, denominatorA)
-
     if denominatorB > 0 then
         new_group = composite_bottom:AddGroup(1)
         composite_bottom:SetGroupElementBeatDuration(new_group, 0, denominatorB)
@@ -288,17 +298,13 @@ function create_new_meter()
 
 
     local meters = { "4", 4,   "0", 0,   "0", 0,           "0", 0,   "0", 0,   "0", 0,  }
-    local result = ""
-
     copy_meters_from_score(meters, region.StartMeasure)
     local ok = user_chooses_meter(meters, region)
-	if ok ~= finale.EXECMODAL_OK then
-        return
-    end
+	if ok ~= finale.EXECMODAL_OK then return end
     for index_pairs = 1, 11, 2 do
-        result = convert_meter_pairs_to_numbers(index_pairs, meters)
-        if result ~= "" then
-            finenv.UI():AlertNeutral(plugindef(), result)
+        local msg = convert_meter_pairs_to_numbers(index_pairs, meters)
+        if msg ~= "" then
+            finenv.UI():AlertInfo(msg, plugindef())
             return
         end
     end
@@ -325,7 +331,6 @@ function create_new_meter()
     region:SetFullMeasureStack()
     local measures = finale.FCMeasures()
     measures:LoadRegion(region)
-
     for measure in each(measures) do
         local time_sig = measure:GetTimeSignature()
         fix_new_top(composites[1], time_sig, meters[1][1])
