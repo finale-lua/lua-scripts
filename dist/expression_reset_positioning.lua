@@ -1066,9 +1066,10 @@ end
 function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.1"
+    finaleplugin.Version = "1.1.1"
     finaleplugin.Date = "March 20, 2021"
     finaleplugin.CategoryTags = "Expression"
+    finaleplugin.RequireSelection = true
     return "Reset Expression Positions", "Reset Expression Positions", "Resets the assignment position of all selected single-staff expressions."
 end
 local library = require("library.general_library")

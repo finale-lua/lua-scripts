@@ -391,8 +391,9 @@ end
 function plugindef()
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "1.1"
+    finaleplugin.Version = "1.1.1"
     finaleplugin.Date = "8/1/2022"
+    finaleplugin.RequireSelection = true
     finaleplugin.Notes = [[
         USING THE 'BARIOLAGE' SCRIPT
         This script creates bariolage-style notation where layers 1 and 2 interlock. It works well for material that has even-numbered beam groups like 4x 16th notes or 6x 16th notes (in compound meters). 32nd notes also work. Odd numbers of notes produce undesirable results.

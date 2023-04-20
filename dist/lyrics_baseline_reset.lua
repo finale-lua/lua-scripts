@@ -3,8 +3,9 @@ function plugindef()
 
        finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "2022-10-20"
+    finaleplugin.RequireSelection = true
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
    return "Reset Lyric Baselines (system specific)", "Reset Lyric Baselines (system specific)", "Resets Lyric Baselines on a system-by-system basis (3rd triangle)"
 end

@@ -363,8 +363,9 @@ function plugindef()
 
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "2022-08-30"
+    finaleplugin.RequireSelection = true
 
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.AdditionalMenuOptions = [[
