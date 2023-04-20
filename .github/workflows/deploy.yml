@@ -32,8 +32,10 @@ jobs:
                   output: ./lua/dist
             - name: build hashes
               run: |
-                  rm -rfv ./lua/hash
+                  rm -rf ./lua/hash
                   mkdir ./lua/hash
+                  ls -ld ./lua/hash
+                  ls -ld ./lua/dist
                   for file in ./lua/dist/*; do sha512sum "$file" > ".lua/hash/$(basename "$file" .lua).hash"; done
             - name: parse scripts
               uses: ./lua/.github/actions/get-metadata
