@@ -167,11 +167,8 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "2023-02-24"
     finaleplugin.MinJWLuaVersion = 0.66
-    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/dist/finale_lua_menu_organizer.lua"
 
     finaleplugin.Notes = [[
-
-    
     This plug-in runs when Finale starts up and organizes the menus according to a configuration file called `finale_lua_menus.txt`.
     The plugin searches for the file in two locations:
     1. The running folder where this script resides.
