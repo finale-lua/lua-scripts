@@ -12,8 +12,8 @@ local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local utils = require("library.utils")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 
 local trigger_change
 local each_last_change
@@ -30,7 +30,7 @@ Override Changes:
 @ self (FCMCtrlEdit)
 @ str (FCString | string | number)
 ]]
-function public:SetText(str)
+function methods:SetText(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     mixin.FCMControl.SetText(self, str)
@@ -90,13 +90,13 @@ for method, valid_types in pairs({
     Integer = {"number"},
     Float = {"number"},
 }) do
-    public["Get" .. method] = function(self)
+    methods["Get" .. method] = function(self)
         -- This is the long way around, but it ensures that the correct control value is used
         mixin.FCMControl.GetText(self, temp_str)
         return temp_str["Get" .. method](temp_str, 0)
     end
 
-    public["Set" .. method] = function(self, value)
+    methods["Set" .. method] = function(self, value)
         mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
 
         temp_str["Set" .. method](temp_str, value)
@@ -269,14 +269,14 @@ for method, valid_types in pairs({
     MeasurementInteger = {"number"},
     Measurement10000th = {"number"},
 }) do
-    public["Get" .. method] = function(self, measurementunit)
+    methods["Get" .. method] = function(self, measurementunit)
         mixin_helper.assert_argument_type(2, measurementunit, "number")
 
         mixin.FCMControl.GetText(self, temp_str)
         return temp_str["Get" .. method](temp_str, measurementunit)
     end
 
-    public["GetRange" .. method] = function(self, measurementunit, minimum, maximum)
+    methods["GetRange" .. method] = function(self, measurementunit, minimum, maximum)
         mixin_helper.assert_argument_type(2, measurementunit, "number")
         mixin_helper.assert_argument_type(3, minimum, "number")
         mixin_helper.assert_argument_type(4, maximum, "number")
@@ -285,7 +285,7 @@ for method, valid_types in pairs({
         return temp_str["GetRange" .. method](temp_str, measurementunit, minimum, maximum)
     end
 
-    public["Set" .. method] = function(self, value, measurementunit)
+    methods["Set" .. method] = function(self, value, measurementunit)
         mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
         mixin_helper.assert_argument_type(3, measurementunit, "number")
 
@@ -309,7 +309,7 @@ Override Changes:
 @ maximum (number)
 : (number)
 ]]
-function public:GetRangeInteger(minimum, maximum)
+function methods:GetRangeInteger(minimum, maximum)
     mixin_helper.assert_argument_type(2, minimum, "number")
     mixin_helper.assert_argument_type(3, maximum, "number")
 
@@ -350,7 +350,7 @@ Removes a handler added with `AddHandleChange`.
 @ self (FCMCtrlEdit)
 @ callback (function)
 ]]
-public.AddHandleChange, public.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
+methods.AddHandleChange, methods.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
     {
         name = "last_value",
         get = mixin.FCMControl.GetText,
@@ -358,4 +358,4 @@ public.AddHandleChange, public.RemoveHandleChange, trigger_change, each_last_cha
     }
 )
 
-return {meta, public}
+return class

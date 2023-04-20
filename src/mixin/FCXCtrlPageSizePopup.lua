@@ -33,8 +33,8 @@ local mixin_helper = require("library.mixin_helper")
 local measurement = require("library.measurement")
 local page_size = require("library.page_size")
 
-local meta = {Parent = "FCMCtrlPopup"}
-local public = {}
+local class = {Parent = "FCMCtrlPopup", Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local trigger_page_size_change
@@ -43,8 +43,8 @@ local each_last_page_size_change
 local temp_str = finale.FCString()
 
 -- Disabled methods
-mixin_helper.disable_methods(public, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
-    "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange", "RemoveHandleSelectionChange")
+class.Disabled = {"Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
+    "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange", "RemoveHandleSelectionChange"}
 
 local function repopulate(control)
     local unit = mixin_helper.is_instance_of(control:GetParent(), "FCXCustomLuaWindow") and control:GetParent():GetMeasurementUnit() or measurement.get_real_default_unit()
@@ -80,7 +80,7 @@ end
 
 @ self (FCXCtrlPageSizePopup)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -101,7 +101,7 @@ Returns the selected page size.
 @ [str] (FCString) Optional `FCString` to populate with page size.
 : (string | nil) Returned if `str` is omitted. The page size or `nil` if nothing is selected.
 ]]
-function public:GetSelectedPageSize(str)
+function methods:GetSelectedPageSize(str)
     mixin_helper.assert_argument_type(2, str, "FCString", "nil")
 
     local size = mixin.FCMCtrlPopup.GetSelectedString(self)
@@ -126,7 +126,7 @@ Sets the selected page size. Must be a valid page size.
 @ self (FCXCtrlPageSizePopup)
 @ size (FCString | string) Name of page size (case-sensitive).
 ]]
-function public:SetSelectedPageSize(size)
+function methods:SetSelectedPageSize(size)
     mixin_helper.assert_argument_type(2, size, "string", "FCString")
     
     size = type(size) == "userdata" and size.LuaString or tostring(size)
@@ -156,7 +156,7 @@ Checks the parent window's measurement and updates the displayed page dimensions
 
 @ self (FCXCtrlPageSizePopup)
 ]]
-function public:UpdateMeasurementUnit()
+function methods:UpdateMeasurementUnit()
     repopulate(self)
 end
 
@@ -195,7 +195,7 @@ Removes a handler added with `AddHandlePageSizeChange`.
 @ self (FCXCtrlPageSizePopup)
 @ callback (function) Handler to remove.
 ]]
-public.AddHandlePageSizeChange, public.RemoveHandlePageSizeChange, trigger_page_size_change, each_last_page_size_change = mixin_helper.create_custom_control_change_event(
+methods.AddHandlePageSizeChange, methods.RemoveHandlePageSizeChange, trigger_page_size_change, each_last_page_size_change = mixin_helper.create_custom_control_change_event(
     {
         name = "last_page_size",
         get = function(ctrl)
@@ -205,4 +205,4 @@ public.AddHandlePageSizeChange, public.RemoveHandlePageSizeChange, trigger_page_
     }
 )
 
-return {meta, public}
+return class

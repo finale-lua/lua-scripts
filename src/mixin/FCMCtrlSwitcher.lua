@@ -12,8 +12,8 @@ $module FCMCtrlSwitcher
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local trigger_page_change
@@ -27,7 +27,7 @@ local temp_str = finale.FCString()
 
 @ self (FCMCtrlSwitcher)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -49,12 +49,12 @@ Override Changes:
 @ self (FCMCtrlSwitcher)
 @ title (FCString | string | number)
 ]]
-function public:AddPage(title)
+function methods:AddPage(title)
     mixin_helper.assert_argument_type(2, title, "string", "number", "FCString")
 
     title = mixin_helper.to_fcstring(title, temp_str)
 
-    self:AddPage_(title)
+    self:AddPage__(title)
     table.insert(private[self].Index, title.LuaString)
     private[self].TitleIndex[title.LuaString] = #private[self].Index - 1
 end
@@ -69,7 +69,7 @@ Adds multiple pages, one page for each argument.
 @ self (FCMCtrlSwitcher)
 @ ... (FCString | string | number)
 ]]
-function public:AddPages(...)
+function methods:AddPages(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
         mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString")
@@ -89,7 +89,7 @@ Override Changes:
 @ control (FCControl | FCMControl)
 @ pageindex (number)
 ]]
-function public:AttachControl(control, pageindex)
+function methods:AttachControl(control, pageindex)
     mixin_helper.assert_argument_type(2, control, "FCControl", "FCMControl")
     mixin_helper.assert_argument_type(3, pageindex, "number")
 
@@ -107,7 +107,7 @@ Attaches a control to a page by its title.
 @ control (FCControl | FCMControl) The control to attach.
 @ title (FCString | string | number) The title of the page. Must be an exact match.
 ]]
-function public:AttachControlByTitle(control, title)
+function methods:AttachControlByTitle(control, title)
     mixin_helper.assert_argument_type(2, control, "FCControl", "FCMControl")
     mixin_helper.assert_argument_type(3, title, "string", "number", "FCString")
 
@@ -131,10 +131,10 @@ Override Changes:
 @ self (FCMCtrlSwitcher)
 @ index (number)
 ]]
-function public:SetSelectedPage(index)
+function methods:SetSelectedPage(index)
     mixin_helper.assert_argument_type(2, index, "number")
 
-    self:SetSelectedPage_(index)
+    self:SetSelectedPage__(index)
 
     trigger_page_change(self)
 end
@@ -149,7 +149,7 @@ Set the selected page by its title. If the page is not found, an error will be t
 @ self (FCMCtrlSwitcher)
 @ title (FCString | string | number) Title of page to select. Must be an exact, case-sensitive match.
 ]]
-function public:SetSelectedPageByTitle(title)
+function methods:SetSelectedPageByTitle(title)
     mixin_helper.assert_argument_type(2, title, "string", "number", "FCString")
 
     title = type(title) == "userdata" and title.LuaString or tostring(title)
@@ -170,10 +170,10 @@ Retrieves the title of the currently selected page.
 @ [title] (FCString) Optional `FCString` object to populate.
 : (string | nil) Returned if `title` is omitted. `nil` if no page is selected
 ]]
-function public:GetSelectedPageTitle(title)
+function methods:GetSelectedPageTitle(title)
     mixin_helper.assert_argument_type(2, title, "nil", "FCString")
 
-    local index = self:GetSelectedPage_()
+    local index = self:GetSelectedPage__()
 
     if index == -1 then
         if title then
@@ -198,7 +198,7 @@ Retrieves the title of a page.
 @ [str] (FCString) An optional `FCString` object to populate.
 : (string) Returned if `str` is omitted.
 ]]
-function public:GetPageTitle(index, str)
+function methods:GetPageTitle(index, str)
     mixin_helper.assert_argument_type(2, index, "number")
     mixin_helper.assert_argument_type(3, str, "nil", "FCString")
 
@@ -247,10 +247,10 @@ Removes a handler added with `AddHandlePageChange`.
 @ self (FCMCtrlSwitcher)
 @ callback (function)
 ]]
-public.AddHandlePageChange, public.RemoveHandlePageChange, trigger_page_change, each_last_page_change = mixin_helper.create_custom_control_change_event(
+methods.AddHandlePageChange, methods.RemoveHandlePageChange, trigger_page_change, each_last_page_change = mixin_helper.create_custom_control_change_event(
     {
         name = "last_page",
-        get = "GetSelectedPage_",
+        get = "GetSelectedPage__",
         initial = -1
     },
     {
@@ -263,4 +263,4 @@ public.AddHandlePageChange, public.RemoveHandlePageChange, trigger_page_change, 
     }
 )
 
-return {meta, public}
+return class

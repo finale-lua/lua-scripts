@@ -9,8 +9,8 @@ $module FCMUI
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 
 local temp_str = finale.FCString()
 
@@ -26,7 +26,7 @@ Override Changes:
 @ [str] (FCString)
 : (string)
 ]]
-function public:GetDecimalSeparator(str)
+function methods:GetDecimalSeparator(str)
     mixin_helper.assert_argument_type(2, str, "nil", "FCString")
 
     local do_return = false
@@ -35,11 +35,11 @@ function public:GetDecimalSeparator(str)
         do_return = true
     end
 
-    self:GetDecimalSeparator_(str)
+    self:GetDecimalSeparator__(str)
 
     if do_return then
         return str.LuaString
     end
 end
 
-return {meta, public}
+return class

@@ -15,8 +15,8 @@ local mixin_helper = require("library.mixin_helper")
 local utils = require("library.utils")
 local measurement = require("library.measurement")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 
 -- Potential optimisation: reduce checked overrides to necessary minimum
 local unit_overrides = {
@@ -56,7 +56,7 @@ Override Changes:
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT_*` constants.
 : (number) EVPUs with decimal part.
 ]]
-function public:GetMeasurement(measurementunit)
+function methods:GetMeasurement(measurementunit)
     mixin_helper.assert_argument_type(2, measurementunit, "number")
 
     -- Normalise decimal separator
@@ -131,7 +131,7 @@ Override Changes:
 @ maximum (number)
 : (number)
 ]]
-function public:GetRangeMeasurement(measurementunit, minimum, maximum)
+function methods:GetRangeMeasurement(measurementunit, minimum, maximum)
     mixin_helper.assert_argument_type(2, measurementunit, "number")
     mixin_helper.assert_argument_type(3, minimum, "number")
     mixin_helper.assert_argument_type(4, maximum, "number")
@@ -152,7 +152,7 @@ Override Changes:
 @ value (number) The value to set in EVPUs.
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT_*` constants.
 ]]
-function public:SetMeasurement(value, measurementunit)
+function methods:SetMeasurement(value, measurementunit)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, measurementunit, "number")
 
@@ -189,7 +189,7 @@ Returns the measurement in whole EVPUs.
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT*_` constants.
 : (number)
 ]]
-function public:GetMeasurementInteger(measurementunit)
+function methods:GetMeasurementInteger(measurementunit)
     mixin_helper.assert_argument_type(2, measurementunit, "number")
 
     return utils.round(mixin.FCMString.GetMeasurement(self, measurementunit))
@@ -207,7 +207,7 @@ Also ensures that any decimal places in `minimum` are correctly taken into accou
 @ maximum (number)
 : (number)
 ]]
-function public:GetRangeMeasurementInteger(measurementunit, minimum, maximum)
+function methods:GetRangeMeasurementInteger(measurementunit, minimum, maximum)
     mixin_helper.assert_argument_type(2, measurementunit, "number")
     mixin_helper.assert_argument_type(3, minimum, "number")
     mixin_helper.assert_argument_type(4, maximum, "number")
@@ -226,7 +226,7 @@ Sets a measurement in whole EVPUs.
 @ value (number) The value in whole EVPUs.
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT*_` constants.
 ]]
-function public:SetMeasurementInteger(value, measurementunit)
+function methods:SetMeasurementInteger(value, measurementunit)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, measurementunit, "number")
 
@@ -242,7 +242,7 @@ Returns the measurement in whole EFIXes (1/64th of an EVPU)
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT*_` constants.
 : (number)
 ]]
-function public:GetMeasurementEfix(measurementunit)
+function methods:GetMeasurementEfix(measurementunit)
     mixin_helper.assert_argument_type(2, measurementunit, "number")
 
     return utils.round(mixin.FCMString.GetMeasurement(self, measurementunit) * 64)
@@ -259,7 +259,7 @@ Returns the measurement in whole EFIXes (1/64th of an EVPU), clamped between two
 @ maximum (number)
 : (number)
 ]]
-function public:GetRangeMeasurementEfix(measurementunit, minimum, maximum)
+function methods:GetRangeMeasurementEfix(measurementunit, minimum, maximum)
     mixin_helper.assert_argument_type(2, measurementunit, "number")
     mixin_helper.assert_argument_type(3, minimum, "number")
     mixin_helper.assert_argument_type(4, maximum, "number")
@@ -278,7 +278,7 @@ Sets a measurement in whole EFIXes.
 @ value (number) The value in EFIXes (1/64th of an EVPU)
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT*_` constants.
 ]]
-function public:SetMeasurementEfix(value, measurementunit)
+function methods:SetMeasurementEfix(value, measurementunit)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, measurementunit, "number")
 
@@ -294,7 +294,7 @@ Returns the measurement in 10,000ths of an EVPU.
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT*_` constants.
 : (number)
 ]]
-function public:GetMeasurement10000th(measurementunit)
+function methods:GetMeasurement10000th(measurementunit)
     mixin_helper.assert_argument_type(2, measurementunit, "number")
 
     return utils.round(mixin.FCMString.GetMeasurement(self, measurementunit) * 10000)
@@ -312,7 +312,7 @@ Also ensures that any decimal places in `minimum` are handled correctly instead 
 @ maximum (number)
 : (number)
 ]]
-function public:GetRangeMeasurement10000th(measurementunit, minimum, maximum)
+function methods:GetRangeMeasurement10000th(measurementunit, minimum, maximum)
     mixin_helper.assert_argument_type(2, measurementunit, "number")
     mixin_helper.assert_argument_type(3, minimum, "number")
     mixin_helper.assert_argument_type(4, maximum, "number")
@@ -331,11 +331,11 @@ Sets a measurement in 10,000ths of an EVPU.
 @ value (number) The value in 10,000ths of an EVPU.
 @ measurementunit (number) One of the `finale.MEASUREMENTUNIT*_` constants.
 ]]
-function public:SetMeasurement10000th(value, measurementunit)
+function methods:SetMeasurement10000th(value, measurementunit)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, measurementunit, "number")
 
     mixin.FCMString.SetMeasurement(self, utils.round(value) / 10000, measurementunit)
 end
 
-return {meta, public}
+return class

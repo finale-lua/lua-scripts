@@ -16,8 +16,8 @@ local mixin_helper = require("library.mixin_helper")
 local library = require("library.general_library")
 local utils = require("library.utils")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local trigger_selection_change
@@ -31,7 +31,7 @@ local temp_str = finale.FCString()
 
 @ self (FCMCtrlListBox)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -53,9 +53,9 @@ Override Changes:
 
 @ self (FCMCtrlListBox)
 ]]
-function public:StoreState()
+function methods:StoreState()
     mixin.FCMControl.StoreState(self)
-    private[self].SelectedItem = self:GetSelectedItem_()
+    private[self].SelectedItem = self:GetSelectedItem__()
 end
 
 --[[
@@ -70,16 +70,16 @@ Override Changes:
 
 @ self (FCMCtrlListBox)
 ]]
-function public:RestoreState()
+function methods:RestoreState()
     mixin.FCMControl.RestoreState(self)
 
-    self:Clear_()
+    self:Clear__()
     for _, str in ipairs(private[self].Items) do
         temp_str.LuaString = str
-        self:AddString_(temp_str)
+        self:AddString__(temp_str)
     end
 
-    self:SetSelectedItem_(private[self].SelectedItem)
+    self:SetSelectedItem__(private[self].SelectedItem)
 end
 
 --[[
@@ -93,9 +93,9 @@ Override Changes:
 
 @ self (FCMCtrlListBox)
 ]]
-function public:Clear()
+function methods:Clear()
     if not mixin.FCMControl.UseStoredState(self) then
-        self:Clear_()
+        self:Clear__()
     end
 
     private[self].Items = {}
@@ -120,12 +120,12 @@ Override Changes:
 @ self (FCMCtrlListBox)
 : (number)
 ]]
-function public:GetCount()
+function methods:GetCount()
     if mixin.FCMControl.UseStoredState(self) then
         return #private[self].Items
     end
 
-    return self:GetCount_()
+    return self:GetCount__()
 end
 
 --[[
@@ -139,12 +139,12 @@ Override Changes:
 @ self (FCMCtrlListBox)
 : (number)
 ]]
-function public:GetSelectedItem()
+function methods:GetSelectedItem()
     if mixin.FCMControl.UseStoredState(self) then
         return private[self].SelectedItem
     end
 
-    return self:GetSelectedItem_()
+    return self:GetSelectedItem__()
 end
 
 --[[
@@ -159,13 +159,13 @@ Override Changes:
 @ self (FCMCtrlListBox)
 @ index (number)
 ]]
-function public:SetSelectedItem(index)
+function methods:SetSelectedItem(index)
     mixin_helper.assert_argument_type(2, index, "number")
 
     if mixin.FCMControl.UseStoredState(self) then
         private[self].SelectedItem = index
     else
-        self:SetSelectedItem_(index)
+        self:SetSelectedItem__(index)
     end
 
     trigger_selection_change(self)
@@ -183,7 +183,7 @@ Override Changes:
 @ self (FCMCtrlListBox)
 : (boolean) `true` if a selection was possible.
 ]]
-function public:SetSelectedLast()
+function methods:SetSelectedLast()
     local return_value
 
     if mixin.FCMControl.UseStoredState(self) then
@@ -191,7 +191,7 @@ function public:SetSelectedLast()
         mixin.FCMCtrlListBox.SetSelectedItem(self, count - 1)
         return_value = count > 0 and true or false
     else
-        return_value = self:SetSelectedLast_()
+        return_value = self:SetSelectedLast__()
     end
 
     trigger_selection_change(self)
@@ -206,7 +206,7 @@ Checks if the popup has a selection. If the parent window does not exist (ie `Wi
 @ self (FCMCtrlListBox)
 : (boolean) `true` if something is selected, `false` if no selection.
 ]]
-function public:HasSelection()
+function methods:HasSelection()
     return mixin.FCMCtrlListBox.GetSelectedItem(self) >= 0
 end
 
@@ -219,7 +219,7 @@ Checks if there is an item at the specified index.
 @ index (number) 0-based item index.
 : (boolean) `true` if the item exists, `false` if it does not exist.
 ]]
-function public:ItemExists(index)
+function methods:ItemExists(index)
     mixin_helper.assert_argument_type(2, index, "number")
 
     return private[self].Items[index + 1] and true or false
@@ -237,13 +237,13 @@ Override Changes:
 @ self (FCMCtrlListBox)
 @ str (FCString | string | number)
 ]]
-function public:AddString(str)
+function methods:AddString(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     str = mixin_helper.to_fcstring(str, temp_str)
 
     if not mixin.FCMControl.UseStoredState(self) then
-        self:AddString_(str)
+        self:AddString__(str)
     end
 
     -- Since we've made it here without errors, str must be an FCString
@@ -260,7 +260,7 @@ Adds multiple strings to the list box.
 @ self (FCMCtrlListBox)
 @ ... (FCStrings | FCString | string | number)
 ]]
-function public:AddStrings(...)
+function methods:AddStrings(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
         mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings")
@@ -286,7 +286,7 @@ Returns a copy of all strings in the list box.
 @ [strs] (FCStrings) An optional `FCStrings` object to populate with strings.
 : (table) If `strs` is omitted, a table of strings (1-indexed - beware if accessing by key!).
 ]]
-function public:GetStrings(strs)
+function methods:GetStrings(strs)
     mixin_helper.assert_argument_type(2, strs, "nil", "FCStrings")
 
     if strs then
@@ -309,7 +309,7 @@ Override Changes:
 @ self (FCMCtrlListBox)
 @ ... (FCStrings | FCString | string | number) `number`s will be automatically cast to `string`
 ]]
-function public:SetStrings(...)
+function methods:SetStrings(...)
     for i = 1, select("#", ...) do
         mixin_helper.assert_argument_type(i + 1, select(i, ...), "FCStrings", "FCString", "string", "number")
     end
@@ -321,7 +321,7 @@ function public:SetStrings(...)
     end
 
     if not mixin.FCMControl.UseStoredState(self) then
-        self:SetStrings_(strs)
+        self:SetStrings__(strs)
     end
 
     -- Call statically, since there's no guarantee that strs is mixin-enabled
@@ -349,7 +349,7 @@ This method works in all JW/RGP Lua versions and irrespective of whether `InitWi
 @ [str] (FCString) Optional `FCString` object to populate with text.
 : (string) Returned if `str` is omitted.
 ]]
-function public:GetItemText(index, str)
+function methods:GetItemText(index, str)
     mixin_helper.assert_argument_type(2, index, "number")
     mixin_helper.assert_argument_type(3, str, "nil", "FCString")
 
@@ -378,7 +378,7 @@ Override Changes:
 @ index (number) 0-based index of item.
 @ str (FCString | string | number)
 ]]
-function public:SetItemText(index, str)
+function methods:SetItemText(index, str)
     mixin_helper.assert_argument_type(2, index, "number")
     mixin_helper.assert_argument_type(3, str, "string", "number", "FCString")
 
@@ -397,14 +397,14 @@ function public:SetItemText(index, str)
 
     if not mixin.FCMControl.UseStoredState(self) then
         -- SetItemText was added to RGPLua in v0.56 and only works once the window has been created
-        if self.SetItemText_ and self:GetParent():WindowExists_() then
-            self:SetItemText_(index, str)
+        if self.SetItemText__ and self:GetParent():WindowExists__() then
+            self:SetItemText__(index, str)
 
         -- Otherwise, use a polyfill
         else
             local curr_item = mixin.FCMCtrlListBox.GetSelectedItem(self)
-            self:SetStrings_(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
-            self:SetSelectedItem_(curr_item)
+            self:SetStrings__(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
+            self:SetSelectedItem__(curr_item)
         end
     end
 end
@@ -420,7 +420,7 @@ Returns the text for the item that is currently selected.
 @ [str] (FCString) Optional `FCString` object to populate with text. If no item is currently selected, it will be populated with an empty string.
 : (string | nil) Returned if `str` is omitted. `nil` if no item is selected.
 ]]
-function public:GetSelectedString(str)
+function methods:GetSelectedString(str)
     mixin_helper.assert_argument_type(2, str, "nil", "FCString")
 
     local index = mixin.FCMCtrlListBox.GetSelectedItem(self)
@@ -443,7 +443,7 @@ If no match is found, the current selected item will remain selected. Matches ar
 @ self (FCMCtrlListBox)
 @ str (FCString | string | number)
 ]]
-function public:SetSelectedString(str)
+function methods:SetSelectedString(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     str = type(str) == "userdata" and str.LuaString or tostring(str)
@@ -469,7 +469,7 @@ If index is >= GetCount(), will insert at the end.
 @ index (number) 0-based index to insert new item.
 @ str (FCString | string | number) The value to insert.
 ]]
-function public:InsertItem(index, str)
+function methods:InsertItem(index, str)
     mixin_helper.assert_argument_type(2, index, "number")
     mixin_helper.assert_argument_type(3, str, "string", "number", "FCString")
 
@@ -485,7 +485,7 @@ function public:InsertItem(index, str)
     local current_selection = mixin.FCMCtrlListBox.GetSelectedItem(self)
 
     if not mixin.FCMControl.UseStoredState(self) then
-        self:SetStrings_(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
+        self:SetStrings__(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
     end
 
     local new_selection = current_selection + (index <= current_selection and 1 or 0)
@@ -508,7 +508,7 @@ If the currently selected item is deleted, items will be deselected (ie set to -
 @ self (FCMCtrlListBox)
 @ index (number) 0-based index of item to delete.
 ]]
-function public:DeleteItem(index)
+function methods:DeleteItem(index)
     mixin_helper.assert_argument_type(2, index, "number")
 
     if index < 0 or index >= mixin.FCMCtrlListBox.GetCount(self) then
@@ -520,7 +520,7 @@ function public:DeleteItem(index)
     local current_selection = mixin.FCMCtrlListBox.GetSelectedItem(self)
 
     if not mixin.FCMControl.UseStoredState(self) then
-        self:SetStrings_(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
+        self:SetStrings__(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
     end
 
     local new_selection
@@ -588,7 +588,7 @@ Removes a handler added with `AddHandleSelectionChange`.
 @ self (FCMCtrlListBox)
 @ callback (function) Handler to remove.
 ]]
-public.AddHandleSelectionChange, public.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change = mixin_helper.create_custom_control_change_event(
+methods.AddHandleSelectionChange, methods.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change = mixin_helper.create_custom_control_change_event(
     {
         name = "last_item",
         get = function(ctrl)
@@ -610,4 +610,4 @@ public.AddHandleSelectionChange, public.RemoveHandleSelectionChange, trigger_sel
     }
 )
 
-return {meta, public}
+return class

@@ -11,8 +11,8 @@ $module FCMCtrlUpDown
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 --[[
@@ -22,7 +22,7 @@ local private = setmetatable({}, {__mode = "k"})
 
 @ self (FCMCtrlUpDown)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -41,7 +41,7 @@ Override Changes:
 @ self (FCMCtrlUpDown)
 : (FCMCtrlEdit | nil) `nil` if there is no edit connected.
 ]]
-function public:GetConnectedEdit()
+function methods:GetConnectedEdit()
     return private[self].ConnectedEdit
 end
 
@@ -59,7 +59,7 @@ Override Changes:
 @ minvalue (number)
 @ maxvalue (number)
 ]]
-function public:ConnectIntegerEdit(control, minvalue, maxvalue)
+function methods:ConnectIntegerEdit(control, minvalue, maxvalue)
     mixin_helper.assert_argument_type(2, control, "FCMCtrlEdit")
     mixin_helper.assert_argument_type(3, minvalue, "number")
     mixin_helper.assert_argument_type(4, maxvalue, "number")
@@ -84,7 +84,7 @@ Override Changes:
 @ minvalue (number)
 @ maxvalue (number)
 ]]
-function public:ConnectMeasurementEdit(control, minvalue, maxvalue)
+function methods:ConnectMeasurementEdit(control, minvalue, maxvalue)
     mixin_helper.assert_argument_type(2, control, "FCMCtrlEdit")
     mixin_helper.assert_argument_type(3, minvalue, "number")
     mixin_helper.assert_argument_type(4, maxvalue, "number")
@@ -114,6 +114,6 @@ Removes a handler added with `AddHandlePress`.
 @ self (FCMCtrlUpDown)
 @ callback (function)
 ]]
-public.AddHandlePress, public.RemoveHandlePress = mixin_helper.create_standard_control_event("HandleUpDownPressed")
+methods.AddHandlePress, methods.RemoveHandlePress = mixin_helper.create_standard_control_event("HandleUpDownPressed")
 
-return {meta, public}
+return class

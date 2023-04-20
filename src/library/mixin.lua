@@ -292,18 +292,33 @@ local library = require("library.general_library")
 local mixin_public = {}
 -- Private methods
 local mixin_private = {}
--- Fully resolved FCM and FCX mixin class definitions
+-- FCM and FCX mixin class definitions
 local mixin_classes = {}
+-- Flattened class definitions for optimised runtime lookup
+local mixin_lookup = {}
 -- Weak table for mixin instance properties / methods
 local mixin_props = setmetatable({}, {__mode = "k"})
 
--- Reserved properties (cannot be set on an object)
+-- Reserved properties, all accessible statically (cannot be set on an object)
 local reserved_props = {
-    MixinReady = function(class) return true end,
-    MixinClass = function(class) return class end,
-    MixinParent = function(class) return mixin_classes[class].meta.Parent end,
-    MixinBase = function(class) return mixin_classes[class].meta.Base end,
-    Init = function(class) return mixin_classes[class].meta.Init end,
+    MixinReady = function(class_name) return true end,
+    MixinClass = function(class_name) return class_name end,
+    MixinParent = function(class_name) return mixin_classes[class_name].Parent end,
+    MixinBase = function(class_name) return mixin_classes[class_name].Base end,
+    Init = function(class_name) return mixin_classes[class_name].Init end,
+    __class = function(class_name) return mixin_private.create_method_reflection(class_name, "Methods") end,
+    __static = function(class_name) return mixin_private.create_method_reflection(class_name, "StaticMethods") end,
+    __propget = function(class_name) return mixin_private.create_property_reflection(class_name, "Get") end,
+    __propset = function(class_name) return mixin_private.create_property_reflection(class_name, "Set") end,
+    __disabled = function(class_name) return mixin_classes[class_name].Disabled and utils.copy_table(mixin_classes[class_name].Disabled) or {} end,
+}
+
+-- Reserved properties that are accessible from an object instance
+local instance_reserved_props = {
+    MixinReady = true,
+    MixinClass = true,
+    MixinParent = true,
+    MixinBase = true,
 }
 
 -- Create a new namespace for mixins
@@ -319,11 +334,23 @@ local mixin = setmetatable({}, {
         mixin_public[k] = setmetatable({}, {
             __newindex = function(tt, kk, vv) end,
             __index = function(tt, kk)
-                local val = reserved_props[kk] and utils.copy_table(reserved_props[kk](k)) or utils.copy_table(mixin_classes[k].public[kk])
-                if type(val) == "function" then
-                    val = mixin_private.create_fluid_proxy(val, kk)
+                local value
+
+                if mixin_lookup[k].Methods[kk] then
+                    value = mixin_private.create_fluid_proxy(mixin_lookup[k].Methods[kk])
+                elseif mixin_classes[k].StaticMethods and mixin_classes[k].StaticMethods[kk] then
+                    value = mixin_private.create_proxy(mixin_classes[k].StaticMethods[kk])
+                elseif mixin_lookup[k].Properties[kk] then
+                    -- Use non-fluid proxy
+                    value = {}
+                    for kkkk, vvvv in pairs(mixin_lookup[k].Properties[kk]) do
+                        value[kkkk] = mixin_private.create_proxy(vvvv)
+                    end
+                elseif reserved_props[kk] then
+                    value = reserved_props[kk](k) -- reserved_props handles calls to copy_table itself if needed
                 end
-                return val
+
+                return value
             end,
             __call = function(_, ...)
                 if mixin_private.is_fcm_class_name(k) then
@@ -337,7 +364,6 @@ local mixin = setmetatable({}, {
         return mixin_public[k]
     end
 })
-
 
 function mixin_private.is_fc_class_name(class_name)
     return type(class_name) == "string" and not mixin_private.is_fcm_class_name(class_name) and not mixin_private.is_fcx_class_name(class_name) and (class_name:match("^FC%u") or class_name:match("^__FC%u")) and true or false
@@ -361,13 +387,13 @@ end
 
 function mixin_private.assert_valid_property_name(name, error_level, suffix)
     if type(name) ~= "string" then
-        return
+        error("Mixin method and property names must be strings" .. suffix, error_level)
     end
 
     suffix = suffix or ""
 
-    if name:sub(-1) == "_" then
-        error("Mixin methods and properties cannot end in an underscore" .. suffix, error_level)
+    if name:sub(-2) == "__" then
+        error("Mixin methods and properties cannot end in a double underscore" .. suffix, error_level)
     elseif name:sub(1, 5):lower() == "mixin" then
         error("Mixin methods and properties beginning with 'Mixin' are reserved" .. suffix, error_level)
     elseif reserved_props[name] then
@@ -387,112 +413,244 @@ function mixin_private.try_load_module(name)
     return success, result
 end
 
+local find_ancestor_with_prop
+find_ancestor_with_prop = function(class, attr, prop)
+    if class[attr] and class[attr][prop] then
+        return class.Class
+    end
+    if not class.Parent then
+        return nil
+    end
+    return find_ancestor_with_prop(mixin_classes[class.Parent], attr, prop)
+end
+
 -- Loads an FCM or FCX mixin class
-function mixin_private.load_mixin_class(class_name)
+function mixin_private.load_mixin_class(class_name, create_lookup)
     if mixin_classes[class_name] then return end
 
     local is_fcm = mixin_private.is_fcm_class_name(class_name)
-    local is_fcx = mixin_private.is_fcx_class_name(class_name)
+
+    -- Only load FCM and FCX mixins
+    if not is_fcm and not mixin_private.is_fcx_class_name(class_name) then
+        return
+    end
+
+    local is_personal_mixin = false
+    local success
+    local result
 
     -- Try personal mixins first (allows the library's mixin to be overridden if desired)
-    local success, result = mixin_private.try_load_module("personal_mixin." .. class_name)
+    -- But only if this is a user-trusted script
+    if finenv.TrustedMode == nil or finenv.TrustedMode == finenv.TrustedModeType.USER_TRUSTED then
+        success, result = mixin_private.try_load_module("personal_mixin." .. class_name)
+    end
 
-    if not success then
+    if success then
+        is_personal_mixin = true
+    else
         success, result = mixin_private.try_load_module("mixin." .. class_name)
     end
 
     if not success then
         -- FCM classes are optional, so if it's valid and not found, start with a blank slate
         if is_fcm and finale[mixin_private.fcm_to_fc_class_name(class_name)] then
-            result = {{}, {}}
+            result = {}
         else
             return
         end
     end
 
+    local error_prefix = (is_personal_mixin and "personal_" or "") .. "mixin." .. class_name
+
     -- Mixins must be a table
     if type(result) ~= "table" then
-        error("Mixin '" .. class_name .. "' is not a table.", 0)
+        error("Mixin '" .. error_prefix .. "' is not a table.", 0)
     end
 
-    local class = {}
-    if #result > 1 then
-        class.meta = result[1]
-        class.public = result[2]
-    else
-        -- Legacy compatibility
-        class.public = result
-        class.meta = {}
-        class.meta.Parent = class.public.MixinParent
-        class.meta.Init = class.public.Init
-        class.public.MixinParent = nil
-        class.public.Init = nil
+    local class = {Class = class_name}
+
+    local function has_attr(attr, attr_type)
+        if result[attr] == nil then
+            return false
+        end
+        if type(result[attr]) ~= attr_type then
+            error("Mixin '" .. attr .. "' must be a " .. attr_type .. ", " .. type(result[attr]) .. " given (" .. error_prefix .. "." .. attr .. ")", 0)
+        end
+        return true
     end
 
-    -- Check that property names are valid
-    for k, _ in pairs(class.public) do
-        mixin_private.assert_valid_property_name(k, 0, " (" .. class_name .. "." .. k .. ")")
-    end
-
-    -- Ensure that Init is a function
-    if class.meta.Init and type(class.meta.Init) ~= "function" then
-        error("Mixin meta-method 'Init' must be a function (" .. class_name .. ")", 0)
-    end
+    -- Check and assign or copy parent
+    has_attr("Parent", "string")
 
     -- FCM specific
     if is_fcm then
-        -- Temporarily store the FC class name
-        class.meta.Parent = library.get_parent_class(mixin_private.fcm_to_fc_class_name(class_name))
+        -- Temporarily store the parent FC class name
+        class.Parent = library.get_parent_class(mixin_private.fcm_to_fc_class_name(class_name))
 
-        if class.meta.Parent then
+        if class.Parent then
             -- Turn it back into an FCM class name
-            class.meta.Parent = mixin_private.fc_to_fcm_class_name(class.meta.Parent)
+            class.Parent = mixin_private.fc_to_fcm_class_name(class.Parent)
 
-            mixin_private.load_mixin_class(class.meta.Parent)
-
-            -- Collect init functions
-            class.init = mixin_classes[class.meta.Parent].init and utils.copy_table(mixin_classes[class.meta.Parent].init) or {}
-
-            if class.meta.Init then
-                table.insert(class.init, class.meta.Init)
-            end
-
-            -- Collect parent methods/properties if not overridden
-            -- This prevents having to traverse the whole tree every time a method or property is accessed
-            for k, v in pairs(mixin_classes[class.meta.Parent].public) do
-                if type(class.public[k]) == "nil" then
-                    class.public[k] = utils.copy_table(v)
-                end
-            end
+            mixin_private.load_mixin_class(class.Parent)
         end
 
     -- FCX specific
     else
         -- FCX classes must specify a parent
-        if not class.meta.Parent then
-            error("Mixin '" .. class_name .. "' does not have a parent class defined.", 0)
+        if not result.Parent then
+            error("Mixin '" .. error_prefix .. "' does not have a parent class defined.", 0)
         end
 
-        mixin_private.load_mixin_class(class.meta.Parent)
+        if not mixin_private.is_fcm_class_name(result.Parent) and not mixin_private.is_fcx_class_name(result.Parent) then
+            error("Mixin parent must be an FCM or FCX class name, '" .. result.Parent .. "' given (" .. error_prefix .. ".Parent)", 0)
+        end
+
+        mixin_private.load_mixin_class(result.Parent)
 
         -- Check if FCX parent is missing
-        if not mixin_classes[class.meta.Parent] then
-            error("Unable to load mixin '" .. class.meta.Parent .. "' as parent of '" .. class_name .. "'", 0)
+        if not mixin_classes[result.Parent] then
+            error("Unable to load mixin '" .. result.Parent .. "' as parent of '" .. error_prefix .. "'", 0)
         end
 
+        class.Parent = result.Parent
+
         -- Get the base FCM class (all FCX classes must eventually arrive at an FCM parent)
-        class.meta.Base = mixin_private.is_fcm_class_name(class.meta.Parent) and class.meta.Parent or mixin_classes[class.meta.Parent].meta.Base
+        class.Base = mixin_classes[result.Parent].Base or result.Parent
     end
 
-    -- Add class info to properties
-    class.meta.Class = class_name
+    -- Now that we have the parent, create a lookup base before we continue
+    local lookup = class.Parent and utils.copy_table(mixin_lookup[class.Parent]) or {Methods = {}, Properties = {}, Disabled = {}, FCMInits = {}}
 
+    -- Check and copy the remaining attributes
+    if has_attr("Init", "function") and is_fcm then
+        table.insert(lookup.FCMInits, result.Init)
+    end
+    class.Init = result.Init
+    if not is_fcm then
+        lookup.FCMInits = nil
+    end
+
+    -- Process Disabled before methods and properties because we need these for later checks
+    if has_attr("Disabled", "table") then
+        class.Disabled = {}
+        for _, v in pairs(result.Disabled) do
+            mixin_private.assert_valid_property_name(v, 0, " (" .. error_prefix .. ".Disabled." .. tostring(v) .. ")")
+            class.Disabled[v] = true
+            lookup.Disabled[v] = true
+            lookup.Methods[v] = nil
+            lookup.Properties[v] = nil
+        end
+    end
+
+    local function find_property_name_clash(name, attr_to_check)
+        for _, attr in pairs(attr_to_check) do
+            if attr == "StaticMethods" or (lookup[attr] and lookup[attr][nane]) then
+                local cl = find_ancestor_with_prop(class, attr, name)
+                return cl and (cl .. "." .. attr .. "." .. name) or nil
+            end
+        end
+    end
+
+    if has_attr("Methods", "table") then
+        class.Methods = {}
+        for k, v in pairs(result.Methods) do
+            mixin_private.assert_valid_property_name(k, 0, " (" .. error_prefix .. ".Methods." .. tostring(k) .. ")")
+            if type(v) ~= "function" then
+                error("A mixin method must be a function, " .. type(v) .. " given (" .. error_prefix .. ".Methods." .. k .. ")", 0)
+            end
+            if lookup.Disabled[k] then
+                error("Mixin methods cannot be defined for disabled names (" .. error_prefix .. ".Methods." .. k .. ")", 0)
+            end
+            local clash = find_property_name_clash(k, {"StaticMethods", "Properties"})
+            if clash then
+                error("A method, static method or property cannot share the same name (" .. error_prefix .. ".Methods." .. k .. " & " .. clash .. ")", 0)
+            end
+            class.Methods[k] = v
+            lookup.Methods[k] = v
+        end
+    end
+
+    if has_attr("StaticMethods", "table") then
+        class.StaticMethods = {}
+        for k, v in pairs(result.StaticMethods) do
+            mixin_private.assert_valid_property_name(k, 0, " (" .. error_prefix .. ".StaticMethods." .. tostring(k) .. ")")
+            if type(v) ~= "function" then
+                error("A mixin method must be a function, " .. type(v) .. " given (" .. error_prefix .. ".StaticMethods." .. k .. ")", 0)
+            end
+            if lookup.Disabled[k] then
+                error("Mixin methods cannot be defined for disabled names (" .. error_prefix .. ".StaticMethods." .. k .. ")", 0)
+            end
+            local clash = find_property_name_clash(k, {"Methods", "Properties"})
+            if clash then
+                error("A method, static method or property cannot share the same name (" .. error_prefix .. ".StaticMethods." .. k .. " & " .. clash .. ")", 0)
+            end
+            class.Methods[k] = v
+        end
+    end
+
+    if has_attr("Properties", "table") then
+        class.Properties = {}
+        for k, v in pairs(result.Properties) do
+            mixin_private.assert_valid_property_name(k, 0, " (" .. error_prefix .. ".Properties." .. tostring(k) .. ")")
+            if lookup.Disabled[k] then
+                error("Mixin properties cannot be defined for disabled names (" .. error_prefix .. ".Properties." .. k .. ")", 0)
+            end
+            local clash = find_property_name_clash(k, {"Methods", "StaticMethods"})
+            if clash then
+                error("A method, static method or property cannot share the same name (" .. error_prefix .. ".Properties." .. k .. " & " .. clash .. ")", 0)
+            end
+            if type(v) ~= "table" then
+                error("A mixin property descriptor must be a table, " .. type(v) .. " given (" .. error_prefix .. ".Properties." .. k .. ")", 0)
+            end
+            if not v.Get and not v.Set then
+                error("A mixin property descriptor must have at least a 'Get' or 'Set' attribute (" .. error_prefix .. ".Properties." .. k .. ")", 0)
+            end
+
+            class.Properties[k] = {}
+            lookup.Properties[k] = lookup.Properties[k] or {}
+
+            for kk, vv in pairs(v) do
+                if kk ~= "Get" and kk ~= "Set" then
+                    error("A mixin property descriptor can only have 'Get' and 'Set' attributes (" .. error_prefix .. ".Properties." .. k .. ")", 0)
+                end
+                if type(vv) ~= "function" then
+                    error("A mixin property descriptor attribute must be a function, " .. type(vv) .. " given (" .. error_prefix .. ".Properties." .. k .. "." .. kk .. ")", 0)
+                end
+                class.Properties[k][kk] = vv
+                lookup.Properties[k][kk] = vv
+            end
+        end
+    end
+
+    mixin_lookup[class_name] = lookup
     mixin_classes[class_name] = class
+end
+
+function mixin_private.create_method_reflection(class_name, attr)
+    local t = {}
+    if mixin_classes[class_name][attr] then
+        for k, v in pairs(mixin_classes[class_name][attr]) do
+            t[k] = mixin_private.create_proxy(v)
+        end
+    end
+    return t
+end
+
+function mixin_private.create_property_reflection(class_name, attr)
+    local t = {}
+    if mixin_classes[class_name].Properties then
+        for k, v in pairs(mixin_classes[class_name].Properties) do
+            if v[attr] then
+                t[k] = mixin_private.create_proxy(v[attr])
+            end
+        end
+    end
+    return t
 end
 
 -- Proxy function for all mixin method calls
 -- Handles the fluid interface and automatic promotion of all returned Finale objects to mixin objects
-local function proxy(t, ...)
+local function fluid_proxy(t, ...)
     local n = select("#", ...)
     -- If no return values, then apply the fluid interface
     if n == 0 then
@@ -506,12 +664,28 @@ local function proxy(t, ...)
     return ...
 end
 
+local function proxy(t, ...)
+    local n = select("#", ...)
+    -- Apply mixin foundation to all returned finale objects
+    for i = 1, n do
+        mixin_private.enable_mixin(select(i, ...))
+    end
+    return ...
+end
+
 -- Returns a function that handles the fluid interface, mixin enabling, and error re-throwing
-function mixin_private.create_fluid_proxy(func, func_name)
+function mixin_private.create_fluid_proxy(func)
+    return function(t, ...)
+        return fluid_proxy(t, utils.call_and_rethrow(2, func, t, ...))
+    end
+end
+
+function mixin_private.create_proxy(func)
     return function(t, ...)
         return proxy(t, utils.call_and_rethrow(2, func, t, ...))
     end
 end
+
 
 -- Takes an FC object and enables the mixin
 function mixin_private.enable_mixin(object, fcm_class_name)
@@ -525,7 +699,7 @@ function mixin_private.enable_mixin(object, fcm_class_name)
     mixin_private.load_mixin_class(fcm_class_name)
     mixin_props[object] = {MixinClass = fcm_class_name}
 
-    for _, v in pairs(mixin_classes[fcm_class_name].init) do
+    for _, v in ipairs(mixin_lookup[fcm_class_name].FCMInits) do
         v(object)
     end
 
@@ -534,8 +708,9 @@ end
 
 -- Modifies an FC class to allow adding mixins to any instance of that class.
 -- Needs an instance in order to gain access to the metatable
+-- Does not check if object is a Finale object
 function mixin_private.apply_mixin_foundation(object)
-    if not object or not library.is_finale_object(object) or object.MixinReady then return end
+    if object.MixinReady then return end
 
     -- Metatables are shared across all instances, so this only needs to be done once per class
     local meta = getmetatable(object)
@@ -543,8 +718,6 @@ function mixin_private.apply_mixin_foundation(object)
     -- We need to retain a reference to the originals for later
     local original_index = meta.__index 
     local original_newindex = meta.__newindex
-
-    local fcm_class_name = mixin_private.fc_to_fcm_class_name(library.get_class_name(object))
 
     meta.__index = function(t, k)
         -- Return a flag that this class has been modified
@@ -554,30 +727,29 @@ function mixin_private.apply_mixin_foundation(object)
         -- If the object doesn't have an associated mixin (ie from finale namespace), let's pretend that nothing has changed and return early
         if not mixin_props[t] then return original_index(t, k) end
 
+        local class = mixin_props[t].MixinClass
         local prop
 
-        -- If there's a trailing underscore in the key, then return the original property, whether it exists or not
-        if type(k) == "string" and k:sub(-1) == "_" then
+        -- If there's a trailing double underscore in the key, then return the original property, whether it exists or not
+        if type(k) == "string" and k:sub(-2) == "__" then
             -- Strip trailing underscore
-            prop = original_index(t, k:sub(1, -2))
+            prop = original_index(t, k:sub(1, -3))
 
-        -- Check if it's a custom or FCX property/method
-        elseif type(mixin_props[t][k]) ~= "nil" then
-            prop = mixin_props[t][k]
+        -- Check defined properties
+        elseif mixin_lookup[class].Properties[k] and mixin_lookup[class].Properties[k].Get then
+            prop = utils.call_and_rethrow(2, mixin_lookup[class].Properties[k].Get, t)
 
-        -- Check if it's an FCM property/method
-        elseif type(mixin_classes[fcm_class_name].public[k]) ~= "nil" then
-            prop = mixin_classes[fcm_class_name].public[k]
+        -- Check if it's a custom property/method
+        elseif mixin_props[t][k] ~= nil then
+            prop = utils.copy_table(mixin_props[t][k])
 
-            -- If it's a table, copy it to allow instance-level editing
-            if type(prop) == "table" then
-                mixin_props[t][k] = utils.copy_table(prop)
-                prop = mixin[t][k]
-            end
+        -- Check if it's an FCM or FCX method
+        elseif mixin_lookup[class].Methods[k] then
+            prop = mixin_lookup[class].Methods[k]
 
         -- Check if it's a reserved property
-        elseif reserved_props[k] then
-            prop = reserved_props[k](mixin_props[t].MixinClass)
+        elseif instance_reserved_props[k] then
+            prop = reserved_props[k](class)
 
         -- Otherwise, use the underlying object
         else
@@ -585,51 +757,77 @@ function mixin_private.apply_mixin_foundation(object)
         end
 
         if type(prop) == "function" then
-            return mixin_private.create_fluid_proxy(prop, k)
-        else
-            return prop
+            return mixin_private.create_fluid_proxy(prop)
         end
+
+        return prop
     end
 
     -- This will cause certain things (eg misspelling a property) to fail silently as the misspelled property will be stored on the mixin instead of triggering an error
     -- Using methods instead of properties will avoid this
     meta.__newindex = function(t, k, v)
-        -- Return early if this is not mixin-enabled
-        if not mixin_props[t] then return utils.call_and_rethrow(2, original_newindex, t, k, v) end
+        -- Return original if this is not mixin-enabled
+        if not mixin_props[t] then
+            return original_newindex(t, k, v)
+        end
+
+        local class = mixin_props[t].MixinClass
+
+        -- If it's disabled or reserved, throw an error
+        if mixin_lookup[class].Disabled[k] or reserved_props[k] then
+            error("No writable member '" .. tostring(k) .. "'", 2)
+        end
+
+        -- If a property descriptor exists, use the setter if it has one
+        -- Otherwise, use the original property (this prevents a read-only property from being overwritten by a custom property)
+        if mixin_lookup[class].Properties[k] then
+            if mixin_lookup[class].Properties[k].Set then
+                return mixin_lookup[class].Properties[k].Set(t, v)
+            else
+                return original_newindex(t, k, v)
+            end
+        end
+
+        -- If it's not a string key, it has to be a custom property
+        if type(k) ~= "string" then
+            mixin_props[t][k] = v
+            return
+        end
+
+        -- For a trailing double underscore, set original property
+        if k:sub(-2) == "__" then
+            k = k:sub(1, -3)
+            return original_newindex(t, k, v)
+        end
 
         mixin_private.assert_valid_property_name(k, 3)
 
         local type_v_original = type(original_index(t, k))
+        local type_v = type(v)
+        local is_mixin_method = mixin_lookup[class].Methods[k] and true or false
 
-        -- If it's a method, or a property that doesn't exist on the original object, store it
+        -- If it's a method or property that doesn't exist on the original object, store it
         if type_v_original == "nil" then
-            local type_v_mixin = type(mixin_props[t][k])
-            local type_v = type(v)
 
-            -- Technically, a property could still be erased by setting it to nil and then replacing it with a method afterwards
-            -- But handling that case would mean either storing a list of all properties ever created, or preventing properties from being set to nil.
-            if type_v_mixin ~= "nil" then
-                if type_v == "function" and type_v_mixin ~= "function" then
-                    error("A mixin method cannot be overridden with a property.", 2)
-                elseif type_v_mixin == "function" and type_v ~= "function" then
-                    error("A mixin property cannot be overridden with a method.", 2)
-                end
-            end
-
-            mixin_props[t][k] = v
-
-        -- If it's a method, we can override it but only with another method
-        elseif type_v_original == "function" then
-            if type(v) ~= "function" then
+            if is_mixin_method and not (type_v == "function" or type_v == "nil") then
                 error("A mixin method cannot be overridden with a property.", 2)
             end
 
             mixin_props[t][k] = v
+            return
+
+        -- If it's a method, we can override it but only with another method
+        elseif type_v_original == "function" then
+            if not (type_v == "function" or type_v == "nil") then
+                error("A Finale PDK method cannot be overridden with a property.", 2)
+            end
+
+            mixin_props[t][k] = v
+            return
+        end
 
         -- Otherwise, try and store it on the original property. If it's read-only, it will fail and we show the error
-        else
-            utils.call_and_rethrow(2, original_newindex, t, k, v)
-        end
+        return original_newindex(t, k, v)
     end
 end
 
@@ -678,28 +876,30 @@ function mixin_private.subclass_helper(object, class_name, suppress_errors)
     end
 
     -- If we've reached the top of the FCX inheritance tree and the class names don't match, then class_name is not a subclass
-    if mixin_private.is_fcm_class_name(mixin_classes[class_name].meta.Parent) and mixin_classes[class_name].meta.Parent ~= object.MixinClass then
+    if mixin_private.is_fcm_class_name(mixin_classes[class_name].Parent) and mixin_classes[class_name].Parent ~= object.MixinClass then
         return false
     end
 
     -- If loading the parent of class_name fails, then it's not a subclass of the object
-    if mixin_classes[class_name].meta.Parent ~= object.MixinClass then
-        if not utils.call_and_rethrow(2, mixin_private.subclass_helper, object, mixin_classes[class_name].meta.Parent) then
+    if mixin_classes[class_name].Parent ~= object.MixinClass then
+        if not utils.call_and_rethrow(2, mixin_private.subclass_helper, object, mixin_classes[class_name].Parent) then
             return false
         end
     end
 
-    -- Copy the methods and properties over
-    local props = mixin_props[object]
-    props.MixinClass = class_name
+    -- Change class name
+    mixin_props[object].MixinClass = class_name
 
-    for k, v in pairs(mixin_classes[class_name].public) do
-        props[k] = utils.copy_table(v)
+    -- Remove any newly disabled methods or properties
+    if mixin_classes[class_name].Disabled then
+        for k, _ in pairs(mixin_classes[class_name].Disabled) do
+            mixin_props[object][k] = nil
+        end
     end
 
     -- Run initialiser, if there is one
-    if mixin_classes[class_name].meta.Init then
-        utils.call_and_rethrow(2, mixin_classes[class_name].meta.Init, object)
+    if mixin_classes[class_name].Init then
+        utils.call_and_rethrow(2, mixin_classes[class_name].Init, object)
     end
 
     return true
@@ -718,7 +918,7 @@ function mixin_private.create_fcx(class_name, ...)
     mixin_private.load_mixin_class(class_name)
     if not mixin_classes[class_name] then return nil end
 
-    local object = mixin_private.create_fcm(mixin_classes[class_name].meta.Base, ...)
+    local object = mixin_private.create_fcm(mixin_classes[class_name].Base, ...)
 
     if not object then return nil end
 

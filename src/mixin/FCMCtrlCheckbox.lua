@@ -9,8 +9,8 @@ $module FCMCtrlCheckbox
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 
 local trigger_check_change
 local each_last_check_change
@@ -26,10 +26,10 @@ Override Changes:
 @ self (FCMCtrlCheckbox)
 @ checked (number)
 ]]
-function public:SetCheck(checked)
+function methods:SetCheck(checked)
     mixin_helper.assert_argument_type(2, checked, "number")
 
-    self:SetCheck_(checked)
+    self:SetCheck__(checked)
 
     trigger_check_change(self)
 end
@@ -68,10 +68,14 @@ Removes a handler added with `AddHandleCheckChange`.
 @ self (FCMCtrlCheckbox)
 @ callback (function)
 ]]
-public.AddHandleCheckChange, public.RemoveHandleCheckChange, trigger_check_change, each_last_check_change =
-    mixin_helper.create_custom_control_change_event(
-        -- initial could be set to -1 to force the event to fire on InitWindow, but unlike other controls, -1 is not a valid checkstate.
-        -- If it becomes necessary to force this event to fire when the window is created, change to -1
-        {name = "last_check", get = "GetCheck_", initial = 0})
+methods.AddHandleCheckChange, methods.RemoveHandleCheckChange, trigger_check_change, each_last_check_change = mixin_helper.create_custom_control_change_event(
+    -- initial could be set to -1 to force the event to fire on InitWindow, but unlike other controls, -1 is not a valid checkstate.
+    -- If it becomes necessary to force this event to fire when the window is created, change to -1
+    {
+        name = "last_check",
+        get = "GetCheck__",
+        initial = 0,
+    }
+)
 
-return {meta, public}
+return class

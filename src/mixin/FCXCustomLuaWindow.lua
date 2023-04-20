@@ -13,8 +13,8 @@ local utils = require("library.utils")
 local mixin_helper = require("library.mixin_helper")
 local measurement = require("library.measurement")
 
-local meta = {Parent = "FCMCustomLuaWindow"}
-local public = {}
+local class = {Parent = "FCMCustomLuaWindow", Methods = {}}
+local methods = class.Methods
 
 local trigger_measurement_unit_change
 local each_last_measurement_unit_change
@@ -26,7 +26,7 @@ local each_last_measurement_unit_change
 
 @ self (FCXCustomLuaWindow)
 ]]
-function meta:Init()
+function class:Init()
     self:SetEnableDebugClose(true)
 end
 
@@ -44,7 +44,7 @@ Override Changes:
 @ [control_name] (string)
 : (FCXCtrlUpDown)
 ]]
-function public:CreateUpDown(x, y, control_name)
+function methods:CreateUpDown(x, y, control_name)
     mixin_helper.assert_argument_type(2, x, "number")
     mixin_helper.assert_argument_type(3, y, "number")
     mixin_helper.assert_argument_type(4, control_name, "string", "nil")
@@ -53,4 +53,4 @@ function public:CreateUpDown(x, y, control_name)
     return mixin.subclass(updown, "FCXCtrlUpDown")
 end
 
-return {meta, public}
+return class

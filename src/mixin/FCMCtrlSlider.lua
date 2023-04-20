@@ -14,8 +14,8 @@ Command events do not fire for `FCCtrlSlider` controls before RGPLua 0.64, so a 
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 local windows = setmetatable({}, {__mode = "k"})
 
 local trigger_thumb_position_change
@@ -55,7 +55,7 @@ Override Changes:
 @ self (FCMCtrlSlider)
 @ window (FCMCustomWindow)
 ]]
-function public:RegisterParent(window)
+function methods:RegisterParent(window)
     mixin.FCMControl.RegisterParent(self, window)
 
     if finenv.MajorVersion == 0 and finenv.MinorVersion < 64 and not windows[window] and mixin_helper.is_instance_of(window, "FCMCustomLuaWindow") then
@@ -82,10 +82,10 @@ Override Changes:
 @ self (FCMCtrlSlider)
 @ position (number)
 ]]
-function public:SetThumbPosition(position)
+function methods:SetThumbPosition(position)
     mixin_helper.assert_argument_type(2, position, "number")
 
-    self:SetThumbPosition_(position)
+    self:SetThumbPosition__(position)
 
     trigger_thumb_position_change(self)
 end
@@ -101,10 +101,10 @@ Override Changes:
 @ self (FCMCtrlSlider)
 @ minvalue (number)
 ]]
-function public:SetMinValue(minvalue)
+function methods:SetMinValue(minvalue)
     mixin_helper.assert_argument_type(2, minvalue, "number")
 
-    self:SetMinValue_(minvalue)
+    self:SetMinValue__(minvalue)
 
     trigger_thumb_position_change(self)
 end
@@ -120,10 +120,10 @@ Override Changes:
 @ self (FCMCtrlSlider)
 @ maxvalue (number)
 ]]
-function public:SetMaxValue(maxvalue)
+function methods:SetMaxValue(maxvalue)
     mixin_helper.assert_argument_type(2, maxvalue, "number")
 
-    self:SetMaxValue_(maxvalue)
+    self:SetMaxValue__(maxvalue)
 
     trigger_thumb_position_change(self)
 end
@@ -138,7 +138,7 @@ end
 ]]
 
 --[[
-% AddHandleChange
+% AddHandleThumbPositionChange
 
 **[Fluid]**
 
@@ -162,12 +162,12 @@ Removes a handler added with `AddHandleThumbPositionChange`.
 @ self (FCMCtrlSlider)
 @ callback (function)
 ]]
-public.AddHandleThumbPositionChange, public.RemoveHandleThumbPositionChange, trigger_thumb_position_change, each_last_thumb_position_change = mixin_helper.create_custom_control_change_event(
+methods.AddHandleThumbPositionChange, methods.RemoveHandleThumbPositionChange, trigger_thumb_position_change, each_last_thumb_position_change = mixin_helper.create_custom_control_change_event(
     {
         name = "last_position",
-        get = "GetThumbPosition_",
+        get = "GetThumbPosition__",
         initial = -1,
     }
 )
 
-return {meta, public}
+return class

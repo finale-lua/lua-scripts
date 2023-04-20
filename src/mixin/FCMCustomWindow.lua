@@ -11,12 +11,12 @@ $module FCMCustomWindow
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local function create_control(self, func, num_args, ...)
-    local control = self["Create" .. func .. "_"](self, ...)
+    local control = self["Create" .. func .. "__"](self, ...)
     private[self].Controls[control:GetControlID()] = control
     control:RegisterParent(self)
 
@@ -41,7 +41,7 @@ end
 
 @ self (FCMCustomWindow)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -319,7 +319,7 @@ for num_args, ctrl_types in pairs({
             goto continue
         end
 
-        public["Create" .. control_type] = function(self, ...)
+        methods["Create" .. control_type] = function(self, ...)
             for i = 1, num_args do
                 mixin_helper.assert_argument_type(i + 1, select(i, ...), "number")
             end
@@ -346,7 +346,7 @@ Port Changes:
 @ control_id (number)
 : (FCMControl | nil)
 ]]
-function public:FindControl(control_id)
+function methods:FindControl(control_id)
     mixin_helper.assert_argument_type(2, control_id, "number")
 
     return private[self].Controls[control_id]
@@ -361,7 +361,7 @@ Finds a control based on its name.
 @ control_name (FCString | string)
 : (FCMControl | nil)
 ]]
-function public:GetControl(control_name)
+function methods:GetControl(control_name)
     mixin_helper.assert_argument_type(2, control_name, "string", "FCString")
 
     return private[self].NamedControls[control_name]
@@ -376,7 +376,7 @@ An iterator for controls that can filter by class.
 @ [class_filter] (string) A class name, can be a parent class. See documentation `mixin.is_instance_of` for details on class filtering.
 : (function) An iterator function.
 ]]
-function public:Each(class_filter)
+function methods:Each(class_filter)
     local i = -1
     local v
     local iterator = function()
@@ -403,8 +403,8 @@ Override Changes:
 @ index (number)
 : (FCMControl)
 ]]
-function public:GetItemAt(index)
-    local item = self:GetItemAt_(index)
+function methods:GetItemAt(index)
+    local item = self:GetItemAt__(index)
     return item and private[self].Controls[item:GetControlID()] or item
 end
 
@@ -418,7 +418,7 @@ Returns the parent window. The parent will only be available while the window is
 @ self (FCMCustomWindow)
 : (FCMCustomWindow | nil) `nil` if no parent
 ]]
-function public:GetParent()
+function methods:GetParent()
     return private[self].Parent
 end
 
@@ -434,11 +434,11 @@ Override Changes:
 @ parent (FCCustomWindow | FCMCustomWindow | nil)
 : (number)
 ]]
-function public:ExecuteModal(parent)
+function methods:ExecuteModal(parent)
     private[self].Parent = parent
-    local ret = self:ExecuteModal_(parent)
+    local ret = self:ExecuteModal__(parent)
     private[self].Parent = nil
     return ret
 end
 
-return {meta, public}
+return class

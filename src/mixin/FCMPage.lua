@@ -11,8 +11,8 @@ local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local page_size = require("library.page_size")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 
 --[[
 % GetSize
@@ -22,7 +22,7 @@ Returns the size of the page.
 @ self (FCMPage)
 : (string | nil) The page size or `nil` if there is no defined size that matches the dimensions of this page.
 ]]
-function public:GetSize()
+function methods:GetSize()
     return page_size.get_page_size(self)
 end
 
@@ -35,7 +35,7 @@ Sets the dimensions of this page to match the given size. Page orientation will 
 @ self (FCMPage)
 @ size (string) A defined page size.
 ]]
-function public:SetSize(size)
+function methods:SetSize(size)
     mixin_helper.assert_argument_type(2, size, "string")
     mixin_helper.assert(page_size.is_size(size), "'" .. size .. "' is not a valid page size.")
 
@@ -50,8 +50,8 @@ Checks if this is a blank page (ie it contains no systems).
 @ self (FCMPage)
 : (boolean) `true` if this page is blank
 ]]
-function public:IsBlank()
+function methods:IsBlank()
     return self:GetFirstSystem() == -1
 end
 
-return {meta, public}
+return class

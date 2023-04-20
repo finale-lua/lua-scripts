@@ -13,8 +13,8 @@ $module FCMTextExpressionDef
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local temp_str = finale.FCString()
@@ -33,7 +33,7 @@ Override Changes:
 @ str (string | FCString) The initializing string
 ]]
 
-function public:SaveNewTextBlock(str)
+function methods:SaveNewTextBlock(str)
     mixin_helper.assert_argument_type(2, str, "string", "FCString")
 
     str = mixin_helper.to_fcstring(str, temp_str)
@@ -52,7 +52,7 @@ Override Changes:
 @ cat_def (FCCategoryDef) the parent Category Definition
 ]]
 
-function public:AssignToCategory(cat_def)
+function methods:AssignToCategory(cat_def)
     mixin_helper.assert_argument_type(2, cat_def, "FCCategoryDef")
 
     mixin_helper.boolean_to_error(self, "AssignToCategory", cat_def)
@@ -70,7 +70,7 @@ Override Changes:
 @ enable (boolean)
 ]]
 
-function public:SetUseCategoryPos(enable)
+function methods:SetUseCategoryPos(enable)
     mixin_helper.assert_argument_type(2, enable, "boolean")
 
     mixin_helper.boolean_to_error(self, "SetUseCategoryPos", enable)
@@ -88,7 +88,7 @@ Override Changes:
 @ enable (boolean)
 ]]
 
-function public:SetUseCategoryFont(enable)
+function methods:SetUseCategoryFont(enable)
     mixin_helper.assert_argument_type(2, enable, "boolean")
 
     mixin_helper.boolean_to_error(self, "SetUseCategoryFont", enable)
@@ -109,7 +109,7 @@ Override Changes:
 : (string) If `FCString` is omitted.
 ]]
 
-function public:MakeRehearsalMark(str, measure)
+function methods:MakeRehearsalMark(str, measure)
 
     local do_return = false
 
@@ -143,7 +143,7 @@ Override Changes:
 @ str (string | FCString) The initializing string
 ]]
 
-function public:SaveTextString(str)
+function methods:SaveTextString(str)
     mixin_helper.assert_argument_type(2, str, "string", "FCString")
 
     str = mixin_helper.to_fcstring(str, temp_str)
@@ -162,7 +162,7 @@ Override Changes:
 @ self (FCMTextExpressionDef)
 ]]
 
-function public:DeleteTextBlock()
+function methods:DeleteTextBlock()
     mixin_helper.boolean_to_error(self, "DeleteTextBlock")
 end
 
@@ -179,11 +179,11 @@ Override Changes:
 @ str (string | FCString) The initializing string
 ]]
 
-function public:SetDescription(str)
+function methods:SetDescription(str)
     mixin_helper.assert_argument_type(2, str, "string", "FCString")
 
     str = mixin_helper.to_fcstring(str, temp_str)
-    self:SetDescription_(str)
+    self:SetDescription__(str)
 end
 
 --[[
@@ -199,12 +199,12 @@ Override Changes:
 : (string) Returned if `str` is omitted.
 ]]
 
-function public:GetDescription(str)
+function methods:GetDescription(str)
     mixin_helper.assert_argument_type(2, str, "nil", "FCString")
 
     local do_return = not str
     str = str or temp_str
-    self:GetDescription_(str)
+    self:GetDescription__(str)
 
     if do_return then
         return str.LuaString
@@ -223,7 +223,7 @@ Override Changes:
 @ item_num (integer)
 ]]
 
-function public:DeepSaveAs(item_num)
+function methods:DeepSaveAs(item_num)
     mixin_helper.assert_argument_type(2, item_num, "number")
 
     mixin_helper.boolean_to_error(self, "DeepSaveAs", item_num)
@@ -240,9 +240,9 @@ Override Changes:
 @ self (FCMTextExpressionDef)
 ]]
 
-function public:DeepDeleteData()
+function methods:DeepDeleteData()
     mixin_helper.boolean_to_error(self, "DeepDeleteData")
 end
 
 
-return {meta, public}
+return class

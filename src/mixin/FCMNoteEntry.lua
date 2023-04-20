@@ -9,8 +9,8 @@ $module FCMNoteEntry
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 --[[
@@ -20,7 +20,7 @@ local private = setmetatable({}, {__mode = "k"})
 
 @ self (FCMNoteEntry)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -38,7 +38,7 @@ Registers the collection to which this object belongs.
 @ self (FCMNoteEntry)
 @ parent (FCNoteEntryCell)
 ]]
-function public:RegisterParent(parent)
+function methods:RegisterParent(parent)
     mixin_helper.assert_argument_type(2, parent, "FCNoteEntryCell")
 
     if not private[self].Parent then
@@ -54,8 +54,8 @@ Returns the collection to which this object belongs.
 @ self (FCMNoteEntry)
 : (FCMNoteEntryCell | nil)
 ]]
-function public:GetParent()
+function methods:GetParent()
     return private[self].Parent
 end
 
-return {meta, public}
+return class
