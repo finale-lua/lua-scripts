@@ -5815,8 +5815,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.54"
-    finaleplugin.Date = "2023/04/15"
+    finaleplugin.Version = "v0.55"
+    finaleplugin.Date = "2023/04/17"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.64
     finaleplugin.AdditionalMenuOptions = [[
@@ -6346,7 +6346,8 @@ function shift_smart_shapes(rgn, measure_num, pos_offset)
                     end
                 end
                 shape:Save()
-            elseif (m[2] < measure_num + 2) or m[1] > measure_num then
+
+            elseif m[1] == (measure_num + 1) or m[2] == (measure_num + 1) then
                 local entry = {
                     entry_from_enum(m[1], segment[1].Staff, segment[1].EntryNumber),
                     entry_from_enum(m[2], segment[2].Staff, segment[2].EntryNumber)
@@ -6382,20 +6383,33 @@ function shift_smart_shapes(rgn, measure_num, pos_offset)
     end
     return slurs, saved_expressions
 end
-function make_entry_smartshape(start_entry, end_entry, old_shape)
+function make_entry_smartshape(start_entry, end_entry, shape)
+    local seg = { shape:GetTerminateSegmentLeft(), shape:GetTerminateSegmentRight() }
     local new_shape = mixin.FCMSmartShape()
     local new_seg = { new_shape:GetTerminateSegmentLeft(), new_shape:GetTerminateSegmentRight() }
-    local old_seg = { old_shape:GetTerminateSegmentLeft(), old_shape:GetTerminateSegmentRight() }
     new_shape:SetEntryAttachedFlags(true)
-    for _, v in ipairs( {"ShapeType", "PresetShape", "LineID", "EngraverSlur",
-            "MakeHorizontal", "MaintainAngle", "AvoidAccidentals", "BeatAttached"} ) do
-        new_shape[v] = old_shape[v]
+    for _, v in ipairs(
+            {"ShapeType", "PresetShape", "LineID", "EngraverSlur",
+             "MakeHorizontal", "MaintainAngle", "AvoidAccidentals"} ) do
+        new_shape[v] = shape[v]
     end
-    new_seg[1]:SetEntry(start_entry):SetCustomOffset(false)
-    new_seg[2]:SetEntry(end_entry):SetCustomOffset(true)
+    new_seg[1]:SetEntry(start_entry)
+    new_seg[2]:SetEntry(end_entry)
+    if not shape:IsSlur() then
+        new_seg[1]:SetCustomOffset(false)
+        new_seg[2]:SetCustomOffset(true)
+    end
     for _, v in ipairs( {"Staff", "Measure", "NoteID", "EndpointOffsetX", "EndpointOffsetY" } ) do
-        new_seg[1][v] = old_seg[1][v]
-        new_seg[2][v] = old_seg[2][v]
+        new_seg[1][v] = seg[1][v]
+        new_seg[2][v] = seg[2][v]
+    end
+    local cpa = { old = shape:GetCtrlPointAdjust(), new = new_shape:GetCtrlPointAdjust() }
+    if cpa.old.CustomShaped then
+        cpa.new.CustomShaped = true
+        for _, v in ipairs( { "ControlPoint1OffsetX", "ControlPoint1OffsetY",
+                "ControlPoint2OffsetX", "ControlPoint2OffsetY" } ) do
+            cpa.new[v] = cpa.old[v]
+        end
     end
     new_shape:SaveNewEverything(start_entry, end_entry)
 end
@@ -6403,7 +6417,7 @@ function restore_slurs(measure_num, pos_offset, slurs, expressions)
     if #slurs > 0 then
         for _, slur in ipairs(slurs) do
             for i = 1, 2 do
-                if not slur[i].entry then
+                if not slur[i].entry and slur[i].pos ~= nil then
                     local cell = finale.FCNoteEntryCell(slur[i].m, slur[i].staff)
                     cell:Load()
                     slur[i].entry = cell:FindClosestPos(slur[i].pos)
