@@ -7,8 +7,8 @@ $module FCXCtrlMeasurementEdit
 
 _Note that the type should be set **before** setting any values._
 
-Summary of modifications:
-- Parent window must be an instance of `FCXCustomLuaWindow`.
+## Summary of Modifications
+- Parent window must be an instance of `FCMCustomLuaWindow`.
 - Displayed measurement unit will be automatically updated with the parent window.
 - Measurement edits can be set to one of four types which correspond to the `GetMeasurement*`, `SetMeasurement*` and *GetRangeMeasurement*` methods. The type affects which methods are used for changing measurement units, for events, and for interacting with an `FCXCtrlUpDown` control.
 - All measurement get and set methods no longer accept a measurement unit as this is taken from the parent window.
@@ -20,8 +20,9 @@ local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local utils = require("library.utils")
 
+local meta = {Parent = "FCMCtrlEdit"}
+local public = {}
 local private = setmetatable({}, {__mode = "k"})
-local props = {MixinParent = "FCMCtrlEdit"}
 
 local trigger_change
 local each_last_change
@@ -63,11 +64,15 @@ end
 
 @ self (FCXCtrlMeasurementEdit)
 ]]
-function props:Init()
-    local parent = self:GetParent()
-    mixin_helper.assert(function() return mixin_helper.is_instance_of(parent, "FCXCustomLuaWindow") end, "FCXCtrlMeasurementEdit must have a parent window that is an instance of FCXCustomLuaWindow")
+function meta:Init()
+    if private[self] then
+        return
+    end
 
-    private[self] = private[self] or {
+    local parent = self:GetParent()
+    mixin_helper.assert(function() return mixin_helper.is_instance_of(parent, "FCMCustomLuaWindow") end, "FCXCtrlMeasurementEdit must have a parent window that is an instance of FCMCustomLuaWindow")
+
+    private[self] = {
         Type = "MeasurementInteger",
         LastMeasurementUnit = parent:GetMeasurementUnit(),
         LastText = mixin.FCMCtrlEdit.GetText(self),
@@ -79,17 +84,21 @@ end
 % SetText
 
 **[Fluid] [Override]**
-Ensures that the overridden `Change` event is triggered.
+
+Override Changes:
+- Ensures that the overridden `Change` event is triggered.
 
 @ self (FCXCtrlMeasurementEdit)
-@ str (FCString|string|number)
+@ str (FCString | string | number)
 ]]
 
 --[[
 % SetInteger
 
 **[Fluid] [Override]**
-Ensures that the overridden `Change` event is triggered.
+
+Override Changes:
+- Ensures that the overridden `Change` event is triggered.
 
 @ self (FCXCtrlMeasurementEdit)
 @ anint (number)
@@ -99,7 +108,9 @@ Ensures that the overridden `Change` event is triggered.
 % SetFloat
 
 **[Fluid] [Override]**
-Ensures that the overridden `Change` event is triggered.
+
+Override Changes:
+- Ensures that the overridden `Change` event is triggered.
 
 @ self (FCXCtrlMeasurementEdit)
 @ value (number)
@@ -110,7 +121,7 @@ for method, valid_types in pairs({
     Integer = {"number"},
     Float = {"number"},
 }) do
-    props["Set" .. method] = function(self, value)
+    public["Set" .. method] = function(self, value)
         mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
 
         mixin.FCMCtrlEdit["Set" .. method](self, value)
@@ -127,15 +138,17 @@ The default type is `"MeasurementInteger"`.
 @ self (FCXCtrlMeasurementEdit)
 : (string) `"Measurement"`, `"MeasurementInteger"`, `"MeasurementEfix"`, or `"Measurement10000th"`
 ]]
-function props:GetType()
+function public:GetType()
     return private[self].Type
 end
 
 --[[
 % GetMeasurement
 
-**[Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
+**[Breaking Change] [Override]**
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
 
 @ self (FCXCtrlMeasurementEdit)
 : (number)
@@ -144,8 +157,10 @@ Removes the measurement unit parameter, taking it instead from the parent window
 --[[
 % GetRangeMeasurement
 
-**[Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
+**[Breaking Change] [Override]**
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
 
 @ self (FCXCtrlMeasurementEdit)
 @ minimum (number)
@@ -156,9 +171,11 @@ Removes the measurement unit parameter, taking it instead from the parent window
 --[[
 % SetMeasurement
 
-**[Fluid] [Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
-Also ensures that the overridden `Change` event is triggered.
+**[Breaking Change] [Fluid] [Override]**
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
+- Ensures that the overridden `Change` event is triggered.
 
 @ self (FCXCtrlMeasurementEdit)
 @ value (number)
@@ -177,6 +194,7 @@ Checks if the type is `"Measurement"`.
 % SetTypeMeasurement
 
 **[Fluid]**
+
 Sets the type to `"Measurement"`.
 This means that the getters & setters used in events, measurement unit changes, and up down controls are `GetMeasurement`, `GetRangeMeasurement`, and `SetMeasurement`.
 
@@ -186,8 +204,10 @@ This means that the getters & setters used in events, measurement unit changes, 
 --[[
 % GetMeasurementInteger
 
-**[Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
+**[Breaking Change] [Override]**
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
 
 @ self (FCXCtrlMeasurementEdit)
 : (number)
@@ -196,8 +216,10 @@ Removes the measurement unit parameter, taking it instead from the parent window
 --[[
 % GetRangeMeasurementInteger
 
-**[Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
+**[Breaking Change] [Override]**
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
 
 @ self (FCXCtrlMeasurementEdit)
 @ minimum (number)
@@ -209,8 +231,10 @@ Removes the measurement unit parameter, taking it instead from the parent window
 % SetMeasurementInteger
 
 **[Fluid] [Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
-Also ensures that the overridden `Change` event is triggered.
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
+- Ensures that the overridden `Change` event is triggered.
 
 @ self (FCXCtrlMeasurementEdit)
 @ value (number)
@@ -229,6 +253,7 @@ Checks if the type is `"MeasurementInteger"`.
 % SetTypeMeasurementInteger
 
 **[Fluid]**
+
 Sets the type to `"MeasurementInteger"`. This is the default type.
 This means that the getters & setters used in events, measurement unit changes, and up down controls are `GetMeasurementInteger`, `GetRangeMeasurementInteger`, and `SetMeasurementInteger`.
 
@@ -238,8 +263,10 @@ This means that the getters & setters used in events, measurement unit changes, 
 --[[
 % GetMeasurementEfix
 
-**[Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
+**[Breaking Change] [Override]**
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
 
 @ self (FCXCtrlMeasurementEdit)
 : (number)
@@ -248,8 +275,10 @@ Removes the measurement unit parameter, taking it instead from the parent window
 --[[
 % GetRangeMeasurementEfix
 
-**[Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
+**[Breaking Change] [Override]**
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
 
 @ self (FCXCtrlMeasurementEdit)
 @ minimum (number)
@@ -260,9 +289,11 @@ Removes the measurement unit parameter, taking it instead from the parent window
 --[[
 % SetMeasurementEfix
 
-**[Fluid] [Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
-Also ensures that the overridden `Change` event is triggered.
+**[Breaking Change] [Fluid] [Override]**
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
+- Ensures that the overridden `Change` event is triggered.
 
 @ self (FCXCtrlMeasurementEdit)
 @ value (number)
@@ -281,6 +312,7 @@ Checks if the type is `"MeasurementEfix"`.
 % SetTypeMeasurementEfix
 
 **[Fluid]**
+
 Sets the type to `"MeasurementEfix"`.
 This means that the getters & setters used in events, measurement unit changes, and up down controls are `GetMeasurementEfix`, `GetRangeMeasurementEfix`, and `SetMeasurementEfix`.
 
@@ -290,8 +322,10 @@ This means that the getters & setters used in events, measurement unit changes, 
 --[[
 % GetMeasurement10000th
 
-**[Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
+**[Breaking Change] [Override]**
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
 
 @ self (FCXCtrlMeasurementEdit)
 : (number)
@@ -300,8 +334,10 @@ Removes the measurement unit parameter, taking it instead from the parent window
 --[[
 % GetRangeMeasurement10000th
 
-**[Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
+**[Breaking Change] [Override]**
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
 
 @ self (FCXCtrlMeasurementEdit)
 @ minimum (number)
@@ -312,9 +348,11 @@ Removes the measurement unit parameter, taking it instead from the parent window
 --[[
 % SetMeasurement10000th
 
-**[Fluid] [Override]**
-Removes the measurement unit parameter, taking it instead from the parent window.
-Also ensures that the overridden `Change` event is triggered.
+**[Breaking Change] [Fluid] [Override]**
+
+Override Changes:
+- Removes the measurement unit parameter, taking it instead from the parent window.
+- Ensures that the overridden `Change` event is triggered.
 
 @ self (FCXCtrlMeasurementEdit)
 @ value (number)
@@ -333,6 +371,7 @@ Checks if the type is `"Measurement10000th"`.
 % SetTypeMeasurement10000th
 
 **[Fluid]**
+
 Sets the type to `"Measurement10000th"`.
 This means that the getters & setters used in events, measurement unit changes, and up down controls are `GetMeasurement10000th`, `GetRangeMeasurement10000th`, and `SetMeasurement10000th`.
 
@@ -345,7 +384,7 @@ for method, valid_types in pairs({
     MeasurementEfix = {"number"},
     Measurement10000th = {"number"},
 }) do
-    props["Get" .. method] = function(self)
+    public["Get" .. method] = function(self)
         local text = mixin.FCMCtrlEdit.GetText(self)
         if (text ~= private[self].LastText) then
             private[self].Value = mixin.FCMCtrlEdit["Get" .. private[self].Type](self, private[self].LastMeasurementUnit)
@@ -355,7 +394,7 @@ for method, valid_types in pairs({
         return convert_type(private[self].Value, private[self].Type, method)
     end
 
-    props["GetRange" .. method] = function(self, minimum, maximum)
+    public["GetRange" .. method] = function(self, minimum, maximum)
         mixin_helper.assert_argument_type(2, minimum, "number")
         mixin_helper.assert_argument_type(3, maximum, "number")
 
@@ -364,7 +403,7 @@ for method, valid_types in pairs({
         return utils.clamp(mixin.FCXCtrlMeasurementEdit["Get" .. method](self), minimum, maximum)
     end
 
-    props["Set" .. method] = function (self, value)
+    public["Set" .. method] = function (self, value)
         mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
 
         private[self].Value = convert_type(value, method, private[self].Type)
@@ -373,11 +412,11 @@ for method, valid_types in pairs({
         trigger_change(self)
     end
 
-    props["IsType" .. method] = function(self)
+    public["IsType" .. method] = function(self)
         return private[self].Type == method
     end
 
-    props["SetType" .. method] = function(self)
+    public["SetType" .. method] = function(self)
         private[self].Value = convert_type(private[self].Value, private[self].Type, method)
         for v in each_last_change(self) do
             v.last_value = convert_type(v.last_value, private[self].Type, method)
@@ -391,11 +430,12 @@ end
 % UpdateMeasurementUnit
 
 **[Fluid] [Internal]**
+
 Checks the parent window for a change in measurement unit and updates the control if needed.
 
 @ self (FCXCtrlMeasurementEdit)
 ]]
-function props:UpdateMeasurementUnit()
+function public:UpdateMeasurementUnit()
     local new_unit = self:GetParent():GetMeasurementUnit()
 
     if private[self].LastMeasurementUnit ~= new_unit then
@@ -409,10 +449,12 @@ end
 % HandleChange
 
 **[Callback Template] [Override]**
+
 The type and unit of `last_value` will change depending on the measurement edit's type. The possibilities are:
 - `"Measurement"` => EVPUs (with fractional part)
 - `"MeasurementInteger"` => whole EVPUs (without fractional part)
 - `"MeasurementEfix"` => EFIXes (1 EFIX is 1/64th of an EVPU)
+- `"Measurement10000th"` => whole 10,000ths of an EVPU
 
 @ control (FCXCtrlMeasurementEdit) The control that was changed.
 @ last_value (number) The previous measurement value of the control.
@@ -422,12 +464,10 @@ The type and unit of `last_value` will change depending on the measurement edit'
 % AddHandleChange
 
 **[Fluid] [Override]**
-Adds a handler for when the value of the control changes.
-The even will fire when:
-- The window is created (if the value of the control is not an empty string)
-- The value of the control is changed by the user
-- The value of the control is changed programmatically (if the value of the control is changed within a handler, that *same* handler will not be called again for that change.)
-- A measurement unit change will only trigger the event if the underlying measurement value has changed.
+
+Override Changes:
+- Only adds a handler for the `FCXCtrlMeasurementEdit`-specific `Change` event.
+- A measurement unit change may trigger the event but only if the underlying measurement value has changed.
 
 @ self (FCXCtrlMeasurementEdit)
 @ callback (function) See `HandleChange` for callback signature.
@@ -437,12 +477,14 @@ The even will fire when:
 % RemoveHandleChange
 
 **[Fluid] [Override]**
-Removes a handler added with `AddHandleChange`.
+
+Override Changes:
+- Only removes a handler for the `FCXCtrlMeasurementEdit`-specific `Change` event.
 
 @ self (FCXCtrlMeasurementEdit)
 @ callback (function)
 ]]
-props.AddHandleChange, props.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
+public.AddHandleChange, public.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
     {
         name = "last_value",
         get = function(self)
@@ -452,4 +494,4 @@ props.AddHandleChange, props.RemoveHandleChange, trigger_change, each_last_chang
     }
 )
 
-return props
+return {meta, public}

@@ -3,15 +3,16 @@
 --[[
 $module FCMPage
 
-Summary of modifications:
+## Summary of Modifications
 - Added methods for getting and setting the page size by its name according to the `page_size` library.
-- Added method for checking if the page is blank.
+- Added `IsBlank` method.
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local page_size = require("library.page_size")
 
-local props = {}
+local meta = {}
+local public = {}
 
 --[[
 % GetSize
@@ -19,9 +20,9 @@ local props = {}
 Returns the size of the page.
 
 @ self (FCMPage)
-: (string|nil) The page size or `nil` if there is no defined size that matches the dimensions of this page.
+: (string | nil) The page size or `nil` if there is no defined size that matches the dimensions of this page.
 ]]
-function props:GetSize()
+function public:GetSize()
     return page_size.get_page_size(self)
 end
 
@@ -34,7 +35,7 @@ Sets the dimensions of this page to match the given size. Page orientation will 
 @ self (FCMPage)
 @ size (string) A defined page size.
 ]]
-function props:SetSize(size)
+function public:SetSize(size)
     mixin_helper.assert_argument_type(2, size, "string")
     mixin_helper.assert(page_size.is_size(size), "'" .. size .. "' is not a valid page size.")
 
@@ -47,10 +48,10 @@ end
 Checks if this is a blank page (ie it contains no systems).
 
 @ self (FCMPage)
-: (boolean) `true` if this is page is blank
+: (boolean) `true` if this page is blank
 ]]
-function props:IsBlank()
+function public:IsBlank()
     return self:GetFirstSystem() == -1
 end
 
-return props
+return {meta, public}

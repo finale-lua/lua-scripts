@@ -170,7 +170,7 @@ end
 --[[
 % SetDescription
 
-**[Breaking Change] [Fluid] [Override]**
+**[Fluid] [Override]**
 
 Override Changes:
 - Accepts Lua `string` in addition to `FCString`.
@@ -189,14 +189,14 @@ end
 --[[
 % GetDescription
 
-**[Breaking Change] [Fluid] [Override]**
+**[?Fluid] [Override]**
 
 Override Changes:
 - Passing an `FCString` is optional. If omitted, the result is returned as a Lua `string`. If passed, nothing is returned and the method is fluid.
 
 @ self (FCMTextExpressionDef)
 @ [str] (FCString)
-: (string) If `FCString` is omitted.
+: (string) Returned if `str` is omitted.
 ]]
 
 function public:GetDescription(str)
