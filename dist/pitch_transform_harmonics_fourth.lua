@@ -1601,6 +1601,7 @@ function plugindef()
     finaleplugin.Date = "March 30, 2021"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_transform_harmonics_fourth.hash"
     return "String Harmonics 4th - Sounding Pitch", "String Harmonics 4th - Sounding Pitch",
            "Takes a sounding pitch, then creates the artificial harmonic that would produce that pitch"
 end

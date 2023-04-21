@@ -19,6 +19,7 @@ function plugindef()
         lock = "Score"
         lock = "Parts"
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/systems_lock.hash"
     return "Lock Systems (All)", "Lock Systems (All)", "Lock All Systems (Score & Parts)"
 end
 lock = lock or "All"

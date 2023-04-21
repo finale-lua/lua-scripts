@@ -12,6 +12,7 @@ function plugindef()
         are inaccessible unless you add in dummy expressions to fill in the gaps. This script builds a report of any such
         expression definitions.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_find_orphaned_definitions.hash"
     return "Expression Find Orphans", "Expression Find Orphans",
            "Reports any orphaned expression definitions not visible in the Expression Selection Dialog."
 end

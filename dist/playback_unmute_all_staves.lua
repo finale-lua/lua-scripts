@@ -9,6 +9,7 @@ function plugindef()
     finaleplugin.Notes = [[
         Run this script and all staves will be unmuted.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_unmute_all_staves.hash"
     return "Unmute all staves", "Unmute all staves", "Unmutes all staves"
 end
 function playback_unmute_all_staves()

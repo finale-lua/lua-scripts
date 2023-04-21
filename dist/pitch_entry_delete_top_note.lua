@@ -296,6 +296,7 @@ function plugindef()
     finaleplugin.Date = "June 7, 2020"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_entry_delete_top_note.hash"
     return "Chord Line - Delete Top Note", "Chord Line - Delete Top Note", "Deletes the top note of every chord"
 end
 local note_entry = require("library.note_entry")

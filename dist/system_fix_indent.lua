@@ -517,6 +517,7 @@ function plugindef()
         non-first systems. This script gets those values out of Page Format For Score or Page Format For Parts,
         depending on whether we are currently viewing score or part.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/system_fix_indent.hash"
     return "Fix Indent From Doc. Settings", "Fix Indent From Doc. Settings", "Resets the left-side indentation of selected systems using the Page Format For options."
 end
 local library = require("library.general_library")

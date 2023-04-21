@@ -358,6 +358,7 @@ function plugindef()
         direction = 1 baseline_types = {finale.BASELINEMODE_FRETBOARD}
         direction = 0 baseline_types = {finale.BASELINEMODE_FRETBOARD}
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/baseline_move_reset.hash"
     return "Move Lyric Baselines Down", "Move Lyrics Baselines Down", "Moves all lyrics baselines down one space in the selected systems"
 end
 local configuration = require("library.configuration")

@@ -7,6 +7,7 @@ function plugindef()
     finaleplugin.Date = "2022-10-20"
     finaleplugin.RequireSelection = true
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/lyrics_baseline_reset.hash"
    return "Reset Lyric Baselines (system specific)", "Reset Lyric Baselines (system specific)", "Resets Lyric Baselines on a system-by-system basis (3rd triangle)"
 end
 function lyrics_baseline_reset()

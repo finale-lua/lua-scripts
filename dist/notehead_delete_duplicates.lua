@@ -295,6 +295,7 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "March 8, 2021"
     finaleplugin.CategoryTags = "Note"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/notehead_delete_duplicates.hash"
     return "Delete Duplicate Noteheads", "Delete Duplicate Noteheads", "Removes duplicate noteheads from chords and adjusts ties as needed."
 end
 local note_entry = require("library.note_entry")

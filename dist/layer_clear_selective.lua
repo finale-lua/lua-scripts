@@ -4690,6 +4690,7 @@ function plugindef()
         Clear all music from the chosen layer in the currently selected region.
         (The chosen layer will be cleared for a whole measure even if the measure is only partially selected).
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/layer_clear_selective.hash"
     return "Clear Layer Selective", "Clear Layer Selective", "Clear the chosen layer"
 end
 local layer = require("library.layer")

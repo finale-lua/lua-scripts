@@ -292,6 +292,7 @@ function plugindef()
     finaleplugin.AuthorURL = "www.michaelmcclennan.com"
     finaleplugin.AuthorEmail = "info@michaelmcclennan.com"
     finaleplugin.CategoryTags = "Chord"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/chord_accidental_adjust_up.hash"
     return "Chord Accidental - Move Up", "Adjust Chord Accidental Up", "Adjust the accidental of chord symbol up"
 end
 local configuration = require("library.configuration")

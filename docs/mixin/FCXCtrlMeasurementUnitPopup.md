@@ -35,7 +35,7 @@ Event listeners for changes of measurement unit should be added to the parent wi
 fcxctrlmeasurementunitpopup.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementUnitPopup.lua#L61)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementUnitPopup.lua#L61)
 
 **[Internal]**
 
@@ -49,7 +49,7 @@ fcxctrlmeasurementunitpopup.Init(self)
 fcxctrlmeasurementunitpopup.UpdateMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCtrlMeasurementUnitPopup.lua#L90)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementUnitPopup.lua#L90)
 
 **[Fluid] [Internal]**
 

@@ -511,6 +511,7 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "June 12, 2020"
     finaleplugin.CategoryTags = "Staff"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_groups_copy_score_to_part.hash"
     return "Group Copy Score to Part", "Group Copy Score to Part",
            "Copies any applicable groups from the score to the current part in view."
 end

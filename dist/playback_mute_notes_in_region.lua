@@ -2,6 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk, Peter DeVita"
     finaleplugin.Version = "1.0.1"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_mute_notes_in_region.hash"
     return "Playback - Mute Notes", "Playback - Mute Notes", "Mute all the notes in the selected region"
 end
 function playback_entries_mute(layers_input)

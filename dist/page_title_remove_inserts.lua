@@ -141,6 +141,7 @@ function plugindef()
         one or more inserts. This script allows you to select a Page Text and remove
         the inserts with no fuss.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/page_title_remove_inserts.hash"
     return "Remove Inserts From Page Text...", "Remove Inserts From Page Text",
            "Removes text inserts from selected Page Text."
 end

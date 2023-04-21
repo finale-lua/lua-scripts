@@ -515,6 +515,7 @@ function plugindef()
         This script replaces the JW New Piece plugin, which is no longer available on Macs running M1 code.
         It creates a movement break starting with the first selected measure.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_create_movement_break.hash"
     return "Create Movement Break", "Create Movement Break", "Creates a movement break at the first selected measure."
 end
 local library = require("library.general_library")

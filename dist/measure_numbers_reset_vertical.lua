@@ -509,6 +509,7 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "July 7, 2021"
     finaleplugin.CategoryTags = "Measure"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_numbers_reset_vertical.hash"
     return "Measure Numbers Reset Vertical", "Measure Numbers Reset Vertical", "Reset vertical position to default for selected measure numbers."
 end
 local library = require("library.general_library")

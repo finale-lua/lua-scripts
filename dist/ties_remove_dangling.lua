@@ -1007,7 +1007,7 @@ function plugindef()
   finaleplugin.Version = "1.0.1"
   finaleplugin.Date = "2022-08-26"
   finaleplugin.RequireSelection = true
-  finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
+  finaleplugin.AuthorEmail = "jacob.winkler@mac.com"    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/ties_remove_dangling.hash"
   return "Ties: Remove Dangling", "Ties: Remove Dangling", "Removes dangling ties (ties that go nowhere)."
 end
 

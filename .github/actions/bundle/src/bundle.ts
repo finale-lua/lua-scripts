@@ -4,6 +4,7 @@ import { getAllImports } from './helpers'
 import { resolveRequiredFile } from './lua-require'
 import { removeComments } from './remove-comments'
 import { wrapImport } from './wrap-import'
+import { injectExtras } from './inject-extras';
 
 export type ImportedFile = {
     dependencies: string[]
@@ -34,7 +35,7 @@ export const bundleFileBase = (
     mixins: string[],
     fetcher: (name: string) => string
 ) => {
-    const fileContents = fetcher(name)
+    const fileContents = injectExtras(name, fetcher(name))
     const fileStack: string[] = [fileContents]
     const importStack: string[] = getAllImports(fileContents)
     const importedFileNames = new Set<string>()

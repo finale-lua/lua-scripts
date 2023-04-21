@@ -7,6 +7,7 @@ function plugindef()
    finaleplugin.Version = "1.0"
    finaleplugin.Date = "June 10, 2020"
    finaleplugin.CategoryTags = "Measure"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_force_full_names.hash"
    return "Force Full Names", "Force Full Names", "Force first selected measure to show full staff names."
 end
 function measure_force_full_names()

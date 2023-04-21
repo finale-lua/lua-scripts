@@ -5867,6 +5867,7 @@ function plugindef()
         To configure script settings select the "Measure Span Options..." menu item,
         or else hold down the SHIFT or ALT (option) key when invoking "Join" or "Divide".
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_span.hash"
     return "Measure Span Options...", "Measure Span Options", "Change the default behaviour of the Measure Span script"
 end
 local info = [[This script changes the "span" of every measure in the currently selected music by manipulating its time signature, either dividing it into two or combining it with the following measure. Many measures with different time signatures can be modified at once.

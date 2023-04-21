@@ -304,7 +304,7 @@ There are buttons for each instrument that will copy the full name into the abbr
 There is a popup at the bottom of the list that will automatically set all transposing instruments to show either the instrument and then the transposition (e.g. "Clarinet in Bb"), or the transposition and then the instrument (e.g. "Bb Clarinet").
 
 Speaking of the Bb Clarinet... Accidentals are displayed with square brackets, so the dialog will show "B[b] Clarinet". This is then converted into symbols using the appropriate Enigma tags. All other font info is retained.
-]]
+]]    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_rename.hash"
     return "Rename Staves", "Rename Staves", "Renames selected staves"
 end
 

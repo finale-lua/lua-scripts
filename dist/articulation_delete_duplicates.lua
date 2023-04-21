@@ -5,6 +5,7 @@ function plugindef()
     finaleplugin.Date = "June 22, 2020"
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.RequireSelection = true
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/articulation_delete_duplicates.hash"
     return "Remove Duplicate Articulations", "Remove Duplicate Articulations", "Remove Duplicate Articulations"
 end
 function articulation_delete_duplicates()

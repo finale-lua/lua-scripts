@@ -25,6 +25,7 @@ function plugindef()
         It helps improve readability of music with lots of short notes and rests.
         It creates two menu items, `Note Ends Eighths` and `Note Ends Quarters`.
 ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_ends.hash"
     return "Note Ends Quarters", "Note Ends Quarters", "Change smaller notes followed by rests into quarter notes"
 end
 eighth_notes = eighth_notes or false

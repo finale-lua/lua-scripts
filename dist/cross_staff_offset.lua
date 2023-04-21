@@ -4830,6 +4830,7 @@ function plugindef()
         If you want to repeat your last settings without a confirmation dialog,
         just hold down the SHIFT or ALT (option) key when selecting the script's menu item.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/cross_staff_offset.hash"
    return "CrossStaff Offset...", "CrossStaff Offset", "Offset horizontal position of cross-staff note entries"
 end
 local config = {

@@ -296,6 +296,7 @@ function plugindef()
     finaleplugin.Date = "June 12, 2020"
     finaleplugin.CategoryTags = "Note"
     finaleplugin.RequireSelection = true
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_add_augmentation_dots.hash"
     return "Add Augmentation Dots", "Add Augmentation Dots",
            "Add an augmentation dot to all notes and rests in selected region."
 end

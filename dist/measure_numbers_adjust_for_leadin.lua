@@ -509,6 +509,7 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "June 19, 2020"
     finaleplugin.CategoryTags = "Measure"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_numbers_adjust_for_leadin.hash"
     return "Measure Numbers Adjust for Key, Time, Repeat", "Measure Numbers Adjust for Key, Time, Repeat", "Adjusts all measure numbers left where there is a key signature, time signature, or start repeat."
 end
 local library = require("library.general_library")

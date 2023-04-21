@@ -1401,6 +1401,7 @@ function plugindef()
         All existing staffs will be deleted. And in their place, the string orchestra will be created.
         This script uses the standard ensemble creation configuration options.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/score_create_string_orchestra_score.hash"
     return "Create string orchestra score", "Create string orchestra score",
            "Creates the score setup correctly for string orchestra"
 end

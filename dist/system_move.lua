@@ -16,6 +16,7 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
         move_direction = 1
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/system_move.hash"
     return "Move System Up", "Move System Up", "Moves the selected system up one space"
 end
 config = {

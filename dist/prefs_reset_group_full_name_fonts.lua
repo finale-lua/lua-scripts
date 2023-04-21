@@ -639,6 +639,7 @@ function plugindef()
     finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "June 12, 2020"
     finaleplugin.CategoryTags = "Staff"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/prefs_reset_group_full_name_fonts.hash"
     return "Reset Full Group Name Fonts", "Reset Full Group Name Fonts",
            "Reset all full group names to document's default font settings."
 end

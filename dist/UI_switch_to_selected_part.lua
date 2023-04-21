@@ -510,6 +510,7 @@ function plugindef()
     finaleplugin.Version = "1.3"
     finaleplugin.Date = "February 14, 2022"
     finaleplugin.CategoryTags = "UI"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/UI_switch_to_selected_part.hash"
     return "Switch To Selected Part", "Switch To Selected Part",
            "Switches to the first part of the top staff in a selected region in a score. Switches back to the score if viewing a part."
 end

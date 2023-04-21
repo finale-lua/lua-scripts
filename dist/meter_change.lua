@@ -358,6 +358,7 @@ function plugindef()
         numerator = 12 denominator = 8
         numerator = 15 denominator = 8
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/meter_change.hash"
     return "Meter - 4/4", "Meter - 4/4", "Sets the meter as indicated in a selected range."
 end
 local configuration = require("library.configuration")

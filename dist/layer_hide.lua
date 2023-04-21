@@ -4703,6 +4703,7 @@ function plugindef()
 		Hide or unhide chosen layers in the current selection.
 		This script creates two menu item, `Layer Hide` and `Layer Unhide`.
 	]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/layer_hide.hash"
     return "Layer Hide", "Layer Hide", "Hide chosen layer in the current music selection"
 end
 layer_visibility = layer_visibility or false

@@ -9,6 +9,7 @@ function plugindef()
     finaleplugin.Notes = [[
         Select the staves you want soloed, then run this script.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_solo_selected_staves.hash"
     return "Solo selected staves", "Solo selected staves", "Solos selected staves"
 end
 function playback_solo_selected_staves()

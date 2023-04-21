@@ -134,6 +134,7 @@ function plugindef()
     finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "June 12, 2020"
     finaleplugin.CategoryTags = "Lyric"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/prefs_reset_lyrics_fonts.hash"
     return "Reset Lyrics Fonts", "Reset Lyrics Fonts", "Reset lyrics to document\'s default font settings."
 end
 local enigma_string = require("library.enigma_string")

@@ -15,7 +15,7 @@
 fcmtreenode.GetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMTreeNode.lua#L30)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMTreeNode.lua#L30)
 
 **[?Fluid] [Override]**
 
@@ -37,7 +37,7 @@ Override Changes:
 fcmtreenode.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMTreeNode.lua#L57)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMTreeNode.lua#L57)
 
 **[Fluid] [Override]**
 

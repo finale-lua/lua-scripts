@@ -4850,6 +4850,7 @@ function plugindef()
         will make the changes using your most recent values without showing any
         confirmation dialog window (or any other visual confirmation!)
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/midi_note_values.hash"
     return "MIDI Note Values...", "MIDI Note Values", "Change the MIDI velocity and duration values of notes by layer"
 end
 action = action or 1

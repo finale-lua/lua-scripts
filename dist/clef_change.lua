@@ -395,7 +395,7 @@ function plugindef()
     clef_type = "tenor"
     clef_type = "tenor_voice"
     clef_type = "percussion"
-    ]]
+    ]]    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/clef_change.hash"
     return "Clef 1: Treble", "Clef 1: Treble", "Changes the selected region to treble clef"
 end
 

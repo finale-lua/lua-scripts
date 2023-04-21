@@ -37,7 +37,7 @@
 fcmcustomwindow.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L44)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L44)
 
 **[Internal]**
 
@@ -51,7 +51,7 @@ fcmcustomwindow.Init(self)
 fcmcustomwindow.CreateCancelButton(self, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -74,7 +74,7 @@ Override Changes:
 fcmcustomwindow.CreateOkButton(self, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -97,7 +97,7 @@ Override Changes:
 fcmcustomwindow.CreateButton(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -122,7 +122,7 @@ Override Changes:
 fcmcustomwindow.CreateCheckbox(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -147,7 +147,7 @@ Override Changes:
 fcmcustomwindow.CreateCloseButton(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[>= v0.56] [Override]**
 
@@ -171,7 +171,7 @@ Override Changes:
 fcmcustomwindow.CreateDataList(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -196,7 +196,7 @@ Override Changes:
 fcmcustomwindow.CreateEdit(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -221,7 +221,7 @@ Override Changes:
 fcmcustomwindow.CreateListBox(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -246,7 +246,7 @@ Override Changes:
 fcmcustomwindow.CreatePopup(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -271,7 +271,7 @@ Override Changes:
 fcmcustomwindow.CreateSlider(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -296,7 +296,7 @@ Override Changes:
 fcmcustomwindow.CreateStatic(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -321,7 +321,7 @@ Override Changes:
 fcmcustomwindow.CreateSwitcher(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -346,7 +346,7 @@ Override Changes:
 fcmcustomwindow.CreateTree(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -371,7 +371,7 @@ Override Changes:
 fcmcustomwindow.CreateUpDown(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -396,7 +396,7 @@ Override Changes:
 fcmcustomwindow.CreateHorizontalLine(self, x, y, length, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -422,7 +422,7 @@ Override Changes:
 fcmcustomwindow.CreateVerticalLine(self, x, y, length, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L-1)
 
 **[Override]**
 
@@ -448,7 +448,7 @@ Override Changes:
 fcmcustomwindow.FindControl(self, control_id)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L349)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L349)
 
 **[PDK Port]**
 
@@ -472,7 +472,7 @@ Port Changes:
 fcmcustomwindow.GetControl(self, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L364)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L364)
 
 Finds a control based on its name.
 
@@ -491,7 +491,7 @@ Finds a control based on its name.
 fcmcustomwindow.Each(self, class_filter)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L379)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L379)
 
 An iterator for controls that can filter by class.
 
@@ -510,7 +510,7 @@ An iterator for controls that can filter by class.
 fcmcustomwindow.GetItemAt(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L406)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L406)
 
 **[Override]**
 
@@ -532,7 +532,7 @@ Override Changes:
 fcmcustomwindow.GetParent(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L421)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L421)
 
 **[PDK Port]**
 
@@ -552,7 +552,7 @@ Returns the parent window. The parent will only be available while the window is
 fcmcustomwindow.ExecuteModal(self, parent)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomWindow.lua#L437)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomWindow.lua#L437)
 
 **[Override]**
 

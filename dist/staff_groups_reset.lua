@@ -509,6 +509,7 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "June 12, 2020"
     finaleplugin.CategoryTags = "Staff"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_groups_reset.hash"
     return "Groups Reset", "Groups Reset",
            "Deletes all groups except those starting on the first measure, and extends those for the entire length of the document."
 end

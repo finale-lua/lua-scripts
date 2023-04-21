@@ -644,6 +644,7 @@ function plugindef()
         If you select the entire document before running this script, it modifies any
         full staff names found in staff styles as well.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/prefs_reset_staff_full_name_fonts.hash"
     return "Reset Full Staff Name Fonts", "Reset Full Staff Name Fonts",
            "Reset all full staff names to document's default font settings."
 end

@@ -4735,6 +4735,7 @@ function plugindef()
         An additional `Configuration` menu item is provided to change the script's default settings.
         They can also be changed by holding down either the `shift` or `alt` (option) key when calling the script.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/gracenote_slash.hash"
     return "Gracenote Slash", "Gracenote Slash", "Add a slash to beamed gracenote groups in the current selection"
 end
 slash_configure = slash_configure or false

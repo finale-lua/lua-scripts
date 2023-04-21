@@ -1358,6 +1358,7 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "March 8, 2021"
     finaleplugin.CategoryTags = "Multimeasure Rest"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/mmrest_widen_to_tempo_mark.hash"
     return "Widen Multimeasure Rests to Tempo Mark", "Widen Multimeasure Rests to Tempo Mark", "Widens any multimeasure rest with a tempo mark to be wide enough for the mark."
 end
 local library = require("library.general_library")

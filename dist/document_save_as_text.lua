@@ -5167,6 +5167,7 @@ function plugindef()
         that if there were a printed score that were out of date, this tool would flag the minimum number of changes that needed to
         be hand-corrected in the older score.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/document_save_as_text.hash"
     return "Save Document As Text File...", "", "Write current document to text file."
 end
 local library = require("library.general_library")

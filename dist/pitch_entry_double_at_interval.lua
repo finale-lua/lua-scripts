@@ -937,6 +937,7 @@ function plugindef()
         Intervals are defined as 0=unison, 1=second, 2=third, etc. Positive values transpose up and
         negative values transpose down. See the "AdditionalPrefixes" above for examples.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_entry_double_at_interval.hash"
     return "Octave Doubling Up", "Octave Doubling Up", "Doubles the current note an octave higher"
 end
 local transposition = require("library.transposition")

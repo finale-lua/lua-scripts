@@ -402,6 +402,7 @@ function plugindef()
         As a special case, if a staff contains only single-note entries, they are duplicated to layer 2.
         Markings on the original are not copied to other layers.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_explode_layers.hash"
     return "Staff Explode To Layers", "Staff Explode To Layers", "Explode chords on layer 1 into independent layers"
 end
 local layer = require("library.layer")

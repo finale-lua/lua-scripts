@@ -8,6 +8,7 @@ function plugindef()
         ]]
     finaleplugin.Date = "June 26, 2020"
     finaleplugin.CategoryTags = "Note"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_duration_statistics.hash"
     return "Note Duration Statistics", "Note Duration Statistics",
            "Counts the number of each note value in a given region"
 end

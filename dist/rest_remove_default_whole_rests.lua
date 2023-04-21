@@ -8,6 +8,7 @@ function plugindef()
     finaleplugin.Notes = [[
         This script removes all default whole rests from the entire score.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/rest_remove_default_whole_rests.hash"
     return "Remove default whole rests", "Remove default whole rests",
            "Removes all default whole rests from the entire score"
 end

@@ -650,6 +650,7 @@ function plugindef()
         settings in the new document match the Document Options. This script allows you quickly
         to rectify this unfortunate behavior.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/prefs_reset_staff_abbreviated_name_fonts.hash"
     return "Reset Abbreviated Staff Name Fonts", "Reset Abbreviated Staff Name Fonts",
            "Reset all abbreviated staff names to document's default font settings."
 end

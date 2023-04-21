@@ -1140,6 +1140,7 @@ function plugindef()
         Articulations / Lyrics / Hairpins / Slurs / Custom Lines / Glissandos /
         Smart Shapes (Beat Aligned) / All Smart Shapes / Midi Note Data / Midi Continuous Data
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/delete_selective.hash"
     return "Delete All Expressions", "Delete All Expressions", "Delete all expressions from the selected region"
 end
 delete_type = delete_type or "expression_all"

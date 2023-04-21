@@ -6,6 +6,7 @@ function plugindef()
     finaleplugin.Date = "July 2, 2019"
     finaleplugin.CategoryTags = "Chord"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/chord_toggle_visibility.hash"
     return "Toggle Chord Visibility 2", "Toggle Chord Visibility 2", "Toggles the chords' visibility"
 end
 function chord_toggle_visibility()

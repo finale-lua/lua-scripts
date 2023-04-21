@@ -1024,6 +1024,7 @@ function plugindef()
     Ties notes in adjacent entries if matching pitches are available.
     A companion menu item is also created to `Untie` all notes in the selection.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/notes_tie.hash"
     return "Tie Notes", "Tie Notes", "Tie suitable notes in the selected region"
 end
 untie_notes = untie_notes or false

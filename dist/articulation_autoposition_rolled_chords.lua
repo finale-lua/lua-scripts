@@ -360,6 +360,7 @@ function plugindef()
         the script.
         This script requires RGP Lua 0.59 or later.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/articulation_autoposition_rolled_chords.hash"
     return "Autoposition Rolled Chord Articulations", "Autoposition Rolled Chord Articulations",
             'Automatically positions rolled chords and other articulations with "Copy Main Symbol Vertically" set.'
 end

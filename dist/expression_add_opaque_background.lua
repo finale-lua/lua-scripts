@@ -1072,6 +1072,7 @@ function plugindef()
     finaleplugin.Version = "1.1"
     finaleplugin.Date = "March 20, 2021"
     finaleplugin.CategoryTags = "Expression"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_add_opaque_background.hash"
     return "Expression Add Opaque Background", "Expression Add Opaque Background", "Add an opaque background to any single-staff text expression in the currenly selected region."
 end
 local library = require("library.general_library")

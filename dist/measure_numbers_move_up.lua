@@ -509,6 +509,7 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "June 21, 2020"
     finaleplugin.CategoryTags = "Measure"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_numbers_move_up.hash"
     return "Measure Numbers Move Up", "Measure Numbers Move Up", "Moves selected measure numbers up by one staff space."
 end
 local library = require("library.general_library")

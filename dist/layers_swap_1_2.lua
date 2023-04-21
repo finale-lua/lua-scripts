@@ -109,6 +109,7 @@ function plugindef()
     finaleplugin.Notes = [[
         Swaps layers 1 and 2 for the selected region.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/layers_swap_1_2.hash"
     return "Layer: Swap 1 & 2", "Layer: Swap 1 & 2", "Swaps layers 1 and 2"
 end
 local layers = require("library.layer")
