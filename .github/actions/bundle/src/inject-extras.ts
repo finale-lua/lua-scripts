@@ -1,6 +1,5 @@
 export const injectExtras = (name: string, contents: string): string => {
     const functionRegex = /^(\s*)function\s+plugindef/gm;
-    const notesRegex = /^(\s*)finaleplugin\.Notes/gm;
     const returnRegex = /^(\s*)return/gm;
     const endRegex = /^(\s*)*end/gm;
 
@@ -8,12 +7,10 @@ export const injectExtras = (name: string, contents: string): string => {
     if (functionMatch) {
         const functionIndex = functionMatch.index;
 
-        const notesMatch = notesRegex.exec(contents.substring(functionIndex));
         const returnMatch = returnRegex.exec(contents.substring(functionIndex));
         const endMatch = endRegex.exec(contents.substring(functionIndex));
 
         const index = Math.min(
-            notesMatch ? notesMatch.index : Infinity,
             returnMatch ? returnMatch.index : Infinity,
             endMatch ? endMatch.index : Infinity
         );

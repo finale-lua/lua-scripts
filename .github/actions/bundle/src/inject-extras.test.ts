@@ -87,10 +87,10 @@ return true
 function plugindef()
     finaleplugin.RequireSelection = true
     -- other options
-    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/test.hash"
     finaleplugin.Notes = [[
         This is a description of the plugin.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/test.hash"
     return "1", "2", "3"
 end
 
