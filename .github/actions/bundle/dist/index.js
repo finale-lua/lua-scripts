@@ -4503,6 +4503,7 @@ const helpers_1 = __nccwpck_require__(8092);
 const lua_require_1 = __nccwpck_require__(9083);
 const remove_comments_1 = __nccwpck_require__(6236);
 const wrap_import_1 = __nccwpck_require__(3494);
+const inject_extras_1 = __nccwpck_require__(9879);
 exports.files = {};
 const importFileBase = (name, importedFiles, fetcher) => {
     try {
@@ -4522,7 +4523,7 @@ const importFileBase = (name, importedFiles, fetcher) => {
 exports.importFileBase = importFileBase;
 const bundleFileBase = (name, importedFiles, mixins, fetcher) => {
     var _a;
-    const fileContents = fetcher(name);
+    const fileContents = (0, inject_extras_1.injectExtras)(name, fetcher(name));
     const fileStack = [fileContents];
     const importStack = (0, helpers_1.getAllImports)(fileContents);
     const importedFileNames = new Set();
@@ -4638,6 +4639,37 @@ sourceFiles.forEach(file => {
     const bundledFile = (0, bundle_1.bundleFile)(file, sourcePath, mixins);
     fs_extra_1.default.writeFileSync(path_1.default.join(outputPath, file), bundledFile);
 });
+
+
+/***/ }),
+
+/***/ 9879:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.injectExtras = void 0;
+const injectExtras = (name, contents) => {
+    const functionRegex = /^(\s*)function\s+plugindef/gm;
+    const notesRegex = /^(\s*)finaleplugin\.Notes/gm;
+    const returnRegex = /^(\s*)return/gm;
+    const endRegex = /^(\s*)*end/gm;
+    const functionMatch = functionRegex.exec(contents);
+    if (functionMatch) {
+        const functionIndex = functionMatch.index;
+        const notesMatch = notesRegex.exec(contents.substring(functionIndex));
+        const returnMatch = returnRegex.exec(contents.substring(functionIndex));
+        const endMatch = endRegex.exec(contents.substring(functionIndex));
+        const index = Math.min(notesMatch ? notesMatch.index : Infinity, returnMatch ? returnMatch.index : Infinity, endMatch ? endMatch.index : Infinity);
+        const strippedName = name.split('.').slice(0, -1).join('');
+        const injection = `    finaleplugin.HashURL = \"https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/${strippedName}.hash\"`;
+        const injectedContents = contents.slice(0, functionIndex + index) + injection + '\n' + contents.slice(functionIndex + index);
+        return injectedContents;
+    }
+    return contents;
+};
+exports.injectExtras = injectExtras;
 
 
 /***/ }),
