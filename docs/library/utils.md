@@ -25,7 +25,7 @@ A library of general Lua utility functions.
 utility_functions.copy_table(t)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L19)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L19)
 
 If a table is passed, returns a copy, otherwise returns the passed value.
 
@@ -43,7 +43,7 @@ If a table is passed, returns a copy, otherwise returns the passed value.
 utility_functions.table_remove_first(t, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L40)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L40)
 
 Removes the first occurrence of a value from an array table.
 
@@ -58,7 +58,7 @@ Removes the first occurrence of a value from an array table.
 utility_functions.iterate_keys(t)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L57)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L57)
 
 Returns an unordered iterator for the keys in a table.
 
@@ -76,7 +76,7 @@ Returns an unordered iterator for the keys in a table.
 utility_functions.round(num, places)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L75)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L75)
 
 Rounds a number to the nearest integer or the specified number of decimal places.
 
@@ -95,7 +95,7 @@ Rounds a number to the nearest integer or the specified number of decimal places
 utility_functions.to_integer_if_whole(value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L92)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L92)
 
 Takes a number and if it is an integer or whole float (eg 12 or 12.0), returns an integer.
 All other floats will be returned as passed.
@@ -114,7 +114,7 @@ All other floats will be returned as passed.
 utility_functions.calc_roman_numeral(num)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L105)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L105)
 
 Calculates the roman numeral for the input number. Adapted from https://exercism.org/tracks/lua/exercises/roman-numerals/solutions/Nia11 on 2022-08-13
 
@@ -132,7 +132,7 @@ Calculates the roman numeral for the input number. Adapted from https://exercism
 utility_functions.calc_ordinal(num)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L126)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L126)
 
 Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
 
@@ -150,7 +150,7 @@ Calculates the ordinal for the input number (e.g. 1st, 2nd, 3rd).
 utility_functions.calc_alphabet(num)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L150)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L150)
 
 This returns one of the ways that Finale handles numbering things alphabetically, such as rehearsal marks or measure numbers.
 
@@ -170,7 +170,7 @@ This function was written to emulate the way Finale numbers saves when Autonumbe
 utility_functions.clamp(num, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L167)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L167)
 
 Clamps a number between two values.
 
@@ -190,7 +190,7 @@ Clamps a number between two values.
 utility_functions.ltrim(str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L179)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L179)
 
 Removes whitespace from the start of a string.
 
@@ -208,7 +208,7 @@ Removes whitespace from the start of a string.
 utility_functions.rtrim(str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L191)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L191)
 
 Removes whitespace from the end of a string.
 
@@ -226,7 +226,7 @@ Removes whitespace from the end of a string.
 utility_functions.trim(str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L203)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L203)
 
 Removes whitespace from the start and end of a string.
 
@@ -244,7 +244,7 @@ Removes whitespace from the start and end of a string.
 utility_functions.call_and_rethrow(levels, tryfunczzz)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L223)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L223)
 
 Calls a function and returns any returned values. If any errors are thrown at the level this function is called, they will be rethrown at the specified level with new level information.
 If the error message contains the rethrow placeholder enclosed in single quotes (see `utils.rethrow_placeholder`), it will be replaced with the correct function name for the new level.
@@ -268,7 +268,7 @@ If the error message contains the rethrow placeholder enclosed in single quotes 
 utility_functions.rethrow_placeholder()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/utils.lua#L291)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L291)
 
 Returns the function name placeholder (enclosed in single quotes, the same as in Lua's internal errors) used in `call_and_rethrow`.
 

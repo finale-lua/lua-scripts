@@ -22,7 +22,7 @@ as well as providing other useful information about ties.
 tie.calc_tied_to(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/tie.lua#L41)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L41)
 
 
 Calculates the note that the input note could be (or is) tied to.
@@ -46,7 +46,7 @@ input note and the tied-to note.
 tie.calc_tied_from(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/tie.lua#L81)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L81)
 
 
 Calculates the note that the input note could be (or is) tied from.
@@ -70,7 +70,7 @@ input note and the tied-from note.
 tie.calc_tie_span(note, for_tied_to, tie_must_exist)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/tie.lua#L123)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L123)
 
 
 Calculates the (potential) start and end notes for a tie, given an input note. The
@@ -107,7 +107,7 @@ for gathering information than for modifying the values it returns.
 tie.calc_default_direction(note, for_tieend, tie_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/tie.lua#L156)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L156)
 
 
 Calculates the default direction of a tie based on context and FCTiePrefs but ignoring multi-voice
@@ -131,7 +131,7 @@ FCTieMods. Use tie.calc_direction to calculate the actual current tie direction.
 tie.calc_direction(note, tie_mod, tie_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/tie.lua#L343)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L343)
 
 
 Calculates the current direction of a tie based on context and FCTiePrefs, taking into account multi-voice
@@ -155,7 +155,7 @@ FCTieMods.
 tie.calc_connection_code(note, placement, direction, for_endpoint, for_tieend, for_pageview, tie_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/tie.lua#L411)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L411)
 
 
 Calculates the correct connection code for activating a Tie Placement Start Point or End Point
@@ -182,7 +182,7 @@ in FCTieMod.
 tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/tie.lua#L519)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L519)
 
 
 Calculates the current placement of a tie based on context and FCTiePrefs.
@@ -207,7 +207,7 @@ Calculates the current placement of a tie based on context and FCTiePrefs.
 tie.activate_endpoints(note, tie_mod, for_pageview, tie_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/tie.lua#L643)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L643)
 
 
 Activates the placement endpoints of the input tie_mod and initializes them with their
@@ -231,7 +231,7 @@ default values. If an endpoint is already activated, that endpoint is not touche
 tie.calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/tie.lua#L758)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L758)
 
 
 Calculates the current contour index of a tie based on context and FCTiePrefs.
@@ -256,7 +256,7 @@ Calculates the current contour index of a tie based on context and FCTiePrefs.
 tie.activate_contour(note, tie_mod, for_pageview, tie_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/tie.lua#L824)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L824)
 
 
 Activates the contour fields of the input tie_mod and initializes them with their

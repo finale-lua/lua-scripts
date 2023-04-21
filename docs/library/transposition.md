@@ -27,7 +27,7 @@ is ignored.
 transposition.diatonic_transpose(note, interval)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/transposition.lua#L151)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/transposition.lua#L151)
 
 Transpose the note diatonically by the given interval displacement.
 
@@ -42,7 +42,7 @@ Transpose the note diatonically by the given interval displacement.
 transposition.change_octave(note, number_of_octaves)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/transposition.lua#L163)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/transposition.lua#L163)
 
 Transpose the note by the given number of octaves.
 
@@ -57,7 +57,7 @@ Transpose the note by the given number of octaves.
 transposition.enharmonic_transpose(note, direction, ignore_error)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/transposition.lua#L182)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/transposition.lua#L182)
 
 Transpose the note enharmonically in the given direction. In some microtone systems this yields a different result than transposing by a diminished 2nd.
 Failure occurs if the note's `RaiseLower` value exceeds an absolute value of 7. This is a hard-coded limit in Finale.
@@ -78,7 +78,7 @@ Failure occurs if the note's `RaiseLower` value exceeds an absolute value of 7. 
 transposition.enharmonic_transpose_default(note, direction, ignore_error)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/transposition.lua#L214)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/transposition.lua#L214)
 
 Transpose the note enharmonically in Finale's default direction. This function should be used when performing an
 unlinked enharmonic flip in a part. Only a default enharmonic flip unlinks. Any other enharmonic flip appears in the
@@ -100,7 +100,7 @@ score as well. This code is based on observed Finale behavior in Finale 27.
 transposition.chromatic_transpose(note, interval, alteration, simplify)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/transposition.lua#L264)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/transposition.lua#L264)
 
 Transposes a note chromatically by the input chromatic interval. Supports custom key signatures
 and microtone systems by means of a `custom_key_sig.config.txt` file. In Finale, chromatic intervals
@@ -126,7 +126,7 @@ allows for downwards transposition.
 transposition.stepwise_transpose(note, number_of_steps)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/transposition.lua#L303)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/transposition.lua#L303)
 
 Transposes the note by the input number of steps and simplifies the spelling.
 For predefined key signatures, each step is a half-step.
@@ -148,7 +148,7 @@ each step is the smallest division of the octave defined by the custom key signa
 transposition.chromatic_major_third_down(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/transposition.lua#L322)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/transposition.lua#L322)
 
 Transpose the note down by a major third.
 
@@ -162,7 +162,7 @@ Transpose the note down by a major third.
 transposition.chromatic_perfect_fourth_up(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/transposition.lua#L333)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/transposition.lua#L333)
 
 Transpose the note up by a perfect fourth.
 
@@ -176,7 +176,7 @@ Transpose the note up by a perfect fourth.
 transposition.chromatic_perfect_fifth_down(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/transposition.lua#L344)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/transposition.lua#L344)
 
 Transpose the note down by a perfect fifth.
 

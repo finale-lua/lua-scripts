@@ -26,7 +26,7 @@
 fcmstrings.AddCopy(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMStrings.lua#L33)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L33)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -45,7 +45,7 @@ Override Changes:
 fcmstrings.AddCopies(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMStrings.lua#L47)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L47)
 
 Same as `AddCopy`, but accepts multiple arguments so that multiple values can be added at a time.
 
@@ -61,7 +61,7 @@ Same as `AddCopy`, but accepts multiple arguments so that multiple values can be
 fcmstrings.Find(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMStrings.lua#L73)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L73)
 
 **[Override]**
 
@@ -83,7 +83,7 @@ Override Changes:
 fcmstrings.FindNocase(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMStrings.lua#L91)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L91)
 
 **[Override]**
 
@@ -105,7 +105,7 @@ Override Changes:
 fcmstrings.LoadFolderFiles(self, folderstring)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMStrings.lua#L109)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L109)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -124,7 +124,7 @@ Override Changes:
 fcmstrings.LoadSubfolders(self, folderstring)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMStrings.lua#L127)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L127)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -143,7 +143,7 @@ Override Changes:
 fcmstrings.LoadSymbolFonts(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMStrings.lua#L143)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L143)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -160,7 +160,7 @@ Override Changes:
 fcmstrings.LoadSystemFontNames(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMStrings.lua#L157)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L157)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -177,7 +177,7 @@ Override Changes:
 fcmstrings.InsertStringAt(self, str, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMStrings.lua#L174)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L174)
 
 **[>= v0.59] [Fluid] [Override]**
 
@@ -196,7 +196,7 @@ Override Changes:
 fcmstrings.CopyFromStringTable(self, strings)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMStrings.lua#L194)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L194)
 
 **[Fluid] [Polyfill]**
 
@@ -215,7 +215,7 @@ Polyfills `FCStrings.CopyFromStringTable` for earlier RGP/JWLua versions.
 fcmstrings.CreateStringTable(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMStrings.lua#L220)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L220)
 
 Creates a table of Lua `string`s from the `FCString`s in this collection.
 

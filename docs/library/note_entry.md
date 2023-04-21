@@ -31,7 +31,7 @@
 note_entry.get_music_region(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L14)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L14)
 
 Returns an intance of `FCMusicRegion` that corresponds to the metric location of the input note entry.
 
@@ -49,7 +49,7 @@ Returns an intance of `FCMusicRegion` that corresponds to the metric location of
 note_entry.get_evpu_notehead_height(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L48)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L48)
 
 Returns the calculated height of the notehead rectangle.
 
@@ -67,7 +67,7 @@ Returns the calculated height of the notehead rectangle.
 note_entry.get_top_note_position(entry, entry_metrics)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L64)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L64)
 
 Returns the vertical page coordinate of the top of the notehead rectangle, not including the stem.
 
@@ -86,7 +86,7 @@ Returns the vertical page coordinate of the top of the notehead rectangle, not i
 note_entry.get_bottom_note_position(entry, entry_metrics)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L97)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L97)
 
 Returns the vertical page coordinate of the bottom of the notehead rectangle, not including the stem.
 
@@ -105,7 +105,7 @@ Returns the vertical page coordinate of the bottom of the notehead rectangle, no
 note_entry.calc_widths(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L129)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L129)
 
 Get the widest left-side notehead width and widest right-side notehead width.
 
@@ -123,7 +123,7 @@ Get the widest left-side notehead width and widest right-side notehead width.
 note_entry.calc_left_of_all_noteheads(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L161)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L161)
 
 Calculates the handle offset for an expression with "Left of All Noteheads" horizontal positioning.
 
@@ -141,7 +141,7 @@ Calculates the handle offset for an expression with "Left of All Noteheads" hori
 note_entry.calc_left_of_primary_notehead(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L177)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L177)
 
 Calculates the handle offset for an expression with "Left of Primary Notehead" horizontal positioning.
 
@@ -159,7 +159,7 @@ Calculates the handle offset for an expression with "Left of Primary Notehead" h
 note_entry.calc_center_of_all_noteheads(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L189)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L189)
 
 Calculates the handle offset for an expression with "Center of All Noteheads" horizontal positioning.
 
@@ -177,7 +177,7 @@ Calculates the handle offset for an expression with "Center of All Noteheads" ho
 note_entry.calc_center_of_primary_notehead(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L206)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L206)
 
 Calculates the handle offset for an expression with "Center of Primary Notehead" horizontal positioning.
 
@@ -195,7 +195,7 @@ Calculates the handle offset for an expression with "Center of Primary Notehead"
 note_entry.calc_stem_offset(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L222)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L222)
 
 Calculates the offset of the stem from the left edge of the notehead rectangle. Eventually the PDK Framework may be able to provide this instead.
 
@@ -213,7 +213,7 @@ Calculates the offset of the stem from the left edge of the notehead rectangle. 
 note_entry.calc_right_of_all_noteheads(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L238)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L238)
 
 Calculates the handle offset for an expression with "Right of All Noteheads" horizontal positioning.
 
@@ -231,7 +231,7 @@ Calculates the handle offset for an expression with "Right of All Noteheads" hor
 note_entry.calc_note_at_index(entry, note_index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L256)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L256)
 
 This function assumes `for note in each(note_entry)` always iterates in the same direction.
 (Knowing how the Finale PDK works, it probably iterates from bottom to top note.)
@@ -248,7 +248,7 @@ Currently the PDK Framework does not seem to offer a better option.
 note_entry.stem_sign(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L276)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L276)
 
 This is useful for many x,y positioning fields in Finale that mirror +/-
 based on stem direction.
@@ -267,7 +267,7 @@ based on stem direction.
 note_entry.duplicate_note(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L289)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L289)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -283,7 +283,7 @@ note_entry.duplicate_note(note)
 note_entry.delete_note(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L308)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L308)
 
 Removes the specified FCNote from its associated FCNoteEntry.
 
@@ -301,7 +301,7 @@ Removes the specified FCNote from its associated FCNoteEntry.
 note_entry.make_rest(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L339)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L339)
 
 Deletes all notes and turns the note_entry into a floating rest. This function also
 deletes any attached entry details such as articulations and special tools edits.
@@ -320,7 +320,7 @@ deletes any attached entry details such as articulations and special tools edits
 note_entry.calc_pitch_string(note)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L362)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L362)
 
 Calculates the pitch string of a note for display purposes.
 
@@ -338,7 +338,7 @@ Calculates the pitch string of a note for display purposes.
 note_entry.calc_spans_number_of_octaves(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L378)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L378)
 
 Calculates the numer of octaves spanned by a chord (considering only staff positions, not accidentals).
 
@@ -356,7 +356,7 @@ Calculates the numer of octaves spanned by a chord (considering only staff posit
 note_entry.add_augmentation_dot(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L393)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L393)
 
 Adds an augentation dot to the entry. This works even if the entry already has one or more augmentation dots.
 
@@ -370,7 +370,7 @@ Adds an augentation dot to the entry. This works even if the entry already has o
 note_entry.get_next_same_v(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L408)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L408)
 
 Returns the next entry in the same V1 or V2 as the input entry.
 If the input entry is V2, only the current V2 launch is searched.
@@ -390,7 +390,7 @@ If the input entry is V1, only the current measure and layer is searched.
 note_entry.hide_stem(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L431)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L431)
 
 Hides the stem of the entry by replacing it with Shape 0.
 
@@ -404,7 +404,7 @@ Hides the stem of the entry by replacing it with Shape 0.
 note_entry.rest_offset(entry, offset)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/note_entry.lua#L453)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L453)
 
 Confirms the entry is a rest then offsets it from the staff rest "center" position. 
 

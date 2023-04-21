@@ -19,7 +19,7 @@
 fcmctrldatalist.AddColumn(self, title, columnwidth)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlDataList.lua#L30)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlDataList.lua#L30)
 
 **[Fluid] [Override]**
 
@@ -38,7 +38,7 @@ Override Changes:
 fcmctrldatalist.SetColumnTitle(self, columnindex, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlDataList.lua#L49)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlDataList.lua#L49)
 
 **[Fluid] [Override]**
 
@@ -57,7 +57,7 @@ Override Changes:
 fcmctrldatalist.AddHandleCheck(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlDataList.lua#L72)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlDataList.lua#L72)
 
 **[Fluid]**
 
@@ -74,7 +74,7 @@ Adds a handler for DataListCheck events.
 fcmctrldatalist.RemoveHandleCheck(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlDataList.lua#L77)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlDataList.lua#L77)
 
 **[Fluid]**
 
@@ -91,7 +91,7 @@ Removes a handler added with `AddHandleCheck`.
 fcmctrldatalist.AddHandleSelect(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlDataList.lua#L95)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlDataList.lua#L95)
 
 **[Fluid]**
 
@@ -108,7 +108,7 @@ Adds a handler for `DataListSelect` events.
 fcmctrldatalist.RemoveHandleSelect(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlDataList.lua#L100)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlDataList.lua#L100)
 
 **[Fluid]**
 

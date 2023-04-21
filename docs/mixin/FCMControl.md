@@ -38,7 +38,7 @@
 fcmcontrol.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L31)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L31)
 
 **[Internal]**
 
@@ -52,7 +52,7 @@ fcmcontrol.Init(self)
 fcmcontrol.GetParent(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L51)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L51)
 
 **[PDK Port]**
 
@@ -74,7 +74,7 @@ Returns the control's parent window.
 fcmcontrol.RegisterParent(self, window)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L67)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L67)
 
 **[Fluid] [Internal]**
 
@@ -93,7 +93,7 @@ Used to register the parent window when the control is created.
 fcmcontrol.GetEnable(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L343)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L343)
 
 **[Override]**
 
@@ -114,7 +114,7 @@ Override Changes:
 fcmcontrol.SetEnable(self, enable)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L363)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L363)
 
 **[Fluid] [Override]**
 
@@ -132,7 +132,7 @@ Override Changes:
 fcmcontrol.GetVisible(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L344)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L344)
 
 **[Override]**
 
@@ -153,7 +153,7 @@ Override Changes:
 fcmcontrol.SetVisible(self, visible)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L364)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L364)
 
 **[Fluid] [Override]**
 
@@ -171,7 +171,7 @@ Override Changes:
 fcmcontrol.GetLeft(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L345)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L345)
 
 **[Override]**
 
@@ -192,7 +192,7 @@ Override Changes:
 fcmcontrol.SetLeft(self, left)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L365)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L365)
 
 **[Fluid] [Override]**
 
@@ -210,7 +210,7 @@ Override Changes:
 fcmcontrol.GetTop(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L346)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L346)
 
 **[Override]**
 
@@ -231,7 +231,7 @@ Override Changes:
 fcmcontrol.SetTop(self, top)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L366)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L366)
 
 **[Fluid] [Override]**
 
@@ -249,7 +249,7 @@ Override Changes:
 fcmcontrol.GetHeight(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L347)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L347)
 
 **[Override]**
 
@@ -270,7 +270,7 @@ Override Changes:
 fcmcontrol.SetHeight(self, height)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L367)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L367)
 
 **[Fluid] [Override]**
 
@@ -288,7 +288,7 @@ Override Changes:
 fcmcontrol.GetWidth(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L348)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L348)
 
 **[Override]**
 
@@ -309,7 +309,7 @@ Override Changes:
 fcmcontrol.SetWidth(self, width)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L368)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L368)
 
 **[Fluid] [Override]**
 
@@ -327,7 +327,7 @@ Override Changes:
 fcmcontrol.GetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L267)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L267)
 
 **[?Fluid] [Override]**
 
@@ -350,7 +350,7 @@ Override Changes:
 fcmcontrol.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L300)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L300)
 
 **[Fluid] [Override]**
 
@@ -369,7 +369,7 @@ Override Changes:
 fcmcontrol.UseStoredState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L324)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L324)
 
 **[Internal]**
 
@@ -391,7 +391,7 @@ Checks if this control should use its stored state instead of the live state fro
 fcmcontrol.StoreState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L340)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L340)
 
 **[Fluid] [Internal]**
 
@@ -409,7 +409,7 @@ Stores the control's current state.
 fcmcontrol.RestoreState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L362)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L362)
 
 **[Fluid] [Internal]**
 
@@ -427,7 +427,7 @@ Restores the control's stored state.
 fcmcontrol.AddHandleCommand(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L391)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L391)
 
 **[Fluid]**
 
@@ -444,7 +444,7 @@ Adds a handler for command events.
 fcmcontrol.RemoveHandleCommand(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMControl.lua#L396)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L396)
 
 **[Fluid]**
 

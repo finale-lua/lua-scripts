@@ -15,7 +15,7 @@
 __fcmuserwindow.GetTitle(self, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/__FCMUserWindow.lua#L30)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/__FCMUserWindow.lua#L30)
 
 **[?Fluid] [Override]**
 
@@ -37,7 +37,7 @@ Override Changes:
 __fcmuserwindow.SetTitle(self, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/__FCMUserWindow.lua#L57)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/__FCMUserWindow.lua#L57)
 
 **[Fluid] [Override]**
 

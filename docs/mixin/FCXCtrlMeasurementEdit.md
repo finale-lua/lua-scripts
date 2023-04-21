@@ -51,7 +51,7 @@ _Note that the type should be set **before** setting any values._
 fcxctrlmeasurementedit.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L67)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L67)
 
 **[Internal]**
 
@@ -65,7 +65,7 @@ fcxctrlmeasurementedit.Init(self)
 fcxctrlmeasurementedit.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 **[Fluid] [Override]**
 
@@ -83,7 +83,7 @@ Override Changes:
 fcxctrlmeasurementedit.SetInteger(self, anint)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 **[Fluid] [Override]**
 
@@ -101,7 +101,7 @@ Override Changes:
 fcxctrlmeasurementedit.SetFloat(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 **[Fluid] [Override]**
 
@@ -119,7 +119,7 @@ Override Changes:
 fcxctrlmeasurementedit.GetType(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L141)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L141)
 
 Returns the measurement edit's type. The result can also be appended to `"Get"`, `"GetRange"`, or `"Set"` to use type-specific methods.
 The default type is `"MeasurementInteger"`.
@@ -138,7 +138,7 @@ The default type is `"MeasurementInteger"`.
 fcxctrlmeasurementedit.GetMeasurement(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L199)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L199)
 
 **[Breaking Change] [Override]**
 
@@ -159,7 +159,7 @@ Override Changes:
 fcxctrlmeasurementedit.GetRangeMeasurement(self, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L199)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L199)
 
 **[Breaking Change] [Override]**
 
@@ -182,7 +182,7 @@ Override Changes:
 fcxctrlmeasurementedit.SetMeasurement(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L199)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L199)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -201,7 +201,7 @@ Override Changes:
 fcxctrlmeasurementedit.IsTypeMeasurement(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L244)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L244)
 
 Checks if the type is `"Measurement"`.
 
@@ -219,7 +219,7 @@ Checks if the type is `"Measurement"`.
 fcxctrlmeasurementedit.SetTypeMeasurement(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L253)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L253)
 
 **[Fluid]**
 
@@ -236,7 +236,7 @@ This means that the getters & setters used in events, measurement unit changes, 
 fcxctrlmeasurementedit.GetMeasurementInteger(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L258)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L258)
 
 **[Breaking Change] [Override]**
 
@@ -257,7 +257,7 @@ Override Changes:
 fcxctrlmeasurementedit.GetRangeMeasurementInteger(self, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L258)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L258)
 
 **[Breaking Change] [Override]**
 
@@ -280,7 +280,7 @@ Override Changes:
 fcxctrlmeasurementedit.SetMeasurementInteger(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L258)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L258)
 
 **[Fluid] [Override]**
 
@@ -299,7 +299,7 @@ Override Changes:
 fcxctrlmeasurementedit.IsTypeMeasurementInteger(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 Checks if the type is `"MeasurementInteger"`.
 
@@ -317,7 +317,7 @@ Checks if the type is `"MeasurementInteger"`.
 fcxctrlmeasurementedit.SetTypeMeasurementInteger(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 **[Fluid]**
 
@@ -334,7 +334,7 @@ This means that the getters & setters used in events, measurement unit changes, 
 fcxctrlmeasurementedit.GetMeasurementEfix(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L317)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L317)
 
 **[Breaking Change] [Override]**
 
@@ -355,7 +355,7 @@ Override Changes:
 fcxctrlmeasurementedit.GetRangeMeasurementEfix(self, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L317)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L317)
 
 **[Breaking Change] [Override]**
 
@@ -378,7 +378,7 @@ Override Changes:
 fcxctrlmeasurementedit.SetMeasurementEfix(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L317)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L317)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -397,7 +397,7 @@ Override Changes:
 fcxctrlmeasurementedit.IsTypeMeasurementEfix(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 Checks if the type is `"MeasurementEfix"`.
 
@@ -415,7 +415,7 @@ Checks if the type is `"MeasurementEfix"`.
 fcxctrlmeasurementedit.SetTypeMeasurementEfix(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 **[Fluid]**
 
@@ -432,7 +432,7 @@ This means that the getters & setters used in events, measurement unit changes, 
 fcxctrlmeasurementedit.GetMeasurement10000th(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L376)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L376)
 
 **[Breaking Change] [Override]**
 
@@ -453,7 +453,7 @@ Override Changes:
 fcxctrlmeasurementedit.GetRangeMeasurement10000th(self, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L376)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L376)
 
 **[Breaking Change] [Override]**
 
@@ -476,7 +476,7 @@ Override Changes:
 fcxctrlmeasurementedit.SetMeasurement10000th(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L376)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L376)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -495,7 +495,7 @@ Override Changes:
 fcxctrlmeasurementedit.IsTypeMeasurement10000th(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 Checks if the type is `"Measurement10000th"`.
 
@@ -513,7 +513,7 @@ Checks if the type is `"Measurement10000th"`.
 fcxctrlmeasurementedit.SetTypeMeasurement10000th(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L-1)
 
 **[Fluid]**
 
@@ -530,7 +530,7 @@ This means that the getters & setters used in events, measurement unit changes, 
 fcxctrlmeasurementedit.UpdateMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L438)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L438)
 
 **[Fluid] [Internal]**
 
@@ -546,7 +546,7 @@ Checks the parent window for a change in measurement unit and updates the contro
 fcxctrlmeasurementedit.HandleChange(control, last_value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L464)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L464)
 
 **[Callback Template] [Override]**
 
@@ -567,7 +567,7 @@ The type and unit of `last_value` will change depending on the measurement edit'
 fcxctrlmeasurementedit.AddHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L487)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L487)
 
 **[Fluid] [Override]**
 
@@ -586,7 +586,7 @@ Override Changes:
 fcxctrlmeasurementedit.RemoveHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCtrlMeasurementEdit.lua#L487)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCXCtrlMeasurementEdit.lua#L487)
 
 **[Fluid] [Override]**
 

@@ -27,7 +27,7 @@ version cv0.57 2023/02/12
 notehead.change_shape(note, shape)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/notehead.lua#L215)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/notehead.lua#L215)
 
 Changes the given notehead to a specified notehead descriptor string, or specified numeric character.
 

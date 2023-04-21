@@ -27,7 +27,7 @@
 fcmctrlswitcher.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L30)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L30)
 
 **[Internal]**
 
@@ -41,7 +41,7 @@ fcmctrlswitcher.Init(self)
 fcmctrlswitcher.AddPage(self, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L52)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L52)
 
 **[Fluid] [Override]**
 
@@ -59,7 +59,7 @@ Override Changes:
 fcmctrlswitcher.AddPages(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L72)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L72)
 
 **[Fluid]**
 
@@ -77,7 +77,7 @@ Adds multiple pages, one page for each argument.
 fcmctrlswitcher.AttachControl(self, control, pageindex)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L92)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L92)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -96,7 +96,7 @@ Override Changes:
 fcmctrlswitcher.AttachControlByTitle(self, control, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L110)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L110)
 
 **[Fluid]**
 
@@ -114,7 +114,7 @@ Attaches a control to a page by its title.
 fcmctrlswitcher.SetSelectedPage(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L134)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L134)
 
 **[Fluid] [Override]**
 
@@ -132,7 +132,7 @@ Override Changes:
 fcmctrlswitcher.SetSelectedPageByTitle(self, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L152)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L152)
 
 **[Fluid]**
 
@@ -149,7 +149,7 @@ Set the selected page by its title. If the page is not found, an error will be t
 fcmctrlswitcher.GetSelectedPageTitle(self, title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L173)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L173)
 
 **[?Fluid]**
 
@@ -170,7 +170,7 @@ Retrieves the title of the currently selected page.
 fcmctrlswitcher.GetPageTitle(self, index, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L201)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L201)
 
 **[?Fluid]**
 
@@ -192,7 +192,7 @@ Retrieves the title of a page.
 fcmctrlswitcher.HandlePageChange(control, last_page, last_page_title)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L226)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L226)
 
 **[Callback Template]**
 
@@ -208,7 +208,7 @@ fcmctrlswitcher.HandlePageChange(control, last_page, last_page_title)
 fcmctrlswitcher.AddHandlePageChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L245)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L245)
 
 **[Fluid]**
 
@@ -229,7 +229,7 @@ The event fires when:
 fcmctrlswitcher.RemoveHandlePageChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlSwitcher.lua#L250)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSwitcher.lua#L250)
 
 **[Fluid]**
 

@@ -15,7 +15,7 @@
 fcmnoteentry.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMNoteEntry.lua#L23)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMNoteEntry.lua#L23)
 
 **[Internal]**
 
@@ -29,7 +29,7 @@ fcmnoteentry.Init(self)
 fcmnoteentry.RegisterParent(self, parent)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMNoteEntry.lua#L41)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMNoteEntry.lua#L41)
 
 **[Fluid]**
 
@@ -46,7 +46,7 @@ Registers the collection to which this object belongs.
 fcmnoteentry.GetParent(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMNoteEntry.lua#L57)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMNoteEntry.lua#L57)
 
 Returns the collection to which this object belongs.
 
