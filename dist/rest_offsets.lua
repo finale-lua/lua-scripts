@@ -4697,6 +4697,7 @@ function plugindef()
         If the default rest position is anchored to the middle staff line,
         "4" anchors it to the top staff line and "-4" anchors it to the bottom one.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/rest_offsets.hash"
    return "Rest Offsets", "Rest Offsets", "Change vertical offsets of rests by layer"
 end
 local mixin = require("library.mixin")

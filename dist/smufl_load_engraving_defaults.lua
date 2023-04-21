@@ -1775,6 +1775,7 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "June 18, 2021"
     finaleplugin.CategoryTags = "Layout"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/smufl_load_engraving_defaults.hash"
     return "Load SMuFL Engraving Defaults", "Load SMuFL Engraving Defaults", "Loads engraving defaults for the current SMuFL Default Music Font."
 end
 local luna = require("lunajson.lunajson")

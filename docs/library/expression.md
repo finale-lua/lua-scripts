@@ -17,7 +17,7 @@
 expression.get_music_region(exp_assign)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L18)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/expression.lua#L18)
 
 Returns a music region corresponding to the input expression assignment.
 
@@ -35,7 +35,7 @@ Returns a music region corresponding to the input expression assignment.
 expression.get_associated_entry(exp_assign)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L41)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/expression.lua#L41)
 
 Returns the note entry associated with the input expression assignment, if any.
 
@@ -53,7 +53,7 @@ Returns the note entry associated with the input expression assignment, if any.
 expression.calc_handle_offset_for_smart_shape(exp_assign)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L64)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/expression.lua#L64)
 
 Returns the horizontal EVPU offset for a smart shape endpoint to align exactly with the handle of the input expression, given that they both have the same EDU position.
 
@@ -71,7 +71,7 @@ Returns the horizontal EVPU offset for a smart shape endpoint to align exactly w
 expression.calc_text_width(expression_def, expand_tags)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L101)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/expression.lua#L101)
 
 Returns the text advance width of the input expression definition.
 
@@ -90,7 +90,7 @@ Returns the text advance width of the input expression definition.
 expression.is_for_current_part(exp_assign, current_part)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L120)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/expression.lua#L120)
 
 Returns true if the expression assignment is assigned to the current part or score.
 
@@ -109,7 +109,7 @@ Returns true if the expression assignment is assigned to the current part or sco
 expression.is_dynamic(exp)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L138)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/expression.lua#L138)
 
 Returns true if the expression appears to be a dynamic.
 
@@ -127,7 +127,7 @@ Returns true if the expression appears to be a dynamic.
 expression.resync_expressions_for_category(category_id)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L165)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/expression.lua#L165)
 
 Updates the fonts and positioning of all expression definitions linked to a category after making changes to the category.
 
@@ -141,7 +141,7 @@ Updates the fonts and positioning of all expression definitions linked to a cate
 expression.resync_to_category(expression_def)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/expression.lua#L181)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/expression.lua#L181)
 
 Updates the fonts and positioning of an expression definition to match its category after making changes to the category.
 

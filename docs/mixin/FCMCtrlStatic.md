@@ -28,7 +28,7 @@
 fcmctrlstatic.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L53)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L53)
 
 **[Internal]**
 
@@ -42,7 +42,7 @@ fcmctrlstatic.Init(self)
 fcmctrlstatic.RegisterParent(self, window)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L78)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L78)
 
 **[Fluid] [Internal] [Override]**
 
@@ -62,7 +62,7 @@ Override Changes:
 fcmctrlstatic.SetTextColor(self, red, green, blue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L98)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L98)
 
 **[Fluid] [Override]**
 
@@ -83,7 +83,7 @@ Override Changes:
 fcmctrlstatic.RestoreState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L126)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L126)
 
 **[Fluid] [Internal] [Override]**
 
@@ -102,7 +102,7 @@ Override Changes:
 fcmctrlstatic.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L146)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L146)
 
 **[Fluid] [Override]**
 
@@ -120,7 +120,7 @@ Override Changes:
 fcmctrlstatic.SetMeasurement(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L167)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L167)
 
 **[Fluid]**
 
@@ -139,7 +139,7 @@ If using the parent window's measurement unit, it will be automatically updated 
 fcmctrlstatic.SetMeasurementInteger(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L186)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L186)
 
 **[Fluid]**
 
@@ -158,7 +158,7 @@ If using the parent window's measurement unit, it will be automatically updated 
 fcmctrlstatic.SetMeasurementEfix(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L205)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L205)
 
 **[Fluid]**
 
@@ -177,7 +177,7 @@ If using the parent window's measurement unit, it will be automatically updated 
 fcmctrlstatic.SetMeasurement10000th(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L-1)
 
 **[Fluid]**
 
@@ -196,7 +196,7 @@ If using the parent window's measurement unit, it will be automatically updated 
 fcmctrlstatic.SetShowMeasurementSuffix(self, enabled)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L241)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L241)
 
 **[Fluid]**
 
@@ -213,7 +213,7 @@ Sets whether to show a suffix at the end of a measurement (eg `cm` in `2.54cm`).
 fcmctrlstatic.SetMeasurementSuffixShort(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L257)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L257)
 
 **[Fluid]**
 
@@ -229,7 +229,7 @@ Sets the measurement suffix to the shortest form used by Finale's measurement ov
 fcmctrlstatic.SetMeasurementSuffixAbbreviated(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L273)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L273)
 
 **[Fluid]**
 
@@ -247,7 +247,7 @@ Sets the measurement suffix to commonly known abbrevations (eg `in`, `cm`, `pt`,
 fcmctrlstatic.SetMeasurementSuffixFull(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L287)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L287)
 
 **[Fluid]**
 
@@ -263,7 +263,7 @@ Sets the measurement suffix to the full unit name. (eg `inches`, `centimeters`, 
 fcmctrlstatic.UpdateMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlStatic.lua#L301)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlStatic.lua#L301)
 
 **[Fluid] [Internal]**
 

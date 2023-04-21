@@ -1373,6 +1373,7 @@ function plugindef()
         extend_to_expression_in_next_bar = false
         ```
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/standalone_hairpin_adjustment.hash"
     return "Hairpin and Dynamic Adjustments", "Hairpin and Dynamic Adjustments", "Adjusts hairpins to remove collisions with dynamics and aligns hairpins with dynamics."
 end
 local expression = require("library.expression")

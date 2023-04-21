@@ -6,6 +6,7 @@ function plugindef()
    finaleplugin.Author = "Jacob Winkler"
    finaleplugin.Copyright = "2021"
    finaleplugin.Version = "1.0"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/dynamics_move_above_staff.hash"
    return "Dynamics Above Staff", "Dynamics Above Staff", "Moves dynamics above staff"
 end
 

@@ -6,6 +6,7 @@ function plugindef()
     finaleplugin.Date = "June 19, 2020"
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/articulation_remove_from_rests.hash"
     return "Remove Articulations from Rests", "Remove Articulations from Rests",
            "If a rest has an articulation, it removes it (except breath marks, caesuras, or fermatas"
 end

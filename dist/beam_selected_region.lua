@@ -321,6 +321,7 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
         do_unbeam = true
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/beam_selected_region.hash"
     return "Beam Selected Region", "Beam Selected Region", "Beam Selected Region"
 end
 local note_entry = require("library.note_entry")

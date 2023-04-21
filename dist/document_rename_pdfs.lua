@@ -4735,6 +4735,7 @@ function plugindef()
         The script assumes that PDFs currently have the default names assigned by Finale – generally,
         "[score filename] - [part name].pdf".
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/document_rename_pdfs.hash"
     return "Rename PDFs...", "", "Renames all PDFs for the current document"
 end
 local mixin = require("library.mixin")

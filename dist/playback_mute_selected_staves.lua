@@ -9,6 +9,7 @@ function plugindef()
     finaleplugin.Notes = [[
         Select the staves you want muted, then run this script.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_mute_selected_staves.hash"
     return "Mute selected staves", "Mute selected staves", "Mutes selected staves"
 end
 function playback_mute_selected_staves()

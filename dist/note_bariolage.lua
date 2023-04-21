@@ -406,6 +406,7 @@ function plugindef()
         - Any note in layer 2 that is the beginning of a beamed group is hidden.
         This script works best when Layer 1 is set to be upstem in multi-layer settings and Layer 2 is set to be downstem.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_bariolage.hash"
     return "Bariolage", "Bariolage",
            "Bariolage: Creates alternating layer pattern from layer 1. Doesn't play nicely with odd numbered groups!"
 end

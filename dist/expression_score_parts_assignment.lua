@@ -1092,6 +1092,7 @@ function plugindef()
         set_for_score = true set_for_parts = false
         set_for_score = false set_for_parts = true
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_score_parts_assignment.hash"
     return "Expression Set To Score And Parts", "Expression Set To Score And Parts", "Set any single-staff text expression in the currenly selected region to both Score and Parts assignment."
 end
 local library = require("library.general_library")

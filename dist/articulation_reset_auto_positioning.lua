@@ -13,6 +13,7 @@ Due to complications arising from how Finale stored articulation positions befor
 Due to issues around maintaining the context for automatic stacking, it must be run under RGP Lua. JW Lua does not have the necessary
 logic to manage the stacking context.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/articulation_reset_auto_positioning.hash"
     return "Reset Automatic Articulation Positions", "Reset Automatic Articulation Positions", "Resets the position of automatically positioned articulations while ignoring those with manual positioning."
 end
 function articulation_reset_auto_positioning()

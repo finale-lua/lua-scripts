@@ -293,6 +293,7 @@ function plugindef()
         This script will only process 7-tuplets that appears on staves that has been defined as "Harp" in the Score Manager.
     ]]
     finaleplugin.CategoryTags = "Idiomatic, Note, Plucked Strings, Region, Tuplet, Woodwinds"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_harp_gliss.hash"
     return "Harp gliss", "Harp gliss", "Transforms 7-tuplets to harp gliss notation."
 end
 local configuration = require("library.configuration")

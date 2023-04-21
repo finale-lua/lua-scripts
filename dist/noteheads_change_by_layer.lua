@@ -5068,6 +5068,7 @@ function plugindef()
         This script offers the same functionality as "noteheads_change.lua" but offers
         layer filtering with one menu item and a single confirmation dialog.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/noteheads_change_by_layer.hash"
     return "Noteheads Change by Layer...", "Noteheads Change by Layer", "Change notehead shapes on a specific layer of the current selection"
 end
 local notehead = require("library.notehead")

@@ -4967,6 +4967,7 @@ function plugindef()
         Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/transpose_by_step.hash"
     return "Transpose By Steps...", "Transpose By Steps", "Transpose by the number of steps given, simplifying spelling as needed."
 end
 if not finenv.IsRGPLua then

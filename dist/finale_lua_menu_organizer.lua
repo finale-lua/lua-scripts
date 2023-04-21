@@ -212,6 +212,7 @@ function plugindef()
     <
     ```
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/finale_lua_menu_organizer.hash"
     return "Finale Lua Menu Organizer", "Finale Lua Menu Organizer",
         "Organizes the Lua menus in Finale's Plug-Ins menu as specified in a configuration file."
 end

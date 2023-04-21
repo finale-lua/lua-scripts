@@ -6,6 +6,7 @@ function plugindef()
     finaleplugin.Date = "June 19, 2020"
     finaleplugin.CategoryTags = "Playback"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_mute_cue_notes.hash"
     return "Mute Cue Notes", "Mute Cue Notes", "Mutes notes that are 85% normal size or smaller"
 end
 function playback_cues_mute()

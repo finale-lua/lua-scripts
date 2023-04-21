@@ -1114,6 +1114,7 @@ function plugindef()
         In SMuFL fonts like Finale Maestro, shapes will match the appropriate duration values.
         Most of the duration-dependent shapes are not available in Finale's old (non-SMuFL) Maestro font.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/noteheads_change.hash"
     return "Noteheads Change to X", "Noteheads Change to X", "Change all noteheads in the selection to X-Noteheads (SMuFL compliant)"
 end
 new_shape = new_shape or "x"

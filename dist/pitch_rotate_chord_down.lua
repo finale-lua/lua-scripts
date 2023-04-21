@@ -907,6 +907,7 @@ function plugindef()
     finaleplugin.Date = "March 30, 2021"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_rotate_chord_down.hash"
     return "Rotate Chord Down", "Rotate Chord Down",
            "Rotates the chord upwards, taking the top note and moving it below the rest of the chord"
 end

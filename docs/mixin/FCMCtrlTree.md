@@ -13,7 +13,7 @@
 fcmctrltree.AddNode(self, parentnode, iscontainer, text)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlTree.lua#L31)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlTree.lua#L31)
 
 **[Override]**
 

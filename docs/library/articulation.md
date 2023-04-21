@@ -12,7 +12,7 @@
 articulation.delete_from_entry_by_char_num(entry, char_num)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/articulation.lua#L16)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/articulation.lua#L16)
 
 Removes any articulation assignment that has the specified character as its above-character.
 
@@ -27,7 +27,7 @@ Removes any articulation assignment that has the specified character as its abov
 articulation.is_note_side(artic, curr_pos)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/articulation.lua#L35)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/articulation.lua#L35)
 
 Uses `FCArticulation.CalcMetricPos` to determine if the input articulation is on the note-side.
 
@@ -46,7 +46,7 @@ Uses `FCArticulation.CalcMetricPos` to determine if the input articulation is on
 articulation.calc_main_character_dimensions(artic_def)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/articulation.lua#L67)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/articulation.lua#L67)
 
 Uses `FCTextMetrics:LoadArticulation` to determine the dimensions of the main character
 

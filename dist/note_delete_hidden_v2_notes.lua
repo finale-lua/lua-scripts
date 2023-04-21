@@ -5,6 +5,7 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "June 9, 2020"
     finaleplugin.CategoryTags = "Note"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_delete_hidden_v2_notes.hash"
     return "Delete Hidden V2 Notes", "Delete Hidden V2 Notes",
            "Removes V2 notes if all are hidden and no rests. Useful when Finale adds unwanted playback notes, e.g., after Score Merge."
 end

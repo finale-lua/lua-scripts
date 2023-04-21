@@ -8,6 +8,7 @@ function plugindef()
         top staff of the selection will be swapped with the music on the bottom staff of that
         selection.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_swap.hash"
     return "Swap Staves", "Swap Staves", "Swaps the top and bottom of the selected staves"
 end
 local region = finenv.Region()

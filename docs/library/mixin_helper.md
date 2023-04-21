@@ -22,7 +22,7 @@ A library of helper functions to improve code reuse in mixins.
 mixin_helper.is_instance_of(object)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L45)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/mixin_helper.lua#L45)
 
 Checks if a Finale object is an instance of a class or classes. This function examines the full class hierarchy, so parent classes are also supported.
 
@@ -60,7 +60,7 @@ Summary:
 mixin_helper.assert_argument_type(argument_number, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L145)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/mixin_helper.lua#L145)
 
 Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
 
@@ -88,7 +88,7 @@ The followimg types can be specified:
 mixin_helper.force_assert_argument_type(argument_number, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L160)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/mixin_helper.lua#L160)
 
 The same as `assert_argument_type` except this function always asserts, regardless of whether debug mode is enabled.
 
@@ -105,7 +105,7 @@ The same as `assert_argument_type` except this function always asserts, regardle
 mixin_helper.assert(condition, message, level)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L185)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/mixin_helper.lua#L185)
 
 Asserts a condition in a mixin method. If the condition is false, an error is thrown one level above where this function is called.
 
@@ -123,7 +123,7 @@ Asserts a condition in a mixin method. If the condition is false, an error is th
 mixin_helper.force_assert(condition, message, level)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L200)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/mixin_helper.lua#L200)
 
 The same as `assert` except this function always asserts, regardless of whether debug mode is enabled.
 
@@ -139,7 +139,7 @@ The same as `assert` except this function always asserts, regardless of whether 
 mixin_helper.disable_methods(props)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L216)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/mixin_helper.lua#L216)
 
 Disables mixin methods by setting an empty function that throws an error.
 
@@ -155,7 +155,7 @@ Disables mixin methods by setting an empty function that throws an error.
 mixin_helper.create_standard_control_event(name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L231)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/mixin_helper.lua#L231)
 
 A helper function for creating a standard control event. standard refers to the `Handle*` methods from `FCCustomLuaWindow` (not including `HandleControlEvent`).
 For example usage, refer to the source for the `FCMControl` mixin.
@@ -174,7 +174,7 @@ For example usage, refer to the source for the `FCMControl` mixin.
 mixin_helper.create_custom_control_change_event()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L424)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/mixin_helper.lua#L424)
 
 Helper function for creating a custom event for a control.
 Custom events are bootstrapped to InitWindow and HandleCommand, in addition be being able to be triggered manually.
@@ -200,7 +200,7 @@ This function returns 4 values which are all functions:
 mixin_helper.create_custom_window_change_event()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L514)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/mixin_helper.lua#L514)
 
 Creates a custom change event for a window class. For details, see the documentation for `create_custom_control_change_event`, which works in exactly the same way as this function except for controls.
 
@@ -212,7 +212,7 @@ Creates a custom change event for a window class. For details, see the documenta
 mixin_helper.to_fcstring(value, fcstr)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L578)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/mixin_helper.lua#L578)
 
 Casts a value to an `FCString` object. If the value is already an `FCString`, it will be returned.
 
@@ -231,7 +231,7 @@ Casts a value to an `FCString` object. If the value is already an `FCString`, it
 mixin_helper.boolean_to_error(object, method)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/mixin_helper.lua#L599)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/mixin_helper.lua#L599)
 
 There are many PDK methods that return a boolean value to indicate success / failure instead of throwing an error.
 This function captures that result and throws an error in case of failure.

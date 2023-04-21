@@ -1411,6 +1411,7 @@ function plugindef()
         All existing staffs will be deleted. And in their place, the orchestra will be created.
         This script uses the standard ensemble creation configuration options.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/score_create_double_wind_orchestra_score.hash"
     return "Create double wind orchestra score", "Create double wind orchestra score",
            "Creates the score setup correctly for double wind orchestra"
 end

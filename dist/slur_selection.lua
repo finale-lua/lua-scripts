@@ -258,6 +258,7 @@ function plugindef()
         If you want to automate slurs on specific note patterns then try
         JW Pattern (Performance Notation -> Slurs) or TGTools (Music -> Create Slurs...").
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/slur_selection.hash"
     return "Slur Selection", "Slur Selection", "Create slurs across the current selection"
 end
 local smartshape = require("library.smartshape")

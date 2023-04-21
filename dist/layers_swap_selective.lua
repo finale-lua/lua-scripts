@@ -4688,6 +4688,7 @@ function plugindef()
     finaleplugin.Notes = [[
         Swaps notes in the selected region between two chosen layers
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/layers_swap_selective.hash"
     return "Swap Layers Selective", "Swap Layers Selective", "Swaps notes in the selected region between two chosen layers"
 end
 config = config or { }

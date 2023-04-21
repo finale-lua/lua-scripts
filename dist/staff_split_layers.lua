@@ -4989,6 +4989,7 @@ function plugindef()
         - Copy Articulations: if checked, copies articulations from the source to the target.
 
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_split_layers.hash"
     return "Staff Split Layers...", "Staff Split Layers", "Split chords from one layer 1 into two independent layers, based on a split point."
 end
 local note_entry = require("library.note_entry")

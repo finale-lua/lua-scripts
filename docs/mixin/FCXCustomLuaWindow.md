@@ -16,7 +16,7 @@
 fcxcustomluawindow.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua#L29)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCustomLuaWindow.lua#L29)
 
 **[Internal]**
 
@@ -30,7 +30,7 @@ fcxcustomluawindow.Init(self)
 fcxcustomluawindow.CreateUpDown(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCXCustomLuaWindow.lua#L47)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCXCustomLuaWindow.lua#L47)
 
 **[Override]**
 

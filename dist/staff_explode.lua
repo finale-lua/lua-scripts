@@ -957,6 +957,7 @@ function plugindef()
 
         If you subsequently hold down the `shift` or `alt` (option) key, spacing will not be included.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_explode.hash"
     return "Staff Explode", "Staff Explode", "Explode chords from one staff into single notes on consecutive staves"
 end
 local configuration = require("library.configuration")

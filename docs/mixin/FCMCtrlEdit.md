@@ -35,7 +35,7 @@
 fcmctrledit.SetText(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L33)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L33)
 
 **[Fluid] [Override]**
 
@@ -53,7 +53,7 @@ Override Changes:
 fcmctrledit.GetInteger(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L316)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L316)
 
 **[Override]**
 
@@ -74,7 +74,7 @@ Override Changes:
 fcmctrledit.SetInteger(self, anint)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Fluid] [Override]**
 
@@ -93,7 +93,7 @@ Override Changes:
 fcmctrledit.GetFloat(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
 
@@ -114,7 +114,7 @@ Override Changes:
 fcmctrledit.SetFloat(self, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Fluid] [Override]**
 
@@ -133,7 +133,7 @@ Override Changes:
 fcmctrledit.GetMeasurement(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L150)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L150)
 
 **[Override]**
 
@@ -154,7 +154,7 @@ fcmctrledit.GetMeasurement(self, measurementunit)
 fcmctrledit.GetRangeMeasurement(self, measurementunit, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L163)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L163)
 
 **[Override]**
 
@@ -178,7 +178,7 @@ Override Changes:
 fcmctrledit.SetMeasurement(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L178)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L178)
 
 **[Fluid] [Override]**
 
@@ -198,7 +198,7 @@ Override Changes:
 fcmctrledit.GetMeasurementEfix(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
 
@@ -220,7 +220,7 @@ Override Changes:
 fcmctrledit.GetRangeMeasurementEfix(self, measurementunit, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
 
@@ -244,7 +244,7 @@ Override Changes:
 fcmctrledit.SetMeasurementEfix(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Fluid] [Override]**
 
@@ -264,7 +264,7 @@ Override Changes:
 fcmctrledit.GetMeasurementInteger(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
 
@@ -286,7 +286,7 @@ Override Changes:
 fcmctrledit.GetRangeMeasurementInteger(self, measurementunit, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Override]**
 
@@ -311,7 +311,7 @@ Override Changes:
 fcmctrledit.SetMeasurementInteger(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Fluid] [Override]**
 
@@ -331,7 +331,7 @@ Override Changes:
 fcmctrledit.GetMeasurement10000th(self, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 Returns the measurement in 10000ths of an EVPU.
 
@@ -350,7 +350,7 @@ Returns the measurement in 10000ths of an EVPU.
 fcmctrledit.GetRangeMeasurement10000th(self, measurementunit, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 Returns the measurement in 10000ths of an EVPU, clamped between two values.
 
@@ -371,7 +371,7 @@ Returns the measurement in 10000ths of an EVPU, clamped between two values.
 fcmctrledit.SetMeasurement10000th(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L-1)
 
 **[Fluid]**
 Sets a measurement in 10000ths of an EVPU.
@@ -388,7 +388,7 @@ Sets a measurement in 10000ths of an EVPU.
 fcmctrledit.GetRangeInteger(self, minimum, maximum)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L312)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L312)
 
 **[Override]**
 
@@ -412,7 +412,7 @@ Override Changes:
 fcmctrledit.HandleChange(control, last_value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L329)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L329)
 
 **[Callback Template]**
 
@@ -427,7 +427,7 @@ fcmctrledit.HandleChange(control, last_value)
 fcmctrledit.AddHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L348)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L348)
 
 **[Fluid]**
 
@@ -448,7 +448,7 @@ The even will fire when:
 fcmctrledit.RemoveHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlEdit.lua#L353)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlEdit.lua#L353)
 
 **[Fluid]**
 

@@ -1396,6 +1396,7 @@ function plugindef()
         All existing staffs will be deleted. And in their place, the trombone octet will be created.
         This script uses the standard ensemble creation configuration options.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/score_create_trombone_choir_score.hash"
     return "Create trombone choir score", "Create trombone choir score",
            "Creates the score setup correctly for trombone choir"
 end

@@ -4703,6 +4703,7 @@ function plugindef()
 		Change the playback state of the chosen layer or all layers in the current selection.
 		This script creates two menus, `Layer Mute` and `Layer Unmute`.
 	]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/layer_mute.hash"
     return "Layer Mute", "Layer Mute", "Mute chosen layer(s) in the current selection"
 end
 layer_playback = layer_playback or false

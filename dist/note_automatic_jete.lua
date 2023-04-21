@@ -1170,6 +1170,7 @@ function plugindef()
         hide_last_note = true
         ```
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_automatic_jete.hash"
     return "Automatic Jeté", "Automatic Jete",
            "Add gliss. marks, hide noteheads, and adjust staccato marks as needed for jeté bowing."
 end

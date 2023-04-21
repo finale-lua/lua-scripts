@@ -12,7 +12,7 @@
 smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/smartshape.lua#L48)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/smartshape.lua#L48)
 
 Creates an entry based SmartShape based on two input notes. If a type is not specified, creates a slur.
 
@@ -28,7 +28,7 @@ Creates an entry based SmartShape based on two input notes. If a type is not spe
 smartshape.delete_entry_based_smartshape(music_region, shape_type)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/smartshape.lua#L126)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/smartshape.lua#L126)
 
 Creates an entry based SmartShape based on two input notes. If a type is not specified, creates a slur.
 
@@ -43,6 +43,6 @@ Creates an entry based SmartShape based on two input notes. If a type is not spe
 smartshape.delete_all_slurs()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/smartshape.lua#L155)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/smartshape.lua#L155)
 
 Deletes all slurs, dashed slurs, and dashed curves.

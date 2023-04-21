@@ -5100,6 +5100,7 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
         action = "flip"
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/cue_notes_create.hash"
     return "Cue Notes Create...", "Cue Notes Create", "Copy as cue notes to another staff"
 end
 action = action or nil

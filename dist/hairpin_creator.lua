@@ -5329,6 +5329,7 @@ function plugindef()
         For simple hairpins that don't mess around with trailing barlines and dynamics try selecting
         `dynamics match hairpin` and de-selecting the other options.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/hairpin_creator.hash"
     return "Hairpin Create Crescendo", "Hairpin Create Crescendo", "Create crescendo hairpin spanning the selected region"
 end
 hairpin_type = hairpin_type or finale.SMARTSHAPE_CRESCENDO

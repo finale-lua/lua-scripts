@@ -17,7 +17,7 @@ A library of general clef utility functions.
 clef.get_cell_clef(measure, staff_number)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L46)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/clef.lua#L46)
 
 
 Gets the clef for any cell.
@@ -38,7 +38,7 @@ Gets the clef for any cell.
 clef.get_default_clef(first_measure, last_measure, staff_number)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L73)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/clef.lua#L73)
 
 
 Gets the default clef for any staff for a specific region.
@@ -60,7 +60,7 @@ Gets the default clef for any staff for a specific region.
 clef.set_measure_clef(first_measure, last_measure, staff_number, clef_index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L95)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/clef.lua#L95)
 
 
 Sets the clefs of of a range measures.
@@ -79,7 +79,7 @@ Sets the clefs of of a range measures.
 clef.restore_default_clef(first_measure, last_measure, staff_number)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L125)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/clef.lua#L125)
 
 
 Restores the default clef for any staff for a specific region.
@@ -97,7 +97,7 @@ Restores the default clef for any staff for a specific region.
 clef.process_clefs(mid_clefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L159)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/clef.lua#L159)
 
 
 Processes a table of clef changes and returns them in order, without duplicates.
@@ -114,7 +114,7 @@ Processes a table of clef changes and returns them in order, without duplicates.
 clef.clef_change(clef)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/library/clef.lua#L199)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/library/clef.lua#L199)
 
 
 Inserts a clef change in the selected region.

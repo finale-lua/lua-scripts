@@ -24,6 +24,7 @@ function plugindef()
         This script creates two menu items that either `Hide` or `Unhide`
         all tuplets in the selected region.
 	]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/tuplets_hide.hash"
     return "Tuplets Hide", "Tuplets Hide", "Hide all tuplets in the current selection"
 end
 tuplets_unhide = tuplets_unhide or false

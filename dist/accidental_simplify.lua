@@ -617,6 +617,7 @@ function plugindef()
     finaleplugin.Date = "August 22, 2021"
     finaleplugin.CategoryTags = "Accidental"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/accidental_simplify.hash"
     return "Simplify accidentals", "Simplify accidentals", "Removes all double sharps and flats by respelling them"
 end
 local transposition = require("library.transposition")

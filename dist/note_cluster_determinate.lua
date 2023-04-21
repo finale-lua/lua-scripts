@@ -294,7 +294,7 @@ function plugindef()
     finaleplugin.Copyright = "©2019 Jacob Winkler"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Version = "1.0"
-    finaleplugin.Date = "11/02/2019"
+    finaleplugin.Date = "11/02/2019"    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_cluster_determinate.hash"
     return "Cluster - Determinate", "Cluster - Determinate", "Creates a determinate cluster."
 end
 

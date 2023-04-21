@@ -798,6 +798,7 @@ function plugindef()
     finaleplugin.Version = "2.0"
     finaleplugin.Date = "2022-07-17"
     finaleplugin.MinJWLuaVersion = 0.63
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/harp_pedal_wizard.hash"
     return "Harp Pedal Wizard", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
 end
 local library = require("library.general_library")

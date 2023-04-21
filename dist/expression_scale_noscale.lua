@@ -27,6 +27,7 @@ function plugindef()
     finaleplugin.Notes = [[
     This plug-in will set or clear the option to scale with entries in the selected region. It will not work on expressions that are assigned to staff lists, such as tempo marks and tempo alterations.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_scale_noscale.hash"
     return "Expressions: Scaling OFF", "Expressions: Scaling OFF", "Turns off expression scaling in the selected region."
 end
 scale_bool = scale_bool or false

@@ -296,6 +296,7 @@ function plugindef()
     finaleplugin.Date = "June 7, 2020"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_entry_keep_top_note.hash"
     return "Chord Line - Keep Top Note", "Chord Line - Keep Top Note",
            "Keeps the top note of every chord and deletes the rest"
 end

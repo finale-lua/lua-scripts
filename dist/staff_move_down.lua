@@ -86,6 +86,7 @@ function plugindef()
     finaleplugin.Date = "June 20, 2020"
     finaleplugin.CategoryTags = "Staff"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_move_down.hash"
     return "Move Staff Down", "Move Staff Down", "Moves the selected staves down by 1 space"
 end
 local measurement = require("library.measurement")

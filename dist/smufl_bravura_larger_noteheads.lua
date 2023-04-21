@@ -512,7 +512,7 @@ function plugindef()
     finaleplugin.Date = "4/18/2022"
     finaleplugin.Notes = [[
 Replaces the noteheads in a 'Bravura' document with the larger glyphs included in the Stylistic Alternates category. These alternate glyphs (which are about 8% larger than the ones loaded by default) are the ones that the font is actually designed to use, and are the ones used by Dorico. For a discussion about these larger noteheads and why they are not used by default, see this thread in the MuseScore forum: https://musescore.org/en/node/68461
-    ]]
+    ]]    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/smufl_bravura_larger_noteheads.hash"
     return "Bravura: Large Noteheads", "Bravura: Large Noteheads", "Replaces noteheads in Bravura with the intended larger size."
 end
 

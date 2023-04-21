@@ -5252,6 +5252,7 @@ function plugindef()
         Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/transpose_chromatic.hash"
     return "Transpose Chromatic...", "Transpose Chromatic", "Chromatic transposition of selected region (supports microtone systems)."
 end
 if not finenv.RetainLuaState then

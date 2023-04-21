@@ -29,6 +29,7 @@ function plugindef()
         Two menus are created, `Break secondary beams` and
         `Clear secondary beam breaks`.
         ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/secondary_beam_breaks.hash"
     return "Break secondary beams", "Break secondary beams", "Break secondary beams with compound consideration"
 end
 clear_breaks = clear_breaks or false

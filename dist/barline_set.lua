@@ -38,6 +38,7 @@ function plugindef()
 		Barline Set Dashed
 		```
 	]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/barline_set.hash"
 	return "Barline Set Normal", "Barline Set Normal", "Set all selected barlines to one of five styles"
 end
 new_barline = new_barline or finale.BARLINE_NORMAL

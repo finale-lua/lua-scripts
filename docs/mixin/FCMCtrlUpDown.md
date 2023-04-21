@@ -20,7 +20,7 @@
 fcmctrlupdown.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L25)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlUpDown.lua#L25)
 
 **[Internal]**
 
@@ -34,7 +34,7 @@ fcmctrlupdown.Init(self)
 fcmctrlupdown.GetConnectedEdit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L44)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlUpDown.lua#L44)
 
 **[Override]**
 
@@ -55,7 +55,7 @@ Override Changes:
 fcmctrlupdown.ConnectIntegerEdit(self, control, minvalue, maxvalue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L62)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlUpDown.lua#L62)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -76,7 +76,7 @@ Override Changes:
 fcmctrlupdown.ConnectMeasurementEdit(self, control, minvalue, maxvalue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L87)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlUpDown.lua#L87)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -97,7 +97,7 @@ Override Changes:
 fcmctrlupdown.AddHandlePress(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L112)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlUpDown.lua#L112)
 
 **[Fluid]**
 Adds a handler for UpDownPressed events.
@@ -113,7 +113,7 @@ Adds a handler for UpDownPressed events.
 fcmctrlupdown.RemoveHandlePress(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlUpDown.lua#L117)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlUpDown.lua#L117)
 
 **[Fluid]**
 Removes a handler added with `AddHandlePress`.

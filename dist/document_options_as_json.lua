@@ -6444,6 +6444,7 @@ function plugindef()
         displays as spaces. (1 EVPU is 1/288 of an inch, 1/24 of a space, or 1/4 of a point.) So if your
         measurement units are set to EVPUs, the values given here should match what you see in Finale.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/document_options_as_json.hash"
     return "Save Document Options as JSON...", "", "Saves all current document options to a JSON file"
 end
 action = action or "export"

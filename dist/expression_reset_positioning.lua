@@ -1070,6 +1070,7 @@ function plugindef()
     finaleplugin.Date = "March 20, 2021"
     finaleplugin.CategoryTags = "Expression"
     finaleplugin.RequireSelection = true
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_reset_positioning.hash"
     return "Reset Expression Positions", "Reset Expression Positions", "Resets the assignment position of all selected single-staff expressions."
 end
 local library = require("library.general_library")

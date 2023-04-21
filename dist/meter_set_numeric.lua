@@ -26,6 +26,7 @@ function plugindef()
         If the "Secondary" Top is zero, "Tertiary" values are ignored.
         Finale's Time Signature tool will also accept "Top" numbers with decimals but I haven't allowed for that in this script.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/meter_set_numeric.hash"
 	return "Meter Set Numeric", "Meter Set Numeric", "Set the Meter Numerically"
 end
 function user_chooses_meter(meters, region)

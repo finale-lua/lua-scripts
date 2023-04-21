@@ -19,6 +19,7 @@ function plugindef()
    al_fine_text = "tacet al fine"
    ```
    ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/region_multimeasure_rest_tacet.hash"
    return "TACET", "Create Tacet", "Creates a mm-rest and TACET expression"
 end
 tacet_text = tacet_text or "TACET"

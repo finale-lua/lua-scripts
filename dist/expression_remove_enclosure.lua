@@ -1072,6 +1072,7 @@ function plugindef()
     finaleplugin.Version = "1.1"
     finaleplugin.Date = "March 20, 2021"
     finaleplugin.CategoryTags = "Expression"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_remove_enclosure.hash"
     return "Expression Remove Enclosure", "Expression Remove Enclosure", "Removes any enclosure on any single-staff text expression in the currently selected region."
 end
 local library = require("library.general_library")

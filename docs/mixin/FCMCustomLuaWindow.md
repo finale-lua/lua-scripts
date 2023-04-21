@@ -85,7 +85,7 @@
 fcmcustomluawindow.Init(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L94)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L94)
 
 **[Internal]**
 
@@ -99,7 +99,7 @@ fcmcustomluawindow.Init(self)
 fcmcustomluawindow.RegisterHandleCommand(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L243)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L243)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -118,7 +118,7 @@ Override Changes:
 fcmcustomluawindow.AddHandleCommand(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L255)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L255)
 
 **[Fluid]**
 
@@ -136,7 +136,7 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.RemoveHandleCommand(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L-1)
 
 **[Fluid]**
 
@@ -153,7 +153,7 @@ Removes a handler added by `AddHandleCommand`.
 fcmcustomluawindow.RegisterHandleDataListCheck(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L279)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L279)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -172,7 +172,7 @@ Override Changes:
 fcmcustomluawindow.AddHandleDataListCheck(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L291)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L291)
 
 **[Fluid]**
 
@@ -190,7 +190,7 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.RemoveHandleDataListCheck(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L-1)
 
 **[Fluid]**
 
@@ -207,7 +207,7 @@ Removes a handler added by `AddHandleDataListCheck`.
 fcmcustomluawindow.RegisterHandleDataListSelect(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L315)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L315)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -226,7 +226,7 @@ Override Changes:
 fcmcustomluawindow.AddHandleDataListSelect(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L327)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L327)
 
 **[Fluid]**
 
@@ -244,7 +244,7 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.RemoveHandleDataListSelect(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L-1)
 
 **[Fluid]**
 
@@ -261,7 +261,7 @@ Removes a handler added by `AddHandleDataListSelect`.
 fcmcustomluawindow.RegisterHandleUpDownPressed(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L351)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L351)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -280,7 +280,7 @@ Override Changes:
 fcmcustomluawindow.AddHandleUpDownPressed(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L363)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L363)
 
 **[Fluid]**
 
@@ -298,7 +298,7 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.RemoveHandleUpDownPressed(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L-1)
 
 **[Fluid]**
 
@@ -315,7 +315,7 @@ Removes a handler added by `AddHandleUpDownPressed`.
 fcmcustomluawindow.CancelButtonPressed(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L384)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L384)
 
 **[Callback Template] [Override]**
 
@@ -332,7 +332,7 @@ Override Changes:
 fcmcustomluawindow.RegisterHandleCancelButtonPressed(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L-1)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -351,7 +351,7 @@ Override Changes:
 fcmcustomluawindow.AddHandleCancelButtonPressed(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L413)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L413)
 
 **[Fluid]**
 
@@ -369,7 +369,7 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.RemoveHandleCancelButtonPressed(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L-1)
 
 **[Fluid]**
 
@@ -386,7 +386,7 @@ Removes a handler added by `AddHandleCancelButtonPressed`.
 fcmcustomluawindow.OkButtonPressed(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L431)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L431)
 
 **[Callback Template] [Override]**
 
@@ -403,7 +403,7 @@ Override Changes:
 fcmcustomluawindow.RegisterHandleOkButtonPressed(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L946)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L946)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -422,7 +422,7 @@ Override Changes:
 fcmcustomluawindow.AddHandleOkButtonPressed(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L460)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L460)
 
 **[Fluid]**
 
@@ -440,7 +440,7 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.RemoveHandleOkButtonPressed(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L-1)
 
 **[Fluid]**
 
@@ -457,7 +457,7 @@ Removes a handler added by `AddHandleOkButtonPressed`.
 fcmcustomluawindow.InitWindow(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L478)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L478)
 
 **[Callback Template] [Override]**
 
@@ -474,7 +474,7 @@ Override Changes:
 fcmcustomluawindow.RegisterInitWindow(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L495)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L495)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -493,7 +493,7 @@ Override Changes:
 fcmcustomluawindow.AddInitWindow(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L507)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L507)
 
 **[Fluid]**
 
@@ -511,7 +511,7 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.RemoveInitWindow(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L-1)
 
 **[Fluid]**
 
@@ -528,7 +528,7 @@ Removes a handler added by `AddInitWindow`.
 fcmcustomluawindow.CloseWindow(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L525)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L525)
 
 **[Callback Template] [Override]**
 
@@ -545,7 +545,7 @@ Override Changes:
 fcmcustomluawindow.RegisterCloseWindow(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L542)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L542)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -564,7 +564,7 @@ Override Changes:
 fcmcustomluawindow.AddCloseWindow(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L554)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L554)
 
 **[Fluid]**
 
@@ -582,7 +582,7 @@ Added handlers are called in the order they are added after the registered handl
 fcmcustomluawindow.RemoveCloseWindow(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L-1)
 
 **[Fluid]**
 
@@ -599,7 +599,7 @@ Removes a handler added by `AddCloseWindow`.
 fcmcustomluawindow.QueueHandleCustom(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L574)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L574)
 
 **[Fluid] [Internal]**
 Adds a function to the queue which will be executed in the same context as an event handler at the next available opportunity.
@@ -617,7 +617,7 @@ The callback will not be passed any arguments.
 fcmcustomluawindow.RegisterHandleControlEvent(self, control, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L595)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L595)
 
 **[>= v0.56] [Breaking Change] [Fluid] [Override]**
 
@@ -637,7 +637,7 @@ Override Changes:
 fcmcustomluawindow.HandleTimer(self, timerid)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L621)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L621)
 
 **[Breaking Change] [Callback Template] [Override]**
 
@@ -655,7 +655,7 @@ Override Changes:
 fcmcustomluawindow.RegisterHandleTimer(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L632)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L632)
 
 **[>= v0.56] [Breaking Change] [Fluid] [Override]**
 
@@ -674,7 +674,7 @@ Override Changes:
 fcmcustomluawindow.AddHandleTimer(self, timerid, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L650)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L650)
 
 **[>= v0.56] [Fluid]**
 
@@ -693,7 +693,7 @@ If a handler is added for a timer that hasn't been set, the timer ID will no lon
 fcmcustomluawindow.RemoveHandleTimer(self, timerid, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L670)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L670)
 
 **[>= v0.56] [Fluid]**
 
@@ -711,7 +711,7 @@ Removes a handler added with `AddHandleTimer`.
 fcmcustomluawindow.SetTimer(self, timerid, msinterval)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L693)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L693)
 
 **[>= v0.56] [Fluid] [Override]**
 
@@ -730,7 +730,7 @@ Override Changes:
 fcmcustomluawindow.GetNextTimerID(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L712)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L712)
 
 **[>= v0.56]**
 
@@ -750,7 +750,7 @@ Returns the next available timer ID.
 fcmcustomluawindow.SetNextTimer(self, msinterval)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L731)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L731)
 
 **[>= v0.56]**
 
@@ -771,7 +771,7 @@ Sets a timer using the next available ID (according to `GetNextTimerID`) and ret
 fcmcustomluawindow.SetEnableAutoRestorePosition(self, enabled)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L754)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L754)
 
 **[>= v0.60] [Fluid]**
 
@@ -789,7 +789,7 @@ This is disabled by default.
 fcmcustomluawindow.GetEnableAutoRestorePosition(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L770)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L770)
 
 **[>= v0.60]**
 
@@ -809,7 +809,7 @@ Returns whether automatic restoration of window position is enabled.
 fcmcustomluawindow.SetRestorePositionData(self, x, y, width, height)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L788)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L788)
 
 **[>= v0.60] [Fluid] [Override]**
 
@@ -830,7 +830,7 @@ Override Changes:
 fcmcustomluawindow.SetRestorePositionOnlyData(self, x, y)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L814)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L814)
 
 **[>= v0.60] [Fluid] [Override]**
 
@@ -849,7 +849,7 @@ Override Changes:
 fcmcustomluawindow.SetEnableDebugClose(self, enabled)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L839)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L839)
 
 **[Fluid]**
 
@@ -868,7 +868,7 @@ This is disabled by default.
 fcmcustomluawindow.GetEnableDebugClose(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L853)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L853)
 
 Returns the enabled state of the `DebugClose` option.
 
@@ -886,7 +886,7 @@ Returns the enabled state of the `DebugClose` option.
 fcmcustomluawindow.SetRestoreControlState(self, enabled)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L868)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L868)
 
 **[Fluid]**
 
@@ -904,7 +904,7 @@ This is disabled by default.
 fcmcustomluawindow.GetRestoreControlState(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L882)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L882)
 
 Checks if control state restoration is enabled.
 
@@ -922,7 +922,7 @@ Checks if control state restoration is enabled.
 fcmcustomluawindow.HasBeenShown(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L894)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L894)
 
 Checks if the window has been shown at least once prior, either as a modal or modeless.
 
@@ -940,7 +940,7 @@ Checks if the window has been shown at least once prior, either as a modal or mo
 fcmcustomluawindow.ExecuteModal(self, parent)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L911)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L911)
 
 **[Override]**
 
@@ -963,7 +963,7 @@ Override Changes:
 fcmcustomluawindow.ShowModeless(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L932)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L932)
 
 **[Override]**
 
@@ -985,7 +985,7 @@ Override Changes:
 fcmcustomluawindow.RunModeless(self, selection_not_required, default_action_override)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L953)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L953)
 
 **[Fluid]**
 
@@ -1007,7 +1007,7 @@ Runs the window as a self-contained modeless plugin, performing the following st
 fcmcustomluawindow.GetMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L989)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L989)
 
 Returns the window's current measurement unit.
 
@@ -1025,7 +1025,7 @@ Returns the window's current measurement unit.
 fcmcustomluawindow.SetMeasurementUnit(self, unit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1005)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L1005)
 
 **[Fluid]**
 
@@ -1044,7 +1044,7 @@ All controls that have an `UpdateMeasurementUnit` method will have that method c
 fcmcustomluawindow.GetMeasurementUnitName(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1039)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L1039)
 
 Returns the name of the window's current measurement unit.
 
@@ -1062,7 +1062,7 @@ Returns the name of the window's current measurement unit.
 fcmcustomluawindow.GetUseParentMeasurementUnit(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1051)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L1051)
 
 Returns a boolean indicating whether this window will use the measurement unit of its parent window when opened.
 
@@ -1080,7 +1080,7 @@ Returns a boolean indicating whether this window will use the measurement unit o
 fcmcustomluawindow.SetUseParentMeasurementUnit(self, enabled)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1065)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L1065)
 
 **[Fluid]**
 
@@ -1097,7 +1097,7 @@ Sets whether to use the parent window's measurement unit when opening this windo
 fcmcustomluawindow.HandleMeasurementUnitChange(self, last_unit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1083)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L1083)
 
 **[Callback Template]**
 
@@ -1114,7 +1114,7 @@ Template for MeasurementUnitChange handlers.
 fcmcustomluawindow.AddHandleMeasurementUnitChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1102)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L1102)
 
 **[Fluid]**
 
@@ -1135,7 +1135,7 @@ The even will fire when:
 fcmcustomluawindow.RemoveHandleMeasurementUnitChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1107)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L1107)
 
 **[Fluid]**
 
@@ -1152,7 +1152,7 @@ Removes a handler added with `AddHandleMeasurementUnitChange`.
 fcmcustomluawindow.CreateMeasurementEdit(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1128)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L1128)
 
 Creates an `FCXCtrlMeasurementEdit` control.
 
@@ -1173,7 +1173,7 @@ Creates an `FCXCtrlMeasurementEdit` control.
 fcmcustomluawindow.CreateMeasurementUnitPopup(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1148)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L1148)
 
 Creates a popup which allows the user to change the window's measurement unit.
 
@@ -1194,7 +1194,7 @@ Creates a popup which allows the user to change the window's measurement unit.
 fcmcustomluawindow.CreatePageSizePopup(self, x, y, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCustomLuaWindow.lua#L1168)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCustomLuaWindow.lua#L1168)
 
 Creates a popup which allows the user to select a page size.
 

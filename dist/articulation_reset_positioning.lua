@@ -13,6 +13,7 @@ how Finale stored articulation positions before Finale 26, it requires Finale 26
 maintaining the context for automatic stacking, it must be run under RGP Lua. JW Lua does not have the necessary
 logic to manage the stacking context.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/articulation_reset_positioning.hash"
     return "Reset Articulation Positions", "Reset Articulation Positions", "Resets the position of all selected articulations."
 end
 function articulation_reset_positioning()

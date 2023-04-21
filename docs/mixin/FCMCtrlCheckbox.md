@@ -16,7 +16,7 @@
 fcmctrlcheckbox.SetCheck(self, checked)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua#L29)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlCheckbox.lua#L29)
 
 **[Fluid] [Override]**
 
@@ -34,7 +34,7 @@ Override Changes:
 fcmctrlcheckbox.HandleCheckChange(control, last_check)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua#L58)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlCheckbox.lua#L58)
 
 **[Callback Template]**
 
@@ -49,7 +49,7 @@ fcmctrlcheckbox.HandleCheckChange(control, last_check)
 fcmctrlcheckbox.AddHandleChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlCheckbox.lua#L-1)
 
 **[Fluid]**
 
@@ -70,7 +70,7 @@ The event will fire when:
 fcmctrlcheckbox.RemoveHandleCheckChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/master/src/mixin/FCMCtrlCheckbox.lua#L71)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/RGP/add-hashes-to-deploy-yml/src/mixin/FCMCtrlCheckbox.lua#L71)
 
 **[Fluid]**
 

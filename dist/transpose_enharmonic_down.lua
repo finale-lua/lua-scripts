@@ -637,6 +637,7 @@ function plugindef()
         Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/transpose_enharmonic_down.hash"
     return "Enharmonic Transpose Down", "Enharmonic Transpose Down",
            "Transpose down enharmonically all notes in selected regions."
 end
