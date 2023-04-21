@@ -46,13 +46,13 @@ jobs:
               uses: finale-lua/lua-docs-generator@1.3.1
               with:
                   input: './lua/src/library'
-                  repositoryUrl: 'https://github.com/finale-lua/lua-scripts/tree/master/src/library'
+                  repositoryUrl: 'https://github.com/finale-lua/lua-scripts/tree/${{ github.ref }}/src/library'
                   output: './lua/docs/library'
             - name: Generate the docs
               uses: finale-lua/lua-docs-generator@1.3.1
               with:
                   input: './lua/src/mixin'
-                  repositoryUrl: 'https://github.com/finale-lua/lua-scripts/tree/master/src/mixin'
+                  repositoryUrl: 'https://github.com/finale-lua/lua-scripts/tree/${{ github.ref }}/src/mixin'
                   output: './lua/docs/mixin'
             - run: 'rm -rf website/docs'
             - run: 'cp -R lua/docs website/docs'
@@ -68,4 +68,4 @@ jobs:
               with:
                   github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
                   directory: lua
-                  branch: master
+                  branch: ${{ github.ref }}
