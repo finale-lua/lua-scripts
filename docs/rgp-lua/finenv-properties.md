@@ -388,6 +388,17 @@ Example:
 print("Running Lua plugin version: "..finenv.StringVersion)
 ```
 
+#### TrustedMode\* (read-only property)
+
+Returns true if our code is running as trusted code. (See the [main RGP Lua page](/docs/rgp-lua) for more information.
+
+
+Example:
+
+```lua
+print("Trusted Mode: "..tostring(finenv.TrustedMode))
+```
+
 #### UI (function)
 
 Returns the global “user interface” instance (of the [`FCUI`](https://pdk.finalelua.com/class_f_c_u_i.html) class). The `FCUI` class contains Finale and system-global tasks, such as displaying alert boxes, sounding a system beep, or getting the width of the screen, etc.
