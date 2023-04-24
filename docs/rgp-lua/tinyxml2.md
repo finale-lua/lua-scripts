@@ -5,7 +5,7 @@ Starting with version 0.67 of _RGP Lua_, the `tinyxml2` framework is available t
 The original C++ documentation for `tinyxml2` is available here:  
 [http://leethomason.github.io/tinyxml2/](http://leethomason.github.io/tinyxml2/)
 
-That documentaion is somewhat sparse. You can get fuller explanations from [ChatGPT](https://chat.openai.com/). A question like, "What is the purpose of the processEntities and whitespaceMode parameters when contructing tinyxml2.XMLDocument?" yields quite helpful results. (However, the results are not always 100% accurate, so use them with your brain turned on.)
+That documentaion is somewhat sparse. You can get fuller explanations from [ChatGPT](https://chat.openai.com/). A question like, "What is the purpose of the processEntities and whitespaceMode parameters when constructing a tinyxml2.XMLDocument?" yields quite helpful results. (However, the results are not always 100% accurate, so use them with your brain turned on.)
 
 ## API differences
 
@@ -45,13 +45,18 @@ local result, x = element.QueryDoubleAttribute("percent") -- 1 parameter
 
 - Each of the classes has a `ClassName` method added that is not in the original documentation.
 - `XMLPrinter` is available for memory buffer printing only. If you need to write to a file, use `io.write` to write the `CStr` of the `XMLPrinter` to the file.
-- `XMLDocument` defines `XMLDocument::Clear` as a close function with Lua 5.4+. That means you can use the Lua `<close>` keyword to specify that the document is cleared immediately on any exit path from the block in which it is defined.
+- `XMLDocument` defines `XMLDocument::Clear` as a close function with Lua 5.4+. That means you can use the Lua 5.4 `<close>` keyword to specify that the document is cleared immediately on any exit path from the block in which it is defined.
 
 ```lua
 local xml <close> = tinyxml2.XMLDocument()
 ```
 
 - Similarly `XMLPrinter` defines `XMLPrinter::ClearBuffer` as a close function with Lua 5.4.
+
+```lua
+local xml_printer <close> = tinyxml2.XMLPrinter()
+```
+
 - The Lua constructors for `XMLDocument` and `XMLPrinter` accept a variable number of parameters with default values the same as documented for C++.
 
 C++
