@@ -116,6 +116,8 @@ local success, error_msg, msg_type = finenv.ExecuteLuaScriptItem(scripts:GetItem
 
 A script cannot execute itself from the list returned by [CreateLuaScriptItems](#createluascriptitems-function). If you attempt it, `ExecuteLuaScriptItem` returns an error message and takes no other action.
 
+Ad hoc scripts (those created with `CreateLuaScriptItemsFromFilePath`) cannot run in trusted mode. Configured scripts (those created with `CreateLuaScriptItems`) run in trusted mode if they are configured to run in trused mode.
+
 #### FinaleVersion (read-only property)
 
 Returns the running Finale “year” version, such as 2011, 2012, etc. For Finale 25 and later, _JW Lua_ returns this value as 9999. However, _RGP Lua_ (starting with v0.56) returns the major version + 10000. So Finale 25 returns 10025, Finale 26 returns 10026, etc.
