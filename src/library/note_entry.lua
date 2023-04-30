@@ -322,6 +322,13 @@ function note_entry.delete_note(note)
         finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
         finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
     end
+    if entry.PerformanceDataFlag then
+        local perf_mod = finale.FCPerformanceMod()
+        perf_mod:SetNoteEntry(entry)
+        if perf_mod:LoadAt(note) then
+            perf_mod:DeleteData()
+        end
+    end
 
     return entry:DeleteNote(note)
 end
