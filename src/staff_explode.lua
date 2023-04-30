@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.54"
-    finaleplugin.Date = "2023/04/29"
+    finaleplugin.Version = "v1.55"
+    finaleplugin.Date = "2023/04/30"
     finaleplugin.AdditionalMenuOptions = [[
         Staff Explode Pairs
         Staff Explode Pairs (Up)
@@ -135,48 +135,60 @@ function not_enough_staves(slot, staff_count)
     return false
 end
 
+function fix_note_spacing(region)
+    if config.fix_note_spacing then
+        region:SetFullMeasureStack()
+        region:SetInDocument()
+        finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
+    end
+    finenv.Region():SetInDocument()
+end
+
 function explode_layers(region)
     local rgn = mixin.FCMMusicRegion()
     rgn:SetRegion(region)
 
     for slot = region.StartSlot, region.EndSlot do
         rgn:SetStartSlot(slot):SetEndSlot(slot)
-        local staff = rgn:CalcStaffNumber(slot)
         local note_count = simple_note_count(rgn)
-        local unison_doubling = (note_count == 1) and 1 or 0
 
-        local layers = {} -- copy original layer to [note_count] layers
-        layers[1] = finale.FCNoteEntryLayer(0, staff, region.StartMeasure, region.EndMeasure)
-        layers[1]:Load()
+        if note_count > 0 then -- some notes to work with
+            local unison_doubling = (note_count == 1) and 1 or 0
+            local staff = rgn:CalcStaffNumber(slot)
+            local layers = {} -- copy original layer to [note_count] layers
+            layers[1] = finale.FCNoteEntryLayer(0, staff, region.StartMeasure, region.EndMeasure)
+            layers[1]:Load()
 
-        for i = 2, (note_count + unison_doubling) do  -- copy to the other layers
-            if i > layer.max_layers() then break end -- observe maximum layers
-            layer.copy(rgn, 1, i)
-        end
+            for i = 2, (note_count + unison_doubling) do  -- copy to the other layers
+                if i > layer.max_layers() then break end -- observe maximum layers
+                layer.copy(rgn, 1, i)
+            end
 
-        if unison_doubling ~= 1 then  -- don't delete layer 2 if unison doubling
-            for entry in eachentrysaved(rgn) do
-                if entry:IsNote() then
-                    local this_layer = entry.LayerNumber
-                    local from_top = this_layer - 1   -- delete how many notes from top?
-                    local from_bottom = entry.Count - this_layer -- how many from bottom?
+            if unison_doubling ~= 1 then  -- don't delete layer 2 if unison doubling
+                for entry in eachentrysaved(rgn) do
+                    if entry:IsNote() then
+                        local this_layer = entry.LayerNumber
+                        local from_top = this_layer - 1   -- delete how many notes from top?
+                        local from_bottom = entry.Count - this_layer -- how many from bottom?
 
-                    if from_top > 0 then -- delete TOP notes
-                        for _ = 1, from_top do
-                            local high = entry:CalcHighestNote(nil)
-                            if high then note_entry.delete_note(high) end
+                        if from_top > 0 then -- delete TOP notes
+                            for _ = 1, from_top do
+                                local high = entry:CalcHighestNote(nil)
+                                if high then note_entry.delete_note(high) end
+                            end
                         end
-                    end
-                    if from_bottom > 0 and this_layer < layer.max_layers() then -- delete BOTTOM notes
-                        for _ = 1, from_bottom do
-                            local low = entry:CalcLowestNote(nil)
-                            if low then note_entry.delete_note(low) end
+                        if from_bottom > 0 and this_layer < layer.max_layers() then -- delete BOTTOM notes
+                            for _ = 1, from_bottom do
+                                local low = entry:CalcLowestNote(nil)
+                                if low then note_entry.delete_note(low) end
+                            end
                         end
                     end
                 end
             end
         end
     end
+    fix_note_spacing(region) -- may not be useful for layer explosions
 end
 
 function staff_explode()
@@ -208,8 +220,7 @@ function staff_explode()
     if not_enough_staves(start_slot, staff_count) then return end
 
     local destination_is_empty = true
-    -- copy top staff to staff_count lower staves
-    for slot = 2, staff_count do
+    for slot = 2, staff_count do -- copy top staff to staff_count lower staves
         region[slot] = mixin.FCMMusicRegion()
         region[slot]:SetRegion(region[1]):CopyMusic()
         local this_slot = start_slot + slot - 1 -- "real" slot number, index[1]
@@ -298,20 +309,13 @@ function staff_explode()
                 end
             end
         end
-
-        if config.fix_note_spacing then
-            region[1]:SetFullMeasureStack()
-            region[1]:SetInDocument()
-            finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
-            region[1]:SetStartSlot(start_slot):SetEndSlot(start_slot)
-        end
+        fix_note_spacing(region[1])
     end
 
     -- ALL DONE -- clear the copied clip files
     for slot = 2, staff_count do
         region[slot]:ReleaseMusic()
     end
-    region[1]:SetInDocument()
 end
 
 staff_explode()
