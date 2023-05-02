@@ -392,7 +392,7 @@ print("Running Lua plugin version: "..finenv.StringVersion)
 
 #### TrustedMode\* (read-only property)
 
-Returns true if our code is running as trusted code. (See the [main RGP Lua page](/docs/rgp-lua) for more information.
+Returns a code that specifies if and how our code is running as trusted code. (See the [main RGP Lua page](/docs/rgp-lua) for more information. The possible return values are given in the `finenv.TrustedModeType` constants.
 
 
 Example:
@@ -400,6 +400,17 @@ Example:
 ```lua
 print("Trusted Mode: "..tostring(finenv.TrustedMode))
 ```
+
+#### TrustedModeType\* (constants)
+
+A list of constants that define if and how our script is running in trusted mode. This values is returned by `finenv.TrustedMode`.
+
+|Value|Description|
+|-----|-----|
+|**UNTRUSTED**|The script is not verified. This is the most restrictive option.|
+|**USER\_TRUSTED**|The script was marked Trusted by the user. This is the most permissive option.|
+|**HASH\_VERIFIED**|The script has a hash value that was verified by a known whitelisted server. These scripts can modify Finale menus and the metatables of Finale classes, but they cannot execute external code.|
+|**NOT\_ENFORCED**|Code trust is not being enforced, so the script is treated as USER\_TRUSTED. Eventually this value will not be possible. _RGP Lua_ will require enforcement in a future version.|
 
 #### UI (function)
 

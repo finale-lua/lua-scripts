@@ -8,8 +8,9 @@ function plugindef()
     return "Load SMuFL Engraving Defaults", "Load SMuFL Engraving Defaults", "Loads engraving defaults for the current SMuFL Default Music Font."
 end
 
+local utils = require("library.utils")
 local library = require("library.general_library")
-local cjson = library.require_embedded("cjson")
+local cjson = utils.require_embedded("cjson")
 
 function smufl_load_engraving_defaults()
     local font_info = finale.FCFontInfo()

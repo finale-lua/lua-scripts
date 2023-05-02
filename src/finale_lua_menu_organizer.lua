@@ -96,7 +96,7 @@ local create_template_if_not_found = false      -- change this value to `true` i
 local utils = require("library.utils")
 local library = require("library.general_library")
 
-local osutils = library.require_embedded("luaosutils")
+local osutils = utils.require_embedded("luaosutils")
 local menu = osutils.menu
 
 local layout_file_name = "finale_lua_menus.txt"

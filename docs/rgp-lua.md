@@ -71,15 +71,17 @@ _RGP Lua_ (starting with version 0.67) adds a layer of protection with the conce
 - it is sourced from a known website such as the [Finale Lua](https://www.finalelua.com/) website, and it has not been modified. The Finale Lua organization on GitHub maintains a whitelist of known, trusted websites.
 - it is marked "Trusted" in the configurator. The "Trusted" option exists for script developers to mark their own code as trusted. If you are not the developer of the script, do not enable this option. And even if you are, do not enable it unless you have to.
 
-The limitations placed on untrusted scripts are relatively mild. They cannot
+The limitations placed on untrusted scripts are relatively mild. Hash-verified scripts and unveried scripts cannot
 
-- modify Finale's menus.
 - execute external code.
 - load binary C libraries.
-- send https `post` requests.
+
+Unverified scripts (in addition to the above) cannot
+
+- modify Finale's menus.
 - modify the metatables of bound Finale classes.
 
-Note that both trusted and untrusted scripts can access your file system with user level permission. The main goal of the trusted code restrictions is to limit the ability of a script to remain hidden while taking control of your computer for its own purposes.
+Note that all scripts can access your file system with user level permission. The main goal of the trusted code restrictions is to limit the ability of a script to remain hidden while taking control of your computer for its own purposes.
 
 ### The 'bit32' namespace
 
