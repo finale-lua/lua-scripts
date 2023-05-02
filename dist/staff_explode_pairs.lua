@@ -151,6 +151,10 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.require_embedded(library_name)
+        return require(library_name)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -255,7 +259,13 @@ package.preload["library.configuration"] = package.preload["library.configuratio
         local file_path, folder_path = calc_preferences_filepath(script_name)
         local file = io.open(file_path, "w")
         if not file and finenv.UI():IsOnWindows() then
-            os.execute('mkdir "' .. folder_path ..'"')
+
+            local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
+            if osutils then
+                osutils.process.make_dir(folder_path)
+            else
+                os.execute('mkdir "' .. folder_path ..'"')
+            end
             file = io.open(file_path, "w")
         end
         if not file then

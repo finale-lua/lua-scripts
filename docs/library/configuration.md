@@ -163,7 +163,7 @@ Saves the user's preferences for a script from the values provided in `parameter
 configuration.get_user_settings(script_name, parameter_list, create_automatically)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/configuration.lua#L278)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/configuration.lua#L284)
 
 Find the user's settings for a script in the preferences directory and replaces the default values in `parameter_list`
 with any that are found in the preferences file. The actual name and path of the preferences file is OS dependent, so

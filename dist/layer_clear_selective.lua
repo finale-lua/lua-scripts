@@ -3244,6 +3244,10 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.require_embedded(library_name)
+        return require(library_name)
+    end
     return utils
 end
 package.preload["library.client"] = package.preload["library.client"] or function()
@@ -3347,6 +3351,7 @@ end
 package.preload["library.general_library"] = package.preload["library.general_library"] or function()
 
     local library = {}
+    local utils = require("library.utils")
     local client = require("library.client")
 
     function library.group_overlaps_region(staff_group, region)
@@ -3541,22 +3546,29 @@ package.preload["library.general_library"] = package.preload["library.general_li
     end
 
     function library.get_smufl_font_list()
+        local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
         local font_names = {}
         local add_to_table = function(for_user)
             local smufl_directory = calc_smufl_directory(for_user)
             local get_dirs = function()
-                if finenv.UI():IsOnWindows() then
-                    return io.popen("dir \"" .. smufl_directory .. "\" /b /ad")
-                else
-                    return io.popen("ls \"" .. smufl_directory .. "\"")
+                local options = finenv.UI():IsOnWindows() and "/b /ad" or "-1"
+                if osutils then
+                    return osutils.process.list_dir(smufl_directory, options)
                 end
+
+                local cmd = finenv.UI():IsOnWindows() and "dir " or "ls "
+                local handle = io.popen(cmd .. options .. " \"" .. smufl_directory .. "\"")
+                local retval = handle:read("*a")
+                handle:close()
+                return retval
             end
             local is_font_available = function(dir)
                 local fc_dir = finale.FCString()
                 fc_dir.LuaString = dir
                 return finenv.UI():IsFontAvailable(fc_dir)
             end
-            for dir in get_dirs():lines() do
+            local dirs = get_dirs() or ""
+            for dir in dirs:gmatch("([^\r\n]*)[\r\n]?") do
                 if not dir:find("%.") then
                     dir = dir:gsub(" Bold", "")
                     dir = dir:gsub(" Italic", "")
@@ -3568,8 +3580,8 @@ package.preload["library.general_library"] = package.preload["library.general_li
                 end
             end
         end
-        add_to_table(true)
         add_to_table(false)
+        add_to_table(true)
         return font_names
     end
 

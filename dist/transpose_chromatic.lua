@@ -100,7 +100,13 @@ package.preload["library.configuration"] = package.preload["library.configuratio
         local file_path, folder_path = calc_preferences_filepath(script_name)
         local file = io.open(file_path, "w")
         if not file and finenv.UI():IsOnWindows() then
-            os.execute('mkdir "' .. folder_path ..'"')
+
+            local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
+            if osutils then
+                osutils.process.make_dir(folder_path)
+            else
+                os.execute('mkdir "' .. folder_path ..'"')
+            end
             file = io.open(file_path, "w")
         end
         if not file then
@@ -273,13 +279,13 @@ package.preload["library.transposition"] = package.preload["library.transpositio
         return true
     end
 
-    function transposition.enharmonic_transpose_default(note, ignore_error)
+    function transposition.enharmonic_transpose_default(note)
         if note.RaiseLower ~= 0 then
-            return transposition.enharmonic_transpose(note, sign(note.RaiseLower), ignore_error)
+            return transposition.enharmonic_transpose(note, sign(note.RaiseLower))
         end
         local original_displacement = note.Displacement
         local original_raiselower = note.RaiseLower
-        if not transposition.enharmonic_transpose(note, 1, ignore_error) then
+        if not transposition.enharmonic_transpose(note, 1) then
             return false
         end
 
@@ -292,7 +298,7 @@ package.preload["library.transposition"] = package.preload["library.transpositio
         local up_raiselower = note.RaiseLower
         note.Displacement = original_displacement
         note.RaiseLower = original_raiselower
-        if not transposition.enharmonic_transpose(note, -1, ignore_error) then
+        if not transposition.enharmonic_transpose(note, -1) then
             return false
         end
         if math.abs(note.RaiseLower) < math.abs(up_raiselower) then
@@ -3792,6 +3798,10 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.require_embedded(library_name)
+        return require(library_name)
+    end
     return utils
 end
 package.preload["library.client"] = package.preload["library.client"] or function()
@@ -3895,6 +3905,7 @@ end
 package.preload["library.general_library"] = package.preload["library.general_library"] or function()
 
     local library = {}
+    local utils = require("library.utils")
     local client = require("library.client")
 
     function library.group_overlaps_region(staff_group, region)
@@ -4089,22 +4100,29 @@ package.preload["library.general_library"] = package.preload["library.general_li
     end
 
     function library.get_smufl_font_list()
+        local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
         local font_names = {}
         local add_to_table = function(for_user)
             local smufl_directory = calc_smufl_directory(for_user)
             local get_dirs = function()
-                if finenv.UI():IsOnWindows() then
-                    return io.popen("dir \"" .. smufl_directory .. "\" /b /ad")
-                else
-                    return io.popen("ls \"" .. smufl_directory .. "\"")
+                local options = finenv.UI():IsOnWindows() and "/b /ad" or "-1"
+                if osutils then
+                    return osutils.process.list_dir(smufl_directory, options)
                 end
+
+                local cmd = finenv.UI():IsOnWindows() and "dir " or "ls "
+                local handle = io.popen(cmd .. options .. " \"" .. smufl_directory .. "\"")
+                local retval = handle:read("*a")
+                handle:close()
+                return retval
             end
             local is_font_available = function(dir)
                 local fc_dir = finale.FCString()
                 fc_dir.LuaString = dir
                 return finenv.UI():IsFontAvailable(fc_dir)
             end
-            for dir in get_dirs():lines() do
+            local dirs = get_dirs() or ""
+            for dir in dirs:gmatch("([^\r\n]*)[\r\n]?") do
                 if not dir:find("%.") then
                     dir = dir:gsub(" Bold", "")
                     dir = dir:gsub(" Italic", "")
@@ -4116,8 +4134,8 @@ package.preload["library.general_library"] = package.preload["library.general_li
                 end
             end
         end
-        add_to_table(true)
         add_to_table(false)
+        add_to_table(true)
         return font_names
     end
 
@@ -5304,6 +5322,18 @@ end
 local transposition = require("library.transposition")
 local note_entry = require("library.note_entry")
 local mixin = require("library.mixin")
+local function chromatic_transpose(note, interval, alteration, simplify)
+    if not note.GetTransposer then
+        return transposition.chromatic_transpose(note, interval, alteration, simplify)
+    end
+    return note:GetTransposer():ChromaticTranspose(interval, alteration, simplify)
+end
+local function change_octave(note, plus_octaves)
+    if not note.GetTransposer then
+        return transposition.change_octave(note, plus_octaves)
+    end
+    return note:GetTransposer():OctaveTranspose(plus_octaves)
+end
 function do_transpose_chromatic(direction, interval_index, simplify, plus_octaves, preserve_originals)
     if finenv.Region():IsEmpty() then
         return
@@ -5331,10 +5361,10 @@ function do_transpose_chromatic(direction, interval_index, simplify, plus_octave
                     note = dup_note
                 end
             end
-            if not transposition.chromatic_transpose(note, interval, alteration, simplify) then
+            if not chromatic_transpose(note, interval, alteration, simplify) then
                 success = false
             end
-            transposition.change_octave(note, plus_octaves)
+            change_octave(note, plus_octaves)
         end
     end
     if finenv.EndUndoBlock then

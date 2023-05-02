@@ -33,7 +33,7 @@
 library.group_overlaps_region(staff_group, region)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L17)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L18)
 
 Returns true if the input staff group overlaps with the input music region, otherwise false.
 
@@ -52,7 +52,7 @@ Returns true if the input staff group overlaps with the input music region, othe
 library.group_is_contained_in_region(staff_group, region)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L49)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L50)
 
 Returns true if the entire input staff group is contained within the input music region.
 If the start or end staff are not visible in the region, it returns false.
@@ -72,7 +72,7 @@ If the start or end staff are not visible in the region, it returns false.
 library.staff_group_is_multistaff_instrument(staff_group)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L67)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L68)
 
 Returns true if the entire input staff group is a multistaff instrument.
 
@@ -90,7 +90,7 @@ Returns true if the entire input staff group is a multistaff instrument.
 library.get_selected_region_or_whole_doc()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L86)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L87)
 
 Returns a region that contains the selected region if there is a selection or the whole document if there isn't.
 SIDE-EFFECT WARNING: If there is no selected region, this function also changes finenv.Region() to the whole document.
@@ -105,7 +105,7 @@ SIDE-EFFECT WARNING: If there is no selected region, this function also changes 
 library.get_first_cell_on_or_after_page(page_num)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L102)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L103)
 
 Returns the first FCCell at the top of the input page. If the page is blank, it returns the first cell after the input page.
 
@@ -123,7 +123,7 @@ Returns the first FCCell at the top of the input page. If the page is blank, it 
 library.get_top_left_visible_cell()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L132)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L133)
 
 Returns the topmost, leftmost visible FCCell on the screen, or the closest possible estimate of it.
 
@@ -137,7 +137,7 @@ Returns the topmost, leftmost visible FCCell on the screen, or the closest possi
 library.get_top_left_selected_or_visible_cell()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L149)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L150)
 
 If there is a selection, returns the topmost, leftmost cell in the selected region.
 Otherwise returns the best estimate for the topmost, leftmost currently visible cell.
@@ -152,7 +152,7 @@ Otherwise returns the best estimate for the topmost, leftmost currently visible 
 library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L168)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L169)
 
 Returns true if measure numbers for the input region are visible on the input cell for the staff system.
 
@@ -173,7 +173,7 @@ Returns true if measure numbers for the input region are visible on the input ce
 library.calc_parts_boolean_for_measure_number_region(meas_num_region, for_part)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L194)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L195)
 
 Returns the correct boolean value to use when requesting information about a measure number region.
 
@@ -192,7 +192,7 @@ Returns the correct boolean value to use when requesting information about a mea
 library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L216)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L217)
 
 Returns true if measure number for the input cell is visible and left-aligned.
 
@@ -214,7 +214,7 @@ Returns true if measure number for the input cell is visible and left-aligned.
 library.update_layout(from_page, unfreeze_measures)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L248)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L249)
 
 Updates the page layout.
 
@@ -229,7 +229,7 @@ Updates the page layout.
 library.get_current_part()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L264)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L265)
 
 Returns the currently selected part or score.
 
@@ -243,7 +243,7 @@ Returns the currently selected part or score.
 library.get_score()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L277)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L278)
 
 Returns an `FCPart` instance that represents the score.
 
@@ -257,7 +257,7 @@ Returns an `FCPart` instance that represents the score.
 library.get_page_format_prefs()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L290)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L291)
 
 Returns the default page format prefs for score or parts based on which is currently selected.
 
@@ -271,7 +271,7 @@ Returns the default page format prefs for score or parts based on which is curre
 library.get_smufl_font_list()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L332)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L333)
 
 Returns table of installed SMuFL font names by searching the directory that contains
 the .json files for each font. The table is in the format:
@@ -290,7 +290,7 @@ the .json files for each font. The table is in the format:
 library.get_smufl_metadata_file(font_info)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L371)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L379)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -306,7 +306,7 @@ library.get_smufl_metadata_file(font_info)
 library.is_font_smufl_font(font_info)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L396)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L404)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -322,7 +322,7 @@ library.is_font_smufl_font(font_info)
 library.simple_input(title, text)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L425)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L433)
 
 Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
 
@@ -339,7 +339,7 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 library.is_finale_object(object)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L478)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L486)
 
 Attempts to determine if an object is a Finale object through ducktyping
 
@@ -357,7 +357,7 @@ Attempts to determine if an object is a Finale object through ducktyping
 library.get_parent_class(classname)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L491)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L499)
 
 Returns the name of the parent of a class.
 
@@ -375,7 +375,7 @@ Returns the name of the parent of a class.
 library.get_class_name(object)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L524)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L532)
 
 Returns the real class name of a Finale object. Some classes in older JW/RGPLua versions have incorrect class names, so this function attempts to resolve them with ducktyping
 
@@ -393,7 +393,7 @@ Returns the real class name of a Finale object. Some classes in older JW/RGPLua 
 library.system_indent_set_to_prefs(system, page_format_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L556)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L564)
 
 Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
 The page preferences may be provided optionally to avoid loading them for each call.
@@ -413,7 +413,7 @@ The page preferences may be provided optionally to avoid loading them for each c
 library.calc_script_name(include_extension)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L581)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L589)
 
 Returns the running script name, with or without extension.
 
@@ -431,7 +431,7 @@ Returns the running script name, with or without extension.
 library.get_default_music_font_name()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L610)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L618)
 
 Fetches the default music font from document options and processes the name into a usable format.
 

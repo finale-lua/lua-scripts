@@ -249,6 +249,10 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.require_embedded(library_name)
+        return require(library_name)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -353,7 +357,13 @@ package.preload["library.configuration"] = package.preload["library.configuratio
         local file_path, folder_path = calc_preferences_filepath(script_name)
         local file = io.open(file_path, "w")
         if not file and finenv.UI():IsOnWindows() then
-            os.execute('mkdir "' .. folder_path ..'"')
+
+            local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
+            if osutils then
+                osutils.process.make_dir(folder_path)
+            else
+                os.execute('mkdir "' .. folder_path ..'"')
+            end
             file = io.open(file_path, "w")
         end
         if not file then
@@ -526,13 +536,13 @@ package.preload["library.transposition"] = package.preload["library.transpositio
         return true
     end
 
-    function transposition.enharmonic_transpose_default(note, ignore_error)
+    function transposition.enharmonic_transpose_default(note)
         if note.RaiseLower ~= 0 then
-            return transposition.enharmonic_transpose(note, sign(note.RaiseLower), ignore_error)
+            return transposition.enharmonic_transpose(note, sign(note.RaiseLower))
         end
         local original_displacement = note.Displacement
         local original_raiselower = note.RaiseLower
-        if not transposition.enharmonic_transpose(note, 1, ignore_error) then
+        if not transposition.enharmonic_transpose(note, 1) then
             return false
         end
 
@@ -545,7 +555,7 @@ package.preload["library.transposition"] = package.preload["library.transpositio
         local up_raiselower = note.RaiseLower
         note.Displacement = original_displacement
         note.RaiseLower = original_raiselower
-        if not transposition.enharmonic_transpose(note, -1, ignore_error) then
+        if not transposition.enharmonic_transpose(note, -1) then
             return false
         end
         if math.abs(note.RaiseLower) < math.abs(up_raiselower) then
