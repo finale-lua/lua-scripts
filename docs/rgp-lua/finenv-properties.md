@@ -116,6 +116,8 @@ local success, error_msg, msg_type = finenv.ExecuteLuaScriptItem(scripts:GetItem
 
 A script cannot execute itself from the list returned by [CreateLuaScriptItems](#createluascriptitems-function). If you attempt it, `ExecuteLuaScriptItem` returns an error message and takes no other action.
 
+Ad hoc scripts (those created with `CreateLuaScriptItemsFromFilePath`) cannot run in trusted mode. Configured scripts (those created with `CreateLuaScriptItems`) run in trusted mode if they are configured to run in trused mode.
+
 #### FinaleVersion (read-only property)
 
 Returns the running Finale “year” version, such as 2011, 2012, etc. For Finale 25 and later, _JW Lua_ returns this value as 9999. However, _RGP Lua_ (starting with v0.56) returns the major version + 10000. So Finale 25 returns 10025, Finale 26 returns 10026, etc.
@@ -128,15 +130,15 @@ if finenv.FinaleVersion > 10025 then
 end
 ```
 
-#### LoadedAsString\* (read-only property)
+#### IsFinaleDemo\* (read-only property)
 
-A read-only property that returns the setting of “Load As String”, either from _RGP Lua’s_ configuration dialog or from the `plugindef()` function, whichever is in effect.
+Returns `true` if the version of Finale that is currently running is the demo version that cannot save or print. (Available starting in version 0.67 of _RGP Lua_.)
 
 Example:
 
 ```lua
-if finenv.LoadedAsString then
-   -- read binary data from the end of the script file
+if finenv.IsFinaleDemo then
+   -- take some action based on the fact that Finale cannot save or print.
 end
 ```
 
@@ -152,6 +154,22 @@ if finenv.IsRGPLua then
 end
 ```
 
+#### LoadedAsString\* (read-only property)
+
+A read-only property that returns the setting of “Load As String”, either from _RGP Lua’s_ configuration dialog or from the `plugindef()` function, whichever is in effect.
+
+Example:
+
+```lua
+if finenv.LoadedAsString then
+   -- read binary data from the end of the script file
+end
+```
+
+#### LuaBridgeVersion\* (read-only property)
+
+Returns a string with the current version of LuaBridge that is embedded in _RGP Lua_. LuaBridge is an open-source C++ library that allows a C++ program to import classes from a C++ class framework into Lua. This property exists for diagnostic purposes and is probably not of interest to general users of the plugin.
+ 
 #### MajorVersion & MinorVersion (read-only properties)
 
 Return the major and minor version numbers, respectively, of the running Lua plugin. (Either _RGP Lua_ or _JW Lua_.)
@@ -371,6 +389,28 @@ Example:
 ```lua
 print("Running Lua plugin version: "..finenv.StringVersion)
 ```
+
+#### TrustedMode\* (read-only property)
+
+Returns a code that specifies if and how our code is running as trusted code. (See the [main RGP Lua page](/docs/rgp-lua) for more information. The possible return values are given in the `finenv.TrustedModeType` constants.
+
+
+Example:
+
+```lua
+print("Trusted Mode: "..tostring(finenv.TrustedMode))
+```
+
+#### TrustedModeType\* (constants)
+
+A list of constants that define if and how our script is running in trusted mode. This values is returned by `finenv.TrustedMode`.
+
+|Value|Description|
+|-----|-----|
+|**UNTRUSTED**|The script is not verified. This is the most restrictive option.|
+|**USER\_TRUSTED**|The script was marked Trusted by the user. This is the most permissive option.|
+|**HASH\_VERIFIED**|The script has a hash value that was verified by a known whitelisted server. These scripts can modify Finale menus and the metatables of Finale classes, but they cannot execute external code.|
+|**NOT\_ENFORCED**|Code trust is not being enforced, so the script is treated as USER\_TRUSTED. Eventually this value will not be possible. _RGP Lua_ will require enforcement in a future version.|
 
 #### UI (function)
 

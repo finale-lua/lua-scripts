@@ -37,7 +37,7 @@ Add/Edit Dialog
 
 **Select File.** Selects a single `.lua` or `.luac` file to be included in Finale's plugin menu.
 
-**Select Folder.** Selects a folder containing `.lua` and/or `.luac` files as an Auto Folder. _RGP Lua_ inserts every `.lua` or `.luac` file in an Auto Folder into Finale's plugin menu except `mobdebug.lua`, if it happens to exist.
+**Select Folder.** Selects a folder containing `.lua` and/or `.luac` files as an Auto Folder. _RGP Lua_ inserts every `.lua` or `.luac` file in an Auto Folder into Finale's plugin menu except `mobdebug.lua`, if it happens to exist. However, if a script has requested to execute at startup, it will not be included. Those scripts must be explicitly configured with `Select File`. See `ExecuteAtStartup` in the [finaleplugin properties](/docs/rgp-lua/finaleplugin-properties).
 
 **Active.** If this option is unchecked, _RGP Lua_ skips this item when Finale loads. It allows you keep items in the list even if you do not wish them to appear in Finale. You can activate them later if you wish them to appear in Finale again.
 
@@ -45,8 +45,11 @@ Add/Edit Dialog
 
 * Embedding the [`luasocket`](https://aiq0.github.io/luasocket/index.html) library into the Lua machine as global `socket` before executing the script. This allows communication with an external debugger, but it also gives affected scripts access to your network and potentially the Internet, so only use it with scripts from trusted sources.
 * Reprocessing the `plugindef()` function each time the script runs. This allows for faster iteration with possibly a slight performance hit. Note that some of the properties of `finaleplugin` will not be recognized until after the next time you run the script, and a few (such as the menu text and min/max versions) will not be recognized until you restart Finale.
+* Disabling hash checking for `ExecuteAtStartup` scripts. With debugging enabled, you can modify the script contents at will without any challenges from _RGP Lua_.
 
 **Load As String.** Normally _RGP Lua_ sends the entire script file to the Lua interpreter. However, it is possible to include a non-Lua appendix delimited by a `NULL` character in the file. Selecting this option causes _RGP Lua_ to first load the file into a string and send that string to the Lua interpreter. The Lua interpreter then stops at the `NULL` character. A script file can override this option by setting `finaleplugin.LoadAsString` in the `plugindef()` function.
+
+**Allow At Startup.** If a script requests to be run when Finale starts up, the user can permit it to do so by selecting this option. See `ExecuteAtStartup` in the [finaleplugin properties](/docs/rgp-lua/finaleplugin-properties). If the script has not requested execution at startup, this option does nothing.
 
 **Optional Menu Text.** Specifies the menu text to be used with this instance of the selected script file. If omitted, _RGP Lua_ uses the menu text returned by the `plugindef()` function in the script. If Optional Menu Text is supplied, this instance of the script will not load any `finaleplugin.AdditionalMenuOptions` configured in the `plugindef()` function. This option is not available for Auto Folders.
 

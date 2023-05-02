@@ -46,7 +46,13 @@ Default is `false`.
 
 #### ExecuteAtStartup\* (boolean)
 
-If this value is `true` _RGP Lua_ executes the script during Finale initialization. The script executes after the Finale application has completely finished initializing and is ready for user input. However, there is no guarantee in which order scripts will run if multiple scripts have requested to execute at startup. Some other 3rd-party plugins (notably TGTools, Patterson Plugins, and JWLuaMenu) rearrange Finale's menus at this time, and there is no guarantee in which order they run.
+If this value is `true` _RGP Lua_ executes the script during Finale initialization, provided certain security restrictions are met. The script executes after the Finale application has completely finished initializing and is ready for user input. However, there is no guarantee in which order scripts will run if multiple scripts have requested to execute at startup. Some other 3rd-party plugins (notably TGTools, Patterson Plugins, and JWLuaMenu) rearrange Finale's menus at this time, and there is no guarantee in which order they run.
+
+The security restrictions are:
+
+- Scripts with this value set to true must be explicitly configured in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration). They are not included as part of an Auto Folder.
+- The script must have the `Allow Startup` checkbox enabled in its configuration.
+- The script file must not have been modified since it was configured. If you modify it, RGP Lua reports an error, and you must reopen the configuration for that script and accept it again by hitting OK. You can disable this check if you select `Enable Debug`, but this is extremely ill-advised unless you are actively debugging the script. Remember that these scripts run invisibly every time you start up Finale.
 
 You can check if a script is running at startup with `finenv.QueryInitializationInProgress()`. Only the primary script runs at startup. If the script specifies `AdditionalMenuOptions`, the additional options are added to Finale's plugin menu, but they do not run at startup. 
 
@@ -116,13 +122,13 @@ Default is `false`.
 
 #### LoadLuaOSUtils\* (boolean)
 
-Setting this value to `true` tells _RGP Lua_ to pre-load its embedded version of `luaosutils` package. Note that you must still `require` it to use it. See the [this link](/docs/rgp-lua#the-luaosutils-library) for more information.
+By default, _RGP Lua_ pre-loads an embedded version of `luaosutils` package. Note that you must still `require` it to use it. See the [this link](/docs/rgp-lua) for more information. You can suppress this by setting the value to `false`. This allows you to load an external version.
 
 ```lua
-finaleplugin.LoadLuaOSUtils = true
+finaleplugin.LoadLuaOSUtils = false
 ```
 
-Default is `false`.
+Default is `true`.
 
 #### MinFinaleVersion (number)
 

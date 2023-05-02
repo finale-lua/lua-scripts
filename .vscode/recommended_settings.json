@@ -15,7 +15,8 @@
         "loadallforregion",
         "pairsbykeys",
         "bit32",
-        "utf8"
+        "utf8",
+        "socket"
     ],
     "files.exclude": {
         "decoder.lua": true,
@@ -31,5 +32,5 @@
     "[lua]": {
         "editor.defaultFormatter": "Koihik.vscode-lua-format"
     },
-    "Lua.runtime.version": "Lua 5.2"
+    "Lua.runtime.version": "Lua 5.4"
 }

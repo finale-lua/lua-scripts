@@ -244,7 +244,13 @@ function configuration.save_user_settings(script_name, parameter_list)
     local file_path, folder_path = calc_preferences_filepath(script_name)
     local file = io.open(file_path, "w")
     if not file and finenv.UI():IsOnWindows() then -- file not found
-        os.execute('mkdir "' .. folder_path ..'"') -- so try to make a folder (windows only, since the folder is guaranteed to exist on mac)
+         -- so try to make a folder (windows only, since the folder is guaranteed to exist on mac)
+        local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
+        if osutils then
+            osutils.process.make_dir(folder_path)
+        else
+            os.execute('mkdir "' .. folder_path ..'"') -- os.execute fails in 0.67+ if code is not user trusted
+        end
         file = io.open(file_path, "w") -- try the file again
     end
     if not file then -- still couldn't find file

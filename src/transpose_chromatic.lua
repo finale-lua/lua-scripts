@@ -85,6 +85,20 @@ local transposition = require("library.transposition")
 local note_entry = require("library.note_entry")
 local mixin = require("library.mixin")
 
+local function chromatic_transpose(note, interval, alteration, simplify)
+    if not note.GetTransposer then -- if our plugin does not have FCTransposer
+        return transposition.chromatic_transpose(note, interval, alteration, simplify)
+    end
+    return note:GetTransposer():ChromaticTranspose(interval, alteration, simplify)
+end
+
+local function change_octave(note, plus_octaves)
+    if not note.GetTransposer then -- if our plugin does not have FCTransposer
+        return transposition.change_octave(note, plus_octaves)
+    end
+    return note:GetTransposer():OctaveTranspose(plus_octaves)
+end
+
 function do_transpose_chromatic(direction, interval_index, simplify, plus_octaves, preserve_originals)
     if finenv.Region():IsEmpty() then
         return
@@ -112,10 +126,10 @@ function do_transpose_chromatic(direction, interval_index, simplify, plus_octave
                     note = dup_note
                 end
             end
-            if not transposition.chromatic_transpose(note, interval, alteration, simplify) then
+            if not chromatic_transpose(note, interval, alteration, simplify) then
                 success = false
             end
-            transposition.change_octave(note, plus_octaves)
+            change_octave(note, plus_octaves)
         end
     end
     if finenv.EndUndoBlock then -- EndUndoBlock only exists on RGP Lua 0.56 and higher

@@ -41,7 +41,7 @@ The methods names (and as a result, the Lua properties) in the PDK Framework are
 The Lua Language
 ----------------
 
-_RGP Lua_ and _JW Lua_ are based on Lua 5.2. More information about the Lua computer language (and books about Lua) is available at the [Lua](http://www.lua.org/) home page, including [the Lua 5.2 Reference Manual](http://www.lua.org/manual/5.2/manual.html) and the online version of ["Programming in Lua", First Edition](http://www.lua.org/pil/) (this book covers Lua 5.0, but for Finale Lua programming purposes, it should cover what you need.)
+_RGP Lua_ as of version 0.67 is based on Lua 5.4. (_JW Lua_ is based on Lua 5.2.) More information about the Lua computer language (and books about Lua) is available at the [Lua](http://www.lua.org/) home page, including [the Lua 5.4 Reference Manual](https://www.lua.org/manual/5.4/) and the online version of ["Programming in Lua", First Edition](http://www.lua.org/pil/). (This book covers Lua 5.0, but for Finale Lua programming purposes, it should cover what you need.)
 
 Lua is case sensitive. The basic Lua syntax is very similar to other computer languages and Lua is an easy language to learn. To be able to write plug-in scripts there are just a few concepts in Lua you need to be aware of, such as:
 
@@ -52,13 +52,51 @@ Lua is case sensitive. The basic Lua syntax is very similar to other computer la
 * `for … do … end` loops
 * `if … then … end` conditional statements
 
-However, to really take advantage of the full power of Lua, there are other very powerful tools (such as iterators, closures and coroutines) to explore.
+However, to really take advantage of the full power of Lua, there are other very powerful tools (such as iterators, closures, and coroutines) to explore.
 
-Both _RGP Lua_ and _JW Lua_ include all the standard Lua 5.2 modules (`string`, `math`, `file`, etc). These modules can be used in any Finale Lua script, such as :
+Both _RGP Lua_ and _JW Lua_ include all the standard Lua modules (`string`, `math`, `file`, etc). These modules can be used in any Finale Lua script, such as :
 
 ```lua
 print (math.random(1, 10))
 ```
+
+### Trusted Code
+
+Lua is a powerful language that has components that allow a script to access many low-level and system-level features outside of the Finale environment. For that reason, users must exercise caution when installing scripts from third party sources. A blatantly destructive script could in theory wreak havoc on your personal files, for example. Neither _RGP Lua_ nor _JW Lua_ offer any way to prevent this, since file system access is an essential productive feature of the plugin. Your operating system files should be safe, but your personal files might not be.
+
+The good news is that in the grand scheme of the internet, Finale is a niche, single-user environment. Only plugins you install will run, and even then they will run only if you invoke them or allow them to be invoked. Consequently there is little motivation for bad actors to create malicious scripts, and the risk is extremely low. As of this writing there have been no reported examples on either _RGP Lua_ or _JW Lua_. Nevertheless, if you are in any doubt, scan the script for uses of `io.write`, `os.remove`, `os.rename`, or other similar calls.
+
+_RGP Lua_ (starting with version 0.67) adds a layer of protection with the concept of trusted code. To gain full access to the language features of Lua and _RGP Lua_, you must be running as trusted. (Enforcement of trusted code will be mandatory starting in a release following v0.67. As of now you can switch enforcement off in the configuration dialog.) The vast majority of scripts do not need to run as trusted code, and it is recommended not to do so if you do not need to. A script is trusted if
+
+- it is sourced from a known website such as the [Finale Lua](https://www.finalelua.com/) website, and it has not been modified. The Finale Lua organization on GitHub maintains a whitelist of known, trusted websites.
+- it is marked "Trusted" in the configurator. The "Trusted" option exists for script developers to mark their own code as trusted. If you are not the developer of the script, do not enable this option. And even if you are, do not enable it unless you have to.
+
+The limitations placed on untrusted scripts are relatively mild. Hash-verified scripts and unveried scripts cannot
+
+- execute external code.
+- load binary C libraries.
+
+Unverified scripts (in addition to the above) cannot
+
+- modify Finale's menus.
+- modify the metatables of bound Finale classes.
+
+Note that all scripts can access your file system with user level permission. The main goal of the trusted code restrictions is to limit the ability of a script to remain hidden while taking control of your computer for its own purposes.
+
+### The 'bit32' namespace
+
+The `bit32` library in Lua 5.2 was removed in Lua 5.4. These functions were replaced with bitwise operators such as `&`, `|`, `>>`, `<<`, etc, directly in Lua. To maintain script interoperability with _JW Lua_ (which includes the `bit32` library as part of Lua 5.2), _RGP Lua_ embeds a [compatible version](https://github.com/finale-lua/lua-source/blob/master/built-in-functions/bit32_for_Lua54.lua) of `bit32` implemented using the Lua 5.4 operators.
+
+### The 'cjson' library
+
+_RGP Lua_ (starting in version 0.67) pre-loads the lua-cjson 2.1.0 library, which is embedded in the plugin. This allows for frictionless encoding of Lua tables to and from JSON strings. Access it as follows:
+
+```lua
+local cjson = require('cjson')
+```
+
+More information on how to use the libray is available here:  
+[https://www.kyne.com.au/~mark/software/lua-cjson-manual.html](https://www.kyne.com.au/~mark/software/lua-cjson-manual.html)
 
 ### The 'finale' namespace
 
@@ -84,7 +122,7 @@ It also allows for direct interaction with the Lua plugin itself. A full descrip
 
 _RGP Lua_ (starting in version 0.66) optionally preloads an embedded version of the [`luaosutils`](https://github.com/finale-lua/luaosutils) library. This is a library of functions specifically written to help Lua scripts running on Finale. It allows them to interact with the host operating system or the Finale executable in ways that are not directly supported by either the Lua language or the PDK Framework.
 
-For _RGP Lua_ to preload `luaosutils`, set `finaleplugin.LoadLuaOSUtils = true` in your `plugindef` function. _RGP Lua_ does not load the library into a global namespace, however. You must explicitly `require` it into a varable of your choosing similar to what is shown in the following example.
+_RGP Lua_ does not load the library into a global namespace, however. You must explicitly `require` it into a varable of your choosing similar to what is shown in the following example.
 
 ```lua
 local osutils = require('luaosutils')
@@ -92,12 +130,14 @@ local osutils = require('luaosutils')
 
 The advantage to this approach is that you do not need to change the body of your script if you wish to use an external version of `luaosutils` instead of the version embedded in _RGP Lua_. Simply disable the `LoadLuaOSUtils` option in `plugindef` and the script will pick up the external version instead, provided it is in your `cpath` list. (_RGP Lua_ automatically adds the script’s running folder path to the `cpath` list.)
 
+A script must be running as trusted code to gain full access to the functions in the library. See the [readme file](https://github.com/finale-lua/luaosutils#readme) for details.
+
 ### The 'socket' namespace
 
 _RGP Lua_ contains an embedded version of [`luasocket`](https://aiq0.github.io/luasocket/index.html). You can elect for it to be available in the `socket` namespace in one of the following ways.
 
-- Select **Enable Debugging** when you [configure](/docs/rgp-lua//docs/rgp-lua/rgp-lua-configuration) your script.
-- Add `finaleplugin.LoadLuaSocket = true` to your `plugindef` function.
+- Select **Enable Debugging** when you [configure](/docs/rgp-lua/docs/rgp-lua/rgp-lua-configuration) your script.
+- Add `finaleplugin.LoadLuaSocket = true` to your `plugindef` function and be running as trusted code.
 
 When you request the `socket` namespace, _RGP Lua_ takes the following actions.
 
@@ -105,7 +145,7 @@ When you request the `socket` namespace, _RGP Lua_ takes the following actions.
 - Preloads `socket.lua`.
 - References ("requires") them together in the `socket` namespace.
 
-If you have only requested debugging, no further action is taken. If you have specified `finaleplugin.LoadLuaSocket = true` in your `plugindef` function, then _RGP Lua_ takes the following additional actions.
+If you have only requested debugging, no further action is taken. If you have specified `finaleplugin.LoadLuaSocket = true` in your `plugindef` function, then _RGP Lua_ takes the following additional actions. (Your script must be running as trusted code.)
 
 - Preloads `mime.core` but does not include it in any namespace. You can access it with
 
@@ -136,9 +176,23 @@ require = __original_require or require
 
 If you are planning to use the standard installation of `luasocket`, you may be better off disabling the embedded version in _RGP Lua_ altogether.
 
+### The 'tinyxml2' namespace
+
+The Lua plugin for Finale has included the `tinyxml2` XML parser for many years. Both _JW Lua_ and _RGP Lua_ use it for reading and saving preference files, among other tasks. It is a lightweight parser implemented as a C++ class framework. It has the advantages of being very fast and possessing a simple API.
+
+Starting with version 0.67 of _RGP Lua_, the `tinyxml2` framework is available to Lua scripts in the namespace `tinyxml2`. You do not need to do anything extra in order to use it.
+
+Example:
+
+```lua
+local xml = tinyxml2.XMLDocument()
+```
+
+See the [tinyxml2](/docs/rgp-lua/docs/rgp-lua/tinyxml2) documentation page for details on how to use it.
+
 ### The 'utf8' namespace
 
-Lua 5.3 and higher added a standard `utf8` library for parsing utf8-encoded strings. Especially with the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ embeds the `utf8` library from Lua 5.4.4 back-ported into Lua 5.2. The [Lua 5.4 Reference Manual](https://www.lua.org/manual/5.4/manual.html) describes how to use these functions. Any code you write for this version of `utf8` is source-compatible with Lua 5.4 and beyond. (This version is also backwards compatible with Lua 5.3 code.)
+Lua 5.4 includes a standard `utf8` library for parsing utf8-encoded strings. With the addition of SMuFL font support in Finale 27, parsing utf8 characters is an essential requirement for Finale scripts. _RGP Lua_ versions before 0.67 embedded a back-ported version of the `utf8` library into Lua 5.2. Since version 0.67 it is part of the standard set of Lua libraries. The [Lua 5.4 Reference Manual](https://www.lua.org/manual/5.4/manual.html) describes how to use these functions.
 
 Dialog Boxes
 ------------
@@ -440,6 +494,11 @@ for k, v in pairsbykeys(t) do
    print (k, "=", v)
 end
 ```
+
+### xml functions
+
+See the [tinyxml2](/docs/rgp-lua/docs/rgp-lua/tinyxml2) documentation page for details on other built-in functions available starting with v0.67 of _RGP Lua_ .
+
 
 Memory Management
 -----------------
