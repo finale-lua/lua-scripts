@@ -136,7 +136,7 @@ A script must be running as trusted code to gain full access to the functions in
 
 _RGP Lua_ contains an embedded version of [`luasocket`](https://aiq0.github.io/luasocket/index.html). You can elect for it to be available in the `socket` namespace in one of the following ways.
 
-- Select **Enable Debugging** when you [configure](/docs/rgp-lua/docs/rgp-lua/rgp-lua-configuration) your script.
+- Select **Enable Debugging** when you [configure](/docs/rgp-lua/rgp-lua-configuration) your script.
 - Add `finaleplugin.LoadLuaSocket = true` to your `plugindef` function and be running as trusted code.
 
 When you request the `socket` namespace, _RGP Lua_ takes the following actions.
@@ -188,7 +188,7 @@ Example:
 local xml = tinyxml2.XMLDocument()
 ```
 
-See the [tinyxml2](/docs/rgp-lua/docs/rgp-lua/tinyxml2) documentation page for details on how to use it.
+See the [tinyxml2](/docs/rgp-lua/tinyxml2) documentation page for details on how to use it.
 
 ### The 'utf8' namespace
 
@@ -497,7 +497,7 @@ end
 
 ### xml functions
 
-See the [tinyxml2](/docs/rgp-lua/docs/rgp-lua/tinyxml2) documentation page for details on other built-in functions available starting with v0.67 of _RGP Lua_ .
+See the [tinyxml2](/docs/rgp-lua/tinyxml2) documentation page for details on other built-in functions available starting with v0.67 of _RGP Lua_ .
 
 
 Memory Management
