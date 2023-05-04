@@ -18,8 +18,8 @@ An up down control that is created by `FCXCustomLuaWindow`.
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {Parent = "FCMCtrlUpDown"}
-local public = {}
+local class = {Parent = "FCMCtrlUpDown", Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local temp_str = finale.FCString()
@@ -64,7 +64,7 @@ local default_efix_steps = {
 
 @ self (FCXCtrlUpDown)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -161,7 +161,7 @@ Override Changes:
 @ self (FCXCtrlUpDown)
 : (FCMCtrlEdit | nil) `nil` if there is no edit connected.
 ]]
-function public:GetConnectedEdit()
+function methods:GetConnectedEdit()
     return private[self].ConnectedEdit
 end
 
@@ -178,7 +178,7 @@ The underlying methods used in `GetValue` and `SetValue` will be `GetRangeIntege
 @ minimum (number)
 @ maximum (maximum)
 ]]
-function public:ConnectIntegerEdit(control, minimum, maximum)
+function methods:ConnectIntegerEdit(control, minimum, maximum)
     mixin_helper.assert_argument_type(2, control, "FCMCtrlEdit")
     mixin_helper.assert_argument_type(3, minimum, "number")
     mixin_helper.assert_argument_type(4, maximum, "number")
@@ -202,7 +202,7 @@ The underlying methods used in `GetValue` and `SetValue` will depend on the meas
 @ minimum (number)
 @ maximum (maximum)
 ]]
-function public:ConnectMeasurementEdit(control, minimum, maximum)
+function methods:ConnectMeasurementEdit(control, minimum, maximum)
     mixin_helper.assert_argument_type(2, control, "FCXCtrlMeasurementEdit")
     mixin_helper.assert_argument_type(3, minimum, "number")
     mixin_helper.assert_argument_type(4, maximum, "number")
@@ -223,7 +223,7 @@ Sets the step size for integer edits.
 @ self (FCXCtrlUpDown)
 @ value (number)
 ]]
-function public:SetIntegerStepSize(value)
+function methods:SetIntegerStepSize(value)
     mixin_helper.assert_argument_type(2, value, "number")
 
     private[self].IntegerStepSize = value
@@ -239,7 +239,7 @@ Sets the step size for measurement edits that are currently displaying in EVPUs.
 @ self (FCXCtrlUpDown)
 @ value (number)
 ]]
-function public:SetEVPUsStepSize(value)
+function methods:SetEVPUsStepSize(value)
     mixin_helper.assert_argument_type(2, value, "number")
 
     private[self].MeasurementSteps[finale.MEASUREMENTUNIT_EVPUS] = {value = value, is_evpus = true}
@@ -256,7 +256,7 @@ Sets the step size for measurement edits that are currently displaying in Inches
 @ value (number)
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Inches.
 ]]
-function public:SetInchesStepSize(value, is_evpus)
+function methods:SetInchesStepSize(value, is_evpus)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
@@ -277,7 +277,7 @@ Sets the step size for measurement edits that are currently displaying in Centim
 @ value (number)
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Centimeters.
 ]]
-function public:SetCentimetersStepSize(value, is_evpus)
+function methods:SetCentimetersStepSize(value, is_evpus)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
@@ -298,7 +298,7 @@ Sets the step size for measurement edits that are currently displaying in Points
 @ value (number)
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Points.
 ]]
-function public:SetPointsStepSize(value, is_evpus)
+function methods:SetPointsStepSize(value, is_evpus)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
@@ -319,7 +319,7 @@ Sets the step size for measurement edits that are currently displaying in Picas.
 @ value (number|string)
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Picas.
 ]]
-function public:SetPicasStepSize(value, is_evpus)
+function methods:SetPicasStepSize(value, is_evpus)
     mixin_helper.assert_argument_type(2, value, "number", "string")
 
     if not is_evpus then
@@ -341,7 +341,7 @@ Sets the step size for measurement edits that are currently displaying in Spaces
 @ value (number)
 @ [is_evpus] (boolean) If `true`, the value will be treated as an EVPU value. If `false` or omitted, the value will be treated in Spaces.
 ]]
-function public:SetSpacesStepSize(value, is_evpus)
+function methods:SetSpacesStepSize(value, is_evpus)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, is_evpus, "boolean", "nil")
 
@@ -361,7 +361,7 @@ Sets whether to align to the next multiple of a step when moving.
 @ self (FCXCtrlUpDown)
 @ on (boolean)
 ]]
-function public:SetAlignWhenMoving(on)
+function methods:SetAlignWhenMoving(on)
     mixin_helper.assert_argument_type(2, on, "boolean")
 
     private[self].AlignWhenMoving = on
@@ -383,7 +383,7 @@ Different types of connected edits will return different types and use different
 @ self (FCXCtrlUpDown)
 : (number) An integer for an integer edit, EVPUs for a measurement edit, whole EVPUs for a measurement integer edit, or EFIXes for a measurement EFIX edit.
 ]]
-function public:GetValue()
+function methods:GetValue()
     if not private[self].ConnectedEdit then
         return
     end
@@ -413,7 +413,7 @@ Different types of connected edits will accept different types and use different
 @ self (FCXCtrlUpDown)
 @ value (number) An integer for an integer edit, EVPUs for a measurement edit, whole EVPUs for a measurement integer edit, or EFIXes for a measurement EFIX edit.
 ]]
-function public:SetValue(value)
+function methods:SetValue(value)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert(private[self].ConnectedEdit, "Unable to set value: no connected edit.")
 
@@ -438,7 +438,7 @@ end
 @ self (FCMCtrlUpDown)
 : (number) An integer for integer edits or EVPUs for measurement edits.
 ]]
-function public:GetMinimum()
+function methods:GetMinimum()
     return private[self].Minimum
 end
 
@@ -451,7 +451,7 @@ end
 : (number) An integer for integer edits or EVPUs for measurement edits.
 ]]
 
-function public:GetMaximum()
+function methods:GetMaximum()
     return private[self].Maximum
 end
 
@@ -464,7 +464,7 @@ end
 @ minimum (number) An integer for integer edits or EVPUs for measurement edits.
 @ maximum (number) An integer for integer edits or EVPUs for measurement edits.
 ]]
-function public:SetRange(minimum, maximum)
+function methods:SetRange(minimum, maximum)
     mixin_helper.assert_argument_type(2, minimum, "number")
     mixin_helper.assert_argument_type(3, maximum, "number")
 
@@ -472,4 +472,4 @@ function public:SetRange(minimum, maximum)
     private[self].Maximum = maximum
 end
 
-return {meta, public}
+return class

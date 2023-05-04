@@ -10,8 +10,8 @@ Summary of modifications:
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 
 --[[
 % GetItemAt
@@ -26,10 +26,10 @@ This allows the item to be used outside of a `mixin.eachentry` loop.
 @ index (number)
 : (FCMNoteEntry | nil)
 ]]
-function public:GetItemAt(index)
+function methods:GetItemAt(index)
     mixin_helper.assert_argument_type(2, index, "number")
 
-    local item = self:GetItemAt_(index)
+    local item = self:GetItemAt__(index)
     if item then
         item:RegisterParent(self)
     end
@@ -37,4 +37,4 @@ function public:GetItemAt(index)
     return item
 end
 
-return {meta, public}
+return class

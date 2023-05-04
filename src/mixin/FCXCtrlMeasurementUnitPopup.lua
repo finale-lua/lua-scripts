@@ -31,8 +31,8 @@ local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local measurement = require("library.measurement")
 
-local meta = {Parent = "FCMCtrlPopup"}
-local public = {}
+local class = {Parent = "FCMCtrlPopup", Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local unit_order = {
@@ -46,10 +46,8 @@ for k, v in ipairs(unit_order) do
 end
 
 -- Disabled methods
-mixin_helper.disable_methods(
-    public, "Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
-    "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange",
-    "RemoveHandleSelectionChange")
+class.Disabled = {"Clear", "AddString", "AddStrings", "SetStrings", "GetSelectedItem", "SetSelectedItem", "SetSelectedLast",
+    "ItemExists", "InsertString", "DeleteItem", "GetItemText", "SetItemText", "AddHandleSelectionChange", "RemoveHandleSelectionChange"}
 
 --[[
 % Init
@@ -58,7 +56,7 @@ mixin_helper.disable_methods(
 
 @ self (FCXCtrlMeasurementUnitPopup)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -87,7 +85,7 @@ Checks the parent window's measurement unit and updates the selection if necessa
 
 @ self (FCXCtrlMeasurementUnitPopup)
 ]]
-function public:UpdateMeasurementUnit()
+function methods:UpdateMeasurementUnit()
     local unit = self:GetParent():GetMeasurementUnit()
 
     if unit == unit_order[mixin.FCMCtrlPopup.GetSelectedItem(self) + 1] then
@@ -97,4 +95,4 @@ function public:UpdateMeasurementUnit()
     mixin.FCMCtrlPopup.SetSelectedItem(self, flipped_unit_order[unit] - 1)
 end
 
-return {meta, public}
+return class

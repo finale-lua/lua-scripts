@@ -10,8 +10,8 @@ $module FCMCtrlDataList
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 
 local temp_str = finale.FCString()
 
@@ -27,11 +27,11 @@ Override Changes:
 @ title (FCString | string | number)
 @ columnwidth (number)
 ]]
-function public:AddColumn(title, columnwidth)
+function methods:AddColumn(title, columnwidth)
     mixin_helper.assert_argument_type(2, title, "string", "number", "FCString")
     mixin_helper.assert_argument_type(3, columnwidth, "number")
 
-    self:AddColumn_(mixin_helper.to_fcstring(title, temp_str), columnwidth)
+    self:AddColumn__(mixin_helper.to_fcstring(title, temp_str), columnwidth)
 end
 
 --[[
@@ -46,11 +46,11 @@ Override Changes:
 @ columnindex (number)
 @ title (FCString | string | number)
 ]]
-function public:SetColumnTitle(columnindex, title)
+function methods:SetColumnTitle(columnindex, title)
     mixin_helper.assert_argument_type(2, columnindex, "number")
     mixin_helper.assert_argument_type(3, title, "string", "number", "FCString")
 
-    self:SetColumnTitle_(columnindex, mixin_helper.to_fcstring(title, temp_str))
+    self:SetColumnTitle__(columnindex, mixin_helper.to_fcstring(title, temp_str))
 end
 
 --[[
@@ -74,7 +74,7 @@ Removes a handler added with `AddHandleCheck`.
 @ self (FCMCtrlDataList)
 @ callback (function)
 ]]
-public.AddHandleCheck, public.RemoveHandleCheck = mixin_helper.create_standard_control_event("HandleDataListCheck")
+methods.AddHandleCheck, methods.RemoveHandleCheck = mixin_helper.create_standard_control_event("HandleDataListCheck")
 
 --[[
 % AddHandleSelect
@@ -97,6 +97,6 @@ Removes a handler added with `AddHandleSelect`.
 @ self (FCMCtrlDataList)
 @ callback (function)
 ]]
-public.AddHandleSelect, public.RemoveHandleSelect = mixin_helper.create_standard_control_event("HandleDataListSelect")
+methods.AddHandleSelect, methods.RemoveHandleSelect = mixin_helper.create_standard_control_event("HandleDataListSelect")
 
-return {meta, public}
+return class

@@ -20,8 +20,8 @@ local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local utils = require("library.utils")
 
-local meta = {Parent = "FCMCtrlEdit"}
-local public = {}
+local class = {Parent = "FCMCtrlEdit", Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local trigger_change
@@ -64,7 +64,7 @@ end
 
 @ self (FCXCtrlMeasurementEdit)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -121,7 +121,7 @@ for method, valid_types in pairs({
     Integer = {"number"},
     Float = {"number"},
 }) do
-    public["Set" .. method] = function(self, value)
+    methods["Set" .. method] = function(self, value)
         mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
 
         mixin.FCMCtrlEdit["Set" .. method](self, value)
@@ -138,7 +138,7 @@ The default type is `"MeasurementInteger"`.
 @ self (FCXCtrlMeasurementEdit)
 : (string) `"Measurement"`, `"MeasurementInteger"`, `"MeasurementEfix"`, or `"Measurement10000th"`
 ]]
-function public:GetType()
+function methods:GetType()
     return private[self].Type
 end
 
@@ -384,7 +384,7 @@ for method, valid_types in pairs({
     MeasurementEfix = {"number"},
     Measurement10000th = {"number"},
 }) do
-    public["Get" .. method] = function(self)
+    methods["Get" .. method] = function(self)
         local text = mixin.FCMCtrlEdit.GetText(self)
         if (text ~= private[self].LastText) then
             private[self].Value = mixin.FCMCtrlEdit["Get" .. private[self].Type](self, private[self].LastMeasurementUnit)
@@ -394,7 +394,7 @@ for method, valid_types in pairs({
         return convert_type(private[self].Value, private[self].Type, method)
     end
 
-    public["GetRange" .. method] = function(self, minimum, maximum)
+    methods["GetRange" .. method] = function(self, minimum, maximum)
         mixin_helper.assert_argument_type(2, minimum, "number")
         mixin_helper.assert_argument_type(3, maximum, "number")
 
@@ -403,7 +403,7 @@ for method, valid_types in pairs({
         return utils.clamp(mixin.FCXCtrlMeasurementEdit["Get" .. method](self), minimum, maximum)
     end
 
-    public["Set" .. method] = function (self, value)
+    methods["Set" .. method] = function (self, value)
         mixin_helper.assert_argument_type(2, value, table.unpack(valid_types))
 
         private[self].Value = convert_type(value, method, private[self].Type)
@@ -412,11 +412,11 @@ for method, valid_types in pairs({
         trigger_change(self)
     end
 
-    public["IsType" .. method] = function(self)
+    methods["IsType" .. method] = function(self)
         return private[self].Type == method
     end
 
-    public["SetType" .. method] = function(self)
+    methods["SetType" .. method] = function(self)
         private[self].Value = convert_type(private[self].Value, private[self].Type, method)
         for v in each_last_change(self) do
             v.last_value = convert_type(v.last_value, private[self].Type, method)
@@ -435,7 +435,7 @@ Checks the parent window for a change in measurement unit and updates the contro
 
 @ self (FCXCtrlMeasurementEdit)
 ]]
-function public:UpdateMeasurementUnit()
+function methods:UpdateMeasurementUnit()
     local new_unit = self:GetParent():GetMeasurementUnit()
 
     if private[self].LastMeasurementUnit ~= new_unit then
@@ -484,7 +484,7 @@ Override Changes:
 @ self (FCXCtrlMeasurementEdit)
 @ callback (function)
 ]]
-public.AddHandleChange, public.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
+methods.AddHandleChange, methods.RemoveHandleChange, trigger_change, each_last_change = mixin_helper.create_custom_control_change_event(
     {
         name = "last_value",
         get = function(self)
@@ -494,4 +494,4 @@ public.AddHandleChange, public.RemoveHandleChange, trigger_change, each_last_cha
     }
 )
 
-return {meta, public}
+return class

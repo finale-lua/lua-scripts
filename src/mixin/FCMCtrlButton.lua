@@ -10,11 +10,8 @@ As `FCCtrlButton` inherits from `FCCtrlCheckbox`, the following methods have bee
 
 To handle button presses, use `AddHandleCommand`, inherited from `FCMControl`.
 ]] --
-local mixin_helper = require("library.mixin_helper")
+local class = {}
 
-local meta = {}
-local public = {}
+class.Disabled = {"AddHandleCheckChange", "RemoveHandleCheckChange"}
 
-mixin_helper.disable_methods(public, "AddHandleCheckChange", "RemoveHandleCheckChange")
-
-return {meta, public}
+return class

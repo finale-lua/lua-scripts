@@ -201,24 +201,6 @@ function mixin_helper.force_assert(condition, message, level)
     assert_func(condition, message, level == 0 and 0 or 2 + (level or 2))
 end
 
-local disabled_method = function()
-    error("Attempt to call disabled method 'tryfunczzz'", 2)
-end
-
---[[
-% disable_methods
-
-Disables mixin methods by setting an empty function that throws an error.
-
-@ props (table) The mixin's props table.
-@ ... (string) The names of the methods to replace
-]]
-function mixin_helper.disable_methods(props, ...)
-    for i = 1, select("#", ...) do
-        props[select(i, ...)] = disabled_method
-    end
-end
-
 --[[
 % create_standard_control_event
 
@@ -453,7 +435,7 @@ function mixin_helper.create_custom_control_change_event(...)
             not event.callback_exists(self, callback), "The callback has already been added as a handler.")
 
         init_window(window)
-        event.add(self, callback, not window:WindowExists_())
+        event.add(self, callback, not window:WindowExists__())
     end
 
     local function remove_func(self, callback)
@@ -469,7 +451,7 @@ function mixin_helper.create_custom_control_change_event(...)
 
         local window = control:GetParent()
 
-        if window:WindowExists_() then
+        if window:WindowExists__() then
             window:QueueHandleCustom(
                 function()
                     queued[control] = nil
@@ -531,7 +513,7 @@ function mixin_helper.create_custom_window_change_event(...)
     end
 
     local function trigger_helper(window)
-        if not event.has_callbacks(window) or queued[window] or not window:WindowExists_() then
+        if not event.has_callbacks(window) or queued[window] or not window:WindowExists__() then
             return
         end
 
@@ -597,7 +579,7 @@ This function captures that result and throws an error in case of failure.
 ]]
 
 function mixin_helper.boolean_to_error(object, method, ...)
-    if not object[method .. "_"](object, ...) then
+    if not object[method .. "__"](object, ...) then
         error("'" .. object.MixinClass .. "." .. method .. "' has encountered an error.", 3)
     end
 end

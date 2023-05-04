@@ -16,8 +16,8 @@ local mixin_helper = require("library.mixin_helper")
 local library = require("library.general_library")
 local utils = require("library.utils")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local trigger_selection_change
@@ -32,7 +32,7 @@ local temp_str = finale.FCString()
 
 @ self (FCMCtrlPopup)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -55,9 +55,9 @@ Override Changes:
 
 @ self (FCMCtrlPopup)
 ]]
-function public:StoreState()
+function methods:StoreState()
     mixin.FCMControl.StoreState(self)
-    private[self].SelectedItem = self:GetSelectedItem_()
+    private[self].SelectedItem = self:GetSelectedItem__()
 end
 
 --[[
@@ -72,16 +72,16 @@ Override Changes:
 
 @ self (FCMCtrlPopup)
 ]]
-function public:RestoreState()
+function methods:RestoreState()
     mixin.FCMControl.RestoreState(self)
 
-    self:Clear_()
+    self:Clear__()
     for _, str in ipairs(private[self].Items) do
         temp_str.LuaString = str
-        self:AddString_(temp_str)
+        self:AddString__(temp_str)
     end
 
-    self:SetSelectedItem_(private[self].SelectedItem)
+    self:SetSelectedItem__(private[self].SelectedItem)
 end
 
 --[[
@@ -95,9 +95,9 @@ Override Changes:
 
 @ self (FCMCtrlPopup)
 ]]
-function public:Clear()
+function methods:Clear()
     if not mixin.FCMControl.UseStoredState(self) then
-        self:Clear_()
+        self:Clear__()
     end
 
     private[self].Items = {}
@@ -123,12 +123,12 @@ Override Changes:
 @ self (FCMCtrlPopup)
 : (number)
 ]]
-function public:GetCount()
+function methods:GetCount()
     if mixin.FCMControl.UseStoredState(self) then
         return #private[self].Items
     end
 
-    return self:GetCount_()
+    return self:GetCount__()
 end
 
 --[[
@@ -142,12 +142,12 @@ Override Changes:
 @ self (FCMCtrlPopup)
 : (number)
 ]]
-function public:GetSelectedItem()
+function methods:GetSelectedItem()
     if mixin.FCMControl.UseStoredState(self) then
         return private[self].SelectedItem
     end
 
-    return self:GetSelectedItem_()
+    return self:GetSelectedItem__()
 end
 
 --[[
@@ -162,13 +162,13 @@ Override Changes:
 @ self (FCMCtrlPopup)
 @ index (number)
 ]]
-function public:SetSelectedItem(index)
+function methods:SetSelectedItem(index)
     mixin_helper.assert_argument_type(2, index, "number")
 
     if mixin.FCMControl.UseStoredState(self) then
         private[self].SelectedItem = index
     else
-        self:SetSelectedItem_(index)
+        self:SetSelectedItem__(index)
     end
 
     trigger_selection_change(self)
@@ -183,7 +183,7 @@ Selects the last item in the popup. If the popup is empty, `SelectedItem` will b
 
 @ self (FCMCtrlPopup)
 ]]
-function public:SetSelectedLast()
+function methods:SetSelectedLast()
     mixin.FCMCtrlPopup.SetSelectedItem(self, mixin.FCMCtrlPopup.GetCount(self) - 1)
 end
 
@@ -195,7 +195,7 @@ Checks if the popup has a selection. If the parent window does not exist (ie `Wi
 @ self (FCMCtrlPopup)
 : (boolean) `true` if something is selected, `false` if no selection.
 ]]
-function public:HasSelection()
+function methods:HasSelection()
     return mixin.FCMCtrlPopup.GetSelectedItem(self) >= 0
 end
 
@@ -208,7 +208,7 @@ Checks if there is an item at the specified index.
 @ index (number) 0-based item index.
 : (boolean) `true` if the item exists, `false` if it does not exist.
 ]]
-function public:ItemExists(index)
+function methods:ItemExists(index)
     mixin_helper.assert_argument_type(2, index, "number")
 
     return private[self].Items[index + 1] and true or false
@@ -226,13 +226,13 @@ Override Changes:
 @ self (FCMCtrlPopup)
 @ str (FCString | string | number)
 ]]
-function public:AddString(str)
+function methods:AddString(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     str = mixin_helper.to_fcstring(str, temp_str)
 
     if not mixin.FCMControl.UseStoredState(self) then
-        self:AddString_(str)
+        self:AddString__(str)
     end
 
     -- Since we've made it here without errors, str must be an FCString
@@ -249,7 +249,7 @@ Adds multiple strings to the popup.
 @ self (FCMCtrlPopup)
 @ ... (FCStrings | FCString | string | number)
 ]]
-function public:AddStrings(...)
+function methods:AddStrings(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
         mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings")
@@ -275,7 +275,7 @@ Returns a copy of all strings in the popup.
 @ [strs] (FCStrings) An optional `FCStrings` object to populate with strings.
 : (table) Returned if `strs` is omitted. A table of strings (1-indexed - beware when accessing by key!).
 ]]
-function public:GetStrings(strs)
+function methods:GetStrings(strs)
     mixin_helper.assert_argument_type(2, strs, "nil", "FCStrings")
 
     if strs then
@@ -298,7 +298,7 @@ Override Changes:
 @ self (FCMCtrlPopup)
 @ ... (FCStrings | FCString | string | number) `number`s will be automatically cast to `string`
 ]]
-function public:SetStrings(...)
+function methods:SetStrings(...)
     for i = 1, select("#", ...) do
         mixin_helper.assert_argument_type(i + 1, select(i, ...), "FCStrings", "FCString", "string", "number")
     end
@@ -310,7 +310,7 @@ function public:SetStrings(...)
     end
 
     if not mixin.FCMControl.UseStoredState(self) then
-        self:SetStrings_(strs)
+        self:SetStrings__(strs)
     end
 
     -- Call statically, since there's no guarantee that strs is mixin-enabled
@@ -337,7 +337,7 @@ Returns the text for an item in the popup.
 @ [str] (FCString) Optional `FCString` object to populate with text.
 : (string | nil) Returned if `str` is omitted. `nil` if the item doesn't exist
 ]]
-function public:GetItemText(index, str)
+function methods:GetItemText(index, str)
     mixin_helper.assert_argument_type(2, index, "number")
     mixin_helper.assert_argument_type(3, str, "nil", "FCString")
 
@@ -367,7 +367,7 @@ Port Changes:
 @ index (number) 0-based index of the item.
 @ str (FCString | string | number)
 ]]
-function public:SetItemText(index, str)
+function methods:SetItemText(index, str)
     mixin_helper.assert_argument_type(2, index, "number")
     mixin_helper.assert_argument_type(3, str, "string", "number", "FCString")
 
@@ -386,8 +386,8 @@ function public:SetItemText(index, str)
 
     if not mixin.FCMControl.UseStoredState(self) then
         local curr_item = self:GetSelectedItem_()
-        self:SetStrings_(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
-        self:SetSelectedItem_(curr_item)
+        self:SetStrings__(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
+        self:SetSelectedItem__(curr_item)
     end
 end
 
@@ -402,7 +402,7 @@ Returns the text for the item that is currently selected.
 @ [str] (FCString) Optional `FCString` object to populate with text. If no item is currently selected, it will be populated with an empty string.
 : (string | nil) Returned if `str` is omitted. `nil` if no item is currently selected.
 ]]
-function public:GetSelectedString(str)
+function methods:GetSelectedString(str)
     mixin_helper.assert_argument_type(2, str, "nil", "FCString")
 
     local index = mixin.FCMCtrlPopup.GetSelectedItem(self)
@@ -426,7 +426,7 @@ If no match is found, the current selected item will remain selected. Matching i
 @ self (FCMCtrlPopup)
 @ str (FCString | string | number)
 ]]
-function public:SetSelectedString(str)
+function methods:SetSelectedString(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     str = type(str) == "userdata" and str.LuaString or tostring(str)
@@ -456,7 +456,7 @@ Port Changes:
 @ index (number) 0-based index to insert new item.
 @ str (FCString | string | number) The value to insert.
 ]]
-function public:InsertString(index, str)
+function methods:InsertString(index, str)
     mixin_helper.assert_argument_type(2, index, "number")
     mixin_helper.assert_argument_type(3, str, "string", "number", "FCString")
 
@@ -472,7 +472,7 @@ function public:InsertString(index, str)
     local current_selection = mixin.FCMCtrlPopup.GetSelectedItem(self)
 
     if not mixin.FCMControl.UseStoredState(self) then
-        self:SetStrings_(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
+        self:SetStrings__(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
     end
 
     local new_selection = current_selection + (index <= current_selection and 1 or 0)
@@ -496,7 +496,7 @@ If the currently selected item is deleted, it will be deselected (ie `SelectedIt
 @ self (FCMCtrlPopup)
 @ index (number) 0-based index of item to delete.
 ]]
-function public:DeleteItem(index)
+function methods:DeleteItem(index)
     mixin_helper.assert_argument_type(2, index, "number")
 
     if index < 0 or index >= mixin.FCMCtrlPopup.GetCount(self) then
@@ -508,7 +508,7 @@ function public:DeleteItem(index)
     local current_selection = mixin.FCMCtrlPopup.GetSelectedItem(self)
 
     if not mixin.FCMControl.UseStoredState(self) then
-        self:SetStrings_(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
+        self:SetStrings__(mixin.FCMStrings():CopyFromStringTable(private[self].Items))
     end
 
     local new_selection
@@ -576,7 +576,7 @@ Removes a handler added with `AddHandleSelectionChange`.
 @ self (FCMCtrlPopup)
 @ callback (function) Handler to remove.
 ]]
-public.AddHandleSelectionChange, public.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change = mixin_helper.create_custom_control_change_event(
+methods.AddHandleSelectionChange, methods.RemoveHandleSelectionChange, trigger_selection_change, each_last_selection_change = mixin_helper.create_custom_control_change_event(
     {
         name = "last_item",
         get = function(ctrl)
@@ -598,4 +598,4 @@ public.AddHandleSelectionChange, public.RemoveHandleSelectionChange, trigger_sel
     }
 )
 
-return {meta, public}
+return class

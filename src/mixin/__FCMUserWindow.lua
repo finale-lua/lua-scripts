@@ -10,8 +10,8 @@ $module __FCMUserWindow
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 
 local temp_str = finale.FCString()
 
@@ -27,7 +27,7 @@ Override Changes:
 @ [title] (FCString)
 : (string) Returned if `title` is omitted.
 ]]
-function public:GetTitle(title)
+function methods:GetTitle(title)
     mixin_helper.assert_argument_type(2, title, "nil", "FCString")
 
     local do_return = false
@@ -36,7 +36,7 @@ function public:GetTitle(title)
         do_return = true
     end
 
-    self:GetTitle_(title)
+    self:GetTitle__(title)
 
     if do_return then
         return title.LuaString
@@ -54,10 +54,10 @@ Override Changes:
 @ self (__FCMUserWindow)
 @ title (FCString | string | number)
 ]]
-function public:SetTitle(title)
+function methods:SetTitle(title)
     mixin_helper.assert_argument_type(2, title, "string", "number", "FCString")
 
-    self:SetTitle_(mixin_helper.to_fcstring(title, temp_str))
+    self:SetTitle__(mixin_helper.to_fcstring(title, temp_str))
 end
 
-return {meta, public}
+return class

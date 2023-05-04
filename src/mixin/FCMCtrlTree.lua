@@ -9,8 +9,8 @@ $module FCMCtrlTree
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local props = {}
+local class = {Methods = {}}
+local methods = class.Methods
 
 local temp_str = finale.FCString()
 
@@ -28,12 +28,12 @@ Override Changes:
 @ text (FCString | string | number)
 : (FCMTreeNode)
 ]]
-function public:AddNode(parentnode, iscontainer, text)
+function methods:AddNode(parentnode, iscontainer, text)
     mixin_helper.assert_argument_type(2, parentnode, "nil", "FCTreeNode")
     mixin_helper.assert_argument_type(3, iscontainer, "boolean")
     mixin_helper.assert_argument_type(4, text, "string", "number", "FCString")
 
-    return self:AddNode_(parentnode, iscontainer, mixin_helper.to_fcstring(text, temp_str))
+    return self:AddNode__(parentnode, iscontainer, mixin_helper.to_fcstring(text, temp_str))
 end
 
-return {meta, public}
+return class

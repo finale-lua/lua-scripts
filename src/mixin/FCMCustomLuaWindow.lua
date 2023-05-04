@@ -23,8 +23,8 @@ local mixin_helper = require("library.mixin_helper")
 local utils = require("library.utils")
 local measurement = require("library.measurement")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local trigger_measurement_unit_change
@@ -46,7 +46,7 @@ end
 local function restore_position(self)
     if private[self].HasBeenShown and private[self].EnableAutoRestorePosition and self.StorePosition then
         self:StorePosition(false)
-        self:SetRestorePositionOnlyData_(private[self].StoredX, private[self].StoredY)
+        self:SetRestorePositionOnlyData__(private[self].StoredX, private[self].StoredY)
         self:RestorePosition()
     end
 end
@@ -65,19 +65,19 @@ end
 
 local function create_handle_methods(event)
     -- Check if methods are available
-    public["Register" .. event] = function(self, callback)
+    methods["Register" .. event] = function(self, callback)
         mixin_helper.assert_argument_type(2, callback, "function")
 
         private[self][event].Registered = callback
     end
 
-    public["Add" .. event] = function(self, callback)
+    methods["Add" .. event] = function(self, callback)
         mixin_helper.assert_argument_type(2, callback, "function")
 
         table.insert(private[self][event].Added, callback)
     end
 
-    public["Remove" .. event] = function(self, callback)
+    methods["Remove" .. event] = function(self, callback)
         mixin_helper.assert_argument_type(2, callback, "function")
 
         utils.table_remove_first(private[self][event].Added, callback)
@@ -91,7 +91,7 @@ end
 
 @ self (FCMCustomLuaWindow)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -113,11 +113,11 @@ function meta:Init()
     for _, event in ipairs(control_events) do
         private[self][event] = {Added = {}}
 
-        if self["Register" .. event .. "_"] then
+        if self["Register" .. event .. "__"] then
             -- Handlers sometimes run twice, the second while the first is still running, so this flag prevents race conditions and concurrency issues.
             local is_running = false
 
-            self["Register" .. event .. "_"](self, function(control, ...)
+            self["Register" .. event .. "__"](self, function(control, ...)
                 if is_running then
                     return
                 end
@@ -150,12 +150,12 @@ function meta:Init()
     for _, event in ipairs(window_events) do
         private[self][event] = {Added = {}}
 
-        if not self["Register" .. event .. "_"] then
+        if not self["Register" .. event .. "__"] then
             goto continue
         end
 
         if event == "InitWindow" then
-            self["Register" .. event .. "_"](self, function(...)
+            self["Register" .. event .. "__"](self, function(...)
                 if private[self].HasBeenShown and private[self].RestoreControlState then
                     for control in each(self) do
                         control:RestoreState()
@@ -165,7 +165,7 @@ function meta:Init()
                 dispatch_event_handlers(self, event, self, ...)
             end)
         elseif event == "CloseWindow" then
-            self["Register" .. event .. "_"](self, function(...)
+            self["Register" .. event .. "__"](self, function(...)
                 if private[self].EnableDebugClose and finenv.RetainLuaState ~= nil then
                     if finenv.DebugEnabled and (self:QueryLastCommandModifierKeys(finale.CMDMODKEY_ALT) or self:QueryLastCommandModifierKeys(finale.CMDMODKEY_SHIFT)) then
                         finenv.RetainLuaState = false
@@ -194,7 +194,7 @@ function meta:Init()
                 end
             end)
         else
-            self["Register" .. event .. "_"](self, function(...)
+            self["Register" .. event .. "__"](self, function(...)
                 dispatch_event_handlers(self, event, self, ...)
             end)
         end
@@ -203,8 +203,8 @@ function meta:Init()
     end
 
     -- Register proxy for HandlerTimer if it's available in this RGPLua version.
-    if self.RegisterHandleTimer_ then
-        self:RegisterHandleTimer_(function(timerid)
+    if self.RegisterHandleTimer__ then
+        self:RegisterHandleTimer__(function(timerid)
             -- Call registered handler if there is one
             if private[self].HandleTimer.Registered then
                 -- Pass window as first parameter
@@ -571,7 +571,7 @@ The callback will not be passed any arguments.
 @ self (FCMCustomLuaWindow)
 @ callback (function)
 ]]
-function public:QueueHandleCustom(callback)
+function methods:QueueHandleCustom(callback)
     mixin_helper.assert_argument_type(2, callback, "function")
 
     table.insert(private[self].HandleCustomQueue, callback)
@@ -592,7 +592,7 @@ Override Changes:
 @ control (FCMControl)
 @ callback (function) See `FCCustomLuaWindow.HandleControlEvent` in the PDK for callback signature.
 ]]
-    function public:RegisterHandleControlEvent(control, callback)
+    function methods:RegisterHandleControlEvent(control, callback)
         mixin_helper.assert_argument_type(2, control, "FCControl", "FCMControl")
         mixin_helper.assert_argument_type(3, callback, "function")
 
@@ -629,7 +629,7 @@ Override Changes:
 @ self (FCMCustomLuaWindow)
 @ callback (function) See `HandleTimer` for callback signature (note the change in arguments).
 ]]
-    function public:RegisterHandleTimer(callback)
+    function methods:RegisterHandleTimer(callback)
         mixin_helper.assert_argument_type(2, callback, "function")
 
         private[self].HandleTimer.Registered = callback
@@ -647,7 +647,7 @@ If a handler is added for a timer that hasn't been set, the timer ID will no lon
 @ timerid (number)
 @ callback (function) See `HandleTimer` for callback signature.
 ]]
-    function public:AddHandleTimer(timerid, callback)
+    function methods:AddHandleTimer(timerid, callback)
         mixin_helper.assert_argument_type(2, timerid, "number")
         mixin_helper.assert_argument_type(3, callback, "function")
 
@@ -667,7 +667,7 @@ Removes a handler added with `AddHandleTimer`.
 @ timerid (number)
 @ callback (function)
 ]]
-    function public:RemoveHandleTimer(timerid, callback)
+    function methods:RemoveHandleTimer(timerid, callback)
         mixin_helper.assert_argument_type(2, timerid, "number")
         mixin_helper.assert_argument_type(3, callback, "function")
 
@@ -690,11 +690,11 @@ Override Changes:
 @ timerid (number)
 @ msinterval (number)
 ]]
-    function public:SetTimer(timerid, msinterval)
+    function methods:SetTimer(timerid, msinterval)
         mixin_helper.assert_argument_type(2, timerid, "number")
         mixin_helper.assert_argument_type(3, msinterval, "number")
 
-        self:SetTimer_(timerid, msinterval)
+        self:SetTimer__(timerid, msinterval)
 
         private[self].HandleTimer[timerid] = private[self].HandleTimer[timerid] or {}
     end
@@ -709,7 +709,7 @@ Returns the next available timer ID.
 @ self (FCMCustomLuaWindow)
 : (number)
 ]]
-    function public:GetNextTimerID()
+    function methods:GetNextTimerID()
         while private[self].HandleTimer[private[self].NextTimerID] do
             private[self].NextTimerID = private[self].NextTimerID + 1
         end
@@ -728,7 +728,7 @@ Sets a timer using the next available ID (according to `GetNextTimerID`) and ret
 @ msinterval (number)
 : (number) The ID of the newly created timer.
 ]]
-    function public:SetNextTimer(msinterval)
+    function methods:SetNextTimer(msinterval)
         mixin_helper.assert_argument_type(2, msinterval, "number")
 
         local timerid = mixin.FCMCustomLuaWindow.GetNextTimerID(self)
@@ -751,7 +751,7 @@ This is disabled by default.
 @ self (FCMCustomLuaWindow)
 @ enabled (boolean)
 ]]
-    function public:SetEnableAutoRestorePosition(enabled)
+    function methods:SetEnableAutoRestorePosition(enabled)
         mixin_helper.assert_argument_type(2, enabled, "boolean")
 
         private[self].EnableAutoRestorePosition = enabled
@@ -767,7 +767,7 @@ Returns whether automatic restoration of window position is enabled.
 @ self (FCMCustomLuaWindow)
 : (boolean) `true` if enabled, `false` if disabled.
 ]]
-    function public:GetEnableAutoRestorePosition()
+    function methods:GetEnableAutoRestorePosition()
         return private[self].EnableAutoRestorePosition
     end
 
@@ -785,13 +785,13 @@ Override Changes:
 @ width (number)
 @ height (number)
 ]]
-    function public:SetRestorePositionData(x, y, width, height)
+    function methods:SetRestorePositionData(x, y, width, height)
         mixin_helper.assert_argument_type(2, x, "number")
         mixin_helper.assert_argument_type(3, y, "number")
         mixin_helper.assert_argument_type(4, width, "number")
         mixin_helper.assert_argument_type(5, height, "number")
 
-        self:SetRestorePositionOnlyData_(x, y, width, height)
+        self:SetRestorePositionOnlyData__(x, y, width, height)
 
         if private[self].HasBeenShown and not self:WindowExists() then
             private[self].StoredX = x
@@ -811,11 +811,11 @@ Override Changes:
 @ x (number)
 @ y (number)
 ]]
-    function public:SetRestorePositionOnlyData(x, y)
+    function methods:SetRestorePositionOnlyData(x, y)
         mixin_helper.assert_argument_type(2, x, "number")
         mixin_helper.assert_argument_type(3, y, "number")
 
-        self:SetRestorePositionOnlyData_(x, y)
+        self:SetRestorePositionOnlyData__(x, y)
 
         if private[self].HasBeenShown and not self:WindowExists() then
             private[self].StoredX = x
@@ -836,7 +836,7 @@ This is disabled by default.
 @ self (FCMCustomLuaWindow)
 @ enabled (boolean)
 ]]
-function public:SetEnableDebugClose(enabled)
+function methods:SetEnableDebugClose(enabled)
     mixin_helper.assert_argument_type(2, enabled, "boolean")
 
     private[self].EnableDebugClose = enabled and true or false
@@ -850,7 +850,7 @@ Returns the enabled state of the `DebugClose` option.
 @ self (FCMCustomLuaWindow)
 : (boolean) `true` if enabled, `false` if disabled.
 ]]
-function public:GetEnableDebugClose()
+function methods:GetEnableDebugClose()
     return private[self].EnableDebugClose
 end
 
@@ -865,7 +865,7 @@ This is disabled by default.
 @ self (FCMCustomLuaWindow)
 @ enabled (boolean) `true` to enable, `false` to disable.
 ]]
-function public:SetRestoreControlState(enabled)
+function methods:SetRestoreControlState(enabled)
     mixin_helper.assert_argument_type(2, enabled, "boolean")
 
     private[self].RestoreControlState = enabled and true or false
@@ -879,7 +879,7 @@ Checks if control state restoration is enabled.
 @ self (FCMCustomLuaWindow)
 : (boolean) `true` if enabled, `false` if disabled.
 ]]
-function public:GetRestoreControlState()
+function methods:GetRestoreControlState()
     return private[self].RestoreControlState
 end
 
@@ -891,7 +891,7 @@ Checks if the window has been shown at least once prior, either as a modal or mo
 @ self (FCMCustomLuaWindow)
 : (boolean) `true` if it has been shown, `false` if not
 ]]
-function public:HasBeenShown()
+function methods:HasBeenShown()
     return private[self].HasBeenShown
 end
 
@@ -908,7 +908,7 @@ Override Changes:
 @ parent (FCCustomWindow | FCMCustomWindow | nil)
 : (number)
 ]]
-function public:ExecuteModal(parent)
+function methods:ExecuteModal(parent)
     if mixin_helper.is_instance_of(parent, "FCMCustomLuaWindow") and private[self].UseParentMeasurementUnit then
         self:SetMeasurementUnit(parent:GetMeasurementUnit())
     end
@@ -929,10 +929,10 @@ Override Changes:
 @ self (FCMCustomLuaWindow)
 : (boolean)
 ]]
-function public:ShowModeless()
+function methods:ShowModeless()
     finenv.RegisterModelessDialog(self)
     restore_position(self)
-    return self:ShowModeless_()
+    return self:ShowModeless__()
 end
 
 --[[
@@ -950,7 +950,7 @@ Runs the window as a self-contained modeless plugin, performing the following st
 @ [selection_not_required] (boolean) If `true` and showing as a modal, will skip checking if a region is selected.
 @ [default_action_override] (boolean | function) If `false`, there will be no default action. If a `function`, overrides the registered `OkButtonPressed` handler as the default action.
 ]]
-function public:RunModeless(selection_not_required, default_action_override)
+function methods:RunModeless(selection_not_required, default_action_override)
     local modifier_keys_on_invoke = finenv.QueryInvokedModifierKeys and (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
     local default_action = default_action_override == nil and private[self].HandleOkButtonPressed.Registered or default_action_override
 
@@ -986,7 +986,7 @@ Returns the window's current measurement unit.
 @ self (FCMCustomLuaWindow)
 : (number) The value of one of the finale MEASUREMENTUNIT constants.
 ]]
-function public:GetMeasurementUnit()
+function methods:GetMeasurementUnit()
     return private[self].MeasurementUnit
 end
 
@@ -1002,7 +1002,7 @@ All controls that have an `UpdateMeasurementUnit` method will have that method c
 @ self (FCMCustomLuaWindow)
 @ unit (number) One of the finale MEASUREMENTUNIT constants.
 ]]
-function public:SetMeasurementUnit(unit)
+function methods:SetMeasurementUnit(unit)
     mixin_helper.assert_argument_type(2, unit, "number")
 
     if unit == private[self].MeasurementUnit then
@@ -1036,7 +1036,7 @@ Returns the name of the window's current measurement unit.
 @ self (FCMCustomLuaWindow)
 : (string)
 ]]
-function public:GetMeasurementUnitName()
+function methods:GetMeasurementUnitName()
     return measurement.get_unit_name(private[self].MeasurementUnit)
 end
 
@@ -1048,7 +1048,7 @@ Returns a boolean indicating whether this window will use the measurement unit o
 @ self (FCMCustomLuaWindow)
 : (boolean)
 ]]
-function public:GetUseParentMeasurementUnit(enabled)
+function methods:GetUseParentMeasurementUnit(enabled)
     return private[self].UseParentMeasurementUnit
 end
 
@@ -1062,7 +1062,7 @@ Sets whether to use the parent window's measurement unit when opening this windo
 @ self (FCMCustomLuaWindow)
 @ enabled (boolean)
 ]]
-function public:SetUseParentMeasurementUnit(enabled)
+function methods:SetUseParentMeasurementUnit(enabled)
     mixin_helper.assert_argument_type(2, enabled, "boolean")
 
     private[self].UseParentMeasurementUnit = enabled and true or false
@@ -1104,7 +1104,7 @@ Removes a handler added with `AddHandleMeasurementUnitChange`.
 @ self (FCMCustomLuaWindow)
 @ callback (function)
 ]]
-public.AddHandleMeasurementUnitChange, public.RemoveHandleMeasurementUnitChange, trigger_measurement_unit_change, each_last_measurement_unit_change = mixin_helper.create_custom_window_change_event(
+methods.AddHandleMeasurementUnitChange, methods.RemoveHandleMeasurementUnitChange, trigger_measurement_unit_change, each_last_measurement_unit_change = mixin_helper.create_custom_window_change_event(
     {
         name = "last_unit",
         get = function(window)
@@ -1125,7 +1125,7 @@ Creates an `FCXCtrlMeasurementEdit` control.
 @ [control_name] (string)
 : (FCXCtrlMeasurementEdit)
 ]]
-function public:CreateMeasurementEdit(x, y, control_name)
+function methods:CreateMeasurementEdit(x, y, control_name)
     mixin_helper.assert_argument_type(2, x, "number")
     mixin_helper.assert_argument_type(3, y, "number")
     mixin_helper.assert_argument_type(4, control_name, "string", "nil")
@@ -1145,7 +1145,7 @@ Creates a popup which allows the user to change the window's measurement unit.
 @ [control_name] (string)
 : (FCXCtrlMeasurementUnitPopup)
 ]]
-function public:CreateMeasurementUnitPopup(x, y, control_name)
+function methods:CreateMeasurementUnitPopup(x, y, control_name)
     mixin_helper.assert_argument_type(2, x, "number")
     mixin_helper.assert_argument_type(3, y, "number")
     mixin_helper.assert_argument_type(4, control_name, "string", "nil")
@@ -1165,7 +1165,7 @@ Creates a popup which allows the user to select a page size.
 @ [control_name] (string)
 : (FCXCtrlPageSizePopup)
 ]]
-function public:CreatePageSizePopup(x, y, control_name)
+function methods:CreatePageSizePopup(x, y, control_name)
     mixin_helper.assert_argument_type(2, x, "number")
     mixin_helper.assert_argument_type(3, y, "number")
     mixin_helper.assert_argument_type(4, control_name, "string", "nil")
@@ -1174,4 +1174,4 @@ function public:CreatePageSizePopup(x, y, control_name)
     return mixin.subclass(popup, "FCXCtrlPageSizePopup")
 end
 
-return {meta, public}
+return class

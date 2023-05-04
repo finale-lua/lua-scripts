@@ -10,8 +10,8 @@ $module FCMTreeNode
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 
 local temp_str = finale.FCString()
 
@@ -27,7 +27,7 @@ Override Changes:
 @ [str] (FCString)
 : (string) Returned if `str` is omitted.
 ]]
-function public:GetText(str)
+function methods:GetText(str)
     mixin_helper.assert_argument_type(2, str, "nil", "FCString")
 
     local do_return = false
@@ -36,7 +36,7 @@ function public:GetText(str)
         do_return = true
     end
 
-    self:GetText_(str)
+    self:GetText__(str)
 
     if do_return then
         return str.LuaString
@@ -54,10 +54,10 @@ Override Changes:
 @ self (FCMTreeNode)
 @ str (FCString | string | number)
 ]]
-function public:SetText(str)
+function methods:SetText(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
-    self:SetText_(mixin_helper.to_fcstring(str, temp_str))
+    self:SetText__(mixin_helper.to_fcstring(str, temp_str))
 end
 
-return {meta, public}
+return class

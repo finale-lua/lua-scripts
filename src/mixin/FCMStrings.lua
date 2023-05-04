@@ -13,8 +13,8 @@ local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local library = require("library.general_library")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 
 local temp_str = finale.FCString()
 
@@ -30,7 +30,7 @@ Override Changes:
 @ self (FCMStrings)
 @ str (FCString | string | number)
 ]]
-function public:AddCopy(str)
+function methods:AddCopy(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     mixin_helper.boolean_to_error(self, "AddCopy", mixin_helper.to_fcstring(str, temp_str))
@@ -44,13 +44,13 @@ Same as `AddCopy`, but accepts multiple arguments so that multiple values can be
 @ self (FCMStrings)
 @ ... (FCStrings | FCString | string | number) `number`s will be cast to `string`
 ]]
-function public:AddCopies(...)
+function methods:AddCopies(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
         mixin_helper.assert_argument_type(i + 1, v, "FCStrings", "FCString", "string", "number")
         if mixin_helper.is_instance_of(v, "FCStrings") then
             for str in each(v) do
-                self:AddCopy_(str)
+                self:AddCopy__(str)
             end
         else
             mixin.FCStrings.AddCopy(self, v)
@@ -70,7 +70,7 @@ Override Changes:
 @ str (FCString | string | number)
 : (FCMString | nil)
 ]]
-function public:Find(str)
+function methods:Find(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     return self:Find_(mixin_helper.to_fcstring(str, temp_str))
@@ -88,10 +88,10 @@ Override Changes:
 @ str (FCString | string | number)
 : (FCMString | nil)
 ]]
-function public:FindNocase(str)
+function methods:FindNocase(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
-    return self:FindNocase_(mixin_helper.to_fcstring(str, temp_str))
+    return self:FindNocase__(mixin_helper.to_fcstring(str, temp_str))
 end
 
 --[[
@@ -106,7 +106,7 @@ Override Changes:
 @ self (FCMStrings)
 @ folderstring (FCString | string)
 ]]
-function public:LoadFolderFiles(folderstring)
+function methods:LoadFolderFiles(folderstring)
     mixin_helper.assert_argument_type(2, folderstring, "string", "FCString")
 
     mixin_helper.boolean_to_error(self, "LoadFolderFiles", mixin_helper.to_fcstring(folderstring, temp_str))
@@ -124,7 +124,7 @@ Override Changes:
 @ self (FCMStrings)
 @ folderstring (FCString | string)
 ]]
-function public:LoadSubfolders(folderstring)
+function methods:LoadSubfolders(folderstring)
     mixin_helper.assert_argument_type(2, folderstring, "string", "FCString")
 
     mixin_helper.boolean_to_error(self, "LoadSubfolders", mixin_helper.to_fcstring(folderstring, temp_str))
@@ -140,7 +140,7 @@ Override Changes:
 
 @ self (FCMStrings)
 ]]
-function public:LoadSymbolFonts()
+function methods:LoadSymbolFonts()
     mixin_helper.boolean_to_error(self, "LoadSymbolFonts")
 end
 
@@ -154,7 +154,7 @@ Override Changes:
 
 @ self (FCMStrings)
 ]]
-function public:LoadSystemFontNames()
+function methods:LoadSystemFontNames()
     mixin_helper.boolean_to_error(self, "LoadSystemFontNames")
 end
 
@@ -171,11 +171,11 @@ Override Changes:
 @ index (number)
 ]]
 if finenv.MajorVersion > 0 or finenv.MinorVersion >= 59 then
-    function public:InsertStringAt(str, index)
+    function methods:InsertStringAt(str, index)
         mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
         mixin_helper.assert_argument_type(3, index, "number")
 
-        self:InsertStringAt_(mixin_helper.to_fcstring(str, temp_str), index)
+        self:InsertStringAt__(mixin_helper.to_fcstring(str, temp_str), index)
     end
 end
 
@@ -191,10 +191,10 @@ Polyfills `FCStrings.CopyFromStringTable` for earlier RGP/JWLua versions.
 @ self (FCMStrings | FCStrings)
 @ strings (table)
 ]]
-function public:CopyFromStringTable(strings)
+function methods:CopyFromStringTable(strings)
     mixin_helper.assert_argument_type(2, strings, "table")
 
-    local suffix = self.MixinClass and "_" or ""
+    local suffix = self.MixinClass and "__" or ""
 
     if finenv.MajorVersion == 0 and finenv.MinorVersion < 64 then
         self:ClearAll()
@@ -217,7 +217,7 @@ Creates a table of Lua `string`s from the `FCString`s in this collection.
 @ self (FCMStrings | FCStrings)
 : (table)
 ]]
-function public:CreateStringTable()
+function methods:CreateStringTable()
     local t = {}
     for str in each(self) do
         table.insert(t, str.LuaString)
@@ -225,4 +225,4 @@ function public:CreateStringTable()
     return t
 end
 
-return {meta, public}
+return class

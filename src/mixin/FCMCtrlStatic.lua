@@ -13,8 +13,8 @@ local mixin_helper = require("library.mixin_helper")
 local utils = require("library.utils")
 local measurement = require("library.measurement")
 
-local meta = {}
-local public = {}
+local class = {Methods = {}}
+local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local temp_str = mixin.FCMString()
@@ -50,7 +50,7 @@ end
 
 @ self (FCMCtrlStatic)
 ]]
-function meta:Init()
+function class:Init()
     if private[self] then
         return
     end
@@ -75,7 +75,7 @@ Override Changes:
 @ self (FCMCtrlStatic)
 @ window (FCMCustomWindow)
 ]]
-function public:RegisterParent(window)
+function methods:RegisterParent(window)
     mixin.FCMControl.RegisterParent(self, window)
 
     private[self].MeasurementEnabled = mixin_helper.is_instance_of(window, "FCMCustomLuaWindow")
@@ -95,7 +95,7 @@ Override Changes:
 @ green (number)
 @ blue (number)
 ]]
-function public:SetTextColor(red, green, blue)
+function methods:SetTextColor(red, green, blue)
     mixin_helper.assert_argument_type(2, red, "number")
     mixin_helper.assert_argument_type(3, green, "number")
     mixin_helper.assert_argument_type(4, blue, "number")
@@ -103,7 +103,7 @@ function public:SetTextColor(red, green, blue)
     private[self].TextColor = {red, green, blue}
 
     if not mixin.FCMControl.UseStoredState(self) then
-        self:SetTextColor_(red, green, blue)
+        self:SetTextColor__(red, green, blue)
 
         -- If a new text color is set after the window has been shown, the visible color will not change until new text is set
         -- Getting and setting the text makes the new text color visible immediately
@@ -123,7 +123,7 @@ Override Changes:
 
 @ self (FCMCtrlStatic)
 ]]
-function public:RestoreState()
+function methods:RestoreState()
     mixin.FCMControl.RestoreState(self)
 
     -- Only need to restore color if it has been changed from the default
@@ -143,7 +143,7 @@ Override Changes:
 @ self (FCMCtrlStatic)
 @ str (FCString | string|  number)
 ]]
-function public:SetText(str)
+function methods:SetText(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
     mixin.FCMControl.SetText(self, str)
@@ -164,7 +164,7 @@ If using the parent window's measurement unit, it will be automatically updated 
 @ value (number) Value in EVPUs
 @ [measurementunit] (number | nil) Forces the value to be displayed in this measurement unit. Can only be omitted if parent window is `FCMCustomLuaWindow`.
 ]]
-function public:SetMeasurement(value, measurementunit)
+function methods:SetMeasurement(value, measurementunit)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, measurementunit, "number", "nil")
 
@@ -183,7 +183,7 @@ If using the parent window's measurement unit, it will be automatically updated 
 @ value (number) Value in whole EVPUs
 @ [measurementunit] (number | nil) Forces the value to be displayed in this measurement unit. Can only be omitted if parent window is `FCMCustomLuaWindow`.
 ]]
-function public:SetMeasurementInteger(value, measurementunit)
+function methods:SetMeasurementInteger(value, measurementunit)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, measurementunit, "number", "nil")
 
@@ -202,7 +202,7 @@ If using the parent window's measurement unit, it will be automatically updated 
 @ value (number) Value in EFIXes
 @ [measurementunit] (number | nil) Forces the value to be displayed in this measurement unit. Can only be omitted if parent window is `FCMCustomLuaWindow`.
 ]]
-function public:SetMeasurementEfix(value, measurementunit)
+function methods:SetMeasurementEfix(value, measurementunit)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, measurementunit, "number", "nil")
 
@@ -221,7 +221,7 @@ If using the parent window's measurement unit, it will be automatically updated 
 @ value (number) Value in 10000ths of an EVPU
 @ [measurementunit] (number | nil) Forces the value to be displayed in this measurement unit. Can only be omitted if parent window is `FCMCustomLuaWindow`.
 ]]
-function public:SetMeasurementEfix(value, measurementunit)
+function methods:SetMeasurementEfix(value, measurementunit)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, measurementunit, "number", "nil")
 
@@ -238,7 +238,7 @@ Sets whether to show a suffix at the end of a measurement (eg `cm` in `2.54cm`).
 @ self (FCMCtrlStatic)
 @ enabled (boolean)
 ]]
-function public:SetShowMeasurementSuffix(enabled)
+function methods:SetShowMeasurementSuffix(enabled)
     mixin_helper.assert_argument_type(2, enabled, "boolean")
 
     private[self].ShowMeasurementSuffix = enabled and true or false
@@ -254,7 +254,7 @@ Sets the measurement suffix to the shortest form used by Finale's measurement ov
 
 @ self (FCMCtrlStatic)
 ]]
-function public:SetMeasurementSuffixShort()
+function methods:SetMeasurementSuffixShort()
     private[self].MeasurementSuffixType = 1
     mixin.FCMCtrlStatic.UpdateMeasurementUnit(self)
 end
@@ -270,7 +270,7 @@ Sets the measurement suffix to commonly known abbrevations (eg `in`, `cm`, `pt`,
 
 @ self (FCMCtrlStatic)
 ]]
-function public:SetMeasurementSuffixAbbreviated()
+function methods:SetMeasurementSuffixAbbreviated()
     private[self].MeasurementSuffixType = 2
     mixin.FCMCtrlStatic.UpdateMeasurementUnit(self)
 end
@@ -284,7 +284,7 @@ Sets the measurement suffix to the full unit name. (eg `inches`, `centimeters`, 
 
 @ self (FCMCtrlStatic)
 ]]
-function public:SetMeasurementSuffixFull()
+function methods:SetMeasurementSuffixFull()
     private[self].MeasurementSuffixType = 3
     mixin.FCMCtrlStatic.UpdateMeasurementUnit(self)
 end
@@ -298,10 +298,10 @@ Updates the displayed measurement unit in line with the parent window.
 
 @ self (FCMCtrlStatic)
 ]]
-function public:UpdateMeasurementUnit()
+function methods:UpdateMeasurementUnit()
     if private[self].Measurement then
         mixin.FCMCtrlStatic["Set" .. private[self].MeasurementType](self, private[self].Measurement)
     end
 end
 
-return {meta, public}
+return class
