@@ -999,6 +999,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         finale.FCNoteheadMod():EraseAt(note)
         finale.FCPercussionNoteMod():EraseAt(note)
         finale.FCTablatureNoteMod():EraseAt(note)
+        finale.FCPerformanceMod():EraseAt(note)
         if finale.FCTieMod then
             finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
             finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
