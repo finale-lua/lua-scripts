@@ -318,16 +318,10 @@ function note_entry.delete_note(note)
     finale.FCNoteheadMod():EraseAt(note)
     finale.FCPercussionNoteMod():EraseAt(note)
     finale.FCTablatureNoteMod():EraseAt(note)
+    finale.FCPerformanceMod():EraseAt(note)
     if finale.FCTieMod then -- added in RGP Lua 0.62
         finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
         finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
-    end
-    if entry.PerformanceDataFlag then
-        local perf_mod = finale.FCPerformanceMod()
-        perf_mod:SetNoteEntry(entry)
-        if perf_mod:LoadAt(note) then
-            perf_mod:DeleteData()
-        end
     end
 
     return entry:DeleteNote(note)
