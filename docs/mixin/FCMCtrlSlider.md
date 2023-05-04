@@ -15,7 +15,7 @@ Command events do not fire for `FCCtrlSlider` controls before RGPLua 0.64, so a 
 - [SetMinValue(self, minvalue)](#setminvalue)
 - [SetMaxValue(self, maxvalue)](#setmaxvalue)
 - [HandleThumbPositionChange(control, last_position)](#handlethumbpositionchange)
-- [AddHandleChange(self, callback)](#addhandlechange)
+- [AddHandleThumbPositionChange(self, callback)](#addhandlethumbpositionchange)
 - [RemoveHandleThumbPositionChange(self, callback)](#removehandlethumbpositionchange)
 
 ### RegisterParent
@@ -96,7 +96,7 @@ Override Changes:
 fcmctrlslider.HandleThumbPositionChange(control, last_position)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L152)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L141)
 
 **[Callback Template]**
 
@@ -105,13 +105,13 @@ fcmctrlslider.HandleThumbPositionChange(control, last_position)
 | `control` | `FCMCtrlSlider` | The slider that was moved. |
 | `last_position` | `string` | The previous value of the control's thumb position. |
 
-### AddHandleChange
+### AddHandleThumbPositionChange
 
 ```lua
-fcmctrlslider.AddHandleChange(self, callback)
+fcmctrlslider.AddHandleThumbPositionChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L160)
 
 **[Fluid]**
 
