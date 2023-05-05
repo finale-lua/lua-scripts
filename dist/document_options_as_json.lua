@@ -6315,25 +6315,21 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:IsNote() then
             return false
         end
-        if offset == 0 then
-            entry:SetFloatingRest(true)
-        else
-            local rest_prop = "OtherRestPosition"
-            if entry.Duration >= finale.BREVE then
-                rest_prop = "DoubleWholeRestPosition"
-            elseif entry.Duration >= finale.WHOLE_NOTE then
-                rest_prop = "WholeRestPosition"
-            elseif entry.Duration >= finale.HALF_NOTE then
-                rest_prop = "HalfRestPosition"
-            end
-            entry:MakeMovableRest()
-            local rest = entry:GetItemAt(0)
-            local curr_staffpos = rest:CalcStaffPosition()
-            local staff_spec = finale.FCCurrentStaffSpec()
-            staff_spec:LoadForEntry(entry)
-            local total_offset = staff_spec[rest_prop] + offset - curr_staffpos
-            entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset)
+        local rest_prop = "OtherRestPosition"
+        if entry.Duration >= finale.BREVE then
+            rest_prop = "DoubleWholeRestPosition"
+        elseif entry.Duration >= finale.WHOLE_NOTE then
+            rest_prop = "WholeRestPosition"
+        elseif entry.Duration >= finale.HALF_NOTE then
+            rest_prop = "HalfRestPosition"
         end
+        entry:MakeMovableRest()
+        local rest = entry:GetItemAt(0)
+        local curr_staffpos = rest:CalcStaffPosition()
+        local staff_spec = finale.FCCurrentStaffSpec()
+        staff_spec:LoadForEntry(entry)
+        local total_offset = staff_spec[rest_prop] + offset - curr_staffpos
+        entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset)
         return true
     end
     return note_entry
