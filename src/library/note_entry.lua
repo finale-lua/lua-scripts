@@ -449,13 +449,14 @@ Confirms the entry is a rest then offsets it from the staff rest "center" positi
 
 @ entry (FCNoteEntry) the entry to process
 @ offset (number) offset in half spaces
+@ [zero_is_floating] (boolean) optional flag to make zero-offset rests "float"
 : (boolean) true if success
 ]]
-function note_entry.rest_offset(entry, offset)
+function note_entry.rest_offset(entry, offset, zero_is_floating)
     if entry:IsNote() then
         return false
     end
-    if offset == 0 then
+    if offset == 0 and zero_is_floating then
         entry:SetFloatingRest(true)
     else
         local rest_prop = "OtherRestPosition"
