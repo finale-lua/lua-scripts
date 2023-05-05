@@ -449,32 +449,27 @@ Confirms the entry is a rest then offsets it from the staff rest "center" positi
 
 @ entry (FCNoteEntry) the entry to process
 @ offset (number) offset in half spaces
-@ [zero_is_floating] (boolean) optional flag to make zero-offset rests "float"
 : (boolean) true if success
 ]]
-function note_entry.rest_offset(entry, offset, zero_is_floating)
+function note_entry.rest_offset(entry, offset)
     if entry:IsNote() then
         return false
     end
-    if offset == 0 and zero_is_floating then
-        entry:SetFloatingRest(true)
-    else
-        local rest_prop = "OtherRestPosition"
-        if entry.Duration >= finale.BREVE then
-            rest_prop = "DoubleWholeRestPosition"
-        elseif entry.Duration >= finale.WHOLE_NOTE then
-            rest_prop = "WholeRestPosition"
-        elseif entry.Duration >= finale.HALF_NOTE then
-            rest_prop = "HalfRestPosition"
-        end
-        entry:MakeMovableRest()
-        local rest = entry:GetItemAt(0)
-        local curr_staffpos = rest:CalcStaffPosition()
-        local staff_spec = finale.FCCurrentStaffSpec()
-        staff_spec:LoadForEntry(entry)
-        local total_offset = staff_spec[rest_prop] + offset - curr_staffpos
-        entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset)
+    local rest_prop = "OtherRestPosition"
+    if entry.Duration >= finale.BREVE then
+        rest_prop = "DoubleWholeRestPosition"
+    elseif entry.Duration >= finale.WHOLE_NOTE then
+        rest_prop = "WholeRestPosition"
+    elseif entry.Duration >= finale.HALF_NOTE then
+        rest_prop = "HalfRestPosition"
     end
+    entry:MakeMovableRest()
+    local rest = entry:GetItemAt(0)
+    local curr_staffpos = rest:CalcStaffPosition()
+    local staff_spec = finale.FCCurrentStaffSpec()
+    staff_spec:LoadForEntry(entry)
+    local total_offset = staff_spec[rest_prop] + offset - curr_staffpos
+    entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset)
     return true
 end
 
