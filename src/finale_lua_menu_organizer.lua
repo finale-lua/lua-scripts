@@ -5,6 +5,7 @@ function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.NoStore = true
     finaleplugin.ExecuteAtStartup = true
+    finaleplugin.ModifyFinaleMenus = true
     finaleplugin.IncludeInPluginMenu = false
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.Author = "Robert Patterson"
