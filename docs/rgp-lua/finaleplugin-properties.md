@@ -53,6 +53,7 @@ The security restrictions are:
 - Scripts with this value set to true must be explicitly configured in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration). They are not included as part of an Auto Folder.
 - The script must have the `Allow Startup` checkbox enabled in its configuration.
 - The script file must not have been modified since it was configured. If you modify it, RGP Lua reports an error, and you must reopen the configuration for that script and accept it again by hitting OK. You can disable this check if you select `Enable Debug`, but this is extremely ill-advised unless you are actively debugging the script. Remember that these scripts run invisibly every time you start up Finale.
+- Trusted status is *not* required.
 
 You can check if a script is running at startup with `finenv.QueryInitializationInProgress()`. Only the primary script runs at startup. If the script specifies `AdditionalMenuOptions`, the additional options are added to Finale's plugin menu, but they do not run at startup. 
 
@@ -62,6 +63,58 @@ Example:
 
 ```lua
 finaleplugin.ExecuteAtStartup = true
+```
+
+Default is `false`.
+
+#### ExecuteExternalCode\* (boolean)
+
+If this value is set to `true`, the script can execute:
+
+- `os.execute`
+- `io.popen`
+- `luaosutils.process.execute`
+- `luaosutils.process.launch`
+
+This value also enables the loading of binary C libraries with `require` or `package.loadlib`.
+
+The script must be running with trusted status.
+
+Example:
+
+```lua
+finaleplugin.ExecuteExternalCode = true
+```
+
+Default is `false`.
+
+#### ExecuteHttpsCalls\* (boolean)
+
+If this value is set to `true`, the script can execute:
+
+- `luaosutils.internet.get` (`get_sync`)
+- `luaosutils.internet.post` (`post_sync`)
+
+Trusted status is not required, but any call to `post` must be confirmed by the user (who then has the option to approve all further `post` calls to that server from that script).
+
+Example:
+
+```lua
+finaleplugin.ExecuteHttpsCalls = true
+```
+
+Default is `false`.
+
+#### ModifyFinaleMenus\* (boolean)
+
+If this value is set to `true`, the script can execute any of the functions in `luaosutils.menu` that modify Finale's menus.
+
+Trusted status is required.
+
+Example:
+
+```lua
+finaleplugin.ModifyFinaleMenus = true
 ```
 
 Default is `false`.

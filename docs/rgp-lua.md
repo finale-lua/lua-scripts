@@ -71,17 +71,26 @@ _RGP Lua_ (starting with version 0.67) adds a layer of protection with the conce
 - it is sourced from a known website such as the [Finale Lua](https://www.finalelua.com/) website, and it has not been modified. The Finale Lua organization on GitHub maintains a whitelist of known, trusted websites.
 - it is marked "Trusted" in the configurator. The "Trusted" option exists for script developers to mark their own code as trusted. If you are not the developer of the script, do not enable this option. And even if you are, do not enable it unless you have to.
 
-The limitations placed on untrusted scripts are relatively mild. Hash-verified scripts and unveried scripts cannot
+The limitations placed on untrusted scripts are relatively mild. Untrusted scripts cannot
 
 - execute external code.
 - load binary C libraries.
-
-Unverified scripts (in addition to the above) cannot
-
 - modify Finale's menus.
 - modify the metatables of bound Finale classes.
 
 Note that all scripts can access your file system with user level permission. The main goal of the trusted code restrictions is to limit the ability of a script to remain hidden while taking control of your computer for its own purposes.
+
+### Requesting Code Features
+
+Certain code features must be explicitly requested in the `plugindef()` function. This allows a user quickly to see the kinds of features the plugin will be using that are unrelated directly to Finale. It also restricts the calls a loaded library can use, which may not be obvious by scanning the top-level script.
+
+Some of the features require trusted code and some do not. A summary is as follows:
+
+- `finaleplugin.ExecuteAtStartup` allows the script to run at startup. It must also be configured as "Allow At Startup", but trusted status is not required.
+- `finaleplugin.ExecuteExternalCode` allows the script to launch external code or load binary C libraries. Trusted status is required.
+- `finaleplugin.ExecuteHttpsCalls` allows the script to call the `get` or `put` functions in `luaosutils.internet`. Trusted status is not required.
+- `finaleplugin.LoadLuaSocket` pre-loads the full `socket` namespace. Trusted status is required.
+- `finaleplugin.ModifyFinaleMenus` allows the script to modify Finale's menus. Trusted status is required.
 
 ### The 'bit32' namespace
 
@@ -137,7 +146,7 @@ A script must be running as trusted code to gain full access to the functions in
 _RGP Lua_ contains an embedded version of [`luasocket`](https://aiq0.github.io/luasocket/index.html). You can elect for it to be available in the `socket` namespace in one of the following ways.
 
 - Select **Enable Debugging** when you [configure](/docs/rgp-lua/rgp-lua-configuration) your script.
-- Add `finaleplugin.LoadLuaSocket = true` to your `plugindef` function and be running as trusted code.
+- Add `finaleplugin.LoadLuaSocket = true` to your `plugindef` function and be running with trusted status.
 
 When you request the `socket` namespace, _RGP Lua_ takes the following actions.
 
