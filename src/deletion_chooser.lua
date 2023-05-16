@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.67"
-    finaleplugin.Date = "2023/05/14"
+    finaleplugin.Version = "0.69"
+    finaleplugin.Date = "2023/05/16"
     finaleplugin.MinJWLuaVersion = 0.62
 	finaleplugin.Notes = [[
         The "delete_selective.lua" script produces a heap of menu 
@@ -213,18 +213,22 @@ function delete_selected(delete_type)
                 entry.ManualPosition = 0
             --
             elseif delete_type == "cross_staff" then -- CROSS-STAFF
+                entry.FreezeBeam = false
+                entry.FreezeStem = false
+                entry.ManualPosition = 0
                 if entry.ReverseStem then entry.ReverseStem = false end -- check spelling in RGPLua 0.68
-                if entry:IsRest() then
-                    entry.FloatingRest = true
-                else
-                    entry.FreezeStem = false
-                    local prime_mods = finale.FCPrimaryBeamMods(entry)
-                    prime_mods:LoadAll()
-                    if prime_mods.Count > 0 then -- existing beam modification?
-                        prime_mods:GetItemAt(0):DeleteData()
+                if entry:IsRest() then entry.FloatingRest = true end
+
+                for note in each(entry) do
+                    finale.FCCrossStaffMod():EraseAt(note)
+                end
+                for _, type in ipairs( {"FCCrossStaffMods", "FCPrimaryBeamMods"} ) do
+                    local mods = finale[type](entry)
+                    mods:LoadAll()
+                    for i = 1, mods.Count do
+                        mods:GetItemAt(i - 1):DeleteData()
                     end
                 end
-                entry.ManualPosition = 0
                 entry.CrossStaff = false
             end
         end
