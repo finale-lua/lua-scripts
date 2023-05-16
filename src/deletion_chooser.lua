@@ -3,14 +3,14 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.69"
-    finaleplugin.Date = "2023/05/16"
+    finaleplugin.Version = "0.70"
+    finaleplugin.Date = "2023/05/17"
     finaleplugin.MinJWLuaVersion = 0.62
 	finaleplugin.Notes = [[
-        The "delete_selective.lua" script produces a heap of menu 
-        items to choose each deletion type. This re-working uses a single menu 
-        item to produce an ordered list of deletion types, each line beginning 
-        with a configurable "key" code. 
+        This script grew from "delete_selective.lua" script which produces 
+        a heap of menu items to choose each deletion type. 
+        This re-working uses a single menu item to produce an ordered list 
+        of deletion types, each line beginning with a configurable "key" code. 
         Call the script, type the key code and hit [Enter] or [Return].  
 
         Delete independently:  
@@ -219,13 +219,10 @@ function delete_selected(delete_type)
                 if entry.ReverseStem then entry.ReverseStem = false end -- check spelling in RGPLua 0.68
                 if entry:IsRest() then entry.FloatingRest = true end
 
-                for note in each(entry) do
-                    finale.FCCrossStaffMod():EraseAt(note)
-                end
                 for _, type in ipairs( {"FCCrossStaffMods", "FCPrimaryBeamMods"} ) do
                     local mods = finale[type](entry)
                     mods:LoadAll()
-                    for i = 1, mods.Count do
+                    for i = mods.Count, 1, -1 do
                         mods:GetItemAt(i - 1):DeleteData()
                     end
                 end
