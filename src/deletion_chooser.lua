@@ -7,8 +7,8 @@ function plugindef()
     finaleplugin.Date = "2023/05/17"
     finaleplugin.MinJWLuaVersion = 0.62
 	finaleplugin.Notes = [[
-        This script grew from "delete_selective.lua" script which produces 
-        a heap of menu items to choose each deletion type. 
+        This script evolved from "delete_selective.lua" which produces 
+        a heap of menu items to choose between type of deletion. 
         This re-working uses a single menu item to produce an ordered list 
         of deletion types, each line beginning with a configurable "key" code. 
         Call the script, type the key code and hit [Enter] or [Return].  
@@ -23,7 +23,7 @@ function plugindef()
         Staff Styles (Current Score/Part) | Tuplets | User Selected Items
         ```
     ]]
-    return "Deletion Chooser...", "Deletion Chooser...", "Choose specific items to delete by keystroke"
+    return "Deletion Chooser...", "Deletion Chooser", "Choose specific items to delete by keystroke"
 end
 
 local dialog_options = { -- key, text description (ordered)
@@ -79,7 +79,7 @@ local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local expression = require("library.expression")
 local script_name = "deletion_chooser"
-local clear_selected_items_menu = 1296385394 -- OS menu command value (Mac)
+local clear_selected_items_menu = 1296385394 -- Mac OS menu command value
 -- do we need to check finenv.UI():IsOnWindows() ?
 
 configuration.get_user_settings(script_name, config, true)
