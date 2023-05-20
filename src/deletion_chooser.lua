@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.70"
-    finaleplugin.Date = "2023/05/17"
+    finaleplugin.Version = "0.71"
+    finaleplugin.Date = "2023/05/21"
     finaleplugin.MinJWLuaVersion = 0.62
 	finaleplugin.Notes = [[
         This script evolved from "delete_selective.lua" which produces 
@@ -303,14 +303,14 @@ function user_chooses()
         :SetText("Reassign Keys"):SetWidth(y_off * 2) -- half box width
     reassign:AddHandleCommand(function()
         local ok, is_duplicate = true, true
-        while is_duplicate do -- wait for valid choices in reassign_keystrokes()
+        while ok and is_duplicate do -- wait for valid choices in reassign_keystrokes()
             ok, is_duplicate = reassign_keystrokes()
-            if not ok then return end -- user cancelled
         end
-        -- no error ... new key assignments in config.
-        configuration.save_user_settings(script_name, config)
-        for i, v in ipairs(dialog_options) do -- redraw key_list with new keys
-            key_list:SetItemText(i - 1, config[v[1]] .. ": " .. v[2])
+        if ok then -- no error ... new key assignments in config
+            configuration.save_user_settings(script_name, config)
+            for i, v in ipairs(dialog_options) do -- redraw key_list with new keys
+                key_list:SetItemText(i - 1, config[v[1]] .. ": " .. v[2])
+            end
         end
     end)
     dialog:CreateOkButton()
