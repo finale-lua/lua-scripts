@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.71"
-    finaleplugin.Date = "2023/05/21"
+    finaleplugin.Version = "0.72"
+    finaleplugin.Date = "2023/05/24"
     finaleplugin.MinJWLuaVersion = 0.62
 	finaleplugin.Notes = [[
         This script evolved from "delete_selective.lua" which produces 
@@ -79,10 +79,9 @@ local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local expression = require("library.expression")
 local script_name = "deletion_chooser"
-local clear_selected_items_menu = 1296385394 -- Mac OS menu command value
--- do we need to check finenv.UI():IsOnWindows() ?
-
 configuration.get_user_settings(script_name, config, true)
+-- Mac / Windows menu command value ...
+local clear_selected_items_menu = (finenv.UI():IsOnMac()) and 1296385394 or 16010
 
 function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -104,7 +103,7 @@ function delete_selected(delete_type)
 
     if delete_type == "user_selects" then -- access Finale menu: Edit -> "Clear Selected Items"
         if not finenv.UI():ExecuteOSMenuCommand(clear_selected_items_menu) then
-            finenv.UI():AlertInfo("RGP Lua couldn't identify the Finale menu item "
+            finenv.UI():AlertError("RGP Lua couldn't identify the Finale menu item "
                 .. "\"Edit\" -> \"Clear Selected Items...\"", "Error")
         end
     --
@@ -232,7 +231,7 @@ function delete_selected(delete_type)
     end
 end
 
-function reassign_keystrokes()
+function reassign_keys()
     local y_step, x_wide = 17, 180
     local offset = finenv.UI():IsOnMac() and 3 or 0
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Reassign Keys")
@@ -254,6 +253,7 @@ function reassign_keystrokes()
         for i, v in ipairs(dialog_options) do
             local key = self:GetControl(v[1]):GetText()
             key = string.upper(string.sub(key, 1, 1)) -- 1st letter, upper case
+            if key == "" then key = "?" end -- make sure it's not null
             config[v[1]] = key -- save for another possible run-through
             config.ignore = ignore:GetCheck()
 
@@ -280,7 +280,7 @@ function reassign_keystrokes()
                 end
                 msg = msg .. "\n\n"
             end
-            finenv.UI():AlertInfo(msg, "Duplicate Key Assignment")
+            finenv.UI():AlertError(msg, "Duplicate Key Assignment")
         end
     end
     return ok, is_duplicate
@@ -294,23 +294,25 @@ function user_chooses()
     dialog:CreateStatic(0, 0):SetText("Delete data of type:"):SetWidth(box_wide)
 
     local key_list = dialog:CreateListBox(0, 20):SetWidth(box_wide):SetHeight(box_high)
-    for _, v in ipairs(dialog_options) do -- add all options with keycodes
-        key_list:AddString(config[v[1]] .. ": " .. v[2])
+    local function fill_key_list()
+        key_list:Clear()
+        for _, v in ipairs(dialog_options) do -- add all options with keycodes
+            key_list:AddString(config[v[1]] .. ": " .. v[2])
+        end
+        key_list:SetSelectedItem(config.last_selected or 0)
     end
-    key_list:SetSelectedItem(config.last_selected or 0)
+    fill_key_list()
     local y_off = box_wide / 4
     local reassign = dialog:CreateButton(y_off, box_high + 30)
         :SetText("Reassign Keys"):SetWidth(y_off * 2) -- half box width
     reassign:AddHandleCommand(function()
         local ok, is_duplicate = true, true
-        while ok and is_duplicate do -- wait for valid choices in reassign_keystrokes()
-            ok, is_duplicate = reassign_keystrokes()
+        while ok and is_duplicate do -- wait for valid choices in reassign_keys()
+            ok, is_duplicate = reassign_keys()
         end
         if ok then -- no error ... new key assignments in config
             configuration.save_user_settings(script_name, config)
-            for i, v in ipairs(dialog_options) do -- redraw key_list with new keys
-                key_list:SetItemText(i - 1, config[v[1]] .. ": " .. v[2])
-            end
+            fill_key_list()
         end
     end)
     dialog:CreateOkButton()
@@ -318,10 +320,9 @@ function user_chooses()
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function(self)
             config.last_selected = key_list:GetSelectedItem() -- save list choice
-            dialog_save_position(self)
         end)
-    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-    return ok
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
 
 function select_delete_type()
