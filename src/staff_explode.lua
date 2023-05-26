@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.56"
-    finaleplugin.Date = "2023/05/24"
+    finaleplugin.Version = "v1.57"
+    finaleplugin.Date = "2023/05/26"
     finaleplugin.AdditionalMenuOptions = [[
         Staff Explode Pairs
         Staff Explode Pairs (Up)
@@ -60,7 +60,7 @@ function plugindef()
         The choice will be retained until you change it again. 
         If you want to reverse the choice momentarily, hold down the ALT (option) key 
         when selecting a menu item. 
-        For no respacing disable "Automatic Music Spacing" at Finale -> Settings... -> Edit.
+        For no respacing ensure that "Automatic Music Spacing" is disabled at Finale -> Settings... -> Edit.
     ]]
     return "Staff Explode Singles", "Staff Explode Singles", "Explode chords from one staff into single notes on consecutive staves"
 end
@@ -144,8 +144,8 @@ function change_spacing_options()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Staff Explode Options")
     local respace = dialog:CreateCheckbox(0, 0):SetWidth(200):SetText("Respace notes after exploding")
         :SetCheck(config.respace_notes and 1 or 0)
-    dialog:CreateStatic(0, 22):SetText("For no respacing ensure that \"Automatic Music Spacing\" "
-     .. "is disabled at Finale -> Settings... -> Edit"):SetWidth(290):SetHeight(45)
+    dialog:CreateStatic(0, 22):SetText("For no respacing ensure that \n\"Automatic Music Spacing\" "
+     .. "is disabled \nat Finale -> Settings... -> Edit"):SetWidth(220):SetHeight(45)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterHandleOkButtonPressed(function()
