@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.57"
-    finaleplugin.Date = "2023/05/26"
+    finaleplugin.Version = "v1.58"
+    finaleplugin.Date = "2023/05/28"
     finaleplugin.AdditionalMenuOptions = [[
         Staff Explode Pairs
         Staff Explode Pairs (Up)
@@ -55,26 +55,17 @@ function plugindef()
         All other script actions require a single staff selection and 
         all markings from the original are copied to each destination. 
 
-        If you want the notes RESPACED after exploding, change script preferences by 
-        holding down the SHIFT key when selecting any of the menu items. 
-        The choice will be retained until you change it again. 
-        If you want to reverse the choice momentarily, hold down the ALT (option) key 
-        when selecting a menu item. 
-        For no respacing ensure that "Automatic Music Spacing" is disabled at Finale -> Settings... -> Edit.
+        Your choice at Finale -> Settings... -> Edit -> [Automatic Music Spacing] 
+        will determine whether or not the notes are RESPACED after each explosion.
     ]]
     return "Staff Explode Singles", "Staff Explode Singles", "Explode chords from one staff into single notes on consecutive staves"
 end
 
 action = action or "singles"
-local configuration = require("library.configuration")
 local clef = require("library.clef")
 local mixin = require("library.mixin")
 local note_entry = require("library.note_entry")
 local layer = require("library.layer")
-
-local config = { respace_notes = false }
-local script_name = "staff_explode"
-configuration.get_user_settings(script_name, config, true)
 
 function show_error(error_code)
     local errors = {
@@ -131,30 +122,6 @@ function not_enough_staves(slot, staff_count)
     return false
 end
 
-function respace_notes(region)
-    if config.respace_notes then
-        region:SetFullMeasureStack()
-        region:SetInDocument()
-        finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
-    end
-    finenv.Region():SetInDocument()
-end
-
-function change_spacing_options()
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Staff Explode Options")
-    local respace = dialog:CreateCheckbox(0, 0):SetWidth(200):SetText("Respace notes after exploding")
-        :SetCheck(config.respace_notes and 1 or 0)
-    dialog:CreateStatic(0, 22):SetText("For no respacing ensure that \n\"Automatic Music Spacing\" "
-     .. "is disabled \nat Finale -> Settings... -> Edit"):SetWidth(220):SetHeight(45)
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    dialog:RegisterHandleOkButtonPressed(function()
-        config.respace_notes = (respace:GetCheck() == 1)
-        configuration.save_user_settings(script_name, config)
-    end)
-    dialog:ExecuteModal(nil)
-end
-
 function explode_layers(region)
     local rgn = mixin.FCMMusicRegion()
     rgn:SetRegion(region)
@@ -199,20 +166,9 @@ function explode_layers(region)
             end
         end
     end
-    respace_notes(region) -- may not be useful for layer explosions
 end
 
 function staff_explode()
-    if finenv.QueryInvokedModifierKeys then -- mod keys held down?
-        local shift = finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
-        local alt = finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT)
-        if shift then
-            change_spacing_options()
-            return
-        end
-        if alt then config.respace_notes = not config.respace_notes end
-    end
-
     local source_region = mixin.FCMMusicRegion()
     source_region:SetCurrentSelection()
     local max_note_count = get_note_count(source_region)
@@ -324,7 +280,6 @@ function staff_explode()
                 end
             end
         end
-        respace_notes(region[1])
     end
 
     -- ALL DONE -- delete the copied clip files
