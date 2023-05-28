@@ -397,6 +397,32 @@ function note_entry.add_augmentation_dot(entry)
 end
 
 --[[
+% remove_augmentation_dot
+
+Removes an augentation dot from the entry. This does nothing if the entry has no augmentation dots.
+
+@ entry (FCNoteEntry) the entry to which to add the augmentation dot
+: (boolean) true if the entry was modified, otherwise false
+]]
+function note_entry.remove_augmentation_dot(entry)
+    if entry.Duration <= 0 then
+        return false
+    end
+    local lowest_order_bit = 1
+    if bit32.band(entry.Duration, lowest_order_bit) == 0 then -- if entry.Duration & lowest_order_bit then
+        -- lowest_order_bit = (entry.Duration & (entry.Duration - 1)) ~ entry.Duration -- For Lua 5.3 and higher
+        lowest_order_bit = bit32.bxor(bit32.band(entry.Duration, entry.Duration - 1), entry.Duration)
+    end
+    -- local new_value = entry.Duration & ~lowest_order_bit -- For Lua 5.3 and higher
+    local new_value = bit32.band(entry.Duration, bit32.bnot(lowest_order_bit))
+    if new_value ~= 0 then
+        entry.Duration = new_value
+        return true
+    end
+    return false
+end
+
+--[[
 % get_next_same_v
 
 Returns the next entry in the same V1 or V2 as the input entry.
