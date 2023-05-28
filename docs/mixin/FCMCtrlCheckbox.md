@@ -7,7 +7,7 @@
 
 - [SetCheck(self, checked)](#setcheck)
 - [HandleCheckChange(control, last_check)](#handlecheckchange)
-- [AddHandleChange(self, callback)](#addhandlechange)
+- [AddHandleCheckChange(self, callback)](#addhandlecheckchange)
 - [RemoveHandleCheckChange(self, callback)](#removehandlecheckchange)
 
 ### SetCheck
@@ -34,7 +34,7 @@ Override Changes:
 fcmctrlcheckbox.HandleCheckChange(control, last_check)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L58)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L47)
 
 **[Callback Template]**
 
@@ -43,13 +43,13 @@ fcmctrlcheckbox.HandleCheckChange(control, last_check)
 | `control` | `FCMCtrlCheckbox` | The control that was changed. |
 | `last_check` | `string` | The previous value of the control's check state.. |
 
-### AddHandleChange
+### AddHandleCheckChange
 
 ```lua
-fcmctrlcheckbox.AddHandleChange(self, callback)
+fcmctrlcheckbox.AddHandleCheckChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L66)
 
 **[Fluid]**
 
