@@ -44,7 +44,7 @@ end
 ]]
 
 --[[
-% AddHandleChange
+% AddHandleCheckChange
 
 **[Fluid]**
 
