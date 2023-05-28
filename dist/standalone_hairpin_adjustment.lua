@@ -1016,6 +1016,24 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         entry.Duration = bit32.bor(entry.Duration, bit32.rshift(entry.Duration, 1))
     end
 
+    function note_entry.remove_augmentation_dot(entry)
+        if entry.Duration <= 0 then
+            return false
+        end
+        local lowest_order_bit = 1
+        if bit32.band(entry.Duration, lowest_order_bit) == 0 then
+
+            lowest_order_bit = bit32.bxor(bit32.band(entry.Duration, entry.Duration - 1), entry.Duration)
+        end
+
+        local new_value = bit32.band(entry.Duration, bit32.bnot(lowest_order_bit))
+        if new_value ~= 0 then
+            entry.Duration = new_value
+            return true
+        end
+        return false
+    end
+
     function note_entry.get_next_same_v(entry)
         local next_entry = entry:Next()
         if entry.Voice2 then

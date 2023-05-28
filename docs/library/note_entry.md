@@ -21,6 +21,7 @@
 - [calc_pitch_string(note)](#calc_pitch_string)
 - [calc_spans_number_of_octaves(entry)](#calc_spans_number_of_octaves)
 - [add_augmentation_dot(entry)](#add_augmentation_dot)
+- [remove_augmentation_dot(entry)](#remove_augmentation_dot)
 - [get_next_same_v(entry)](#get_next_same_v)
 - [hide_stem(entry)](#hide_stem)
 - [rest_offset(entry, offset)](#rest_offset)
@@ -364,13 +365,31 @@ Adds an augentation dot to the entry. This works even if the entry already has o
 | ----- | ---- | ----------- |
 | `entry` | `FCNoteEntry` | the entry to which to add the augmentation dot |
 
+### remove_augmentation_dot
+
+```lua
+note_entry.remove_augmentation_dot(entry)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L407)
+
+Removes an augentation dot from the entry. This does nothing if the entry has no augmentation dots.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `entry` | `FCNoteEntry` | the entry to which to add the augmentation dot |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` | true if the entry was modified, otherwise false |
+
 ### get_next_same_v
 
 ```lua
 note_entry.get_next_same_v(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L409)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L435)
 
 Returns the next entry in the same V1 or V2 as the input entry.
 If the input entry is V2, only the current V2 launch is searched.
@@ -390,7 +409,7 @@ If the input entry is V1, only the current measure and layer is searched.
 note_entry.hide_stem(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L432)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L458)
 
 Hides the stem of the entry by replacing it with Shape 0.
 
@@ -404,7 +423,7 @@ Hides the stem of the entry by replacing it with Shape 0.
 note_entry.rest_offset(entry, offset)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L454)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L480)
 
 Confirms the entry is a rest then offsets it from the staff rest "center" position. 
 
