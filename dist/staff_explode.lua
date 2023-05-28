@@ -1,140 +1,3 @@
-package.preload["library.configuration"] = package.preload["library.configuration"] or function()
-
-
-
-    local configuration = {}
-    local utils = require("library.utils")
-    local script_settings_dir = "script_settings"
-    local comment_marker = "--"
-    local parameter_delimiter = "="
-    local path_delimiter = "/"
-    local file_exists = function(file_path)
-        local f = io.open(file_path, "r")
-        if nil ~= f then
-            io.close(f)
-            return true
-        end
-        return false
-    end
-    parse_parameter = function(val_string)
-        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "\"(.+)\"", "%1")
-        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "'(.+)'", "%1")
-        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-            return load("return " .. val_string)()
-        elseif "true" == val_string then
-            return true
-        elseif "false" == val_string then
-            return false
-        end
-        return tonumber(val_string)
-    end
-    local get_parameters_from_file = function(file_path, parameter_list)
-        local file_parameters = {}
-        if not file_exists(file_path) then
-            return false
-        end
-        for line in io.lines(file_path) do
-            local comment_at = string.find(line, comment_marker, 1, true)
-            if nil ~= comment_at then
-                line = string.sub(line, 1, comment_at - 1)
-            end
-            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
-            if nil ~= delimiter_at then
-                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
-                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
-                file_parameters[name] = parse_parameter(val_string)
-            end
-        end
-        local function process_table(param_table, param_prefix)
-            param_prefix = param_prefix and param_prefix.."." or ""
-            for param_name, param_val in pairs(param_table) do
-                local file_param_name = param_prefix .. param_name
-                local file_param_val = file_parameters[file_param_name]
-                if nil ~= file_param_val then
-                    param_table[param_name] = file_param_val
-                elseif type(param_val) == "table" then
-                        process_table(param_val, param_prefix..param_name)
-                end
-            end
-        end
-        process_table(parameter_list)
-        return true
-    end
-
-    function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
-        if finenv.IsRGPLua then
-            path = finenv.RunningLuaFolderPath()
-        else
-            local str = finale.FCString()
-            str:SetRunningLuaFolderPath()
-            path = str.LuaString
-        end
-        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
-        return get_parameters_from_file(file_path, parameter_list)
-    end
-
-
-    local calc_preferences_filepath = function(script_name)
-        local str = finale.FCString()
-        str:SetUserOptionsPath()
-        local folder_name = str.LuaString
-        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
-
-            folder_name = os.getenv("HOME") .. folder_name:sub(2)
-        end
-        if finenv.UI():IsOnWindows() then
-            folder_name = folder_name .. path_delimiter .. "FinaleLua"
-        end
-        local file_path = folder_name .. path_delimiter
-        if finenv.UI():IsOnMac() then
-            file_path = file_path .. "com.finalelua."
-        end
-        file_path = file_path .. script_name .. ".settings.txt"
-        return file_path, folder_name
-    end
-
-    function configuration.save_user_settings(script_name, parameter_list)
-        local file_path, folder_path = calc_preferences_filepath(script_name)
-        local file = io.open(file_path, "w")
-        if not file and finenv.UI():IsOnWindows() then
-
-            local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
-            if osutils then
-                osutils.process.make_dir(folder_path)
-            else
-                os.execute('mkdir "' .. folder_path ..'"')
-            end
-            file = io.open(file_path, "w")
-        end
-        if not file then
-            return false
-        end
-        file:write("-- User settings for " .. script_name .. ".lua\n\n")
-        for k,v in pairs(parameter_list) do
-            if type(v) == "string" then
-                v = "\"" .. v .."\""
-            else
-                v = tostring(v)
-            end
-            file:write(k, " = ", v, "\n")
-        end
-        file:close()
-        return true
-    end
-
-    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
-        if create_automatically == nil then create_automatically = true end
-        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
-        if not exists and create_automatically then
-            configuration.save_user_settings(script_name, parameter_list)
-        end
-        return exists
-    end
-    return configuration
-end
 package.preload["library.clef"] = package.preload["library.clef"] or function()
 
     local clef = {}
@@ -5572,8 +5435,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.55"
-    finaleplugin.Date = "2023/04/30"
+    finaleplugin.Version = "v1.58"
+    finaleplugin.Date = "2023/05/28"
     finaleplugin.AdditionalMenuOptions = [[
         Staff Explode Pairs
         Staff Explode Pairs (Up)
@@ -5600,7 +5463,7 @@ function plugindef()
     ]]
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.ScriptGroupName = "Staff Explode"
-    finaleplugin.ScriptGroupDescription = "Explode chords from the selection onto consecutive staves"
+    finaleplugin.ScriptGroupDescription = "Explode chords from the selection onto consecutive staves or layers"
     finaleplugin.Notes = [[
         This script "explodes" a set of chords on one staff into successive staves
         either as single notes or pairs of notes.
@@ -5619,30 +5482,19 @@ function plugindef()
         markings from the original are not duplicated to the other layers.
         As a special case, if a staff contains only single-note entries, Explode Layers
         duplicates them in unison on layer 2 to create standard two-voice notation.
-        All other script actions require the selection of a single staff and
+        All other script actions require a single staff selection and
         all markings from the original are copied to each destination.
-        The music isn't automatically respaced on completion.
-        If you want respacing, hold down the SHIFT or ALT (option) key when selecting the menu item.
-        Alternatively, if you want the default behaviour to include note spacing then create a CONFIGURATION file ...
-        If it does not exist, create a subfolder called 'script_settings' in the folder containing this script.
-        In that folder create a plain text file called 'staff_explode.config.txt' containing the line:
-        ```
-        fix_note_spacing = true
-        ```
-
-        If you subsequently hold down the SHIFT or ALT (option) key, spacing will NOT take place.
+        Your choice at Finale -> Settings... -> Edit -> [Automatic Music Spacing]
+        will determine whether or not the notes are RESPACED after each explosion.
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_explode.hash"
     return "Staff Explode Singles", "Staff Explode Singles", "Explode chords from one staff into single notes on consecutive staves"
 end
 action = action or "singles"
-local configuration = require("library.configuration")
 local clef = require("library.clef")
 local mixin = require("library.mixin")
 local note_entry = require("library.note_entry")
 local layer = require("library.layer")
-local config = { fix_note_spacing = false }
-configuration.get_parameters("staff_explode.config.txt", config)
 function show_error(error_code)
     local errors = {
         need_more_staves = "There are not enough empty\nstaves to explode onto",
@@ -5652,7 +5504,7 @@ function show_error(error_code)
         two_or_more = "Staff Explode Singles requires\ntwo or more notes per chord",
     }
     local msg = errors[error_code] or "Unknown Error"
-    finenv.UI():AlertNeutral(msg, "Error")
+    finenv.UI():AlertError(msg, "Staff Explode Error")
     return -1
 end
 function should_overwrite_existing_music()
@@ -5668,8 +5520,8 @@ function simple_note_count(region)
     end
     return count
 end
-function get_note_count(source_region)
-    local note_count = simple_note_count(source_region)
+function get_note_count(region)
+    local note_count = simple_note_count(region)
     if note_count == 0 then
         return show_error("empty_region")
     end
@@ -5692,14 +5544,6 @@ function not_enough_staves(slot, staff_count)
         return true
     end
     return false
-end
-function fix_note_spacing(region)
-    if config.fix_note_spacing then
-        region:SetFullMeasureStack()
-        region:SetInDocument()
-        finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
-    end
-    finenv.Region():SetInDocument()
 end
 function explode_layers(region)
     local rgn = mixin.FCMMusicRegion()
@@ -5740,14 +5584,8 @@ function explode_layers(region)
             end
         end
     end
-    fix_note_spacing(region)
 end
 function staff_explode()
-    if finenv.QueryInvokedModifierKeys and
-    (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-        then
-        config.fix_note_spacing = not config.fix_note_spacing
-    end
     local source_region = mixin.FCMMusicRegion()
     source_region:SetCurrentSelection()
     local max_note_count = get_note_count(source_region)
@@ -5849,7 +5687,6 @@ function staff_explode()
                 end
             end
         end
-        fix_note_spacing(region[1])
     end
 
     for slot = 2, staff_count do
