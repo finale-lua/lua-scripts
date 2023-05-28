@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.55"
-    finaleplugin.Date = "2023/04/30"
+    finaleplugin.Version = "v1.58"
+    finaleplugin.Date = "2023/05/28"
     finaleplugin.AdditionalMenuOptions = [[
         Staff Explode Pairs
         Staff Explode Pairs (Up)
@@ -31,7 +31,7 @@ function plugindef()
     ]]
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.ScriptGroupName = "Staff Explode"
-    finaleplugin.ScriptGroupDescription = "Explode chords from the selection onto consecutive staves"
+    finaleplugin.ScriptGroupDescription = "Explode chords from the selection onto consecutive staves or layers"
     finaleplugin.Notes = [[
         This script "explodes" a set of chords on one staff into successive staves 
         either as single notes or pairs of notes. 
@@ -40,7 +40,8 @@ function plugindef()
         It can also explode chords in layer 1 on each staff into 
         different layers on the same staff. 
 
-        Five menu items are provided:
+        Five menu items are provided:  
+
         - Staff Explode Singles (single notes onto successive staves)
         - Staff Explode Pairs (pairs of notes, omitting odd notes from bottom staff)
         - Staff Explode Pairs Up (pairs, but omitting odd notes from top staff)
@@ -51,34 +52,20 @@ function plugindef()
         markings from the original are not duplicated to the other layers. 
         As a special case, if a staff contains only single-note entries, Explode Layers 
         duplicates them in unison on layer 2 to create standard two-voice notation. 
-        All other script actions require the selection of a single staff and 
+        All other script actions require a single staff selection and 
         all markings from the original are copied to each destination. 
 
-        The music isn't automatically respaced on completion. 
-        If you want respacing, hold down the SHIFT or ALT (option) key when selecting the menu item. 
-
-        Alternatively, if you want the default behaviour to include note spacing then create a CONFIGURATION file ...  
-        If it does not exist, create a subfolder called 'script_settings' in the folder containing this script. 
-        In that folder create a plain text file called 'staff_explode.config.txt' containing the line: 
-
-        ```
-        fix_note_spacing = true -- respace music when the script finishes
-        ```
-        
-        If you subsequently hold down the SHIFT or ALT (option) key, spacing will NOT take place.
+        Your choice at Finale -> Settings... -> Edit -> [Automatic Music Spacing] 
+        will determine whether or not the notes are RESPACED after each explosion.
     ]]
     return "Staff Explode Singles", "Staff Explode Singles", "Explode chords from one staff into single notes on consecutive staves"
 end
 
 action = action or "singles"
-local configuration = require("library.configuration")
 local clef = require("library.clef")
 local mixin = require("library.mixin")
 local note_entry = require("library.note_entry")
 local layer = require("library.layer")
-
-local config = { fix_note_spacing = false }
-configuration.get_parameters("staff_explode.config.txt", config)
 
 function show_error(error_code)
     local errors = {
@@ -89,7 +76,7 @@ function show_error(error_code)
         two_or_more = "Staff Explode Singles requires\ntwo or more notes per chord",
     }
     local msg = errors[error_code] or "Unknown Error"
-    finenv.UI():AlertNeutral(msg, "Error")
+    finenv.UI():AlertError(msg, "Staff Explode Error")
     return -1
 end
 
@@ -108,8 +95,8 @@ function simple_note_count(region)
     return count
 end
 
-function get_note_count(source_region)
-    local note_count = simple_note_count(source_region)
+function get_note_count(region)
+    local note_count = simple_note_count(region)
     if note_count == 0 then
         return show_error("empty_region")
     end
@@ -135,15 +122,6 @@ function not_enough_staves(slot, staff_count)
     return false
 end
 
-function fix_note_spacing(region)
-    if config.fix_note_spacing then
-        region:SetFullMeasureStack()
-        region:SetInDocument()
-        finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
-    end
-    finenv.Region():SetInDocument()
-end
-
 function explode_layers(region)
     local rgn = mixin.FCMMusicRegion()
     rgn:SetRegion(region)
@@ -152,7 +130,7 @@ function explode_layers(region)
         rgn:SetStartSlot(slot):SetEndSlot(slot)
         local note_count = simple_note_count(rgn)
 
-        if note_count > 0 then -- some notes to work with
+        if note_count > 0 then -- this slot contains notes
             local unison_doubling = (note_count == 1) and 1 or 0
             local staff = rgn:CalcStaffNumber(slot)
             local layers = {} -- copy original layer to [note_count] layers
@@ -188,16 +166,9 @@ function explode_layers(region)
             end
         end
     end
-    fix_note_spacing(region) -- may not be useful for layer explosions
 end
 
 function staff_explode()
-    if finenv.QueryInvokedModifierKeys and -- mod keys held down?
-    (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT) or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-        then
-        config.fix_note_spacing = not config.fix_note_spacing
-    end
-
     local source_region = mixin.FCMMusicRegion()
     source_region:SetCurrentSelection()
     local max_note_count = get_note_count(source_region)
@@ -241,7 +212,7 @@ function staff_explode()
         local pitches_to_keep = {} -- compile an array of chords (for Split Pairs)
         local chord = 1 -- start at 1st chord (for Split Pairs)
 
-        if action == "split" then -- collate chords for pairing
+        if action == "split" then -- collate chords for pair-splitting
             for entry in eachentry(region[1]) do -- check each entry chord
                 if entry:IsNote() then
                     pitches_to_keep[chord] = {} -- create new pitch array for each chord
@@ -309,10 +280,9 @@ function staff_explode()
                 end
             end
         end
-        fix_note_spacing(region[1])
     end
 
-    -- ALL DONE -- clear the copied clip files
+    -- ALL DONE -- delete the copied clip files
     for slot = 2, staff_count do
         region[slot]:ReleaseMusic()
     end
