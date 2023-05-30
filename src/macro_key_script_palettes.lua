@@ -36,8 +36,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.21"
-    finaleplugin.Date = "2023/05/29"
+    finaleplugin.Version = "0.23"
+    finaleplugin.Date = "2023/05/30"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.64
     finaleplugin.Notes = info
@@ -70,7 +70,7 @@ local palettes = { -- config values decoded into nested tables
     },
     {   name = "Macro Palette 2"
         key = "B",
-        last = 1, -- item number of last script in this palette
+        last = 1, -- item number of last script chosen within this palette
         sub =
         {   {   name = "script 2A", key = "A" },
             {   name = "script 2B", key = "B" },
@@ -266,8 +266,16 @@ function user_chooses_script(index, palette_number, instruction)
     return ok, clean_text(menu_name), clean_key(key_edit:GetText())
 end
 
+function fill_list_box(menu, array, selected)
+    menu:Clear()
+    for _, v in ipairs(array) do
+        menu:AddString(v.key .. "\t" .. v.name)
+    end
+    menu:SetSelectedItem(selected - 1)
+end
+
 function configure_palette(palette_number)
-    local y, y_step, x_wide =  0, 17, 220
+    local y, y_step, x_wide =  0, 17, 228
     local is_macro = (palette_number == 0)
 
     local array = is_macro and palettes or palettes[palette_number].sub
@@ -282,16 +290,9 @@ function configure_palette(palette_number)
     local text = is_macro and "Choose Palette:" or "Choose Script Item:"
     dialog:CreateStatic(0, y):SetText(text):SetWidth(x_wide)
     y = y + y_step + 5
-
     local menu = dialog:CreateListBox(0, y):SetWidth(x_wide):SetHeight(box_high)
-        local function draw_menu(select)
-            menu:Clear()
-            for _, v in ipairs(array) do
-                menu:AddString(v.key .. ": " .. v.name)
-            end
-            menu:SetSelectedItem(select)
-        end
-    draw_menu(0)
+    fill_list_box(menu, array, 1)
+
     y = y + box_high + 8
     local x_off = x_wide / 20
     local remove = dialog:CreateButton(0, y, "remove")
@@ -310,7 +311,7 @@ function configure_palette(palette_number)
     remove:AddHandleCommand(function()
         local index = menu:GetSelectedItem() + 1
         table.remove(array, index)
-        draw_menu(0)
+        fill_list_box(menu, array, 1)
     end)
     rename:AddHandleCommand(function()
         local index = menu:GetSelectedItem() + 1
@@ -324,7 +325,7 @@ function configure_palette(palette_number)
             array[index].name = new_name
             array[index].key  = trigger
             sort_table(array)
-            draw_menu(index - 1)
+            fill_list_box(menu, array, index)
         end
 
     end)
@@ -334,7 +335,7 @@ function configure_palette(palette_number)
             ok, is_duplicate = reassign_keys(palette_number)
         end
         if ok then
-            draw_menu(#array - 1)
+            fill_list_box(menu, array, #array)
         else -- restore previously saved choices
             configuration.get_user_settings(script_name, config, true)
         end
@@ -345,18 +346,18 @@ function configure_palette(palette_number)
             ok, new_name, trigger = user_enters_text(0, "Create New Palette", "Name the New Palette:")
             if ok then
                 table.insert(array,
-                {   name = new_name, key = trigger,
+                {   name = new_name, key = trigger, last = 1,
                     sub = { { name = "(script unassigned)", key = "?" } }
                 })
                 sort_table(array)
-                draw_menu(0)
+                fill_list_box(menu, array, #array)
             end
-        else
-            ok, new_name, trigger = user_chooses_script(0, palette_number, "Add New Script:")
+        else -- SCRIPT palette
+            ok, new_name, trigger = user_chooses_script(palette_number, palette_number, "Add New Script:")
             if ok then
                 table.insert(array, { name = new_name, key = trigger } )
                 sort_table(array)
-                draw_menu(#array - 1)
+                fill_list_box(menu, array, #array)
             end
         end
     end)
@@ -376,7 +377,7 @@ function choose_palette(palette_number)
     local y, y_step = 0, 17
     local is_macro = (palette_number == 0)
     local array = is_macro and palettes or palettes[palette_number].sub
-    local box_wide = 220
+    local box_wide = 228
     local box_high = (#array * y_step) + 5
     local selected = is_macro and config.last_palette or palettes[palette_number].last
 
@@ -392,14 +393,8 @@ function choose_palette(palette_number)
     dialog:CreateStatic(0, y):SetText(text):SetWidth(box_wide * .9)
     y = y + y_step + 5
     local item_list = dialog:CreateListBox(0, y):SetWidth(box_wide):SetHeight(box_high)
-        local function fill_item_list()
-            item_list:Clear()
-            for _, v in ipairs(array) do
-                item_list:AddString(v.key .. ": " .. v.name)
-            end
-            item_list:SetSelectedItem(selected - 1)
-        end
-    fill_item_list()
+    fill_list_box(item_list, array, selected)
+
     local x_off = box_wide / 4
     y = y + box_high + 8
     text = is_macro and "Configure Palettes" or "Configure Scripts"
@@ -407,7 +402,7 @@ function choose_palette(palette_number)
         :SetText(text):SetWidth(x_off * 2)
     reconfigure:AddHandleCommand(function()
         if configure_palette(palette_number) then
-            fill_item_list()
+            fill_list_box(item_list, array, selected)
         end
     end)
     text = is_macro and "Choose" or "Activate"
@@ -416,9 +411,10 @@ function choose_palette(palette_number)
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function()
         local i = item_list:GetSelectedItem() + 1
-        if is_macro
-        then config.last_palette = i
-        else palettes[palette_number].last = i
+        if is_macro then
+            config.last_palette = i
+        else
+            palettes[palette_number].last = i
         end
         save_palettes_to_config()
     end)
@@ -445,14 +441,17 @@ function main()
         finished, item_number = choose_palette(palette_number) -- script palette
         if finished then -- successful choice
             local item_name = palettes[palette_number].sub[item_number].name or "unknown"
+            local msg = ""
             if not script_array[item_name] then
-                finenv.UI():AlertInfo("Script menu \"" .. item_name .. "\" could not be identified", "Error")
-                finished = false -- try again
-            else
-                -- local success, error_msg, msg_type = 
-                finenv.ExecuteLuaScriptItem(script_array[item_name])
+                msg = "identified"
+            elseif not finenv.ExecuteLuaScriptItem(script_array[item_name]) then
+                msg = "opened"
             end
-        end -- "finished" will exit now
+            if msg ~= "" then
+                finenv.UI():AlertError("Script menu \"" .. item_name .. "\" could not be " .. msg, "Error")
+                finished = false -- try again
+            end
+        end -- "finished" true will exit now
     end
 end
 
