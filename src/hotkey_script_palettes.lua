@@ -37,7 +37,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.26"
+    finaleplugin.Version = "0.27"
     finaleplugin.Date = "2023/06/01"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.64
@@ -65,8 +65,8 @@ local palettes = { -- config values decoded into nested tables
         key = "A",
         last = 1, -- item number of last script in this palette
         sub =
-        {   {   name = "script 1A", key = "A" },
-            {   name = "script 1B", key = "B" },
+        {   {   name = "script 1A", key = "A", script = "script_name_1A" },
+            {   name = "script 1B", key = "B", script = "script_name_1B" },
              ... etc
         }
     },
@@ -74,8 +74,8 @@ local palettes = { -- config values decoded into nested tables
         key = "B",
         last = 1, -- item number of last script chosen within this palette
         sub =
-        {   {   name = "script 2A", key = "A" },
-            {   name = "script 2B", key = "B" },
+        {   {   name = "script 2A", key = "A", script = "script_name_2A" },
+            {   name = "script 2B", key = "B", script = "script_name_2B" },
              ... etc
         }
     }, etc etc... -- ]]
@@ -323,9 +323,6 @@ function configure_palette(palette_number, index_num)
     remove:AddHandleCommand(function()
         local index = menu:GetSelectedItem() + 1
         table.remove(array, index)
-        --[[if is_macro then
-            table.remove(palettes[index].sub, index)
-        end]]
         fill_list_box(menu, array, 1)
     end)
     rename:AddHandleCommand(function()
@@ -459,16 +456,12 @@ function main()
         finished, item_number = choose_palette(palette_number) -- script palette
         if finished then -- successful choice
             local script = palettes[palette_number].sub[item_number].script or "unknown"
-            local msg = ""
             if not script_array[script] then
-                msg = "identified"
-            elseif not finenv.ExecuteLuaScriptItem(script_array[script]) then
-                msg = "opened"
+                finenv.UI():AlertError("Script menu \"" .. script .. "\" could not be identified", "Error")
+            else
+                finenv.ExecuteLuaScriptItem(script_array[script])
             end
-            if msg ~= "" then
-                finenv.UI():AlertError("Script menu \"" .. script .. "\" could not be " .. msg, "Error")
-            end
-        end -- "finished" true will exit now
+        end -- "finished" will exit now
     end
 end
 
