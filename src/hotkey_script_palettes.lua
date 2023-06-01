@@ -9,7 +9,7 @@ Group script types into primary categories like "Intervals", "Layers",
 "Notes & Chords", "Measure Items" and so on, presented as "palettes" (dialog windows). 
 These primary palettes are triggered by single keystrokes which each evoke a second 
 palette containg related scripts, also triggered by keystroke. 
-This way you can reach hundreds of scripts in your collection using 
+Reach hundreds of scripts in your collection using 
 two keystrokes with the key codes presented as a visual reminder. 
 Actions you repeat often link to muscle memory and become easier to recall.
 
@@ -23,7 +23,7 @@ The script comes loaded with a full set of "demo" palettes containing many of th
 scripts available at [https://FinaleLua.com]. 
 If a script isn't installed on your system you will get an "unidentified" warning on execution. 
 Either delete the palette item or assign a different script in its place. 
-Reconfigure each of the "Main" palettes, change their name or trigger key, delete them or add new ones.
+Reconfigure each of the "Main" palettes, change their name or hotkey, delete them or add new ones.
 
 Unlike Keyboard Maestro this script can only trigger Lua scripts added to the "RGP Lua" menu. 
 Other inbuilt Finale menus need a different mechanism. 
@@ -37,8 +37,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.27"
-    finaleplugin.Date = "2023/06/01"
+    finaleplugin.Version = "0.29"
+    finaleplugin.Date = "2023/06/02"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.64
     finaleplugin.Notes = info
@@ -46,8 +46,7 @@ function plugindef()
 end
 
 local config = { -- this is a DEMO fully-equipped data set. Not all of these scripts may be present on the user's system.
-    main = "Automations`A`1^Chords & Notes`C`1^Expressions & misc.`E`1^Intervals`W`1^Layers etc.`Q`1^Measure Items`B`1^",
-    sub = "Hairpin Crescendo`Z`Hairpin Create Crescendo^Hairpin Diminuendo`X`Hairpin Create Diminuendo^Hairpin Swell`C`Hairpin Create Swell^Hairpin Unswell`V`Hairpin Create Unswell^Harp gliss`H`Harp gliss^Slur Selection`S`Slur Selection^Swap Staves`P`Swap Staves^|Chords - Delete Bottom Note`5`Chord Line - Delete Bottom Note^Chords - Delete Top Note`6`Chord Line - Delete Top Note^Chords - Keep Bottom Note`8`Chord Line - Keep Bottom Note^Chords - Keep Top Note`9`Chord Line - Keep Top Note^CrossStaff Offset`1`CrossStaff Offset...^Cue notes mute`M`Cue notes mute^Gracenote Slash`/`Gracenote Slash^Gracenote Slash Config`.`Gracenote Slash Configuration...^Note Ends Eighths`E`Note Ends Eighths^Note Ends Quarters`Q`Note Ends Quarters^Noteheads Change`A`Noteheads Change by Layer...^Rest Offsets`4`Rest Offsets^Rotate Chord Down`2`Rotate Chord Down^Rotate Chord Up`3`Rotate Chord Up^Secondary Beams Break`B`Break Secondary Beams^Secondary Beams Clear`J`Clear Secondary Beam Breaks^Tie Notes`T`Tie Notes^Ties Remove`G`Untie Notes^Ties: Remove Dangling`K`Ties: Remove Dangling^|Cluster - Determinate`D`Cluster - Determinate^Cluster - Indeterminate`I`Cluster - Indeterminate^Deletion Chooser...`X`Deletion Chooser...^Expression Add Opaque Background`O`Expression Add Opaque Background^Expression Set To Parts Only`P`Expression Set To Parts Only^Expression Set To Score and Parts`B`Expression Set To Score and Parts^Swap Staves`S`Swap Staves^Tempo From Beginning`A`Tempo From Beginning^Tuplet State Chooser...`T`Tuplet State Chooser...^|Double Octave Down`8`Double Octave Down^Double Octave Up`9`Double Octave Up^Double Third Down`2`Double Third Down^Double Third Up`3`Double Third Up^Enharmonic Transpose Down`5`Enharmonic Transpose Down^Enharmonic Transpose Up`6`Enharmonic Transpose Up^Explode Layers`S`Staff Explode Layers^Explode Pairs`W`Staff Explode Pairs^Explode Pairs (Up)`D`Staff Explode Pairs (Up)^Explode Singles`Q`Staff Explode Singles^Explode Split Pairs`E`Staff Explode Split Pairs^String Harmonics 4th - Sounding Pitch`F`String Harmonics 4th - Sounding Pitch^Transpose By Steps...`B`Transpose By Steps...^Transpose Chromatic...`C`Transpose Chromatic...^|Clear Layer Selective`3`Clear Layer Selective^Layer Hide`8`Layer Hide^Layer Mute`5`Layer Mute^Layer Unhide`9`Layer Unhide^Layer Unmute`6`Layer Unmute^MIDI Note Duration...`D`MIDI Note Duration...^MIDI Note Values...`W`MIDI Note Values...^MIDI Note Velocity...`V`MIDI Note Velocity...^Swap Layers 1-2`1`Swap Layers 1-2^Swap Layers Selective`2`Swap Layers Selective^|Barline Dashed`A`Barline Set Dashed^Barline Double`D`Barline Set Double^Barline Final`E`Barline Set Final^Barline None`0`Barline Set None^Barline Normal`N`Barline Set Normal^Cue Notes Create...`Q`Cue Notes Create...^Cue Notes Flip Frozen`Z`Cue Notes Flip Frozen^Measure Span Divide`H`Measure Span Divide^Measure Span Join`J`Measure Span Join^Measure Span Options...`B`Measure Span Options...^Meter Set Numeric`9`Meter Set Numeric^Rename Staves`R`Rename Staves^Widen Staff Space`W`Widen Staff Space^|",
+    json = "[{\"sub\":[{\"name\":\"Hairpin Crescendo\",\"key\":\"Z\",\"script\":\"Hairpin Create Crescendo\"},{\"name\":\"Hairpin Diminuendo\",\"key\":\"X\",\"script\":\"Hairpin Create Diminuendo\"},{\"name\":\"Hairpin Swell\",\"key\":\"C\",\"script\":\"Hairpin Create Swell\"},{\"name\":\"Hairpin Unswell\",\"key\":\"V\",\"script\":\"Hairpin Create Unswell\"},{\"name\":\"Harp gliss\",\"key\":\"H\",\"script\":\"Harp gliss\"},{\"name\":\"Slur Selection\",\"key\":\"S\",\"script\":\"Slur Selection\"},{\"name\":\"Swap Staves\",\"key\":\"P\",\"script\":\"Swap Staves\"}],\"last\":1,\"name\":\"Automations\",\"key\":\"A\"},{\"sub\":[{\"name\":\"Chords - Delete Bottom Note\",\"key\":\"5\",\"script\":\"Chord Line - Delete Bottom Note\"},{\"name\":\"Chords - Delete Top Note\",\"key\":\"6\",\"script\":\"Chord Line - Delete Top Note\"},{\"name\":\"Chords - Keep Bottom Note\",\"key\":\"8\",\"script\":\"Chord Line - Keep Bottom Note\"},{\"name\":\"Chords - Keep Top Note\",\"key\":\"9\",\"script\":\"Chord Line - Keep Top Note\"},{\"name\":\"CrossStaff Offset\",\"key\":\"1\",\"script\":\"CrossStaff Offset...\"},{\"name\":\"Cue notes mute\",\"key\":\"M\",\"script\":\"Cue notes mute\"},{\"name\":\"Gracenote Slash\",\"key\":\"/\",\"script\":\"Gracenote Slash\"},{\"name\":\"Gracenote Slash Config\",\"key\":\".\",\"script\":\"Gracenote Slash Configuration...\"},{\"name\":\"Note Ends Eighths\",\"key\":\"E\",\"script\":\"Note Ends Eighths\"},{\"name\":\"Note Ends Quarters\",\"key\":\"Q\",\"script\":\"Note Ends Quarters\"},{\"name\":\"Noteheads Change\",\"key\":\"A\",\"script\":\"Noteheads Change by Layer...\"},{\"name\":\"Rest Offsets\",\"key\":\"4\",\"script\":\"Rest Offsets\"},{\"name\":\"Rotate Chord Down\",\"key\":\"2\",\"script\":\"Rotate Chord Down\"},{\"name\":\"Rotate Chord Up\",\"key\":\"3\",\"script\":\"Rotate Chord Up\"},{\"name\":\"Secondary Beams Break\",\"key\":\"B\",\"script\":\"Break Secondary Beams\"},{\"name\":\"Secondary Beams Clear\",\"key\":\"J\",\"script\":\"Clear Secondary Beam Breaks\"},{\"name\":\"Tie Notes\",\"key\":\"T\",\"script\":\"Tie Notes\"},{\"name\":\"Ties Remove\",\"key\":\"G\",\"script\":\"Untie Notes\"},{\"name\":\"Ties: Remove Dangling\",\"key\":\"K\",\"script\":\"Ties: Remove Dangling\"}],\"last\":\"1\",\"name\":\"Chords & Notes\",\"key\":\"C\"},{\"sub\":[{\"name\":\"Cluster - Determinate\",\"key\":\"D\",\"script\":\"Cluster - Determinate\"},{\"name\":\"Cluster - Indeterminate\",\"key\":\"I\",\"script\":\"Cluster - Indeterminate\"},{\"name\":\"Deletion Chooser...\",\"key\":\"X\",\"script\":\"Deletion Chooser...\"},{\"name\":\"Expression Add Opaque Background\",\"key\":\"O\",\"script\":\"Expression Add Opaque Background\"},{\"name\":\"Expression Set To Parts Only\",\"key\":\"P\",\"script\":\"Expression Set To Parts Only\"},{\"name\":\"Expression Set To Score and Parts\",\"key\":\"B\",\"script\":\"Expression Set To Score and Parts\"},{\"name\":\"Swap Staves\",\"key\":\"S\",\"script\":\"Swap Staves\"},{\"name\":\"Tempo From Beginning\",\"key\":\"A\",\"script\":\"Tempo From Beginning\"},{\"name\":\"Tuplet State Chooser...\",\"key\":\"T\",\"script\":\"Tuplet State Chooser...\"}],\"last\":1,\"name\":\"Expressions & misc.\",\"key\":\"E\"},{\"sub\":[{\"name\":\"Double Octave Down\",\"key\":\"8\",\"script\":\"Double Octave Down\"},{\"name\":\"Double Octave Up\",\"key\":\"9\",\"script\":\"Double Octave Up\"},{\"name\":\"Double Third Down\",\"key\":\"2\",\"script\":\"Double Third Down\"},{\"name\":\"Double Third Up\",\"key\":\"3\",\"script\":\"Double Third Up\"},{\"name\":\"Enharmonic Transpose Down\",\"key\":\"5\",\"script\":\"Enharmonic Transpose Down\"},{\"name\":\"Enharmonic Transpose Up\",\"key\":\"6\",\"script\":\"Enharmonic Transpose Up\"},{\"name\":\"Explode Layers\",\"key\":\"S\",\"script\":\"Staff Explode Layers\"},{\"name\":\"Explode Pairs\",\"key\":\"W\",\"script\":\"Staff Explode Pairs\"},{\"name\":\"Explode Pairs (Up)\",\"key\":\"D\",\"script\":\"Staff Explode Pairs (Up)\"},{\"name\":\"Explode Singles\",\"key\":\"Q\",\"script\":\"Staff Explode Singles\"},{\"name\":\"Explode Split Pairs\",\"key\":\"E\",\"script\":\"Staff Explode Split Pairs\"},{\"name\":\"String Harmonics 4th - Sounding Pitch\",\"key\":\"F\",\"script\":\"String Harmonics 4th - Sounding Pitch\"},{\"name\":\"Transpose By Steps...\",\"key\":\"B\",\"script\":\"Transpose By Steps...\"},{\"name\":\"Transpose Chromatic...\",\"key\":\"C\",\"script\":\"Transpose Chromatic...\"}],\"last\":\"1\",\"name\":\"Intervals\",\"key\":\"W\"},{\"sub\":[{\"name\":\"Clear Layer Selective\",\"key\":\"3\",\"script\":\"Clear Layer Selective\"},{\"name\":\"Layer Hide\",\"key\":\"8\",\"script\":\"Layer Hide\"},{\"name\":\"Layer Mute\",\"key\":\"5\",\"script\":\"Layer Mute\"},{\"name\":\"Layer Unhide\",\"key\":\"9\",\"script\":\"Layer Unhide\"},{\"name\":\"Layer Unmute\",\"key\":\"6\",\"script\":\"Layer Unmute\"},{\"name\":\"MIDI Note Duration...\",\"key\":\"D\",\"script\":\"MIDI Note Duration...\"},{\"name\":\"MIDI Note Values...\",\"key\":\"W\",\"script\":\"MIDI Note Values...\"},{\"name\":\"MIDI Note Velocity...\",\"key\":\"V\",\"script\":\"MIDI Note Velocity...\"},{\"name\":\"Swap Layers 1-2\",\"key\":\"1\",\"script\":\"Swap Layers 1-2\"},{\"name\":\"Swap Layers Selective\",\"key\":\"2\",\"script\":\"Swap Layers Selective\"}],\"last\":\"1\",\"name\":\"Layers etc.\",\"key\":\"Q\"},{\"sub\":[{\"name\":\"Barline Dashed\",\"key\":\"A\",\"script\":\"Barline Set Dashed\"},{\"name\":\"Barline Double\",\"key\":\"D\",\"script\":\"Barline Set Double\"},{\"name\":\"Barline Final\",\"key\":\"E\",\"script\":\"Barline Set Final\"},{\"name\":\"Barline None\",\"key\":\"0\",\"script\":\"Barline Set None\"},{\"name\":\"Barline Normal\",\"key\":\"N\",\"script\":\"Barline Set Normal\"},{\"name\":\"Cue Notes Create...\",\"key\":\"Q\",\"script\":\"Cue Notes Create...\"},{\"name\":\"Cue Notes Flip Frozen\",\"key\":\"Z\",\"script\":\"Cue Notes Flip Frozen\"},{\"name\":\"Measure Span Divide\",\"key\":\"H\",\"script\":\"Measure Span Divide\"},{\"name\":\"Measure Span Join\",\"key\":\"J\",\"script\":\"Measure Span Join\"},{\"name\":\"Measure Span Options...\",\"key\":\"B\",\"script\":\"Measure Span Options...\"},{\"name\":\"Meter Set Numeric\",\"key\":\"9\",\"script\":\"Meter Set Numeric\"},{\"name\":\"Rename Staves\",\"key\":\"R\",\"script\":\"Rename Staves\"},{\"name\":\"Widen Staff Spaces\",\"key\":\"W\",\"script\":\"Widen Staff Space\"}],\"last\":1,\"name\":\"Measure Items\",\"key\":\"B\"}]",
     last_palette = 1,
     ignore_duplicates = 0,
     window_pos_x = false,
@@ -56,12 +55,13 @@ local config = { -- this is a DEMO fully-equipped data set. Not all of these scr
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
+local cjson = require("lunajson.lunajson")
 local script_array = {} -- assemble all script items from the RGPLua menu
 local script_name = "hotkey_script_palettes"
 
-local palettes = { -- config values decoded into nested tables
+local palettes = {}
 --[[ ordered set of "main" palettes encapsulating sub-palettes
-    {   name = "Macro Palette 1",
+{   {   name = "Macro Palette 1",
         key = "A",
         last = 1, -- item number of last script in this palette
         sub =
@@ -78,8 +78,8 @@ local palettes = { -- config values decoded into nested tables
             {   name = "script 2B", key = "B", script = "script_name_2B" },
              ... etc
         }
-    }, etc etc... -- ]]
-}
+    }, etc etc...
+} -- ]]
 
 function clean_text(input) -- remove reserved "divider" characters from text values
     return string.gsub(input, "[`|^]", "")
@@ -91,45 +91,13 @@ function clean_key(input) -- return one clean uppercase character
     return key
 end
 
-function split_string(source, char)
-    local values = {}
-    for split in string.gmatch(source, "([^" .. char .. "]+)") do
-        table.insert(values, split)
-    end
-    return values
-end
-
-function split_name_key_from_config(coded_string, is_palette)
-    local output = {}
-    local key_name = split_string(coded_string, "^")
-    for i, v in ipairs(key_name) do
-        local split = split_string(v, "`")
-        output[i] = is_palette and
-            { name = split[1], key = split[2], last = split[3] or 1, sub = {} }
-        or  { name = split[1], key = split[2], script = split[3] }
-    end
-    return output
-end
-
 function decode_config_to_palettes()
-    palettes = split_name_key_from_config(config.main, true)
-    local sub_codes = split_string(config.sub, "|")
-    for i, v in ipairs(palettes) do
-        v.sub = split_name_key_from_config(sub_codes[i], false)
-    end
+    local str = string.gsub(config.json, "\\", "")
+    palettes = cjson.decode(str)
 end
 
-function save_palettes_to_config()
-    local main, sub = "", ""
-    for _, v in ipairs(palettes) do
-        main = main .. v.name .. "`" .. v.key .. "`" .. v.last .. "^"
-        for _, w in ipairs(v.sub) do
-            sub = sub .. w.name .. "`" .. w.key .. "`" .. w.script .. "^"
-        end
-        sub = sub .. "|"
-    end
-    config.main = main
-    config.sub = sub
+function encode_palettes_to_config()
+    config.json = string.gsub(cjson.encode(palettes), "\"", "\\\"")
     configuration.save_user_settings(script_name, config)
 end
 
@@ -382,7 +350,7 @@ function configure_palette(palette_number, index_num)
         configuration.get_user_settings(script_name, config)
         decode_config_to_palettes()
     end)
-    dialog:RegisterHandleOkButtonPressed(function() save_palettes_to_config() end)
+    dialog:RegisterHandleOkButtonPressed(function() encode_palettes_to_config() end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
@@ -408,6 +376,7 @@ function choose_palette(palette_number)
     y = y + y_step + 5
     local item_list = dialog:CreateListBox(0, y):SetWidth(box_wide):SetHeight(box_high)
     fill_list_box(item_list, array, selected)
+    item_list:SetKeyboardFocus()
 
     local x_off = box_wide / 4
     y = y + box_high + 8
@@ -431,7 +400,7 @@ function choose_palette(palette_number)
         else
             palettes[palette_number].last = i
         end
-        save_palettes_to_config()
+        encode_palettes_to_config()
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
