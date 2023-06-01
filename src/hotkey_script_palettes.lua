@@ -461,6 +461,7 @@ function main()
             else
                 finenv.ExecuteLuaScriptItem(script_array[script])
             end
+            finenv.UI():ActivateDocumentWindow()
         end -- "finished" will exit now
     end
 end
