@@ -40,7 +40,7 @@ function plugindef()
     finaleplugin.Version = "0.30"
     finaleplugin.Date = "2023/06/02"
     finaleplugin.CategoryTags = "Menu, Utilities"
-    finaleplugin.MinJWLuaVersion = 0.64
+    finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = info
     return "Hotkey Script Palettes...", "Hotkey Script Palettes", "Trigger RGP Lua scripts by keystroke through a configurable set of dialog windows"
 end
