@@ -199,12 +199,12 @@ function staff_rename()
         end
         --
         function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)
-            str.LuaString = text
+            str.LuaString = tostring(text)
             local ctrl = ""
             if ctrl_type == "button" then
                 ctrl = dialog:CreateButton(x, y + 2)
             elseif ctrl_type == "popup" then
-                ctrl = dialog:CreatePopup(x, y)
+                ctrl = dialog:CreatePopup(tonumber(x) or 0, tonumber(y) or 0)
             elseif ctrl_type == "checkbox" then
                 ctrl = dialog:CreateCheckbox(x, y)
             elseif ctrl_type == "edit" then
