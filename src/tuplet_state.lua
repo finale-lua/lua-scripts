@@ -172,6 +172,8 @@ function user_chooses()
         key_list:SetSelectedItem(config.last_selected or 0)
     end
     fill_key_list()
+    key_list:SetKeyboardFocus()
+
     local y_off = box_wide / 4
     box_high = box_high + 30
     local reassign = dialog:CreateButton(y_off, box_high)
