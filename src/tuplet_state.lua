@@ -180,7 +180,7 @@ function user_chooses()
         :SetText("Reassign Keys"):SetWidth(y_off * 2) -- half box width
     reassign:AddHandleCommand(function()
         local ok, is_duplicate = true, true
-        while is_duplicate do -- wait for valid choices in reassign_keystrokes()
+        while ok and is_duplicate do -- wait for valid choices in reassign_keystrokes()
             ok, is_duplicate = reassign_keystrokes()
         end
         if ok then
