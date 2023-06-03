@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.57"
-    finaleplugin.Date = "2023/06/01"
+    finaleplugin.Version = "v0.58"
+    finaleplugin.Date = "2023/06/04"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         Change the state of tuplets in the current selection to:
@@ -166,8 +166,9 @@ function user_chooses()
     local key_list = dialog:CreateListBox(0, 20):SetWidth(box_wide):SetHeight(box_high)
     local function fill_key_list()
         key_list:Clear()
-        for _, v in ipairs(dialog_options) do -- add all options with keycodes
-            key_list:AddString(config[v[1]] .. "\t" .. v[2])
+        local join = finenv.UI():IsOnMac() and "\t" or ": "
+        for _, option in ipairs(dialog_options) do -- add all options with keycodes
+            key_list:AddString(config[option[1]] .. join .. option[2])
         end
         key_list:SetSelectedItem(config.last_selected or 0)
     end
