@@ -20,15 +20,15 @@ but it does remember the last selection in each category and can be set up
 within the program without external software or tricky configuration files.
 
 The script comes loaded with a full set of "demo" palettes containing many of the 
-scripts available at [https://FinaleLua.com]. 
+scripts available from [https://FinaleLua.com]. 
 If a script isn't installed on your system you will get an "unidentified" warning on execution. 
 Either delete the palette item or assign a different script in its place. 
 Reconfigure each of the "Main" palettes, change their name or hotkey, delete them or add new ones.
 
 Unlike Keyboard Maestro this script can only trigger Lua scripts added to the "RGP Lua" menu. 
 Other inbuilt Finale menus need a different mechanism. 
-Note that these three characters are reserved and can't be used in hotkey codes 
-or names of palettes and scripts:
+Note that the following three characters are reserved and can't be used in hotkey codes 
+or the names of palettes and scripts:
 `    ^    |
 ]]
 
@@ -37,8 +37,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.30"
-    finaleplugin.Date = "2023/06/02"
+    finaleplugin.Version = "0.32"
+    finaleplugin.Date = "2023/06/04"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = info
@@ -61,10 +61,11 @@ local script_name = "hotkey_script_palettes"
 
 local palettes = {}
 --[[ ordered set of "main" palettes encapsulating sub-palettes
+-- these are decoded from config.json in the main() routine at the bottom
 {   {   name = "Macro Palette 1",
         key = "A",
-        last = 1, -- item number of last script in this palette
-        sub =
+        last = 1, -- number of last script chosen from this palette
+        sub = -- { name displayed / hotkey / "real" scriptname returned by finenv.CreateLuaScriptItems()
         {   {   name = "script 1A", key = "A", script = "script_name_1A" },
             {   name = "script 1B", key = "B", script = "script_name_1B" },
              ... etc
@@ -72,7 +73,7 @@ local palettes = {}
     },
     {   name = "Macro Palette 2"
         key = "B",
-        last = 1, -- item number of last script chosen within this palette
+        last = 1,
         sub =
         {   {   name = "script 2A", key = "A", script = "script_name_2A" },
             {   name = "script 2B", key = "B", script = "script_name_2B" },
@@ -89,15 +90,6 @@ function clean_key(input) -- return one clean uppercase character
     local key = string.upper(string.sub(clean_text(input), 1, 1))
     if key == "" then key = "?" end -- no NULL key codes
     return key
-end
-
-function decode_config_to_palettes()
-    palettes = cjson.decode(config.json)
-end
-
-function encode_palettes_to_config()
-    config.json = cjson.encode(palettes)
-    configuration.save_user_settings(script_name, config)
 end
 
 function sort_table(array)
@@ -347,9 +339,12 @@ function configure_palette(palette_number, index_num)
     dialog_set_position(dialog)
     dialog:RegisterHandleCancelButtonPressed(function()
         configuration.get_user_settings(script_name, config)
-        decode_config_to_palettes()
+        palettes = cjson.decode(config.json)
     end)
-    dialog:RegisterHandleOkButtonPressed(function() encode_palettes_to_config() end)
+    dialog:RegisterHandleOkButtonPressed(function()
+        config.json = cjson.encode(palettes)
+        configuration.save_user_settings(script_name, config)
+    end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
@@ -399,7 +394,8 @@ function choose_palette(palette_number)
         else
             palettes[palette_number].last = i
         end
-        encode_palettes_to_config()
+        config.json = cjson.encode(palettes)
+        configuration.save_user_settings(script_name, config)
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
@@ -413,14 +409,16 @@ function main()
         script_array[script:GetMenuItemText()] = script
     end
     configuration.get_user_settings(script_name, config, true)
-    decode_config_to_palettes()
+    palettes = cjson.decode(config.json)
     local ok, finished = false, false
     local palette_number, item_number = 1, 1
 
     while not finished do -- keep circling until user makes a choice or cancels
         ok, palette_number = choose_palette(0) -- main palette
-        if not ok then return end -- user cancelled
-
+        if not ok then  -- user cancelled
+            finenv.UI():ActivateDocumentWindow()
+            return
+        end
         finished, item_number = choose_palette(palette_number) -- script palette
         if finished then -- successful choice
             local script = palettes[palette_number].sub[item_number].script or "unknown"
@@ -429,8 +427,8 @@ function main()
             else
                 finenv.ExecuteLuaScriptItem(script_array[script])
             end
-            finenv.UI():ActivateDocumentWindow()
         end -- "finished" will exit now
+        finenv.UI():ActivateDocumentWindow()
     end
 end
 
