@@ -8,28 +8,25 @@ demonstrated expertly by Nick Mazuk at [https://www.youtube.com/@nickmazuk].
 Group script types into primary categories like "Intervals", "Layers", 
 "Notes & Chords", "Measure Items" and so on, presented as "palettes" (dialog windows). 
 These primary palettes are triggered by single keystrokes which each evoke a second 
-palette containg related scripts, also triggered by keystroke. 
+palette containg a bunch of related scripts, also triggered by keystroke. 
 Reach hundreds of scripts in your collection using 
 two keystrokes with the key codes presented as a visual reminder. 
 Actions you repeat often link to muscle memory and become easier to recall.
 
 Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac to achieve this, 
-but the principle is available for free in Finale with RGP Lua. 
+but the principle is available for free using RGP Lua in Finale. 
 It doesn't provide access to every single menu item nor interact with them like KM can, 
 but it does remember the last selection in each category and can be set up 
-within the program without external software or tricky configuration files.
+within Finale without external software or picky configuration files.
 
 The script comes loaded with a full set of "demo" palettes containing many of the 
 scripts available from [https://FinaleLua.com]. 
 If a script isn't installed on your system you will get an "unidentified" warning on execution. 
-Either delete the palette item or assign a different script in its place. 
+Either delete that script item or assign a different script in its place. 
 Reconfigure each of the "Main" palettes, change their name or hotkey, delete them or add new ones.
 
 Unlike Keyboard Maestro this script can only trigger Lua scripts added to the "RGP Lua" menu. 
 Other inbuilt Finale menus need a different mechanism. 
-Note that the following three characters are reserved and can't be used in hotkey codes 
-or the names of palettes and scripts:
-`    ^    |
 ]]
 
 function plugindef()
@@ -37,7 +34,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.32"
+    finaleplugin.Version = "0.33"
     finaleplugin.Date = "2023/06/04"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.67
@@ -82,13 +79,9 @@ local palettes = {}
     }, etc etc...
 } -- ]]
 
-function clean_text(input) -- remove reserved "divider" characters from text values
-    return string.gsub(input, "[`|^]", "")
-end
-
 function clean_key(input) -- return one clean uppercase character
-    local key = string.upper(string.sub(clean_text(input), 1, 1))
-    if key == "" then key = "?" end -- no NULL key codes
+    local key = string.upper(string.sub(input, 1, 1))
+    if key == "" then key = "?" end -- non-NULL hotkey
     return key
 end
 
@@ -187,7 +180,7 @@ function user_enters_text(index, title, header)
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-    return ok, clean_text(answer:GetText()), clean_key(key_edit:GetText())
+    return ok, answer:GetText(), clean_key(key_edit:GetText())
 end
 
 function user_chooses_script(index, palette_number, instruction)
@@ -233,7 +226,7 @@ function user_chooses_script(index, palette_number, instruction)
     dialog_set_position(dialog)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
     local menu_name = script_names[menu:GetSelectedItem() + 1]
-    return ok, clean_text(list_name:GetText()), clean_text(menu_name), clean_key(key_edit:GetText())
+    return ok, list_name:GetText(), menu_name, clean_key(key_edit:GetText())
 end
 
 function fill_list_box(menu, array, selected)
