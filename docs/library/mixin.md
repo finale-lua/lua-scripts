@@ -56,7 +56,6 @@ Regardless of which approach is used, the following principles apply:
 - Methods or properties beginning with `Mixin` are reserved for internal use and cannot be set.
 - The constructor cannot be overridden or changed in any way.
 
-
 ## `FCM` and `FCX` Mixins & Class Hierarchy
 
 ### `FCM` Mixins
@@ -103,10 +102,8 @@ The `mixin` library adds several read-only properties to mixin-enabled Finale ob
 - **`Init`** *`[?function]`* - *Optional.* The mixin's `Init` meta-method or `nil` if it doesn't have one. As this is intended to be called internally, it is only available statically via the `mixin` namespace.
 - **`MixinReady`** *`[true]`* - *Internal.* A flag for determining which `FC` classes have had their metatatables modified.
 
-
 ## Automatic Mixin Enabling
 All `FC` objects that are returned from mixin methods are automatically upgraded to a mixin-enabled `FCM` object. This includes objects returned from methods inherited from the underlying `FC` object.
-
 
 ## Accessing Mixin Methods Statically
 All methods from `FCM` and `FCX` mixins can be accessed statically through the `mixin` namespace.
@@ -123,7 +120,6 @@ mixin.FCXString.PrintString(str, "goodbye world")
 -- Accessing a static method
 mixin.FCXString.PrintHelloWorld()
 ```
-
 
 ## Fluid Interface (aka Method Chaining)
 Any method on a mixin-enabled Finale object that returns zero values (returning `nil` still counts as a value) will have a fluid interface automatically applied by the library. This means that instead of returning nothing, the method will return `self`.
@@ -223,7 +219,6 @@ Points to remember when creating `FCX` mixins:
 - The name of an `FCX` mixin must be in Pascal case (just like the `FC` classes), beginning with `FCX`. For example `FCXMyCustomDialog`, `FCXCtrlMeasurementEdit`, `FCXCtrlPageSizePopup`, etc
 - The parent class must be declared, which can be either an `FCM` or `FCX` class. If it is an `FCM` class, it must be a concrete class (ie one that can be instantiated, like `FCMCtrlEdit`) and not an abstract parent class (ie not `FCMControl`).
 
-
 Below is a template for creating an `FCX` mixin. It is almost identical to defining an `FCM` mixin but there are a couple of important differences.
 ```lua
 -- Include the mixin namespace and helper methods (include any additional libraries below)
@@ -256,7 +251,6 @@ end
 function public:IncrementCounter()
     private[self].Counter = private[self].Counter + 1
 end
-
 
 -- Example public static method (use a dot)
 function public.GetHighestCounter()
@@ -299,9 +293,7 @@ mixin.is_fc_class_name(class_name)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L940)
 
-
 Checks if a class name is an `FC` class name.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -319,9 +311,7 @@ mixin.is_fcm_class_name(class_name)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L950)
 
-
 Checks if a class name is an `FCM` class name.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -339,9 +329,7 @@ mixin.is_fcx_class_name(class_name)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L960)
 
-
 Checks if a class name is an `FCX` class name.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -359,9 +347,7 @@ mixin.fc_to_fcm_class_name(class_name)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L970)
 
-
 Converts an `FC` class name to an `FCM` class name.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -379,9 +365,7 @@ mixin.fcm_to_fc_class_name(class_name)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L980)
 
-
 Converts an `FCM` class name to an `FC` class name.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -399,12 +383,10 @@ mixin.subclass(object, class_name)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L994)
 
-
 Takes a mixin-enabled finale object and migrates it to an `FCX` subclass. Any conflicting property or method names will be overwritten.
 
 If the object is not mixin-enabled or the current `MixinClass` is not a parent of `class_name`, then an error will be thrown.
 If the current `MixinClass` is the same as `class_name`, this function will do nothing.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -423,9 +405,7 @@ mixin.UI()
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L1003)
 
-
 Returns a mixin enabled UI object from `finenv.UI`
-
 
 | Return type | Description |
 | ----------- | ----------- |
@@ -439,9 +419,7 @@ mixin.eachentry(region, layer)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L1016)
 
-
 A modified version of the JW/RGPLua `eachentry` function that allows items to be stored and used outside of a loop.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |

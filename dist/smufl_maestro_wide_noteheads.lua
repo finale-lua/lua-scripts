@@ -679,12 +679,11 @@ function plugindef()
     finaleplugin.Date = "7/24/2022"
     finaleplugin.Notes = [[
 Replaces the noteheads in a 'Finale Maestro' document with the 'Maestro Wide' glyphs included in the Alternates & Extras category.
-    ]]    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/smufl_maestro_wide_noteheads.hash"
+    ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/smufl_maestro_wide_noteheads.hash"
     return "Finale Maestro: Wide Notes", "Finale Maestro: Wide Notes", "Replaces noteheads in Finale Maestro with the wide variation."
 end
-
 local library = require("library.general_library")
-
 function maestro_wide_noteheads()
     local default_music_font = library.get_default_music_font_name()
     if default_music_font == "Finale Maestro" or default_music_font == "FinaleMaestro" then
@@ -697,5 +696,4 @@ function maestro_wide_noteheads()
         musiccharacterprefs:Save()
     end
 end
-
 maestro_wide_noteheads()

@@ -99,9 +99,7 @@ end
 package.preload["library.clef"] = package.preload["library.clef"] or function()
 
     local clef = {}
-
     local client = require("library.client")
-
     local clef_map = {
         treble = 0,
         alto = 1,
@@ -128,16 +126,12 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
         tab_serif = 17
     }
 
-
-
     function clef.get_cell_clef(measure, staff_number)
         local cell_clef = -1
         local cell = finale.FCCell(measure, staff_number)
         local cell_frame_hold = finale.FCCellFrameHold()
-
         cell_frame_hold:ConnectCell(cell)
         if cell_frame_hold:Load() then
-
             if cell_frame_hold.IsClefList then
                 cell_clef = cell_frame_hold:CreateFirstCellClefChange().ClefIndex
             else
@@ -146,7 +140,6 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
         end
         return cell_clef
     end
-
 
     function clef.get_default_clef(first_measure, last_measure, staff_number)
         local staff = finale.FCStaff()
@@ -160,10 +153,8 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
         return cell_clef
     end
 
-
     function clef.set_measure_clef(first_measure, last_measure, staff_number, clef_index)
         client.assert_supports("clef_change")
-
         for measure = first_measure, last_measure do
             local cell = finale.FCCell(measure, staff_number)
             local cell_frame_hold = finale.FCCellFrameHold()
@@ -182,17 +173,12 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
         end
     end
 
-
     function clef.restore_default_clef(first_measure, last_measure, staff_number)
         client.assert_supports("clef_change")
-
         local default_clef = clef.get_default_clef(first_measure, last_measure, staff_number)
-
         clef.set_measure_clef(first_measure, last_measure, staff_number, default_clef)
 
-
     end
-
 
     function clef.process_clefs(mid_clefs)
         local clefs = {}
@@ -201,12 +187,10 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
             table.insert(clefs, mid_clef)
         end
         table.sort(clefs, function (k1, k2) return k1.MeasurePos < k2.MeasurePos end)
-
         for k, mid_clef in ipairs(clefs) do
             new_mid_clefs:InsertCellClefChange(mid_clef)
             new_mid_clefs:SaveAllAsNew()
         end
-
 
         for i = new_mid_clefs.Count - 1, 1, -1 do
             local later_clef_change = new_mid_clefs:GetItemAt(i)
@@ -222,17 +206,14 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
             end
             ::continue::
         end
-
         return new_mid_clefs
     end
-
 
     function clef.clef_change(clef_type, region)
         local clef_index = clef_map[clef_type]
         local cell_frame_hold = finale.FCCellFrameHold()
         local last_clef
         local last_staff = -1
-
         for cell_measure, cell_staff in eachcell(region) do
             local cell = finale.FCCell(region.EndMeasure, cell_staff)
             if cell_staff ~= last_staff then
@@ -243,7 +224,6 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
             cell_frame_hold:ConnectCell(cell)
             if cell_frame_hold:Load() then
             end
-
             if  region:IsFullMeasureIncluded(cell_measure) then
                 clef.set_measure_clef(cell_measure, cell_measure, cell_staff, clef_index)
                 if not region:IsLastEndMeasure() then
@@ -257,13 +237,10 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
                         cell_frame_hold:SaveNew()
                     end
                 end
-
-
             else
                 local mid_measure_clefs = cell_frame_hold:CreateCellClefChanges()
                 local new_mid_measure_clefs = finale.FCCellClefChanges()
                 local mid_measure_clef = finale.FCCellClefChange()
-
                 if not mid_measure_clefs then
                     mid_measure_clefs = finale.FCCellClefChanges()
                     mid_measure_clef:SetClefIndex(cell_frame_hold.ClefIndex)
@@ -272,7 +249,6 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
                     mid_measure_clefs:InsertCellClefChange(mid_measure_clef)
                     mid_measure_clefs:SaveAllAsNew()
                 end
-
                 if cell_frame_hold.Measure == region.StartMeasure and region.StartMeasure ~= region.EndMeasure then
 
                     for mid_clef in each(mid_measure_clefs) do
@@ -288,9 +264,7 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
                     new_mid_measure_clefs:InsertCellClefChange(mid_measure_clef)
                     new_mid_measure_clefs:SaveAllAsNew()
                 end
-
                 if cell_frame_hold.Measure == region.EndMeasure and region.StartMeasure ~= region.EndMeasure then
-
 
                     for mid_clef in each(mid_measure_clefs) do
                         if mid_clef.MeasurePos == 0 then
@@ -304,17 +278,14 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
                         end
                     end
 
-
                     mid_measure_clef:SetClefIndex(last_clef)
                     mid_measure_clef:SetMeasurePos(region.EndMeasurePos)
                     mid_measure_clef:Save()
                     new_mid_measure_clefs:InsertCellClefChange(mid_measure_clef)
                     new_mid_measure_clefs:SaveAllAsNew()
                 end
-
                 if cell_frame_hold.Measure == region.StartMeasure and region.StartMeasure == region.EndMeasure then
                     local last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)
-
                     for mid_clef in each(mid_measure_clefs) do
                         if mid_clef.MeasurePos == 0 then
                             if region.StartMeasurePos == 0 then
@@ -355,7 +326,6 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
             end
         end
     end
-
     return clef
 end
 function plugindef()
@@ -366,7 +336,6 @@ function plugindef()
     finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "2022-08-30"
     finaleplugin.RequireSelection = true
-
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.AdditionalMenuOptions = [[
     Clef 2: Bass
@@ -395,14 +364,12 @@ function plugindef()
     clef_type = "tenor"
     clef_type = "tenor_voice"
     clef_type = "percussion"
-    ]]    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/clef_change.hash"
+    ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/clef_change.hash"
     return "Clef 1: Treble", "Clef 1: Treble", "Changes the selected region to treble clef"
 end
-
 clef_type = clef_type or "treble"
-
 local clef = require("library.clef")
-
 local region = finenv.Region()
 region:SetCurrentSelection()
 clef.clef_change(clef_type, region)

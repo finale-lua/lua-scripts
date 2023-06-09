@@ -304,23 +304,17 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.Notes = [[
 USING THE 'STAFF RENAME' SCRIPT
-
 This script creates a dialog containing the full and abbreviated names of all selected instruments, including multi-staff instruments such as organ or piano. This allows for quick renaming of staves, with far less mouse clicking than trying to rename them from the Score Manager.
-
 If there is no selection, all staves will be loaded.
-
 There are buttons for each instrument that will copy the full name into the abbreviated name field.
-
 There is a popup at the bottom of the list that will automatically set all transposing instruments to show either the instrument and then the transposition (e.g. "Clarinet in Bb"), or the transposition and then the instrument (e.g. "Bb Clarinet").
-
 Speaking of the Bb Clarinet... Accidentals are displayed with square brackets, so the dialog will show "B[b] Clarinet". This is then converted into symbols using the appropriate Enigma tags. All other font info is retained.
-]]    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_rename.hash"
+]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_rename.hash"
     return "Rename Staves", "Rename Staves", "Renames selected staves"
 end
-
 local utils = require("library.utils")
 local configuration = require("library.configuration")
-
 function staff_rename()
     local script_name = "rename_staves"
     local config = {use_doc_fonts = 1}
@@ -363,7 +357,6 @@ function staff_rename()
 
     local form_0_names = {"Clarinet in B[b]", "Clarinet in A", "Clarinet in E[b]","Horn in F", "Trumpet in B[b]", "Trumpet in C", "Horn in E[b]", "Piccolo Trumpet in A", "Trumpet in D", "Cornet in E[b]", "Pennywhistle in D", "Pennywhistle in G", "Tin Whistle in B[b]", "Melody Sax in C"}
     local form_1_names = {"B[b] Clarinet", "A Clarinet", "E[b] Clarinet", "F Horn", "B[b] Trumpet", "C Trumpet", "E[b] Horn", "A Piccolo Trumpet", "D Trumpet", "E[b] Cornet", "D Pennywhistle", "G Pennywhistle", "B[b] Tin Whistle", "C Melody Sax"}
-
     function enigma_to_accidental(str)
         str.LuaString = string.gsub(str.LuaString, "%^flat%(%)", "[b]")
         str.LuaString = string.gsub(str.LuaString, "%^natural%(%)", "[n]")
@@ -371,14 +364,12 @@ function staff_rename()
         str:TrimEnigmaTags()
         return str
     end
-
     function accidental_to_enigma(s)
         s.LuaString = string.gsub(s.LuaString, "%[b%]", "^flat()")
         s.LuaString = string.gsub(s.LuaString, "%[n%]", "^natural()")
         s.LuaString = string.gsub(s.LuaString, "%[%#%]", "^sharp()")
         return s
     end
-
     for inst in each(multi_inst) do
         table.insert(multi_inst_grp, inst.GroupID)
         local grp = finale.FCGroup()
@@ -386,7 +377,6 @@ function staff_rename()
         local str = grp:CreateFullNameString()
         local font = str:CreateLastFontInfo()
         enigma_to_accidental(str)
-
         table.insert(multi_fullnames, str.LuaString)
         local font_enigma = finale.FCString()
         font_enigma = font:CreateEnigmaString(nil)
@@ -410,7 +400,6 @@ function staff_rename()
         table.insert(multi_staves, multi_staff)
         multi_staff = {}
     end
-
     local sysstaves = finale.FCSystemStaves()
     local region = finale.FCMusicRegion()
     region = finenv.Region()
@@ -418,11 +407,9 @@ function staff_rename()
         region:SetFullDocument()
     end
     sysstaves:LoadAllForRegion(region)
-
     for sysstaff in each(sysstaves) do
 
         for i,j in pairs(multi_staves) do
-
             for k,l in pairs(multi_staves[i]) do
                 if multi_staves[i][k] == sysstaff.Staff and multi_staves[i][k] ~= 0 then
                     local staff = finale.FCStaff()
@@ -450,7 +437,6 @@ function staff_rename()
             end
         end
 
-
         local staff = finale.FCStaff()
         staff:Load(sysstaff.Staff)
         local str = staff:CreateFullNameString()
@@ -472,7 +458,6 @@ function staff_rename()
         table.insert(autonumber_style, staff.AutoNumberingStyle)
         ::done::
     end
-
     function dialog(title)
         local row_h = 20
         local row_count = 1
@@ -524,7 +509,6 @@ function staff_rename()
             ctrl:SetText(str)
             return ctrl
         end
-
         local autonumber_style_list = {"Instrument 1, 2, 3", "Instrument I, II, II", "1st, 2nd, 3rd Instrument",
             "Instrument A, B, C", "1., 2., 3. Instrument"}
         local auto_x_width = 40
@@ -576,10 +560,8 @@ function staff_rename()
             str.LuaString = forms[i]
             form_select:AddString(str)
         end
-
         local doc_fonts_check = add_ctrl(dialog, "checkbox", "Use Document Fonts", col[2], row[row_count + 3], row_h, col_w, 0, 0)
         doc_fonts_check:SetCheck(config.use_doc_fonts)
-
         local hardcode_autonumber_btn = add_ctrl(dialog, "button", "Hardcode Autonumbers", col[3] + auto_x_width, row[row_count + 3], row_h, col_w, 0, 0)
 
         dialog:CreateOkButton()
@@ -640,7 +622,6 @@ function staff_rename()
             end
         end
 
-
         function callback(ctrl)
             if ctrl:GetControlID() == form_select:GetControlID() then
                 local form = form_select:GetSelectedItem()
@@ -653,13 +634,11 @@ function staff_rename()
                     search = form_0_names
                     replace = form_1_names
                 end
-
                 for a,b in pairs(search) do
                     search[a] = string.gsub(search[a], "%[", "%%[")
                     search[a] = string.gsub(search[a], "%]", "%%]")
                     replace[a] = string.gsub(replace[a], "%%", "")
                 end
-
                 for i,j in pairs(fullnames) do
                     edit_fullname[i]:GetText(str)
                     for k,l in pairs(search) do
@@ -674,7 +653,6 @@ function staff_rename()
                     edit_abbname[i]:SetText(str)
                 end
             end
-
             for i, j in pairs(edit_fullname) do
                 if ctrl:GetControlID() == copy_button[i]:GetControlID() then
                     edit_fullname[i]:GetText(str)
@@ -693,7 +671,6 @@ function staff_rename()
                     master_autonumber_popup:SetSelectedItem(5)
                 end
             end
-
             if ctrl:GetControlID() == copy_all:GetControlID() then
                 for i,j in pairs(edit_fullname) do
                     edit_fullname[i]:GetText(str)
@@ -723,9 +700,7 @@ function staff_rename()
                 hardcode_autonumbers()
             end
         end
-
         dialog:RegisterHandleCommand(callback)
-
         if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
             config.use_doc_fonts = doc_fonts_check:GetCheck()
             configuration.save_user_settings(script_name, config)
@@ -798,5 +773,4 @@ function staff_rename()
     end
     dialog("Rename Staves")
 end
-
 staff_rename()

@@ -306,9 +306,7 @@ end
 package.preload["library.tie"] = package.preload["library.tie"] or function()
 
     local tie = {}
-
     local note_entry = require('library.note_entry')
-
 
     local equal_note = function(entry, target_note, for_tied_to, tie_must_exist)
         local found_note = entry:FindPitch(target_note)
@@ -326,7 +324,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         return nil
     end
-
 
     function tie.calc_tied_to(note, tie_must_exist)
         if not note then
@@ -356,7 +353,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         return nil
     end
 
-
     function tie.calc_tied_from(note, tie_must_exist)
         if not note then
             return nil
@@ -373,7 +369,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
             end
         end
     end
-
 
     function tie.calc_tie_span(note, for_tied_to, tie_must_exist)
         local start_measnum = (for_tied_to and note.Entry.Measure > 1) and note.Entry.Measure - 1 or note.Entry.Measure
@@ -396,7 +391,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         return note_entry_layer, start_note, end_note
     end
 
-
     function tie.calc_default_direction(note, for_tieend, tie_prefs)
         if for_tieend then
             if not note.TieBackwards then
@@ -417,16 +411,13 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
 
 
 
-
             if note.NoteIndex == 0 then
                 return finale.TIEMODDIR_UNDER
             end
             if note.NoteIndex == note.Entry.Count - 1 then
                 return finale.TIEMODDIR_OVER
             end
-
             local inner_default = 0
-
             if tie_prefs.ChordDirectionType ~= finale.TIECHORDDIR_STEMREVERSAL then
                 if note.NoteIndex < math.floor(note.Entry.Count / 2) then
                     inner_default = finale.TIEMODDIR_UNDER
@@ -500,17 +491,13 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
                 end
             end
         end
-
         return (stemdir > 0) and finale.TIEMODDIR_UNDER or finale.TIEMODDIR_OVER
-
     end
-
     local calc_layer_is_visible = function(staff, layer_number)
         local altnotation_layer = staff.AltNotationLayer
         if layer_number ~= altnotation_layer then
             return staff.AltShowOtherNotes
         end
-
         local hider_altnotation_types = {
             finale.ALTSTAFF_BLANKNOTATION, finale.ALTSTAFF_SLASHBEATS, finale.ALTSTAFF_ONEBARREPEAT, finale.ALTSTAFF_TWOBARREPEAT, finale.ALTSTAFF_BLANKNOTATIONRESTS,
         }
@@ -520,10 +507,8 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
                 return false
             end
         end
-
         return true
     end
-
     local calc_other_layers_visible = function(entry)
         local staff = finale.FCCurrentStaffSpec()
         staff:LoadForEntry(entry)
@@ -544,7 +529,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         return false
     end
-
     local layer_stem_direction = function(layer_prefs, entry)
         if layer_prefs.UseFreezeStemsTies then
             if layer_prefs.UseRestOffsetInMultiple then
@@ -559,7 +543,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         return 0
     end
-
     local layer_tie_direction = function(entry)
         local layer_prefs = finale.FCLayerPrefs()
         if not layer_prefs:Load(entry.LayerNumber - 1) then
@@ -571,7 +554,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         return 0
     end
-
 
     function tie.calc_direction(note, tie_mod, tie_prefs)
 
@@ -592,10 +574,8 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         if note.Entry.FlipTie then
             return note.Entry:CalcStemUp() and finale.TIEMODDIR_OVER or finale.TIEMODDIR_UNDER
         end
-
         return tie.calc_default_direction(note, not tie_mod:IsStartTie(), tie_prefs)
     end
-
     local calc_is_end_of_system = function(note, for_pageview)
         if not note.Entry:Next() then
             local region = finale.FCMusicRegion()
@@ -616,7 +596,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         return false
     end
-
     local has_nonaligned_2nd = function(entry)
         for note in each(entry) do
             if note:IsNonAligned2nd() then
@@ -625,7 +604,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         return false
     end
-
 
     function tie.calc_connection_code(note, placement, direction, for_endpoint, for_tieend, for_pageview, tie_prefs)
 
@@ -677,7 +655,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         return finale.TIEMODCNCT_NONE
     end
-
     local calc_placement_for_endpoint = function(note, tie_mod, tie_prefs, direction, stemdir, for_endpoint, end_note_slot, end_num_notes, end_upstem2nd, end_downstem2nd)
         local note_slot = end_note_slot and end_note_slot or note.NoteIndex
         local num_notes = end_num_notes and end_num_notes or note.Entry.Count
@@ -721,7 +698,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         return direction == finale.TIEMODDIR_UNDER and finale.TIEPLACE_UNDERINNER or finale.TIEPLACE_OVERINNER
     end
-
 
     function tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
         if not tie_prefs then
@@ -798,16 +774,13 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
             end
         end
 
-
         if start_placement == finale.TIEPLACE_OVERINNER or start_placement == finale.TIEPLACE_UNDERINNER then
             end_placement = start_placement
         elseif end_placement == finale.TIEPLACE_OVERINNER or end_placement == finale.TIEPLACE_UNDERINNER then
             start_placement = end_placement
         end
-
         return start_placement, end_placement
     end
-
     local calc_prefs_offset_for_endpoint = function(note, tie_prefs, tie_placement_prefs, placement, for_endpoint, for_tieend, for_pageview)
         local tie_
         if for_endpoint then
@@ -821,7 +794,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         return tie_placement_prefs:GetHorizontalStart(placement), tie_placement_prefs:GetVerticalStart(placement)
     end
-
     local activate_endpoint = function(note, tie_mod, placement, direction, for_endpoint, for_pageview, tie_prefs, tie_placement_prefs)
         local active_check_func = for_endpoint and tie_mod.IsEndPointActive or tie_mod.IsStartPointActive
         if active_check_func(tie_mod) then
@@ -834,7 +806,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         activation_func(tie_mod, direction == finale.TIEMODDIR_OVER, connect, xoffset, yoffset)
         return true
     end
-
 
     function tie.activate_endpoints(note, tie_mod, for_pageview, tie_prefs)
         if not tie_prefs then
@@ -851,13 +822,11 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         return lactivated or ractivated
     end
-
     local calc_tie_length = function(note, tie_mod, for_pageview, direction, tie_prefs, tie_placement_prefs)
         local cell_metrics_start = finale.FCCellMetrics()
         local entry_metrics_start = finale.FCEntryMetrics()
         cell_metrics_start:LoadAtEntry(note.Entry)
         entry_metrics_start:Load(note.Entry)
-
         local cell_metrics_end = finale.FCCellMetrics()
         local entry_metrics_end = finale.FCEntryMetrics()
         local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, false, true)
@@ -867,20 +836,16 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
                 entry_metrics_end:Load(end_note.Entry)
             end
         end
-
         local lplacement, rplacement = tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
         local horz_start = 0
         local horz_end = 0
         local incr_start = 0
         local incr_end = 0
 
-
         local OUTER_NOTE_OFFSET_PCTG = 7.0 / 16.0
         local INNER_INCREMENT = 6
-
         local staff_scaling = cell_metrics_start.StaffScaling / 10000.0
         local horz_stretch = for_pageview and 1 or cell_metrics_start.HorizontalStretch / 10000.0
-
         if tie_mod:IsStartTie() then
             horz_start = entry_metrics_start:GetNoteLeftPosition(note.NoteIndex) / horz_stretch
             if lplacement == finale.TIEPLACE_OVERINNER or lplacement == finale.TIEPLACE_OVEROUTERSTEM or lplacement == finale.TIEPLACE_UNDERINNER then
@@ -892,7 +857,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         else
             horz_start = (cell_metrics_start.MusicStartPos * staff_scaling) / horz_stretch
         end
-
         if tie_mod:IsStartTie() and (not end_note or cell_metrics_start.StaffSystem ~= cell_metrics_end.StaffSystem) then
             local next_cell_metrics = finale.FCCellMetrics()
             local next_metrics_loaded = next_cell_metrics:LoadAtCell(finale.FCCell(note.Entry.Measure + 1, note.Entry.Staff))
@@ -921,7 +885,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
                 horz_end = horz_end + (entry_metrics_start:GetNoteWidth(note.NoteIndex) * (1.0 - OUTER_NOTE_OFFSET_PCTG))
             end
         end
-
         local start_offset = tie_mod.StartHorizontalPos
         if not tie_mod:IsStartPointActive() then
             start_offset = calc_prefs_offset_for_endpoint(note, tie_prefs, tie_placement_prefs, lplacement, false, not tie_mod:IsStartTie(), for_pageview)
@@ -930,14 +893,12 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         if not tie_mod:IsEndPointActive() then
             end_offset = calc_prefs_offset_for_endpoint(note, tie_prefs, tie_placement_prefs, lplacement, true, not tie_mod:IsStartTie(), for_pageview)
         end
-
         local tie_length = horz_end - horz_start
 
         tie_length = tie_length / staff_scaling
         tie_length = tie_length + ((end_offset + incr_end) - (start_offset + incr_start))
         return math.floor(tie_length + 0.5)
     end
-
 
     function tie.calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)
         if not tie_prefs then
@@ -958,7 +919,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         return finale.TCONTOURIDX_MEDIUM, tie_length
     end
-
     local calc_inset_and_height = function(tie_prefs, tie_contour_prefs, length, contour_index, get_fixed_func, get_relative_func, get_height_func)
 
 
@@ -990,7 +950,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         return inset, height
     end
 
-
     function tie.activate_contour(note, tie_mod, for_pageview, tie_prefs)
         if tie_mod:IsContourActive() then
             return false
@@ -1011,7 +970,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         tie_mod:ActivateContour(left_inset, left_height, right_inset, right_height, tie_prefs.FixedInsetStyle)
         return true
     end
-
     return tie
 end
 function plugindef()

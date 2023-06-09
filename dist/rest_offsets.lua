@@ -4073,11 +4073,8 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
 
 
 
-
-
     local utils = require("library.utils")
     local library = require("library.general_library")
-
 
     local mixin_public = {}
 
@@ -4088,7 +4085,6 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     local mixin_lookup = {}
 
     local mixin_props = setmetatable({}, {__mode = "k"})
-
 
     local reserved_props = {
         MixinReady = function(class_name) return true end,
@@ -4103,7 +4099,6 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
         __disabled = function(class_name) return mixin_classes[class_name].Disabled and utils.copy_table(mixin_classes[class_name].Disabled) or {} end,
     }
 
-
     local instance_reserved_props = {
         MixinReady = true,
         MixinClass = true,
@@ -4111,21 +4106,17 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
         MixinBase = true,
     }
 
-
     local mixin = setmetatable({}, {
         __newindex = function(t, k, v) end,
         __index = function(t, k)
             if mixin_public[k] then return mixin_public[k] end
-
             mixin_private.load_mixin_class(k)
             if not mixin_classes[k] then return nil end
-
 
             mixin_public[k] = setmetatable({}, {
                 __newindex = function(tt, kk, vv) end,
                 __index = function(tt, kk)
                     local value
-
                     if mixin_lookup[k].Methods[kk] then
                         value = mixin_private.create_fluid_proxy(mixin_lookup[k].Methods[kk])
                     elseif mixin_classes[k].StaticMethods and mixin_classes[k].StaticMethods[kk] then
@@ -4139,7 +4130,6 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
                     elseif reserved_props[kk] then
                         value = reserved_props[kk](k)
                     end
-
                     return value
                 end,
                 __call = function(_, ...)
@@ -4150,38 +4140,29 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
                     end
                 end
             })
-
             return mixin_public[k]
         end
     })
-
     function mixin_private.is_fc_class_name(class_name)
         return type(class_name) == "string" and not mixin_private.is_fcm_class_name(class_name) and not mixin_private.is_fcx_class_name(class_name) and (class_name:match("^FC%u") or class_name:match("^__FC%u")) and true or false
     end
-
     function mixin_private.is_fcm_class_name(class_name)
         return type(class_name) == "string" and (class_name:match("^FCM%u") or class_name:match("^__FCM%u")) and true or false
     end
-
     function mixin_private.is_fcx_class_name(class_name)
         return type(class_name) == "string" and class_name:match("^FCX%u") and true or false
     end
-
     function mixin_private.fcm_to_fc_class_name(class_name)
         return string.gsub(class_name, "FCM", "FC", 1)
     end
-
     function mixin_private.fc_to_fcm_class_name(class_name)
         return string.gsub(class_name, "FC", "FCM", 1)
     end
-
     function mixin_private.assert_valid_property_name(name, error_level, suffix)
         if type(name) ~= "string" then
             error("Mixin method and property names must be strings" .. suffix, error_level)
         end
-
         suffix = suffix or ""
-
         if name:sub(-2) == "__" then
             error("Mixin methods and properties cannot end in a double underscore" .. suffix, error_level)
         elseif name:sub(1, 5):lower() == "mixin" then
@@ -4191,18 +4172,14 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
         end
     end
 
-
     function mixin_private.try_load_module(name)
         local success, result = pcall(function(c) return require(c) end, name)
-
 
         if not success and not result:match("module '[^']-' not found") then
             error(result, 0)
         end
-
         return success, result
     end
-
     local find_ancestor_with_prop
     find_ancestor_with_prop = function(class, attr, prop)
         if class[attr] and class[attr][prop] then
@@ -4214,33 +4191,26 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
         return find_ancestor_with_prop(mixin_classes[class.Parent], attr, prop)
     end
 
-
     function mixin_private.load_mixin_class(class_name, create_lookup)
         if mixin_classes[class_name] then return end
-
         local is_fcm = mixin_private.is_fcm_class_name(class_name)
-
 
         if not is_fcm and not mixin_private.is_fcx_class_name(class_name) then
             return
         end
-
         local is_personal_mixin = false
         local success
         local result
 
 
-
         if finenv.TrustedMode == nil or finenv.TrustedMode == finenv.TrustedModeType.USER_TRUSTED then
             success, result = mixin_private.try_load_module("personal_mixin." .. class_name)
         end
-
         if success then
             is_personal_mixin = true
         else
             success, result = mixin_private.try_load_module("mixin." .. class_name)
         end
-
         if not success then
 
             if is_fcm and finale[mixin_private.fcm_to_fc_class_name(class_name)] then
@@ -4249,16 +4219,12 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
                 return
             end
         end
-
         local error_prefix = (is_personal_mixin and "personal_" or "") .. "mixin." .. class_name
-
 
         if type(result) ~= "table" then
             error("Mixin '" .. error_prefix .. "' is not a table.", 0)
         end
-
         local class = {Class = class_name}
-
         local function has_attr(attr, attr_type)
             if result[attr] == nil then
                 return false
@@ -4269,48 +4235,36 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
             return true
         end
 
-
         has_attr("Parent", "string")
-
 
         if is_fcm then
 
             class.Parent = library.get_parent_class(mixin_private.fcm_to_fc_class_name(class_name))
-
             if class.Parent then
 
                 class.Parent = mixin_private.fc_to_fcm_class_name(class.Parent)
-
                 mixin_private.load_mixin_class(class.Parent)
             end
-
 
         else
 
             if not result.Parent then
                 error("Mixin '" .. error_prefix .. "' does not have a parent class defined.", 0)
             end
-
             if not mixin_private.is_fcm_class_name(result.Parent) and not mixin_private.is_fcx_class_name(result.Parent) then
                 error("Mixin parent must be an FCM or FCX class name, '" .. result.Parent .. "' given (" .. error_prefix .. ".Parent)", 0)
             end
-
             mixin_private.load_mixin_class(result.Parent)
-
 
             if not mixin_classes[result.Parent] then
                 error("Unable to load mixin '" .. result.Parent .. "' as parent of '" .. error_prefix .. "'", 0)
             end
-
             class.Parent = result.Parent
-
 
             class.Base = mixin_classes[result.Parent].Base or result.Parent
         end
 
-
         local lookup = class.Parent and utils.copy_table(mixin_lookup[class.Parent]) or {Methods = {}, Properties = {}, Disabled = {}, FCMInits = {}}
-
 
         if has_attr("Init", "function") and is_fcm then
             table.insert(lookup.FCMInits, result.Init)
@@ -4319,7 +4273,6 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
         if not is_fcm then
             lookup.FCMInits = nil
         end
-
 
         if has_attr("Disabled", "table") then
             class.Disabled = {}
@@ -4331,7 +4284,6 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
                 lookup.Properties[v] = nil
             end
         end
-
         local function find_property_name_clash(name, attr_to_check)
             for _, attr in pairs(attr_to_check) do
                 if attr == "StaticMethods" or (lookup[attr] and lookup[attr][nane]) then
@@ -4340,7 +4292,6 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
                 end
             end
         end
-
         if has_attr("Methods", "table") then
             class.Methods = {}
             for k, v in pairs(result.Methods) do
@@ -4359,7 +4310,6 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
                 lookup.Methods[k] = v
             end
         end
-
         if has_attr("StaticMethods", "table") then
             class.StaticMethods = {}
             for k, v in pairs(result.StaticMethods) do
@@ -4377,7 +4327,6 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
                 class.Methods[k] = v
             end
         end
-
         if has_attr("Properties", "table") then
             class.Properties = {}
             for k, v in pairs(result.Properties) do
@@ -4395,10 +4344,8 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
                 if not v.Get and not v.Set then
                     error("A mixin property descriptor must have at least a 'Get' or 'Set' attribute (" .. error_prefix .. ".Properties." .. k .. ")", 0)
                 end
-
                 class.Properties[k] = {}
                 lookup.Properties[k] = lookup.Properties[k] or {}
-
                 for kk, vv in pairs(v) do
                     if kk ~= "Get" and kk ~= "Set" then
                         error("A mixin property descriptor can only have 'Get' and 'Set' attributes (" .. error_prefix .. ".Properties." .. k .. ")", 0)
@@ -4411,11 +4358,9 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
                 end
             end
         end
-
         mixin_lookup[class_name] = lookup
         mixin_classes[class_name] = class
     end
-
     function mixin_private.create_method_reflection(class_name, attr)
         local t = {}
         if mixin_classes[class_name][attr] then
@@ -4425,7 +4370,6 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
         end
         return t
     end
-
     function mixin_private.create_property_reflection(class_name, attr)
         local t = {}
         if mixin_classes[class_name].Properties then
@@ -4439,7 +4383,6 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     end
 
 
-
     local function fluid_proxy(t, ...)
         local n = select("#", ...)
 
@@ -4447,13 +4390,11 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
             return t
         end
 
-
         for i = 1, n do
             mixin_private.enable_mixin(select(i, ...))
         end
         return ...
     end
-
     local function proxy(t, ...)
         local n = select("#", ...)
 
@@ -4463,96 +4404,73 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
         return ...
     end
 
-
     function mixin_private.create_fluid_proxy(func)
         return function(t, ...)
             return fluid_proxy(t, utils.call_and_rethrow(2, func, t, ...))
         end
     end
-
     function mixin_private.create_proxy(func)
         return function(t, ...)
             return proxy(t, utils.call_and_rethrow(2, func, t, ...))
         end
     end
 
-
-
     function mixin_private.enable_mixin(object, fcm_class_name)
         if mixin_props[object] or not library.is_finale_object(object) then
             return object
         end
-
         mixin_private.apply_mixin_foundation(object)
         fcm_class_name = fcm_class_name or mixin_private.fc_to_fcm_class_name(library.get_class_name(object))
-
         mixin_private.load_mixin_class(fcm_class_name)
         mixin_props[object] = {MixinClass = fcm_class_name}
-
         for _, v in ipairs(mixin_lookup[fcm_class_name].FCMInits) do
             v(object)
         end
-
         return object
     end
-
 
 
 
     function mixin_private.apply_mixin_foundation(object)
         if object.MixinReady then return end
 
-
         local meta = getmetatable(object)
-
 
         local original_index = meta.__index
         local original_newindex = meta.__newindex
-
         meta.__index = function(t, k)
 
 
             if k == "MixinReady" then return true end
 
-
             if not mixin_props[t] then return original_index(t, k) end
-
             local class = mixin_props[t].MixinClass
             local prop
-
 
             if type(k) == "string" and k:sub(-2) == "__" then
 
                 prop = original_index(t, k:sub(1, -3))
 
-
             elseif mixin_lookup[class].Properties[k] and mixin_lookup[class].Properties[k].Get then
                 prop = utils.call_and_rethrow(2, mixin_lookup[class].Properties[k].Get, t)
-
 
             elseif mixin_props[t][k] ~= nil then
                 prop = utils.copy_table(mixin_props[t][k])
 
-
             elseif mixin_lookup[class].Methods[k] then
                 prop = mixin_lookup[class].Methods[k]
-
 
             elseif instance_reserved_props[k] then
                 prop = reserved_props[k](class)
 
-
             else
                 prop = original_index(t, k)
             end
-
             if type(prop) == "function" then
                 return mixin_private.create_fluid_proxy(prop)
             end
-
             return prop
         end
-
 
 
         meta.__newindex = function(t, k, v)
@@ -4560,14 +4478,11 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
             if not mixin_props[t] then
                 return original_newindex(t, k, v)
             end
-
             local class = mixin_props[t].MixinClass
-
 
             if mixin_lookup[class].Disabled[k] or reserved_props[k] then
                 error("No writable member '" .. tostring(k) .. "'", 2)
             end
-
 
 
             if mixin_lookup[class].Properties[k] then
@@ -4578,62 +4493,48 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
                 end
             end
 
-
             if type(k) ~= "string" then
                 mixin_props[t][k] = v
                 return
             end
 
-
             if k:sub(-2) == "__" then
                 k = k:sub(1, -3)
                 return original_newindex(t, k, v)
             end
-
             mixin_private.assert_valid_property_name(k, 3)
-
             local type_v_original = type(original_index(t, k))
             local type_v = type(v)
             local is_mixin_method = mixin_lookup[class].Methods[k] and true or false
 
-
             if type_v_original == "nil" then
-
                 if is_mixin_method and not (type_v == "function" or type_v == "nil") then
                     error("A mixin method cannot be overridden with a property.", 2)
                 end
-
                 mixin_props[t][k] = v
                 return
-
 
             elseif type_v_original == "function" then
                 if not (type_v == "function" or type_v == "nil") then
                     error("A Finale PDK method cannot be overridden with a property.", 2)
                 end
-
                 mixin_props[t][k] = v
                 return
             end
-
 
             return original_newindex(t, k, v)
         end
     end
 
-
     function mixin_private.subclass(object, class_name)
         if not library.is_finale_object(object) then
             error("Object is not a finale object.", 2)
         end
-
         if not utils.call_and_rethrow(2, mixin_private.subclass_helper, object, class_name) then
             error(class_name .. " is not a subclass of " .. object.MixinClass, 2)
         end
-
         return object
     end
-
 
 
     function mixin_private.subclass_helper(object, class_name, suppress_errors)
@@ -4641,35 +4542,26 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
             if suppress_errors then
                 return false
             end
-
             error("Object is not mixin-enabled.", 2)
         end
-
         if not mixin_private.is_fcx_class_name(class_name) then
             if suppress_errors then
                 return false
             end
-
             error("Mixins can only be subclassed with an FCX class.", 2)
         end
-
         if object.MixinClass == class_name then return true end
-
         mixin_private.load_mixin_class(class_name)
-
         if not mixin_classes[class_name] then
             if suppress_errors then
                 return false
             end
-
             error("Mixin '" .. class_name .. "' not found.", 2)
         end
-
 
         if mixin_private.is_fcm_class_name(mixin_classes[class_name].Parent) and mixin_classes[class_name].Parent ~= object.MixinClass then
             return false
         end
-
 
         if mixin_classes[class_name].Parent ~= object.MixinClass then
             if not utils.call_and_rethrow(2, mixin_private.subclass_helper, object, mixin_classes[class_name].Parent) then
@@ -4677,9 +4569,7 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
             end
         end
 
-
         mixin_props[object].MixinClass = class_name
-
 
         if mixin_classes[class_name].Disabled then
             for k, _ in pairs(mixin_classes[class_name].Disabled) do
@@ -4687,61 +4577,44 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
             end
         end
 
-
         if mixin_classes[class_name].Init then
             utils.call_and_rethrow(2, mixin_classes[class_name].Init, object)
         end
-
         return true
     end
-
 
     function mixin_private.create_fcm(class_name, ...)
         mixin_private.load_mixin_class(class_name)
         if not mixin_classes[class_name] then return nil end
-
         return mixin_private.enable_mixin(utils.call_and_rethrow(2, finale[mixin_private.fcm_to_fc_class_name(class_name)], ...))
     end
-
 
     function mixin_private.create_fcx(class_name, ...)
         mixin_private.load_mixin_class(class_name)
         if not mixin_classes[class_name] then return nil end
-
         local object = mixin_private.create_fcm(mixin_classes[class_name].Base, ...)
-
         if not object then return nil end
-
         if not utils.call_and_rethrow(2, mixin_private.subclass_helper, object, class_name, false) then
             return nil
         end
-
         return object
     end
 
-
     mixin_public.is_fc_class_name = mixin_private.is_fc_class_name
-
 
     mixin_public.is_fcm_class_name = mixin_private.is_fcm_class_name
 
-
     mixin_public.is_fcx_class_name = mixin_private.is_fcx_class_name
-
 
     mixin_public.fc_to_fcm_class_name = mixin_private.fc_to_fcm_class_name
 
-
     mixin_public.fcm_to_fc_class_name = mixin_private.fcm_to_fc_class_name
 
-
     mixin_public.subclass = mixin_private.subclass
-
 
     function mixin_public.UI()
         return mixin_private.enable_mixin(finenv.UI(), "FCMUI")
     end
-
 
     function mixin_public.eachentry(region, layer)
         local measure = region.StartMeasure
@@ -4778,13 +4651,11 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
             end
         end
     end
-
     return mixin
 end
 package.preload["library.layer"] = package.preload["library.layer"] or function()
 
     local layer = {}
-
 
     function layer.copy(region, source_layer, destination_layer, clone_articulations)
         local start = region.StartMeasure
@@ -4818,7 +4689,6 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         end
     end
 
-
     function layer.clear(region, layer_to_clear)
         layer_to_clear = layer_to_clear - 1
         local start = region.StartMeasure
@@ -4833,7 +4703,6 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
             noteentry_layer:ClearAllEntries()
         end
     end
-
 
     function layer.swap(region, swap_a, swap_b)
 
@@ -4873,12 +4742,9 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         end
     end
 
-
-
     function layer.max_layers()
         return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
     end
-
     return layer
 end
 function plugindef()

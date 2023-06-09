@@ -24,7 +24,6 @@ tie.calc_tied_to(note)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L41)
 
-
 Calculates the note that the input note could be (or is) tied to.
 For this function to work correctly across barlines, the input note
 must be from an instance of FCNoteEntryLayer that contains both the
@@ -47,7 +46,6 @@ tie.calc_tied_from(note)
 ```
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L81)
-
 
 Calculates the note that the input note could be (or is) tied from.
 For this function to work correctly across barlines, the input note
@@ -72,7 +70,6 @@ tie.calc_tie_span(note, for_tied_to, tie_must_exist)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L123)
 
-
 Calculates the (potential) start and end notes for a tie, given an input note. The
 input note can be from anywhere, including from the `eachentry()` iterator functions.
 The function returns 3 values:
@@ -87,7 +84,6 @@ Be very careful about modifying the return values from this function. If you do 
 an iterator loop from `eachentry()` or `eachentrysaved()` you could end up overwriting your changes
 with stale data from the iterator loop. You may discover that this function is more useful
 for gathering information than for modifying the values it returns.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -109,11 +105,9 @@ tie.calc_default_direction(note, for_tieend, tie_prefs)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L156)
 
-
 Calculates the default direction of a tie based on context and FCTiePrefs but ignoring multi-voice
 and multi-layer overrides. It also does not take into account the direction being overridden in
 FCTieMods. Use tie.calc_direction to calculate the actual current tie direction.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -133,11 +127,9 @@ tie.calc_direction(note, tie_mod, tie_prefs)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L343)
 
-
 Calculates the current direction of a tie based on context and FCTiePrefs, taking into account multi-voice
 and multi-layer overrides. It also takes into account if the direction has been overridden in
 FCTieMods.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -157,10 +149,8 @@ tie.calc_connection_code(note, placement, direction, for_endpoint, for_tieend, f
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L411)
 
-
 Calculates the correct connection code for activating a Tie Placement Start Point or End Point
 in FCTieMod.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -184,9 +174,7 @@ tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L519)
 
-
 Calculates the current placement of a tie based on context and FCTiePrefs.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -209,10 +197,8 @@ tie.activate_endpoints(note, tie_mod, for_pageview, tie_prefs)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L643)
 
-
 Activates the placement endpoints of the input tie_mod and initializes them with their
 default values. If an endpoint is already activated, that endpoint is not touched.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -233,9 +219,7 @@ tie.calc_contour_index(note, tie_mod, for_pageview, direction, tie_prefs)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L758)
 
-
 Calculates the current contour index of a tie based on context and FCTiePrefs.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -258,13 +242,11 @@ tie.activate_contour(note, tie_mod, for_pageview, tie_prefs)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/tie.lua#L824)
 
-
 Activates the contour fields of the input tie_mod and initializes them with their
 default values. If the contour fields are already activated, nothing is changed. Note
 that for interpolated Medium span types, the interpolated values may not be identical
 to those calculated by Finale, but they should be close enough to make no appreciable
 visible difference.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |

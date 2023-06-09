@@ -2,7 +2,6 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
 
     local layer = {}
 
-
     function layer.copy(region, source_layer, destination_layer, clone_articulations)
         local start = region.StartMeasure
         local stop = region.EndMeasure
@@ -35,7 +34,6 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         end
     end
 
-
     function layer.clear(region, layer_to_clear)
         layer_to_clear = layer_to_clear - 1
         local start = region.StartMeasure
@@ -50,7 +48,6 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
             noteentry_layer:ClearAllEntries()
         end
     end
-
 
     function layer.swap(region, swap_a, swap_b)
 
@@ -90,12 +87,9 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         end
     end
 
-
-
     function layer.max_layers()
         return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
     end
-
     return layer
 end
 function plugindef()

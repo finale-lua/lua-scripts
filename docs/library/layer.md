@@ -15,9 +15,7 @@ layer.copy(region, source_layer, destination_layer, clone_articulations)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/layer.lua#L16)
 
-
 Duplicates the notes from the source layer to the destination. The source layer remains untouched.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -34,9 +32,7 @@ layer.clear(region, layer_to_clear)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/layer.lua#L56)
 
-
 Clears all entries from a given layer.
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -51,9 +47,7 @@ layer.swap(region, swap_a, swap_b)
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/layer.lua#L80)
 
-
 Swaps the entries from two different layers (e.g. 1-->2 and 2-->1).
-
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -69,9 +63,7 @@ layer.max_layers()
 
 [View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/layer.lua#L126)
 
-
 Return the maximum number of layers available in the current document.
-
 
 | Return type | Description |
 | ----------- | ----------- |

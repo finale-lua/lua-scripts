@@ -309,23 +309,17 @@ function plugindef()
     finaleplugin.Copyright = "©2019 Jacob Winkler"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Version = "1.0"
-    finaleplugin.Date = "11/02/2019"    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_cluster_determinate.hash"
+    finaleplugin.Date = "11/02/2019"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_cluster_determinate.hash"
     return "Cluster - Determinate", "Cluster - Determinate", "Creates a determinate cluster."
 end
-
 local note_entry = require("library.note_entry")
-
 local region = finenv.Region()
-
 local layer = {}
 local layer_one_note = {}
 local layer_two_note = {}
-
 local measure = {}
-
 local horizontal_offset = -20
-
-
 local function process_notes(music_region)
     local stem_dir = {}
 
@@ -333,13 +327,10 @@ local function process_notes(music_region)
         entry.FreezeStem = false
         table.insert(stem_dir, entry:CalcStemUp())
     end
-
     layer.copy(1, 2)
     layer.copy(1, 3)
-
     local i = 1
     local j = 1
-
     for note_entry in eachentrysaved(music_region) do
         local span = note_entry:CalcDisplacementRange(nil)
         local stem_direction = stem_dir[i]
@@ -398,8 +389,6 @@ local function process_notes(music_region)
         end
     end
 end
-
-
 function hide_stems(entry, stem_direction)
     local stem = finale.FCCustomStemMod()
     stem:SetNoteEntry(entry)
@@ -418,15 +407,12 @@ function hide_stems(entry, stem_direction)
     end
     entry:SetBeamBeat(true)
 end
-
-
 function layer.copy(source, destination)
     local region = finenv.Region()
     local start = region.StartMeasure
     local stop = region.EndMeasure
     local system_staves = finale.FCSystemStaves()
     system_staves:LoadAllForRegion(region)
-
 
     source = source - 1
     destination = destination - 1
@@ -440,32 +426,24 @@ function layer.copy(source, destination)
         noteentrylayerDest:Save()
     end
 end
-
-
 function delete_bottom_notes(entry)
     while entry.Count > 1 do
         local lowest_note = entry:CalcLowestNote(nil)
         note_entry.delete_note(lowest_note)
     end
 end
-
-
 function delete_top_notes(entry)
     while entry.Count > 1 do
         local highest_note = entry:CalcHighestNote(nil)
         note_entry.delete_note(highest_note)
     end
 end
-
-
 function delete_top_bottom_notes(entry)
     local highest_note = entry:CalcHighestNote(nil)
     note_entry.delete_note(highest_note)
     local lowest_note = entry:CalcLowestNote(nil)
     note_entry.delete_note(lowest_note)
 end
-
-
 function delete_middle_notes(entry)
     while entry.Count > 2 do
         local n = 1
@@ -480,8 +458,6 @@ function delete_middle_notes(entry)
         end
     end
 end
-
-
 local function create_cluster_line()
 
     local line_exists = false
@@ -500,7 +476,6 @@ local function create_cluster_line()
         end
     end
 
-
     if line_exists == false then
         local csld = finale.FCCustomSmartLineDef()
         csld.Horizontal = false
@@ -513,8 +488,6 @@ local function create_cluster_line()
     end
     return my_line
 end
-
-
 local function create_short_cluster_line()
 
     local line_exists = false
@@ -533,7 +506,6 @@ local function create_short_cluster_line()
         end
     end
 
-
     if line_exists == false then
         local csld = finale.FCCustomSmartLineDef()
         csld.Horizontal = false
@@ -546,18 +518,14 @@ local function create_short_cluster_line()
     end
     return my_line
 end
-
-
 function add_cluster_line(left_note, right_note, line_id)
     if left_note:IsNote() and left_note.Count == 1 and right_note:IsNote() then
         local smartshape = finale.FCSmartShape()
         local layer_one_highest = left_note:CalcHighestNote(nil)
         local note_width = layer_one_highest:CalcNoteheadWidth()
         local layer_one_note_y = layer_one_highest:CalcStaffPosition()
-
         local layer_two_highest = right_note:CalcHighestNote(nil)
         local layer_two_note_y = layer_two_highest:CalcStaffPosition()
-
         local top_pad = 0
         local bottom_pad = 0
         if left_note.Duration >= 2048 and left_note.Duration < 4096 then
@@ -569,7 +537,6 @@ function add_cluster_line(left_note, right_note, line_id)
         end
         layer_one_note_y = (layer_one_note_y * 12) - top_pad
         layer_two_note_y = (layer_two_note_y * 12) + bottom_pad
-
         smartshape.ShapeType = finale.SMARTSHAPE_CUSTOM
         smartshape.EntryBased = false
         smartshape.MakeHorizontal = false
@@ -577,35 +544,28 @@ function add_cluster_line(left_note, right_note, line_id)
         smartshape.PresetShape = true
         smartshape.Visible = true
         smartshape.LineID = line_id
-
         local left_segment = smartshape:GetTerminateSegmentLeft()
         left_segment:SetMeasure(left_note.Measure)
         left_segment:SetStaff(left_note.Staff)
         left_segment:SetMeasurePos(left_note.MeasurePos)
         left_segment:SetEndpointOffsetX(note_width / 2)
         left_segment:SetEndpointOffsetY(layer_one_note_y)
-
         local right_segment = smartshape:GetTerminateSegmentRight()
         right_segment:SetMeasure(right_note.Measure)
         right_segment:SetStaff(right_note.Staff)
         right_segment:SetMeasurePos(right_note.MeasurePos)
         right_segment:SetEndpointOffsetX(note_width / 2)
         right_segment:SetEndpointOffsetY(layer_two_note_y)
-
         smartshape:SaveNewEverything(nil, nil)
     end
 end
-
-
 function add_short_cluster_line(entry, short_lineID)
     if entry:IsNote() and entry.Count > 1 then
         local smartshape = finale.FCSmartShape()
         local left_note = entry:CalcHighestNote(nil)
         local left_note_y = left_note:CalcStaffPosition() * 12 + 12
-
         local right_note = entry:CalcLowestNote(nil)
         local right_note_y = right_note:CalcStaffPosition() * 12 - 12
-
         smartshape.ShapeType = finale.SMARTSHAPE_CUSTOM
         smartshape.EntryBased = false
         smartshape.MakeHorizontal = false
@@ -613,31 +573,25 @@ function add_short_cluster_line(entry, short_lineID)
         smartshape.Visible = true
         smartshape.BeatAttached = true
         smartshape.LineID = short_lineID
-
         local left_segment = smartshape:GetTerminateSegmentLeft()
         left_segment:SetMeasure(entry.Measure)
         left_segment:SetStaff(entry.Staff)
         left_segment:SetMeasurePos(entry.MeasurePos)
         left_segment:SetEndpointOffsetX(horizontal_offset)
         left_segment:SetEndpointOffsetY(left_note_y)
-
         local right_segment = smartshape:GetTerminateSegmentRight()
         right_segment:SetMeasure(entry.Measure)
         right_segment:SetStaff(entry.Staff)
         right_segment:SetMeasurePos(entry.MeasurePos)
         right_segment:SetEndpointOffsetX(horizontal_offset)
         right_segment:SetEndpointOffsetY(right_note_y)
-
         smartshape:SaveNewEverything(nil, nil)
     end
 end
-
 local line_id = create_cluster_line()
 local short_lineID = create_short_cluster_line()
-
 for add_staff = region:GetStartStaff(), region:GetEndStaff() do
     local count = 0
-
     for k in pairs(layer_one_note) do
         layer_one_note[k] = nil
     end
@@ -647,13 +601,11 @@ for add_staff = region:GetStartStaff(), region:GetEndStaff() do
     for k in pairs(measure) do
         measure[k] = nil
     end
-
     region:SetStartStaff(add_staff)
     region:SetEndStaff(add_staff)
     local measures = finale.FCMeasures()
     measures:LoadRegion(region)
     process_notes(region)
-
     for entry in eachentrysaved(region) do
         if entry.LayerNumber == 1 then
             table.insert(layer_one_note, entry)
@@ -663,14 +615,11 @@ for add_staff = region:GetStartStaff(), region:GetEndStaff() do
             table.insert(layer_two_note, entry)
         end
     end
-
     for i = 1, count do
         add_short_cluster_line(layer_one_note[i], short_lineID)
         add_cluster_line(layer_one_note[i], layer_two_note[i], line_id)
     end
 end
-
-
 for note_entry in eachentrysaved(finenv.Region()) do
     if note_entry:IsNote() and note_entry.Count > 1 then
         for note in each(note_entry) do
