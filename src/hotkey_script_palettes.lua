@@ -19,12 +19,14 @@ Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac to achieve this,
 but the principle is available for free with RGP Lua in Finale. 
 It doesn't provide access to every single menu item nor interact with them like KM can, 
 but it does remember the last selection in each category and can be set up 
-entirely within Finale without external software or tricky configuration files.
+entirely within Finale without external software or tricky configuration files. 
+Scripts that use modifier keys (SHIFT, ALT/option etc) for "alternative" behaviours 
+can identify those keys when called from a palette.
 
 The script comes loaded with a full set of "demo" palettes containing many of the 
-Lua scripts available from [https://FinaleLua.com]. 
+Lua scripts available from https://FinaleLua.com. 
 If a script isn't installed on your system you will get an "unidentified" warning on execution. 
-Delete such scripts and add new ones in their place. 
+Delete those scripts and add new ones in their place. 
 Reconfigure each of the "Main" palettes, change their name and hotkey, delete them or add new ones.
 
 You can also add many standard Finale menus to your palettes. 
@@ -38,9 +40,9 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.37"
+    finaleplugin.Version = "0.40"
     finaleplugin.LoadLuaOSUtils = true
-    finaleplugin.Date = "2023/06/07"
+    finaleplugin.Date = "2023/06/11"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = info
@@ -48,9 +50,10 @@ function plugindef()
 end
 
 local config = { -- this is a DEMO fully-equipped data set. Not all of these scripts may be present on the user's system.
-    json = [[ [{"key":"A","last":1,"sub":[{"key":"Z","script":"Hairpin Create Crescendo","name":"Hairpin Crescendo"},{"key":"X","script":"Hairpin Create Diminuendo","name":"Hairpin Diminuendo"},{"key":"C","script":"Hairpin Create Swell","name":"Hairpin Swell"},{"key":"V","script":"Hairpin Create Unswell","name":"Hairpin Unswell"},{"key":"H","script":"Harp gliss","name":"Harp gliss"},{"key":"S","script":"Slur Selection","name":"Slur Selection"},{"key":"P","script":"Swap Staves","name":"Swap Staves"}],"name":"Automations"},{"key":"C","last":"1","sub":[{"key":"E","script":"Note Ends Eighths","name":"Note Ends Eighths"},{"key":"Q","script":"Note Ends Quarters","name":"Note Ends Quarters"},{"key":"A","script":"Noteheads Change by Layer...","name":"Noteheads Change"},{"key":"B","script":"Break Secondary Beams","name":"Secondary Beams Break"},{"key":"J","script":"Clear Secondary Beam Breaks","name":"Secondary Beams Clear"},{"key":"T","script":"Tie Notes","name":"Tie Notes"},{"key":"G","script":"Untie Notes","name":"Ties Remove"}],"name":"Chords & Notes"},{"key":"E","last":1,"sub":[{"key":"X","script":"Deletion Chooser...","name":"Deletion Chooser..."},{"key":"P","script":"Expression Set To Parts Only","name":"Expression Set To Parts Only"},{"key":"B","script":"Expression Set To Score and Parts","name":"Expression Set To Score and Parts"},{"key":"S","script":"Swap Staves","name":"Swap Staves"},{"key":"T","script":"Tuplet State Chooser...","name":"Tuplet State Chooser..."}],"name":"Expressions & misc."},{"key":"W","last":"1","sub":[{"key":"5","script":"Enharmonic Transpose Down","name":"Enharmonic Transpose Down"},{"key":"6","script":"Enharmonic Transpose Up","name":"Enharmonic Transpose Up"},{"key":"S","script":"Staff Explode Layers","name":"Explode Layers"},{"key":"W","script":"Staff Explode Pairs","name":"Explode Pairs"},{"key":"Q","script":"Staff Explode Singles","name":"Explode Singles"},{"key":"E","script":"Staff Explode Split Pairs","name":"Explode Split Pairs"},{"key":"C","script":"Transpose Chromatic...","name":"Transpose Chromatic..."}],"name":"Intervals"},{"key":"Q","last":"1","sub":[{"key":"3","script":"Clear Layer Selective","name":"Clear Layer Selective"},{"key":"8","script":"Layer Hide","name":"Layer Hide"},{"key":"5","script":"Layer Mute","name":"Layer Mute"},{"key":"9","script":"Layer Unhide","name":"Layer Unhide"},{"key":"6","script":"Layer Unmute","name":"Layer Unmute"},{"key":"2","script":"Swap Layers Selective","name":"Swap Layers Selective"}],"name":"Layers etc."},{"key":"B","last":1,"sub":[{"key":"D","script":"Barline Set Double","name":"Barline Double"},{"key":"E","script":"Barline Set Final","name":"Barline Final"},{"key":"0","script":"Barline Set None","name":"Barline None"},{"key":"N","script":"Barline Set Normal","name":"Barline Normal"},{"key":"Q","script":"Cue Notes Create...","name":"Cue Notes Create..."},{"key":"H","script":"Measure Span Divide","name":"Measure Span Divide"},{"key":"J","script":"Measure Span Join","name":"Measure Span Join"},{"key":"B","script":"Measure Span Options...","name":"Measure Span Options..."},{"key":"9","script":"Meter Set Numeric","name":"Meter Set Numeric"}],"name":"Measure Items"}] ]],
+    palettes = [[ [{"key":"A","last":1,"sub":[{"key":"Z","script":"Hairpin Create Crescendo","name":"Hairpin Crescendo"},{"key":"X","script":"Hairpin Create Diminuendo","name":"Hairpin Diminuendo"},{"key":"C","script":"Hairpin Create Swell","name":"Hairpin Swell"},{"key":"V","script":"Hairpin Create Unswell","name":"Hairpin Unswell"},{"key":"H","script":"Harp gliss","name":"Harp gliss"},{"key":"S","script":"Slur Selection","name":"Slur Selection"},{"key":"P","script":"Swap Staves","name":"Swap Staves"}],"name":"Automations"},{"key":"C","last":"1","sub":[{"key":"E","script":"Note Ends Eighths","name":"Note Ends Eighths"},{"key":"Q","script":"Note Ends Quarters","name":"Note Ends Quarters"},{"key":"A","script":"Noteheads Change by Layer...","name":"Noteheads Change"},{"key":"B","script":"Break Secondary Beams","name":"Secondary Beams Break"},{"key":"J","script":"Clear Secondary Beam Breaks","name":"Secondary Beams Clear"},{"key":"T","script":"Tie Notes","name":"Tie Notes"},{"key":"G","script":"Untie Notes","name":"Ties Remove"}],"name":"Chords & Notes"},{"key":"E","last":1,"sub":[{"key":"X","script":"Deletion Chooser...","name":"Deletion Chooser..."},{"key":"P","script":"Expression Set To Parts Only","name":"Expression Set To Parts Only"},{"key":"B","script":"Expression Set To Score and Parts","name":"Expression Set To Score and Parts"},{"key":"S","script":"Swap Staves","name":"Swap Staves"},{"key":"T","script":"Tuplet State Chooser...","name":"Tuplet State Chooser..."}],"name":"Expressions & misc."},{"key":"W","last":"1","sub":[{"key":"5","script":"Enharmonic Transpose Down","name":"Enharmonic Transpose Down"},{"key":"6","script":"Enharmonic Transpose Up","name":"Enharmonic Transpose Up"},{"key":"S","script":"Staff Explode Layers","name":"Explode Layers"},{"key":"W","script":"Staff Explode Pairs","name":"Explode Pairs"},{"key":"Q","script":"Staff Explode Singles","name":"Explode Singles"},{"key":"E","script":"Staff Explode Split Pairs","name":"Explode Split Pairs"},{"key":"C","script":"Transpose Chromatic...","name":"Transpose Chromatic..."}],"name":"Intervals"},{"key":"Q","last":"1","sub":[{"key":"3","script":"Clear Layer Selective","name":"Clear Layer Selective"},{"key":"8","script":"Layer Hide","name":"Layer Hide"},{"key":"5","script":"Layer Mute","name":"Layer Mute"},{"key":"9","script":"Layer Unhide","name":"Layer Unhide"},{"key":"6","script":"Layer Unmute","name":"Layer Unmute"},{"key":"2","script":"Swap Layers Selective","name":"Swap Layers Selective"}],"name":"Layers etc."},{"key":"B","last":1,"sub":[{"key":"D","script":"Barline Set Double","name":"Barline Double"},{"key":"E","script":"Barline Set Final","name":"Barline Final"},{"key":"0","script":"Barline Set None","name":"Barline None"},{"key":"N","script":"Barline Set Normal","name":"Barline Normal"},{"key":"Q","script":"Cue Notes Create...","name":"Cue Notes Create..."},{"key":"H","script":"Measure Span Divide","name":"Measure Span Divide"},{"key":"J","script":"Measure Span Join","name":"Measure Span Join"},{"key":"B","script":"Measure Span Options...","name":"Measure Span Options..."},{"key":"9","script":"Meter Set Numeric","name":"Meter Set Numeric"}],"name":"Measure Items"}] ]],
     last_palette = 1,
     ignore_duplicates = 0,
+    menu_tree = "[ ]", -- JSON encoded table of submenu titles stacked in descending order
     window_pos_x = false,
     window_pos_y = false,
 }
@@ -58,14 +61,15 @@ local config = { -- this is a DEMO fully-equipped data set. Not all of these scr
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local cjson = require("cjson")
-local osutils = require('luaosutils')
+local osutils = require("luaosutils")
 local menu = osutils.menu
+
 local script_array = {} -- assemble all script items from the RGPLua menu
 local script_name = "hotkey_script_palettes"
 
 local palettes = {}
 --[[ ordered set of "main" palettes encapsulating sub-palettes
--- these are decoded from config.json in the main() routine at the bottom
+-- these are cjson decoded from config.palettes in the main() routine at the bottom
 {   {   name = "Macro Palette 1",
         key = "A",
         last = 1, -- number of last script chosen from this palette
@@ -240,31 +244,35 @@ function fill_list_box(list_box, array, selected)
     for _, v in ipairs(array) do
         list_box:AddString(v.key .. join .. v.name)
     end
-    list_box:SetSelectedItem(selected - 1)
+    if selected > 1 then list_box:SetSelectedItem(selected - 1) end
 end
 
-function load_menu_level(top_menu, old_name, level)
+function load_menu_level(top_menu, old_name, level, match_title)
     local menu_level = { parent = top_menu, members = {} }
+    local match_index = 1
     menu_level.pos = (level == 1) and "Menu Bar" or
         old_name .. " > " .. menu.get_title(top_menu, finenv.GetFinaleMainWindow())
     local m_types = {}
     m_types[menu.ITEMTYPE_SUBMENU] = "sub"
     m_types[menu.ITEMTYPE_COMMAND] = "menu"
+    local index = 1
     for i = 1, menu.get_item_count(top_menu) do
         local t = menu.get_item_type(top_menu, i - 1)
         if m_types[t] then -- either "sub" or "menu"
             local name = menu.get_item_text(top_menu, i - 1)
-            if not string.find(name, "Plug.ins") then
-                table.insert(menu_level.members,
+            if name == match_title then match_index = index end
+            if not string.find(name, "Plug.ins") then -- exclude PLUG-INS
+                menu_level.members[index] =
                 {   type = m_types[t],
                     text = name,
                     sub = menu.get_item_submenu(top_menu, i - 1), -- handle (or nil)
                     id = menu.get_item_command_id(top_menu, i - 1), -- (or nil)
-                } )
+                }
+                index = index + 1
             end
         end
     end
-    return menu_level
+    return menu_level, match_index
 end
 
 function user_chooses_menu()
@@ -272,25 +280,22 @@ function user_chooses_menu()
     local y, y_step, list_wide, x_wide =  0, 17, 160, 230
     local box_high = (10 * y_step) + 6
     local offset = finenv.UI():IsOnMac() and 3 or 0
-    local selected = 1
-    local menu_levels = {}
-    local level, saved_level = 1, 1
-    menu_levels[1] = load_menu_level(menu_bar, "", 1)
+    local selected
+    local menu_levels, menu_tree
+    local level, saved_level
     local inputs = {} -- input controls
 
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Choose Menu Item")
-    local pos_text = dialog:CreateStatic(0, y):SetText(menu_levels[1].pos):SetWidth(330)
+    local pos_text = dialog:CreateStatic(0, y):SetText("Menu Bar"):SetWidth(330)
     local mid_x = list_wide + 10
     local script_about = [[ RGP Lua isn't able to access every Finale menu item and, 
-for instance, the entire "Plug-ins" folder has been hidden from this system 
-because the items in it are too unreliable. (Some plug-ins create their own 
-menus and sub-menus on the fly). To access RGP Lua script menu items use the 
-"Add Script" facility here under "Configure Scripts".
+for instance, the entire "Plug-ins" folder has been hidden from this script because the 
+items in it are too unreliable. (Some plug-ins create their own menus and sub-menus on the fly). 
+To access RGP Lua script menu items use the "Add Script" facility here under "Configure Scripts".
 
-After you've highlighted an active menu item from the list 
-a "Test Menu Item" button will appear to make sure it works 
-before you add it to the current palette. Note that many Finale menus 
-do nothing unless part of the score is already selected. ]]
+After you've highlighted an active menu item from the list a "Test Menu Item" button 
+will appear to make sure it works before you add it to the current palette. 
+Note that many Finale menus do nothing unless part of the score is already selected. ]]
     dialog:CreateButton(mid_x * 2 - 20, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() finenv.UI():AlertInfo(script_about:gsub(" \n", " "), "About Adding Menu Items") end)
     y = y + y_step
@@ -300,16 +305,6 @@ do nothing unless part of the score is already selected. ]]
         :SetWidth(mid_x)
     to_parent:SetVisible(false)
     local list = dialog:CreateListBox(0, y):SetWidth(list_wide):SetHeight(box_high)
-        local function fill_list_box(array, index)
-            list:Clear()
-            for _, v in ipairs(array) do
-                local tag = (v.type == "sub") and " >" or ""
-                list:AddString(v.text .. tag)
-            end
-            if index > 1 then list:SetSelectedItem(index - 1) end
-        end
-    fill_list_box(menu_levels[level].members, selected)
-    list:SetKeyboardFocus()
     y = y + (box_high / 4)
     local open_sub = dialog:CreateButton(mid_x, y):SetText("Open Submenu →"):SetWidth(mid_x)
     y = y + (y_step * 2)
@@ -324,6 +319,7 @@ do nothing unless part of the score is already selected. ]]
 
     local ok_button = dialog:CreateOkButton():SetText("Select Menu Item"):SetWidth(list_wide)
     dialog:CreateCancelButton()
+        --
         local function check_status()
             local i = list:GetSelectedItem() + 1
             local is_sub = (menu_levels[level].members[i].type == "sub")
@@ -341,33 +337,72 @@ do nothing unless part of the score is already selected. ]]
                 saved_level = level
             end
         end
+        --
+        local function fill_list(array, index)
+            list:Clear()
+            for _, v in ipairs(array) do
+                local tag = (v.type == "sub") and " >" or ""
+                list:AddString(v.text .. tag)
+            end
+            if index > 1 then list:SetSelectedItem(index - 1) end
+            check_status()
+        end
+        --
     list:AddHandleCommand(function() check_status() end)
     inputs[5]:AddHandleCommand(function() -- Test Menu Item BUTTON
         local id = menu_levels[level].members[list:GetSelectedItem() + 1].id
         finenv.UI():ExecuteOSMenuCommand(id)
     end)
-    open_sub:AddHandleCommand(function() -- Open Submenu
+    open_sub:AddHandleCommand(function() -- OPEN SUBMENU
         local i = list:GetSelectedItem() + 1
         local child = menu_levels[level].members[i].sub
         if child then
             local old_name = menu_levels[level].pos
+            menu_tree[level] = menu_levels[level].members[i].text
             level = level + 1
-            menu_levels[level] = load_menu_level(child, old_name, level)
+            menu_levels[level], _ = load_menu_level(child, old_name, level, "")
             menu_levels[level].last_selected = i
-            fill_list_box(menu_levels[level].members, 1)
-            check_status()
+            fill_list(menu_levels[level].members, 1)
         end
     end)
     to_parent:AddHandleCommand(function() -- Up To Parent Menu
         if level > 1 then
             selected = menu_levels[level].last_selected
+            table.remove(menu_tree, level)
             level = level - 1
-            fill_list_box(menu_levels[level].members, selected)
-            check_status()
+            fill_list(menu_levels[level].members, selected)
         end
     end)
-    dialog:RegisterInitWindow(function() check_status() end)
+    dialog:RegisterInitWindow(function()
+        menu_tree = cjson.decode(config.menu_tree)
+        menu_levels = {}
+        local top_menu = menu_bar
+        local level_name = "Menu Bar"
+        if menu_tree and #menu_tree > 0 then
+            for i, v in ipairs(menu_tree) do
+                -- finenv.UI():AlertError(tostring(i), "index number")
+                menu_levels[i], selected = load_menu_level(top_menu, level_name, i, v)
+                menu_levels[i].last_selected = selected
+                level = i
+                top_menu = menu_levels[i].members[selected].sub
+                level_name = menu_levels[i].pos
+            end
+        else
+            selected = 1
+            menu_tree = {}
+            level, saved_level = 1, 1
+            menu_levels[1], _ = load_menu_level(menu_bar, "", 1, "")
+        end
+        fill_list(menu_levels[level].members, selected)
+        list:SetKeyboardFocus()
+    end)
     dialog_set_position(dialog)
+    dialog:RegisterHandleOkButtonPressed(function()
+        menu_tree[level] = menu_levels[level].members[list:GetSelectedItem() + 1].text
+    end)
+    dialog:RegisterCloseWindow(function()
+        config.menu_tree = cjson.encode(menu_tree)
+    end)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
     local menu_id = menu_levels[level].members[list:GetSelectedItem() + 1].id
     return ok, inputs[2]:GetText(), menu_id, clean_key(inputs[4]:GetText())
@@ -400,19 +435,19 @@ function configure_palette(palette_number, index_num)
     text = is_macro and "New Palette" or "Add Script"
     local add = dialog:CreateButton(0, y):SetText(text):SetWidth(x_off * 9)
     local reassign, add_menu
-    if not is_macro then
+    if is_macro then
+        reassign = dialog:CreateButton(x_off * 11, y):SetText("Reassign Keys"):SetWidth(x_off * 9)
+    else
         add_menu = dialog:CreateButton(x_off * 11, y):SetText("Add Menu Item"):SetWidth(x_off * 9)
         y = y + y_step + 5
         reassign = dialog:CreateButton(x_off * 5, y):SetText("Reassign Keys"):SetWidth(x_off * 10)
-    else
-        reassign = dialog:CreateButton(x_off * 11, y):SetText("Reassign Keys"):SetWidth(x_off * 9)
     end
-    remove:AddHandleCommand(function()
+    remove:AddHandleCommand(function() -- REMOVE PALETTE / SCRIPT / MENU
         local index = list_box:GetSelectedItem() + 1
         table.remove(array, index)
-        fill_list_box(list_box, array, 1)
+        fill_list_box(list_box, array, 0)
     end)
-    rename:AddHandleCommand(function()
+    rename:AddHandleCommand(function() -- RENAME PALETTE / SCRIPT / MENU
         local index = list_box:GetSelectedItem() + 1
         local title = is_macro and "Rename Palette" or "Rename Script/Menu"
         local ok, new_name, hotkey = user_enters_text(array[index], title)
@@ -423,7 +458,7 @@ function configure_palette(palette_number, index_num)
             fill_list_box(list_box, array, index)
         end
     end)
-    reassign:AddHandleCommand(function()
+    reassign:AddHandleCommand(function() -- REASSIGN KEYS
         local ok, is_duplicate = true, true
         while ok and is_duplicate do -- wait for valid choices in reassign_keys()
             ok, is_duplicate = reassign_keys(palette_number)
@@ -434,7 +469,7 @@ function configure_palette(palette_number, index_num)
             configuration.get_user_settings(script_name, config, true)
         end
     end)
-    add:AddHandleCommand(function()
+    add:AddHandleCommand(function() -- ADD PALETTE / SCRIPT / MENU
         local new_name, new_script, hotkey
         local new_element, ok = {}, false
         if is_macro then
@@ -458,7 +493,7 @@ function configure_palette(palette_number, index_num)
         end
     end)
     if not is_macro then
-        add_menu:AddHandleCommand(function()
+        add_menu:AddHandleCommand(function() -- ADD NEW MENU ITEM
             local new_element = {}
             local ok, new_name, menu_id, trigger = user_chooses_menu()
             if ok then
@@ -473,12 +508,12 @@ function configure_palette(palette_number, index_num)
     dialog:CreateCancelButton():SetText("Discard")
     dialog_set_position(dialog)
     dialog:RegisterHandleCancelButtonPressed(function()
-        configuration.get_user_settings(script_name, config)
-        palettes = cjson.decode(config.json)
+        configuration.get_user_settings(script_name, config) -- restore original user values
+        palettes = cjson.decode(config.palettes)
     end)
     dialog:RegisterHandleOkButtonPressed(function()
-        config.json = cjson.encode(palettes)
-        configuration.save_user_settings(script_name, config)
+        config.palettes = cjson.encode(palettes)
+        configuration.save_user_settings(script_name, config) -- save new values
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
@@ -495,7 +530,7 @@ function choose_palette(palette_number)
     local text = "Hotkey Script Palettes"
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(text)
     dialog:CreateButton(box_wide - 20, 0):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() finenv.UI():AlertInfo(info:gsub(" \n", " "), "Hotkey Script Palettes") end)
+        :AddHandleCommand(function() finenv.UI():AlertInfo(info:gsub(" \n", " "), text) end)
     if not is_macro then
         dialog:CreateStatic(0, y):SetText("Palette: " .. palettes[palette_number].name):SetWidth(box_wide * .9)
         y = y + y_step
@@ -505,13 +540,11 @@ function choose_palette(palette_number)
     y = y + y_step + 5
     local item_list = dialog:CreateListBox(0, y):SetWidth(box_wide):SetHeight(box_high)
     fill_list_box(item_list, array, selected)
-    item_list:SetKeyboardFocus()
 
     local x_off = box_wide / 4
     y = y + box_high + 8
     text = is_macro and "Configure Palettes" or "Configure Scripts"
-    local reconfigure = dialog:CreateButton(x_off, y, "reconfigure")
-        :SetText(text):SetWidth(x_off * 2)
+    local reconfigure = dialog:CreateButton(x_off, y):SetText(text):SetWidth(x_off * 2)
     reconfigure:AddHandleCommand(function()
         local index_num = item_list:GetSelectedItem() + 1
         if configure_palette(palette_number, index_num) then
@@ -529,8 +562,8 @@ function choose_palette(palette_number)
         else
             palettes[palette_number].last = i
         end
-        config.json = cjson.encode(palettes)
-        configuration.save_user_settings(script_name, config)
+        config.palettes = cjson.encode(palettes)
+        configuration.save_user_settings(script_name, config) -- save new settings
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
@@ -541,33 +574,33 @@ function main()
     local scripts = finenv.CreateLuaScriptItems()
     for i = 1, scripts.Count do
         local script = scripts:GetItemAt(i - 1)
-        script_array[script:GetMenuItemText()] = script
+        script_array[script:GetMenuItemText()] = script -- global script_array[]
     end
     configuration.get_user_settings(script_name, config, true)
-    palettes = cjson.decode(config.json)
+    palettes = cjson.decode(config.palettes)
     local ok, finished = false, false
     local palette_number, item_number = 1, 1
 
     while not finished do -- keep circling until user makes a choice or cancels
         ok, palette_number = choose_palette(0) -- main palette
-        if not ok then  -- user cancelled
-            finenv.UI():ActivateDocumentWindow()
-            return
-        end
-        finished, item_number = choose_palette(palette_number) -- script palette
-        if finished then -- successful choice
-            local chosen_item = palettes[palette_number].sub[item_number]
-            if chosen_item.menu then
-                finenv.UI():ExecuteOSMenuCommand(chosen_item.menu)
-            else
-                local script = chosen_item.script or "unknown"
-                if not script_array[script] then
-                    finenv.UI():AlertError("Script menu \"" .. script .. "\" could not be identified", "Error")
+        if ok then
+            finished, item_number = choose_palette(palette_number) -- script palette
+            if finished then -- successful choice
+                local chosen_item = palettes[palette_number].sub[item_number]
+                if chosen_item.menu then
+                    finenv.UI():ExecuteOSMenuCommand(chosen_item.menu)
                 else
-                    finenv.ExecuteLuaScriptItem(script_array[script])
+                    local script = chosen_item.script or "unknown"
+                    if not script_array[script] then
+                        finenv.UI():AlertError("Script menu \"" .. script .. "\" could not be identified", "Error")
+                    else
+                        finenv.ExecuteLuaScriptItem(script_array[script])
+                    end
                 end
-            end
-        end -- "finished" will exit now
+            end -- "finished" will exit now
+        else
+            finished = true
+        end
         finenv.UI():ActivateDocumentWindow()
     end
 end
