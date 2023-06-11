@@ -232,6 +232,7 @@ function user_chooses_script(index, palette_number, instruction)
     end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
+    dialog:RegisterInitWindow(function() scripts:SetKeyboardFocus() end)
     dialog_set_position(dialog)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
     local menu_name = script_names[scripts:GetSelectedItem() + 1]
@@ -507,6 +508,7 @@ function configure_palette(palette_number, index_num)
     dialog:CreateOkButton():SetText("Save")
     dialog:CreateCancelButton():SetText("Discard")
     dialog_set_position(dialog)
+    dialog:RegisterInitWindow(function() list_box:SetKeyboardFocus() end)
     dialog:RegisterHandleCancelButtonPressed(function()
         configuration.get_user_settings(script_name, config) -- restore original user values
         palettes = cjson.decode(config.palettes)
@@ -566,6 +568,7 @@ function choose_palette(palette_number)
         configuration.save_user_settings(script_name, config) -- save new settings
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    dialog:RegisterInitWindow(function() item_list:SetKeyboardFocus() end)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
     return ok, (item_list:GetSelectedItem() + 1)
 end
