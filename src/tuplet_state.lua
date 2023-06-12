@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.58"
-    finaleplugin.Date = "2023/06/04"
+    finaleplugin.Version = "v0.59"
+    finaleplugin.Date = "2023/06/12"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         Change the state of tuplets in the current selection to:
@@ -105,9 +105,9 @@ end
 function reassign_keystrokes()
     local y_step, x_wide = 17, 180
     local offset = finenv.UI():IsOnMac() and 3 or 0
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Tuplets: Reassign Keys")
     local is_duplicate, errors = false, {}
     local y = 0
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Tuplets: Reassign Keys")
     for _, v in ipairs(dialog_options) do -- add all options with keycodes
         dialog:CreateEdit(0, y - offset, v[1]):SetText(config[v[1]]):SetWidth(20)
         dialog:CreateStatic(25, y):SetText(v[2]):SetWidth(x_wide)
@@ -125,7 +125,7 @@ function reassign_keystrokes()
             local key = self:GetControl(v[1]):GetText()
             key = string.upper(string.sub(key, 1, 1)) -- 1st letter, upper case
             if key == "" then key = "?" end -- not null
-            config[ v[1] ] = key -- save for another possible run-through
+            config[v[1]] = key -- save for another possible run-through
             config.ignore_duplicates = ignore:GetCheck()
             if config.ignore_duplicates == 0 then -- DON'T IGNORE duplicates
                 if assigned[key] then -- previously assigned
@@ -157,6 +157,7 @@ end
 function user_chooses()
     local max = layer.max_layers()
     local offset = finenv.UI():IsOnMac() and 3 or 0
+    local join = finenv.UI():IsOnMac() and "\t" or ": "
     local y_step = 17
     local box_wide = 220
     local box_high = (#dialog_options * y_step) + 5
@@ -166,19 +167,17 @@ function user_chooses()
     local key_list = dialog:CreateListBox(0, 20):SetWidth(box_wide):SetHeight(box_high)
     local function fill_key_list()
         key_list:Clear()
-        local join = finenv.UI():IsOnMac() and "\t" or ": "
         for _, option in ipairs(dialog_options) do -- add all options with keycodes
             key_list:AddString(config[option[1]] .. join .. option[2])
         end
         key_list:SetSelectedItem(config.last_selected or 0)
     end
     fill_key_list()
-    key_list:SetKeyboardFocus()
 
-    local y_off = box_wide / 4
-    box_high = box_high + 30
-    local reassign = dialog:CreateButton(y_off, box_high)
-        :SetText("Reassign Keys"):SetWidth(y_off * 2) -- half box width
+    local x_off = box_wide / 4
+    local y = box_high + 30
+    local reassign = dialog:CreateButton(x_off, y)
+        :SetText("Reassign Keys"):SetWidth(x_off * 2) -- half box width
     reassign:AddHandleCommand(function()
         local ok, is_duplicate = true, true
         while ok and is_duplicate do -- wait for valid choices in reassign_keystrokes()
@@ -189,16 +188,17 @@ function user_chooses()
             fill_key_list()
         end
     end)
-    box_high = box_high + 25
-    dialog:CreateStatic(12, box_high):SetWidth(y_off):SetWidth(y_off * 2)
+    y = y + 25
+    dialog:CreateStatic(12, y):SetWidth(x_off * 2)
         :SetText("Active Layer 1-" .. max .. ":")
-    dialog:CreateEdit(y_off * 2, box_high - offset, "layer"):SetWidth(20)
+    dialog:CreateEdit(x_off * 2, y - offset, "layer"):SetWidth(20)
         :SetInteger(config.layer_num or 0)
-    dialog:CreateStatic(y_off * 2 + 24, box_high):SetWidth(y_off):SetWidth(80)
+    dialog:CreateStatic(x_off * 2 + 24, y):SetWidth(80)
         :SetText("(0 = all)")
     dialog:CreateOkButton():SetText("Select")
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
+    dialog:RegisterInitWindow(function() key_list:SetKeyboardFocus() end)
     dialog:RegisterHandleOkButtonPressed(function(self)
         config.last_selected = key_list:GetSelectedItem() -- save list choice
         local n = self:GetControl("layer"):GetInteger()
