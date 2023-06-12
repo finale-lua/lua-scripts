@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.18"
-    finaleplugin.Date = "2023/06/03"
+    finaleplugin.Version = "v0.19"
+    finaleplugin.Date = "2023/06/12"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         Change notehead shapes on a specific layer of the current selection to one of these shapes:  
@@ -100,6 +100,7 @@ function user_chooses_glyph()
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
+    dialog:RegisterInitWindow(function() glyph:SetKeyboardFocus() end)
     dialog:RegisterHandleOkButtonPressed(function(self)
         config.glyph = glyph:GetText()
         dialog_save_position(self)
@@ -161,6 +162,7 @@ end
 function user_chooses_shape()
     local x_offset = 185
     local y_step = 17
+    local join = finenv.UI():IsOnMac() and "\t" or ": "
     local box_high = (#dialog_options * y_step) + 5
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- + vertical offset for Mac edit boxes
 
@@ -169,7 +171,6 @@ function user_chooses_shape()
     local shape_list = dialog:CreateListBox(0, y_step):SetWidth(x_offset - 20):SetHeight(box_high)
         local function fill_shape_list()
             shape_list:Clear()
-            local join = finenv.UI():IsOnMac() and "\t" or ": "
             for i, v in ipairs(dialog_options) do
                 local item = (i == 4) and "Guitar Diamond" or v
                 shape_list:AddString(config[v] .. join .. item)
@@ -179,7 +180,6 @@ function user_chooses_shape()
             end
         end
     fill_shape_list()
-    shape_list:SetKeyboardFocus()
 
     local max = layer.max_layers()
     dialog:CreateStatic(x_offset, y_step * 3):SetText("Layer number (1-" .. max .. "):"):SetWidth(110)
@@ -202,6 +202,7 @@ function user_chooses_shape()
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
+    dialog:RegisterInitWindow(function() shape_list:SetKeyboardFocus() end)
     dialog:RegisterHandleOkButtonPressed(function(self)
         -- convert shape codes back to lower case
         config.shape = string.lower( dialog_options[shape_list:GetSelectedItem() + 1] )
