@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.64"
-    finaleplugin.Date = "2023/06/15"
+    finaleplugin.Version = "v0.65"
+    finaleplugin.Date = "2023/06/16"
     finaleplugin.AdditionalMenuOptions = [[
         Gracenote Slash Configuration...
     ]]
@@ -97,8 +97,8 @@ end
 function add_slashes()
     local new_slash = { } -- need a different slash shape for upstem and downstem groups
     for entry in eachentrysaved(finenv.Region()) do
-        if entry.GraceNote and (entry:CalcGraceNoteIndex() == 0) then
-            if (entry:Next() and entry:Next().GraceNote) then -- grace note group
+        if entry.GraceNote then
+            if (entry:CalcGraceNoteIndex() == 0) and entry:Next().GraceNote and not entry:Next():CalcUnbeamedNote() then
                 local stem = entry.StemUp and "upstem_" or "downstem_"
                 if not new_slash[stem] then -- often only need upstem slash
                     new_slash[stem] = make_slash_definition(stem)
