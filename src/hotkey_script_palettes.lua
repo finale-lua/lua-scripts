@@ -40,9 +40,9 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.42"
+    finaleplugin.Version = "0.43"
     finaleplugin.LoadLuaOSUtils = true
-    finaleplugin.Date = "2023/06/12"
+    finaleplugin.Date = "2023/06/16"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = info
@@ -116,7 +116,7 @@ function dialog_save_position(dialog)
     configuration.save_user_settings(script_name, config)
 end
 
-function reassign_keys(palette_number)
+function reassign_all_keys(palette_number)
     local is_macro = (palette_number == 0)
     local y, y_step, x_wide =  0, 17, 220
     local offset = finenv.UI():IsOnMac() and 3 or 0
@@ -133,7 +133,7 @@ function reassign_keys(palette_number)
     dialog:CreateStatic(0, y):SetText("Key"):SetWidth(x_wide)
     dialog:CreateStatic(30, y):SetText(title):SetWidth(x_wide)
     y = y + y_step + 5
-    for i, v in ipairs(array) do -- add all options with keycodes
+    for _, v in ipairs(array) do -- add all options with keycodes
         dialog:CreateEdit(0, y - offset, v.name):SetText(v.key):SetWidth(20)
         dialog:CreateStatic(30, y):SetText(v.name):SetWidth(x_wide)
         y = y + y_step
@@ -201,10 +201,10 @@ function user_chooses_script(index, palette_number, instruction)
     local old_menu = sub[index] or { name = "", script = "", key = "?" }
     local assigned, script_names = {}, {}
     for _, v in ipairs(sub) do
-        assigned[v.script] = true
+        if v.script then assigned[v.script] = true end
     end
     for k, _ in pairs(script_array) do
-        if not assigned[k] or (old_menu.script == k) then
+        if not assigned[k] or (k == old_menu.script) then
             table.insert(script_names, k)
         end
     end
@@ -247,7 +247,9 @@ function fill_list_box(list_box, array, selected)
     for _, v in ipairs(array) do
         list_box:AddString(v.key .. join .. v.name)
     end
-    if selected > 1 then list_box:SetSelectedItem(selected - 1) end
+    if selected and tonumber(selected) > 1 then
+        list_box:SetSelectedItem(tonumber(selected) - 1)
+    end
 end
 
 function load_menu_level(top_menu, old_name, level, match_title)
@@ -420,25 +422,25 @@ function configure_palette(palette_number, index_num)
 
     y = y + box_high + 8
     local x_off = x_wide / 20
-    local remove = dialog:CreateButton(0, y):SetText("Remove"):SetWidth(x_off * 9)
-    local rename = dialog:CreateButton(x_off * 11, y):SetWidth(x_off * 9):SetText("Change Name")
+    local remove_item = dialog:CreateButton(0, y):SetText("Remove"):SetWidth(x_off * 9)
+    local rename_item = dialog:CreateButton(x_off * 11, y):SetWidth(x_off * 9):SetText("Change Name")
     y = y + y_step + 5
     text = is_macro and "New Palette" or "Add Script"
-    local add = dialog:CreateButton(0, y):SetText(text):SetWidth(x_off * 9)
-    local reassign, add_menu
+    local add_item = dialog:CreateButton(0, y):SetText(text):SetWidth(x_off * 9)
+    local reassign_keys, add_menu
     if is_macro then
-        reassign = dialog:CreateButton(x_off * 11, y):SetText("Reassign Keys"):SetWidth(x_off * 9)
+        reassign_keys = dialog:CreateButton(x_off * 11, y):SetText("Reassign Keys"):SetWidth(x_off * 9)
     else
         add_menu = dialog:CreateButton(x_off * 11, y):SetText("Add Menu Item"):SetWidth(x_off * 9)
         y = y + y_step + 5
-        reassign = dialog:CreateButton(x_off * 5, y):SetText("Reassign Keys"):SetWidth(x_off * 10)
+        reassign_keys = dialog:CreateButton(x_off * 5, y):SetText("Reassign Keys"):SetWidth(x_off * 10)
     end
-    remove:AddHandleCommand(function() -- REMOVE PALETTE / SCRIPT / MENU
+    remove_item:AddHandleCommand(function() -- REMOVE PALETTE / SCRIPT / MENU
         local index = list_box:GetSelectedItem() + 1
         table.remove(array, index)
-        fill_list_box(list_box, array, 0)
+        fill_list_box(list_box, array, 1)
     end)
-    rename:AddHandleCommand(function() -- RENAME PALETTE / SCRIPT / MENU
+    rename_item:AddHandleCommand(function() -- RENAME PALETTE / SCRIPT / MENU
         local index = list_box:GetSelectedItem() + 1
         local title = is_macro and "Rename Palette" or "Rename Script/Menu"
         local ok, new_name, hotkey = user_enters_text(array[index], title)
@@ -449,18 +451,18 @@ function configure_palette(palette_number, index_num)
             fill_list_box(list_box, array, index)
         end
     end)
-    reassign:AddHandleCommand(function() -- REASSIGN KEYS
+    reassign_keys:AddHandleCommand(function() -- REASSIGN KEYS
         local ok, is_duplicate = true, true
-        while ok and is_duplicate do -- wait for valid choices in reassign_keys()
-            ok, is_duplicate = reassign_keys(palette_number)
+        while ok and is_duplicate do -- wait for valid choices in reassign_all_keys()
+            ok, is_duplicate = reassign_all_keys(palette_number)
         end
         if ok then
-            fill_list_box(list_box, array, #array)
+            fill_list_box(list_box, array, 1)
         else -- restore previously saved choices
             configuration.get_user_settings(script_name, config, true)
         end
     end)
-    add:AddHandleCommand(function() -- ADD PALETTE / SCRIPT / MENU
+    add_item:AddHandleCommand(function() -- ADD PALETTE or SCRIPT
         local new_name, new_script, hotkey
         local new_element, ok = {}, false
         if is_macro then
@@ -474,13 +476,13 @@ function configure_palette(palette_number, index_num)
         else -- SCRIPT palette
             ok, new_name, new_script, hotkey = user_chooses_script(0, palette_number, "Add New RGP Lua Script:")
             if ok then
-                new_element = { name = new_name, key = hotkey, script = new_script, menu = nil }
+                new_element = { name = new_name, key = hotkey, script = new_script }
             end
         end
         if ok then
             table.insert(array, new_element)
             sort_table(array)
-            fill_list_box(list_box, array, #array)
+            fill_list_box(list_box, array, 1)
         end
     end)
     if not is_macro then
@@ -488,10 +490,10 @@ function configure_palette(palette_number, index_num)
             local new_element = {}
             local ok, new_name, menu_id, trigger = user_chooses_menu()
             if ok then
-                new_element = { name = new_name, key = trigger, menu = menu_id, script = "" }
+                new_element = { name = new_name, key = trigger, menu = menu_id }
                 table.insert(array, new_element)
                 sort_table(array)
-                fill_list_box(list_box, array, #array)
+                fill_list_box(list_box, array, 1)
             end
         end)
     end
