@@ -6,13 +6,13 @@ It provides access to Lua scripts and other Finale menu items through a set of
 easily configurable palettes (dialog windows) organised by type of activity 
 and triggerd by simple "hotkey" keystrokes.
 
-The "Hotkey Palettes" approach is demonstrated expertly by Nick Mazuk at 
+The "Hotkey Palettes" principle is demonstrated expertly by Nick Mazuk at 
 [https://www.youtube.com/@nickmazuk]. 
 Scripts are grouped into primary categories like "Intervals", "Layers", 
 "Notes & Chords", "Measure Items" and so on as a set of palettes triggered by keystroke. 
 These primary palettes call up a second layer of palettes containg scripts in related areas, 
 also triggered by keystroke. Reach hundreds of scripts in your collection using 
-two keystrokes with hotkeys presented as a visual reminder. 
+just two keystrokes with hotkeys presented as a visual reminder. 
 Actions you repeat often will link to muscle memory and become easier to recall.
 
 Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac to achieve this, 
@@ -21,7 +21,7 @@ It doesn't provide access to every single menu item nor interact with them like 
 but it does remember the last selection in each category and can be set up 
 entirely within Finale without external software or tricky configuration files. 
 Scripts that use modifier keys (SHIFT, ALT/option etc) for "alternative" behaviours 
-can identify those keys when called from a palette.
+respond to those keys when called from a palette.
 
 The script comes loaded with a full set of "demo" palettes containing many of the 
 Lua scripts available from https://FinaleLua.com. 
@@ -38,11 +38,11 @@ try it out before saving it to a palette.
 function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.43"
+    finaleplugin.Version = "0.44"
     finaleplugin.LoadLuaOSUtils = true
-    finaleplugin.Date = "2023/06/16"
+    finaleplugin.Date = "2023/06/19"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = info
@@ -54,7 +54,7 @@ local config = { -- this is a DEMO fully-equipped data set. Not all of these scr
     last_palette = 1,
     ignore_duplicates = 0,
     -- ... the location of the last added Menu Item ...
-    menu_tree = "[ ]", -- JSON-encoded table of submenu titles stacked in descending order
+    menu_tree = "[ ]", -- JSON-encoded table of submenu titles stacked from top to bottom
     window_pos_x = false,
     window_pos_y = false,
 }
@@ -75,8 +75,8 @@ local palettes = {}
         key = "A",
         last = 1, -- number of last script chosen from this palette
         sub = -- { name displayed / hotkey / "real" scriptname returned by finenv.CreateLuaScriptItems()
-        {   {   name = "script 1A", key = "A", script = "script_name_1A" },
-            {   name = "script 1B", key = "B", script = "script_name_1B" },
+        {   {   name = "script 1A", key = "A", script = "script_name_1A", (optional) menu = "menu_title_1A" },
+            {   name = "script 1B", key = "B", script = "script_name_1B", (optional) menu = "menu_title_1B" },
              ... etc
         }
     },
@@ -84,8 +84,8 @@ local palettes = {}
         key = "B",
         last = 1,
         sub =
-        {   {   name = "script 2A", key = "A", script = "script_name_2A" },
-            {   name = "script 2B", key = "B", script = "script_name_2B" },
+        {   {   name = "script 2A", key = "A", script = "script_name_2A", (optional) menu = "menu_title_2A" },
+            {   name = "script 2B", key = "B", script = "script_name_2B", (optional) menu = "menu_title_2B" },
              ... etc
         }
     }, etc etc...
@@ -97,8 +97,16 @@ function clean_key(input) -- return one clean uppercase character
     return key
 end
 
-function sort_table(array)
+function sort_table(array, match_text, match_type)
     table.sort(array, function(a, b) return string.lower(a.name) < string.lower(b.name) end)
+    local index = 1
+    for i, v in ipairs(array) do
+        if v[match_type] == match_text then
+            index = i
+            break
+        end
+    end
+    return index
 end
 
 function dialog_set_position(dialog)
@@ -182,10 +190,10 @@ function user_enters_text(array, title)
     local offset = finenv.UI():IsOnMac() and 3 or 0
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(title)
     dialog:CreateStatic(0, 0):SetText("New Name:"):SetWidth(x_wide)
-    local answer = dialog:CreateEdit(0, 20):SetText(array.name):SetWidth(x_wide)
+    local answer = dialog:CreateEdit(0, 20):SetText(array.name or ""):SetWidth(x_wide)
 
     dialog:CreateStatic(0, 46):SetText("Hotkey:"):SetWidth(x_wide)
-    local key_edit = dialog:CreateEdit(45, 46 - offset):SetText(array.key):SetWidth(25)
+    local key_edit = dialog:CreateEdit(45, 46 - offset):SetText(array.key or "?"):SetWidth(25)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterInitWindow(function() answer:SetKeyboardFocus() end)
@@ -304,7 +312,7 @@ Note that many Finale menus do nothing unless part of the score is already selec
     local up_to_parent = dialog:CreateButton(mid_x, y):SetText("Up to Parent Menu ↑")
         :SetWidth(mid_x)
     up_to_parent:SetVisible(false)
-    local list = dialog:CreateListBox(0, y):SetWidth(list_wide):SetHeight(box_high)
+    local menu_list_box = dialog:CreateListBox(0, y):SetWidth(list_wide):SetHeight(box_high)
     y = y + (box_high / 4)
     local open_submenu = dialog:CreateButton(mid_x, y):SetText("Open Submenu →"):SetWidth(mid_x)
     y = y + (y_step * 2)
@@ -321,7 +329,7 @@ Note that many Finale menus do nothing unless part of the score is already selec
     dialog:CreateCancelButton()
         --
         local function check_status()
-            local i = list:GetSelectedItem() + 1
+            local i = menu_list_box:GetSelectedItem() + 1
             local is_submenu = (menu_levels[level].members[i].sub ~= nil)
             open_submenu:SetVisible(is_submenu)
             ok_button:SetVisible(not is_submenu)
@@ -338,23 +346,23 @@ Note that many Finale menus do nothing unless part of the score is already selec
             end
         end
         --
-        local function fill_list(array, index)
-            list:Clear()
+        local function fill_menu_list(array, index)
+            menu_list_box:Clear()
             for _, v in ipairs(array) do
                 local tag = (v.sub ~= nil) and " >" or ""
-                list:AddString(v.text .. tag)
+                menu_list_box:AddString(v.text .. tag)
             end
-            if index > 1 then list:SetSelectedItem(index - 1) end
+            if index > 1 then menu_list_box:SetSelectedItem(index - 1) end
             check_status()
         end
         --
-    list:AddHandleCommand(function() check_status() end)
+        menu_list_box:AddHandleCommand(function() check_status() end)
     inputs[5]:AddHandleCommand(function() -- Test Menu Item BUTTON
-        local id = menu_levels[level].members[list:GetSelectedItem() + 1].id
+        local id = menu_levels[level].members[menu_list_box:GetSelectedItem() + 1].id
         finenv.UI():ExecuteOSMenuCommand(id)
     end)
     open_submenu:AddHandleCommand(function() -- OPEN SUBMENU
-        local i = list:GetSelectedItem() + 1
+        local i = menu_list_box:GetSelectedItem() + 1
         local child = menu_levels[level].members[i].sub
         if child then
             local old_name = menu_levels[level].pos
@@ -362,7 +370,7 @@ Note that many Finale menus do nothing unless part of the score is already selec
             level = level + 1
             menu_levels[level], _ = load_menu_level(child, old_name, level, "")
             menu_levels[level].last_selected = i
-            fill_list(menu_levels[level].members, 1)
+            fill_menu_list(menu_levels[level].members, 1)
         end
     end)
     up_to_parent:AddHandleCommand(function() -- Up To Parent Menu
@@ -370,7 +378,7 @@ Note that many Finale menus do nothing unless part of the score is already selec
             selected = menu_levels[level].last_selected
             table.remove(menu_tree, level)
             level = level - 1
-            fill_list(menu_levels[level].members, selected)
+            fill_menu_list(menu_levels[level].members, selected)
         end
     end)
     dialog:RegisterInitWindow(function()
@@ -388,16 +396,16 @@ Note that many Finale menus do nothing unless part of the score is already selec
         else
             menu_levels[1], _ = load_menu_level(menu_bar, "", 1, "")
         end
-        fill_list(menu_levels[level].members, selected)
-        list:SetKeyboardFocus()
+        fill_menu_list(menu_levels[level].members, selected)
+        menu_list_box:SetKeyboardFocus()
     end)
     dialog:RegisterHandleOkButtonPressed(function()
-        menu_tree[level] = menu_levels[level].members[list:GetSelectedItem() + 1].text
+        menu_tree[level] = menu_levels[level].members[menu_list_box:GetSelectedItem() + 1].text
     end)
     dialog:RegisterCloseWindow(function() config.menu_tree = cjson.encode(menu_tree) end)
     dialog_set_position(dialog)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-    local menu_id = menu_levels[level].members[list:GetSelectedItem() + 1].id
+    local menu_id = menu_levels[level].members[menu_list_box:GetSelectedItem() + 1].id
     return ok, inputs[2]:GetText(), menu_id, clean_key(inputs[4]:GetText())
 end
 
@@ -438,7 +446,8 @@ function configure_palette(palette_number, index_num)
     remove_item:AddHandleCommand(function() -- REMOVE PALETTE / SCRIPT / MENU
         local index = list_box:GetSelectedItem() + 1
         table.remove(array, index)
-        fill_list_box(list_box, array, 1)
+        if (index > 1) then index = index - 1 end
+        fill_list_box(list_box, array, index)
     end)
     rename_item:AddHandleCommand(function() -- RENAME PALETTE / SCRIPT / MENU
         local index = list_box:GetSelectedItem() + 1
@@ -447,7 +456,7 @@ function configure_palette(palette_number, index_num)
         if ok then
             array[index].name = new_name
             array[index].key  = hotkey
-            sort_table(array)
+            index = sort_table(array, new_name, "name")
             fill_list_box(list_box, array, index)
         end
     end)
@@ -481,8 +490,8 @@ function configure_palette(palette_number, index_num)
         end
         if ok then
             table.insert(array, new_element)
-            sort_table(array)
-            fill_list_box(list_box, array, 1)
+            local index = sort_table(array, new_element.name, "name")
+            fill_list_box(list_box, array, index)
         end
     end)
     if not is_macro then
@@ -492,8 +501,8 @@ function configure_palette(palette_number, index_num)
             if ok then
                 new_element = { name = new_name, key = trigger, menu = menu_id }
                 table.insert(array, new_element)
-                sort_table(array)
-                fill_list_box(list_box, array, 1)
+                local index = sort_table(array, new_name, "name")
+                fill_list_box(list_box, array, index)
             end
         end)
     end
