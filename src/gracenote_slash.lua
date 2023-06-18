@@ -1,10 +1,10 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.66"
-    finaleplugin.Date = "2023/06/16"
+    finaleplugin.Version = "v0.67"
+    finaleplugin.Date = "2023/06/19"
     finaleplugin.AdditionalMenuOptions = [[
         Gracenote Slash Configuration...
     ]]
@@ -20,7 +20,7 @@ function plugindef()
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.Notes = [[
         This script duplicates Jari Williamsson's original 2017 JWGraceNoteSlash plug-in so it can be 
-        incorporated into modern operating systems through RGPLua or similar. 
+        incorporated into modern operating systems through RGPLua. 
 
         A `Configuration` menu item is provided to change the script's parameters. 
         They can also be changed by holding down either the SHIFT or ALT (option) key when calling the script.
@@ -34,7 +34,7 @@ local mixin = require("library.mixin")
 local script_name = "gracenote_slash"
 
 local config = { -- in EVPUs
-    upstem_line_width = 2.25,
+    upstem_line_width = 2.25, -- float value
     upstem_y_start = 0,
     upstem_line_to_x = 36,
     upstem_line_to_y = 44,
@@ -98,7 +98,9 @@ function add_slashes()
     local new_slash = { } -- need a different slash shape for upstem and downstem groups
     for entry in eachentrysaved(finenv.Region()) do
         if entry.GraceNote then
-            if (entry:CalcGraceNoteIndex() == 0) and not entry:CalcUnbeamedNote() then
+            if entry:CalcUnbeamedNote() then
+                entry.GraceNoteSlash = (entry.Duration < finale.QUARTER_NOTE)
+            elseif (entry:CalcGraceNoteIndex() == 0) then
                 local stem = entry.StemUp and "upstem_" or "downstem_"
                 if not new_slash[stem] then -- often only need upstem slash
                     new_slash[stem] = make_slash_definition(stem)
@@ -109,8 +111,6 @@ function add_slashes()
                 art.HorizontalPos = config[stem .. "artic_x_offset"]
                 art.VerticalPos = config[stem .. "artic_y_offset"]
                 art:SaveNew()
-            else -- slash a single grace note
-                entry.GraceNoteSlash = true
             end
         end
     end
