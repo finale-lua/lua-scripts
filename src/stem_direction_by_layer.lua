@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.10"
+    finaleplugin.Version = "0.11"
     finaleplugin.Date = "2023/06/23"
     finaleplugin.MinJWLuaVersion = 0.62
 	finaleplugin.Notes = [[
@@ -46,7 +46,7 @@ function user_choices()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:CreateStatic(0, 0):SetText("Choose Stem Direction:"):SetWidth(150)
     local y = 20
-    local direction_list = dialog:CreateListBox(0, y, "direction"):SetWidth(150):SetHeight(54)
+    local direction_list = dialog:CreateListBox(0, y):SetWidth(150):SetHeight(54)
     for i, v in ipairs(direction_choice) do
         direction_list:AddString(v)
         if v == config.direction then direction_list:SetSelectedItem(i - 1) end
@@ -64,7 +64,8 @@ function user_choices()
         config.layer_num = n
         config.direction = direction_choice[direction_list:GetSelectedItem() + 1]
     end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    dialog:RegisterInitWindow(function() direction_list:SetKeyboardFocus() end)
+    dialog:RegisterCloseWindow(function() dialog_save_position(dialog) end)
     dialog_set_position(dialog)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
@@ -74,10 +75,8 @@ function stem_direction()
     if user_choices() then -- otherwise user cancelled
         for entry in eachentrysaved(finenv.Region(), config.layer_num) do
             if entry:IsNote() then
-                if config.direction == "Default" then
-                    entry.FreezeStem = false
-                else
-                    entry.FreezeStem = true
+                entry.FreezeStem = (config.direction ~= "Default")
+                if config.direction ~= "Default" then
                     entry.StemUp = (config.direction == "Up")
                 end
             end
