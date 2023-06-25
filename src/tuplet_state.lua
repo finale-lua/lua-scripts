@@ -1,10 +1,10 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.59"
-    finaleplugin.Date = "2023/06/12"
+    finaleplugin.Version = "v0.60"
+    finaleplugin.Date = "2023/06/25"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         Change the state of tuplets in the current selection to:
@@ -16,6 +16,9 @@ function plugindef()
         - Flip
         - Invisible
         - Visible
+        - Bracket Unbeamed Only
+        - Bracket Always
+        - Bracket Not Beamed Side
         - Reset (to Default Preferences)
         
         The script provides a list of options, each line beginning with a configurable "hotkey". 
@@ -32,6 +35,9 @@ local dialog_options = { -- key, text description (ordered)
     { "flip", "Flip" },
     { "invisible", "Invisible" },
     { "visible", "Visible" },
+    { "bracket_unbeam", "Bracket Unbeamed Only" },
+    { "bracket_always", "Bracket Always" },
+    { "bracket_opp_beam", "Bracket Not Beamed Side" },
     { "reset", "Reset (to Default Preferences)" },
 }
 
@@ -43,6 +49,9 @@ local config = { -- keystroke assignments and window position
     flip = "X",
     visible = "V",
     invisible = "I",
+    bracket_unbeam = "U",
+    bracket_always = "J",
+    bracket_opp_beam = "O",
     reset = "R",
     layer_num = 0,
     ignore_duplicates = 0,
@@ -95,6 +104,14 @@ function change_tuplet_state(state)
                     elseif placement == finale.TUPLETPLACEMENT_BELOW then
                         tuplet.PlacementMode = finale.TUPLETPLACEMENT_ABOVE
                     end
+                elseif state:find("bracket") then
+                    local bracket = finale.TUPLETBRACKET_ALWAYS -- (assume "always" bracket)
+                    if state == "bracket_unbeam" then
+                        bracket = finale.TUPLETBRACKET_UNBEAMEDONLY
+                    elseif state == "bracket_opp_beam" then
+                        bracket = finale.TUPLETBRACKET_NEVERBEAMEDONBEAMSIDE
+                    end
+                    tuplet.BracketMode = bracket
                 end
                 tuplet:Save()
             end
