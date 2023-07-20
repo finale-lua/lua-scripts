@@ -1,8 +1,7 @@
 -- NOTE: in this info string each " \n" will be replaced with " " in the "?" dialog info button.
 local info = [[
-This is a keyboard-based alternative to Robert Patterson's "Finale lua menu organizer" script 
-to help Finale Lua users navigate the many scripts crowding their RGP Lua menu. 
-It provides access to Lua scripts and other Finale menu items through a set of 
+This is designed to help navigate the many scripts crowding your RGP Lua menu. 
+It provides access to Lua scripts and Finale menu items through a set of 
 easily configurable palettes (dialog windows) organised by type of activity 
 and triggerd by simple "hotkey" keystrokes.
 
@@ -10,29 +9,28 @@ The "Hotkey Palettes" principle is demonstrated expertly by Nick Mazuk at
 [https://www.youtube.com/@nickmazuk]. 
 Scripts are grouped into primary categories like "Intervals", "Layers", 
 "Notes & Chords", "Measure Items" and so on as a set of palettes triggered by keystroke. 
-These primary palettes call up a second layer of palettes containg scripts in related areas, 
+Primary palettes call up a second layer of palettes containg scripts in related areas, 
 also triggered by keystroke. Reach hundreds of scripts in your collection using 
-just two keystrokes with hotkeys presented as a visual reminder. 
+just two keystrokes with the actual hotkeys presented as a visual reminder. 
 Actions you repeat often will link to muscle memory and become easier to recall.
 
-Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac to achieve this, 
-but the principle is available for free with RGP Lua in Finale. 
+Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac for this, 
+but the principle is available free in Finale using RGP Lua. 
 It doesn't provide access to every single menu item nor interact with them like KM can, 
-but it does remember the last selection in each category and can be set up 
-entirely within Finale without external software or tricky configuration files. 
-Scripts that use modifier keys (SHIFT, ALT/option etc) for "alternative" behaviours 
-respond to those keys when called from a palette.
+but it remembers the last selection in every category and can be set up 
+entirely within Finale without external software or configuration files. 
+Scripts that use modifier keys (shift, alt/option etc) for "alternative" behaviours 
+respond to those keys when called from the palettes.
 
 The script comes loaded with a full set of "demo" palettes containing many of the 
-Lua scripts available from https://FinaleLua.com. 
+Lua scripts available at https://FinaleLua.com. 
 If a script isn't installed on your system you will get an "unidentified" warning on execution. 
 Delete those scripts and add new ones in their place. 
-Reconfigure each of the "Main" palettes, change their name and hotkey, delete them or add new ones.
+Reconfigure each of the "Main" palettes, change their name or hotkey, delete them or add new ones.
 
-You can also add many standard Finale menus to your palettes. 
+You can also add Finale menus to your palettes. 
 Not every menu item is available, including Plug-ins that are NOT "RGP Lua", 
-but when you choose "Add Menu Item" and locate a menu to add you can 
-try it out before saving it to a palette.
+but when you use "Add Menu Item" you can try out the menu before saving it to a palette.
 ]]
 
 function plugindef()
@@ -40,16 +38,16 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.44"
+    finaleplugin.Version = "0.45"
     finaleplugin.LoadLuaOSUtils = true
-    finaleplugin.Date = "2023/06/19"
+    finaleplugin.Date = "2023/07/20"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = info
     return "Hotkey Script Palettes...", "Hotkey Script Palettes", "Trigger RGP Lua scripts by keystroke through a configurable set of dialog windows"
 end
 
-local config = { -- this is a DEMO fully-equipped data set. Not all of these scripts may be present on the user's system.
+local config = { -- this is a DEMO fully-equipped data set. Some of these scripts won't be present on the user's system.
     palettes = [[ [{"key":"A","last":1,"sub":[{"key":"Z","script":"Hairpin Create Crescendo","name":"Hairpin Crescendo"},{"key":"X","script":"Hairpin Create Diminuendo","name":"Hairpin Diminuendo"},{"key":"C","script":"Hairpin Create Swell","name":"Hairpin Swell"},{"key":"V","script":"Hairpin Create Unswell","name":"Hairpin Unswell"},{"key":"H","script":"Harp gliss","name":"Harp gliss"},{"key":"S","script":"Slur Selection","name":"Slur Selection"},{"key":"P","script":"Swap Staves","name":"Swap Staves"}],"name":"Automations"},{"key":"C","last":"1","sub":[{"key":"E","script":"Note Ends Eighths","name":"Note Ends Eighths"},{"key":"Q","script":"Note Ends Quarters","name":"Note Ends Quarters"},{"key":"A","script":"Noteheads Change by Layer...","name":"Noteheads Change"},{"key":"B","script":"Break Secondary Beams","name":"Secondary Beams Break"},{"key":"J","script":"Clear Secondary Beam Breaks","name":"Secondary Beams Clear"},{"key":"T","script":"Tie Notes","name":"Tie Notes"},{"key":"G","script":"Untie Notes","name":"Ties Remove"}],"name":"Chords & Notes"},{"key":"E","last":1,"sub":[{"key":"X","script":"Deletion Chooser...","name":"Deletion Chooser..."},{"key":"P","script":"Expression Set To Parts Only","name":"Expression Set To Parts Only"},{"key":"B","script":"Expression Set To Score and Parts","name":"Expression Set To Score and Parts"},{"key":"S","script":"Swap Staves","name":"Swap Staves"},{"key":"T","script":"Tuplet State Chooser...","name":"Tuplet State Chooser..."}],"name":"Expressions & misc."},{"key":"W","last":"1","sub":[{"key":"5","script":"Enharmonic Transpose Down","name":"Enharmonic Transpose Down"},{"key":"6","script":"Enharmonic Transpose Up","name":"Enharmonic Transpose Up"},{"key":"S","script":"Staff Explode Layers","name":"Explode Layers"},{"key":"W","script":"Staff Explode Pairs","name":"Explode Pairs"},{"key":"Q","script":"Staff Explode Singles","name":"Explode Singles"},{"key":"E","script":"Staff Explode Split Pairs","name":"Explode Split Pairs"},{"key":"C","script":"Transpose Chromatic...","name":"Transpose Chromatic..."}],"name":"Intervals"},{"key":"Q","last":"1","sub":[{"key":"3","script":"Clear Layer Selective","name":"Clear Layer Selective"},{"key":"8","script":"Layer Hide","name":"Layer Hide"},{"key":"5","script":"Layer Mute","name":"Layer Mute"},{"key":"9","script":"Layer Unhide","name":"Layer Unhide"},{"key":"6","script":"Layer Unmute","name":"Layer Unmute"},{"key":"2","script":"Swap Layers Selective","name":"Swap Layers Selective"}],"name":"Layers etc."},{"key":"B","last":1,"sub":[{"key":"D","script":"Barline Set Double","name":"Barline Double"},{"key":"E","script":"Barline Set Final","name":"Barline Final"},{"key":"0","script":"Barline Set None","name":"Barline None"},{"key":"N","script":"Barline Set Normal","name":"Barline Normal"},{"key":"Q","script":"Cue Notes Create...","name":"Cue Notes Create..."},{"key":"H","script":"Measure Span Divide","name":"Measure Span Divide"},{"key":"J","script":"Measure Span Join","name":"Measure Span Join"},{"key":"B","script":"Measure Span Options...","name":"Measure Span Options..."},{"key":"9","script":"Meter Set Numeric","name":"Meter Set Numeric"}],"name":"Measure Items"}] ]],
     last_palette = 1,
     ignore_duplicates = 0,
@@ -61,9 +59,10 @@ local config = { -- this is a DEMO fully-equipped data set. Not all of these scr
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
-local cjson = require("cjson")
 local osutils = require("luaosutils")
 local menu = osutils.menu
+local utils = require("library.utils")
+local cjson = utils.require_embedded("cjson")
 
 local script_array = {} -- assemble all script items from the RGPLua menu
 local script_name = "hotkey_script_palettes"
@@ -305,13 +304,13 @@ After you've highlighted an active menu item from the list a "Test Menu Item" bu
 will appear to make sure it works before you add it to the current palette. 
 Note that many Finale menus do nothing unless part of the score is already selected. ]]
     dialog:CreateButton(mid_x * 2 - 20, y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() finenv.UI():AlertInfo(script_about:gsub(" \n", " "), "About Adding Menu Items") end)
+        :AddHandleCommand(function() finenv.UI():AlertInfo(script_about:gsub(" \n", " "), "Adding Menu Items") end)
     y = y + y_step
     dialog:CreateStatic(0, y):SetText("Choose Menu Item:"):SetWidth(x_wide)
     y = y + y_step + 5
     local up_to_parent = dialog:CreateButton(mid_x, y):SetText("Up to Parent Menu ↑")
         :SetWidth(mid_x)
-    up_to_parent:SetVisible(false)
+    up_to_parent:SetEnable(false)
     local menu_list_box = dialog:CreateListBox(0, y):SetWidth(list_wide):SetHeight(box_high)
     y = y + (box_high / 4)
     local open_submenu = dialog:CreateButton(mid_x, y):SetText("Open Submenu →"):SetWidth(mid_x)
@@ -331,11 +330,11 @@ Note that many Finale menus do nothing unless part of the score is already selec
         local function check_status()
             local i = menu_list_box:GetSelectedItem() + 1
             local is_submenu = (menu_levels[level].members[i].sub ~= nil)
-            open_submenu:SetVisible(is_submenu)
-            ok_button:SetVisible(not is_submenu)
-            up_to_parent:SetVisible(level > 1)
+            open_submenu:SetEnable(is_submenu)
+            ok_button:SetEnable(not is_submenu)
+            up_to_parent:SetEnable(level > 1)
             for j = 1, 5 do
-                inputs[j]:SetVisible(not is_submenu)
+                inputs[j]:SetEnable(not is_submenu)
             end
             if not is_submenu then
                 inputs[2]:SetText(menu_levels[level].members[i].text)
