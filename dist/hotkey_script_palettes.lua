@@ -4790,46 +4790,49 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     end
     return utils
 end
-local info = [[
-This is designed to help navigate the many scripts crowding your RGP Lua menu.
-It provides access to Lua scripts and Finale menu items through a set of
-easily configurable palettes (dialog windows) organised by type of activity
-and triggerd by simple "hotkey" keystrokes.
-The "Hotkey Palettes" principle is demonstrated expertly by Nick Mazuk at
-[https://www.youtube.com/@nickmazuk].
-Scripts are grouped into primary categories like "Intervals", "Layers",
-"Notes & Chords", "Measure Items" and so on as a set of palettes triggered by keystroke.
-Primary palettes call up a second layer of palettes containg scripts in related areas,
-also triggered by keystroke. Reach hundreds of scripts in your collection using
-just two keystrokes with the actual hotkeys presented as a visual reminder.
-Actions you repeat often will link to muscle memory and become easier to recall.
-Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac for this,
-but the principle is available free in Finale using RGP Lua.
-It doesn't provide access to every single menu item nor interact with them like KM can,
-but it remembers the last selection in every category and can be set up
-entirely within Finale without external software or configuration files.
-Scripts that use modifier keys (shift, alt/option etc) for "alternative" behaviours
-respond to those keys when called from the palettes.
-The script comes loaded with a full set of "demo" palettes containing many of the
-Lua scripts available at https://FinaleLua.com.
-If a script isn't installed on your system you will get an "unidentified" warning on execution.
-Delete those scripts and add new ones in their place.
-Reconfigure each of the "Main" palettes, change their name or hotkey, delete them or add new ones.
-You can also add Finale menus to your palettes.
-Not every menu item is available, including Plug-ins that are NOT "RGP Lua",
-but when you use "Add Menu Item" you can try out the menu before saving it to a palette.
-]]
 function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.45"
+    finaleplugin.Version = "0.46"
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.Date = "2023/07/20"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.67
-    finaleplugin.Notes = info
+    finaleplugin.Notes = [[
+        This is designed to help navigate the many scripts crowding your RGP Lua menu.
+        It provides access to Lua scripts and Finale menu items through a set of
+        easily configurable palettes (dialog windows) organised by type of activity
+        and triggerd by simple "hotkey" keystrokes.
+
+        The "Hotkey Palettes" principle is demonstrated expertly by Nick Mazuk at
+        [https://www.youtube.com/@nickmazuk].
+        Scripts are grouped into primary categories like "Intervals", "Layers",
+        "Notes & Chords", "Measure Items" and so on as a set of palettes triggered by keystroke.
+        Primary palettes call up a second layer of palettes containg scripts in related areas,
+        also triggered by keystroke. Reach hundreds of scripts in your collection using
+        just two keystrokes with the actual hotkeys presented as a visual reminder.
+        Actions you repeat often will link to muscle memory and become easier to recall.
+
+        Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac for this,
+        but the principle is available free in Finale using RGP Lua.
+        It doesn't provide access to every single menu item nor interact with them like KM can,
+        but it remembers the last selection in every category and can be set up
+        entirely within Finale without external software or configuration files.
+        Scripts that use modifier keys (shift, alt/option etc) for "alternative" behaviours
+        respond to those keys when called from the palettes.
+
+        The script comes loaded with a full set of "demo" palettes containing many of the
+        Lua scripts available at https://FinaleLua.com.
+        If a script isn't installed on your system you will get an "unidentified" warning on execution.
+        Delete those scripts and add new ones in their place.
+        Reconfigure each of the "Main" palettes, change their name or hotkey, delete them or add new ones.
+
+        You can also add Finale menus to your palettes.
+        Not every menu item is available, including Plug-ins that are NOT "RGP Lua",
+        but when you use "Add Menu Item" you can try out the menu before saving it to a palette.
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/hotkey_script_palettes.hash"
     return "Hotkey Script Palettes...", "Hotkey Script Palettes", "Trigger RGP Lua scripts by keystroke through a configurable set of dialog windows"
 end
@@ -5274,7 +5277,7 @@ function choose_palette(palette_number)
     local text = "Hotkey Script Palettes"
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(text)
     dialog:CreateButton(box_wide - 20, 0):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() finenv.UI():AlertInfo(info:gsub(" \n", " "), text) end)
+        :AddHandleCommand(function() finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" \n", " "), text) end)
     if not is_macro then
         dialog:CreateStatic(0, y):SetText("Palette: " .. palettes[palette_number].name):SetWidth(box_wide * .9)
         y = y + y_step
