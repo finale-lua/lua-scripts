@@ -5858,13 +5858,39 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
     end
     return tie
 end
+local info = [[This script changes the "span" of every measure in the currently selected music by
+manipulating its time signature, either dividing it into two or combining it with the
+following measure. Many measures with different time signatures can be modified at once.
+== JOIN ==
+Combine each pair of measures in the selection into one by combining their time signatures.
+If they have the same time signature either double the numerator ([3/4][3/4] -> [6/4]) or
+halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures aren't equal, choose to either
+COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]).
+(Consolidation loses current beam groupings). You can choose that a consolidated "display"
+time signature is created automatically when compositing meters. "JOIN" only works on an even number of measures.
+== DIVIDE ==
+Divide every selected measure into two, changing the time signature by either halving the
+numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]).
+If the measure has an odd number of beats, choose whether to put more beats in the first
+measure (5->3+2) or the second (5->2+3). Measures containing composite meters will be divided
+after the first composite group, or if there is only one group, after its first element.
+== IN ALL CASES ==
+Incomplete measures will be filled with rests before Join/Divide. Measures containing too many
+notes will be trimmed to their "real" duration. Time signatures "for display only" will be removed.
+Measures are either deleted or shifted in every operation so smart shapes spanning the area
+need to be "restored". Selecting a SPAN of "5" will look for smart shapes to restore from 5
+measures before until 5 after the selected region. (This takes noticeably longer than a SPAN of "2").
+== OPTIONS ==
+To configure script settings select the "Measure Span Options..." menu item, or else hold down
+the SHIFT or ALT (option) key when invoking "Join" or "Divide".
+]]
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.55"
-    finaleplugin.Date = "2023/04/17"
+    finaleplugin.Version = "v0.61"
+    finaleplugin.Date = "2023/05/23"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.64
     finaleplugin.AdditionalMenuOptions = [[
@@ -5885,49 +5911,10 @@ function plugindef()
     ]]
     finaleplugin.ScriptGroupName = "Measure Span"
     finaleplugin.ScriptGroupDescription = "Divide single measures or join measure pairs by changing time signatures"
-    finaleplugin.Notes = [[
-        This script changes the "span" of every measure in the currently selected music by manipulating its time signature,
-        either dividing it into two or combining it with the following measure.
-        Many measures with different time signatures can be modified at once.
-        JOIN:
-        Combine each pair of measures in the selection into one by combining their time signatures.
-        If they have the same time signature either double the numerator ([3/4][3/4] -> [6/4])
-        or halve the denominator ([3/4][3/4] -> [3/2]).
-        If the time signatures aren't equal, choose to either COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8])
-        or CONSOLIDATE them ([2/4][3/8] -> [7/8]). (Consolidation loses current beam groupings).
-        You can choose that a consolidated "display" time signature is created automatically when compositing meters.
-        "JOIN" only works on an even number of measures.
-        DIVIDE:
-        Divide every selected measure into two, changing the time signature by either
-        halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]).
-        If the measure has an odd number of beats, choose whether to put more beats in the
-        first measure (5->3+2) or the second (5->2+3).
-        Measures containing composite meters will be divided after the first composite group,
-        or if there is only one group, after its first element.
-        IN ALL CASES:
-        Incomplete measures will be filled with rests before Join/Divide.
-        Measures containing too many notes will be trimmed to their "real" duration.
-        Time signatures "for display only" will be removed.
-        Measures are either deleted or shifted in every operation so smart shapes spanning the area need to be "restored".
-        Selecting a SPAN of "5" will look for smart shapes to restore from 5 measures before until 5 after the selected region.
-        (This takes noticeably longer than a SPAN of "2").
-        OPTIONS:
-        To configure script settings select the "Measure Span Options..." menu item,
-        or else hold down the SHIFT or ALT (option) key when invoking "Join" or "Divide".
-    ]]
+    finaleplugin.Notes = info
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_span.hash"
     return "Measure Span Options...", "Measure Span Options", "Change the default behaviour of the Measure Span script"
 end
-local info = [[This script changes the "span" of every measure in the currently selected music by manipulating its time signature, either dividing it into two or combining it with the following measure. Many measures with different time signatures can be modified at once.
-JOIN:
-Combine each pair of measures in the selection into one by combining their time signatures. If they have the same time signature either double the numerator ([3/4][3/4] -> [6/4]) or halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures aren't equal, choose to either COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]). (Consolidation loses current beam groupings). You can choose that a consolidated "display" time signature is created automatically when compositing meters. "JOIN" only works on an even number of measures.
-DIVIDE:
-Divide every selected measure into two, changing the time signature by either halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]). If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3). Measures containing composite meters will be divided after the first composite group, or if there is only one group, after its first element.
-IN ALL CASES:
-Incomplete measures will be filled with rests before Join/Divide. Measures containing too many notes will be trimmed to their "real" duration. Time signatures "for display only" will be removed. Measures are either deleted or shifted in every operation so smart shapes spanning the area need to be "restored". Selecting a SPAN of "5" will look for smart shapes to restore from 5 measures before until 5 after the selected region. (This takes noticeably longer than a SPAN of "2").
-OPTIONS:
-To configure script settings select the "Measure Span Options..." menu item, or else hold down the SHIFT or ALT (option) key when invoking "Join" or "Divide".
-]]
 span_action = span_action or "options"
 local config = {
     halve_numerator =   true,
@@ -5937,7 +5924,7 @@ local config = {
     note_spacing    =   true,
     repaginate      =   false,
     display_meter   =   true,
-    shape_extend    =   2,
+    shape_extend    =   3,
     window_pos_x    =   false,
     window_pos_y    =   false,
 }
@@ -5971,90 +5958,102 @@ function user_options()
     local x_grid = { 15, 70, 190, 210, 305, 110 }
     local i_width = 142
     local y = 0
-    local function yd(delta)
-        delta = delta or 15
-        y = y + delta
-    end
     local dlg = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    local shadow = dlg:CreateStatic(1, y + 1):SetText("DIVIDE EACH MEASURE INTO TWO:"):SetWidth(x_grid[4])
+        local function yd(diff)
+            diff = diff or 15
+            y = y + diff
+        end
+        local function cstat(cx, cy, ctext, cwide, chigh)
+            cx = (type(cx) == "string") and tonumber(cx) or x_grid[cx]
+            local stat = dlg:CreateStatic(cx, cy):SetText(ctext)
+            if cwide then stat:SetWidth(cwide) end
+            if chigh then stat:SetHeight(chigh) end
+            return stat
+        end
+        local function ccheck(cx, cy, cname, cwide, check, ctext, chigh)
+            cx = x_grid[cx]
+            local chk = dlg:CreateCheckbox(cx, cy, cname):SetWidth(cwide):SetText(ctext):SetCheck(check)
+            if chigh then chk:SetHeight(chigh) end
+        end
+        local function chl(cx, cy, cwide)
+            dlg:CreateHorizontalLine(cx, cy, cwide)
+        end
+    local shadow = cstat("1", y + 1, "DIVIDE EACH MEASURE INTO TWO:", x_grid[4])
     if shadow.SetTextColor then shadow:SetTextColor(180, 180, 180) end
-    dlg:CreateStatic(0, y):SetText("DIVIDE EACH MEASURE INTO TWO:"):SetWidth(x_grid[4])
+    cstat("0", y, "DIVIDE EACH MEASURE INTO TWO:", x_grid[4])
     yd(20)
-    dlg:CreateStatic(x_grid[1], y):SetText("Halve the numerator:"):SetWidth(x_grid[3])
-    dlg:CreateCheckbox(x_grid[3], y, "1"):SetCheck(config.halve_numerator and 1 or 0):SetText(" [6/4] -> [3/4][3/4]"):SetWidth(i_width)
+    cstat(1, y, "Halve the numerator:", x_grid[3])
+    ccheck(3, y, "1", i_width, (config.halve_numerator and 1 or 0), " [6/4] -> [3/4][3/4]")
     yd()
-    dlg:CreateStatic(x_grid[2], y):SetText("OR")
+    cstat(2, y, "OR")
     yd()
-    dlg:CreateStatic(x_grid[1], y):SetText("Double the denominator:"):SetWidth(x_grid[3])
-    dlg:CreateCheckbox(x_grid[3], y, "2"):SetCheck(config.halve_numerator and 0 or 1):SetText(" [6/4] -> [6/8][6/8]"):SetWidth(i_width)
+    cstat(1, y, "Double the denominator:", x_grid[3])
+    ccheck(3, y, "2", i_width, (config.halve_numerator and 0 or 1), " [6/4] -> [6/8][6/8]")
     yd(25)
-    dlg:CreateHorizontalLine(x_grid[1], y, x_grid[5])
+    chl(1, y, x_grid[5])
     yd(10)
-    dlg:CreateStatic(x_grid[1], y):SetText("If halving a numerator with an ODD number of beats:"):SetWidth(x_grid[5])
+    cstat(1, y, "If halving a numerator with an ODD number of beats:", x_grid[5])
     yd(17)
-    dlg:CreateStatic(x_grid[1], y):SetText("More beats in first measure:"):SetWidth(x_grid[4] + 20)
-    dlg:CreateCheckbox(x_grid[3], y, "3"):SetCheck(config.odd_more_first and 1 or 0):SetText(" 3 -> 2 + 1 etc."):SetWidth(i_width)
+    cstat(1, y, "More beats in first measure:", x_grid[4] + 20)
+    ccheck(3, y, "3", i_width, (config.odd_more_first and 1 or 0), " 3 -> 2 + 1 etc.")
     yd()
-    dlg:CreateStatic(x_grid[2], y):SetText("OR")
+    cstat(2, y, "OR")
     yd()
-    dlg:CreateStatic(x_grid[1], y):SetText("More beats in second measure:"):SetWidth(x_grid[4] + 20)
-    dlg:CreateCheckbox(x_grid[3], y, "4"):SetCheck(config.odd_more_first and 0 or 1):SetText(" 3 -> 1 + 2 etc."):SetWidth(i_width)
+    cstat(1, y, "More beats in second measure:", x_grid[4] + 20)
+    ccheck(3, y, "4", i_width, (config.odd_more_first and 0 or 1), " 3 -> 1 + 2 etc.")
     yd(27)
-    dlg:CreateHorizontalLine(0, y, x_grid[3] + i_width)
-    dlg:CreateHorizontalLine(0, y + 2, x_grid[3] + i_width)
-    dlg:CreateHorizontalLine(0, y + 3, x_grid[3] + i_width)
-    yd(10)
-    shadow = dlg:CreateStatic(1, y + 1):SetText("JOIN PAIRS OF MEASURES:"):SetWidth(x_grid[3])
+    chl(0, y, x_grid[3] + i_width)
+    chl(0, y + 2, x_grid[3] + i_width)
+    chl(0, y + 3, x_grid[3] + i_width)
+    yd(13)
+    shadow = cstat("1", y + 1, "JOIN PAIRS OF MEASURES:", x_grid[3])
     if shadow.SetTextColor then shadow:SetTextColor(180, 180, 180) end
-    dlg:CreateStatic(0, y):SetText("JOIN PAIRS OF MEASURES:"):SetWidth(x_grid[3])
+    cstat("0", y, "JOIN PAIRS OF MEASURES:", x_grid[3])
     yd(20)
-    dlg:CreateStatic(x_grid[1], y):SetText("If both measures have the same time signature ..."):SetWidth(x_grid[5])
+    cstat(1, y, "If both measures have the same time signature ...", x_grid[5])
     yd(17)
-    dlg:CreateStatic(x_grid[1], y):SetText("Double the numerator:"):SetWidth(x_grid[3])
-    dlg:CreateCheckbox(x_grid[3], y, "5"):SetCheck(config.double_join and 1 or 0):SetText(" [3/8][3/8] -> [6/8]"):SetWidth(i_width)
+    cstat(1, y, "Double the numerator:", x_grid[3])
+    ccheck(3, y, "5", i_width, (config.double_join and 1 or 0), " [3/8][3/8] -> [6/8]")
     yd()
-    dlg:CreateStatic(x_grid[2], y):SetText("OR")
+    cstat(2, y, "OR")
     yd()
-    dlg:CreateStatic(x_grid[1], y):SetText("Halve the denominator:"):SetWidth(x_grid[3])
-    dlg:CreateCheckbox(x_grid[3], y, "6"):SetCheck(config.double_join and 0 or 1):SetText(" [3/8][3/8] -> [3/4]"):SetWidth(i_width)
+    cstat(1, y, "Halve the denominator:", x_grid[3])
+    ccheck(3, y, "6", i_width, (config.double_join and 0 or 1), " [3/8][3/8] -> [3/4]")
     yd(25)
-    dlg:CreateHorizontalLine(x_grid[1], y, x_grid[5])
+    chl(1, y, x_grid[5])
     yd(5)
-    dlg:CreateStatic(x_grid[1], y):SetText("otherwise ..."):SetWidth(x_grid[2])
+    cstat(1, y, "otherwise ...", x_grid[2])
     yd(17)
-    dlg:CreateStatic(x_grid[1], y):SetWidth(x_grid[5]):SetHeight(30):SetText("Consolidate time signatures:")
-    dlg:CreateCheckbox(x_grid[3], y, "8"):SetCheck(config.composite_join and 0 or 1)
-        :SetText(" [2/4][3/8] -> [7/8]\n (lose beaming groups)"):SetWidth(i_width):SetHeight(30)
+    cstat(1, y, "Consolidate time signatures:", x_grid[4])
+    ccheck(3, y, "8", i_width, (config.composite_join and 0 or 1),
+        " [2/4][3/8] -> [7/8]\n (lose beaming groups)", 30)
     yd(17)
-    dlg:CreateStatic(x_grid[2], y):SetText("OR")
+    cstat(2, y, "OR")
     yd(17)
-    dlg:CreateStatic(x_grid[1], y):SetText("Composite time signature:"):SetWidth(x_grid[3])
-    dlg:CreateCheckbox(x_grid[3], y, "7"):SetCheck(config.composite_join and 1 or 0)
-        :SetText(" [2/4][3/8] -> [2/4+3/8]\n (keep beaming groups)"):SetWidth(i_width):SetHeight(30)
-    yd(30)
-    dlg:CreateCheckbox(x_grid[1], y, "display"):SetCheck(config.display_meter and 1 or 0):SetWidth(x_grid[5] + 10):SetHeight(30)
-        :SetText(" Create \"display\" time signature when compositing\n"
-        .. " ( [2/4][3/8] -> [2/4+3/8] displaying \"7/8\" )")
+    cstat(1, y, "Composite time signatures:", x_grid[3])
+    ccheck(3, y, "7", i_width, (config.composite_join and 1 or 0),
+        " [2/4][3/8] -> [2/4+3/8]\n (keep beaming groups)", 30)
+    yd(35)
+    ccheck(1, y, "display", x_grid[5] + 10, (config.display_meter and 1 or 0),
+        " Create \"display\" time signature when compositing\n [2/4][3/8] -> [2/4+3/8] displaying \"7/8\" )", 30)
     yd(36)
-    dlg:CreateHorizontalLine(0, y, x_grid[3] + i_width)
-    dlg:CreateHorizontalLine(0, y + 2, x_grid[3] + i_width)
-    dlg:CreateHorizontalLine(0, y + 3, x_grid[3] + i_width)
+    chl(0, y, x_grid[3] + i_width)
+    chl(0, y + 2, x_grid[3] + i_width)
+    chl(0, y + 3, x_grid[3] + i_width)
     yd(12)
-    dlg:CreateStatic(0, y):SetText("Preserve smart shapes within\n(Larger spans take longer)"):SetWidth(x_grid[3]):SetHeight(30)
+    cstat("0", y, "Preserve smart shapes within\n(Larger spans take longer)", x_grid[3], 30)
     local popup = dlg:CreatePopup(x_grid[3] - 25, y - 1, "extend"):SetWidth(35):SetSelectedItem(config.shape_extend - 2)
-    dlg:CreateStatic(x_grid[3] + 15, y):SetText("measure span")
     for i = 2, 5 do
         popup:AddString(i)
     end
-    yd(35)
-    dlg:CreateStatic(0, y):SetText("ON COMPLETION:"):SetWidth(i_width)
-    dlg:CreateCheckbox(x_grid[6], y, "spacing"):SetText("Respace notes")
-        :SetCheck(config.note_spacing and 1 or 0):SetWidth(i_width)
+    cstat("205", y, "measure span")
+    yd(38)
+    cstat("0", y, "ON COMPLETION:", i_width)
+    ccheck(6, y, "spacing", i_width, (config.note_spacing and 1 or 0), "Respace notes")
     dlg:CreateButton(x_grid[5], y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() finenv.UI():AlertInfo(info, "Measure Span Info") end)
+        :AddHandleCommand(function() finenv.UI():AlertInfo(info:gsub(" \n", " "), "Measure Span Info") end)
     yd(18)
-    dlg:CreateCheckbox(x_grid[6], y, "repaginate"):SetText("Repaginate entire score")
-        :SetCheck(config.repaginate and 1 or 0):SetWidth(i_width)
+    ccheck(6, y, "repaginate", i_width, (config.repaginate and 1 or 0), "Repaginate entire score")
 
     local function radio_change(id, check)
         local matching_id = (id % 2 == 0) and (id - 1) or (id + 1)
@@ -6063,7 +6062,7 @@ function user_options()
     for id = 1, 8 do
         dlg:GetControl(tostring(id)):AddHandleCommand(function(self) radio_change(id, self:GetCheck()) end)
     end
-    dlg:CreateOkButton()
+    dlg:CreateOkButton():SetText("Save")
     dlg:CreateCancelButton()
     dialog_set_position(dlg)
     dlg:RegisterHandleOkButtonPressed(function(self)
@@ -6111,7 +6110,7 @@ function region_contains_notes(region, layer_num)
 end
 function insert_blank_measure_after(measure_num)
     local props_copy = {"PositioningNotesMode", "Barline", "SpaceAfter", "UseTimeSigForDisplay"}
-    local props_set = {"BreakMMRest", "HideCautionary", "IncludeInNumbering", "BreakWordExtension"}
+    local props_set = {"BreakMMRest", "HideCautionary", "BreakWordExtension"}
     local measure = { finale.FCMeasure(), finale.FCMeasure() }
     measure[1]:Load(measure_num)
     measure[1].UseTimeSigForDisplay = false
@@ -6289,7 +6288,7 @@ function divide_measures(selection)
         measure[2]:Load(measure_num + 1)
         local time_sig = { measure[1]:GetTimeSignature(), measure[2]:GetTimeSignature() }
         local top = { time_sig[1].Beats, time_sig[1].Beats }
-        local bottom = { time_sig[1].BeatDuration, time_sig[1].BeatDuration }
+        local bottom = time_sig[1].BeatDuration
         local pair_rgn = mixin.FCMMusicRegion()
         pair_rgn:SetRegion(selection):SetFullMeasureStack()
         pad_or_truncate_cells(pair_rgn, measure_num, measure[1]:GetDuration())
@@ -6323,13 +6322,13 @@ function divide_measures(selection)
 
             if config.halve_numerator then
                 if top[1] == 1 then
-                    if bottom[1] % 3 == 0 then
-                        bottom[1] = bottom[1] / 3
+                    if bottom % 3 == 0 then
+                        bottom = bottom / 3
                         top[1] = config.odd_more_first and 2 or 1
                         top[2] = 3 - top[1]
                     else
                         top[2] = 1
-                        bottom[1] = bottom[1] / 2
+                        bottom = bottom / 2
                     end
                 else
                     top[1] = top[1] / 2
@@ -6342,11 +6341,10 @@ function divide_measures(selection)
                     top[2] = time_sig[1].Beats - top[1]
                 end
             else
-                bottom[1] = bottom[1] / 2
+                bottom = bottom / 2
             end
-            bottom[2] = bottom[1]
-            time_sig[1]:SetBeats(top[1]):SetBeatDuration(bottom[1])
-            time_sig[2]:SetBeats(top[2]):SetBeatDuration(bottom[2])
+            time_sig[1]:SetBeats(top[1]):SetBeatDuration(bottom)
+            time_sig[2]:SetBeats(top[2]):SetBeatDuration(bottom)
         end
         measure[1]:Save()
         measure[2]:Save()
@@ -6378,43 +6376,43 @@ function shift_smart_shapes(rgn, measure_num, pos_offset)
     marks:LoadAllForRegion(shift_rgn, true)
     for mark in each(marks) do
         local shape = mark:CreateSmartShape()
-        local segment = { shape:GetTerminateSegmentLeft(), shape:GetTerminateSegmentRight() }
-        local m = { segment[1].Measure, segment[2].Measure }
-        if shape.Visible and m[1] < (measure_num + 2) and m[1] ~= m[2] and m[2] > measure_num then
+        local segment = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
+        local m = { L = segment.L.Measure, R = segment.R.Measure }
+        if shape.Visible and m.L < (measure_num + 2) and m.L ~= m.R and m.R > measure_num then
             if not shape.EntryBased then
-                if m[1] > measure_num then
-                    segment[1].Measure = m[1] - 1
-                    if m[1] == measure_num + 1 then
-                        segment[1].MeasurePos = segment[1].MeasurePos + pos_offset
+                if m.L > measure_num then
+                    segment.L.Measure = m.L - 1
+                    if m.L == measure_num + 1 then
+                        segment.L.MeasurePos = segment.L.MeasurePos + pos_offset
                     end
                 end
-                if m[2] > measure_num then
-                    segment[2].Measure = m[2] - 1
-                    if m[2] == measure_num + 1 then
-                        segment[2].MeasurePos = segment[2].MeasurePos + pos_offset
+                if m.R > measure_num then
+                    segment.R.Measure = m.R - 1
+                    if m.R == measure_num + 1 then
+                        segment.R.MeasurePos = segment.R.MeasurePos + pos_offset
                     end
                 end
                 shape:Save()
 
-            elseif m[1] == (measure_num + 1) or m[2] == (measure_num + 1) then
+            elseif m.L == (measure_num + 1) or m.R == (measure_num + 1) then
                 local entry = {
-                    entry_from_enum(m[1], segment[1].Staff, segment[1].EntryNumber),
-                    entry_from_enum(m[2], segment[2].Staff, segment[2].EntryNumber)
+                    L = entry_from_enum(m.L, segment.L.Staff, segment.L.EntryNumber),
+                    R = entry_from_enum(m.R, segment.R.Staff, segment.R.EntryNumber)
                 }
                 local slur =  {
-                    { staff = segment[1].Staff, m = m[1], shape = shape },
-                    { staff = segment[2].Staff, m = m[2] - 1 },
+                    L = { staff = segment.L.Staff, m = m.L, shape = shape },
+                    R = { staff = segment.R.Staff, m = m.R - 1 },
                 }
-                if m[1] <= measure_num then
-                    slur[1].entry = entry[1]
+                if m.L <= measure_num then
+                    slur.L.entry = entry.L
                 else
-                    slur[1].m = m[1] - 1
-                    slur[1].pos = (entry[1] and entry[1].MeasurePos or 0) + pos_offset
+                    slur.L.m = m.L - 1
+                    slur.L.pos = (entry.L and entry.L.MeasurePos or 0) + pos_offset
                 end
-                if m[2] > measure_num + 1 then
-                    slur[2].entry = entry[2]
+                if m.R > measure_num + 1 then
+                    slur.R.entry = entry.R
                 else
-                    slur[2].pos = (entry[2] and entry[2].MeasurePos or 0) + pos_offset
+                    slur.R.pos = (entry.R and entry.R.MeasurePos or 0) + pos_offset
                 end
                 table.insert(slurs, slur)
             end
@@ -6433,24 +6431,24 @@ function shift_smart_shapes(rgn, measure_num, pos_offset)
     return slurs, saved_expressions
 end
 function make_entry_smartshape(start_entry, end_entry, shape)
-    local seg = { shape:GetTerminateSegmentLeft(), shape:GetTerminateSegmentRight() }
+    local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
     local new_shape = mixin.FCMSmartShape()
-    local new_seg = { new_shape:GetTerminateSegmentLeft(), new_shape:GetTerminateSegmentRight() }
+    local new_seg = { L = new_shape:GetTerminateSegmentLeft(), R = new_shape:GetTerminateSegmentRight() }
     new_shape:SetEntryAttachedFlags(true)
     for _, v in ipairs(
             {"ShapeType", "PresetShape", "LineID", "EngraverSlur",
              "MakeHorizontal", "MaintainAngle", "AvoidAccidentals"} ) do
         new_shape[v] = shape[v]
     end
-    new_seg[1]:SetEntry(start_entry)
-    new_seg[2]:SetEntry(end_entry)
+    new_seg.L:SetEntry(start_entry)
+    new_seg.R:SetEntry(end_entry)
     if not shape:IsSlur() then
-        new_seg[1]:SetCustomOffset(false)
-        new_seg[2]:SetCustomOffset(true)
+        new_seg.L:SetCustomOffset(false)
+        new_seg.R:SetCustomOffset(true)
     end
     for _, v in ipairs( {"Staff", "Measure", "NoteID", "EndpointOffsetX", "EndpointOffsetY" } ) do
-        new_seg[1][v] = seg[1][v]
-        new_seg[2][v] = seg[2][v]
+        new_seg.L[v] = seg.L[v]
+        new_seg.R[v] = seg.R[v]
     end
     local cpa = { old = shape:GetCtrlPointAdjust(), new = new_shape:GetCtrlPointAdjust() }
     if cpa.old.CustomShaped then
@@ -6465,15 +6463,15 @@ end
 function restore_slurs(measure_num, pos_offset, slurs, expressions)
     if #slurs > 0 then
         for _, slur in ipairs(slurs) do
-            for i = 1, 2 do
-                if not slur[i].entry and slur[i].pos ~= nil then
-                    local cell = finale.FCNoteEntryCell(slur[i].m, slur[i].staff)
+            for _, id in ipairs({"L", "R"}) do
+                if not slur[id].entry and slur[id].pos ~= nil then
+                    local cell = finale.FCNoteEntryCell(slur[id].m, slur[id].staff)
                     cell:Load()
-                    slur[i].entry = cell:FindClosestPos(slur[i].pos)
+                    slur[id].entry = cell:FindClosestPos(slur[id].pos)
                 end
             end
-            if slur[1].entry ~= nil and slur[2].entry ~= nil then
-                make_entry_smartshape(slur[1].entry, slur[2].entry, slur[1].shape)
+            if slur.L.entry ~= nil and slur.R.entry ~= nil then
+                make_entry_smartshape(slur.L.entry, slur.R.entry, slur.L.shape)
             end
         end
     end
@@ -6535,7 +6533,7 @@ function restore_tie_ends(region, measure, ties)
 end
 function join_measures(selection)
     if (selection.EndMeasure - selection.StartMeasure) % 2 ~= 1 then
-        finenv.UI():AlertInfo("Please select an EVEN number of measures for the \"Measure Span Join\" action", "User Error")
+        finenv.UI():AlertError("Please select an EVEN number of measures for the \"Measure Span Join\" action", "User Error")
         return
     end
 
