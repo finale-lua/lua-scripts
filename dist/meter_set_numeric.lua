@@ -4790,12 +4790,19 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
     return configuration
 end
-local info = [[
-"Meter Set Numeric" provides rapid entry of simple or complex
+function plugindef()
+	finaleplugin.RequireSelection = true
+    finaleplugin.Author = "Carl Vine"
+    finaleplugin.AuthorURL = "https://carlvine.com/?cv=lua"
+    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
+    finaleplugin.Version = "0.68"
+    finaleplugin.Date = "2023/06/12"
+    finaleplugin.MinJWLuaVersion = 0.60
+    finaleplugin.Notes = [["Meter Set Numeric" provides rapid entry of simple or complex
 time signatures with a few keystrokes.
 It supports composite numerators like [3+2+3/16] and can join
 with further composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]).
-"Display only" time signatures can be equally complex.
+"Display only" time signatures can be equally complex and set without using a mouse.
 At startup the time signature of the first selected measure is shown.
 Click the "Clear All" button to revert to a simple 4/4 with no other options.
 All measures in the current selection will be assigned the new time signature.
@@ -4808,16 +4815,7 @@ To prevent automatic compounding, instead of the bottom 'note' number enter its 
 (quarter note = 1024; eighth note = 512 etc).
 Empty and zero "Top" numbers will be ignored.
 If "Secondary" numbers are zero then "Tertiary" values are ignored.
-]]
-function plugindef()
-	finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
-    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.68"
-    finaleplugin.Date = "2023/06/12"
-    finaleplugin.MinJWLuaVersion = 0.60
-    finaleplugin.Notes = info
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/meter_set_numeric.hash"
 	return "Meter Set Numeric", "Meter Set Numeric", "Set the Meter Numerically"
 end
@@ -4886,7 +4884,7 @@ function user_chooses_meter(meter, rgn)
     cstat(1, y, x[3], "DISPLAY SIGNATURE")
     cstat(3, y, 150, "(set to '0' for none)")
     dialog:CreateButton(x[5] + 60, y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() finenv.UI():AlertInfo(info:gsub(" \n", " "), "INFO: Meter Set Numeric") end)
+        :AddHandleCommand(function() finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" \n", " "), "INFO: Meter Set Numeric") end)
 
     y = 0
     local box = {}
@@ -4913,7 +4911,7 @@ function user_chooses_meter(meter, rgn)
                 box[i]:SetText("0")
                 box[i + 3]:SetInteger(0)
             end
-            box[1]:SetFocus()
+            box[1]:SetKeyboardFocus()
         end
     )
     dialog:CreateOkButton()
@@ -5023,7 +5021,7 @@ function convert_choices_to_meter(choices, meter)
                 bottom = 4096 / bottom
                 if #data.top[count] == 1 then
                     local n = data.top[count][1]
-                    if n % 3 == 0 and jump == 0 and bottom < 1024 then
+                    if n % 3 == 0 and jump == 0 and n > 3 then
                         data.top[count][1] = n / 3
                         bottom = bottom * 3
                     end
