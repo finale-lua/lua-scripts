@@ -1,9 +1,16 @@
-local info = [[
-"Meter Set Numeric" provides rapid entry of simple or complex 
+function plugindef()
+	finaleplugin.RequireSelection = true
+    finaleplugin.Author = "Carl Vine"
+    finaleplugin.AuthorURL = "https://carlvine.com/?cv=lua"
+    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
+    finaleplugin.Version = "0.68"
+    finaleplugin.Date = "2023/06/12"
+    finaleplugin.MinJWLuaVersion = 0.60
+    finaleplugin.Notes = [["Meter Set Numeric" provides rapid entry of simple or complex 
 time signatures with a few keystrokes. 
 It supports composite numerators like [3+2+3/16] and can join 
 with further composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]). 
-"Display only" time signatures can be equally complex. 
+"Display only" time signatures can be equally complex and set without using a mouse. 
 At startup the time signature of the first selected measure is shown. 
 Click the "Clear All" button to revert to a simple 4/4 with no other options.
 
@@ -19,16 +26,7 @@ To prevent automatic compounding, instead of the bottom 'note' number enter its 
 
 Empty and zero "Top" numbers will be ignored. 
 If "Secondary" numbers are zero then "Tertiary" values are ignored. 
-]]
-function plugindef()
-	finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/?cv=lua"
-    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.68"
-    finaleplugin.Date = "2023/06/12"
-    finaleplugin.MinJWLuaVersion = 0.60
-    finaleplugin.Notes = info
+    ]]
 	return "Meter Set Numeric", "Meter Set Numeric", "Set the Meter Numerically"
 end
 
@@ -115,7 +113,7 @@ function user_chooses_meter(meter, rgn)
     cstat(1, y, x[3], "DISPLAY SIGNATURE")
     cstat(3, y, 150, "(set to '0' for none)")
     dialog:CreateButton(x[5] + 60, y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() finenv.UI():AlertInfo(info:gsub(" \n", " "), "INFO: Meter Set Numeric") end)
+        :AddHandleCommand(function() finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" \n", " "), "INFO: Meter Set Numeric") end)
 
     -- USER EDIT BOXES
     y = 0
@@ -133,7 +131,6 @@ function user_chooses_meter(meter, rgn)
         end
         y = y_middle
     end
-
     dialog:CreateCheckbox(x[3], y_middle + 85, "spacing"):SetText("Respace notes on completion")
         :SetCheck(config.note_spacing and 1 or 0):SetWidth(170)
     local clear_button = dialog:CreateButton(x[5], 0):SetWidth(80):SetText("Clear All")
@@ -144,7 +141,7 @@ function user_chooses_meter(meter, rgn)
                 box[i]:SetText("0")
                 box[i + 3]:SetInteger(0)
             end
-            box[1]:SetFocus()
+            box[1]:SetKeyboardFocus()
         end
     )
     dialog:CreateOkButton()
@@ -185,7 +182,7 @@ function encode_current_meter(time_sig, sub_meter)
                 sub_meter.top[i][element] = comp_top:GetGroupElementBeats(i - 1, element - 1)
             end
         end
-    else    -- non-composite TOP
+    else    -- NON-Composite Top
         sub_meter.top[1] = { time_sig.Beats }
     end
 
@@ -201,7 +198,7 @@ function encode_current_meter(time_sig, sub_meter)
             end
             sub_meter.bottom[i] = math.floor(4096 / beat_duration) -- round to integer in case
         end
-    else    -- non-composite BOTTOM
+    else    -- NON-Composite Bottom
         local beat_duration = time_sig.BeatDuration
         if beat_duration % 3 == 0 then
             beat_duration = beat_duration / 3
@@ -261,7 +258,7 @@ function convert_choices_to_meter(choices, meter)
 
                 if #data.top[count] == 1 then -- not composite so check for compound
                     local n = data.top[count][1]
-                    if n % 3 == 0 and jump == 0 and bottom < 1024 then -- (8th notes or smaller)
+                    if n % 3 == 0 and jump == 0 and n > 3 then
                         data.top[count][1] = n / 3 -- COMPOUND METER: so numerator divide by 3
                         bottom = bottom * 3   -- and denominator multiply by 3
                     end
