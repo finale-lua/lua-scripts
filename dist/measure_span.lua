@@ -5858,32 +5858,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
     end
     return tie
 end
-local info = [[This script changes the "span" of every measure in the currently selected music by
-manipulating its time signature, either dividing it into two or combining it with the
-following measure. Many measures with different time signatures can be modified at once.
-== JOIN ==
-Combine each pair of measures in the selection into one by combining their time signatures.
-If they have the same time signature either double the numerator ([3/4][3/4] -> [6/4]) or
-halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures aren't equal, choose to either
-COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]).
-(Consolidation loses current beam groupings). You can choose that a consolidated "display"
-time signature is created automatically when compositing meters. "JOIN" only works on an even number of measures.
-== DIVIDE ==
-Divide every selected measure into two, changing the time signature by either halving the
-numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]).
-If the measure has an odd number of beats, choose whether to put more beats in the first
-measure (5->3+2) or the second (5->2+3). Measures containing composite meters will be divided
-after the first composite group, or if there is only one group, after its first element.
-== IN ALL CASES ==
-Incomplete measures will be filled with rests before Join/Divide. Measures containing too many
-notes will be trimmed to their "real" duration. Time signatures "for display only" will be removed.
-Measures are either deleted or shifted in every operation so smart shapes spanning the area
-need to be "restored". Selecting a SPAN of "5" will look for smart shapes to restore from 5
-measures before until 5 after the selected region. (This takes noticeably longer than a SPAN of "2").
-== OPTIONS ==
-To configure script settings select the "Measure Span Options..." menu item, or else hold down
-the SHIFT or ALT (option) key when invoking "Join" or "Divide".
-]]
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
@@ -5911,7 +5885,32 @@ function plugindef()
     ]]
     finaleplugin.ScriptGroupName = "Measure Span"
     finaleplugin.ScriptGroupDescription = "Divide single measures or join measure pairs by changing time signatures"
-    finaleplugin.Notes = info
+    finaleplugin.Notes = [[This script changes the "span" of every measure in the currently selected music by
+manipulating its time signature, either dividing it into two or combining it with the
+following measure. Many measures with different time signatures can be modified at once.
+== JOIN ==
+Combine each pair of measures in the selection into one by combining their time signatures.
+If they have the same time signature either double the numerator ([3/4][3/4] -> [6/4]) or
+halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures aren't equal, choose to either
+COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]).
+(Consolidation loses current beam groupings). You can choose that a consolidated "display"
+time signature is created automatically when compositing meters. "JOIN" only works on an even number of measures.
+== DIVIDE ==
+Divide every selected measure into two, changing the time signature by either halving the
+numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]).
+If the measure has an odd number of beats, choose whether to put more beats in the first
+measure (5->3+2) or the second (5->2+3). Measures containing composite meters will be divided
+after the first composite group, or if there is only one group, after its first element.
+== IN ALL CASES ==
+Incomplete measures will be filled with rests before Join/Divide. Measures containing too many
+notes will be trimmed to their "real" duration. Time signatures "for display only" will be removed.
+Measures are either deleted or shifted in every operation so smart shapes spanning the area
+need to be "restored". Selecting a SPAN of "5" will look for smart shapes to restore from 5
+measures before until 5 after the selected region. (This takes noticeably longer than a SPAN of "2").
+== OPTIONS ==
+To configure script settings select the "Measure Span Options..." menu item, or else hold down
+the SHIFT or ALT (option) key when invoking "Join" or "Divide".
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_span.hash"
     return "Measure Span Options...", "Measure Span Options", "Change the default behaviour of the Measure Span script"
 end
@@ -6051,7 +6050,7 @@ function user_options()
     cstat("0", y, "ON COMPLETION:", i_width)
     ccheck(6, y, "spacing", i_width, (config.note_spacing and 1 or 0), "Respace notes")
     dlg:CreateButton(x_grid[5], y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() finenv.UI():AlertInfo(info:gsub(" \n", " "), "Measure Span Info") end)
+        :AddHandleCommand(function() finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" \n", " "), "Measure Span Info") end)
     yd(18)
     ccheck(6, y, "repaginate", i_width, (config.repaginate and 1 or 0), "Repaginate entire score")
 
@@ -6109,7 +6108,7 @@ function region_contains_notes(region, layer_num)
     return false
 end
 function insert_blank_measure_after(measure_num)
-    local props_copy = {"PositioningNotesMode", "Barline", "SpaceAfter", "UseTimeSigForDisplay"}
+    local props_copy = {"PositioningNotesMode", "Barline", "SpaceAfter", "SpaceBefore", "UseTimeSigForDisplay"}
     local props_set = {"BreakMMRest", "HideCautionary", "BreakWordExtension"}
     local measure = { finale.FCMeasure(), finale.FCMeasure() }
     measure[1]:Load(measure_num)
@@ -6177,7 +6176,7 @@ function clear_composite(time_sig, top, bottom)
         time_sig:RemoveCompositeBottom(bottom)
     end
 end
-function extract_composite(time_sig)
+function extract_composite_to_array(time_sig)
     local comp_array = {}
     if time_sig.CompositeTop then
         comp_array.top = { comp = time_sig:CreateCompositeTop(), count = 0, groups = { } }
@@ -6294,7 +6293,7 @@ function divide_measures(selection)
         pad_or_truncate_cells(pair_rgn, measure_num, measure[1]:GetDuration())
         if time_sig[1].CompositeTop then
 
-            local comp_array = extract_composite(time_sig[1])
+            local comp_array = extract_composite_to_array(time_sig[1])
             if comp_array.top.count == 1 then
                 clear_composite(time_sig[1], comp_array.top.groups[1][1], comp_array.bottom.groups[1])
                 if #comp_array.top.groups[1] == 2 then
@@ -6533,7 +6532,8 @@ function restore_tie_ends(region, measure, ties)
 end
 function join_measures(selection)
     if (selection.EndMeasure - selection.StartMeasure) % 2 ~= 1 then
-        finenv.UI():AlertError("Please select an EVEN number of measures for the \"Measure Span Join\" action", "User Error")
+        local msg = "Please select an EVEN number of measures for the \"Measure Span Join\" action"
+        finenv.UI():AlertError(msg, "User Error")
         return
     end
 
@@ -6562,7 +6562,7 @@ function join_measures(selection)
             for cnt = 1, 2 do
                 comp_array[cnt] = {}
                 if time_sig[cnt].CompositeTop then
-                    comp_array[cnt] = extract_composite(time_sig[cnt])
+                    comp_array[cnt] = extract_composite_to_array(time_sig[cnt])
                     if not time_sig[cnt].CompositeBottom then
                         comp_array[cnt].bottom = { groups = { bottom[cnt] } }
                     end
