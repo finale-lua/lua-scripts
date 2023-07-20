@@ -1,6 +1,31 @@
--- TEXT DATA for the "?" INFO button in the configuration dialog
--- each " \n" will be replaced with " " in the info button.
-local info = [[This script changes the "span" of every measure in the currently selected music by 
+function plugindef()
+    finaleplugin.RequireSelection = true
+    finaleplugin.Author = "Carl Vine"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
+    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
+    finaleplugin.Version = "v0.61"
+    finaleplugin.Date = "2023/05/23"
+    finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
+    finaleplugin.MinJWLuaVersion = 0.64
+    finaleplugin.AdditionalMenuOptions = [[
+        Measure Span Join
+        Measure Span Divide
+    ]]
+    finaleplugin.AdditionalUndoText = [[
+        Measure Span Join
+        Measure Span Divide
+    ]]
+    finaleplugin.AdditionalDescriptions = [[
+        Join pairs of measures together by consolidating their time signatures
+        Divide single measures into two by altering the time signature
+    ]]
+    finaleplugin.AdditionalPrefixes = [[
+        span_action = "join"
+        span_action = "divide"
+    ]]
+    finaleplugin.ScriptGroupName = "Measure Span"
+    finaleplugin.ScriptGroupDescription = "Divide single measures or join measure pairs by changing time signatures"
+    finaleplugin.Notes = [[This script changes the "span" of every measure in the currently selected music by 
 manipulating its time signature, either dividing it into two or combining it with the 
 following measure. Many measures with different time signatures can be modified at once.
 
@@ -33,43 +58,14 @@ measures before until 5 after the selected region. (This takes noticeably longer
 
 To configure script settings select the "Measure Span Options..." menu item, or else hold down 
 the SHIFT or ALT (option) key when invoking "Join" or "Divide".
-]]
-
-function plugindef()
-    finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
-    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.61"
-    finaleplugin.Date = "2023/05/23"
-    finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
-    finaleplugin.MinJWLuaVersion = 0.64
-    finaleplugin.AdditionalMenuOptions = [[
-        Measure Span Join
-        Measure Span Divide
     ]]
-    finaleplugin.AdditionalUndoText = [[
-        Measure Span Join
-        Measure Span Divide
-    ]]
-    finaleplugin.AdditionalDescriptions = [[
-        Join pairs of measures together by consolidating their time signatures
-        Divide single measures into two by altering the time signature
-    ]]
-    finaleplugin.AdditionalPrefixes = [[
-        span_action = "join"
-        span_action = "divide"
-    ]]
-    finaleplugin.ScriptGroupName = "Measure Span"
-    finaleplugin.ScriptGroupDescription = "Divide single measures or join measure pairs by changing time signatures"
-    finaleplugin.Notes = info
     return "Measure Span Options...", "Measure Span Options", "Change the default behaviour of the Measure Span script"
 end
 
 span_action = span_action or "options"
 local config = {
     halve_numerator =   true, -- halve the numerator on DIVIDE otherwise double the denominator
-    odd_more_first  =   true, -- if dividing odd beats, more beats in FIRST measure (otherwise the second)
+    odd_more_first  =   true, -- if dividing odd beats, more beats in FIRST measure (otherwise in the second)
     double_join     =   true, -- double the numerator on JOIN (otherwise halve the denominator)
     composite_join  =   true, -- JOIN measure by COMPOSITING two unequal time signatures (otherwise CONSOLIDATE them)
     note_spacing    =   true, -- implement note spacing after each operation
@@ -209,7 +205,7 @@ function user_options()
     cstat("0", y, "ON COMPLETION:", i_width)
     ccheck(6, y, "spacing", i_width, (config.note_spacing and 1 or 0), "Respace notes")
     dlg:CreateButton(x_grid[5], y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() finenv.UI():AlertInfo(info:gsub(" \n", " "), "Measure Span Info") end)
+        :AddHandleCommand(function() finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" \n", " "), "Measure Span Info") end)
     yd(18)
     ccheck(6, y, "repaginate", i_width, (config.repaginate and 1 or 0), "Repaginate entire score")
 
@@ -272,7 +268,7 @@ function region_contains_notes(region, layer_num)
 end
 
 function insert_blank_measure_after(measure_num) -- required for Span Divide operation
-    local props_copy = {"PositioningNotesMode", "Barline", "SpaceAfter", "UseTimeSigForDisplay"}
+    local props_copy = {"PositioningNotesMode", "Barline", "SpaceAfter", "SpaceBefore", "UseTimeSigForDisplay"}
     local props_set = {"BreakMMRest", "HideCautionary", "BreakWordExtension"}
     local measure = { finale.FCMeasure(), finale.FCMeasure() }
 
@@ -365,7 +361,7 @@ function clear_composite(time_sig, top, bottom)
     end
 end
 
-function extract_composite(time_sig)
+function extract_composite_to_array(time_sig)
     local comp_array = {}
     if time_sig.CompositeTop then
         comp_array.top = { comp = time_sig:CreateCompositeTop(), count = 0, groups = { } }
@@ -494,7 +490,7 @@ function divide_measures(selection)
 
         if time_sig[1].CompositeTop then
             -- COMPOSITE METER
-            local comp_array = extract_composite(time_sig[1])
+            local comp_array = extract_composite_to_array(time_sig[1])
             if comp_array.top.count == 1 then -- a single composite group - just divide into two
                 clear_composite(time_sig[1], comp_array.top.groups[1][1], comp_array.bottom.groups[1])
                 if #comp_array.top.groups[1] == 2 then
@@ -745,7 +741,8 @@ end
 
 function join_measures(selection)
     if (selection.EndMeasure - selection.StartMeasure) % 2 ~= 1 then
-        finenv.UI():AlertError("Please select an EVEN number of measures for the \"Measure Span Join\" action", "User Error")
+        local msg = "Please select an EVEN number of measures for the \"Measure Span Join\" action"
+        finenv.UI():AlertError(msg, "User Error")
         return
     end
     -- run through selection backwards by measure pairs
@@ -777,7 +774,7 @@ function join_measures(selection)
             for cnt = 1, 2 do
                 comp_array[cnt] = {}
                 if time_sig[cnt].CompositeTop then
-                    comp_array[cnt] = extract_composite(time_sig[cnt])
+                    comp_array[cnt] = extract_composite_to_array(time_sig[cnt])
                     if not time_sig[cnt].CompositeBottom then
                         comp_array[cnt].bottom = { groups = { bottom[cnt] } }
                     end
