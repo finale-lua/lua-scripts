@@ -6,7 +6,8 @@ function plugindef()
     finaleplugin.Version = "0.70"
     finaleplugin.Date = "2023/07/25"
     finaleplugin.MinJWLuaVersion = 0.60
-    finaleplugin.Notes = [[This script provides rapid entry of simple or complex 
+    finaleplugin.Notes = [[
+        This script provides rapid entry of simple or complex 
         time signatures with a few keystrokes. 
         It supports composite numerators like [3+2+3/16] and can join 
         with further composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]). 
