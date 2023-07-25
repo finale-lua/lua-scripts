@@ -1,31 +1,31 @@
 function plugindef()
 	finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "https://carlvine.com/?cv=lua"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.68"
-    finaleplugin.Date = "2023/06/12"
+    finaleplugin.Version = "0.70"
+    finaleplugin.Date = "2023/07/25"
     finaleplugin.MinJWLuaVersion = 0.60
-    finaleplugin.Notes = [["Meter Set Numeric" provides rapid entry of simple or complex 
-time signatures with a few keystrokes. 
-It supports composite numerators like [3+2+3/16] and can join 
-with further composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]). 
-"Display only" time signatures can be equally complex and set without using a mouse. 
-At startup the time signature of the first selected measure is shown. 
-Click the "Clear All" button to revert to a simple 4/4 with no other options.
+    finaleplugin.Notes = [[This script provides rapid entry of simple or complex 
+        time signatures with a few keystrokes. 
+        It supports composite numerators like [3+2+3/16] and can join 
+        with further composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]). 
+        "Display only" time signatures can be equally complex and set without using a mouse. 
+        At startup the time signature of the first selected measure is shown. 
+        Click the "Clear All" button to revert to a simple 4/4 with no other options.
 
-All measures in the current selection will be assigned the new time signature. 
-If just one measure is selected only it will be changed.
+        All measures in the current selection will be assigned the new time signature. 
+        If just one measure is selected only it will be changed.
 
-"Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, 64. 
-"Top" numbers (numerators) are integers, optionally joined by '+' signs for composite meters. 
-Multiples of 3 automatically convert to compound signatures so [9/16] will 
-convert to three groups of dotted 8ths. 
-To prevent automatic compounding, instead of the bottom 'note' number enter its EDU value 
-(quarter note = 1024; eighth note = 512 etc).
+        "Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, 64. 
+        "Top" numbers (numerators) are integers, optionally joined by '+' signs for composite meters. 
+        Multiples of 3 automatically convert to compound signatures so [9/16] will 
+        convert to three groups of dotted 8ths. 
+        To prevent automatic compounding, instead of the bottom 'note' number enter its EDU value 
+        (quarter note = 1024; eighth note = 512 etc).
 
-Empty and zero "Top" numbers will be ignored. 
-If "Secondary" numbers are zero then "Tertiary" values are ignored. 
+        Empty and zero "Top" numbers will be ignored. 
+        If "Secondary" numbers are zero then "Tertiary" values are ignored. 
     ]]
 	return "Meter Set Numeric", "Meter Set Numeric", "Set the Meter Numerically"
 end
@@ -113,8 +113,9 @@ function user_chooses_meter(meter, rgn)
     cstat(1, y, x[3], "DISPLAY SIGNATURE")
     cstat(3, y, 150, "(set to '0' for none)")
     dialog:CreateButton(x[5] + 60, y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" \n", " "), "INFO: Meter Set Numeric") end)
-
+        :AddHandleCommand(function()
+            finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" %s+", " "), "About " .. plugindef())
+        end)
     -- USER EDIT BOXES
     y = 0
     local box = {} -- user's edit-box entry responses
@@ -127,7 +128,7 @@ function user_chooses_meter(meter, rgn)
                 :SetText(join(t_sig.top[group])):SetWidth(65)
             box[id + 3] = dialog:CreateEdit(x[4], y - offset, tostring(id + 3))
                 :SetInteger(t_sig.bottom[group] or 0):SetWidth(65)
-            cstat(x[2] + label_off[group], y, 95, label[group])
+            cstat(x[2] + label_off[group], y, 56 - label_off[group], label[group])
         end
         y = y_middle
     end
@@ -154,6 +155,7 @@ function user_chooses_meter(meter, rgn)
             for group = 1, 3 do
                 local id = count + group
                 choices[id] = self:GetControl(tostring(id)):GetText() or "0"
+                if choices[id] == "" then choices[id] = "0" end
                 choices[id + 3] = math.abs(self:GetControl(tostring(id + 3)):GetInteger()) or 0
             end
         end
