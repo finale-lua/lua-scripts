@@ -544,7 +544,7 @@ function mixin_private.load_mixin_class(class_name, create_lookup)
 
     local function find_property_name_clash(name, attr_to_check)
         for _, attr in pairs(attr_to_check) do
-            if attr == "StaticMethods" or (lookup[attr] and lookup[attr][nane]) then
+            if attr == "StaticMethods" or (lookup[attr] and lookup[attr][name] then
                 local cl = find_ancestor_with_prop(class, attr, name)
                 return cl and (cl .. "." .. attr .. "." .. name) or nil
             end
