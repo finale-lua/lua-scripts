@@ -344,7 +344,7 @@ function lyrics_spacing(title)
         col[i] = (i - 1) * col_w
     end
     function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)
-        str.LuaString = text
+        str.LuaString = tostring(text)
         local ctrl = ""
         if ctrl_type == "checkbox" then
             ctrl = dialog:CreateCheckbox(x, y)
