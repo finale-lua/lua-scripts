@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.38"
-    finaleplugin.Date = "2023/07/30"
+    finaleplugin.Version = "0.41"
+    finaleplugin.Date = "2023/08/14"
     finaleplugin.CategoryTags = "Measures, Region, Selection"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = [[
@@ -16,17 +16,18 @@ function plugindef()
 
         == BEAT BOUNDARIES ==
 
-        The duration of a quarter note is 1024 EDUs, 
+        The duration of a Finale quarter note is 1024 EDUs, 
         but to select all of of the first beat in a 4/4 measure the 
         selection must be from 0 to 1023 EDU, otherwise it will 
         include notes starting ON the second beat. 
-        This adjustment is made to all END positions relative to the beat, 
-        the same as happens when entering "beat" numbers with the inbuilt 
-        "Select Region" option.
+        This "minus one" adjustment is applied to all END positions 
+        relative to the beat, as happens when entering beat numbers 
+        on the inbuilt "Select Region" option.
 
-        Note that when a slider is moved to collide with the other one 
-        they will push it out of the way creating a "null" selection (start = end). 
-        This doesn't break anything, just makes a selection containing no notes. 
+        Note that when one slider collides with the other in the same 
+        measure, it will be pushed out of the way creating a "null" selection 
+        (start = end). This doesn't break anything but creates a 
+        selection containing no notes. 
     ]]
     return "Selection Refiner...", "Selection Refiner", "Refine the selected music area with visual feedback"
 end
@@ -59,7 +60,7 @@ function power_of_2(duration)
         test_rest = test_rest * 2
         power = power + 1
     end
-    return power -- 1 -> 256th note, 10 -> breve
+    return power -- 256th note = 1 ... breve = 10
 end
 
 function score_limits()
@@ -108,29 +109,30 @@ function get_measure_details(region, is_start_sector)
         beats = time_sig.Beats,
         compound = false,
         beatdur = time_sig.BeatDuration,
-        composite = time_sig.CompositeTop,
-        measure = region.EndMeasure,
-        pos = region.EndMeasurePos,
-        slot = region.EndSlot,
+        composite = time_sig.CompositeTop
     }
     if is_start_sector then
         md.measure = region.StartMeasure
         md.pos = region.StartMeasurePos
         md.slot = region.StartSlot
+    else
+        md.measure = region.EndMeasure
+        md.pos = region.EndMeasurePos
+        md.slot = region.EndSlot
     end
     md.pos = math.min(md.pos, md.dur) -- position <= measure duration
     if time_sig.CompositeBottom then -- use beat of first COMPOSITE group
         md.beatdur = time_sig:CreateCompositeBottom():GetGroupElementBeatDuration(0, 0)
     end
-    if md.beatdur % 3 == 0 then -- and not md.composite then -- compound meter
-        md.compound = true
+    if md.beatdur % 3 == 0 then
+        md.compound = true -- compound meter
         md.mark = md.beatdur / 3 -- compound first-division marker 1/3rd of beat
         md.steps = 12 -- divisions per beat
     else
         md.mark = md.beatdur / 2 -- first-division marker = half of beat
         md.steps = 8 -- divisions per beat
     end
-    md.power = power_of_2(md.mark * 2) -- 2 ^ power exponent to index notehead durations
+    local power = power_of_2(md.mark * 2) -- 2 ^ power exponent to index notehead durations
     md.div_dur = md.beatdur / md.steps -- duration of each division
     md.divisions = md.beats * md.steps -- total number of divisions
     if md.composite then
@@ -139,21 +141,28 @@ function get_measure_details(region, is_start_sector)
             -- get largest slider positions ("divisions") <= 64
             md.beats = md.beats * 2
             md.beatdur = md.beatdur / 2
-            md.power = md.power - 1
+            power = power - 1
             md.div_dur = md.div_dur / 2
             md.divisions = md.divisions * 2
         end
     end
-    md.rests = compile_rest_strings(md.power)
+    md.rests = compile_rest_strings(power)
     return md
 end
 
+function get_staff_name(region, slot)
+    local staff_number = region:CalcStaffNumber(slot)
+    local staff = finale.FCStaff()
+    staff:Load(staff_number)
+    return staff:CreateDisplayFullNameString()
+end
+
 function convert_position_to_rest(index, md, backwards)
-    local rest_string = ""
     if backwards then index = md.divisions - index end
     local beat = md.rests.beat
     if md.compound then beat = beat .. md.rests.space .. md.rests.dot end
 
+    local rest_string = ""
     for _ = 1, math.floor(index / md.steps) do
         rest_string = rest_string .. beat .. md.rests.gap
     end
@@ -184,45 +193,54 @@ function user_chooses(rgn)
         local function yd(diff)
             y = diff and y + diff or y + 16
         end
-    -- indicator and control arrays for both "start" and "end":
-    local measure, sliders, offset, rest, buttons, index = {}, {}, {}, {}, {}, {}
+    -- indicator and control arrays for "start" and "end":
+    local measure, sliders, offset, rest, buttons, index, staff = {}, {}, {}, {}, {}, {}, {}
     local max_measure, max_slot = score_limits()
+
     -- MD :: MEASURE DETAILS
     local md = { get_measure_details(rgn, true), get_measure_details(rgn, false) } -- { start, end }
-    index[1] = math.floor(md[1].pos * md[1].divisions / md[1].dur) -- convert to thumb index
+    index[1] = math.floor(md[1].pos * md[1].divisions / md[1].dur) -- convert POS to thumb index
     index[2] = math.floor(md[2].pos * md[2].divisions / md[2].dur)
+
     -- start dialog
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:CreateStatic(0, y):SetText("START of Selection:"):SetWidth(x_wide)
-    -- "rest" static texts go first because of large music font height 
+
+    -- "rest" static texts go first because excess MUSIC font height overlaps other buttons
+    local sys_finfo = finale.FCFontInfo()
+    sys_finfo:LoadFontPrefs(finale.FONTPREF_MUSIC)
     rest[1] = dialog:CreateStatic(x_wide + 65, md[1].rests.vert):SetWidth(rest_wide):SetHeight(80)
-        :SetText(convert_position_to_rest(index[1], md[1], false))
+        :SetFont(sys_finfo):SetText(convert_position_to_rest(index[1], md[1], false))
     rest[2] = dialog:CreateStatic(x_wide + 65, 83 + md[2].rests.vert):SetWidth(rest_wide):SetHeight(80)
-        :SetText(convert_position_to_rest(index[2], md[2], false))
-    measure[1] = dialog:CreateStatic(x_wide - 40, y):SetWidth(rest_wide):SetText("m. " .. md[1].measure)
+        :SetFont(sys_finfo):SetText(convert_position_to_rest(index[2], md[2], false))
+
+    -- "start" components
+    measure[1] = dialog:CreateStatic(x_wide - 80, y):SetWidth(rest_wide)
+        :SetText("m. " .. md[1].measure)
+    staff[1] = dialog:CreateStatic(x_wide - 20, y):SetWidth(rest_wide)
+        :SetText(get_staff_name(rgn, md[1].slot))
     dialog:CreateButton(x_wide + rest_wide + 30, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function()
             finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" %s+", " "), "About " .. plugindef())
         end)
     yd()
-    -- "start" components
     sliders[1] = dialog:CreateSlider(0, y):SetMinValue(0):SetMaxValue(md[1].divisions)
         :SetThumbPosition(index[1]):SetWidth(x_wide)
     offset[1] = dialog:CreateEdit(x_wide + 7, y - x_offset):SetInteger(md[1].pos):SetWidth(50)
     local button_x = (x_wide + rest_wide + 14) / 4
     local button_mid = button_x * 2 + 24
-    local function make_buttons(i)
-        buttons[i] = {
-            up    = dialog:CreateButton(0, y):SetText("Staff ↑")
-                :SetWidth(button_x):SetEnable(md[i].slot > 1),
-            down  = dialog:CreateButton(button_x + 12, y):SetText("Staff ↓")
-                :SetWidth(button_x):SetEnable(md[i].slot < max_slot),
-            left  = dialog:CreateButton(button_mid, y):SetText("← Measure")
-                :SetWidth(button_x):SetEnable(md[i].measure > 1),
-            right = dialog:CreateButton(button_mid + button_x + 12, y):SetText("Measure →")
-                :SetWidth(button_x):SetEnable(md[i].measure < max_measure)
-        }
-    end
+        local function make_buttons(i)
+            buttons[i] = {
+                up    = dialog:CreateButton(0, y):SetText("Staff ↑")
+                    :SetWidth(button_x):SetEnable(md[i].slot > 1),
+                down  = dialog:CreateButton(button_x + 12, y):SetText("Staff ↓")
+                    :SetWidth(button_x):SetEnable(md[i].slot < max_slot),
+                left  = dialog:CreateButton(button_mid, y):SetText("← Measure")
+                    :SetWidth(button_x):SetEnable(md[i].measure > 1),
+                right = dialog:CreateButton(button_mid + button_x + 12, y):SetText("Measure →")
+                    :SetWidth(button_x):SetEnable(md[i].measure < max_measure)
+            }
+        end
     yd(29) -- (total y-offset here is 85)
     make_buttons(1)
     yd(32)
@@ -230,7 +248,10 @@ function user_chooses(rgn)
     yd(10)
     -- "end" components
     dialog:CreateStatic(0, y):SetText("END of Selection:"):SetWidth(x_wide)
-    measure[2] = dialog:CreateStatic(x_wide - 40, y):SetWidth(rest_wide):SetText("m. " .. md[2].measure)
+    measure[2] = dialog:CreateStatic(x_wide - 80, y):SetWidth(60)
+        :SetText("m. " .. md[2].measure)
+    staff[2] = dialog:CreateStatic(x_wide - 20, y):SetWidth(rest_wide)
+        :SetText(get_staff_name(rgn, md[2].slot))
     yd()
     sliders[2] = dialog:CreateSlider(0, y):SetMinValue(0):SetMaxValue(md[2].divisions)
         :SetThumbPosition(index[2]):SetWidth(x_wide)
@@ -289,6 +310,7 @@ function user_chooses(rgn)
             for side = 1, 2 do
                 buttons[side].up:SetEnable(md[side].slot > 1)
                 buttons[side].down:SetEnable(md[side].slot < max_slot)
+                staff[side]:SetText(get_staff_name(rgn, md[side].slot))
             end
             rgn:SetInDocument()
             rgn:Redraw()
@@ -413,12 +435,6 @@ function user_chooses(rgn)
         end)
     end
     dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function()
-        local sys_finfo = finale.FCFontInfo()
-        sys_finfo:LoadFontPrefs(finale.FONTPREF_MUSIC)
-        rest[1]:SetFont(sys_finfo)
-        rest[2]:SetFont(sys_finfo)
-    end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
