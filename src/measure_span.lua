@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.63"
-    finaleplugin.Date = "2023/08/21"
+    finaleplugin.Version = "v0.64"
+    finaleplugin.Date = "2023/08/22"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.64
     finaleplugin.AdditionalMenuOptions = [[
@@ -442,33 +442,36 @@ function new_composite_bottom(time_sig, group_array, first, last)
     time_sig:SaveNewCompositeBottom(comp_bottom)
 end
 
+function measure_extend_count(measure_num)
+    local extend_count = measure_num + config.shape_extend
+    local measures = finale.FCMeasures()
+    measures:LoadAll()
+    if extend_count > measures.Count then extend_count = measures.Count end
+    return extend_count
+end
+
 function extend_smart_shape_ends(rgn, measure_num, measure_duration) -- called by divide_measures()
     local extend_rgn = mixin.FCMMusicRegion()
-    local measures = finale.FCMeasures()
-    measures:LoadAll() -- find highest measure number
-    local extend_count = measure_num + config.shape_extend
-    if extend_count > measures.Count then extend_count = measures.Count end
-
     extend_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
-        :SetEndMeasure(extend_count)
+        :SetEndMeasure(measure_extend_count(measure_num))
         :SetFullMeasureStack()
+
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAllForRegion(extend_rgn, true)
     for mark in each(marks) do
         local shape = mark:CreateSmartShape()
-        if shape then
-            local segment = { shape:GetTerminateSegmentLeft(), shape:GetTerminateSegmentRight() }
-            local m = { segment[1].Measure, segment[2].Measure }
-
-            if not shape.EntryBased and m[1] <= measure_num then
-                if m[2] > measure_num then
-                    segment[2].Measure = m[2] + 1 -- crosses new measure boundary
+        if shape and not shape.EntryBased then
+            local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
+            local m = { L = seg.L.Measure, R = seg.R.Measure }
+            if m.L <= measure_num then
+                if m.R > measure_num then
+                    seg.R.Measure = m.R + 1 -- crosses new measure boundary
                 end
-                for i = 1, 2 do
-                    if m[i] == measure_num and segment[i].MeasurePos >= measure_duration then
-                        segment[i].Measure = m[i] + 1 -- crosses boundary
-                        segment[i].MeasurePos = segment[i].MeasurePos - measure_duration
+                for i in ipairs( {"L", "R"} ) do
+                    if m[i] == measure_num and seg[i].MeasurePos >= measure_duration then
+                        seg[i].Measure = m[i] + 1 -- crosses boundary
+                        seg[i].MeasurePos = seg[i].MeasurePos - measure_duration
                     end
                 end
                 shape:Save()
@@ -561,24 +564,24 @@ end
 
 function shift_shape_positions(measure_num, shape, pos_offset, is_beat_based)
     local new_note_pos = {}
-    local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
-    local m = { L = seg.L.Measure, R = seg.R.Measure }
+    local old_seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
+    local m = { L = old_seg.L.Measure, R = old_seg.R.Measure }
     if m.L < (measure_num + 2) and m.L ~= m.R and m.R > measure_num then
         if m.L > measure_num then
-            seg.L.Measure = m.L - 1
+            old_seg.L.Measure = m.L - 1
             if m.L == measure_num + 1 then
                 if is_beat_based then
-                    seg.L.MeasurePos = seg.L.MeasurePos + pos_offset
+                    old_seg.L.MeasurePos = old_seg.L.MeasurePos + pos_offset
                 else
                     new_note_pos.L = true
                 end
             end
         end
         if m.R > measure_num then
-            seg.R.Measure = m.R - 1
+            old_seg.R.Measure = m.R - 1
             if m.R == measure_num + 1 then
                 if is_beat_based then
-                    seg.R.MeasurePos = seg.R.MeasurePos + pos_offset
+                    old_seg.R.MeasurePos = old_seg.R.MeasurePos + pos_offset
                 else
                     new_note_pos.R = true
                 end
@@ -590,17 +593,12 @@ function shift_shape_positions(measure_num, shape, pos_offset, is_beat_based)
 end
 
 function shift_smart_shapes(rgn, measure_num, pos_offset)
-    local slurs = {}
-    local start_count = measure_num - config.shape_extend
-    if start_count < 1 then start_count = 1 end
-    local measures = finale.FCMeasures()
-    measures:LoadAll() -- find highest measure number
-    local extend_count = measure_num + config.shape_extend + 1
-    if extend_count > measures.Count then extend_count = measures.Count end
-
+    local slurs, save_exps = {}, {}
     local shift_rgn = mixin.FCMMusicRegion()
     shift_rgn:SetRegion(rgn)
-        :SetStartMeasure(start_count):SetEndMeasure(extend_count):SetFullMeasureStack()
+        :SetStartMeasure(measure_num - config.shape_extend)
+        :SetEndMeasure(measure_extend_count(measure_num + 1))
+        :SetFullMeasureStack()
 
     -- BEAT ATTACHED
     local marks = finale.FCSmartShapeMeasureMarks()
@@ -638,18 +636,19 @@ function shift_smart_shapes(rgn, measure_num, pos_offset)
         end
     end
     -- MOVE MEASURE-ATTACHED EXPRESSIONS
-    local expressions = finale.FCExpressions()
-    expressions:LoadAllForItem(measure_num + 1) -- in the "moving" measure
-    for exp in eachbackwards(expressions) do
+    local exps = finale.FCExpressions()
+    exps:LoadAllForItem(measure_num + 1) -- in the "moving" measure
+    for exp in eachbackwards(exps) do
         if exp.StaffGroupID > 0 then
             exp:SaveNewToCell(finale.FCCell(measure_num, exp.Staff))
+            table.insert(save_exps, exp) -- .ItemCmper)
         end
     end
-    return slurs
+    return slurs, save_exps
 end
 
-function make_entry_smartshape(start_entry, end_entry, shape)
-    local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
+function make_entry_smartshape(start_entry, end_entry, old_shape)
+    local old_seg = { L = old_shape:GetTerminateSegmentLeft(), R = old_shape:GetTerminateSegmentRight() }
     local new_shape = finale.FCSmartShape()
     local new_seg = { L = new_shape:GetTerminateSegmentLeft(), R = new_shape:GetTerminateSegmentRight() }
     new_shape:SetEntryAttachedFlags(false)
@@ -657,19 +656,18 @@ function make_entry_smartshape(start_entry, end_entry, shape)
     for _, v in ipairs(
             {"ShapeType", "PresetShape", "LineID", "EngraverSlur",
              "MakeHorizontal", "MaintainAngle", "AvoidAccidentals"} ) do
-        new_shape[v] = shape[v]
+        new_shape[v] = old_shape[v]
     end
     new_seg.L:SetEntry(start_entry)
     new_seg.R:SetEntry(end_entry)
     new_seg.L:SetCustomOffset(false) -- LH
     new_seg.R:SetCustomOffset(true)  -- RH
-
     for _, v in ipairs( {"Staff", "Measure", "NoteID", "EndpointOffsetX", "EndpointOffsetY" } ) do
-        new_seg.L[v] = seg.L[v]
-        new_seg.R[v] = seg.R[v]
+        new_seg.L[v] = old_seg.L[v]
+        new_seg.R[v] = old_seg.R[v]
     end
 
-    local cpa = { old = shape:GetCtrlPointAdjust(), new = new_shape:GetCtrlPointAdjust() }
+    local cpa = { old = old_shape:GetCtrlPointAdjust(), new = new_shape:GetCtrlPointAdjust() }
     if cpa.old.CustomShaped then
         cpa.new.CustomShaped = true
         for _, v in ipairs( { "ControlPoint1OffsetX", "ControlPoint1OffsetY",
@@ -680,21 +678,27 @@ function make_entry_smartshape(start_entry, end_entry, shape)
     new_shape:SaveNewEverything(start_entry, end_entry)
 end
 
-function restore_slurs(pos_offset, slurs)
+function restore_slurs(pos_offset, slurs, exps, m_width)
     if #slurs > 0 then
         for _, slur in ipairs(slurs) do
             local shape = finale.FCSmartShape()
             shape:Load(slur.item)
-            local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
+            local old_seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
             for _, side in ipairs({"L", "R"}) do
                 if slur.change_side[side] then
-                    local cell = finale.FCNoteEntryCell(seg[side].Measure, seg[side].Staff)
+                    local cell = finale.FCNoteEntryCell(old_seg[side].Measure, old_seg[side].Staff)
                     cell:Load()
                     slur.entry[side] = cell:FindClosestPos(slur.entry[side].MeasurePos + pos_offset)
                 end
             end
             make_entry_smartshape(slur.entry.L, slur.entry.R, slur.shape)
             if shape then shape:DeleteData() end
+        end
+    end
+    if #exps > 0 then -- restore measure-attached expressions from 2nd measure
+        for _, exp in ipairs(exps) do
+            exp.HorizontalPos = exp.HorizontalPos + m_width
+            exp:Save()
         end
     end
 end
@@ -774,7 +778,7 @@ function join_measures(selection)
         local paste_rgn = mixin.FCMMusicRegion()
         paste_rgn:SetRegion(selection):SetFullMeasureStack()
         local saved_tie_ends = save_tie_ends(paste_rgn, measure_num)
-        local saved_slurs = shift_smart_shapes(paste_rgn, measure_num, measure_dur[1])
+        local saved_slurs, saved_exps = shift_smart_shapes(paste_rgn, measure_num, measure_dur[1])
         pad_or_truncate_cells(paste_rgn, measure_num + 1, measure_dur[2])
         paste_rgn:SetStartMeasure(measure_num + 1):SetEndMeasure(measure_num + 1):CopyMusic()
         pad_or_truncate_cells(paste_rgn, measure_num, measure_dur[1])
@@ -839,7 +843,7 @@ function join_measures(selection)
         paste_rgn:ReleaseMusic()
         measure[1]:Save()
         restore_tie_ends(paste_rgn, measure_num, saved_tie_ends)
-        restore_slurs(measure_dur[1], saved_slurs)
+        restore_slurs(measure_dur[1], saved_slurs, saved_exps, measure[1].Width)
 
         paste_rgn:SetStartMeasurePos(0)
             :RebarMusic(finale.REBARSTOP_REGIONEND, true, false)
