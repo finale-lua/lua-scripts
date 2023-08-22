@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.64"
+    finaleplugin.Version = "v0.65"
     finaleplugin.Date = "2023/08/22"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.64
@@ -341,8 +341,8 @@ end
         top = {
             comp = FCCompositeTimeSigTop,
             groups = { 
-                { element_1, element_2, element_3... }, -- group1
-                { element_1, element_2, element_3... }, -- group2
+                { element_1, element_2, element_3... }, -- group_1
+                { element_1, element_2, element_3... }, -- group_2
                 { etc... }, -- etc.
             },
             count = number_of_groups,
@@ -450,7 +450,7 @@ function measure_extend_count(measure_num)
     return extend_count
 end
 
-function extend_smart_shape_ends(rgn, measure_num, measure_duration) -- called by divide_measures()
+function extend_smart_shape_ends(rgn, measure_num, measure_duration)
     local extend_rgn = mixin.FCMMusicRegion()
     extend_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
@@ -468,9 +468,9 @@ function extend_smart_shape_ends(rgn, measure_num, measure_duration) -- called b
                 if m.R > measure_num then
                     seg.R.Measure = m.R + 1 -- crosses new measure boundary
                 end
-                for i in ipairs( {"L", "R"} ) do
+                for _, i in ipairs( {"L", "R"} ) do
                     if m[i] == measure_num and seg[i].MeasurePos >= measure_duration then
-                        seg[i].Measure = m[i] + 1 -- crosses boundary
+                        seg[i].Measure = seg[i].Measure + 1 -- move to right
                         seg[i].MeasurePos = seg[i].MeasurePos - measure_duration
                     end
                 end
