@@ -4747,83 +4747,400 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
     end
     return layer
 end
+package.preload["library.note_entry"] = package.preload["library.note_entry"] or function()
+
+    local note_entry = {}
+
+    function note_entry.get_music_region(entry)
+        local exp_region = finale.FCMusicRegion()
+        exp_region:SetCurrentSelection()
+        exp_region.StartStaff = entry.Staff
+        exp_region.EndStaff = entry.Staff
+        exp_region.StartMeasure = entry.Measure
+        exp_region.EndMeasure = entry.Measure
+        exp_region.StartMeasurePos = entry.MeasurePos
+        exp_region.EndMeasurePos = entry.MeasurePos
+        return exp_region
+    end
+
+
+    local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
+        if entry_metrics then
+            return entry_metrics, false
+        end
+        entry_metrics = finale.FCEntryMetrics()
+        if entry_metrics:Load(entry) then
+            return entry_metrics, true
+        end
+        return nil, false
+    end
+
+    function note_entry.get_evpu_notehead_height(entry)
+        local highest_note = entry:CalcHighestNote(nil)
+        local lowest_note = entry:CalcLowestNote(nil)
+        local evpu_height = (2 + highest_note:CalcStaffPosition() - lowest_note:CalcStaffPosition()) * 12
+        return evpu_height
+    end
+
+    function note_entry.get_top_note_position(entry, entry_metrics)
+        local retval = -math.huge
+        local loaded_here = false
+        entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
+        if nil == entry_metrics then
+            return retval
+        end
+        if not entry:CalcStemUp() then
+            retval = entry_metrics.TopPosition
+        else
+            local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
+            if nil ~= cell_metrics then
+                local evpu_height = note_entry.get_evpu_notehead_height(entry)
+                local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
+                retval = entry_metrics.BottomPosition + scaled_height
+                cell_metrics:FreeMetrics()
+            end
+        end
+        if loaded_here then
+            entry_metrics:FreeMetrics()
+        end
+        return retval
+    end
+
+    function note_entry.get_bottom_note_position(entry, entry_metrics)
+        local retval = math.huge
+        local loaded_here = false
+        entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
+        if nil == entry_metrics then
+            return retval
+        end
+        if entry:CalcStemUp() then
+            retval = entry_metrics.BottomPosition
+        else
+            local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
+            if nil ~= cell_metrics then
+                local evpu_height = note_entry.get_evpu_notehead_height(entry)
+                local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
+                retval = entry_metrics.TopPosition - scaled_height
+                cell_metrics:FreeMetrics()
+            end
+        end
+        if loaded_here then
+            entry_metrics:FreeMetrics()
+        end
+        return retval
+    end
+
+    function note_entry.calc_widths(entry)
+        local left_width = 0
+        local right_width = 0
+        for note in each(entry) do
+            local note_width = note:CalcNoteheadWidth()
+            if note_width > 0 then
+                if note:CalcRightsidePlacement() then
+                    if note_width > right_width then
+                        right_width = note_width
+                    end
+                else
+                    if note_width > left_width then
+                        left_width = note_width
+                    end
+                end
+            end
+        end
+        return left_width, right_width
+    end
+
+
+
+
+    function note_entry.calc_left_of_all_noteheads(entry)
+        if entry:CalcStemUp() then
+            return 0
+        end
+        local left, right = note_entry.calc_widths(entry)
+        return -left
+    end
+
+    function note_entry.calc_left_of_primary_notehead(entry)
+        return 0
+    end
+
+    function note_entry.calc_center_of_all_noteheads(entry)
+        local left, right = note_entry.calc_widths(entry)
+        local width_centered = (left + right) / 2
+        if not entry:CalcStemUp() then
+            width_centered = width_centered - left
+        end
+        return width_centered
+    end
+
+    function note_entry.calc_center_of_primary_notehead(entry)
+        local left, right = note_entry.calc_widths(entry)
+        if entry:CalcStemUp() then
+            return left / 2
+        end
+        return right / 2
+    end
+
+    function note_entry.calc_stem_offset(entry)
+        if not entry:CalcStemUp() then
+            return 0
+        end
+        local left, right = note_entry.calc_widths(entry)
+        return left
+    end
+
+    function note_entry.calc_right_of_all_noteheads(entry)
+        local left, right = note_entry.calc_widths(entry)
+        if entry:CalcStemUp() then
+            return left + right
+        end
+        return right
+    end
+
+    function note_entry.calc_note_at_index(entry, note_index)
+        local x = 0
+        for note in each(entry) do
+            if x == note_index then
+                return note
+            end
+            x = x + 1
+        end
+        return nil
+    end
+
+    function note_entry.stem_sign(entry)
+        if entry:CalcStemUp() then
+            return 1
+        end
+        return -1
+    end
+
+    function note_entry.duplicate_note(note)
+        local new_note = note.Entry:AddNewNote()
+        if nil ~= new_note then
+            new_note.Displacement = note.Displacement
+            new_note.RaiseLower = note.RaiseLower
+            new_note.Tie = note.Tie
+            new_note.TieBackwards = note.TieBackwards
+        end
+        return new_note
+    end
+
+    function note_entry.delete_note(note)
+        local entry = note.Entry
+        if nil == entry then
+            return false
+        end
+
+        finale.FCAccidentalMod():EraseAt(note)
+        finale.FCCrossStaffMod():EraseAt(note)
+        finale.FCDotMod():EraseAt(note)
+        finale.FCNoteheadMod():EraseAt(note)
+        finale.FCPercussionNoteMod():EraseAt(note)
+        finale.FCTablatureNoteMod():EraseAt(note)
+        finale.FCPerformanceMod():EraseAt(note)
+        if finale.FCTieMod then
+            finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+            finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
+        end
+        return entry:DeleteNote(note)
+    end
+
+    function note_entry.make_rest(entry)
+        local articulations = entry:CreateArticulations()
+        for articulation in each(articulations) do
+            articulation:DeleteData()
+        end
+        if entry:IsNote() then
+            while entry.Count > 0 do
+                note_entry.delete_note(entry:GetItemAt(0))
+            end
+        end
+        entry:MakeRest()
+        return true
+    end
+
+    function note_entry.calc_pitch_string(note)
+        local pitch_string = finale.FCString()
+        local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+        local key_signature = cell:GetKeySignature()
+        note:GetString(pitch_string, key_signature, false, false)
+        return pitch_string
+    end
+
+    function note_entry.calc_spans_number_of_octaves(entry)
+        local top_note = entry:CalcHighestNote(nil)
+        local bottom_note = entry:CalcLowestNote(nil)
+        local displacement_diff = top_note.Displacement - bottom_note.Displacement
+        local num_octaves = math.ceil(displacement_diff / 7)
+        return num_octaves
+    end
+
+    function note_entry.add_augmentation_dot(entry)
+
+        entry.Duration = bit32.bor(entry.Duration, bit32.rshift(entry.Duration, 1))
+    end
+
+    function note_entry.remove_augmentation_dot(entry)
+        if entry.Duration <= 0 then
+            return false
+        end
+        local lowest_order_bit = 1
+        if bit32.band(entry.Duration, lowest_order_bit) == 0 then
+
+            lowest_order_bit = bit32.bxor(bit32.band(entry.Duration, entry.Duration - 1), entry.Duration)
+        end
+
+        local new_value = bit32.band(entry.Duration, bit32.bnot(lowest_order_bit))
+        if new_value ~= 0 then
+            entry.Duration = new_value
+            return true
+        end
+        return false
+    end
+
+    function note_entry.get_next_same_v(entry)
+        local next_entry = entry:Next()
+        if entry.Voice2 then
+            if (nil ~= next_entry) and next_entry.Voice2 then
+                return next_entry
+            end
+            return nil
+        end
+        if entry.Voice2Launch then
+            while (nil ~= next_entry) and next_entry.Voice2 do
+                next_entry = next_entry:Next()
+            end
+        end
+        return next_entry
+    end
+
+    function note_entry.hide_stem(entry)
+        local stem = finale.FCCustomStemMod()
+        stem:SetNoteEntry(entry)
+        stem:UseUpStemData(entry:CalcStemUp())
+        if stem:LoadFirst() then
+            stem.ShapeID = 0
+            stem:Save()
+        else
+            stem.ShapeID = 0
+            stem:SaveNew()
+        end
+    end
+
+    function note_entry.rest_offset(entry, offset)
+        if entry:IsNote() then
+            return false
+        end
+        local rest_prop = "OtherRestPosition"
+        if entry.Duration >= finale.BREVE then
+            rest_prop = "DoubleWholeRestPosition"
+        elseif entry.Duration >= finale.WHOLE_NOTE then
+            rest_prop = "WholeRestPosition"
+        elseif entry.Duration >= finale.HALF_NOTE then
+            rest_prop = "HalfRestPosition"
+        end
+        entry:MakeMovableRest()
+        local rest = entry:GetItemAt(0)
+        local curr_staffpos = rest:CalcStaffPosition()
+        local staff_spec = finale.FCCurrentStaffSpec()
+        staff_spec:LoadForEntry(entry)
+        local total_offset = staff_spec[rest_prop] + offset - curr_staffpos
+        entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset)
+        return true
+    end
+    return note_entry
+end
 function plugindef()
     finaleplugin.RequireSelection = true
+    finaleplugin.Author = "Carl Vine"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Version = "v1.45"
-    finaleplugin.Date = "2023/03/10"
+    finaleplugin.Version = "v1.52"
+    finaleplugin.Date = "2023/07/26"
     finaleplugin.Notes = [[
-        Several situations including cross-staff notation (rests should be centred between the staves)
-        require adjusting the vertical position of rests.
-        This script duplicates the action of Finale's inbuilt "Move rests..." plug-in but needs no mouse activity.
-        It is also an easy way to reset rest positions in every layer, the default setting.
-        Newly created rests are "floating" and will avoid entries in other layers (if present)
-        following the setting for "Adjust Floating Rests by..." in `Document Options...` -> `Layers`.
-        This script stops them "floating", instead "fixing" them to a specific offset from their default position.
-        To return them to "floating", select the "Zero = Floating Rest" checkbox and set the offset to zero.
-        The offset is measured in "steps" where there are 8 equal steps (4 "spaces") between the top and bottom staff lines.
-        If the default rest position is anchored to the middle staff line,
-        "4" anchors it to the top staff line and "-4" anchors it to the bottom one.
+        This script alters the vertical position of rests.
+        It duplicates Finale's inbuilt "Move Rests..." plug-in but with less mouse activity.
+        It is also a quick way to reset rest positions in every layer, the default setting.
+        New rests are "floating" and will avoid entries in other layers (if present)
+        using the setting for "Adjust Floating Rests by..." at Finale → Document → Document Options → Layers.
+        This script can stop rests "floating", instead "fixing" them to a specific offset from the default position.
+        On transposing staves such "fixed" rests will behave like actual notes and change position
+        if "Display in Concert Pitch" is selected.
+        Set the "Floating Rests" checkbox to return all rests on the chosen layer to "floating".
+        A "space" is the vertical distance between staff lines, and a "step" is half a space.
+        The distance between the top and bottom lines of a 5-line staff is 4 spaces or 8 steps.
+        Rests usually "centre" on the middle staff line, 4 steps below the top line of a 5-line staff.
+        This script, like Finale, uses "step" offsets to shift rests relative to the default position.
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/rest_offsets.hash"
-   return "Rest Offsets", "Rest Offsets", "Change vertical offsets of rests by layer"
+    return "Rest Offsets...", "Rest Offsets", "Change the vertical offset of rests by layer"
 end
+config = config or {
+    offset = 0,
+    layer = 0,
+    make_floating = 0,
+    pos_x = false,
+    pos_y = false
+}
 local mixin = require("library.mixin")
 local layer = require("library.layer")
-config = config or {}
-function is_error()
+local note_entry = require("library.note_entry")
+function no_errors()
     local max = layer.max_layers()
     local msg = ""
     if math.abs(config.offset) > 20 then
-        msg = "Offset level must be reasonable,\nsay between -20 and 20\n(not " .. config.offset .. ")"
-    elseif config.layer < 0 or config.layer > max then
-        msg = "Layer number must be an\ninteger between zero and " .. max .. "\n(not " .. config.layer .. ")"
+        msg = "Offset level must be reasonable, say between -20 and 20 (not " .. config.offset .. ")\n\n"
+    end
+    if config.layer < 0 or config.layer > max then
+        msg = msg .. "Layer number must be an integer\nbetween 0 and " .. max .. " (not " .. config.layer .. ")"
     end
     if msg ~= "" then
         finenv.UI():AlertInfo(msg, "User Error")
-        return true
+        return false
     end
-    return false
+    return true
 end
 function make_dialog()
-    local x_offset = 110
-    local y_level = {15, 45, 75}
-    local mac_offset = finenv.UI():IsOnMac() and 3 or 0
+    local x = 110
+    local y_grid = { 15, 45, 70 }
+    local x_off = finenv.UI():IsOnMac() and 3 or 0
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    local texts = {
-        { "Vertical offset:", config.offset or 0, y_level[1], "offset" },
-        { "Layer# 1-" .. layer.max_layers() .. " (0 = all):", config.layer or 0, y_level[2], "layer"  },
-    }
-    for _, v in ipairs(texts) do
-        dialog:CreateStatic(0, v[3]):SetText(v[1]):SetWidth(x_offset)
-        dialog:CreateEdit(x_offset, v[3] - mac_offset, v[4]):SetInteger(v[2]):SetWidth(50)
-    end
-    local checked = config.zero_floating and 1 or 0
-    dialog:CreateCheckbox(0, y_level[3], "zero"):SetText("Zero = Floating Rest"):SetWidth(x_offset * 2):SetCheck(checked)
+    local stat = dialog:CreateStatic(0, y_grid[1]):SetText("Vertical offset:")
+        :SetWidth(x):SetEnable(config.make_floating == 0)
+    local offset = dialog:CreateEdit(x, y_grid[1] - x_off):SetInteger(config.offset)
+        :SetWidth(50):SetEnable(config.make_floating == 0)
+    dialog:CreateStatic(0, y_grid[2]):SetText("Layer 1-" .. layer.max_layers() .. " (0 = all)"):SetWidth(x)
+    local layer_num = dialog:CreateEdit(x, y_grid[2] - x_off):SetInteger(config.layer):SetWidth(50)
+    local float = dialog:CreateCheckbox(0, y_grid[3]):SetText("Floating Rests")
+        :SetCheck(config.make_floating):SetWidth(x * 2)
+        :AddHandleCommand(function(self)
+            offset:SetEnable(self:GetCheck() == 0)
+            stat:SetEnable(self:GetCheck() == 0)
+        end)
     texts = {
-        {  "4", 5, "= top staff line", 0 },
+        {  "4", 5, "= top staff line",    0 },
         {  "0", 5, "= middle staff line", 15 },
         { "-4", 0, "= bottom staff line", 30 },
-        { "", 0, "(for 5-line staff)", 45 },
+        { "",   0, "(for 5-line staff)",  45 },
     }
     for _, v in ipairs(texts) do
-        dialog:CreateStatic(x_offset + 60 + v[2], v[4]):SetText(v[1])
-        dialog:CreateStatic(x_offset + 75, v[4]):SetText(v[3]):SetWidth(x_offset)
+        dialog:CreateStatic(x + 60 + v[2], v[4]):SetText(v[1])
+        dialog:CreateStatic(x + 75, v[4]):SetText(v[3]):SetWidth(x)
     end
-    dialog:CreateButton(128, y_level[3]):SetText("?"):SetWidth(20):AddHandleCommand(function(self)
-        local msg = "Newly created rests are \"floating\" and will avoid entries in other layers (if present) "
-        .. "using the setting for \"Adjust Floating Rests by...\" in \"Document Options...\" -> \"Layers\". \n\n"
-        .. "This script stops rests \"floating\", instead \"fixing\" them to a specific offset from the middle staff line. "
-        .. "To return them to \"floating\", select the \"Zero = Floating Rest\" option and set the offset to zero."
-        finenv.UI():AlertInfo(msg, "Rest Offsets Info")
-    end)
+    dialog:CreateButton(x * 2 + 45, y_grid[3]):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function()
+            finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" %s+", " "), "About " .. plugindef())
+        end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterHandleOkButtonPressed(function(self)
-        config.offset = self:GetControl("offset"):GetInteger()
-        config.layer = self:GetControl("layer"):GetInteger()
-        config.zero_floating = (self:GetControl("zero"):GetCheck() == 1)
+        config.offset = offset:GetInteger()
+        config.layer = layer_num:GetInteger()
+        config.make_floating = float:GetCheck()
+    end)
+    dialog:RegisterCloseWindow(function(self)
         self:StorePosition()
         config.pos_x = self.StoredX
         config.pos_y = self.StoredY
@@ -4836,25 +5153,10 @@ function make_the_change()
     end
     for entry in eachentrysaved(finenv.Region(), config.layer) do
         if entry:IsRest() then
-            if config.offset == 0 and config.zero_floating then
+            if (config.make_floating == 1) then
                 entry:SetFloatingRest(true)
             else
-                local rest_prop = "OtherRestPosition"
-                local duration = entry.Duration
-                if duration >= finale.BREVE then
-                    rest_prop = "DoubleWholeRestPosition"
-                elseif duration >= finale.WHOLE_NOTE then
-                    rest_prop = "WholeRestPosition"
-                elseif duration >= finale.HALF_NOTE then
-                    rest_prop = "HalfRestPosition"
-                end
-                local staff_spec = finale.FCCurrentStaffSpec()
-                staff_spec:LoadForEntry(entry)
-                local total_offset = staff_spec[rest_prop] + config.offset
-                entry:MakeMovableRest()
-                local rest = entry:GetItemAt(0)
-                local curr_staffpos = rest:CalcStaffPosition()
-                entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset - curr_staffpos)
+                note_entry.rest_offset(entry, config.offset)
             end
         end
     end
@@ -4866,9 +5168,8 @@ function change_rest_offset()
             :SetRestorePositionOnlyData(config.pos_x, config.pos_y)
             :RestorePosition()
     end
-    if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK or is_error() then
-        return
+    if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK and no_errors() then
+        make_the_change()
     end
-    make_the_change()
 end
 change_rest_offset()
