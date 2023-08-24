@@ -12,7 +12,7 @@ function plugindef()
     return "Unmute all staves", "Unmute all staves", "Unmutes all staves"
 end
 
-local max_layers = finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
+local layer = require("library.layer")
 
 function playback_unmute_all_staves()
     local full_doc_region = finale.FCMusicRegion()
@@ -23,10 +23,11 @@ function playback_unmute_all_staves()
         local staff = finale.FCStaff()
         staff:Load(staff_number)
         local playback_data = staff:CreateInstrumentPlaybackData()
-        for layer = 1, max_layers do
-            local layer_definition = playback_data:GetNoteLayerData(layer)
-            layer_definition.Play = true
+        for layer = 1, layer.max_layers() do
+            playback_data:GetNoteLayerData(layer).Play = true
         end
+        playback_data:GetChordLayerData().Play = true
+        playback_data:GetMidiExpressionLayerData().Play = true
         playback_data:Save()
     end
 end
