@@ -7,8 +7,13 @@ function plugindef()
     finaleplugin.CategoryTags = "Playback"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.ScriptGroupName = "Playback selected staves"
-    finaleplugin.ScriptGroupDescription =
-    "Set up playback to the selected staves and measures, using either Solo or Mute and (optionally) modifying the playback start/end measures."
+    finaleplugin.ScriptGroupDescription = [[
+        Set up playback to the selected staves and measures, using either Solo or Mute
+        and (optionally) modifying the playback start/end measures.
+    ]]
+    finaleplugin.AdditionalMenuOptions = [[
+        Mute selected staves
+    ]]
     finaleplugin.AdditionalMenuOptions = [[
         Mute selected staves
     ]]
@@ -31,8 +36,7 @@ function plugindef()
 
         ```
         set_playback_start = false                  -- if true, modify the playback start measure to match the selection or first measure if none
-        revert_playback_start = 0                   -- revert to start measure playback when no selection exists
-                                                    -- (1 == leftmost and 2 == current counter)
+        revert_playback_start = 0                   -- revert to start measure playback when no selection exists (1 == leftmost, 2 == current counter)
         include_chord_playback = true               -- if true, modify chord playback as well
         include_expression_playback = true          -- if true, modify MIDI expression playback as well
         include_end_measure = false                 -- if true, stop playback at the end measure of the region
