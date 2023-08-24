@@ -5473,14 +5473,31 @@ function plugindef()
         Call the script, type the hotkey and hit [Enter] or [Return].
         Twelve of the datatypes can be filtered by layer.
         Delete independently:
-        Articulations* | Articulations on Rests* | Cross Staff Entries*
-        Custom Lines | Dynamics* | Expressions (Not Dynamics)*
-        Expressions (All)* | Expressions (Measure-Attached) | Glissandos
-        Hairpins | Lyrics* | MIDI Continuous Data | MIDI Note Data*
-        Note Position Offsets* | Notehead Modifications* | Secondary Beam Breaks*
-        Slurs | Smart Shapes (Note Attached) | Smart Shapes (Measure Attached)
-        Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles
-        Tuplets* | User Selected...
+        - Articulations*
+        - Articulations on Rests*
+        - Cross Staff Entries*
+        - Custom Line
+        - Dynamics*
+        - Expressions (Not Dynamics)*
+        - Expressions (All)*
+        - Expressions (Measure-Attached)
+        - Glissandos
+        - Hairpins
+        - Lyrics*
+        - MIDI Continuous Data
+        - MIDI Note Data*
+        - Note Position Offsets*
+        - Notehead Modifications*
+        - Secondary Beam Breaks*
+        - Slurs
+        - Smart Shapes (Note Attached)
+        - Smart Shapes (Measure Attached)
+        - Smart Shapes (Beat Attached)
+        - Smart Shapes (All)
+        - Staff Styles
+        - Tuplets*
+        - User Selected...
+
         (* = filter by layer)
         To delete the same data as last time without a confirmation dialog,
         hold down the SHIFT key when starting the script.
