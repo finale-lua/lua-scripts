@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.65"
-    finaleplugin.Date = "2023/08/22"
+    finaleplugin.Version = "v0.71"
+    finaleplugin.Date = "2023/08/25"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.64
     finaleplugin.AdditionalMenuOptions = [[
@@ -71,6 +71,7 @@ local config = {
     composite_join  =   true, -- JOIN measure by COMPOSITING two unequal time signatures (otherwise CONSOLIDATE them)
     note_spacing    =   true, -- implement note spacing after each operation
     repaginate      =   false, -- repaginate after each operation
+    rebeam          =   false, -- whether to rebeam on completion
     display_meter   =   true, -- create a composite "display" time signature with composite joins
     shape_extend    =   3,    -- how many measures either side of the selection to span for smart shapes
     window_pos_x    =   false, -- saved dialog window position
@@ -80,7 +81,6 @@ local config = {
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local layer = require("library.layer")
-local tie = require("library.tie")
 local script_name = "measure_span"
 configuration.get_user_settings(script_name, config, true)
 
@@ -210,6 +210,8 @@ function user_options()
             finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" %s+", " "), "About " .. finaleplugin.ScriptGroupName)
         end)
     yd(18)
+    ccheck(6, y, "rebeam", i_width + 40, (config.rebeam and 1 or 0), "Rebeam note groups")
+    yd(18)
     ccheck(6, y, "repaginate", i_width, (config.repaginate and 1 or 0), "Repaginate entire score")
 
     -- radio button action
@@ -226,7 +228,7 @@ function user_options()
     dlg:RegisterHandleOkButtonPressed(function(self)
         for k, v in pairs(
             { halve_numerator = "1", odd_more_first = "3", double_join = "5", composite_join = "7",
-              display_meter = "display", note_spacing = "spacing", repaginate = "repaginate" }
+              display_meter = "display", note_spacing = "spacing", repaginate = "repaginate", rebeam = "rebeam" }
             ) do
             config[k] = (self:GetControl(v):GetCheck() == 1)
         end
@@ -263,14 +265,7 @@ function repaginate()
     gen_prefs:Save()
 end
 
-function region_contains_notes(region, layer_num)
-    for entry in eachentry(region, layer_num) do
-        if entry.Count > 0 then return true end
-    end
-    return false
-end
-
-function insert_blank_measure_after(measure_num) -- required for Span Divide operation
+function insert_blank_measure_after(measure_num)
     local props_copy = {"PositioningNotesMode", "Barline", "SpaceAfter", "SpaceBefore", "UseTimeSigForDisplay"}
     local props_set = {"BreakMMRest", "HideCautionary", "BreakWordExtension"}
     local measure = { finale.FCMeasure(), finale.FCMeasure() }
@@ -295,40 +290,43 @@ function insert_blank_measure_after(measure_num) -- required for Span Divide ope
     return 1 -- added one measure
 end
 
-function pad_or_truncate_cells(measure_rgn, measure_num, measure_duration)
+function pad_or_truncate_cells(measure_rgn, measure_num, measure_duration, check_measure)
     measure_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num) -- one bar width
 
-    for slot = measure_rgn.StartSlot, measure_rgn.EndSlot do
-        local staff = measure_rgn:CalcStaffNumber(slot)
+    for staff in eachstaff(measure_rgn) do
         local cell_rgn = mixin.FCMMusicRegion()
         cell_rgn:SetRegion(measure_rgn):SetStartStaff(staff):SetEndStaff(staff)
 
-        if region_contains_notes(cell_rgn, 0) then
-            for layer_num = 1, layer.max_layers() do
-                local entry_layer = finale.FCNoteEntryLayer(layer_num - 1, staff, measure_num, measure_num)
-                entry_layer:Load()
-                if entry_layer.Count > 0 then -- layer contains some notes
-                    local layer_duration = entry_layer:CalcFrameDuration(measure_num)
-                    if layer_duration > measure_duration then -- TRUNCATE
-                        -- crop entry lengths
-                        for entry in eachentrysaved(cell_rgn, layer_num) do
-                            if entry.MeasurePos >= measure_duration then -- entry starts beyond the barline
-                                entry.Duration = 0 -- so delete it
-                            elseif (entry.MeasurePos + entry.ActualDuration) > measure_duration then
-                                entry.Duration = measure_duration - entry.MeasurePos -- shorten the entry to fit
-                                -- NOTE: spurious result if last valid note is within a tuplet
-                            end
+        for layer_num = 1, layer.max_layers() do
+            local check_required = false
+            if check_measure > 0 then
+                local check_layer = finale.FCNoteEntryLayer(layer_num - 1, staff, measure_num, check_measure)
+                check_layer:Load()
+                if check_layer.Count > 0 then check_required = true end
+            end
+            local entry_layer = finale.FCNoteEntryLayer(layer_num - 1, staff, measure_num, measure_num)
+            entry_layer:Load()
+            if entry_layer.Count > 0 or check_required then -- layer contains (or needs) some notes
+                local layer_duration = entry_layer:CalcFrameDuration(measure_num)
+                if layer_duration > measure_duration then -- TRUNCATE
+                    -- crop entry lengths
+                    for entry in eachentrysaved(cell_rgn, layer_num) do
+                        if entry.MeasurePos >= measure_duration then -- entry starts beyond the barline
+                            entry.Duration = 0 -- so delete it
+                        elseif (entry.MeasurePos + entry.ActualDuration) > measure_duration then
+                            entry.Duration = measure_duration - entry.MeasurePos -- shorten the entry to fit
+                            -- NOTE: spurious result if last valid note is within a tuplet
                         end
-                    elseif layer_duration < measure_duration then -- insert rest PADDING
-                        local last_note = entry_layer:GetItemAt(entry_layer.Count - 1)
-                        local newentry = entry_layer:InsertEntriesAfter(last_note, 1, false)
-                        if newentry ~= nil then
-                            newentry:MakeRest()
-                            newentry.Duration = measure_duration - layer_duration
-                            newentry.Legality = true
-                            newentry.Visible = true
-                            entry_layer:Save()
-                        end
+                    end
+                elseif layer_duration < measure_duration then -- insert rest PADDING
+                    local last_note = entry_layer:GetItemAt(entry_layer.Count - 1)
+                    local newentry = entry_layer:InsertEntriesAfter(last_note, 1, false)
+                    if newentry ~= nil then
+                        newentry:MakeRest()
+                        newentry.Duration = measure_duration - layer_duration
+                        newentry.Legality = true
+                        newentry.Visible = true
+                        entry_layer:Save()
                     end
                 end
             end
@@ -374,7 +372,6 @@ function extract_composite_to_array(time_sig)
             comp_array.bottom.comp = time_sig:CreateCompositeBottom()
             comp_array.bottom.count = comp_array.bottom.comp:GetGroupCount()
         end
-
         for group = 0, (comp_array.top.count - 1) do
             comp_array.top.groups[group + 1] = {}
             for i = 0, (comp_array.top.comp:GetGroupElementCount(group) - 1) do
@@ -494,7 +491,7 @@ function divide_measures(selection)
 
         local pair_rgn = mixin.FCMMusicRegion()
         pair_rgn:SetRegion(selection):SetFullMeasureStack()
-        pad_or_truncate_cells(pair_rgn, measure_num, measure[1]:GetDuration())
+        pad_or_truncate_cells(pair_rgn, measure_num, measure[1]:GetDuration(), 0)
 
         if time_sig[1].CompositeTop then
             -- COMPOSITE METER
@@ -522,8 +519,7 @@ function divide_measures(selection)
                     new_composite_bottom(time_sig[2], comp_array.bottom.groups, 2, 0)
                 end
             end
-        else
-            -- NON-COMPOSITE METER
+        else  -- NON-COMPOSITE METER
             if config.halve_numerator then -- HALVE the numerator
                 if top[1] == 1 then
                     if bottom % 3 == 0 then
@@ -550,207 +546,53 @@ function divide_measures(selection)
             time_sig[1]:SetBeats(top[1]):SetBeatDuration(bottom)
             time_sig[2]:SetBeats(top[2]):SetBeatDuration(bottom)
         end
-
         measure[1]:Save()
         measure[2]:Save()
         extend_smart_shape_ends(pair_rgn, measure_num, measure[1]:GetDuration())
         pair_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num + 1) -- rebar BOTH measures
-        pair_rgn:RebarMusic(finale.REBARSTOP_REGIONEND, true, false)
+        pair_rgn:RebarMusic(finale.REBARSTOP_REGIONEND, config.rebeam, false)
         note_spacing(pair_rgn) -- (conditional on config)
         extra_measures = extra_measures + 1
     end
     selection.EndMeasure = selection.EndMeasure + extra_measures
 end
 
-function shift_shape_positions(measure_num, shape, pos_offset, is_beat_based)
-    local new_note_pos = {}
-    local old_seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
-    local m = { L = old_seg.L.Measure, R = old_seg.R.Measure }
-    if m.L < (measure_num + 2) and m.L ~= m.R and m.R > measure_num then
-        if m.L > measure_num then
-            old_seg.L.Measure = m.L - 1
-            if m.L == measure_num + 1 then
-                if is_beat_based then
-                    old_seg.L.MeasurePos = old_seg.L.MeasurePos + pos_offset
-                else
-                    new_note_pos.L = true
-                end
-            end
-        end
-        if m.R > measure_num then
-            old_seg.R.Measure = m.R - 1
-            if m.R == measure_num + 1 then
-                if is_beat_based then
-                    old_seg.R.MeasurePos = old_seg.R.MeasurePos + pos_offset
-                else
-                    new_note_pos.R = true
-                end
-            end
-        end
-        shape:Save()
-    end
-    return new_note_pos
-end
-
-function shift_smart_shapes(rgn, measure_num, pos_offset)
-    local slurs, save_exps = {}, {}
-    local shift_rgn = mixin.FCMMusicRegion()
-    shift_rgn:SetRegion(rgn)
+function compress_smart_shape_ends(rgn, measure_num, measure_duration)
+    local extend_rgn = mixin.FCMMusicRegion()
+    extend_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
-        :SetEndMeasure(measure_extend_count(measure_num + 1))
+        :SetEndMeasure(measure_extend_count(measure_num))
         :SetFullMeasureStack()
-
-    -- BEAT ATTACHED
     local marks = finale.FCSmartShapeMeasureMarks()
-    marks:LoadAllForRegion(shift_rgn, true)
+    marks:LoadAllForRegion(extend_rgn, true)
     for mark in each(marks) do
         local shape = mark:CreateSmartShape()
         if shape and not shape.EntryBased then
-            shift_shape_positions(measure_num, shape, pos_offset, true)
+            local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
+            local m = { L = seg.L.Measure, R = seg.R.Measure }
+            for _, i in ipairs( {"L", "R"} ) do
+                if m[i] > measure_num then
+                    seg[i].Measure = m[i] - 1 -- move to left measure
+                    if seg[i].Measure == measure_num then
+                        seg[i].MeasurePos = seg[i].MeasurePos + measure_duration
+                    end
+                end
+            end
+            shape:Save()
         end
     end
-    -- NOTE ATTACHED
-    local shape_starts, shape_ends = {}, {}
-    for entry in eachentry(shift_rgn) do
-        for mark in loadall(finale.FCSmartShapeEntryMarks(entry)) do
-            local shape = mark:CreateSmartShape()
-            if mark:CalcLeftMark() then
-                shape_starts[shape.ItemNo] = entry
-            end
-            if mark:CalcRightMark() then
-                shape_ends[shape.ItemNo] = entry
-            end
-        end
-    end
-    for itemno, entry in pairs(shape_starts) do
-        if shape_ends[itemno] ~= nil then -- we have a fully specified shape
-            local shape = finale.FCSmartShape()
-            shape:Load(itemno)
-            new_note_pos = shift_shape_positions(measure_num, shape, pos_offset, false)
-            if new_note_pos.L or new_note_pos.R then
-                local nentry = { L = entry, R = shape_ends[itemno] }
-                table.insert(slurs,
-                    { item = itemno, change_side = new_note_pos, shape = shape, entry = nentry }
-                )
-            end
-        end
-    end
-    -- MOVE MEASURE-ATTACHED EXPRESSIONS
+end
+
+function shift_joined_expressions(measure_num, m_offset, m_width)
     local exps = finale.FCExpressions()
-    exps:LoadAllForItem(measure_num + 1) -- in the "moving" measure
+    exps:LoadAllForItem(measure_num + 1) -- the "joining" measure 2
     for exp in eachbackwards(exps) do
-        if exp.StaffGroupID > 0 then
-            exp:SaveNewToCell(finale.FCCell(measure_num, exp.Staff))
-            table.insert(save_exps, exp) -- .ItemCmper)
-        end
-    end
-    return slurs, save_exps
-end
-
-function make_entry_smartshape(start_entry, end_entry, old_shape)
-    local old_seg = { L = old_shape:GetTerminateSegmentLeft(), R = old_shape:GetTerminateSegmentRight() }
-    local new_shape = finale.FCSmartShape()
-    local new_seg = { L = new_shape:GetTerminateSegmentLeft(), R = new_shape:GetTerminateSegmentRight() }
-    new_shape:SetEntryAttachedFlags(false)
-
-    for _, v in ipairs(
-            {"ShapeType", "PresetShape", "LineID", "EngraverSlur",
-             "MakeHorizontal", "MaintainAngle", "AvoidAccidentals"} ) do
-        new_shape[v] = old_shape[v]
-    end
-    new_seg.L:SetEntry(start_entry)
-    new_seg.R:SetEntry(end_entry)
-    new_seg.L:SetCustomOffset(false) -- LH
-    new_seg.R:SetCustomOffset(true)  -- RH
-    for _, v in ipairs( {"Staff", "Measure", "NoteID", "EndpointOffsetX", "EndpointOffsetY" } ) do
-        new_seg.L[v] = old_seg.L[v]
-        new_seg.R[v] = old_seg.R[v]
-    end
-
-    local cpa = { old = old_shape:GetCtrlPointAdjust(), new = new_shape:GetCtrlPointAdjust() }
-    if cpa.old.CustomShaped then
-        cpa.new.CustomShaped = true
-        for _, v in ipairs( { "ControlPoint1OffsetX", "ControlPoint1OffsetY",
-                "ControlPoint2OffsetX", "ControlPoint2OffsetY" } ) do
-            cpa.new[v] = cpa.old[v]
-        end
-    end
-    new_shape:SaveNewEverything(start_entry, end_entry)
-end
-
-function restore_slurs(pos_offset, slurs, exps, m_width)
-    if #slurs > 0 then
-        for _, slur in ipairs(slurs) do
-            local shape = finale.FCSmartShape()
-            shape:Load(slur.item)
-            local old_seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
-            for _, side in ipairs({"L", "R"}) do
-                if slur.change_side[side] then
-                    local cell = finale.FCNoteEntryCell(old_seg[side].Measure, old_seg[side].Staff)
-                    cell:Load()
-                    slur.entry[side] = cell:FindClosestPos(slur.entry[side].MeasurePos + pos_offset)
-                end
-            end
-            make_entry_smartshape(slur.entry.L, slur.entry.R, slur.shape)
-            if shape then shape:DeleteData() end
-        end
-    end
-    if #exps > 0 then -- restore measure-attached expressions from 2nd measure
-        for _, exp in ipairs(exps) do
+        if exp.StaffGroupID > 0 then -- measure-attached expression
             exp.HorizontalPos = exp.HorizontalPos + m_width
-            exp:Save()
+        else -- note-attached expression
+            exp.MeasurePos = exp.MeasurePos + m_offset
         end
-    end
-end
-
-function save_tie_ends(region, measure)
-    local ties = {}
-    for slot = region.StartSlot, region.EndSlot do -- assumes FullMeasureStack
-        local staff = region:CalcStaffNumber(slot)
-        ties[staff] = {}
-        for layer_num = 1, layer.max_layers() do
-            local entry_layer = finale.FCNoteEntryLayer(layer_num - 1, staff, measure, measure)
-            entry_layer:Load()
-            ties[staff][layer_num] = {}
-            if entry_layer.Count > 0 then -- layer contains some notes
-                local last_entry = entry_layer:GetItemAt(entry_layer.Count - 1)
-                local pos = last_entry.MeasurePos
-                ties[staff][layer_num][pos] = {}
-                for note in each(last_entry) do
-                    if note.Tie then
-                        table.insert(ties[staff][layer_num][pos], note.NoteID )
-                    end
-                end
-            end
-        end
-    end
-    return ties
-end
-
-function restore_tie_ends(region, measure, ties)
-    for slot = region.StartSlot, region.EndSlot do
-        local staff = region:CalcStaffNumber(slot)
-        if ties[staff] then
-            for layer_num = 1, layer.max_layers() do
-                if ties[staff][layer_num] then
-                    local entry_layer = finale.FCNoteEntryLayer(layer_num - 1, staff, measure, measure)
-                    entry_layer:Load()
-                    for entry in each(entry_layer) do
-                        if ties[staff][layer_num][entry.MeasurePos] ~= nil then
-                            for _, v in ipairs(ties[staff][layer_num][entry.MeasurePos]) do
-                                local note = entry:FindNoteID(v)
-                                local tied_to_note = tie.calc_tied_to(note)
-                                if tied_to_note then
-                                    note.Tie = true
-                                    tied_to_note.TieBackwards = true
-                                end
-                            end
-                        end
-                    end
-                    entry_layer:Save()
-                end
-            end
-        end
+        exp:SaveNewToCell(finale.FCCell(measure_num, exp.Staff))
     end
 end
 
@@ -760,14 +602,14 @@ function join_measures(selection)
         finenv.UI():AlertError(msg, "User Error")
         return
     end
-    -- run through selection backwards by measure pairs
+    -- run through pairs of measures backwards
     local measures_removed = 0
     for measure_num = selection.EndMeasure - 1, selection.StartMeasure, -2 do
-        local measure = { finale.FCMeasure(), finale.FCMeasure() }
+        local measure = { mixin.FCMMeasure(), mixin.FCMMeasure() }
         measure[1]:Load(measure_num)
         measure[2]:Load(measure_num + 1)
         measure[1].UseTimeSigForDisplay = false -- no longer relevant
-        measure[1].Barline = measure[2].Barline -- before [2] is erased
+        measure[1].Barline = measure[2].Barline -- before [2] is deleted
 
         local time_sig = { measure[1]:GetTimeSignature(), measure[2]:GetTimeSignature()}
         local top = { time_sig[1].Beats, time_sig[2].Beats }
@@ -775,17 +617,14 @@ function join_measures(selection)
         local measure_dur = { measure[1]:GetDuration(), measure[2]:GetDuration() }
 
         -- paste all of measure[2] onto end of measure[1]
-        local paste_rgn = mixin.FCMMusicRegion()
-        paste_rgn:SetRegion(selection):SetFullMeasureStack()
-        local saved_tie_ends = save_tie_ends(paste_rgn, measure_num)
-        local saved_slurs, saved_exps = shift_smart_shapes(paste_rgn, measure_num, measure_dur[1])
-        pad_or_truncate_cells(paste_rgn, measure_num + 1, measure_dur[2])
-        paste_rgn:SetStartMeasure(measure_num + 1):SetEndMeasure(measure_num + 1):CopyMusic()
-        pad_or_truncate_cells(paste_rgn, measure_num, measure_dur[1])
+        local join_rgn = mixin.FCMMusicRegion()
+        join_rgn:SetRegion(selection):SetFullMeasureStack()
+        pad_or_truncate_cells(join_rgn, measure_num + 1, measure_dur[2], 0)
+        pad_or_truncate_cells(join_rgn, measure_num, measure_dur[1], measure_num + 1)
 
         local comp_array = {}
         if time_sig[1].CompositeTop or time_sig[2].CompositeTop then
-            -- at least ONE composite in this pair
+            -- at least ONE composite
             for cnt = 1, 2 do
                 comp_array[cnt] = {}
                 if time_sig[cnt].CompositeTop then
@@ -805,13 +644,16 @@ function join_measures(selection)
             end
             if not config.composite_join then -- CONSOLIDATE the meters
                 local beats, dur = flatten_comp_numerators(comp_array[1])
-                clear_composite(time_sig[1], beats, dur)
-                time_sig[1].Beats = beats
-                time_sig[1].BeatDuration = dur
+                for i = 1, 2 do
+                    clear_composite(time_sig[i], beats, dur)
+                    time_sig[i]:SetBeats(beats):SetBeatDuration(dur)
+                end
             else
-                new_composite_top(time_sig[1], comp_array[1].top.groups, 1, 0, 1)
-                new_composite_bottom(time_sig[1], comp_array[1].bottom.groups, 1, 0)
-                make_display_meter(measure[1], comp_array[1]) -- conditional on config
+                for i = 1, 2 do
+                    new_composite_top(time_sig[i], comp_array[1].top.groups, 1, 0, 1)
+                    new_composite_bottom(time_sig[i], comp_array[1].bottom.groups, 1, 0)
+                    make_display_meter(measure[i], comp_array[1]) -- conditional on config
+                end
             end
         else
             -- NO COMPOSITES in this measure pair
@@ -821,37 +663,39 @@ function join_measures(selection)
                 else
                     bottom[1] = bottom[1] * 2 -- "halve" denominator
                 end
-                time_sig[1].Beats = top[1]
-                time_sig[1].BeatDuration = bottom[1]
+                for i = 1, 2 do
+                    time_sig[i]:SetBeats(top[1]):SetBeatDuration(bottom[1])
+                end
             else
                 comp_array = {
                     top = { groups = { { top[1] }, { top[2] } } },
                     bottom = { groups = { bottom[1], bottom[2] } }
                 }
                 if not config.composite_join then -- CONSOLIDATE the meters
-                    time_sig[1].Beats, time_sig[1].BeatDuration = flatten_comp_numerators(comp_array)
+                    for i = 1, 2 do
+                        time_sig[i].Beats, time_sig[i].BeatDuration = flatten_comp_numerators(comp_array)
+                    end
                 else -- fabricate COMPOSITE
-                    new_composite_bottom(time_sig[1], comp_array.bottom.groups, 1, 0)
-                    new_composite_top(time_sig[1], comp_array.top.groups, 1, 0, 1)
-                    make_display_meter(measure[1], comp_array) -- (conditional on config)
+                    for i = 1, 2 do
+                        new_composite_bottom(time_sig[i], comp_array.bottom.groups, 1, 0)
+                        new_composite_top(time_sig[i], comp_array.top.groups, 1, 0, 1)
+                        make_display_meter(measure[i], comp_array) -- (conditional on config)
+                    end
                 end
             end
         end
         measure[1]:Save()
-        paste_rgn:SetStartMeasurePos(measure_dur[1]):SetEndMeasurePosRight()
-        paste_rgn:PasteMusic()
-        paste_rgn:ReleaseMusic()
-        measure[1]:Save()
-        restore_tie_ends(paste_rgn, measure_num, saved_tie_ends)
-        restore_slurs(measure_dur[1], saved_slurs, saved_exps, measure[1].Width)
+        measure[2]:Save()
+        join_rgn:SetStartMeasure(measure_num):SetStartMeasurePosLeft()
+            :SetEndMeasure(measure_num + 1):SetEndMeasurePosRight():SetFullMeasureStack()
+        join_rgn:RebarMusic(finale.REBARSTOP_REGIONEND, config.rebeam, false)
+        shift_joined_expressions(measure_num, measure_dur[1], measure[1].Width)
+        compress_smart_shape_ends(join_rgn, measure_num, measure_dur[1])
 
-        paste_rgn:SetStartMeasurePos(0)
-            :RebarMusic(finale.REBARSTOP_REGIONEND, true, false)
-        -- delete the copied (second) measure
-        paste_rgn:SetStartMeasure(measure_num + 1):SetEndMeasure(measure_num + 1):CutDeleteMusic()
-        paste_rgn:ReleaseMusic()
-        paste_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num)
-        note_spacing(paste_rgn)
+        -- delete old measure 2
+        join_rgn:SetStartMeasure(measure_num + 1):CutDeleteMusic()
+        join_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num):ReleaseMusic()
+        note_spacing(join_rgn)
         measures_removed = measures_removed + 1
     end
     selection.EndMeasure = selection.EndMeasure - measures_removed
@@ -873,8 +717,6 @@ function measure_span()
         divide_measures(selection)
     elseif span_action == "join" then
         join_measures(selection)
-    else
-        return -- unknown request
     end
     selection:SetInDocument()
     if config.repaginate then repaginate() end
