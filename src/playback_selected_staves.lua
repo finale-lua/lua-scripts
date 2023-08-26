@@ -14,9 +14,6 @@ function plugindef()
     finaleplugin.AdditionalMenuOptions = [[
         Mute selected staves
     ]]
-    finaleplugin.AdditionalMenuOptions = [[
-        Mute selected staves
-    ]]
     finaleplugin.AdditionalDescriptions = [[
         Sets up playback to the selected region by muting selected staves.
     ]]
@@ -39,7 +36,7 @@ function plugindef()
         revert_playback_start = 0                   -- revert to start measure playback when no selection exists (1 == leftmost, 2 == current counter)
         include_chord_playback = true               -- if true, modify chord playback as well
         include_expression_playback = true          -- if true, modify MIDI expression playback as well
-        include_end_measure = false                 -- if true, stop playback at the end measure of the region
+        include_end_measure = true                  -- if true, stop playback at the end measure of the region
         ```
     ]]
     return "Solo selected staves", "Solo selected staves", "Sets up playback to the selected region."
@@ -53,7 +50,7 @@ local config = {
     revert_playback_start = finale.PLAYBACKSTART_MEASURE,
     include_chord_playback = true,
     include_expression_playback = true,
-    include_end_measure = false
+    include_end_measure = true
 }
 configuration.get_parameters("playback_selected_region.config.txt", config)
 
@@ -91,12 +88,20 @@ function playback_selected_staves()
             if region:IsEmpty() then
                 playback_prefs.StartMode = config.revert_playback_start
                 playback_prefs.StartMeasure = 1
-                playback_prefs.StopMeasure = 0x7ffe -- this selects the radio button for "End of Piece"
+                if playback_prefs.ConfigurePlaybackToEnd then -- if ConfigurePlaybackToEnd method exists (RGPLua 0.68+)
+                    playback_prefs:ConfigurePlaybackToEnd()
+                else
+                    playback_prefs.StopMeasure = 0x7ffe -- this selects the radio button for "End of Piece"
+                end
             else
-                playback_prefs.StartMode = finale.PLAYBACKSTART_MEASURE
-                playback_prefs.StartMeasure = region.StartMeasure
-                if config.include_end_measure then
-                    playback_prefs.StopMeasure = region.EndMeasure
+                if playback_prefs.ConfigurePlaybackToRegion then -- if ConfigurePlaybackToRegion exists (RGPLua 0.68+)
+                    playback_prefs:ConfigurePlaybackToRegion(region, not config.include_end_measure)
+                else
+                    playback_prefs.StartMode = finale.PLAYBACKSTART_MEASURE
+                    playback_prefs.StartMeasure = region.StartMeasure
+                    if config.include_end_measure then
+                        playback_prefs.StopMeasure = region.EndMeasure
+                    end
                 end
             end
             playback_prefs:Save()
