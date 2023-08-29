@@ -94,8 +94,8 @@ function playback_selected_staves()
                     playback_prefs.StopMeasure = 0x7ffe -- this selects the radio button for "End of Piece"
                 end
             else
-                if playback_prefs.ConfigurePlaybackToRegion then -- if ConfigurePlaybackToRegion exists (RGPLua 0.68+)
-                    playback_prefs:ConfigurePlaybackToRegion(region, not config.include_end_measure)
+                if playback_prefs.ConfigurePlaybackRegion then -- if ConfigurePlaybackToRegion exists (RGPLua 0.68+)
+                    playback_prefs:ConfigurePlaybackRegion(region, not config.include_end_measure)
                 else
                     playback_prefs.StartMode = finale.PLAYBACKSTART_MEASURE
                     playback_prefs.StartMeasure = region.StartMeasure
