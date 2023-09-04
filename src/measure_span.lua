@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.79"
-    finaleplugin.Date = "2023/09/02"
+    finaleplugin.Version = "v0.83"
+    finaleplugin.Date = "2023/09/04"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.64
     finaleplugin.AdditionalMenuOptions = [[
@@ -34,7 +34,7 @@ function plugindef()
 
         Combine each pair of measures in the selection into one by combining their time signatures. 
         If they have the same time signature either double the numerator ([3/4][3/4] -> [6/4]) or 
-        halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures aren't equal, choose to either 
+        halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures are different, choose to either 
         COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]). 
         (Consolidation loses current beam groupings). You can choose that a consolidated "display" 
         time signature is created automatically when compositing meters. "JOIN" only works on an even number of measures.
@@ -50,10 +50,13 @@ function plugindef()
         == IN ALL CASES ==
 
         Incomplete measures will be filled with rests before Join/Divide. Measures containing too many 
-        notes will be trimmed to their "real" duration. Time signatures "for display only" will be removed. 
-        Measures are either deleted or shifted in every operation so smart shapes spanning the area 
-        need to be "restored". Selecting a SPAN of "5" will look for smart shapes to restore from 5 
-        measures before until 5 after the selected region. (This takes noticeably longer than a SPAN of "2").
+        notes will be trimmed to the "real" duration of the time signature. 
+        Time signatures "for display only" will be removed. 
+        Measures are either deleted or shifted in every operation so smart shapes on 
+        either side of the area need to be "restored". 
+        Selecting a SPAN of "5" will look for smart shapes to restore from 5 
+        measures before until 5 after the selected region. 
+        (This takes noticeably longer than a SPAN of "2").
 
         == OPTIONS ==
 
@@ -276,13 +279,12 @@ function copy_measure_values(measure_1, measure_2)
     measure_2:Save()
 end
 
-function pad_or_truncate_cells(measure_rgn, measure_num, measure_duration, check_measure)
-    for staff in eachstaff(measure_rgn) do
-        local cell_rgn = mixin.FCMMusicRegion()
-        cell_rgn:SetRegion(measure_rgn)
-            :SetStartMeasure(measure_num):SetEndMeasure(measure_num) -- one bar width
-            :SetStartStaff(staff):SetEndStaff(staff)
-
+function pad_or_truncate_cells(region, measure_num, measure_duration, check_measure)
+    local cell_rgn = mixin.FCMMusicRegion()
+    cell_rgn:SetRegion(region)
+        :SetStartMeasure(measure_num):SetEndMeasure(measure_num) -- one bar wide
+    for staff in eachstaff(region) do
+        cell_rgn:SetStartStaff(staff):SetEndStaff(staff)
         for layer_num = 1, layer.max_layers() do
             local check_required = false
             if check_measure > 0 then
@@ -431,26 +433,6 @@ function measure_extend_count(measure_num)
     return math.max(measures.Count, (measure_num + config.shape_extend))
 end
 
-function copy_measure_smartshape(old_shape, old_seg, m, pos)
-    local new_shape = finale.FCSmartShape()
-    local new_seg = { L = new_shape:GetTerminateSegmentLeft(), R = new_shape:GetTerminateSegmentRight() }
-    for _, v in ipairs(
-        { "ShapeType", "PresetShape", "LineID", "EngraverSlur", "EntryBased",
-        "BeatAttached", "MakeHorizontal", "MaintainAngle", "Visible", "LineID" }
-    ) do
-        new_shape[v] = old_shape[v]
-    end
-    new_seg.L.Measure = m.L
-    new_seg.R.Measure = m.R
-    new_seg.L.MeasurePos = pos.L
-    new_seg.R.MeasurePos = pos.R
-    for _, v in ipairs( {"Staff", "EndpointOffsetX", "EndpointOffsetY" } ) do
-        new_seg.L[v] = old_seg.L[v]
-        new_seg.R[v] = old_seg.R[v]
-    end
-    new_shape:SaveNewEverything(nil, nil)
-end
-
 function extend_smart_shape_ends(rgn, measure_num, new_duration)
     local extend_rgn = mixin.FCMMusicRegion()
     extend_rgn:SetRegion(rgn)
@@ -467,32 +449,14 @@ function extend_smart_shape_ends(rgn, measure_num, new_duration)
             if m.L <= measure_num then -- only affect shapes that straddle the inserted measure
                 local changed = false
                 if m.R > measure_num then
-                    seg.R:SetMeasure(m.R + 1) -- crosses new measure boundary
+                    seg.R.Measure = m.R + 1 -- crosses new measure boundary
                     changed = true
                 end
-                local copy = {
-                    L = (m.L == measure_num and seg.L.MeasurePos >= new_duration),
-                    R = (m.R == measure_num and seg.R.MeasurePos >= new_duration)
-                }
-                if copy.L or copy.R then
-                    local pos = { L = seg.L.MeasurePos, R = seg.R.MeasurePos }
-                    changed = true
-                    if copy.L then
-                        m.L = m.L + 1
-                        pos.L =  pos.L - new_duration
-                        seg.L.Measure = m.L
-                        seg.L.MeasurePos = pos.L
-                    end
-                    if copy.R then
-                        m.R = m.R + 1
-                        pos.R = pos.R - new_duration
-                        seg.R.Measure = m.R
-                        seg.R.MeasurePos = pos.R
-                    end
-                    if (copy.L and copy.R) then -- ?? -- if copy.L then --
-                        copy_measure_smartshape(shape, seg, m, pos)
-                        shape:DeleteData()
-                        changed = false
+                for _, i in ipairs( {"L", "R"} ) do
+                    if m[i] == measure_num and seg[i].MeasurePos >= new_duration then
+                        seg[i]:SetMeasure(m[i] + 1) -- move to right
+                        seg[i]:SetMeasurePos(seg[i].MeasurePos - new_duration)
+                        changed = true
                     end
                 end
                 if changed then shape:Save() end
@@ -520,6 +484,41 @@ function shift_divided_measure_expressions(measure_num, old_duration, old_width,
     end
 end
 
+function save_measure_shapes(measure_num)
+    -- set aside measure-attached shapes before time_sig and re-bar changes
+    local shapes = {}
+    local marks = finale.FCSmartShapeMeasureMarks()
+    marks:LoadAllForItem(measure_num)
+    for mark in each(marks) do -- eachbackwards(marks) do
+        local shape = mark:CreateSmartShape()
+        if shape and not shape.EntryBased then
+            local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
+            if seg.L.Measure == measure_num and seg.R.Measure == measure_num then
+                table.insert(shapes, { shape.ItemNo, seg.L.MeasurePos, seg.R.MeasurePos })
+            end
+        end
+    end
+    return shapes
+end
+
+function restore_shapes(shapes, measure_num, dur)
+    -- re-create previously saved measure-attached shapes (when in 2nd part of measure)
+    local shape = finale.FCSmartShape()
+    for _, v in ipairs(shapes) do
+        shape:Load(v[1])
+        local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
+        if v[2] >= dur and v[3] >= dur then -- in 2nd ("divided") part of original measure
+            seg.L.Measure = measure_num + 1
+            seg.R.Measure = measure_num + 1
+            seg.L.MeasurePos = v[2] - dur
+            seg.R.MeasurePos = v[3] - dur
+            shape:SaveNewEverything(nil, nil)
+            shape:Load(v[1]) -- now delete the original non-"affixed" version
+            shape:DeleteData()
+        end
+    end
+end
+
 function divide_measures(selection)
     local pair_rgn = mixin.FCMMusicRegion()
     pair_rgn:SetRegion(selection):SetFullMeasureStack()
@@ -530,6 +529,7 @@ function divide_measures(selection)
         local measure = { mixin.FCMMeasure(), mixin.FCMMeasure() }
         measure[1]:Load(measure_num)
         local old_duration, old_width = measure[1]:GetDuration(), measure[1]:GetWidth()
+        local saved_shapes = save_measure_shapes(measure_num)
         finale.FCMeasures.Insert(measure_num + 1, 1, false)
         measure[2]:Load(measure_num + 1)
         copy_measure_values(measure[1], measure[2])
@@ -594,10 +594,12 @@ function divide_measures(selection)
         end
         measure[1]:Save()
         measure[2]:Save()
-        extend_smart_shape_ends(pair_rgn, measure_num, measure[1]:GetDuration())
+        local dur = measure[1]:GetDuration()
+        restore_shapes(saved_shapes, measure_num, dur)
+        extend_smart_shape_ends(pair_rgn, measure_num, dur)
         pair_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num + 1)
             :RebarMusic(finale.REBARSTOP_REGIONEND, config.rebeam, true)
-        shift_divided_measure_expressions(measure_num, old_duration, old_width, measure[1]:GetDuration(), measure[1]:GetWidth())
+        shift_divided_measure_expressions(measure_num, old_duration, old_width, dur, measure[1]:GetWidth())
         respace_notes(pair_rgn)
     end
 end
@@ -606,7 +608,7 @@ function compress_smart_shape_ends(rgn, measure_num, measure_duration)
     local extend_rgn = mixin.FCMMusicRegion()
     extend_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
-        :SetEndMeasure(measure_extend_count(measure_num))
+        :SetEndMeasure(measure_extend_count(measure_num + 1))
         :SetFullMeasureStack()
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAllForRegion(extend_rgn, true)
@@ -615,15 +617,17 @@ function compress_smart_shape_ends(rgn, measure_num, measure_duration)
         if shape and not shape.EntryBased then
             local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
             local m = { L = seg.L.Measure, R = seg.R.Measure }
+            local changed = false
             for _, i in ipairs( {"R", "L"} ) do
                 if m[i] > measure_num then
                     seg[i].Measure = m[i] - 1
                     if seg[i].Measure == measure_num then
                         seg[i].MeasurePos = seg[i].MeasurePos + measure_duration
                     end
+                    changed = true
                 end
             end
-            shape:Save()
+            if changed then shape:Save() end
         end
     end
 end
