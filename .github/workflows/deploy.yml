@@ -10,14 +10,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout this repository
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
               with:
                   persist-credentials: false
                   fetch-depth: 0
                   path: './lua'
             - run: 'rm -f ./lua/dist/*'
             - name: Checkout docs website repository
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
               with:
                   persist-credentials: false
                   fetch-depth: 0
