@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.83"
-    finaleplugin.Date = "2023/09/04"
+    finaleplugin.Version = "v0.87"
+    finaleplugin.Date = "2023/09/06"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.64
     finaleplugin.AdditionalMenuOptions = [[
@@ -441,7 +441,7 @@ function extend_smart_shape_ends(rgn, measure_num, new_duration)
         :SetFullMeasureStack()
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAllForRegion(extend_rgn, true)
-    for mark in each(marks) do -- eachbackwards(marks) do
+    for mark in eachbackwards(marks) do
         local shape = mark:CreateSmartShape()
         if shape and not shape.EntryBased then
             local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
@@ -489,7 +489,7 @@ function save_measure_shapes(measure_num)
     local shapes = {}
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAllForItem(measure_num)
-    for mark in each(marks) do -- eachbackwards(marks) do
+    for mark in eachbackwards(marks) do -- eachbackwards(marks) do
         local shape = mark:CreateSmartShape()
         if shape and not shape.EntryBased then
             local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
@@ -611,24 +611,60 @@ function compress_smart_shape_ends(rgn, measure_num, measure_duration)
         :SetEndMeasure(measure_extend_count(measure_num + 1))
         :SetFullMeasureStack()
     local marks = finale.FCSmartShapeMeasureMarks()
-    marks:LoadAllForRegion(extend_rgn, true)
+    marks:LoadAllForRegion(extend_rgn, false)
     for mark in each(marks) do
         local shape = mark:CreateSmartShape()
         if shape and not shape.EntryBased then
             local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
             local m = { L = seg.L.Measure, R = seg.R.Measure }
-            local changed = false
-            for _, i in ipairs( {"R", "L"} ) do
-                if m[i] > measure_num then
-                    seg[i].Measure = m[i] - 1
-                    if seg[i].Measure == measure_num then
-                        seg[i].MeasurePos = seg[i].MeasurePos + measure_duration
-                    end
-                    changed = true
-                end
+            if m.L == measure_num + 1 then
+                seg.L.Measure = m.L - 1
+                seg.L.MeasurePos = seg.L.MeasurePos + measure_duration
             end
-            if changed then shape:Save() end
+            if m.R == measure_num + 1 then
+                seg.R.Measure = m.R - 1
+                seg.R.MeasurePos = seg.R.MeasurePos + measure_duration
+            end
+            shape:Save()
         end
+    end
+end
+
+function save_shapes_for_joining(rgn, measure_num)
+    local shapes = {}
+    local extend_rgn = mixin.FCMMusicRegion()
+    extend_rgn:SetRegion(rgn)
+        :SetStartMeasure(measure_num - config.shape_extend)
+        :SetEndMeasure(measure_extend_count(measure_num + 1))
+        :SetFullMeasureStack()
+    local marks = finale.FCSmartShapeMeasureMarks()
+    marks:LoadAllForRegion(extend_rgn, false)
+    for mark in each(marks) do
+        local shape = mark:CreateSmartShape()
+        if shape and not shape.EntryBased then
+            local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
+            local m = { L = seg.L.Measure, R = seg.R.Measure }
+            if m.L <= measure_num + 2 and m.R > measure_num then
+                table.insert(shapes, { shape.ItemNo, m.L, m.R, seg.L.MeasurePos, seg.R.MeasurePos })
+            end
+        end
+    end
+    return shapes
+end
+
+function restore_joined_shapes(shapes, measure_num, dur)
+    local shape = finale.FCSmartShape()
+    for _, v in ipairs(shapes) do
+        shape:Load(v[1])
+        local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
+        if v[2] == measure_num + 1 then seg.L.MeasurePos = v[4] + dur end
+        if v[2] >= measure_num + 1 then seg.L.Measure = v[2] - 1
+        else seg.L.Measure = v[2] end
+
+        seg.R.Measure = v[3] - 1
+        shape:SaveNewEverything(nil, nil)
+        shape:Load(v[1]) -- now delete the original non-"affixed" version
+        shape:DeleteData()
     end
 end
 
@@ -666,8 +702,8 @@ function join_measures(selection)
         local top = { time_sig[1].Beats, time_sig[2].Beats }
         local bottom = { time_sig[1].BeatDuration, time_sig[2].BeatDuration }
         local measure_dur = { measure[1]:GetDuration(), measure[2]:GetDuration() }
+        local saved_shapes = save_shapes_for_joining(join_rgn, measure_num)
 
-        -- paste all of measure[2] onto end of measure[1]
         join_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num + 1)
         pad_or_truncate_cells(join_rgn, measure_num + 1, measure_dur[2], 0)
         pad_or_truncate_cells(join_rgn, measure_num, measure_dur[1], measure_num + 1)
@@ -734,6 +770,7 @@ function join_measures(selection)
         -- delete old measure 2
         join_rgn:SetStartMeasure(measure_num + 1):CutDeleteMusic()
         join_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num):ReleaseMusic()
+        restore_joined_shapes(saved_shapes, measure_num, measure_dur[1])
         respace_notes(join_rgn)
     end
     -- number of measures removed:
