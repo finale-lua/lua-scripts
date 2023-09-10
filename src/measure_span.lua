@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.87"
-    finaleplugin.Date = "2023/09/06"
+    finaleplugin.Version = "v0.88"
+    finaleplugin.Date = "2023/09/10"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.64
     finaleplugin.AdditionalMenuOptions = [[
@@ -103,11 +103,9 @@ function dialog_save_position(dialog)
 end
 
 function respace_notes(rgn)
-    if config.note_spacing then
-        rgn:SetFullMeasureStack()
-        rgn:SetInDocument()
-        finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
-    end
+    rgn:SetFullMeasureStack()
+    rgn:SetInDocument()
+    finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
 end
 
 function user_options()
@@ -433,33 +431,38 @@ function measure_extend_count(measure_num)
     return math.max(measures.Count, (measure_num + config.shape_extend))
 end
 
-function extend_smart_shape_ends(rgn, measure_num, new_duration)
+function shift_divided_measure_shapes(rgn, measure_num, new_duration)
     local extend_rgn = mixin.FCMMusicRegion()
     extend_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
         :SetEndMeasure(measure_extend_count(measure_num))
         :SetFullMeasureStack()
     local marks = finale.FCSmartShapeMeasureMarks()
-    marks:LoadAllForRegion(extend_rgn, true)
+    marks:LoadAllForRegion(extend_rgn, false)
     for mark in eachbackwards(marks) do
         local shape = mark:CreateSmartShape()
         if shape and not shape.EntryBased then
             local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
             local m = { L = seg.L.Measure, R = seg.R.Measure }
             if m.L <= measure_num then -- only affect shapes that straddle the inserted measure
-                local changed = false
+                local re_save = false
                 if m.R > measure_num then
-                    seg.R.Measure = m.R + 1 -- crosses new measure boundary
-                    changed = true
+                    seg.R.Measure = m.R + 1 -- crosses measure boundary
+                    re_save = true
                 end
                 for _, i in ipairs( {"L", "R"} ) do
                     if m[i] == measure_num and seg[i].MeasurePos >= new_duration then
-                        seg[i]:SetMeasure(m[i] + 1) -- move to right
-                        seg[i]:SetMeasurePos(seg[i].MeasurePos - new_duration)
-                        changed = true
+                        seg[i].Measure = m[i] + 1
+                        seg[i].MeasurePos = seg[i].MeasurePos - new_duration
+                        re_save = true
                     end
                 end
-                if changed then shape:Save() end
+                if re_save then
+                    local save_id = shape.ItemNo
+                    shape:SaveNewEverything(nil, nil)
+                    shape:Load(save_id) -- delete the original non-"fixed" version
+                    shape:DeleteData()
+                end
             end
         end
     end
@@ -471,7 +474,7 @@ function shift_divided_measure_expressions(measure_num, old_duration, old_width,
     for exp in eachbackwards(exps) do
         if exp.StaffListID > 0  then -- measure-attached
             -- convert horiz (EVPU) position to approx measure (EDU) position
-            local old_edu = math.floor(old_duration * exp.HorizontalPos / old_width)
+            local old_edu = old_duration * exp.HorizontalPos / old_width
             if old_edu >= new_duration then
                 local save_cmper, save_inci = exp.ItemCmper, exp.ItemInci
                 exp.HorizontalPos = new_width * (old_edu - new_duration) / new_duration
@@ -480,41 +483,6 @@ function shift_divided_measure_expressions(measure_num, old_duration, old_width,
                 old_exp:Load(save_cmper, save_inci)
                 old_exp:DeleteData()
             end
-        end
-    end
-end
-
-function save_measure_shapes(measure_num)
-    -- set aside measure-attached shapes before time_sig and re-bar changes
-    local shapes = {}
-    local marks = finale.FCSmartShapeMeasureMarks()
-    marks:LoadAllForItem(measure_num)
-    for mark in eachbackwards(marks) do -- eachbackwards(marks) do
-        local shape = mark:CreateSmartShape()
-        if shape and not shape.EntryBased then
-            local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
-            if seg.L.Measure == measure_num and seg.R.Measure == measure_num then
-                table.insert(shapes, { shape.ItemNo, seg.L.MeasurePos, seg.R.MeasurePos })
-            end
-        end
-    end
-    return shapes
-end
-
-function restore_shapes(shapes, measure_num, dur)
-    -- re-create previously saved measure-attached shapes (when in 2nd part of measure)
-    local shape = finale.FCSmartShape()
-    for _, v in ipairs(shapes) do
-        shape:Load(v[1])
-        local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
-        if v[2] >= dur and v[3] >= dur then -- in 2nd ("divided") part of original measure
-            seg.L.Measure = measure_num + 1
-            seg.R.Measure = measure_num + 1
-            seg.L.MeasurePos = v[2] - dur
-            seg.R.MeasurePos = v[3] - dur
-            shape:SaveNewEverything(nil, nil)
-            shape:Load(v[1]) -- now delete the original non-"affixed" version
-            shape:DeleteData()
         end
     end
 end
@@ -529,7 +497,6 @@ function divide_measures(selection)
         local measure = { mixin.FCMMeasure(), mixin.FCMMeasure() }
         measure[1]:Load(measure_num)
         local old_duration, old_width = measure[1]:GetDuration(), measure[1]:GetWidth()
-        local saved_shapes = save_measure_shapes(measure_num)
         finale.FCMeasures.Insert(measure_num + 1, 1, false)
         measure[2]:Load(measure_num + 1)
         copy_measure_values(measure[1], measure[2])
@@ -595,21 +562,20 @@ function divide_measures(selection)
         measure[1]:Save()
         measure[2]:Save()
         local dur = measure[1]:GetDuration()
-        restore_shapes(saved_shapes, measure_num, dur)
-        extend_smart_shape_ends(pair_rgn, measure_num, dur)
+        shift_divided_measure_shapes(selection, measure_num, dur)
         pair_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num + 1)
             :RebarMusic(finale.REBARSTOP_REGIONEND, config.rebeam, true)
         shift_divided_measure_expressions(measure_num, old_duration, old_width, dur, measure[1]:GetWidth())
-        respace_notes(pair_rgn)
     end
 end
 
 function compress_smart_shape_ends(rgn, measure_num, measure_duration)
     local extend_rgn = mixin.FCMMusicRegion()
+    --extend_rgn:SetFullDocument() -- option for very long-span smart_shapes
     extend_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
-        :SetEndMeasure(measure_extend_count(measure_num + 1))
-        :SetFullMeasureStack()
+        :SetEndMeasure(measure_extend_count(measure_num + 2))
+        :SetFullMeasureStack()--]]
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAllForRegion(extend_rgn, false)
     for mark in each(marks) do
@@ -635,7 +601,7 @@ function save_shapes_for_joining(rgn, measure_num)
     local extend_rgn = mixin.FCMMusicRegion()
     extend_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
-        :SetEndMeasure(measure_extend_count(measure_num + 1))
+        :SetEndMeasure(measure_extend_count(measure_num + 2))
         :SetFullMeasureStack()
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAllForRegion(extend_rgn, false)
@@ -663,7 +629,7 @@ function restore_joined_shapes(shapes, measure_num, dur)
 
         seg.R.Measure = v[3] - 1
         shape:SaveNewEverything(nil, nil)
-        shape:Load(v[1]) -- now delete the original non-"affixed" version
+        shape:Load(v[1]) -- now delete the original non-"fixed" version
         shape:DeleteData()
     end
 end
@@ -773,8 +739,6 @@ function join_measures(selection)
         restore_joined_shapes(saved_shapes, measure_num, measure_dur[1])
         respace_notes(join_rgn)
     end
-    -- number of measures removed:
-    return (selection.StartMeasure - selection.EndMeasure + 1) / 2
 end
 
 function measure_span()
@@ -803,6 +767,7 @@ function measure_span()
         selection.EndMeasure = selection.EndMeasure - measures_removed
     end
     selection:SetInDocument()
+    if config.note_spacing then respace_notes(selection) end
     if config.repaginate then repaginate() end
 end
 
