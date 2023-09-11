@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.88"
-    finaleplugin.Date = "2023/09/10"
+    finaleplugin.Version = "v0.89"
+    finaleplugin.Date = "2023/09/11"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.64
     finaleplugin.AdditionalMenuOptions = [[
@@ -76,7 +76,7 @@ local config = {
     repaginate      =   false, -- repaginate after each operation
     rebeam          =   false, -- whether to rebeam on completion
     display_meter   =   true, -- create a composite "display" time signature with composite joins
-    shape_extend    =   3,    -- how many measures either side of the selection to span for smart shapes
+    shape_extend    =   4,    -- how many measures either side of the selection to span for smart shapes
     window_pos_x    =   false, -- saved dialog window position
     window_pos_y    =   false,
 }
@@ -100,12 +100,6 @@ function dialog_save_position(dialog)
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
-end
-
-function respace_notes(rgn)
-    rgn:SetFullMeasureStack()
-    rgn:SetInDocument()
-    finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
 end
 
 function user_options()
@@ -198,11 +192,11 @@ function user_options()
     chl(0, y + 3, x_grid[3] + i_width)
     yd(12)
     cstat("0", y, "Preserve smart shapes within\n(Larger spans take longer)", x_grid[3], 30)
-    local popup = dlg:CreatePopup(x_grid[3] - 25, y - 1, "extend"):SetWidth(35):SetSelectedItem(config.shape_extend - 2)
-    for i = 2, 5 do
+    local popup = dlg:CreatePopup(x_grid[3] - 27, y - 1, "extend"):SetWidth(40):SetSelectedItem(config.shape_extend - 2)
+    for i = 2, 10 do
         popup:AddString(i)
     end
-    cstat("205", y, "measure span")
+    cstat("206", y, "measure span")
     yd(38)
     cstat("0", y, "ON COMPLETION:", i_width)
     ccheck(6, y, "note_spacing", i_width, (config.note_spacing and 1 or 0), "Respace notes")
@@ -280,7 +274,7 @@ end
 function pad_or_truncate_cells(region, measure_num, measure_duration, check_measure)
     local cell_rgn = mixin.FCMMusicRegion()
     cell_rgn:SetRegion(region)
-        :SetStartMeasure(measure_num):SetEndMeasure(measure_num) -- one bar wide
+        :SetStartMeasure(measure_num):SetEndMeasure(measure_num) -- one measure wide
     for staff in eachstaff(region) do
         cell_rgn:SetStartStaff(staff):SetEndStaff(staff)
         for layer_num = 1, layer.max_layers() do
@@ -436,7 +430,6 @@ function shift_divided_measure_shapes(rgn, measure_num, new_duration)
     extend_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
         :SetEndMeasure(measure_extend_count(measure_num))
-        :SetFullMeasureStack()
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAllForRegion(extend_rgn, false)
     for mark in eachbackwards(marks) do
@@ -471,9 +464,9 @@ end
 function shift_divided_measure_expressions(measure_num, old_duration, old_width, new_duration, new_width)
     local exps = finale.FCExpressions()
     exps:LoadAllForItem(measure_num)
-    for exp in eachbackwards(exps) do
-        if exp.StaffListID > 0  then -- measure-attached
-            -- convert horiz (EVPU) position to approx measure (EDU) position
+    for exp in each(exps) do
+        if exp.StaffGroupID > 0 then
+            -- convert horiz (EVPU) position approx measure (EDU) position
             local old_edu = old_duration * exp.HorizontalPos / old_width
             if old_edu >= new_duration then
                 local save_cmper, save_inci = exp.ItemCmper, exp.ItemInci
@@ -481,7 +474,7 @@ function shift_divided_measure_expressions(measure_num, old_duration, old_width,
                 exp:SaveNewToCell(finale.FCCell(measure_num + 1, exp.Staff))
                 local old_exp = finale.FCExpression()
                 old_exp:Load(save_cmper, save_inci)
-                old_exp:DeleteData()
+                if old_exp then old_exp:DeleteData() end
             end
         end
     end
@@ -492,8 +485,7 @@ function divide_measures(selection)
     pair_rgn:SetRegion(selection):SetFullMeasureStack()
 
     for measure_num = selection.EndMeasure, selection.StartMeasure, -1 do
-        pair_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num)
-            :SetStartMeasurePosLeft():SetEndMeasurePosRight()
+        pair_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num):SetFullMeasureStack()
         local measure = { mixin.FCMMeasure(), mixin.FCMMeasure() }
         measure[1]:Load(measure_num)
         local old_duration, old_width = measure[1]:GetDuration(), measure[1]:GetWidth()
@@ -561,21 +553,17 @@ function divide_measures(selection)
         end
         measure[1]:Save()
         measure[2]:Save()
-        local dur = measure[1]:GetDuration()
-        shift_divided_measure_shapes(selection, measure_num, dur)
-        pair_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num + 1)
-            :RebarMusic(finale.REBARSTOP_REGIONEND, config.rebeam, true)
-        shift_divided_measure_expressions(measure_num, old_duration, old_width, dur, measure[1]:GetWidth())
+        shift_divided_measure_shapes(pair_rgn, measure_num, measure[1]:GetDuration())
+        pair_rgn:SetEndMeasure(measure_num + 1):RebarMusic(finale.REBARSTOP_REGIONEND, config.rebeam, false)
+        shift_divided_measure_expressions(measure_num, old_duration, old_width, measure[1]:GetDuration(), measure[1]:GetWidth())
     end
 end
 
 function compress_smart_shape_ends(rgn, measure_num, measure_duration)
     local extend_rgn = mixin.FCMMusicRegion()
-    --extend_rgn:SetFullDocument() -- option for very long-span smart_shapes
     extend_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
         :SetEndMeasure(measure_extend_count(measure_num + 2))
-        :SetFullMeasureStack()--]]
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAllForRegion(extend_rgn, false)
     for mark in each(marks) do
@@ -602,7 +590,6 @@ function save_shapes_for_joining(rgn, measure_num)
     extend_rgn:SetRegion(rgn)
         :SetStartMeasure(measure_num - config.shape_extend)
         :SetEndMeasure(measure_extend_count(measure_num + 2))
-        :SetFullMeasureStack()
     local marks = finale.FCSmartShapeMeasureMarks()
     marks:LoadAllForRegion(extend_rgn, false)
     for mark in each(marks) do
@@ -629,7 +616,7 @@ function restore_joined_shapes(shapes, measure_num, dur)
 
         seg.R.Measure = v[3] - 1
         shape:SaveNewEverything(nil, nil)
-        shape:Load(v[1]) -- now delete the original non-"fixed" version
+        shape:Load(v[1]) -- now delete the original non-"fixed" shape
         shape:DeleteData()
     end
 end
@@ -637,10 +624,10 @@ end
 function shift_joined_expressions(measure_num, m_offset, m_width)
     local exps = finale.FCExpressions()
     exps:LoadAllForItem(measure_num + 1) -- the "joining" second measure
-    for exp in eachbackwards(exps) do
-        if exp.StaffGroupID > 0 then -- measure-attached expression
+    for exp in each(exps) do
+        if exp.StaffGroupID > 0 then -- measure-attached
             exp.HorizontalPos = exp.HorizontalPos + m_width
-        else -- note-attached expression
+        else -- note-attached
             exp.MeasurePos = exp.MeasurePos + m_offset
         end
         exp:SaveNewToCell(finale.FCCell(measure_num, exp.Staff))
@@ -654,10 +641,11 @@ function join_measures(selection)
         return
     end
     local join_rgn = mixin.FCMMusicRegion()
-    join_rgn:SetRegion(selection):SetFullMeasureStack()
+    join_rgn:SetRegion(selection)
 
     -- run through pairs of measures backwards
     for measure_num = selection.EndMeasure - 1, selection.StartMeasure, -2 do
+        join_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num + 1)
         local measure = { mixin.FCMMeasure(), mixin.FCMMeasure() }
         measure[1]:Load(measure_num)
         measure[2]:Load(measure_num + 1)
@@ -669,8 +657,6 @@ function join_measures(selection)
         local bottom = { time_sig[1].BeatDuration, time_sig[2].BeatDuration }
         local measure_dur = { measure[1]:GetDuration(), measure[2]:GetDuration() }
         local saved_shapes = save_shapes_for_joining(join_rgn, measure_num)
-
-        join_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num + 1)
         pad_or_truncate_cells(join_rgn, measure_num + 1, measure_dur[2], 0)
         pad_or_truncate_cells(join_rgn, measure_num, measure_dur[1], measure_num + 1)
 
@@ -728,16 +714,13 @@ function join_measures(selection)
         end
         measure[1]:Save()
         measure[2]:Save()
-        join_rgn:SetStartMeasure(measure_num):SetStartMeasurePosLeft()
-            :SetEndMeasure(measure_num + 1):SetEndMeasurePosRight():SetFullMeasureStack()
-        join_rgn:RebarMusic(finale.REBARSTOP_REGIONEND, config.rebeam, false)
+        join_rgn:SetEndMeasure(measure_num + 1):RebarMusic(finale.REBARSTOP_REGIONEND, config.rebeam, false)
         shift_joined_expressions(measure_num, measure_dur[1], measure[1].Width)
         compress_smart_shape_ends(join_rgn, measure_num, measure_dur[1])
         -- delete old measure 2
         join_rgn:SetStartMeasure(measure_num + 1):CutDeleteMusic()
-        join_rgn:SetStartMeasure(measure_num):SetEndMeasure(measure_num):ReleaseMusic()
+        join_rgn:ReleaseMusic()
         restore_joined_shapes(saved_shapes, measure_num, measure_dur[1])
-        respace_notes(join_rgn)
     end
 end
 
@@ -752,23 +735,27 @@ function measure_span()
     end
     local selection = mixin.FCMMusicRegion()
     selection:SetRegion(finenv.Region()):SetStartMeasurePosLeft():SetEndMeasurePosRight()
+        :SetFullMeasureStack()
     if selection:IsEmpty() then
         finenv.UI():AlertError("Please select some music before running this script", "Error")
         return
     end
 
+    local end_m = selection.EndMeasure
     if span_action == "divide" then
-        local extra_measures = selection.EndMeasure - selection.StartMeasure + 1
-        divide_measures(selection)
-        selection.EndMeasure = selection.EndMeasure + extra_measures
+        divide_measures(selection) -- adds extra measures
+        end_m = end_m + (end_m - selection.StartMeasure + 1)
     elseif span_action == "join" then
-        local measures_removed = (selection.EndMeasure - selection.StartMeasure + 1) / 2
-        join_measures(selection)
-        selection.EndMeasure = selection.EndMeasure - measures_removed
+        join_measures(selection) -- removes joined measures
+        end_m = end_m - ((end_m - selection.StartMeasure + 1) / 2)
     end
-    selection:SetInDocument()
-    if config.note_spacing then respace_notes(selection) end
+    if config.note_spacing then
+        selection:SetEndMeasure(end_m):SetInDocument()
+        finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
+    end
     if config.repaginate then repaginate() end
+    -- restore original selection with new number of measures
+    selection:SetRegion(finenv.Region()):SetEndMeasure(end_m):SetInDocument()
 end
 
 measure_span()
