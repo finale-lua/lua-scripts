@@ -5368,10 +5368,10 @@ end
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.69"
-    finaleplugin.Date = "2023/01/14"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
+    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
+    finaleplugin.Version = "v0.71"
+    finaleplugin.Date = "2023/08/27"
     finaleplugin.AdditionalMenuOptions = [[
         Hairpin Create Diminuendo
         Hairpin Create Swell
@@ -5455,6 +5455,12 @@ local function measure_width(measure_number)
     local duration = m:Load(measure_number) and m:GetDuration() or 0
     return duration
 end
+local function max_end_width(rgn)
+    local m_width = measure_width(rgn.EndMeasure)
+    if rgn.EndMeasurePos > m_width then
+        rgn.EndMeasurePos = m_width
+    end
+end
 local function add_to_position(measure_number, end_position, add_duration)
     local m_width = measure_width(measure_number)
     if m_width == 0 then
@@ -5512,7 +5518,7 @@ function delete_hairpins(rgn)
     marks:LoadAllForRegion(mark_rgn, true)
     for mark in each(marks) do
         local shape = mark:CreateSmartShape()
-        if shape:IsHairpin() then
+        if shape and shape:IsHairpin() then
             shape:DeleteData()
         end
     end
@@ -5529,7 +5535,7 @@ local function draw_staff_hairpin(rgn, vert_offset, left_offset, right_offset, s
     local leftseg = smartshape:GetTerminateSegmentLeft()
     leftseg:SetMeasure(rgn.StartMeasure)
     leftseg.Staff = rgn.StartStaff
-    leftseg:SetCustomOffset(true)
+    leftseg:SetCustomOffset(false)
     leftseg:SetEndpointOffsetX(left_offset)
     leftseg:SetEndpointOffsetY(vert_offset + config.shape_vert_adjust)
     leftseg:SetMeasurePos(rgn.StartMeasurePos)
@@ -5705,8 +5711,7 @@ local function design_staff_swell(rgn, hairpin_shape, lowest_vert)
                 left_offset = offset
             end
             if rgn.StartMeasurePos ~= first_dyn.MeasurePos then
-                rgn.StartMeasurePos = first_dyn.MeasurePos
-                rgn.StartMeasure = first_dyn.Measure
+                rgn:SetStartMeasurePos(first_dyn.MeasurePos):SetStartMeasure(first_dyn.Measure)
             end
         end
         local last_dyn = dynamic_list[#dynamic_list]
@@ -5760,8 +5765,7 @@ local function design_staff_hairpin(rgn, hairpin_shape)
                 left_offset = offset
             end
             if rgn.StartMeasurePos ~= first_dyn.MeasurePos then
-                rgn.StartMeasurePos = first_dyn.MeasurePos
-                rgn.StartMeasure = first_dyn.Measure
+                rgn:SetStartMeasurePos(first_dyn.MeasurePos):SetStartMeasure(first_dyn.Measure)
             end
         end
         local last_dyn = dynamics_list[#dynamics_list][1]
@@ -5789,20 +5793,14 @@ local function design_staff_hairpin(rgn, hairpin_shape)
 end
 local function create_swell(swell_type)
     local selection = finenv.Region()
-    local staff_rgn = finale.FCMusicRegion()
+    local staff_rgn = mixin.FCMMusicRegion()
     staff_rgn:SetRegion(selection)
-
-    local m_width = measure_width(staff_rgn.EndMeasure)
-    if staff_rgn.EndMeasurePos > m_width then
-        staff_rgn.EndMeasurePos = m_width
-    end
+    max_end_width(staff_rgn)
 
     local total_duration = duration_gap(staff_rgn.StartMeasure, staff_rgn.StartMeasurePos, staff_rgn.EndMeasure, staff_rgn.EndMeasurePos)
     local midpoint_measure, midpoint_position = add_to_position(staff_rgn.StartMeasure, staff_rgn.StartMeasurePos, total_duration / 2)
-    for slot = selection.StartSlot, selection.EndSlot do
-        local staff_number = selection:CalcStaffNumber(slot)
-        staff_rgn:SetStartStaff(staff_number)
-        staff_rgn:SetEndStaff(staff_number)
+    for staff_number in eachstaff(selection) do
+        staff_rgn:SetStartStaff(staff_number):SetEndStaff(staff_number)
         if region_contains_notes(staff_rgn) then
             delete_hairpins(staff_rgn)
 
@@ -5820,10 +5818,9 @@ local function create_swell(swell_type)
                 end
             end
 
-            local half_rgn = finale.FCMusicRegion()
+            local half_rgn = mixin.FCMMusicRegion()
             half_rgn:SetRegion(staff_rgn)
-            half_rgn.EndMeasure = midpoint_measure
-            half_rgn.EndMeasurePos = midpoint_position
+                :SetEndMeasure(midpoint_measure):SetEndMeasurePos(midpoint_position)
             local this_shape = (swell_type) and finale.SMARTSHAPE_CRESCENDO or finale.SMARTSHAPE_DIMINUENDO
             design_staff_swell(half_rgn, this_shape, lowest_vertical)
 
@@ -5831,10 +5828,8 @@ local function create_swell(swell_type)
                 midpoint_measure = midpoint_measure + 1
                 midpoint_position = 0
             end
-            half_rgn.StartMeasure = midpoint_measure
-            half_rgn.StartMeasurePos = midpoint_position
-            half_rgn.EndMeasure = staff_rgn.EndMeasure
-            half_rgn.EndMeasurePos = staff_rgn.EndMeasurePos
+            half_rgn:SetStartMeasure(midpoint_measure):SetStartMeasurePos(midpoint_position)
+                :SetEndMeasure(staff_rgn.EndMeasure):SetEndMeasurePos(staff_rgn.EndMeasurePos)
             this_shape = (swell_type) and finale.SMARTSHAPE_DIMINUENDO or finale.SMARTSHAPE_CRESCENDO
             design_staff_swell(half_rgn, this_shape, lowest_vertical)
         end
@@ -5842,17 +5837,11 @@ local function create_swell(swell_type)
 end
 local function create_hairpin(shape_type)
     local selection = finenv.Region()
-    local staff_rgn = finale.FCMusicRegion()
+    local staff_rgn = mixin.FCMMusicRegion()
     staff_rgn:SetRegion(selection)
-
-    local m_width = measure_width(staff_rgn.EndMeasure)
-    if staff_rgn.EndMeasurePos > m_width then
-        staff_rgn.EndMeasurePos = m_width
-    end
-    for slot = selection.StartSlot, selection.EndSlot do
-        local staff_number = selection:CalcStaffNumber(slot)
-        staff_rgn:SetStartStaff(staff_number)
-        staff_rgn:SetEndStaff(staff_number)
+    max_end_width(staff_rgn)
+    for staff_number in eachstaff(selection) do
+        staff_rgn:SetStartStaff(staff_number):SetEndStaff(staff_number)
         if region_contains_notes(staff_rgn) then
             delete_hairpins(staff_rgn)
             design_staff_hairpin(staff_rgn, shape_type)
