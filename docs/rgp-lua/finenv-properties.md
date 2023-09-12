@@ -77,7 +77,7 @@ Ends the currently active Undo/Redo block in Finale (if any). Finale will only s
 
 |Input Type|Description|
 |------|------|
-|boolean|The previous Undo/Redo block should be stored (=true) or canceled (=false).|
+|boolean|The current Undo/Redo block should be stored (=true) or canceled (=false).|
 
 |Output Type|Description|
 |------|------|
@@ -87,7 +87,7 @@ Example
 
 ```lua
 -- false: discards any changes that have been made
-finenv.StartNewUndoBlock(false)
+finenv.EndUndoBlock(false)
 ```
 
 #### ExecuteLuaScriptItem\* (function)
