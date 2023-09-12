@@ -404,9 +404,6 @@ function plugindef()
     finaleplugin.AdditionalMenuOptions = [[
         Mute selected staves
     ]]
-    finaleplugin.AdditionalMenuOptions = [[
-        Mute selected staves
-    ]]
     finaleplugin.AdditionalDescriptions = [[
         Sets up playback to the selected region by muting selected staves.
     ]]
@@ -427,7 +424,7 @@ function plugindef()
         revert_playback_start = 0
         include_chord_playback = true
         include_expression_playback = true
-        include_end_measure = false
+        include_end_measure = true
         ```
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_selected_staves.hash"
@@ -440,7 +437,7 @@ local config = {
     revert_playback_start = finale.PLAYBACKSTART_MEASURE,
     include_chord_playback = true,
     include_expression_playback = true,
-    include_end_measure = false
+    include_end_measure = true
 }
 configuration.get_parameters("playback_selected_region.config.txt", config)
 function set_layer_playback_data(layer_playback_data, region, staff_number)
@@ -473,12 +470,20 @@ function playback_selected_staves()
             if region:IsEmpty() then
                 playback_prefs.StartMode = config.revert_playback_start
                 playback_prefs.StartMeasure = 1
-                playback_prefs.StopMeasure = 0x7ffe
+                if playback_prefs.ConfigurePlaybackToEnd then
+                    playback_prefs:ConfigurePlaybackToEnd()
+                else
+                    playback_prefs.StopMeasure = 0x7ffe
+                end
             else
-                playback_prefs.StartMode = finale.PLAYBACKSTART_MEASURE
-                playback_prefs.StartMeasure = region.StartMeasure
-                if config.include_end_measure then
-                    playback_prefs.StopMeasure = region.EndMeasure
+                if playback_prefs.ConfigurePlaybackRegion then
+                    playback_prefs:ConfigurePlaybackRegion(region, not config.include_end_measure)
+                else
+                    playback_prefs.StartMode = finale.PLAYBACKSTART_MEASURE
+                    playback_prefs.StartMeasure = region.StartMeasure
+                    if config.include_end_measure then
+                        playback_prefs.StopMeasure = region.EndMeasure
+                    end
                 end
             end
             playback_prefs:Save()
