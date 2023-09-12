@@ -461,16 +461,15 @@ function shift_divided_measure_shapes(rgn, measure_num, new_duration)
     end
 end
 
-function shift_divided_measure_expressions(measure_num, old_duration, old_width, new_duration, new_width)
+function shift_divided_measure_expressions(measure_num, old_duration, old_width, new_duration, width2, dur2)
     local exps = finale.FCExpressions()
     exps:LoadAllForItem(measure_num)
     for exp in each(exps) do
         if exp.StaffGroupID > 0 then
-            -- convert horiz (EVPU) position approx measure (EDU) position
             local old_edu = old_duration * exp.HorizontalPos / old_width
             if old_edu >= new_duration then
                 local save_cmper, save_inci = exp.ItemCmper, exp.ItemInci
-                exp.HorizontalPos = new_width * (old_edu - new_duration) / new_duration
+                exp.HorizontalPos = width2 * (old_edu - new_duration) / dur2
                 exp:SaveNewToCell(finale.FCCell(measure_num + 1, exp.Staff))
                 local old_exp = finale.FCExpression()
                 old_exp:Load(save_cmper, save_inci)
@@ -555,7 +554,9 @@ function divide_measures(selection)
         measure[2]:Save()
         shift_divided_measure_shapes(pair_rgn, measure_num, measure[1]:GetDuration())
         pair_rgn:SetEndMeasure(measure_num + 1):RebarMusic(finale.REBARSTOP_REGIONEND, config.rebeam, false)
-        shift_divided_measure_expressions(measure_num, old_duration, old_width, measure[1]:GetDuration(), measure[1]:GetWidth())
+        shift_divided_measure_expressions(measure_num, old_duration, old_width,
+            measure[1]:GetDuration(), measure[2]:GetWidth(), measure[2]:GetDuration()
+        )
     end
 end
 
@@ -714,8 +715,8 @@ function join_measures(selection)
         end
         measure[1]:Save()
         measure[2]:Save()
-        join_rgn:SetEndMeasure(measure_num + 1):RebarMusic(finale.REBARSTOP_REGIONEND, config.rebeam, false)
         shift_joined_expressions(measure_num, measure_dur[1], measure[1].Width)
+        join_rgn:SetEndMeasure(measure_num + 1):RebarMusic(finale.REBARSTOP_REGIONEND, config.rebeam, false)
         compress_smart_shape_ends(join_rgn, measure_num, measure_dur[1])
         -- delete old measure 2
         join_rgn:SetStartMeasure(measure_num + 1):CutDeleteMusic()
