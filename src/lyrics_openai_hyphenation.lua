@@ -41,7 +41,7 @@ end
 
 --require("mobdebug").start()
 
-local mixin = require("library.mixin")
+--local mixin = require("library.mixin") -- mixins not working with FCCtrlEditText
 
 local config =
 {
@@ -52,20 +52,33 @@ local verses = {}
 local choruses = {}
 local sections = {}
 
+local function fstr(text)
+    local retval = finale.FCString()
+    retval.LuaString = text
+    return retval
+end
+
 local function open_dialog()
-    local dlg = mixin.FCXCustomLuaWindow()
-    dlg:SetTitle("Lyrics OpenAI Hyphenator")
-    dlg:CreateStatic(10, 11):SetWidth(40):SetText("Lyric:")
-    local popup = dlg:CreatePopup(45, 10):SetWidth(70)
-            :AddString("Verse")
-            :AddString("Chorus")
-            :AddString("Section")
-    local lyric_num = dlg:CreateEdit(125, 9):SetWidth(25)
-    local lyrics_box = dlg:CreateEditText(10, 35):SetHeight(300):SetWidth(400)
+    local dlg = finale.FCCustomLuaWindow()
+    dlg:SetTitle(fstr("Lyrics OpenAI Hyphenator"))
+    local lyric_label = dlg:CreateStatic(10, 11)
+    lyric_label:SetWidth(40)
+    lyric_label:SetText(fstr("Lyric:"))
+    local popup = dlg:CreatePopup(45, 10)
+    popup:SetWidth(70)
+    popup:AddString(fstr("Verse"))
+    popup:AddString(fstr("Chorus"))
+    popup:AddString(fstr("Section"))
+    local lyric_num = dlg:CreateEdit(125, 9)
+    lyric_num:SetWidth(25)
+    local lyrics_box = dlg:CreateEditText(10, 35)
+    lyrics_box:SetHeight(300)
+    lyrics_box:SetWidth(400)
     local got1 = false
     for itemno, val in pairs(verses) do
         lyric_num:SetInteger(itemno)
-        lyrics_box:SetFont(val.font):SetText(val.text)
+        lyrics_box:SetFont(val.font)
+        lyrics_box:SetText(fstr(val.text))
         got1 = true
         break
     end
@@ -74,7 +87,7 @@ local function open_dialog()
         return
     end
     dlg:CreateOkButton()
-    dlg:ExecuteModal()
+    dlg:ExecuteModal(nil)
 end
 
 local function openai_hyphenation()
