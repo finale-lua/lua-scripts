@@ -1,5 +1,5 @@
 function plugindef()
-    finaleplugin.MinJWLuaVersion = 0.67
+    finaleplugin.MinJWLuaVersion = 0.68
     finaleplugin.ExecuteHttpsCalls = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -61,11 +61,10 @@ local function open_dialog()
             :AddString("Chorus")
             :AddString("Section")
     local lyric_num = dlg:CreateEdit(125, 9):SetWidth(25)
-    local lyrics_box = dlg:CreateEdit(10, 35)
-    lyrics_box:SetHeight(300):SetWidth(400)
+    local lyrics_box = dlg:CreateEditText(10, 35):SetHeight(300):SetWidth(400)
     local got1 = false
     for itemno, val in pairs(verses) do
-        lyric_num:SetText(itemno)
+        lyric_num:SetInteger(itemno)
         lyrics_box:SetFont(val.font):SetText(val.text)
         got1 = true
         break
