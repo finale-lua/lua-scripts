@@ -55,14 +55,21 @@ local lyrics =
     {}  -- sections
 }
 
+local lyrics_prefs =
+{
+    finale.FONTPREF_LYRICSVERSE,
+    finale.FONTPREF_LYRICSCHORUS,
+    finale.FONTPREF_LYRICSSECTION
+}
+
 local function fstr(text)
     local retval = finale.FCString()
     retval.LuaString = text
     return retval
 end
 
-
 local function open_dialog()
+    local update_dlg_text -- "forward declaration"
     dlg = finale.FCCustomLuaWindow()
     dlg:SetTitle(fstr("Lyrics OpenAI Hyphenator"))
     local lyric_label = dlg:CreateStatic(10, 11)
@@ -73,29 +80,33 @@ local function open_dialog()
     popup:AddString(fstr("Verse"))
     popup:AddString(fstr("Chorus"))
     popup:AddString(fstr("Section"))
+    dlg:RegisterHandleControlEvent(popup, function(control) update_dlg_text() end)
     local lyric_num = dlg:CreateEdit(125, 9)
     lyric_num:SetWidth(25)
+    lyric_num:SetInteger(1)
+    dlg:RegisterHandleControlEvent(lyric_num, function(control) update_dlg_text() end)
     local lyrics_box = dlg:CreateEditText(10, 35)
     lyrics_box:SetHeight(300)
     lyrics_box:SetWidth(400)
-    for itemno = 1, config.max_search do
-        lyric_num:SetInteger(itemno)
-        local val = lyrics[1][itemno]
+    update_dlg_text = function()
+        local itemno = lyric_num:GetInteger()
+        local type = popup:GetSelectedItem() + 1
+        local val = lyrics[type][itemno]
         if val then
             lyrics_box:SetFont(val.font)
             lyrics_box:SetText(fstr(val.text))
         else
             local font_prefs = finale.FCFontPrefs()
-            if font_prefs:Load(finale.FONTPREF_LYRICSVERSE) then
+            if font_prefs:Load(lyrics_prefs[type]) then
                 local font_info = finale:FCFontInfo()
                 font_prefs:GetFontInfo(font_info)
                 lyrics_box:SetFont(font_info)
             end
             lyrics_box:SetText(fstr(""))
         end
-        break
     end
     dlg:CreateOkButton()
+    update_dlg_text()
     dlg:ExecuteModal(nil)
 end
 
