@@ -48,9 +48,12 @@ local config =
     max_search = 500 -- the highest lyrics block to search for
 }
 
-local verses = {}
-local choruses = {}
-local sections = {}
+local lyrics =
+{ 
+    {}, -- verses
+    {}, -- choruses
+    {}  -- sections
+}
 
 local function fstr(text)
     local retval = finale.FCString()
@@ -58,8 +61,9 @@ local function fstr(text)
     return retval
 end
 
+
 local function open_dialog()
-    local dlg = finale.FCCustomLuaWindow()
+    dlg = finale.FCCustomLuaWindow()
     dlg:SetTitle(fstr("Lyrics OpenAI Hyphenator"))
     local lyric_label = dlg:CreateStatic(10, 11)
     lyric_label:SetWidth(40)
@@ -74,17 +78,22 @@ local function open_dialog()
     local lyrics_box = dlg:CreateEditText(10, 35)
     lyrics_box:SetHeight(300)
     lyrics_box:SetWidth(400)
-    local got1 = false
-    for itemno, val in pairs(verses) do
+    for itemno = 1, config.max_search do
         lyric_num:SetInteger(itemno)
-        lyrics_box:SetFont(val.font)
-        lyrics_box:SetText(fstr(val.text))
-        got1 = true
+        local val = lyrics[1][itemno]
+        if val then
+            lyrics_box:SetFont(val.font)
+            lyrics_box:SetText(fstr(val.text))
+        else
+            local font_prefs = finale.FCFontPrefs()
+            if font_prefs:Load(finale.FONTPREF_LYRICSVERSE) then
+                local font_info = finale:FCFontInfo()
+                font_prefs:GetFontInfo(font_info)
+                lyrics_box:SetFont(font_info)
+            end
+            lyrics_box:SetText(fstr(""))
+        end
         break
-    end
-    if not got1 then
-        finenv:UI():AlertInfo("No lyrics found.", "")
-        return
     end
     dlg:CreateOkButton()
     dlg:ExecuteModal(nil)
@@ -97,13 +106,13 @@ local function openai_hyphenation()
                 local fcstr = lyrics_text:CreateString()
                 local font_info = fcstr:CreateLastFontInfo()
                 fcstr:TrimEnigmaTags()
-                lyrics_table[itemno] = {font = font_info, text = fcstr.LuaString}
+                lyrics_table[itemno] = { font = font_info, text = fcstr.LuaString }
             end
         end
     end
-    populate_lyrics(finale.FCVerseLyricsText(), verses)
-    populate_lyrics(finale.FCChorusLyricsText(), choruses)
-    populate_lyrics(finale.FCSectionLyricsText(), sections)
+    for k, v in pairs({finale.FCVerseLyricsText(), finale.FCChorusLyricsText(), finale.FCSectionLyricsText() }) do
+        populate_lyrics(v, lyrics[k])
+    end
     open_dialog()
 end
 
