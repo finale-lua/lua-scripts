@@ -48,6 +48,7 @@ local configuration = require("library.configuration")
 
 local config =
 {
+    use_edit_control = false,
     api_model = "gpt-3.5-turbo",
     temperature = 0.8, -- the web ChatGPT default, apparently
     add_hyphens_prompt = [[
@@ -89,6 +90,8 @@ local lyrics_prefs =
 }
 
 local https_session = nil
+config.use_edit_control = config.use_edit_control and (finenv.UI():IsOnMac() or finale.FCCtrlEditText)
+local use_edit_text --[[= finale.FCCtrlEditText ~= nil]]
 
 local function fstr(text)
     local retval = finale.FCString()
@@ -123,18 +126,28 @@ local function update_dlg_text(lyrics_box, itemno, type)
     local lyrics_instance = lyrics_classes[type]()
     if lyrics_instance:Load(itemno) then
         local fcstr = lyrics_instance:CreateString()
-        local font_info = fcstr:CreateLastFontInfo()
-        fcstr:TrimEnigmaTags()
-        lyrics_box:SetFont(font_info)
-        lyrics_box:SetText(fcstr)
+        if config.use_edit_control then
+            local font_info = fcstr:CreateLastFontInfo()
+            fcstr:TrimEnigmaTags()
+            lyrics_box:SetFont(font_info)
+            lyrics_box:SetText(fcstr)
+        else
+            lyrics_box.LuaString = fcstr.LuaString
+        end
     else
         local font_prefs = finale.FCFontPrefs()
         if font_prefs:Load(lyrics_prefs[type]) then
             local font_info = finale:FCFontInfo()
             font_prefs:GetFontInfo(font_info)
-            lyrics_box:SetFont(font_info)
+            if config.use_edit_control then
+                lyrics_box:SetFont(font_info)
+            else
+                lyrics_box.LuaString = font_info:CreateEnigmaString(nil).LuaString
+            end
         end
-        lyrics_box:SetText(fstr(""))
+        if config.use_edit_control then
+            lyrics_box:SetText(fstr(""))
+        end
     end
 end
 
@@ -151,12 +164,16 @@ local function update_document(lyrics_box, itemno, type, name)
         finenv.EndUndoBlock(false)
         return
     end
-    local font = lyrics_box:CreateFontInfo()
-    local text = finale.FCString()
-    lyrics_box:GetText(text)
-    local new_lyrics = font:CreateEnigmaString(nil)
-    new_lyrics:AppendString(text)
-    lyrics_instance:SetText(new_lyrics)
+    if config.use_edit_control then
+        local text = finale.FCString()
+        local font = lyrics_box:CreateFontInfo()
+        lyrics_box:GetText(text)
+        local new_lyrics = font:CreateEnigmaString(nil)
+        new_lyrics:AppendString(text)
+        lyrics_instance:SetText(new_lyrics)
+    else
+        lyrics_instance:SetText(lyrics_box)
+    end        
     if loaded then
         lyrics_instance:Save()
     else
@@ -167,13 +184,19 @@ end
 
 local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, dehyphenate)
     local function callback(success, result)
-        lyrics_box:SetEnable(true)
+        if config.use_edit_control then
+            lyrics_box:SetEnable(true)
+        end
         popup:SetEnable(true)
         edit_type:SetEnable(true)
         https_session = nil
         if success then
             local fixed_text = fixup_line_endings(result.choices[1].message.content)
-            lyrics_box:SetText(fstr(fixed_text))
+            if config.use_edit_control then
+                lyrics_box:SetText(fstr(fixed_text))
+            else
+                lyrics_box.LuaString = fixed_text
+            end
             if auto_update then
                 local selected_text = finale.FCString()
                 popup:GetText(selected_text)
@@ -187,10 +210,17 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
         return -- do not do anything if a request is in progress
     end
     local lyrics_text = finale.FCString()
-    lyrics_box:GetText(lyrics_text)
+    if config.use_edit_control then
+        local lyrics_text = finale.FCString()
+        lyrics_box:GetText(lyrics_text)
+    else
+        lyrics_text.LuaString = lyrics_box.LuaString
+    end
     lyrics_text:TrimWhitespace()
     if lyrics_text.Length > 0 then
-        lyrics_box:SetEnable(false)
+        if config.use_edit_control then
+            lyrics_box:SetEnable(false)
+        end
         popup:SetEnable(false)
         edit_type:SetEnable(false)
         local prompt = dehyphenate and config.remove_hyphens_prompt or config.add_hyphens_prompt
@@ -212,22 +242,35 @@ local function openai_hyphenation()
     local lyric_num = dlg:CreateEdit(125, 9)
     lyric_num:SetWidth(25)
     lyric_num:SetInteger(1)
-    local lyrics_box = dlg:CreateEdit(10, 35) --dlg:CreateEditText(10, 35)
-    lyrics_box:SetHeight(300)
-    lyrics_box:SetWidth(500)
-    local hyphenate = dlg:CreateButton(10, 345)
+    local lyrics_box
+    local yoff = 35
+    if config.use_edit_control then
+        if use_edit_text then
+            lyrics_box = dlg:CreateEditText(10, yoff)
+        else
+            lyrics_box = dlg:CreateEdit(10, yoff)
+        end
+        lyrics_box:SetHeight(300)
+        lyrics_box:SetWidth(500)
+        yoff = yoff + 310
+    else
+        lyrics_box = finale.FCString()
+    end
+    local hyphenate = dlg:CreateButton(10, yoff)
     hyphenate:SetWidth(110)
     hyphenate:SetText(fstr("Hyphenate"))
-    local dehyphenate = dlg:CreateButton(130, 345)
+    local dehyphenate = dlg:CreateButton(130, yoff)
     dehyphenate:SetWidth(110)
     dehyphenate:SetText(fstr("Remove Hyphens"))
-    local update = dlg:CreateButton(250, 345)
+    local update = dlg:CreateButton(250, yoff)
     update:SetWidth(110)
     update:SetText(fstr("Update"))
-    local auto_update = dlg:CreateCheckbox(370, 345)
+    update:SetEnable(config.use_edit_control)
+    local auto_update = dlg:CreateCheckbox(370, yoff)
     auto_update:SetText(fstr("Update Automatically"))
     auto_update:SetWidth(150)
     auto_update:SetCheck(1)
+    auto_update:SetEnable(config.use_edit_control)
     local ok = dlg:CreateOkButton()
     ok:SetText(fstr("Close"))
     dlg:RegisterHandleControlEvent(popup, function(control)
