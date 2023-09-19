@@ -1,5 +1,6 @@
 function plugindef()
-    finaleplugin.MinJWLuaVersion = 0.68
+    finaleplugin.HandlesUndo = true
+    finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.ExecuteHttpsCalls = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -48,11 +49,11 @@ local config =
     max_search = 500 -- the highest lyrics block to search for
 }
 
-local lyrics =
-{ 
-    {}, -- verses
-    {}, -- choruses
-    {}  -- sections
+local lyrics_classes =
+{
+    finale.FCVerseLyricsText,
+    finale.FCChorusLyricsText,
+    finale.FCSectionLyricsText
 }
 
 local lyrics_prefs =
@@ -68,8 +69,52 @@ local function fstr(text)
     return retval
 end
 
-local function open_dialog()
-    local update_dlg_text -- "forward declaration"
+local function update_dlg_text(lyrics_box, itemno, type)
+    local lyrics_instance = lyrics_classes[type]()
+    if lyrics_instance:Load(itemno) then
+        local fcstr = lyrics_instance:CreateString()
+        local font_info = fcstr:CreateLastFontInfo()
+        fcstr:TrimEnigmaTags()
+        lyrics_box:SetFont(font_info)
+        lyrics_box:SetText(fcstr)
+    else
+        local font_prefs = finale.FCFontPrefs()
+        if font_prefs:Load(lyrics_prefs[type]) then
+            local font_info = finale:FCFontInfo()
+            font_prefs:GetFontInfo(font_info)
+            lyrics_box:SetFont(font_info)
+        end
+        lyrics_box:SetText(fstr(""))
+    end
+end
+
+local function update_document(lyrics_box, itemno, type, name)
+    finenv.StartNewUndoBlock("Update "..name.." "..itemno.." Lyrics", false)
+    local lyrics_instance = lyrics_classes[type]()
+    local loaded = lyrics_instance:Load(itemno)
+    if not loaded and not lyrics_instance.SaveAs then
+        finenv.UI():AlertError("This version of RGP Lua cannot create new lyrics blocks. Look for RGP Lua version 0.68 or higher.",
+            "RGP Lua Version Error")
+        finenv.EndUndoBlock(false)
+        return
+    end
+    local font = lyrics_box:CreateFontInfo()
+    local text = finale.FCString()
+    lyrics_box:GetText(text)
+    local tagstring = finale.FCString()
+    tagstring.LuaString = "^font"
+    local new_lyrics = font:CreateEnigmaString(tagstring)
+    new_lyrics:AppendString(text)
+    lyrics_instance:SetText(new_lyrics)
+    if loaded then
+        lyrics_instance:Save()
+    else
+        lyrics_instance:SaveAs(itemno)
+    end
+    finenv.EndUndoBlock(true)
+end
+
+local function openai_hyphenation()
     dlg = finale.FCCustomLuaWindow()
     dlg:SetTitle(fstr("Lyrics OpenAI Hyphenator"))
     local lyric_label = dlg:CreateStatic(10, 11)
@@ -80,51 +125,33 @@ local function open_dialog()
     popup:AddString(fstr("Verse"))
     popup:AddString(fstr("Chorus"))
     popup:AddString(fstr("Section"))
-    dlg:RegisterHandleControlEvent(popup, function(control) update_dlg_text() end)
     local lyric_num = dlg:CreateEdit(125, 9)
     lyric_num:SetWidth(25)
     lyric_num:SetInteger(1)
-    dlg:RegisterHandleControlEvent(lyric_num, function(control) update_dlg_text() end)
-    local lyrics_box = dlg:CreateEditText(10, 35)
+    local lyrics_box = dlg:CreateEdit(10, 35) --dlg:CreateEditText(10, 35)
     lyrics_box:SetHeight(300)
     lyrics_box:SetWidth(400)
-    update_dlg_text = function()
-        local itemno = lyric_num:GetInteger()
-        local type = popup:GetSelectedItem() + 1
-        local val = lyrics[type][itemno]
-        if val then
-            lyrics_box:SetFont(val.font)
-            lyrics_box:SetText(fstr(val.text))
-        else
-            local font_prefs = finale.FCFontPrefs()
-            if font_prefs:Load(lyrics_prefs[type]) then
-                local font_info = finale:FCFontInfo()
-                font_prefs:GetFontInfo(font_info)
-                lyrics_box:SetFont(font_info)
-            end
-            lyrics_box:SetText(fstr(""))
-        end
-    end
-    dlg:CreateOkButton()
-    update_dlg_text()
+    local hyphenate = dlg:CreateButton(10, 345)
+    hyphenate:SetWidth(70)
+    hyphenate:SetText(fstr("Hyphenate"))
+    local update = dlg:CreateButton(90, 345)
+    update:SetWidth(70)
+    update:SetText(fstr("Update"))
+    local ok = dlg:CreateOkButton()
+    ok:SetText(fstr("Close"))
+    dlg:RegisterHandleControlEvent(popup, function(control)
+        update_dlg_text(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1)
+    end)
+    dlg:RegisterHandleControlEvent(lyric_num, function(control)
+        update_dlg_text(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1)
+    end)
+    dlg:RegisterHandleControlEvent(update, function(control)
+        local selected_text = finale.FCString()
+        popup:GetText(selected_text)
+        update_document(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1, selected_text.LuaString)
+    end)
+    update_dlg_text(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1)
     dlg:ExecuteModal(nil)
-end
-
-local function openai_hyphenation()
-    local function populate_lyrics(lyrics_text, lyrics_table)
-        for itemno = 1, config.max_search do
-            if lyrics_text:Load(itemno) then
-                local fcstr = lyrics_text:CreateString()
-                local font_info = fcstr:CreateLastFontInfo()
-                fcstr:TrimEnigmaTags()
-                lyrics_table[itemno] = { font = font_info, text = fcstr.LuaString }
-            end
-        end
-    end
-    for k, v in pairs({finale.FCVerseLyricsText(), finale.FCChorusLyricsText(), finale.FCSectionLyricsText() }) do
-        populate_lyrics(v, lyrics[k])
-    end
-    open_dialog()
 end
 
 openai_hyphenation()
