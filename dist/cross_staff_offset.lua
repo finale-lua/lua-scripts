@@ -1672,7 +1672,7 @@ package.preload["mixin.FCMCustomLuaWindow"] = package.preload["mixin.FCMCustomLu
         function methods:RegisterHandleControlEvent(control, callback)
             mixin_helper.assert_argument_type(2, control, "FCControl", "FCMControl")
             mixin_helper.assert_argument_type(3, callback, "function")
-            if not self:RegisterHandleControlEvent_(control, function(ctrl)
+            if not self:RegisterHandleControlEvent__(control, function(ctrl)
                 callback(self:FindControl(ctrl:GetControlID()))
             end) then
                 error("'FCMCustomLuaWindow.RegisterHandleControlEvent' has encountered an error.", 2)
