@@ -42,7 +42,7 @@ function plugindef()
            "Add or correct lyrics hypenation using your OpenAI account."
 end
 
---local mixin = require("library.mixin") -- mixins not working with FCCtrlEditText
+local mixin = require("library.mixin") -- mixins not working with FCCtrlEditText
 local openai = require("library.openai")
 local configuration = require("library.configuration")
 
@@ -50,27 +50,40 @@ local config =
 {
     use_edit_control = false,
     api_model = "gpt-3.5-turbo",
-    temperature = 0.8, -- the web ChatGPT default, apparently
+    temperature = 0.2, -- fairly deterministic
     add_hyphens_prompt = [[
-        Hyphenate the following text according the rules of musical text underlay. For languages that
-        do not use spaces to separate words, nevertheless separate each word with a space and each
-        pronounced syllable inside each word with a hyphen. If a single symbol represents more than
-        one syllable, add the syllables with hyphens in parentheses in the most appropriate syllable
-        representation for that language. Correct any hyphenation mistakes. Ignore any text that has the form
-        ^font(...), ^size(...), or ^nfx(...), where  the ellipsis "..." is any text. Return only the
-        hyphenated text without any additonal commentary, and preserve all whitespace and line ending
-        characters exactly as they are. Here is the text to hyphenate:
-    ]],
+Hyphenate the following text, delimiting words with spaces and syllables with hyphens.
+If a word has multiple options for hyphenation, choose the one with the most syllables.
+If words are already hyphenated, correct any mistakes found.
+
+Exclude Text:
+^font(...)
+^size(...)
+^nfx(...)
+
+Special Processing:
+Do not modify line endings.
+Identify the language. If it is a language that does not use spaces, nevertheless separate each word with a space and each pronounced syllable inside each word with a hyphen.
+
+Input:
+]],
     remove_hyphens_prompt = [[
-        Remove hyphens from the following text that has been used for musical text underlay. If a word
-        should be hyphenated according to non-musical usage, leave those hyphens in place. For languages that do not use spaces
-        to separate words, remove any spaces between words according to the rules of that language.
-        If hyphenated syllables have been added in parentheses after a multi-syllable symbol,
-        remove the paranthesized syllables entirely. If you do not recognize a word, leave it alone.
-        Do not remove any punctuation other than hyphens or parentheses (as noted above). 
-        Return only the de-hyphenated text without any additonal commentary, and preserve all whitespace and
-        line ending characters exactly as they are. Here is the text from which to remove hyphens:
-    ]]
+Remove hyphens from the following text that has been used for musical text underlay.
+If a word should be hyphenated according to non-musical usage, leave those hyphens in place.
+
+Exclude Text:
+^font(...)
+^size(...)
+^nfx(...)
+
+Special Processing:
+Do not remove any punctuation other than hyphens.
+Do not modify line endings.
+Identify the language. If the language does not use spaces to separate words, remove any spaces between words according to the rules of that language.
+If you do not recognize a word, leave it alone.
+
+Input:
+]]
 }
 
 configuration.get_parameters("lyrics_openai_hyphenation.config.txt", config)
@@ -89,15 +102,12 @@ local lyrics_prefs =
     finale.FONTPREF_LYRICSSECTION
 }
 
-local https_session = nil
 config.use_edit_control = config.use_edit_control and (finenv.UI():IsOnMac() or finale.FCCtrlEditText)
 local use_edit_text --[[= finale.FCCtrlEditText ~= nil]]
 
-local function fstr(text)
-    local retval = finale.FCString()
-    retval.LuaString = text
-    return retval
-end
+-- These globals persist over multiple calls to the function
+https_session = nil
+update_automatically = true
 
 local function fixup_line_endings(input_str)
     local replacement = "\r"
@@ -146,7 +156,7 @@ local function update_dlg_text(lyrics_box, itemno, type)
             end
         end
         if config.use_edit_control then
-            lyrics_box:SetText(fstr(""))
+            lyrics_box:SetText("")
         end
     end
 end
@@ -170,8 +180,10 @@ local function update_document(lyrics_box, itemno, type, name)
         lyrics_box:GetText(text)
         local new_lyrics = font:CreateEnigmaString(nil)
         new_lyrics:AppendString(text)
+        new_lyrics:TrimWhitespace()
         lyrics_instance:SetText(new_lyrics)
     else
+        lyrics_box:TrimWhitespace()
         lyrics_instance:SetText(lyrics_box)
     end        
     if loaded then
@@ -193,7 +205,7 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
         if success then
             local fixed_text = fixup_line_endings(result.choices[1].message.content)
             if config.use_edit_control then
-                lyrics_box:SetText(fstr(fixed_text))
+                lyrics_box:SetText(fixed_text)
             else
                 lyrics_box.LuaString = fixed_text
             end
@@ -214,6 +226,7 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
         local lyrics_text = finale.FCString()
         lyrics_box:GetText(lyrics_text)
     else
+        update_dlg_text(lyrics_box, edit_type:GetInteger(), popup:GetSelectedItem() + 1)
         lyrics_text.LuaString = lyrics_box.LuaString
     end
     lyrics_text:TrimWhitespace()
@@ -224,24 +237,25 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
         popup:SetEnable(false)
         edit_type:SetEnable(false)
         local prompt = dehyphenate and config.remove_hyphens_prompt or config.add_hyphens_prompt
-        https_session = openai.create_completion(config.api_model, prompt.." "..lyrics_text.LuaString, config.temperature, callback)
+        prompt = prompt..lyrics_text.LuaString.."\nOutput:\n"
+        https_session = openai.create_completion(config.api_model, prompt, config.temperature, callback)
     end
 end
 
-local function openai_hyphenation()
-    dlg = finale.FCCustomLuaWindow()
-    dlg:SetTitle(fstr("Lyrics OpenAI Hyphenator"))
+local function create_dialog_box()
+    dlg = mixin.FCXCustomLuaWindow()
+                :SetTitle("Lyrics OpenAI Hyphenator")
     local lyric_label = dlg:CreateStatic(10, 11)
-    lyric_label:SetWidth(40)
-    lyric_label:SetText(fstr("Lyric:"))
+                :SetWidth(40)
+                :SetText("Lyric:")
     local popup = dlg:CreatePopup(45, 10)
-    popup:SetWidth(70)
-    popup:AddString(fstr("Verse"))
-    popup:AddString(fstr("Chorus"))
-    popup:AddString(fstr("Section"))
+                :SetWidth(70)
+                :AddString("Verse")
+                :AddString("Chorus")
+                :AddString("Section")
     local lyric_num = dlg:CreateEdit(125, 9)
-    lyric_num:SetWidth(25)
-    lyric_num:SetInteger(1)
+                :SetWidth(25)
+                :SetInteger(1)
     local lyrics_box
     local yoff = 35
     if config.use_edit_control then
@@ -250,48 +264,63 @@ local function openai_hyphenation()
         else
             lyrics_box = dlg:CreateEdit(10, yoff)
         end
-        lyrics_box:SetHeight(300)
-        lyrics_box:SetWidth(500)
+        lyrics_box:SetHeight(300):SetWidth(500)
         yoff = yoff + 310
     else
         lyrics_box = finale.FCString()
     end
-    local hyphenate = dlg:CreateButton(10, yoff)
-    hyphenate:SetWidth(110)
-    hyphenate:SetText(fstr("Hyphenate"))
-    local dehyphenate = dlg:CreateButton(130, yoff)
-    dehyphenate:SetWidth(110)
-    dehyphenate:SetText(fstr("Remove Hyphens"))
-    local update = dlg:CreateButton(250, yoff)
-    update:SetWidth(110)
-    update:SetText(fstr("Update"))
-    update:SetEnable(config.use_edit_control)
-    local auto_update = dlg:CreateCheckbox(370, yoff)
-    auto_update:SetText(fstr("Update Automatically"))
-    auto_update:SetWidth(150)
-    auto_update:SetCheck(1)
-    auto_update:SetEnable(config.use_edit_control)
-    local ok = dlg:CreateOkButton()
-    ok:SetText(fstr("Close"))
+    local xoff = 10
+    local hyphenate = dlg:CreateButton(xoff, yoff)
+                :SetText("Hyphenate")
+                :SetWidth(110)
+    xoff = xoff + 120
+    local dehyphenate = dlg:CreateButton(xoff, yoff)
+                :SetText("Remove Hyphens")
+                :SetWidth(110)
+    if config.use_edit_control then
+        xoff = xoff + 120
+        local update = dlg:CreateButton(xoff, yoff)
+                    :SetText("Update")
+                    :SetWidth(110)
+        xoff = xoff + 120
+        local auto_update = dlg:CreateCheckbox(xoff, yoff)
+                    :SetText("Update Automatically")
+                    :SetWidth(150)
+                    :SetCheck(update_automatically and 1 or 0)
+        dlg:RegisterHandleControlEvent(update, function(control)
+            local selected_text = finale.FCString()
+            popup:GetText(selected_text)
+            update_document(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1, selected_text.LuaString)
+        end)
+        dlg:RegisterHandleControlEvent(auto_update, function(control)
+            update_automatically = control:GetCheck() ~= 0
+        end)
+    end                    
+    dlg:CreateOkButton():SetText("Close")
+    dlg:RegisterInitWindow(function()
+        -- RunModeless modifies it based on modifier keys, but we want it
+        -- always true
+        dlg.OkButtonCanClose = true
+    end)
     dlg:RegisterHandleControlEvent(popup, function(control)
         update_dlg_text(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1)
     end)
     dlg:RegisterHandleControlEvent(lyric_num, function(control)
         update_dlg_text(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1)
     end)
-    dlg:RegisterHandleControlEvent(update, function(control)
-        local selected_text = finale.FCString()
-        popup:GetText(selected_text)
-        update_document(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1, selected_text.LuaString)
-    end)
     dlg:RegisterHandleControlEvent(hyphenate, function(control)
-        hyphenate_dlg_text(lyrics_box, popup, lyric_num, auto_update:GetCheck() ~= 0, false)
+        hyphenate_dlg_text(lyrics_box, popup, lyric_num, update_automatically, false)
     end)
     dlg:RegisterHandleControlEvent(dehyphenate, function(control)
-        hyphenate_dlg_text(lyrics_box, popup, lyric_num, auto_update:GetCheck() ~= 0, true)
+        hyphenate_dlg_text(lyrics_box, popup, lyric_num, update_automatically, true)
     end)
     update_dlg_text(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1)
-    dlg:ExecuteModal(nil)
+    return dlg
+end
+
+local function openai_hyphenation()
+    global_dialog = global_dialog or create_dialog_box()
+    global_dialog:RunModeless()
 end
 
 openai_hyphenation()
