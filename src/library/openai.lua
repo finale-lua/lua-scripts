@@ -49,7 +49,6 @@ local ORIGIN = 'https://api.openai.com'
 local API_VERSION = 'v1'
 local OPEN_AI_URL = ORIGIN .. "/" ..API_VERSION
 local COMPLETION_URL = OPEN_AI_URL .. "/chat/completions"
-local CHAT_URL = OPEN_AI_URL .. "/chat"
 
 openai_api_key = openai_api_key or "invalid key"
 
@@ -114,32 +113,6 @@ function openai.create_completion(model, prompt, temperature, callback_or_timeou
     }
 
     return call_openai(COMPLETION_URL, body, callback_or_timeout)
-end
-
---[[
-% create_chat
-
-Sends a request to the OpenAI API to generate a completion for a given prompt.
-
-@ model (string) The model to use, e.g., "gpt-3.5-turbo"
-@ prompt (string) The prompt to send
-@ temperature (number) A value between 0.0 and 1.0. See the OpenAI documentation for information.
-@ max_tokens (number) The maximum number of tokens to generate
-@ [callback_or_timeout] (function or number) Defaults to 5.0.
-: (boolean) if synchronous call. See above for asynchronous.
-: (string) if synchronous call. See above for asynchronous.
-]]
-function openai.create_chat(model, prompt, temperature, max_tokens, callback_or_timeout)
-    callback_or_timeout = callback_or_timeout or 5.0
-
-    local body = {
-        model = model,
-        prompt = prompt,
-        temperature = temperature,
-        max_tokens = max_tokens
-    }
-
-    return call_openai(CHAT_URL, body, callback_or_timeout)
 end
 
 return openai
