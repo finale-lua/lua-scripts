@@ -70,7 +70,6 @@ local function call_openai(url, body, callback_or_timeout)
                 jsresult = result
             end
         end
-        print("openai returned: "..result)
         if type(callback_or_timeout) == "function" then
             callback_or_timeout(success, jsresult)
         else
