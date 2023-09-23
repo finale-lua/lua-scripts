@@ -40,7 +40,6 @@ okay as long as the timeout is reasonably short.
 ## Functions
 
 - [create_completion(model, prompt, temperature, callback_or_timeout)](#create_completion)
-- [create_chat(model, prompt, temperature, max_tokens, callback_or_timeout)](#create_chat)
 
 ### create_completion
 
@@ -48,7 +47,7 @@ okay as long as the timeout is reasonably short.
 openai.create_completion(model, prompt, temperature, callback_or_timeout)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/openai.lua#L107)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/openai.lua#L105)
 
 Sends a request to the OpenAI API to generate a completion for a given prompt.
 
@@ -57,29 +56,6 @@ Sends a request to the OpenAI API to generate a completion for a given prompt.
 | `model` | `string` | The model to use, e.g., "gpt-3.5-turbo" |
 | `prompt` | `string` | The prompt to send |
 | `temperature` | `number` | See the OpenAI documentation for information about this value. A reasonable value is between 1.0 and 2.0. |
-| `callback_or_timeout` (optional) | `function or number` | Defaults to 5.0. |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `boolean` | if synchronous call. See above for asynchronous. |
-| `string` | if synchronous call. See above for asynchronous. |
-
-### create_chat
-
-```lua
-openai.create_chat(model, prompt, temperature, max_tokens, callback_or_timeout)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/openai.lua#L132)
-
-Sends a request to the OpenAI API to generate a completion for a given prompt.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `model` | `string` | The model to use, e.g., "gpt-3.5-turbo" |
-| `prompt` | `string` | The prompt to send |
-| `temperature` | `number` | A value between 0.0 and 1.0. See the OpenAI documentation for information. |
-| `max_tokens` | `number` | The maximum number of tokens to generate |
 | `callback_or_timeout` (optional) | `function or number` | Defaults to 5.0. |
 
 | Return type | Description |

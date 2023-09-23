@@ -4504,7 +4504,6 @@ package.preload["library.openai"] = package.preload["library.openai"] or functio
     local API_VERSION = 'v1'
     local OPEN_AI_URL = ORIGIN .. "/" ..API_VERSION
     local COMPLETION_URL = OPEN_AI_URL .. "/chat/completions"
-    local CHAT_URL = OPEN_AI_URL .. "/chat"
     openai_api_key = openai_api_key or "invalid key"
     local openai = {}
     local function call_openai(url, body, callback_or_timeout)
@@ -4521,7 +4520,6 @@ package.preload["library.openai"] = package.preload["library.openai"] or functio
                     jsresult = result
                 end
             end
-            print("openai returned: "..result)
             if type(callback_or_timeout) == "function" then
                 callback_or_timeout(success, jsresult)
             else
@@ -4548,17 +4546,6 @@ package.preload["library.openai"] = package.preload["library.openai"] or functio
             temperature = temperature
         }
         return call_openai(COMPLETION_URL, body, callback_or_timeout)
-    end
-
-    function openai.create_chat(model, prompt, temperature, max_tokens, callback_or_timeout)
-        callback_or_timeout = callback_or_timeout or 5.0
-        local body = {
-            model = model,
-            prompt = prompt,
-            temperature = temperature,
-            max_tokens = max_tokens
-        }
-        return call_openai(CHAT_URL, body, callback_or_timeout)
     end
     return openai
 end
@@ -4892,7 +4879,7 @@ function plugindef()
         Check the pricing at the OpenAI site.
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/lyrics_openai_hyphenation.hash"
-    return "Lyrics Hyphenation", "Lyrics Hyphenation",
+    return "Lyrics Hyphenation...", "Lyrics Hyphenation",
            "Add or correct lyrics hypenation using your OpenAI account."
 end
 local mixin = require("library.mixin")
@@ -4907,10 +4894,11 @@ local config =
 Hyphenate the following text, delimiting words with spaces and syllables with hyphens.
 If a word has multiple options for hyphenation, choose the one with the most syllables.
 If words are already hyphenated, correct any mistakes found.
-Exclude Text:
-^font(...)
-^size(...)
-^nfx(...)
+Do not modify text with the following patterns (where [TEXT_PLACEHOLDER] is any sequence of characters):
+^font([TEXT_PLACEHOLDER])
+^Font([TEXT_PLACEHOLDER])
+^size([TEXT_PLACEHOLDER])
+^nfx([TEXT_PLACEHOLDER])
 Special Processing:
 Do not modify line endings.
 Identify the language. If it is a language that does not use spaces, nevertheless separate each word with a space and each pronounced syllable inside each word with a hyphen.
@@ -4919,10 +4907,11 @@ Input:
     remove_hyphens_prompt = [[
 Remove hyphens from the following text that has been used for musical text underlay.
 If a word should be hyphenated according to non-musical usage, leave those hyphens in place.
-Exclude Text:
-^font(...)
-^size(...)
-^nfx(...)
+Do not modify text with the following patterns (where [TEXT_PLACEHOLDER] is any sequence of characters):
+^font([TEXT_PLACEHOLDER])
+^Font([TEXT_PLACEHOLDER])
+^size([TEXT_PLACEHOLDER])
+^nfx([TEXT_PLACEHOLDER])
 Special Processing:
 Do not remove any punctuation other than hyphens.
 Do not modify line endings.
@@ -4946,8 +4935,10 @@ local lyrics_prefs =
 }
 config.use_edit_control = config.use_edit_control and (finenv.UI():IsOnMac() or finale.FCCtrlEditText)
 local use_edit_text
+local use_active_lyric = finale.FCActiveLyric ~= nil
 https_session = nil
 update_automatically = true
+global_timer_id = 1
 local function fixup_line_endings(input_str)
     local replacement = "\r"
     if finenv:UI():IsOnWindows() then
@@ -4967,7 +4958,26 @@ local function fixup_line_endings(input_str)
     end
     return result
 end
-local function update_dlg_text(lyrics_box, itemno, type)
+local function update_to_active_lyric(edit_type, popup)
+    if not use_active_lyric then return end
+    local selected_text = finale.FCString()
+    popup:GetText(selected_text)
+    name = selected_text.LuaString
+    finenv.StartNewUndoBlock("Update Current Lyric to "..name.." "..edit_type:GetInteger(), false)
+    local active_lyric = finale.FCActiveLyric()
+    if active_lyric:Load() then
+        if active_lyric.BlockType ~= popup:GetSelectedItem() + 1 or active_lyric.TextBlockID ~= edit_type:GetInteger() then
+            active_lyric.BlockType = popup:GetSelectedItem() + 1
+            active_lyric.TextBlockID = edit_type:GetInteger()
+            active_lyric.Syllable = 1
+            active_lyric:Save()
+        end
+    end
+    finenv.EndUndoBlock(true)
+end
+local function update_dlg_text(lyrics_box, edit_type, popup)
+    local itemno = edit_type:GetInteger()
+    local type = popup:GetSelectedItem() + 1
     local lyrics_instance = lyrics_classes[type]()
     if lyrics_instance:Load(itemno) then
         local fcstr = lyrics_instance:CreateString()
@@ -4994,11 +5004,17 @@ local function update_dlg_text(lyrics_box, itemno, type)
             lyrics_box:SetText("")
         end
     end
+    update_to_active_lyric(edit_type, popup)
 end
-local function update_document(lyrics_box, itemno, type, name)
+local function update_document(lyrics_box, edit_type, popup)
     if https_session then
         return
     end
+    local itemno = edit_type:GetInteger()
+    local type = popup:GetSelectedItem() + 1
+    local selected_text = finale.FCString()
+    popup:GetText(selected_text)
+    name = selected_text.LuaString
     finenv.StartNewUndoBlock("Update "..name.." "..itemno.." Lyrics", false)
     local lyrics_instance = lyrics_classes[type]()
     local loaded = lyrics_instance:Load(itemno)
@@ -5045,7 +5061,7 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
             if auto_update then
                 local selected_text = finale.FCString()
                 popup:GetText(selected_text)
-                update_document(lyrics_box, edit_type:GetInteger(), popup:GetSelectedItem() + 1, selected_text.LuaString)
+                update_document(lyrics_box, edit_type, popup)
             end
         else
             finenv.UI():AlertError(result, "OpenAI")
@@ -5059,7 +5075,7 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
         local lyrics_text = finale.FCString()
         lyrics_box:GetText(lyrics_text)
     else
-        update_dlg_text(lyrics_box, edit_type:GetInteger(), popup:GetSelectedItem() + 1)
+        update_dlg_text(lyrics_box, edit_type, popup)
         lyrics_text.LuaString = lyrics_box.LuaString
     end
     lyrics_text:TrimWhitespace()
@@ -5072,6 +5088,22 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
         local prompt = dehyphenate and config.remove_hyphens_prompt or config.add_hyphens_prompt
         prompt = prompt..lyrics_text.LuaString.."\nOutput:\n"
         https_session = openai.create_completion(config.api_model, prompt, config.temperature, callback)
+    end
+end
+local function update_from_active_lyric(lyrics_box, edit_type, popup)
+    if not use_active_lyric then return end
+    local active_lyric = finale.FCActiveLyric()
+    if active_lyric:Load() then
+        if active_lyric.BlockType ~= popup:GetSelectedItem() + 1 or active_lyric.TextBlockID ~= edit_type:GetInteger() then
+            if update_automatically and use_edit_text then
+                local selected_text = finale.FCString()
+                popup:GetText(selected_text)
+                update_document(lyrics_box, edit_type, popup)
+            end
+            popup:SetSelectedItem(active_lyric.BlockType - 1)
+            edit_type:SetInteger(active_lyric.TextBlockID)
+            update_dlg_text(lyrics_box, edit_type, popup)
+        end
     end
 end
 local function create_dialog_box()
@@ -5089,7 +5121,7 @@ local function create_dialog_box()
                 :SetWidth(25)
                 :SetInteger(1)
     local lyrics_box
-    local yoff = 35
+    local yoff = 45
     if config.use_edit_control then
         if use_edit_text then
             lyrics_box = dlg:CreateEditText(10, yoff)
@@ -5122,7 +5154,7 @@ local function create_dialog_box()
         dlg:RegisterHandleControlEvent(update, function(control)
             local selected_text = finale.FCString()
             popup:GetText(selected_text)
-            update_document(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1, selected_text.LuaString)
+            update_document(lyrics_box, lyric_num, popup)
         end)
         dlg:RegisterHandleControlEvent(auto_update, function(control)
             update_automatically = control:GetCheck() ~= 0
@@ -5133,12 +5165,21 @@ local function create_dialog_box()
 
 
         dlg.OkButtonCanClose = true
+        if use_active_lyric then
+            dlg:SetTimer(global_timer_id, 100)
+        end
     end)
+    if use_active_lyric then
+        dlg:RegisterHandleTimer(function(dialog, timer_id)
+            if timer_id ~= global_timer_id then return end
+            update_from_active_lyric(lyrics_box, lyric_num, popup)
+        end)
+    end
     dlg:RegisterHandleControlEvent(popup, function(control)
-        update_dlg_text(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1)
+        update_dlg_text(lyrics_box, lyric_num, popup)
     end)
     dlg:RegisterHandleControlEvent(lyric_num, function(control)
-        update_dlg_text(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1)
+        update_dlg_text(lyrics_box, lyric_num, popup)
     end)
     dlg:RegisterHandleControlEvent(hyphenate, function(control)
         hyphenate_dlg_text(lyrics_box, popup, lyric_num, update_automatically, false)
@@ -5146,7 +5187,16 @@ local function create_dialog_box()
     dlg:RegisterHandleControlEvent(dehyphenate, function(control)
         hyphenate_dlg_text(lyrics_box, popup, lyric_num, update_automatically, true)
     end)
-    update_dlg_text(lyrics_box, lyric_num:GetInteger(), popup:GetSelectedItem() + 1)
+    dlg:RegisterCloseWindow(function()
+        if finenv.UI():IsOnMac() and use_active_lyric then
+            finenv.RetainLuaState = false
+        end
+    end)
+    if use_active_lyric then
+        update_from_active_lyric(lyrics_box, lyric_num, popup)
+    else
+        update_dlg_text(lyrics_box, lyric_num, popup)
+    end
     return dlg
 end
 local function openai_hyphenation()
