@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.88"
+    finaleplugin.Version = "v0.89"
     finaleplugin.Date = "2023/02/24"
     finaleplugin.Notes = [[
         This script is keyboard-centred requiring minimal mouse action. 
@@ -52,6 +52,7 @@ local config = { -- retained and over-written by the user's "settings" file
     cue_font_smaller    =   1, -- how many points smaller than the standard technique expression
     window_pos_x        =   false,
     window_pos_y        =   false,
+    abbreviate          =   false
 }
 
 local freeze = {
@@ -120,12 +121,22 @@ function new_cue_name(source_staff)
 
     local staff = finale.FCStaff() -- copy the source Staff Name
     staff:Load(source_staff)
-    local the_name = dialog:CreateEdit(0, 40):SetWidth(200):SetText(staff:CreateDisplayFullNameString())
+    local abbrev_name = staff:CreateDisplayAbbreviatedNameString()
+    local full_name = staff:CreateDisplayFullNameString()
+    local the_name = dialog:CreateEdit(0, 40):SetWidth(200)
+    local _ = config.abbreviate and the_name:SetText(abbrev_name) or the_name:SetText(full_name)
+
+    local abbrev_checkbox = dialog:CreateCheckbox(0, 65):SetText('Abbreviate staff name')
+        :SetWidth(150):SetCheck(config.abbreviate and 1 or 0)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function(self) dialog_save_position(self) end)
+    dialog:RegisterHandleControlEvent(abbrev_checkbox, function(self)
+        the_name:SetText(self:GetCheck() == 1 and abbrev_name or full_name):SetFocus()
+    end)
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    if ok then config.abbreviate = (abbrev_checkbox:GetCheck() == 1) end
     return ok, the_name:GetText()
 end
 
