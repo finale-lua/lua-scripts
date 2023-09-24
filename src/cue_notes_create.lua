@@ -115,9 +115,13 @@ function dialog_save_position(dialog)
 end
 
 function make_info_button(dialog, x, y)
+    local formatted = finaleplugin.Notes
+        :gsub(" %s+", " ")
+        :gsub("\n ", "\n")
+        :sub(2)
     dialog:CreateButton(x, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function()
-            finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" %s+", " "), "About " .. plugindef())
+            finenv.UI():AlertInfo(formatted, "About " .. plugindef())
         end)
 end
 
