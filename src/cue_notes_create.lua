@@ -1,25 +1,10 @@
 function plugindef()
     finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Carl Vine"
+    finaleplugin.Author = "Carl Vine with additional coding by Aaron Sherber"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.89"
-    finaleplugin.Date = "2023/02/24"
-    finaleplugin.Notes = [[
-        This script is keyboard-centred requiring minimal mouse action. 
-        It takes music from a nominated layer in the selected staff and 
-        creates a "Cue" version on one or more other staves. 
-        The cue copy is reduced in size and muted, and can duplicate nominated markings from the original. 
-        It is shifted to the chosen layer with a whole-note rest placed in the original layer.
-
-        Your preferences are preserved between each script run. 
-        This script requires an expression category called "Cue Names". 
-        Under RGPLua (v0.58+) a new category is created automatically if needed. 
-        To use with JWLua you must first create an Expression Category called "Cue Names". 
-
-        An extra menu item, "Cue Notes Flip Frozen", will look for notes in the chosen 
-        "cue note" layer and flip the direction of their stems if they have been "frozen" up or down.  
-        ]]
+    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
+    finaleplugin.Version = "v0.92b"
+    finaleplugin.Date = "2023/09/24"
     finaleplugin.AdditionalMenuOptions = [[
         Cue Notes Flip Frozen
     ]]
@@ -28,6 +13,22 @@ function plugindef()
     ]]
     finaleplugin.AdditionalPrefixes = [[
         action = "flip"
+    ]]
+    finaleplugin.Notes = [[
+        This script is keyboard-centred requiring minimal mouse action. 
+        It takes music from a nominated layer in the selected staff and 
+        creates a "Cue" version on one or more other staves. 
+        The cue copy is reduced in size and muted, and can duplicate nominated markings from the original. 
+        It is copied to the chosen layer with a whole-note rest placed in the original layer.
+
+        Your preferences are preserved between each script run. 
+        This script requires an expression category called "Cue Names". 
+        Under RGPLua a new category will be created automatically if needed. 
+        To use with JWLua you must first create an Expression Category called "Cue Names".
+
+        An extra menu item, "Cue Notes Flip Frozen", will look for notes in the 
+        previously selected "cue note" layer and flip the direction of their 
+        stems if they have been "frozen" up or down.
     ]]
     return "Cue Notes Create...", "Cue Notes Create", "Copy as cue notes to another staff"
 end
@@ -79,7 +80,7 @@ function show_error(error_code)
         no_cue_notes = "The selected music contains \nno cue notes in layer " .. config.cuenote_layer
     }
     local msg = errors[error_code] or "Unknown error condition"
-    finenv.UI():AlertInfo(msg, nil)
+    finenv.UI():AlertInfo(msg, "User Error")
     return -1
 end
 
@@ -93,9 +94,7 @@ end
 
 function region_contains_notes(region, layer_number)
     for entry in eachentry(region, layer_number) do
-        if entry.Count > 0 then
-            return true
-        end
+        if entry.Count > 0 then return true end
     end
     return false
 end
@@ -115,39 +114,52 @@ function dialog_save_position(dialog)
     configuration.save_user_settings(script_name, config)
 end
 
+function make_info_button(dialog, x, y)
+    dialog:CreateButton(x, y):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function()
+            finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" %s+", " "), "About " .. plugindef())
+        end)
+end
+
 function new_cue_name(source_staff)
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    dialog:CreateStatic(0, 20):SetText("New cue name:"):SetWidth(100)
+    dialog:CreateStatic(0, 0):SetText("New cue name:"):SetWidth(100)
+    make_info_button(dialog, 180, 0)
 
     local staff = finale.FCStaff() -- copy the source Staff Name
     staff:Load(source_staff)
     local abbrev_name = staff:CreateDisplayAbbreviatedNameString()
     local full_name = staff:CreateDisplayFullNameString()
-    local the_name = dialog:CreateEdit(0, 40):SetWidth(200)
+    local the_name = dialog:CreateEdit(0, 22):SetWidth(200)
     local _ = config.abbreviate and the_name:SetText(abbrev_name) or the_name:SetText(full_name)
 
-    local abbrev_checkbox = dialog:CreateCheckbox(0, 65):SetText('Abbreviate staff name')
+    local abbrev_checkbox = dialog:CreateCheckbox(0, 47):SetText('Abbreviate staff name')
         :SetWidth(150):SetCheck(config.abbreviate and 1 or 0)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterHandleOkButtonPressed(function(self) dialog_save_position(self) end)
     dialog:RegisterHandleControlEvent(abbrev_checkbox, function(self)
         the_name:SetText(self:GetCheck() == 1 and abbrev_name or full_name):SetFocus()
     end)
-    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-    if ok then config.abbreviate = (abbrev_checkbox:GetCheck() == 1) end
-    return ok, the_name:GetText()
+    dialog:RegisterHandleOkButtonPressed(function(self)
+        dialog_save_position(self)
+        config.abbreviate = (abbrev_checkbox:GetCheck() == 1)
+    end)
+    dialog:RegisterInitWindow(function(self)
+        the_name:SetFocus()
+    end)
+    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), the_name:GetText()
 end
 
 function choose_name_index(name_list)
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    dialog:CreateStatic(0, 20):SetText("Select cue name:"):SetWidth(100)
+    dialog:CreateStatic(0, 0):SetText("Select cue name:"):SetWidth(100)
     -- menu item [0] is "*** new name ***"
-    local staff_list = dialog:CreateListBox(0, 40):SetWidth(200):AddString("*** new name ***")
+    local staff_list = dialog:CreateListBox(0, 22):SetWidth(200):AddString("*** new name ***")
     for _, v in ipairs(name_list) do -- add all names in the extant list
         staff_list:AddString(v[1])
     end
+    make_info_button(dialog, 180, 0)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
@@ -180,10 +192,9 @@ function choose_destination_staff(source_staff)
     rgn:SetCurrentSelection()
     rgn:SetFullMeasureStack() -- scan the whole stack
     local staff = finale.FCStaff()
-    for slot = rgn.StartSlot, rgn.EndSlot do
-        local staff_number = rgn:CalcStaffNumber(slot)
+    for staff_number in eachstaff(rgn) do
         if staff_number ~= source_staff then
-            staff:Load(staff_number) -- staff number of this slot
+            staff:Load(staff_number)
             table.insert(staff_list, { staff_number, staff:CreateDisplayFullNameString().LuaString } )
         end
     end
@@ -266,6 +277,7 @@ function choose_destination_staff(source_staff)
             buttons[name]:AddHandleCommand(function() set_check_state(2 - i) end)
         end
     end
+    make_info_button(dialog, x_grid[3] + 60, y_step * 11 + 3)
 
     -- run the dialog
     dialog:CreateOkButton()
@@ -341,9 +353,7 @@ function freeze_tuplets_and_ties(entry, up)
         for note in each(entry) do
             if note.Tie then
                 local tie_mod = finale.FCTieMod(finale.TIEMODTYPE_TIESTART)
-                tie_mod.TieDirection = up
-                    and finale.TIEMODDIR_OVER
-                    or finale.TIEMODDIR_UNDER
+                tie_mod.TieDirection = up and finale.TIEMODDIR_OVER or finale.TIEMODDIR_UNDER
                 tie_mod:SaveAt(note)
             end
         end
@@ -363,31 +373,23 @@ function freeze_slurs(region, up)
     for m in each(marks) do
         local shape = m:CreateSmartShape()
         if shape:IsSolidSlur() then
-            shape:SetShapeType(up
-                and finale.SMARTSHAPE_SLURUP
-                or finale.SMARTSHAPE_SLURDOWN
-            )
+            shape:SetShapeType(up and finale.SMARTSHAPE_SLURUP or finale.SMARTSHAPE_SLURDOWN)
             shape:Save()
         elseif shape:IsDashedSlur() then
-            shape:SetShapeType(up 
-                and finale.SMARTSHAPE_DASHEDSLURUP
-                or finale.SMARTSHAPE_DASHEDSLURDOWN
-            )
+            shape:SetShapeType(up and finale.SMARTSHAPE_DASHEDSLURUP or finale.SMARTSHAPE_DASHEDSLURDOWN)
             shape:Save()
         end
     end
 end
 
 function copy_to_destination(source_region, destination_staff)
-    local destination_region = finale.FCMusicRegion()
-    destination_region:SetRegion(source_region)
-    destination_region:CopyMusic() -- copy the original
-    destination_region.StartStaff = destination_staff
-    destination_region.EndStaff = destination_staff
+    local destination_region = mixin.FCMMusicRegion()
+    destination_region:SetRegion(source_region):CopyMusic() -- copy the original
+    destination_region:SetStartStaff(destination_staff):SetEndStaff(destination_staff)
 
     if region_contains_notes(destination_region, 0) and dont_overwrite_existing_music(destination_staff) then
         destination_region:ReleaseMusic() -- clear memory
-        return -- and go home
+        return false -- and go home
     elseif not region_contains_notes(source_region, config.source_layer) then
         destination_region:ReleaseMusic() -- clear memory
         show_error("no_notes_in_source_layer")
