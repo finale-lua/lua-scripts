@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.ExecuteHttpsCalls = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "September 13, 2023"
+    finaleplugin.Version = "2.0"
+    finaleplugin.Date = "September 22, 2023"
     finaleplugin.CategoryTags = "Lyrics"
     finaleplugin.Notes = [[
         Uses the OpenAI online api to add or correct lyrics hyphenation.
@@ -42,13 +42,15 @@ function plugindef()
            "Add or correct lyrics hypenation using your OpenAI account."
 end
 
+require('mobdebug').start()
+
 local mixin = require("library.mixin")
 local openai = require("library.openai")
 local configuration = require("library.configuration")
 
 local config =
 {
-    use_edit_control = false,
+    use_edit_control = true,
     api_model = "gpt-3.5-turbo",
     temperature = 0.2, -- fairly deterministic
     add_hyphens_prompt = [[
@@ -105,13 +107,61 @@ local lyrics_prefs =
 }
 
 config.use_edit_control = config.use_edit_control and (finenv.UI():IsOnMac() or finale.FCCtrlEditText)
-local use_edit_text --[[= finale.FCCtrlEditText ~= nil]]
+local use_edit_text = finale.FCCtrlEditText ~= nil
 local use_active_lyric = finale.FCActiveLyric ~= nil
 
 -- These globals persist over multiple calls to the function
 https_session = nil
 update_automatically = true
 global_timer_id = 1         -- per docs, we supply the timer id, starting at 1
+
+local function update_document(lyrics_box, edit_type, popup)
+    if https_session then
+        return -- do not do anything if a request is in progress
+    end
+    local itemno = edit_type:GetInteger()
+    local type = popup:GetSelectedItem() + 1
+    local selected_text = finale.FCString()
+    popup:GetText(selected_text)
+    name = selected_text.LuaString
+    finenv.StartNewUndoBlock("Update " .. name .. " " .. itemno .. " Lyrics", false)
+    local lyrics_instance = lyrics_classes[type]()
+    local loaded = lyrics_instance:Load(itemno)
+    if not loaded and not lyrics_instance.SaveAs then
+        finenv.UI():AlertError(
+            "This version of RGP Lua cannot create new lyrics blocks. Look for RGP Lua version 0.68 or higher.",
+            "RGP Lua Version Error")
+        finenv.EndUndoBlock(false)
+        return
+    end
+    local text_length = 0
+    if config.use_edit_control then
+        local text = finale.FCString()
+        local font = lyrics_box:CreateFontInfo()
+        lyrics_box:GetText(text)
+        text_length = text.Length
+        local new_lyrics = font:CreateEnigmaString(nil)
+        new_lyrics:AppendString(text)
+        new_lyrics:TrimWhitespace()
+        lyrics_instance:SetText(new_lyrics)
+    else
+        text_length = lyrics_box.Length
+        lyrics_box:TrimWhitespace()
+        lyrics_instance:SetText(lyrics_box)
+    end
+    if loaded then
+        if text_length > 0 then
+            lyrics_instance:Save()
+        else
+            lyrics_instance:DeleteData()
+        end
+    else
+        if text_length > 0 then
+            lyrics_instance:SaveAs(itemno)
+        end
+    end
+    finenv.EndUndoBlock(true)
+end
 
 local function fixup_line_endings(input_str)
     local replacement = "\r"
@@ -136,8 +186,9 @@ local function fixup_line_endings(input_str)
     return result
 end
 
-local function update_to_active_lyric(edit_type, popup)
+local function update_to_active_lyric(lyrics_box, edit_type, popup)
     if not use_active_lyric then return end
+    if edit_type:GetInteger() <= 0 then return end
     local selected_text = finale.FCString()
     popup:GetText(selected_text)
     name = selected_text.LuaString
@@ -183,45 +234,7 @@ local function update_dlg_text(lyrics_box, edit_type, popup)
             lyrics_box:SetText("")
         end
     end
-    update_to_active_lyric(edit_type, popup)
-end
-
-local function update_document(lyrics_box, edit_type, popup)
-    if https_session then
-        return -- do not do anything if a request is in progress
-    end
-    local itemno = edit_type:GetInteger()
-    local type = popup:GetSelectedItem() + 1
-    local selected_text = finale.FCString()
-    popup:GetText(selected_text)
-    name = selected_text.LuaString
-    finenv.StartNewUndoBlock("Update "..name.." "..itemno.." Lyrics", false)
-    local lyrics_instance = lyrics_classes[type]()
-    local loaded = lyrics_instance:Load(itemno)
-    if not loaded and not lyrics_instance.SaveAs then
-        finenv.UI():AlertError("This version of RGP Lua cannot create new lyrics blocks. Look for RGP Lua version 0.68 or higher.",
-            "RGP Lua Version Error")
-        finenv.EndUndoBlock(false)
-        return
-    end
-    if config.use_edit_control then
-        local text = finale.FCString()
-        local font = lyrics_box:CreateFontInfo()
-        lyrics_box:GetText(text)
-        local new_lyrics = font:CreateEnigmaString(nil)
-        new_lyrics:AppendString(text)
-        new_lyrics:TrimWhitespace()
-        lyrics_instance:SetText(new_lyrics)
-    else
-        lyrics_box:TrimWhitespace()
-        lyrics_instance:SetText(lyrics_box)
-    end        
-    if loaded then
-        lyrics_instance:Save()
-    else
-        lyrics_instance:SaveAs(itemno)
-    end
-    finenv.EndUndoBlock(true)
+    update_to_active_lyric(lyrics_box, edit_type, popup)
 end
 
 local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, dehyphenate)
@@ -253,7 +266,6 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
     end
     local lyrics_text = finale.FCString()
     if config.use_edit_control then
-        local lyrics_text = finale.FCString()
         lyrics_box:GetText(lyrics_text)
     else
         update_dlg_text(lyrics_box, edit_type, popup)
@@ -375,10 +387,9 @@ local function create_dialog_box()
             finenv.RetainLuaState = false -- Mac dialogs get wonky when you restart them
         end
     end)
+    update_dlg_text(lyrics_box, lyric_num, popup)
     if use_active_lyric then
         update_from_active_lyric(lyrics_box, lyric_num, popup)
-    else
-        update_dlg_text(lyrics_box, lyric_num, popup)
     end
     return dlg
 end

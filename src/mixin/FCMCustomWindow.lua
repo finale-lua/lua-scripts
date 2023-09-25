@@ -160,6 +160,22 @@ Override Changes:
 ]]
 
 --[[
+% CreateEditText
+
+**[Override]**
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
+
+@ self (FCMCustomWindow)
+@ x (number)
+@ y (number)
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
+: (FCMCtrlEditText)
+]]
+
+--[[
 % CreateListBox
 
 **[Override]**
@@ -309,7 +325,7 @@ Override Changes:
 -- Also adds an optional parameter at the end for a control name
 for num_args, ctrl_types in pairs({
     [0] = {"CancelButton", "OkButton",},
-    [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit",
+    [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit", "EditText",
         "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
     },
     [3] = {"HorizontalLine", "VerticalLine",},
