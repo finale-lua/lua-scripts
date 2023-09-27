@@ -171,7 +171,7 @@ Override Changes:
 fcmcontrol.GetLeft(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L345)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L347)
 
 **[Override]**
 
@@ -192,7 +192,7 @@ Override Changes:
 fcmcontrol.SetLeft(self, left)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L365)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L367)
 
 **[Fluid] [Override]**
 
@@ -210,7 +210,7 @@ Override Changes:
 fcmcontrol.GetTop(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L346)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L348)
 
 **[Override]**
 
@@ -231,7 +231,7 @@ Override Changes:
 fcmcontrol.SetTop(self, top)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L366)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L368)
 
 **[Fluid] [Override]**
 
@@ -249,7 +249,7 @@ Override Changes:
 fcmcontrol.GetHeight(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L347)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L345)
 
 **[Override]**
 
@@ -270,7 +270,7 @@ Override Changes:
 fcmcontrol.SetHeight(self, height)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L367)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L365)
 
 **[Fluid] [Override]**
 
@@ -288,7 +288,7 @@ Override Changes:
 fcmcontrol.GetWidth(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L348)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L346)
 
 **[Override]**
 
@@ -309,7 +309,7 @@ Override Changes:
 fcmcontrol.SetWidth(self, width)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L368)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L366)
 
 **[Fluid] [Override]**
 

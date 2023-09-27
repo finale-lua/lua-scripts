@@ -107,19 +107,19 @@ package.preload["mixin.FCMControl"] = package.preload["mixin.FCMControl"] or fun
         private[self].Text = temp_str.LuaString
         private[self].Enable = self:GetEnable__()
         private[self].Visible = self:GetVisible__()
-        private[self].Left = self:GetLeft__()
-        private[self].Top = self:GetTop__()
         private[self].Height = self:GetHeight__()
         private[self].Width = self:GetWidth__()
+        private[self].Left = self:GetLeft__()
+        private[self].Top = self:GetTop__()
     end
 
     function methods:RestoreState()
         self:SetEnable__(private[self].Enable)
         self:SetVisible__(private[self].Visible)
-        self:SetLeft__(private[self].Left)
-        self:SetTop__(private[self].Top)
         self:SetHeight__(private[self].Height)
         self:SetWidth__(private[self].Width)
+        self:SetLeft__(private[self].Left)
+        self:SetTop__(private[self].Top)
 
         temp_str.LuaString = private[self].Text
         self:SetText__(temp_str)
