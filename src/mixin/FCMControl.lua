@@ -342,10 +342,10 @@ function methods:StoreState()
     private[self].Text = temp_str.LuaString
     private[self].Enable = self:GetEnable__()
     private[self].Visible = self:GetVisible__()
-    private[self].Left = self:GetLeft__()
-    private[self].Top = self:GetTop__()
     private[self].Height = self:GetHeight__()
     private[self].Width = self:GetWidth__()
+    private[self].Left = self:GetLeft__()
+    private[self].Top = self:GetTop__()
 end
 
 --[[
@@ -362,10 +362,10 @@ Restores the control's stored state.
 function methods:RestoreState()
     self:SetEnable__(private[self].Enable)
     self:SetVisible__(private[self].Visible)
-    self:SetLeft__(private[self].Left)
-    self:SetTop__(private[self].Top)
     self:SetHeight__(private[self].Height)
     self:SetWidth__(private[self].Width)
+    self:SetLeft__(private[self].Left)
+    self:SetTop__(private[self].Top) -- keep SetTop after SetHeight to work around height bug in macOS buttons
 
     -- Call SetText last to work around the Mac text box issue described above
     temp_str.LuaString = private[self].Text
