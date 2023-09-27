@@ -342,10 +342,10 @@ function methods:StoreState()
     private[self].Text = temp_str.LuaString
     private[self].Enable = self:GetEnable__()
     private[self].Visible = self:GetVisible__()
-    private[self].Left = self:GetLeft__()
-    private[self].Top = self:GetTop__()
     private[self].Height = self:GetHeight__()
     private[self].Width = self:GetWidth__()
+    private[self].Left = self:GetLeft__()
+    private[self].Top = self:GetTop__()
 end
 
 --[[
