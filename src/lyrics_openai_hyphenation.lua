@@ -382,11 +382,6 @@ local function create_dialog_box()
     dlg:RegisterHandleControlEvent(dehyphenate, function(control)
         hyphenate_dlg_text(lyrics_box, popup, lyric_num, update_automatically, true)
     end)
-    dlg:RegisterCloseWindow(function()
-        if finenv.UI():IsOnMac() and use_active_lyric then
-            finenv.RetainLuaState = false -- Mac dialogs get wonky when you restart them
-        end
-    end)
     update_dlg_text(lyrics_box, lyric_num, popup)
     if use_active_lyric then
         update_from_active_lyric(lyrics_box, lyric_num, popup)
