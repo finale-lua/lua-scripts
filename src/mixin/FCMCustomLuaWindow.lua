@@ -44,17 +44,10 @@ local function flush_custom_queue(self)
 end
 
 local function restore_position(self)
-    if private[self].HasBeenShown then
-        if private[self].EnableAutoRestorePosition and self.StorePosition then
-            self:StorePosition(false)
-            self:SetRestorePositionOnlyData__(private[self].StoredX, private[self].StoredY)
-            self:RestorePosition()
-        end
-        if private[self].RestoreControlState then
-            for control in each(self) do
-                control:RestoreState()
-            end
-        end
+    if private[self].HasBeenShown and private[self].EnableAutoRestorePosition and self.StorePosition then
+        self:StorePosition(false)
+        self:SetRestorePositionOnlyData__(private[self].StoredX, private[self].StoredY)
+        self:RestorePosition()
     end
 end
 
@@ -163,6 +156,12 @@ function class:Init()
 
         if event == "InitWindow" then
             self["Register" .. event .. "__"](self, function(...)
+                if private[self].HasBeenShown and private[self].RestoreControlState then
+                    for control in each(self) do
+                        control:RestoreState()
+                    end
+                end
+
                 dispatch_event_handlers(self, event, self, ...)
             end)
         elseif event == "CloseWindow" then
