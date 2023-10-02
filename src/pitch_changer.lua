@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.10"
-    finaleplugin.Date = "2023/10/02"
+    finaleplugin.Version = "v0.11"
+    finaleplugin.Date = "2023/10/03"
     finaleplugin.AdditionalMenuOptions = [[
         Pitch Changer Repeat
     ]]
@@ -24,7 +24,7 @@ function plugindef()
         This script is inspired by Jari Williamsson's "JW Change Pitches" plug-in (2017) 
         revived to work on Macs with non-Intel processors.
 
-        Identify pitchces by note name (a-g or A-G) followed by accidental 
+        Identify pitches by note name (a-g or A-G) followed by accidental 
         (#-### or b-bbb) if required. 
         Matching pitches will be changed in every octave. 
         To repeat the last pitch change without a confirmation dialog use 
@@ -44,10 +44,10 @@ repeat_change = repeat_change or false
 
 local directions = { "Closest", "Up", "Down" }
 local config = {
-    find_string = "f#",
+    find_string = "F#",
     find_pitch = "F",
     find_offset = 1, -- raise/lower value (to find)
-    new_string = "ab",
+    new_string = "eb",
     new_pitch = "A",
     new_offset = -1, -- raise/lower value (to replace)
     direction = 1, -- one-based index of "directions" choice
@@ -84,14 +84,14 @@ function calc_pitch_string(note)
 end
 
 function decode_note_string(str)
-    str = str:upper()
-    local pitch = str:sub(1, 1)
-    local octave = tonumber(str:sub(-1)) or 4
+    local s = str:upper()
+    local pitch = s:sub(1, 1)
+    local octave = tonumber(s:sub(-1)) or 4
     local raise_lower = 0
-    str = str:sub(2) -- move past first char
-    if str:find("[#B]") then
-        for _ in str:gmatch("#") do raise_lower = raise_lower + 1 end
-        for _ in str:gmatch("B") do raise_lower = raise_lower - 1 end
+    s = s:sub(2) -- move past first char
+    if s:find("[#B]") then
+        for _ in s:gmatch("#") do raise_lower = raise_lower + 1 end
+        for _ in s:gmatch("B") do raise_lower = raise_lower - 1 end
     end
     return pitch, raise_lower, octave
 end
@@ -203,10 +203,11 @@ function user_selection()
         local function encode_pitches(control, kind)
             local str = finale.FCString()
             control:GetText(str)
-            local pitch, raise_lower, _ = decode_note_string(str.LuaString)
-            if pitch:find("[A-G]") and not str.LuaString:sub(2):find("[^b#]") then
+            local s = str.LuaString:upper()
+            local pitch, raise_lower, _ = decode_note_string(s)
+            if pitch:find("[A-G]") and not s:sub(2):find("[AC-G]") then
                 config[kind .. "_pitch"] = pitch
-                config[kind .. "_string"] = str.LuaString
+                config[kind .. "_string"] = s
                 config[kind .. "_offset"] = raise_lower
                 return true
             end
@@ -249,7 +250,7 @@ function change_pitch()
         )
     if not (repeat_change or mod_key) then
         if not user_selection() then return end -- user cancelled
-        if config.find_pitch == "" then -- caught a submission error
+        if config.find_pitch == "" then -- submission error
             finenv.UI():AlertError(
                 "Pitch names cannot be empty and must start with a single " ..
                 "note name (a-g or A-G) followed by accidentals " ..
