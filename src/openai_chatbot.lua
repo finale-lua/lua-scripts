@@ -82,15 +82,13 @@ local function send_prompt()
             result = "ERROR: "..result
         end
         local response = dlg:GetControl("response")
-        result = result .. "\n===\n"
+        result = result .. "\n\n========================================\n\n"
         local newtext = finale.FCString()
         response:GetText(newtext)
         newtext:AppendString(finale.FCString(result))
         response:SetText(newtext)
         local total_range = finale.FCRange()
-        dlg:GetControl("prompt"):GetTotalTextRange(total_range)
-        dlg:GetControl("prompt"):SetSelection(total_range)
-        dlg:GetControl("prompt"):SetKeyboardFocus()
+        dlg:GetControl("prompt"):SelectAll()
     end)
 end
 
