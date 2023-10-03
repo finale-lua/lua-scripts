@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.11"
-    finaleplugin.Date = "2023/10/03"
+    finaleplugin.Version = "v0.12"
+    finaleplugin.Date = "2023/10/04"
     finaleplugin.AdditionalMenuOptions = [[
         Pitch Changer Repeat
     ]]
@@ -48,7 +48,7 @@ local config = {
     find_pitch = "F",
     find_offset = 1, -- raise/lower value (to find)
     new_string = "eb",
-    new_pitch = "A",
+    new_pitch = "E",
     new_offset = -1, -- raise/lower value (to replace)
     direction = 1, -- one-based index of "directions" choice
     layer_num = 0,
@@ -86,6 +86,9 @@ end
 function decode_note_string(str)
     local s = str:upper()
     local pitch = s:sub(1, 1)
+    if s == "" or pitch < "A" or pitch > "G" then
+        return "", 0, 0
+    end
     local octave = tonumber(s:sub(-1)) or 4
     local raise_lower = 0
     s = s:sub(2) -- move past first char
@@ -130,7 +133,7 @@ function user_selection()
     cstat(x_pos[1], y, 50, "From:")
     cstat(x_pos[3], y, 50, "To:")
     cstat(x_pos[4], y, 60, "Direction:")
-    y = 20
+    y = y + 20
     local find_pitch = cedit(x_pos[1], y, 40, config.find_string)
     local new_pitch = cedit(x_pos[3], y, 40, config.new_string)
     local save_text = { find = config.find_string, new = config.new_string }
@@ -154,7 +157,7 @@ function user_selection()
     local group = dialog:CreateRadioButtonGroup(x_pos[4], y, 3)
         group:SetText(labels)
         group:SetWidth(55)
-        group:SetSelectedItem(config.direction - 1) -- (convert to 0-based)
+        group:SetSelectedItem(config.direction - 1) -- (convert to 0-based index)
 
         local function key_substitutions(ctl, kind)
             local str = finale.FCString()
@@ -183,12 +186,12 @@ function user_selection()
     dialog:RegisterHandleControlEvent(find_pitch, function() key_substitutions(find_pitch, "find") end)
     dialog:RegisterHandleControlEvent(new_pitch,  function() key_substitutions(new_pitch,  "new" ) end)
 
-    y = 45
+    y = y + 25
     local info = dialog:CreateButton(x_pos[1], y)
         info:SetText(m_str("?"))
         info:SetWidth(20)
     dialog:RegisterHandleControlEvent(info, function() show_info() end)
-    y = 70
+    y = y + 25
     cstat(x_pos[3] - 58, y, 100, "Layer 1-" .. max_layer .. ":")
     local layer_num = cedit(x_pos[3], y, 20, config.layer_num)
     cstat(x_pos[3] + 22, y, 90, "(0 = all layers)")
@@ -205,14 +208,14 @@ function user_selection()
             control:GetText(str)
             local s = str.LuaString:upper()
             local pitch, raise_lower, _ = decode_note_string(s)
-            if pitch:find("[A-G]") and not s:sub(2):find("[AC-G]") then
-                config[kind .. "_pitch"] = pitch
-                config[kind .. "_string"] = s
-                config[kind .. "_offset"] = raise_lower
-                return true
-            end
-            config.find_pitch = "" -- signal submission error
-            return false
+            if pitch == "" or s:sub(2):find("[AC-G]") then
+                config.find_pitch = "" -- signal submission error
+                return false
+            end -- otherwise continue without error
+            config[kind .. "_pitch"] = pitch
+            config[kind .. "_offset"] = raise_lower
+            config[kind .. "_string"] = str.LuaString
+            return true
         end
     dialog:RegisterHandleOkButtonPressed(function()
             if encode_pitches(find_pitch, "find") and encode_pitches(new_pitch, "new") then
