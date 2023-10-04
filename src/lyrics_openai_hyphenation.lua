@@ -299,21 +299,47 @@ local function create_dialog_box()
     dlg = mixin.FCXCustomLuaWindow()
                 :SetTitle("Lyrics OpenAI Hyphenator")
     local lyric_label = dlg:CreateStatic(10, 11)
-                :SetWidth(40)
+                :SetWidth(30)
                 :SetText("Lyric:")
-    local popup = dlg:CreatePopup(45, 10)
+    local popup = dlg:CreatePopup(45, 10, "type")
                 :SetWidth(70)
                 :AddString("Verse")
                 :AddString("Chorus")
                 :AddString("Section")
-    local lyric_num = dlg:CreateEdit(125, 9)
+    local lyric_num = dlg:CreateEdit(125, 9, "number")
                 :SetWidth(25)
                 :SetInteger(1)
+    if use_edit_text then
+        local ctrlfont = finale.FCFontInfo("Arial", 11)
+        ctrlfont.Bold = true
+        ctrlfont.Italic = false
+        dlg:CreateButton(160, 10, "bold")
+                :SetWidth(15)
+                :SetText("B")
+                :SetFont(ctrlfont)
+                :AddHandleCommand(function() print("bold") end)
+        ctrlfont.Bold = false
+        ctrlfont.Italic = true
+        dlg:CreateButton(185, 10, "italic")
+                :SetWidth(15)
+                :SetText("I")
+                :SetFont(ctrlfont)
+                :AddHandleCommand(function() print("italic") end)
+        dlg:CreateButton(210, 10, "fontsel")
+                :SetWidth(60)
+                :SetText("Font...")
+                :AddHandleCommand(function()
+                        local ui = dlg:CreateChildUI()
+                        local font = dlg:GetControl("fontsel"):CreateFontInfo()
+                        local selector = finale.FCFontDialog(ui, font)
+                        selector:Execute()
+                    end)
+    end
     local lyrics_box
     local yoff = 45
     if config.use_edit_control then
         if use_edit_text then
-            lyrics_box = dlg:CreateEditText(10, yoff)
+            lyrics_box = dlg:CreateEditText(10, yoff, "text")
         else
             lyrics_box = dlg:CreateEdit(10, yoff)
         end
