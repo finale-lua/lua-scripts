@@ -136,17 +136,11 @@ local function update_document(lyrics_box, edit_type, popup)
     end
     local text_length = 0
     if config.use_edit_control then
-        local text = finale.FCString()
-        local font = lyrics_box:CreateFontInfo()
-        lyrics_box:GetText(text)
-        text_length = text.Length
-        local new_lyrics = font:CreateEnigmaString(nil)
-        new_lyrics:AppendString(text)
-        new_lyrics:TrimWhitespace()
+        local new_lyrics = lyrics_box:CreateEnigmaString()
+        text_length = new_lyrics.Length
         lyrics_instance:SetText(new_lyrics)
     else
         text_length = lyrics_box.Length
-        lyrics_box:TrimWhitespace()
         lyrics_instance:SetText(lyrics_box)
     end
     if loaded then
@@ -210,19 +204,16 @@ local function update_dlg_text(lyrics_box, edit_type, popup)
     local type = popup:GetSelectedItem() + 1
     local lyrics_instance = lyrics_classes[type]()
     if lyrics_instance:Load(itemno) then
-        local fcstr = lyrics_instance:CreateString()
+        local lyrics_string = lyrics_instance:CreateString()
         if config.use_edit_control then
-            local font_info = fcstr:CreateLastFontInfo()
-            fcstr:TrimEnigmaTags()
-            lyrics_box:SetFont(font_info)
-            lyrics_box:SetText(fcstr)
+            lyrics_box:SetEnigmaString(lyrics_string, lyrics_instance)
         else
-            lyrics_box.LuaString = fcstr.LuaString
+            lyrics_box.LuaString = lyrics_string.LuaString
         end
     else
         local font_prefs = finale.FCFontPrefs()
         if font_prefs:Load(lyrics_prefs[type]) then
-            local font_info = finale:FCFontInfo()
+            local font_info = finale.FCFontInfo()
             font_prefs:GetFontInfo(font_info)
             if config.use_edit_control then
                 lyrics_box:SetFont(font_info)
@@ -248,7 +239,11 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
         if success then
             local fixed_text = fixup_line_endings(result.choices[1].message.content)
             if config.use_edit_control then
-                lyrics_box:SetText(fixed_text)
+                local itemno = edit_type:GetInteger()
+                local type = popup:GetSelectedItem() + 1
+                local lyrics_instance = lyrics_classes[type]()
+                lyrics_instance:Load(itemno) -- failure doesn't matter here
+                lyrics_box:SetEnigmaString(finale.FCString(fixed_text), lyrics_instance)
             else
                 lyrics_box.LuaString = fixed_text
             end
@@ -266,12 +261,11 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
     end
     local lyrics_text = finale.FCString()
     if config.use_edit_control then
-        lyrics_box:GetText(lyrics_text)
+        lyrics_text = lyrics_box:CreateEnigmaString()
     else
         update_dlg_text(lyrics_box, edit_type, popup)
         lyrics_text.LuaString = lyrics_box.LuaString
     end
-    lyrics_text:TrimWhitespace()
     if lyrics_text.Length > 0 then
         if config.use_edit_control then
             lyrics_box:SetEnable(false)
@@ -284,11 +278,11 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
     end
 end
 
-local function update_from_active_lyric(lyrics_box, edit_type, popup)
+local function update_from_active_lyric(lyrics_box, edit_type, popup, force)
     if not use_active_lyric then return end
     local active_lyric = finale.FCActiveLyric()
     if active_lyric:Load() then
-        if active_lyric.BlockType ~= popup:GetSelectedItem() + 1 or active_lyric.TextBlockID ~= edit_type:GetInteger() then
+        if force or active_lyric.BlockType ~= popup:GetSelectedItem() + 1 or active_lyric.TextBlockID ~= edit_type:GetInteger() then
             if update_automatically and use_edit_text then
                 local selected_text = finale.FCString()
                 popup:GetText(selected_text)
@@ -384,7 +378,7 @@ local function create_dialog_box()
     end)
     update_dlg_text(lyrics_box, lyric_num, popup)
     if use_active_lyric then
-        update_from_active_lyric(lyrics_box, lyric_num, popup)
+        update_from_active_lyric(lyrics_box, lyric_num, popup, true) -- true: force update
     end
     return dlg
 end
