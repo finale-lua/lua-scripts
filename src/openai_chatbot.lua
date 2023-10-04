@@ -71,6 +71,7 @@ local function send_prompt()
     local prompt = finale.FCString()
     dlg:GetControl("prompt"):GetText(prompt):SetEnable(false)
     dlg:GetControl("go"):SetEnable(false)
+    dlg:GetControl("response"):AppendText(finale.FCString(prompt.LuaString.."\n\n========================================>>>>\n\n"))
     https_session = openai.create_completion(models[model.LuaString], prompt.LuaString, temperature, function(success, result)
         if not https_session then return end
         https_session = nil
@@ -82,11 +83,8 @@ local function send_prompt()
             result = "ERROR: "..result
         end
         local response = dlg:GetControl("response")
-        result = result .. "\n\n========================================\n\n"
-        local newtext = finale.FCString()
-        response:GetText(newtext)
-        newtext:AppendString(finale.FCString(result))
-        response:SetText(newtext)
+        result = result .. "\n\n<<<<========================================\n\n"
+        response:AppendText(finale.FCString(result))
         local total_range = finale.FCRange()
         dlg:GetControl("prompt"):SelectAll()
     end)
@@ -113,13 +111,13 @@ local function create_dialog()
     dlg:CreateEditText(0, current_y, "prompt")
         :SetWidth(chatbox_width)
         :SetHeight(chatbox_height)
-     --   :SetFont(finale.FCFontInfo("Helvetica", 11))
+        :SetFont(finale.FCFontInfo("Helvetica", 14))
     current_y = current_y + chatbox_height + 10
     dlg:CreateEditText(0, current_y, "response")
         :SetWidth(chatbox_width)
         :SetHeight(chatbox_height)
         :SetReadOnly(true)
-     --   :SetFont(finale.FCFontInfo("Helvetica", 11))
+        :SetFont(finale.FCFontInfo("Helvetica", 14))
     dlg:CreateOkButton("go"):SetText("Go")
     dlg:RegisterHandleOkButtonPressed(send_prompt)
     dlg:CreateCancelButton():SetText("Close")
