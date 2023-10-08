@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.12"
-    finaleplugin.Date = "2023/10/04"
+    finaleplugin.Version = "v0.14"
+    finaleplugin.Date = "2023/10/08"
     finaleplugin.AdditionalMenuOptions = [[
         Pitch Changer Repeat
     ]]
@@ -21,21 +21,23 @@ function plugindef()
     finaleplugin.ScriptGroupName = "Pitch Changer"
     finaleplugin.ScriptGroupDescription = "Change all notes of one pitch in the region to another pitch"
     finaleplugin.Notes = [[
-        This script is inspired by Jari Williamsson's "JW Change Pitches" plug-in (2017) 
+        This script was inspired by Jari Williamsson's "JW Change Pitches" plug-in (2017) 
         revived to work on Macs with non-Intel processors.
 
         Identify pitches by note name (a-g or A-G) followed by accidental 
-        (#-### or b-bbb) if required. 
+        (#-###, b-bbb) as required. 
         Matching pitches will be changed in every octave. 
         To repeat the last pitch change without a confirmation dialog use 
         the "Pitch Changer Repeat" menu or hold down the SHIFT key at startup.
 
-        If the cursor is in the "From:" or "To:" fields, hit the "z", "x" or "v" keys 
-        to change the DIRECTION to "Closest", "Up" or "Down" respectively. 
-        (Pitch names won't change). 
-        Hit "s" to swap the values in the "From:" and "To:" fields. 
-        Hit "i" to display this "Information" window. 
-        Keys other than those five plus "a" to "g" and "#" will be ignored. 
+        KEY REPLACEMENTS:
+
+        Hit the "z", "x" or "v" keys to change the DIRECTION to "Closest", 
+        "Up" or "Down" respectively. The pitch names won't change. 
+        Hit "s" as an alternative to the "#" key. 
+        Hit "w" to swap the values in the "From:" and "To:" fields. 
+        Hit "q" to display this "Information" window. 
+        Keys other than those six plus "a" to "g" and "#" will be ignored. 
 	]]
     return "Pitch Changer...", "Pitch Changer", "Change all notes of one pitch in the region to another pitch"
 end
@@ -122,12 +124,14 @@ function user_selection()
             local m_offset = finenv.UI():IsOnMac() and 3 or 0
             local ctl = dialog:CreateEdit(horiz, vert - m_offset)
             ctl:SetWidth(wide)
-            if type(value) == "number" then ctl:SetInteger(value)
-            else ctl:SetText(m_str(value))
-            end
+            ctl:SetText(m_str(value))
             return ctl
         end
-
+        local function get_string(control)
+            local str = finale.FCString()
+            control:GetText(str)
+            return str.LuaString
+        end
     dialog:SetTitle(m_str(plugindef()))
     local y = 0
     cstat(x_pos[1], y, 50, "From:")
@@ -163,24 +167,26 @@ function user_selection()
             local str = finale.FCString()
             ctl:GetText(str)
             local test = str.LuaString:upper()
-            if test ~= "" then
-                local substitution = 0
-            --  key substitutions:Closest| Up |Down|Info|Swap|illegal keys
-                for i, v in ipairs ({"Z", "X", "V", "I", "S", "[^A-G#]"}) do
-                    if test:find(v) then substitution = i break end
+            local sub = 0
+            local do_layer = (kind == "layer" and test:find("[^0-4]"))
+            if do_layer or (kind ~= "layer" and test:find("[^A-G#]")) then
+            --  key substitutions:Closest| Up |Down |Info |SHARP| Swap
+                for i, v in ipairs ({"Z", "X", "V", "[INQ]", "S", "W"}) do
+                    if test:find(v) then sub = i break end
                 end
-                if substitution > 0 then
-                    if substitution == 5 then value_swap()
-                    elseif substitution == 4 then show_info()
-                    elseif substitution <= 3 then group:SetSelectedItem(substitution - 1)
+                if sub > 0 then
+                    if     sub == 6 then value_swap()
+                    elseif sub == 5 and not do_layer then save_text[kind] = save_text[kind] .. "#"
+                    elseif sub == 4 then show_info()
+                    elseif sub <= 3 then group:SetSelectedItem(sub - 1)
                     end
-                    if substitution ~= 5 then -- restore previous text
-                        str.LuaString = save_text[kind]
-                        ctl:SetText(str)
-                    end
-                else
-                    save_text[kind] = str.LuaString -- else keep new text
                 end
+                if sub < 6 or do_layer then
+                    str.LuaString = save_text[kind]
+                    ctl:SetText(str)
+                end
+            else
+                save_text[kind] = str.LuaString -- else keep new text
             end
         end
     dialog:RegisterHandleControlEvent(find_pitch, function() key_substitutions(find_pitch, "find") end)
@@ -193,8 +199,10 @@ function user_selection()
     dialog:RegisterHandleControlEvent(info, function() show_info() end)
     y = y + 25
     cstat(x_pos[3] - 58, y, 100, "Layer 1-" .. max_layer .. ":")
-    local layer_num = cedit(x_pos[3], y, 20, config.layer_num)
-    cstat(x_pos[3] + 22, y, 90, "(0 = all layers)")
+    save_text.layer = tostring(config.layer_num)
+    local layer_num = cedit(x_pos[3], y, 30, tostring(save_text.layer))
+    cstat(x_pos[3] + 32, y, 90, "(0 = all layers)")
+    dialog:RegisterHandleControlEvent(layer_num, function() key_substitutions(layer_num, "layer" ) end)
 
     local ok_button = dialog:CreateOkButton()
         ok_button:SetText(m_str("Change"))
@@ -204,22 +212,21 @@ function user_selection()
     dialog_set_position(dialog)
 
         local function encode_pitches(control, kind)
-            local str = finale.FCString()
-            control:GetText(str)
-            local s = str.LuaString:upper()
-            local pitch, raise_lower, _ = decode_note_string(s)
-            if pitch == "" or s:sub(2):find("[AC-G]") then
+            local s = get_string(control)
+            local pitch, raise_lower, _ = decode_note_string(s:upper())
+            if pitch == "" or s:upper():sub(2):find("[AC-G]") then
                 config.find_pitch = "" -- signal submission error
                 return false
             end -- otherwise continue without error
             config[kind .. "_pitch"] = pitch
             config[kind .. "_offset"] = raise_lower
-            config[kind .. "_string"] = str.LuaString
+            config[kind .. "_string"] = s
             return true
         end
     dialog:RegisterHandleOkButtonPressed(function()
             if encode_pitches(find_pitch, "find") and encode_pitches(new_pitch, "new") then
-                config.layer_num = math.min(math.max(layer_num:GetInteger(), 0), max_layer)
+                local n = tonumber(get_string(layer_num)) or 0
+                config.layer_num = math.min(math.max(n, 0), max_layer)
                 config.direction = group:GetSelectedItem() + 1 -- save as one-based index
                 configuration.save_user_settings(script_name, config)
             end
