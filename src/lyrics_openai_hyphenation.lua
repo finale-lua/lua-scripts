@@ -329,11 +329,21 @@ local function create_dialog_box()
                 :SetWidth(60)
                 :SetText("Font...")
                 :AddHandleCommand(function()
-                        local ui = dlg:CreateChildUI()
-                        local font = dlg:GetControl("fontsel"):CreateFontInfo()
-                        local selector = finale.FCFontDialog(ui, font)
-                        selector:Execute()
-                    end)
+                    local ui = dlg:CreateChildUI()
+                    local range = finale.FCRange()
+                    local text_ctrl = dlg:GetControl("text")
+                    text_ctrl:GetSelection(range)                            
+                    local font = text_ctrl:CreateFontInfoAtIndex(range.Start)
+                    if not font then
+                        font = finale.FCFontInfo()
+                    end
+                    local selector = finale.FCFontDialog(ui, font)
+                    if selector:Execute() then
+                        text_ctrl:SetFontForRange(font, range)
+                    end
+                end)
+        dlg:CreateStatic(280, 10, "showfont")
+                :SetWidth(220)  -- 500 - accumulated width (280)  
     end
     local lyrics_box
     local yoff = 45
@@ -383,6 +393,11 @@ local function create_dialog_box()
         if use_active_lyric then
             dlg:SetTimer(global_timer_id, 100) -- timer can't be set until window is created
         end
+        local text_ctrl = dlg:GetControl("text")
+        if text_ctrl then
+            local range = finale.FCRange(0, 0)
+            text_ctrl:SetSelection(range)
+        end
     end)
     if use_active_lyric then
         dlg:RegisterHandleTimer(function(dialog, timer_id) -- FCXCustomLuaWindow passes the dialog as the first parameter to HandleTimer
@@ -401,6 +416,17 @@ local function create_dialog_box()
     end)
     dlg:RegisterHandleControlEvent(dehyphenate, function(control)
         hyphenate_dlg_text(lyrics_box, popup, lyric_num, update_automatically, true)
+    end)
+    dlg:RegisterHandleTextSelectionChanged(function()
+        local text_ctrl = dlg:GetControl("text")
+        if text_ctrl then
+            local selRange = finale.FCRange()
+            text_ctrl:GetSelection(selRange)
+            local fontInfo = text_ctrl:CreateFontInfoAtIndex(selRange.Start)
+            if fontInfo then
+                dlg:GetControl("showfont"):SetText(fontInfo:CreateDescription())
+            end
+        end
     end)
     update_dlg_text(lyrics_box, lyric_num, popup)
     if use_active_lyric then
