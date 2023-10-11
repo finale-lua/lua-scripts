@@ -48,6 +48,10 @@ local mixin = require("library.mixin")
 local openai = require("library.openai")
 local configuration = require("library.configuration")
 
+local utils = require("library.utils")
+local osutils = utils.require_embedded("luaosutils")
+local https = osutils.internet
+
 local config =
 {
     use_edit_control = true,
@@ -427,6 +431,9 @@ local function create_dialog_box()
                 dlg:GetControl("showfont"):SetText(fontInfo:CreateDescription())
             end
         end
+    end)
+    dlg:RegisterCloseWindow(function()
+        https.cancel_session(https_session)
     end)
     update_dlg_text(lyrics_box, lyric_num, popup)
     if use_active_lyric then
