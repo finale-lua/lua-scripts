@@ -38,7 +38,7 @@ function plugindef()
         light (using ChatGPT 3.5) and small jobs only cost fractions of a cent.
         Check the pricing at the OpenAI site.
     ]]
-    return "Lyrics Hyphenation...", "Lyrics Hyphenation",
+    return "DBG Lyrics Hyphenation...", "Lyrics Hyphenation",
            "Add or correct lyrics hypenation using your OpenAI account."
 end
 
@@ -51,7 +51,7 @@ local configuration = require("library.configuration")
 local config =
 {
     use_edit_control = true,
-    api_model = "gpt-3.5-turbo",
+    api_model = "gpt-4",
     temperature = 0.2, -- fairly deterministic
     add_hyphens_prompt = [[
 Hyphenate the following text, delimiting words with spaces and syllables with hyphens.
