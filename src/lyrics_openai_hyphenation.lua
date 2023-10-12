@@ -299,6 +299,14 @@ local function update_from_active_lyric(lyrics_box, edit_type, popup, force)
     end
 end
 
+local function get_current_font(text_ctrl)
+    local range = finale.FCRange()
+    text_ctrl:GetSelection(range)                            
+    local font = text_ctrl:CreateFontInfoAtIndex(range.Start)
+    if not font then font = finale.FCFontInfo() end
+    return font
+end
+
 local function create_dialog_box()
     dlg = mixin.FCXCustomLuaWindow()
                 :SetTitle("Lyrics OpenAI Hyphenator")
@@ -321,29 +329,32 @@ local function create_dialog_box()
                 :SetWidth(15)
                 :SetText("B")
                 :SetFont(ctrlfont)
-                :AddHandleCommand(function() print("bold") end)
+                :AddHandleCommand(function()
+                    local text_ctrl = dlg:GetControl("text")
+                    local font = get_current_font(text_ctrl)
+                    text_ctrl:SetFontBoldForSelection(not font:GetBold())
+                end)
         ctrlfont.Bold = false
         ctrlfont.Italic = true
         dlg:CreateButton(185, 10, "italic")
                 :SetWidth(15)
                 :SetText("I")
                 :SetFont(ctrlfont)
-                :AddHandleCommand(function() print("italic") end)
+                :AddHandleCommand(function()
+                    local text_ctrl = dlg:GetControl("text")
+                    local font = get_current_font(text_ctrl)
+                    text_ctrl:SetFontItalicForSelection(not font:GetItalic())
+                end)
         dlg:CreateButton(210, 10, "fontsel")
                 :SetWidth(60)
                 :SetText("Font...")
                 :AddHandleCommand(function()
                     local ui = dlg:CreateChildUI()
-                    local range = finale.FCRange()
                     local text_ctrl = dlg:GetControl("text")
-                    text_ctrl:GetSelection(range)                            
-                    local font = text_ctrl:CreateFontInfoAtIndex(range.Start)
-                    if not font then
-                        font = finale.FCFontInfo()
-                    end
+                    local font = get_current_font(text_ctrl)
                     local selector = finale.FCFontDialog(ui, font)
                     if selector:Execute() then
-                        text_ctrl:SetFontForRange(font, range)
+                        text_ctrl:SetFontForSelection(font)
                     end
                 end)
         dlg:CreateStatic(280, 10, "showfont")
@@ -433,7 +444,7 @@ local function create_dialog_box()
         end
     end)
     dlg:RegisterCloseWindow(function()
-        https.cancel_session(https_session)
+        https_session = https.cancel_session(https_session)
     end)
     update_dlg_text(lyrics_box, lyric_num, popup)
     if use_active_lyric then
