@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.14"
-    finaleplugin.Date = "2023/10/08"
+    finaleplugin.Version = "v0.15"
+    finaleplugin.Date = "2023/10/13"
     finaleplugin.AdditionalMenuOptions = [[
         Pitch Changer Repeat
     ]]
@@ -37,7 +37,6 @@ function plugindef()
         Hit "s" as an alternative to the "#" key. 
         Hit "w" to swap the values in the "From:" and "To:" fields. 
         Hit "q" to display this "Information" window. 
-        Keys other than those six plus "a" to "g" and "#" will be ignored. 
 	]]
     return "Pitch Changer...", "Pitch Changer", "Change all notes of one pitch in the region to another pitch"
 end
@@ -167,25 +166,30 @@ function user_selection()
             local str = finale.FCString()
             ctl:GetText(str)
             local test = str.LuaString:upper()
-            local sub = 0
-            local do_layer = (kind == "layer" and test:find("[^0-4]"))
-            if do_layer or (kind ~= "layer" and test:find("[^A-G#]")) then
+            if (kind == "layer" and test:find("[^0-4]"))
+              or (kind ~= "layer" and test:find("[^A-G#]")) then
+                local sub = 0
             --  key substitutions:Closest| Up |Down |Info |SHARP| Swap
                 for i, v in ipairs ({"Z", "X", "V", "[INQ]", "S", "W"}) do
                     if test:find(v) then sub = i break end
                 end
                 if sub > 0 then
                     if     sub == 6 then value_swap()
-                    elseif sub == 5 and not do_layer then save_text[kind] = save_text[kind] .. "#"
+                    elseif sub == 5 and kind ~= "layer" then
+                        save_text[kind] = save_text[kind] .. "#"
                     elseif sub == 4 then show_info()
                     elseif sub <= 3 then group:SetSelectedItem(sub - 1)
                     end
                 end
-                if sub < 6 or do_layer then
+                if sub < 6 or kind == "layer" then
                     str.LuaString = save_text[kind]
                     ctl:SetText(str)
                 end
             else
+                if kind == "layer" then
+                    str.LuaString = str.LuaString:sub(-1)
+                    ctl:SetText(str)
+                end
                 save_text[kind] = str.LuaString -- else keep new text
             end
         end
@@ -199,8 +203,8 @@ function user_selection()
     dialog:RegisterHandleControlEvent(info, function() show_info() end)
     y = y + 25
     cstat(x_pos[3] - 58, y, 100, "Layer 1-" .. max_layer .. ":")
-    save_text.layer = tostring(config.layer_num)
-    local layer_num = cedit(x_pos[3], y, 30, tostring(save_text.layer))
+    save_text.layer = config.layer_num
+    local layer_num = cedit(x_pos[3], y, 30, save_text.layer)
     cstat(x_pos[3] + 32, y, 90, "(0 = all layers)")
     dialog:RegisterHandleControlEvent(layer_num, function() key_substitutions(layer_num, "layer" ) end)
 
@@ -225,8 +229,7 @@ function user_selection()
         end
     dialog:RegisterHandleOkButtonPressed(function()
             if encode_pitches(find_pitch, "find") and encode_pitches(new_pitch, "new") then
-                local n = tonumber(get_string(layer_num)) or 0
-                config.layer_num = math.min(math.max(n, 0), max_layer)
+                config.layer_num = layer_num:GetInteger()
                 config.direction = group:GetSelectedItem() + 1 -- save as one-based index
                 configuration.save_user_settings(script_name, config)
             end
@@ -260,7 +263,7 @@ function change_pitch()
         )
     if not (repeat_change or mod_key) then
         if not user_selection() then return end -- user cancelled
-        if config.find_pitch == "" then -- submission error
+        if config.find_pitch == "" then -- entry error
             finenv.UI():AlertError(
                 "Pitch names cannot be empty and must start with a single " ..
                 "note name (a-g or A-G) followed by accidentals " ..
