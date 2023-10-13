@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.11"
-    finaleplugin.Date = "2023/07/17"
+    finaleplugin.Version = "0.12"
+    finaleplugin.Date = "2023/10/13"
     finaleplugin.AdditionalMenuOptions = [[
         Barline Chooser Repeat
     ]]
@@ -74,6 +74,10 @@ function reassign_keystrokes()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Reassign Keys")
     for _, v in ipairs(barline_choice) do -- add all options with keycodes
         dialog:CreateEdit(0, y - offset, v):SetText(config[v]):SetWidth(20)
+            :AddHandleCommand(function(self)
+                local str = self:GetText():upper()
+                self:SetText(str:sub(-1)):SetKeyboardFocus()
+            end)
         dialog:CreateStatic(25, y):SetText(v):SetWidth(x_wide)
         y = y + y_step
     end
