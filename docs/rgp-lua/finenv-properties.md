@@ -44,6 +44,7 @@ Returns an instance of `FCLuaScriptItems` that can be used to launch ad-hoc scri
 |Input Type|Description|
 |------|------|
 |string|A Lua string containing the fully qualified path to the script file.|
+|string|[optional] A Lua string containing the Lua code to execute. If this parameter is provided, the contents of the fully qualified path are ignored, though RGP Lua will continue to use the path for display and security purposes.|
 
 |Output Type|Description|
 |------|------|
