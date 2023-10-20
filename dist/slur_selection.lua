@@ -240,39 +240,68 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.53"
-    finaleplugin.Date = "2022/11/14"
+    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
+    finaleplugin.Version = "v0.56"
+    finaleplugin.Date = "2023/09/16"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
-        A nice trick in Sibelius is hitting the 'S' key to create a slur joining the currently selected notes.
+        A good trick in Sibelius is hitting the 'S' key to create a slur across currently selected notes.
         Activate this script in Finale with a macro hotkey utility to do the same thing.
         Each layer will be slurred independently, and if there are
-        multiple runs of notes separated by rests, each run will be slurred independently.
-        If you want to automate slurs on specific note patterns then try
-        JW Pattern (Performance Notation -> Slurs) or TGTools (Music -> Create Slurs...").
+        several runs of notes separated by rests, each run will be slurred separately.
+        If you want to automate slurs on specific rhythmic patterns then try
+        JW Pattern (→ Performance Notation → Slurs) or TGTools (→ Music → Create Slurs...).
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/slur_selection.hash"
     return "Slur Selection", "Slur Selection", "Create slurs across the current selection"
 end
 local smartshape = require("library.smartshape")
 local layer = require("library.layer")
+function delete_region_slurs(rgn)
+
+    for mark in loadallforregion(finale.FCSmartShapeMeasureMarks(), rgn) do
+        local shape = mark:CreateSmartShape()
+        if shape and shape:IsSlur() then shape:DeleteData() end
+    end
+
+    local shape_starts, shape_ends = {}, {}
+    for entry in eachentry(rgn) do
+        for mark in loadall(finale.FCSmartShapeEntryMarks(entry)) do
+            local shape = mark:CreateSmartShape()
+            if mark:CalcLeftMark() then
+                shape_starts[shape.ItemNo] = true
+            end
+            if mark:CalcRightMark() then
+                shape_ends[shape.ItemNo] = true
+            end
+        end
+    end
+    for itemno, _ in pairs(shape_starts) do
+        if shape_ends[itemno] ~= nil then
+            local shape = finale.FCSmartShape()
+            shape:Load(itemno)
+            if shape:IsSlur() then shape:DeleteData() end
+        end
+    end
+end
 function make_slurs()
-    local region = finenv.Region()
-    for staff_number = region.StartStaff, region.EndStaff do
+    local rgn = finenv.Region()
+    delete_region_slurs(rgn)
+    for staff_number in eachstaff(rgn) do
         for layer_number = 1, layer.max_layers() do
-            local entry_layer = finale.FCNoteEntryLayer(layer_number - 1, staff_number, region.StartMeasure, region.EndMeasure)
+            local entry_layer = finale.FCNoteEntryLayer(layer_number - 1, staff_number, rgn.StartMeasure, rgn.EndMeasure)
             entry_layer:Load()
             local start_slur = false
             for entry in each(entry_layer) do
-                if region:IsEntryPosWithin(entry) then
+                if rgn:IsEntryPosWithin(entry) then
                     if not start_slur then
                         if entry:IsNote() then
                             start_slur = entry
                         end
                     elseif entry:IsRest() then
                         start_slur = false
-                    elseif not entry:Next() or entry:Next():IsRest() or not region:IsEntryPosWithin(entry:Next()) then
+
+                    elseif not entry:Next() or entry:Next():IsRest() or not rgn:IsEntryPosWithin(entry:Next()) then
                         smartshape.add_entry_based_smartshape(start_slur, entry, "auto_slur")
                         start_slur = false
                     end
