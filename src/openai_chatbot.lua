@@ -108,13 +108,13 @@ local function create_dialog()
     current_y = current_y + 30
     local chatbox_height = 275
     local chatbox_width = 800
-    dlg:CreateEditText(0, current_y, "prompt")
+    dlg:CreateTextEditor(0, current_y, "prompt")
         :SetWidth(chatbox_width)
         :SetHeight(chatbox_height)
         :SetFont(finale.FCFontInfo("Arial", 14))
         :SetUseRichText(false)
     current_y = current_y + chatbox_height + 10
-    dlg:CreateEditText(0, current_y, "response")
+    dlg:CreateTextEditor(0, current_y, "response")
         :SetWidth(chatbox_width)
         :SetHeight(chatbox_height)
         :SetReadOnly(true)

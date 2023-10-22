@@ -160,7 +160,7 @@ Override Changes:
 ]]
 
 --[[
-% CreateEditText
+% CreateTextEditor
 
 **[Override]**
 
@@ -172,7 +172,7 @@ Override Changes:
 @ x (number)
 @ y (number)
 @ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
-: (FCMCtrlEditText)
+: (FCMCtrlTextEditor)
 ]]
 
 --[[
@@ -325,7 +325,7 @@ Override Changes:
 -- Also adds an optional parameter at the end for a control name
 for num_args, ctrl_types in pairs({
     [0] = {"CancelButton", "OkButton",},
-    [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit", "EditText",
+    [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit", "TextEditor",
         "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
     },
     [3] = {"HorizontalLine", "VerticalLine",},

@@ -110,8 +110,8 @@ local lyrics_prefs =
     finale.FONTPREF_LYRICSSECTION
 }
 
-config.use_edit_control = config.use_edit_control and (finenv.UI():IsOnMac() or finale.FCCtrlEditText)
-local use_edit_text = finale.FCCtrlEditText ~= nil
+config.use_edit_control = config.use_edit_control and (finenv.UI():IsOnMac() or finale.FCCtrlTextEditor)
+local use_edit_text = finale.FCCtrlTextEditor ~= nil
 local use_active_lyric = finale.FCActiveLyric ~= nil
 
 -- These globals persist over multiple calls to the function
@@ -364,7 +364,7 @@ local function create_dialog_box()
     local yoff = 45
     if config.use_edit_control then
         if use_edit_text then
-            lyrics_box = dlg:CreateEditText(10, yoff, "text")
+            lyrics_box = dlg:CreateTextEditor(10, yoff, "text")
         else
             lyrics_box = dlg:CreateEdit(10, yoff)
         end
