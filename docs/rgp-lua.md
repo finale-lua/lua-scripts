@@ -104,7 +104,9 @@ _RGP Lua_ (starting in version 0.67) pre-loads the lua-cjson 2.1.0 library, whic
 local cjson = require('cjson')
 ```
 
-More information on how to use the libray is available here:  
+The json strings formatted by cjson are flat, containing no line feeds. If you wish to format them in human-readable format, you can use the built-in function `prettyformatjson`.
+
+More information on how to use the cjson libray is available here:  
 [https://www.kyne.com.au/~mark/software/lua-cjson-manual.html](https://www.kyne.com.au/~mark/software/lua-cjson-manual.html)
 
 ### The 'finale' namespace
@@ -503,6 +505,23 @@ for k, v in pairsbykeys(t) do
    print (k, "=", v)
 end
 ```
+
+### prettyformatjson()
+
+`prettyformatjson()` formats a flat json string into a tabbed, formatted string containing multiple lines. The first argument is the string to process. An optional second argument can supply the number of spaces to use as tab width. If omitted, the function defaults to 3 spaces.
+
+```lua
+t = {} -- your table
+local cjson = require('cjson')
+local json_string = cjson.encode(t)
+if json_string then
+   local pretty_json = prettyformatjson(json_string) -- using the default tab width of 3
+   -- OR --
+   local pretty_json = prettyformatjson(json_string, 4) -- supplying the tab width, in this case, 4
+end
+```
+
+If the input string is not json, or if it already is formatted, the output results are not predictable. This function can be slow if you process a large json string. It is more suited to formatting short files, such as config files with a few simple options.
 
 ### xml functions
 
