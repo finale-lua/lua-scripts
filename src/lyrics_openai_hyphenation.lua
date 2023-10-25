@@ -210,7 +210,7 @@ local function update_dlg_text(lyrics_box, edit_type, popup)
     if lyrics_instance:Load(itemno) then
         local lyrics_string = lyrics_instance:CreateString()
         if config.use_edit_control then
-            lyrics_box:SetEnigmaString(lyrics_string, lyrics_instance)
+            lyrics_box:SetEnigmaString(lyrics_string, lyrics_instance.BlockType)
         else
             lyrics_box.LuaString = lyrics_string.LuaString
         end
@@ -245,9 +245,7 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
             if config.use_edit_control then
                 local itemno = edit_type:GetInteger()
                 local type = popup:GetSelectedItem() + 1
-                local lyrics_instance = lyrics_classes[type]()
-                lyrics_instance:Load(itemno) -- failure doesn't matter here
-                lyrics_box:SetEnigmaString(finale.FCString(fixed_text), lyrics_instance)
+                lyrics_box:SetEnigmaString(finale.FCString(fixed_text), type)
             else
                 lyrics_box.LuaString = fixed_text
             end
