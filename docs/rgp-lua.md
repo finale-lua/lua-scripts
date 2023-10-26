@@ -521,7 +521,7 @@ if json_string then
 end
 ```
 
-If the input string is not json, or if it already is formatted, the output results are not predictable. This function can be slow if you process a large json string. It is more suited to formatting short files, such as config files with a few simple options.
+If the input string is not json, or if it already is formatted, the output results are not predictable.
 
 ### xml functions
 
