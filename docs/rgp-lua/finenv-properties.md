@@ -6,7 +6,7 @@ This page contains a detailed description of the `finenv` functions and properti
 
 #### ConsoleIsAvailable (read-only property)
 
-Returns true if there is a console available for `print()` statements. Scripts that run from the Finale menu do not have a console. _RGP Lua_ always returns this value as `false`.
+Returns true if there is a console available for `print()` statements. Scripts that run from the Finale menu do not have a console. _RGP Lua_ returns this value as `true` if the script was launched by `finenv.ExecuteLuaScriptItem` and a print function has been registered for the `FCLuaScriptItem`. Otherwise it returns false.
 
 Example:
 
