@@ -129,6 +129,17 @@ local sel_rgn = finenv.Region()
 
 It also allows for direct interaction with the Lua plugin itself. A full description of available functions and properties can be found on the [finenv properties](/docs/rgp-lua/finenv-properties) page.
 
+### The 'lfs' library
+
+_RGP Lua_ (starting in version 0.68) pre-loads the luafilesystem library ('lfs'), which is embedded in the plugin. This expands access to information about the file system.
+
+```lua
+local lfs = require('lfs')
+```
+
+More information on how to use the lfs libray is available here:  
+[https://lunarmodules.github.io/luafilesystem/](https://lunarmodules.github.io/luafilesystem/)
+
 ### The 'luosutils' library
 
 _RGP Lua_ (starting in version 0.66) optionally preloads an embedded version of the [`luaosutils`](https://github.com/finale-lua/luaosutils) library. This is a library of functions specifically written to help Lua scripts running on Finale. It allows them to interact with the host operating system or the Finale executable in ways that are not directly supported by either the Lua language or the PDK Framework.
