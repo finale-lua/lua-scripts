@@ -113,7 +113,10 @@ local lyrics_prefs =
 context = context or
 {
     https_session = nil,
-    global_timer_id = 1 
+    global_timer_id = 1,
+    in_prog_indicators = {"|", "/", "—", "\\"},
+    in_prog_size = 4,
+    in_prog_counter = nil
 }
 
 local function update_document()
@@ -208,15 +211,23 @@ local function update_dlg_text()
     update_to_active_lyric()
 end
 
+local function enable_disable()
+    local enable = not context.https_session and true or false
+    global_dialog:GetControl("text"):SetEnable(enable)
+    global_dialog:GetControl("number"):SetEnable(enable)
+    global_dialog:GetControl("type"):SetEnable(enable)
+    global_dialog:GetControl("hyphenate"):SetEnable(enable)
+    global_dialog:GetControl("dehyphenate"):SetEnable(enable)
+end
+
 local function hyphenate_dlg_text(dehyphenate)
     local lyrics_box = global_dialog:GetControl("text")
     local edit_type = global_dialog:GetControl("number")
     local popup = global_dialog:GetControl("type")
     local function callback(success, result)
-        lyrics_box:SetEnable(true)
-        popup:SetEnable(true)
-        edit_type:SetEnable(true)
         context.https_session = nil
+        enable_disable()
+        global_dialog:GetControl("showprogress"):SetText("")
         if success then
             local fixed_text = fixup_line_endings(result.choices[1].message.content)
             local type = popup:GetSelectedItem() + 1
@@ -236,12 +247,10 @@ local function hyphenate_dlg_text(dehyphenate)
     local lyrics_text = finale.FCString()
     lyrics_text = lyrics_box:CreateEnigmaString()
     if lyrics_text.Length > 0 then
-        lyrics_box:SetEnable(false)
-        popup:SetEnable(false)
-        edit_type:SetEnable(false)
         local prompt = dehyphenate and config.remove_hyphens_prompt or config.add_hyphens_prompt
         prompt = prompt..lyrics_text.LuaString.."\nOutput:\n"
         context.https_session = openai.create_completion(config.api_model, prompt, config.temperature, callback)
+        enable_disable()
     end
 end
 
@@ -282,6 +291,12 @@ end
 local function on_timer(dialog, timer_id)
     if timer_id ~= context.global_timer_id then return end
     update_from_active_lyric()
+    if context.https_session then
+        context.in_prog_counter = context.in_prog_counter and context.in_prog_counter + 1 or 1
+        context.in_prog_counter = (context.in_prog_counter - 1) % context.in_prog_size + 1
+        local prog_string = context.in_prog_indicators[context.in_prog_counter]
+        global_dialog:GetControl("showprogress"):SetText(prog_string)
+    end
 end
 
 local function on_init_window()
@@ -290,16 +305,17 @@ local function on_init_window()
     global_dialog.OkButtonCanClose = true
     global_dialog:SetTimer(context.global_timer_id, 100) -- timer can't be set until window is created
     local text_ctrl = global_dialog:GetControl("text")
-    if text_ctrl then
-        local range = finale.FCRange(0, 0)
-        text_ctrl:SetSelection(range)
-    end
+    local range = finale.FCRange(0, 0)
+    text_ctrl:SetSelection(range)
     update_dlg_text()
     update_from_active_lyric(true) -- true: force update
 end
 
 local function on_close_window()
+    global_dialog:StopTimer(context.global_timer_id)
     context.https_session = https.cancel_session(context.https_session)
+    enable_disable()
+    global_dialog:GetControl("showprogress"):SetText("")
 end
 
 local function create_dialog_box()
@@ -358,7 +374,13 @@ local function create_dialog_box()
                 end
             end)
     dlg:CreateStatic(280, 10, "showfont")
-            :SetWidth(text_width - 220)  -- accumulated width (280)  
+            :SetWidth(text_width - 280 - 20)  -- accumulated width (280)
+    dlg:CreateStatic(text_width - 15, 8, "showprogress")
+            :SetWidth(15)
+            :SetHeight(22)
+            :SetText("")
+            :SetFont(finale.FCFontInfo("Arial", 14, 0x01)) -- 0x01: bold
+            :SetTextColor(0, 255, 0) -- green
     local yoff = 45
     -- text editor
     dlg:CreateTextEditor(10, yoff, "text")
