@@ -60,6 +60,7 @@ local config =
 Hyphenate the following text, delimiting words with spaces and syllables with hyphens.
 If a word has multiple options for hyphenation, choose the one with the most syllables.
 If words are already hyphenated, correct any mistakes found.
+If there is no text to process, return the input without modifying it.
 
 Do not modify text with the following patterns (where [TEXT_PLACEHOLDER] is any sequence of characters):
 ^font([TEXT_PLACEHOLDER])
@@ -76,6 +77,7 @@ Input:
     remove_hyphens_prompt = [[
 Remove hyphens from the following text that has been used for musical text underlay.
 If a word should be hyphenated according to non-musical usage, leave those hyphens in place.
+If there is no text to process, return the input without modifying it.
 
 Do not modify text with the following patterns (where [TEXT_PLACEHOLDER] is any sequence of characters):
 ^font([TEXT_PLACEHOLDER])
@@ -116,7 +118,8 @@ context = context or
     global_timer_id = 1,
     in_prog_indicators = {"|", "/", "—", "\\"},
     in_prog_size = 4,
-    in_prog_counter = nil
+    in_prog_counter = nil,
+    range_for_hyphenation = nil
 }
 
 local function update_document()
@@ -220,6 +223,30 @@ local function enable_disable()
     global_dialog:GetControl("dehyphenate"):SetEnable(enable)
 end
 
+local function get_hyphenation_text()
+    local text_ctrl = global_dialog:GetControl("text")
+    local selected_range = finale.FCRange()
+    text_ctrl:GetSelection(selected_range)
+    local fcstr = finale.FCString()
+    if selected_range.Length > 0 then
+        context.range_for_hyphenation = selected_range
+        text_ctrl:GetTextInRange(fcstr, selected_range)
+    else
+        context.range_for_hyphenation = nil
+        fcstr = text_ctrl:CreateEnigmaString()
+    end
+    return fcstr.LuaString
+end
+
+local function set_hyphenation_text(text)
+    local text_ctrl = global_dialog:GetControl("text")
+    if context.range_for_hyphenation then
+        text_ctrl:ReplaceTextInRange(finale.FCString(text), context.range_for_hyphenation)
+    else
+        text_ctrl:SetEnigmaString(finale.FCString(text), global_dialog:GetControl("type"):GetSelectedItem() + 1)
+    end
+end
+
 local function hyphenate_dlg_text(dehyphenate)
     local lyrics_box = global_dialog:GetControl("text")
     local edit_type = global_dialog:GetControl("number")
@@ -230,22 +257,19 @@ local function hyphenate_dlg_text(dehyphenate)
         global_dialog:GetControl("showprogress"):SetText("")
         if success then
             local fixed_text = fixup_line_endings(result.choices[1].message.content)
-            local type = popup:GetSelectedItem() + 1
-            lyrics_box:SetEnigmaString(finale.FCString(fixed_text), type)
+            set_hyphenation_text(fixed_text)
             if global_dialog:GetControl("auto_update"):GetCheck() ~= 0 then
-                local selected_text = finale.FCString()
-                popup:GetText(selected_text)
-                update_document(lyrics_box, edit_type, popup)
+                update_document()
             end
         else
             finenv.UI():AlertError(result, "OpenAI")
         end
+        context.range_for_hyphenation = nil
     end
     if context.https_session then
         return -- do not do anything if a request is in progress
     end
-    local lyrics_text = finale.FCString()
-    lyrics_text = lyrics_box:CreateEnigmaString()
+    lyrics_text = finale.FCString(get_hyphenation_text())
     if lyrics_text.Length > 0 then
         local prompt = dehyphenate and config.remove_hyphens_prompt or config.add_hyphens_prompt
         prompt = prompt..lyrics_text.LuaString.."\nOutput:\n"
@@ -309,11 +333,13 @@ local function on_init_window()
     text_ctrl:SetSelection(range)
     update_dlg_text()
     update_from_active_lyric(true) -- true: force update
+    text_ctrl:ResetUndoState()
 end
 
 local function on_close_window()
     global_dialog:StopTimer(context.global_timer_id)
     context.https_session = https.cancel_session(context.https_session)
+    context.range_for_hyphenation = nil
     enable_disable()
     global_dialog:GetControl("showprogress"):SetText("")
 end
@@ -386,6 +412,9 @@ local function create_dialog_box()
     dlg:CreateTextEditor(10, yoff, "text")
             :SetHeight(text_height)
             :SetWidth(text_width)
+            :SetUseRichText(true)
+            :SetAutomaticEditing(true) -- affects mac only: double-dashes converted to em-dashees and quotes converted to curly quotes, among others
+            :SetWordWrap(true)
     yoff = yoff + 310
     -- command buttons
     local xoff = 10
