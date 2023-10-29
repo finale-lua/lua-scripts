@@ -1,11 +1,11 @@
 function plugindef()
     finaleplugin.HandlesUndo = true
-    finaleplugin.MinJWLuaVersion = 0.67
+    finaleplugin.MinJWLuaVersion = 0.68
     finaleplugin.ExecuteHttpsCalls = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0"
-    finaleplugin.Date = "September 22, 2023"
+    finaleplugin.Version = "3.0"
+    finaleplugin.Date = "October 29, 2023"
     finaleplugin.CategoryTags = "Lyrics"
     finaleplugin.Notes = [[
         Uses the OpenAI online api to add or correct lyrics hyphenation.
@@ -54,7 +54,6 @@ local https = osutils.internet
 
 local config =
 {
-    use_edit_control = true,
     api_model = "gpt-4",
     temperature = 0.2, -- fairly deterministic
     add_hyphens_prompt = [[
@@ -110,43 +109,29 @@ local lyrics_prefs =
     finale.FONTPREF_LYRICSSECTION
 }
 
-config.use_edit_control = config.use_edit_control and (finenv.UI():IsOnMac() or finale.FCCtrlTextEditor)
-local use_edit_text = finale.FCCtrlTextEditor ~= nil
-local use_active_lyric = finale.FCActiveLyric ~= nil
-
 -- These globals persist over multiple calls to the function
-https_session = nil
-update_automatically = true
-global_timer_id = 1         -- per docs, we supply the timer id, starting at 1
+context = context or
+{
+    https_session = nil,
+    global_timer_id = 1 
+}
 
-local function update_document(lyrics_box, edit_type, popup)
-    if https_session then
+local function update_document()
+    if context.https_session then
         return -- do not do anything if a request is in progress
     end
-    local itemno = edit_type:GetInteger()
-    local type = popup:GetSelectedItem() + 1
+    local lyrics_box = global_dialog:GetControl("text")
+    local itemno = global_dialog:GetControl("number"):GetInteger()
+    local type = global_dialog:GetControl("type"):GetSelectedItem() + 1
     local selected_text = finale.FCString()
-    popup:GetText(selected_text)
-    name = selected_text.LuaString
-    finenv.StartNewUndoBlock("Update " .. name .. " " .. itemno .. " Lyrics", false)
+    global_dialog:GetControl("type"):GetText(selected_text)
+    finenv.StartNewUndoBlock("Update " .. selected_text.LuaString .. " " .. itemno .. " Lyrics", false)
     local lyrics_instance = lyrics_classes[type]()
     local loaded = lyrics_instance:Load(itemno)
-    if not loaded and not lyrics_instance.SaveAs then
-        finenv.UI():AlertError(
-            "This version of RGP Lua cannot create new lyrics blocks. Look for RGP Lua version 0.68 or higher.",
-            "RGP Lua Version Error")
-        finenv.EndUndoBlock(false)
-        return
-    end
     local text_length = 0
-    if config.use_edit_control then
-        local new_lyrics = lyrics_box:CreateEnigmaString()
-        text_length = new_lyrics.Length
-        lyrics_instance:SetText(new_lyrics)
-    else
-        text_length = lyrics_box.Length
-        lyrics_instance:SetText(lyrics_box)
-    end
+    local new_lyrics = lyrics_box:CreateEnigmaString()
+    text_length = new_lyrics.Length
+    lyrics_instance:SetText(new_lyrics)
     if loaded then
         if text_length > 0 then
             lyrics_instance:Save()
@@ -166,31 +151,31 @@ local function fixup_line_endings(input_str)
     if finenv:UI():IsOnWindows() then
         replacement = "\r\n"
     end
-    
-    local result = ""
+
+    local result = {} -- a table is MUCH faster than string concatenation
     local is_previous_carriage_return = false
 
     for i = 1, #input_str do
         local char = input_str:sub(i, i)
 
         if char == "\n" and not is_previous_carriage_return then
-            result = result .. replacement
+            table.insert(result, replacement)
         else
-            result = result .. char
+            table.insert(result, char)
             is_previous_carriage_return = (char == "\r")
         end
     end
 
-    return result
+    return table.concat(result)
 end
 
-local function update_to_active_lyric(lyrics_box, edit_type, popup)
-    if not use_active_lyric then return end
+local function update_to_active_lyric()
+    local edit_type = global_dialog:GetControl("number")
+    local popup = global_dialog:GetControl("type")
     if edit_type:GetInteger() <= 0 then return end
     local selected_text = finale.FCString()
     popup:GetText(selected_text)
-    name = selected_text.LuaString
-    finenv.StartNewUndoBlock("Update Current Lyric to "..name.." "..edit_type:GetInteger(), false)
+    finenv.StartNewUndoBlock("Update Current Lyric to "..selected_text.LuaString.." "..edit_type:GetInteger(), false)
     local active_lyric = finale.FCActiveLyric()
     if active_lyric:Load() then
         if active_lyric.BlockType ~= popup:GetSelectedItem() + 1 or active_lyric.TextBlockID ~= edit_type:GetInteger() then
@@ -203,53 +188,40 @@ local function update_to_active_lyric(lyrics_box, edit_type, popup)
     finenv.EndUndoBlock(true)
 end
 
-local function update_dlg_text(lyrics_box, edit_type, popup)
-    local itemno = edit_type:GetInteger()
-    local type = popup:GetSelectedItem() + 1
+local function update_dlg_text()
+    local lyrics_box = global_dialog:GetControl("text")
+    local itemno = global_dialog:GetControl("number"):GetInteger()
+    local type = global_dialog:GetControl("type"):GetSelectedItem() + 1
     local lyrics_instance = lyrics_classes[type]()
     if lyrics_instance:Load(itemno) then
         local lyrics_string = lyrics_instance:CreateString()
-        if config.use_edit_control then
-            lyrics_box:SetEnigmaString(lyrics_string, lyrics_instance.BlockType)
-        else
-            lyrics_box.LuaString = lyrics_string.LuaString
-        end
+        lyrics_box:SetEnigmaString(lyrics_string, lyrics_instance.BlockType)
     else
         local font_prefs = finale.FCFontPrefs()
         if font_prefs:Load(lyrics_prefs[type]) then
             local font_info = finale.FCFontInfo()
             font_prefs:GetFontInfo(font_info)
-            if config.use_edit_control then
-                lyrics_box:SetFont(font_info)
-            else
-                lyrics_box.LuaString = font_info:CreateEnigmaString(nil).LuaString
-            end
+            lyrics_box:SetFont(font_info)
         end
-        if config.use_edit_control then
-            lyrics_box:SetText("")
-        end
+        lyrics_box:SetText("")
     end
-    update_to_active_lyric(lyrics_box, edit_type, popup)
+    update_to_active_lyric()
 end
 
-local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, dehyphenate)
+local function hyphenate_dlg_text(dehyphenate)
+    local lyrics_box = global_dialog:GetControl("text")
+    local edit_type = global_dialog:GetControl("number")
+    local popup = global_dialog:GetControl("type")
     local function callback(success, result)
-        if config.use_edit_control then
-            lyrics_box:SetEnable(true)
-        end
+        lyrics_box:SetEnable(true)
         popup:SetEnable(true)
         edit_type:SetEnable(true)
-        https_session = nil
+        context.https_session = nil
         if success then
             local fixed_text = fixup_line_endings(result.choices[1].message.content)
-            if config.use_edit_control then
-                local itemno = edit_type:GetInteger()
-                local type = popup:GetSelectedItem() + 1
-                lyrics_box:SetEnigmaString(finale.FCString(fixed_text), type)
-            else
-                lyrics_box.LuaString = fixed_text
-            end
-            if auto_update then
+            local type = popup:GetSelectedItem() + 1
+            lyrics_box:SetEnigmaString(finale.FCString(fixed_text), type)
+            if global_dialog:GetControl("auto_update"):GetCheck() ~= 0 then
                 local selected_text = finale.FCString()
                 popup:GetText(selected_text)
                 update_document(lyrics_box, edit_type, popup)
@@ -258,196 +230,172 @@ local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, deh
             finenv.UI():AlertError(result, "OpenAI")
         end
     end
-    if https_session then
+    if context.https_session then
         return -- do not do anything if a request is in progress
     end
     local lyrics_text = finale.FCString()
-    if config.use_edit_control then
-        lyrics_text = lyrics_box:CreateEnigmaString()
-    else
-        update_dlg_text(lyrics_box, edit_type, popup)
-        lyrics_text.LuaString = lyrics_box.LuaString
-    end
+    lyrics_text = lyrics_box:CreateEnigmaString()
     if lyrics_text.Length > 0 then
-        if config.use_edit_control then
-            lyrics_box:SetEnable(false)
-        end
+        lyrics_box:SetEnable(false)
         popup:SetEnable(false)
         edit_type:SetEnable(false)
         local prompt = dehyphenate and config.remove_hyphens_prompt or config.add_hyphens_prompt
         prompt = prompt..lyrics_text.LuaString.."\nOutput:\n"
-        https_session = openai.create_completion(config.api_model, prompt, config.temperature, callback)
+        context.https_session = openai.create_completion(config.api_model, prompt, config.temperature, callback)
     end
 end
 
-local function update_from_active_lyric(lyrics_box, edit_type, popup, force)
-    if not use_active_lyric then return end
+local function update_from_active_lyric(force)
+    local edit_type = global_dialog:GetControl("number")
+    local popup = global_dialog:GetControl("type")
     local active_lyric = finale.FCActiveLyric()
     if active_lyric:Load() then
         if force or active_lyric.BlockType ~= popup:GetSelectedItem() + 1 or active_lyric.TextBlockID ~= edit_type:GetInteger() then
-            if update_automatically and use_edit_text then
-                local selected_text = finale.FCString()
-                popup:GetText(selected_text)
-                update_document(lyrics_box, edit_type, popup)
+            if global_dialog:GetControl("auto_update"):GetCheck() ~= 0 then
+                update_document()
             end
             popup:SetSelectedItem(active_lyric.BlockType - 1)
             edit_type:SetInteger(active_lyric.TextBlockID)
-            update_dlg_text(lyrics_box, edit_type, popup)
+            update_dlg_text()
         end
     end
 end
 
 local function get_current_font(text_ctrl)
     local range = finale.FCRange()
-    text_ctrl:GetSelection(range)                            
+    text_ctrl:GetSelection(range)
     local font = text_ctrl:CreateFontInfoAtIndex(range.Start)
     if not font then font = finale.FCFontInfo() end
     return font
 end
 
+local function on_selection_changed(text_ctrl)
+    local selRange = finale.FCRange()
+    text_ctrl:GetSelection(selRange)
+    local fontInfo = text_ctrl:CreateFontInfoAtIndex(selRange.Start)
+    if fontInfo then
+        global_dialog:GetControl("showfont"):SetText(fontInfo:CreateDescription())
+    end
+end
+
+-- FCXCustomLuaWindow (mixin version) passes the dialog as the first parameter to HandleTimer
+local function on_timer(dialog, timer_id)
+    if timer_id ~= context.global_timer_id then return end
+    update_from_active_lyric()
+end
+
+local function on_init_window()
+    -- RunModeless modifies it based on modifier keys, but we want it
+    -- always true
+    global_dialog.OkButtonCanClose = true
+    global_dialog:SetTimer(context.global_timer_id, 100) -- timer can't be set until window is created
+    local text_ctrl = global_dialog:GetControl("text")
+    if text_ctrl then
+        local range = finale.FCRange(0, 0)
+        text_ctrl:SetSelection(range)
+    end
+    update_dlg_text()
+    update_from_active_lyric(true) -- true: force update
+end
+
+local function on_close_window()
+    context.https_session = https.cancel_session(context.https_session)
+end
+
 local function create_dialog_box()
+    -- size parameters
+    local text_height = 300
+    local text_width = 500
     dlg = mixin.FCXCustomLuaWindow()
-                :SetTitle("Lyrics OpenAI Hyphenator")
-    local lyric_label = dlg:CreateStatic(10, 11)
-                :SetWidth(30)
-                :SetText("Lyric:")
-    local popup = dlg:CreatePopup(45, 10, "type")
-                :SetWidth(70)
-                :AddString("Verse")
-                :AddString("Chorus")
-                :AddString("Section")
-    local lyric_num = dlg:CreateEdit(125, 9, "number")
-                :SetWidth(25)
-                :SetInteger(1)
-    if use_edit_text then
-        local ctrlfont = finale.FCFontInfo("Arial", 11)
-        ctrlfont.Bold = true
-        ctrlfont.Italic = false
-        dlg:CreateButton(160, 10, "bold")
-                :SetWidth(15)
-                :SetText("B")
-                :SetFont(ctrlfont)
-                :AddHandleCommand(function()
-                    local text_ctrl = dlg:GetControl("text")
-                    local font = get_current_font(text_ctrl)
-                    text_ctrl:SetFontBoldForSelection(not font:GetBold())
-                end)
-        ctrlfont.Bold = false
-        ctrlfont.Italic = true
-        dlg:CreateButton(185, 10, "italic")
-                :SetWidth(15)
-                :SetText("I")
-                :SetFont(ctrlfont)
-                :AddHandleCommand(function()
-                    local text_ctrl = dlg:GetControl("text")
-                    local font = get_current_font(text_ctrl)
-                    text_ctrl:SetFontItalicForSelection(not font:GetItalic())
-                end)
-        dlg:CreateButton(210, 10, "fontsel")
-                :SetWidth(60)
-                :SetText("Font...")
-                :AddHandleCommand(function()
-                    local ui = dlg:CreateChildUI()
-                    local text_ctrl = dlg:GetControl("text")
-                    local font = get_current_font(text_ctrl)
-                    local selector = finale.FCFontDialog(ui, font)
-                    if selector:Execute() then
-                        text_ctrl:SetFontForSelection(font)
-                    end
-                end)
-        dlg:CreateStatic(280, 10, "showfont")
-                :SetWidth(220)  -- 500 - accumulated width (280)  
-    end
-    local lyrics_box
+            :SetTitle("Lyrics OpenAI Hyphenator")
+    -- Lyrics type, number, and font selections
+    dlg:CreateStatic(10, 11)
+            :SetWidth(30)
+            :SetText("Lyric:")
+    dlg:CreatePopup(45, 10, "type")
+            :SetWidth(70)
+            :AddString("Verse")
+            :AddString("Chorus")
+            :AddString("Section")
+            :AddHandleCommand(update_dlg_text)
+    dlg:CreateEdit(125, 9, "number")
+            :SetWidth(25)
+            :SetInteger(1)
+            :AddHandleCommand(update_dlg_text)
+    local ctrlfont = finale.FCFontInfo("Arial", 11)
+    ctrlfont.Bold = true
+    ctrlfont.Italic = false
+    dlg:CreateButton(160, 10, "bold")
+            :SetWidth(15)
+            :SetText("B")
+            :SetFont(ctrlfont)
+            :AddHandleCommand(function()
+                local text_ctrl = dlg:GetControl("text")
+                local font = get_current_font(text_ctrl)
+                text_ctrl:SetFontBoldForSelection(not font:GetBold())
+            end)
+    ctrlfont.Bold = false
+    ctrlfont.Italic = true
+    dlg:CreateButton(185, 10, "italic")
+            :SetWidth(15)
+            :SetText("I")
+            :SetFont(ctrlfont)
+            :AddHandleCommand(function()
+                local text_ctrl = dlg:GetControl("text")
+                local font = get_current_font(text_ctrl)
+                text_ctrl:SetFontItalicForSelection(not font:GetItalic())
+            end)
+    dlg:CreateButton(210, 10, "fontsel")
+            :SetWidth(60)
+            :SetText("Font...")
+            :AddHandleCommand(function()
+                local ui = dlg:CreateChildUI()
+                local text_ctrl = dlg:GetControl("text")
+                local font = get_current_font(text_ctrl)
+                local selector = finale.FCFontDialog(ui, font)
+                if selector:Execute() then
+                    text_ctrl:SetFontForSelection(font)
+                end
+            end)
+    dlg:CreateStatic(280, 10, "showfont")
+            :SetWidth(text_width - 220)  -- accumulated width (280)  
     local yoff = 45
-    if config.use_edit_control then
-        if use_edit_text then
-            lyrics_box = dlg:CreateTextEditor(10, yoff, "text")
-        else
-            lyrics_box = dlg:CreateEdit(10, yoff)
-        end
-        lyrics_box:SetHeight(300):SetWidth(500)
-        yoff = yoff + 310
-    else
-        lyrics_box = finale.FCString()
-    end
+    -- text editor
+    dlg:CreateTextEditor(10, yoff, "text")
+            :SetHeight(text_height)
+            :SetWidth(text_width)
+    yoff = yoff + 310
+    -- command buttons
     local xoff = 10
-    local hyphenate = dlg:CreateButton(xoff, yoff)
-                :SetText("Hyphenate")
-                :SetWidth(110)
+    dlg:CreateButton(xoff, yoff, "hyphenate")
+            :SetText("Hyphenate")
+            :SetWidth(110)
+            :AddHandleCommand(function()
+                hyphenate_dlg_text(false)
+            end)
     xoff = xoff + 120
-    local dehyphenate = dlg:CreateButton(xoff, yoff)
-                :SetText("Remove Hyphens")
-                :SetWidth(110)
-    if config.use_edit_control then
-        xoff = xoff + 120
-        local update = dlg:CreateButton(xoff, yoff)
-                    :SetText("Update")
-                    :SetWidth(110)
-        xoff = xoff + 120
-        local auto_update = dlg:CreateCheckbox(xoff, yoff)
-                    :SetText("Update Automatically")
-                    :SetWidth(150)
-                    :SetCheck(update_automatically and 1 or 0)
-        dlg:RegisterHandleControlEvent(update, function(control)
-            local selected_text = finale.FCString()
-            popup:GetText(selected_text)
-            update_document(lyrics_box, lyric_num, popup)
-        end)
-        dlg:RegisterHandleControlEvent(auto_update, function(control)
-            update_automatically = control:GetCheck() ~= 0
-        end)
-    end                    
+    dlg:CreateButton(xoff, yoff, "dehyphenate")
+            :SetText("Remove Hyphens")
+            :SetWidth(110)
+            :AddHandleCommand(function()
+                hyphenate_dlg_text(true)
+            end)
+    xoff = xoff + 120
+    dlg:CreateButton(xoff, yoff, "update")
+            :SetText("Update")
+            :SetWidth(110)
+            :AddHandleCommand(update_document)
+    xoff = xoff + 120
+    dlg:CreateCheckbox(xoff, yoff, "auto_update")
+            :SetText("Update Automatically")
+            :SetWidth(150)
+            :SetCheck(1)
     dlg:CreateOkButton():SetText("Close")
-    dlg:RegisterInitWindow(function()
-        -- RunModeless modifies it based on modifier keys, but we want it
-        -- always true
-        dlg.OkButtonCanClose = true
-        if use_active_lyric then
-            dlg:SetTimer(global_timer_id, 100) -- timer can't be set until window is created
-        end
-        local text_ctrl = dlg:GetControl("text")
-        if text_ctrl then
-            local range = finale.FCRange(0, 0)
-            text_ctrl:SetSelection(range)
-        end
-    end)
-    if use_active_lyric then
-        dlg:RegisterHandleTimer(function(dialog, timer_id) -- FCXCustomLuaWindow passes the dialog as the first parameter to HandleTimer
-            if timer_id ~= global_timer_id then return end
-            update_from_active_lyric(lyrics_box, lyric_num, popup)
-        end)
-    end
-    dlg:RegisterHandleControlEvent(popup, function(control)
-        update_dlg_text(lyrics_box, lyric_num, popup)
-    end)
-    dlg:RegisterHandleControlEvent(lyric_num, function(control)
-        update_dlg_text(lyrics_box, lyric_num, popup)
-    end)
-    dlg:RegisterHandleControlEvent(hyphenate, function(control)
-        hyphenate_dlg_text(lyrics_box, popup, lyric_num, update_automatically, false)
-    end)
-    dlg:RegisterHandleControlEvent(dehyphenate, function(control)
-        hyphenate_dlg_text(lyrics_box, popup, lyric_num, update_automatically, true)
-    end)
-    dlg:RegisterHandleTextSelectionChanged(function()
-        local text_ctrl = dlg:GetControl("text")
-        if text_ctrl then
-            local selRange = finale.FCRange()
-            text_ctrl:GetSelection(selRange)
-            local fontInfo = text_ctrl:CreateFontInfoAtIndex(selRange.Start)
-            if fontInfo then
-                dlg:GetControl("showfont"):SetText(fontInfo:CreateDescription())
-            end
-        end
-    end)
-    dlg:RegisterCloseWindow(function()
-        https_session = https.cancel_session(https_session)
-    end)
-    update_dlg_text(lyrics_box, lyric_num, popup)
-    if use_active_lyric then
-        update_from_active_lyric(lyrics_box, lyric_num, popup, true) -- true: force update
-    end
+    -- registrations
+    dlg:RegisterInitWindow(on_init_window)
+    dlg:RegisterCloseWindow(on_close_window)
+    dlg:RegisterHandleTimer(on_timer)
+    dlg:RegisterHandleTextSelectionChanged(on_selection_changed)
     return dlg
 end
 
