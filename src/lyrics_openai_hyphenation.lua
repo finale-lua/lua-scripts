@@ -111,7 +111,7 @@ local lyrics_prefs =
     finale.FONTPREF_LYRICSSECTION
 }
 
--- These globals persist over multiple calls to the function
+-- These globals persist over multiple calls to the script
 context = context or
 {
     https_session = nil,
@@ -119,34 +119,74 @@ context = context or
     in_prog_indicators = {"|", "/", "—", "\\"},
     in_prog_size = 4,
     in_prog_counter = nil,
-    range_for_hyphenation = nil
+    range_for_hyphenation = nil,
+    current_lyric_type = 0,
+    current_lyric_number = 0, 
+    -- current_clean_text and current_lyric_text should only vary because of inconsequential encoding differences between Finale and FCCtrlTextEditor
+    current_clean_text = nil,       -- FCString of the Enigma string the control contained the last time we synced with the document
+    current_lyric_text = nil,       -- FCString of the Enigma string the document lyric block contained the last time we synced with the document
+    current_editor_text = nil       -- FCString of the last contents of the control, for preserving state between executions of the script
 }
 
-local function update_document()
+local function is_current_in_editor(fcstr_lyrics)
+    if not context.current_clean_text then
+        local total_range = finale.FCRange()
+        global_dialog:GetControl("text"):GetTotalTextRange(total_range)
+        if total_range.Length <= 0 then
+            return true
+        end
+    elseif fcstr_lyrics:Compare(context.current_clean_text) == 0 then
+        return true
+    end
+    return false
+end
+
+local function update_document(options)
     if context.https_session then
         return -- do not do anything if a request is in progress
     end
+    options = options or { update_active_lyric = true }
+    assert(type(options) == "table", "options argument must be a table")
     local lyrics_box = global_dialog:GetControl("text")
-    local itemno = global_dialog:GetControl("number"):GetInteger()
-    local type = global_dialog:GetControl("type"):GetSelectedItem() + 1
+    local new_lyrics = lyrics_box:CreateEnigmaString()
     local selected_text = finale.FCString()
     global_dialog:GetControl("type"):GetText(selected_text)
-    finenv.StartNewUndoBlock("Update " .. selected_text.LuaString .. " " .. itemno .. " Lyrics", false)
-    local lyrics_instance = lyrics_classes[type]()
-    local loaded = lyrics_instance:Load(itemno)
-    local text_length = 0
-    local new_lyrics = lyrics_box:CreateEnigmaString()
-    text_length = new_lyrics.Length
-    lyrics_instance:SetText(new_lyrics)
-    if loaded then
-        if text_length > 0 then
-            lyrics_instance:Save()
+    finenv.StartNewUndoBlock("Update " .. selected_text.LuaString .. " " .. context.current_lyric_number .. " Lyrics", false)
+    if not is_current_in_editor(new_lyrics) then
+        local lyrics_instance = lyrics_classes[context.current_lyric_type]()
+        local loaded = lyrics_instance:Load(context.current_lyric_number)
+        local total_range = finale.FCRange()
+        lyrics_box:GetTotalTextRange(total_range)
+        local text_length = math.min(new_lyrics.Length, total_range.Length)
+        lyrics_instance:SetText(new_lyrics)
+        if loaded then
+            if text_length > 0 then
+                lyrics_instance:Save()
+            else
+                lyrics_instance:DeleteData()
+            end
         else
-            lyrics_instance:DeleteData()
+            if text_length > 0 then
+                lyrics_instance:SaveAs(context.current_lyric_number)
+            end
         end
-    else
-        if text_length > 0 then
-            lyrics_instance:SaveAs(itemno)
+        -- reload for Finale-encoded Enigma string
+        if lyrics_instance:Reload() then
+            context.current_lyric_text = lyrics_instance:CreateString()
+        else
+            context.current_lyric_text = nil
+        end
+    end
+    context.current_clean_text = new_lyrics
+    if options.update_active_lyric then
+        local active_lyric = finale.FCActiveLyric()
+        if active_lyric:Load() then
+            if active_lyric.BlockType ~= context.current_lyric_type or active_lyric.TextBlockID ~= context.current_lyric_number then
+                active_lyric.BlockType = context.current_lyric_type
+                active_lyric.TextBlockID = context.current_lyric_number
+                active_lyric.Syllable = 1
+                active_lyric:Save()
+            end
         end
     end
     finenv.EndUndoBlock(true)
@@ -167,7 +207,11 @@ local function fixup_line_endings(input_str)
         if char == "\n" and not is_previous_carriage_return then
             table.insert(result, replacement)
         else
-            table.insert(result, char)
+            -- We only get here for "\n" if it is part of a CRLF pair.
+            -- Therefore, omit it on Mac to avoid a double line break.
+            if char ~= "\n" or finale.UI():IsOnWindows() then
+                table.insert(result, char)
+            end
             is_previous_carriage_return = (char == "\r")
         end
     end
@@ -175,43 +219,28 @@ local function fixup_line_endings(input_str)
     return table.concat(result)
 end
 
-local function update_to_active_lyric()
-    local edit_type = global_dialog:GetControl("number")
-    local popup = global_dialog:GetControl("type")
-    if edit_type:GetInteger() <= 0 then return end
-    local selected_text = finale.FCString()
-    popup:GetText(selected_text)
-    finenv.StartNewUndoBlock("Update Current Lyric to "..selected_text.LuaString.." "..edit_type:GetInteger(), false)
-    local active_lyric = finale.FCActiveLyric()
-    if active_lyric:Load() then
-        if active_lyric.BlockType ~= popup:GetSelectedItem() + 1 or active_lyric.TextBlockID ~= edit_type:GetInteger() then
-            active_lyric.BlockType = popup:GetSelectedItem() + 1
-            active_lyric.TextBlockID = edit_type:GetInteger()
-            active_lyric.Syllable = 1
-            active_lyric:Save()
-        end
-    end
-    finenv.EndUndoBlock(true)
-end
-
 local function update_dlg_text()
     local lyrics_box = global_dialog:GetControl("text")
-    local itemno = global_dialog:GetControl("number"):GetInteger()
-    local type = global_dialog:GetControl("type"):GetSelectedItem() + 1
-    local lyrics_instance = lyrics_classes[type]()
-    if lyrics_instance:Load(itemno) then
+    local lyrics_instance = lyrics_classes[context.current_lyric_type]()
+    local selection_range = finale.FCRange()
+    lyrics_box:GetSelection(selection_range)
+    if lyrics_instance:Load(context.current_lyric_number) then
         local lyrics_string = lyrics_instance:CreateString()
         lyrics_box:SetEnigmaString(lyrics_string, lyrics_instance.BlockType)
+        context.current_lyric_text = lyrics_string
     else
         local font_prefs = finale.FCFontPrefs()
-        if font_prefs:Load(lyrics_prefs[type]) then
+        if font_prefs:Load(lyrics_prefs[context.current_lyric_type]) then
             local font_info = finale.FCFontInfo()
             font_prefs:GetFontInfo(font_info)
             lyrics_box:SetFont(font_info)
         end
         lyrics_box:SetText("")
+        context.current_lyric_text = nil
     end
-    update_to_active_lyric()
+    context.current_clean_text = lyrics_box:CreateEnigmaString() -- always get the current clean text out of the edit control
+    lyrics_box:ResetUndoState()
+    lyrics_box:SetSelection(selection_range)
 end
 
 local function enable_disable()
@@ -243,14 +272,11 @@ local function set_hyphenation_text(text)
     if context.range_for_hyphenation then
         text_ctrl:ReplaceTextInRange(finale.FCString(text), context.range_for_hyphenation)
     else
-        text_ctrl:SetEnigmaString(finale.FCString(text), global_dialog:GetControl("type"):GetSelectedItem() + 1)
+        text_ctrl:SetEnigmaString(finale.FCString(text), context.current_lyric_type)
     end
 end
 
 local function hyphenate_dlg_text(dehyphenate)
-    local lyrics_box = global_dialog:GetControl("text")
-    local edit_type = global_dialog:GetControl("number")
-    local popup = global_dialog:GetControl("type")
     local function callback(success, result)
         context.https_session = nil
         enable_disable()
@@ -278,18 +304,42 @@ local function hyphenate_dlg_text(dehyphenate)
     end
 end
 
-local function update_from_active_lyric(force)
+local function update_from_active_lyric(options)
+    options = options or {}
+    assert(type(options) == "table", "input parameter must be a table")
     local edit_type = global_dialog:GetControl("number")
     local popup = global_dialog:GetControl("type")
     local active_lyric = finale.FCActiveLyric()
+    local updated = false
     if active_lyric:Load() then
-        if force or active_lyric.BlockType ~= popup:GetSelectedItem() + 1 or active_lyric.TextBlockID ~= edit_type:GetInteger() then
-            if global_dialog:GetControl("auto_update"):GetCheck() ~= 0 then
-                update_document()
-            end
+        if options.force or (active_lyric.BlockType == context.current_lyric_type and active_lyric.TextBlockID == context.current_lyric_number) then
             popup:SetSelectedItem(active_lyric.BlockType - 1)
+            context.current_lyric_type = active_lyric.BlockType
             edit_type:SetInteger(active_lyric.TextBlockID)
-            update_dlg_text()
+            context.current_lyric_number = active_lyric.TextBlockID
+            if options.force or is_current_in_editor(global_dialog:GetControl("text"):CreateEnigmaString()) then
+                update_dlg_text()
+            end
+            updated = true
+        end
+    end
+    if not updated then
+        local edit_text = global_dialog:GetControl("text")
+        if is_current_in_editor(edit_text:CreateEnigmaString()) then
+            local lyrics_instance = lyrics_classes[context.current_lyric_type]()
+            if lyrics_instance:Load(context.current_lyric_number) then
+                local curr_lyrics = lyrics_instance:CreateString()
+                if curr_lyrics:Compare(context.current_lyric_text) ~= 0 then
+                    print("updating control because document changed")
+                    update_dlg_text()
+                end
+            else
+                local total_range = finale.FCRange()
+                edit_text:GetTotalTextRange(total_range)
+                if total_range.Length > 0 then
+                    update_dlg_text()
+                end
+            end
         end
     end
 end
@@ -328,12 +378,15 @@ local function on_init_window()
     -- always true
     global_dialog.OkButtonCanClose = true
     global_dialog:SetTimer(context.global_timer_id, 100) -- timer can't be set until window is created
-    local text_ctrl = global_dialog:GetControl("text")
+    context.current_lyric_type = global_dialog:GetControl("type"):GetSelectedItem() + 1
+    context.current_lyric_number = global_dialog:GetControl("number"):GetInteger()
+    if context.current_editor_text then
+        global_dialog:GetControl("text"):SetEnigmaString(context.current_editor_text, context.current_lyric_type)
+    else
+        update_from_active_lyric({force = true})
+    end
     local range = finale.FCRange(0, 0)
-    text_ctrl:SetSelection(range)
-    update_dlg_text()
-    update_from_active_lyric(true) -- true: force update
-    text_ctrl:ResetUndoState()
+    global_dialog:GetControl("text"):SetSelection(range)
 end
 
 local function on_close_window()
@@ -342,6 +395,10 @@ local function on_close_window()
     context.range_for_hyphenation = nil
     enable_disable()
     global_dialog:GetControl("showprogress"):SetText("")
+    if global_dialog:GetControl("auto_update"):GetCheck() ~= 0 then
+        update_document()
+    end
+    context.current_editor_text = global_dialog:GetControl("text"):CreateEnigmaString()
 end
 
 local function create_dialog_box()
@@ -354,16 +411,34 @@ local function create_dialog_box()
     dlg:CreateStatic(10, 11)
             :SetWidth(30)
             :SetText("Lyric:")
+    context.current_lyric_type = finale.RAWTEXTTYPE_VERSELYRIC
     dlg:CreatePopup(45, 10, "type")
             :SetWidth(70)
             :AddString("Verse")
             :AddString("Chorus")
             :AddString("Section")
-            :AddHandleCommand(update_dlg_text)
+            :SetSelectedItem(context.current_lyric_type)
+            :AddHandleCommand(function(popup)
+                local ctrl_val = popup:GetSelectedItem() + 1
+                if ctrl_val ~= context.current_lyric_type then
+                    context.current_lyric_type = ctrl_val
+                    update_dlg_text()
+                end
+            end)
+    context.current_lyric_number = 1
     dlg:CreateEdit(125, 9, "number")
             :SetWidth(25)
-            :SetInteger(1)
-            :AddHandleCommand(update_dlg_text)
+            :SetInteger(context.current_lyric_number)
+            :AddHandleCommand(function(edit_number)
+                local ctrl_val = math.max(1, edit_number:GetInteger())
+                if ctrl_val ~= context.current_lyric_number then
+                    context.current_lyric_number = ctrl_val
+                    update_dlg_text()
+                end
+                if ctrl_val ~= edit_number:GetInteger() then
+                    edit_number:SetInteger(ctrl_val)
+                end
+            end)
     local ctrlfont = finale.FCFontInfo("Arial", 11)
     ctrlfont.Bold = true
     ctrlfont.Italic = false
@@ -435,13 +510,15 @@ local function create_dialog_box()
     dlg:CreateButton(xoff, yoff, "update")
             :SetText("Update")
             :SetWidth(110)
-            :AddHandleCommand(update_document)
+            :AddHandleCommand(function(control) update_document() end)
     xoff = xoff + 120
     dlg:CreateCheckbox(xoff, yoff, "auto_update")
             :SetText("Update Automatically")
             :SetWidth(150)
             :SetCheck(1)
-    dlg:CreateOkButton():SetText("Close")
+    yoff = yoff + 30
+    dlg:CreateCloseButton(text_width - 80, yoff)
+            :SetWidth(80)
     -- registrations
     dlg:RegisterInitWindow(on_init_window)
     dlg:RegisterCloseWindow(on_close_window)
@@ -452,6 +529,7 @@ end
 
 local function openai_hyphenation()
     global_dialog = global_dialog or create_dialog_box()
+    require('mobdebug').start()
     global_dialog:RunModeless()
 end
 

@@ -97,7 +97,7 @@ Sends a request to the OpenAI API to generate a completion for a given prompt.
 
 @ model (string) The model to use, e.g., "gpt-3.5-turbo"
 @ prompt (string) The prompt to send
-@ temperature (number) See the OpenAI documentation for information about this value. A reasonable value is between 1.0 and 2.0.
+@ temperature (number) See the OpenAI documentation for information about this value. A reasonable value is between 0.0 and 1.0.
 @ [callback_or_timeout] (function or number) Defaults to 5.0.
 : (boolean) if synchronous call. See above for asynchronous.
 : (string) if synchronous call. See above for asynchronous.
@@ -108,6 +108,53 @@ function openai.create_completion(model, prompt, temperature, callback_or_timeou
     local body = {
         model = model,
         messages = {{role = "user", content = prompt}},
+        temperature = temperature
+    }
+
+    return call_openai(COMPLETION_URL, body, callback_or_timeout)
+end
+
+--[[
+% create_chat
+
+Sends a request to the OpenAI API to generate a chat session. If you start a new chat session, the
+chat session value is returned in the reply sting. You can then use that value to continue the same
+same chat session. (See the OpenAI documentation for details.)
+
+The messages table is an array of tables with two elements, "role" and "content". To start a fresh chat,
+the table should be initialized as follows:
+
+```
+local messages =
+{
+    {role = "system", content = "You are a helpful assistant"},
+    {role = "user", content = <your initial prompt>}
+}
+```
+
+Thereafter, accumulate all subsequent request and response messages into this table. The entire chat is
+sent to the API each time. The LLM does not maintain context. The role value for inserting each subsequent
+response message into this table is included in the response message. However, normally
+it is "assistant". Messages for requests from the user always take the role of "user".
+
+There is a much more detailed explanation at the OpenAI documentation site for the API.
+
+@ model (string) The model to use, e.g., "gpt-3.5-turbo"
+# chat_session (string) The chat session to continue, or nil for a new chat session.
+@ messages (table) See the description of this table above.
+@ temperature (number) See the OpenAI documentation for information about this value. A reasonable value is between 0.0 and 1.0.
+@ [callback_or_timeout] (function or number) Defaults to 5.0.
+: (boolean) if synchronous call. See above for asynchronous.
+: (string) if synchronous call. See above for asynchronous.
+]]
+function openai.create_chat(model, messages, temperature, callback_or_timeout)
+    callback_or_timeout = callback_or_timeout or 5.0
+
+    assert(type(messages) == "table", "openai.create_chat 2nd parameter should be a table.")
+
+    local body = {
+        model = model,
+        messages = messages,
         temperature = temperature
     }
 
