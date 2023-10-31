@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.54"
-    finaleplugin.Date = "2023/10/19"
+    finaleplugin.Version = "v1.56"
+    finaleplugin.Date = "2023/10/31"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[ 
         When crossing notes to adjacent staves the stems of 'crossed' notes can be reversed 
@@ -20,11 +20,11 @@ function plugindef()
         When crossing UP try EVPU offsets of 12 (crossed) and -12 (not crossed), or 24/0. 
         When crossing DOWN try crossed/uncrossed offsets of -12/12 EVPUs or -24/0.
 
-        To change measurement units without using the mouse, hit one of these keys: 
+        To change measurement units without using the mouse, type one of these keys: 
         "e" (EVPUs), "i" (Inches), "c" (Centimeters), 
         "o" (Points), "a" (Picas), or "s" (Spaces).         
-        Use "u" and "d" to set the default values for staff crossing Up/Down. 
-        To view these script notes hit "q". 
+        Use "u" and "d" to set the default values for crossing staves Up/Down. 
+        To view these notes type "q". 
     ]]
     return "CrossStaff Offset...", "CrossStaff Offset",
         "Offset horizontal position of cross-staff note entries"
@@ -95,30 +95,37 @@ local function user_chooses()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     local notes = finaleplugin.Notes:gsub(" %s+", " "):gsub("\n ", "\n"):sub(2)
     local function show_info() finenv.UI():AlertInfo(notes, "About " .. plugindef()) end
+    local function update_saved() -- after units change
+        save_value[1] = box[1]:GetText()
+        save_value[2] = box[2]:GetText()
+    end
     local y = 3
     dialog:SetMeasurementUnit(config.measurement_unit)
     local popup = dialog:CreateMeasurementUnitPopup(x_grid[3], y):SetWidth(97)
-        local function set_defaults(direction)
-            local dir_off = { up = {12, -12}, down = {-12, 12} }
-            for i = 1, 2 do
-                box[i]:SetMeasurementInteger(dir_off[direction][i])
-                save_value[i] = box[i]:GetText()
-            end
+        :AddHandleCommand(function() update_saved() end)
+
+        local function set_defaults(pole)
+            box[1]:SetMeasurementInteger(12 * pole)
+            box[2]:SetMeasurementInteger(-12 * pole)
+            save_value[1] = box[1]:GetText()
+            save_value[2] = box[2]:GetText()
         end
         local function key_check(id)
             local s = box[id]:GetText():lower()
-            if s:find("[^-0-9.p]") or (id == 3 and s:find("[-.p5-9]")) then
+            if (    s:find("p") and dialog:GetMeasurementUnit() ~= finale.MEASUREMENTUNIT_PICAS)
+                    or s:find("[^-p.0-9]")
+                    or (id == 3 and s:find("[-.p5-9]")
+                )   then
                 if s:find("q") then show_info()
-                elseif s:find("u") then set_defaults("up")
-                elseif s:find("d") then set_defaults("down")
+                elseif s:find("u") then set_defaults(1) -- up
+                elseif s:find("d") then set_defaults(-1) -- down
                 elseif s:find("[eicoas]") then -- change measurement unit
                     for k, v in pairs(units) do
                         if s:find(k) then
                             box[id]:SetText(save_value[id])
                             dialog:SetMeasurementUnit(v)
                             popup:UpdateMeasurementUnit()
-                            save_value[1] = box[1]:GetText() -- new unit
-                            save_value[2] = box[2]:GetText()
+                            update_saved()
                             break
                         end
                     end
