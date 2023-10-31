@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.56"
-    finaleplugin.Date = "2023/10/31"
+    finaleplugin.Version = "v1.57"
+    finaleplugin.Date = "2023/11/01"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[ 
         When crossing notes to adjacent staves the stems of 'crossed' notes can be reversed 
@@ -113,10 +113,10 @@ local function user_chooses()
         local function key_check(id)
             local s = box[id]:GetText():lower()
             if (    s:find("p") and dialog:GetMeasurementUnit() ~= finale.MEASUREMENTUNIT_PICAS)
-                    or s:find("[^-p.0-9]")
+                    or s:find("[^-.p0-9]")
                     or (id == 3 and s:find("[-.p5-9]")
                 )   then
-                if s:find("q") then show_info()
+                if s:find("[?q]") then show_info()
                 elseif s:find("u") then set_defaults(1) -- up
                 elseif s:find("d") then set_defaults(-1) -- down
                 elseif s:find("[eicoas]") then -- change measurement unit
@@ -161,9 +161,9 @@ local function user_chooses()
         end
         if i == 2 then
             dialog:CreateButton(x_grid[3], y):SetText("up (u)"):SetWidth(40)
-                :AddHandleCommand(function() set_defaults("up") end)
+                :AddHandleCommand(function() set_defaults(1) end) -- polarity = 1 "up"
             dialog:CreateButton(x_grid[3] + 42, y):SetText("down (d)"):SetWidth(55)
-                :AddHandleCommand(function() set_defaults("down") end)
+                :AddHandleCommand(function() set_defaults(-1) end) -- polarity = -1 "down"
         end
         save_value[i] = box[i]:GetText()
         y = y + y_step
