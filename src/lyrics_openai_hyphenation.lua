@@ -38,11 +38,9 @@ function plugindef()
         light (using ChatGPT 3.5) and small jobs only cost fractions of a cent.
         Check the pricing at the OpenAI site.
     ]]
-    return "DBG Lyrics Hyphenation...", "Lyrics Hyphenation",
+    return "Lyrics Hyphenation...", "Lyrics Hyphenation",
            "Add or correct lyrics hypenation using your OpenAI account."
 end
-
-require('mobdebug').start()
 
 local mixin = require("library.mixin")
 local openai = require("library.openai")
@@ -120,6 +118,7 @@ context = context or
     in_prog_size = 4,
     in_prog_counter = nil,
     range_for_hyphenation = nil,
+    current_document_id = 0,
     current_lyric_type = 0,
     current_lyric_number = 0, 
     -- current_clean_text and current_lyric_text should only vary because of inconsequential encoding differences between Finale and FCCtrlTextEditor
@@ -219,7 +218,9 @@ local function fixup_line_endings(input_str)
     return table.concat(result)
 end
 
-local function update_dlg_text()
+local function update_dlg_text(options)
+    options = options or {reset_undo = true}
+    assert(type(options) == "table", "input parameter must be a table")
     local lyrics_box = global_dialog:GetControl("text")
     local lyrics_instance = lyrics_classes[context.current_lyric_type]()
     local selection_range = finale.FCRange()
@@ -239,7 +240,9 @@ local function update_dlg_text()
         context.current_lyric_text = nil
     end
     context.current_clean_text = lyrics_box:CreateEnigmaString() -- always get the current clean text out of the edit control
-    lyrics_box:ResetUndoState()
+    if options.reset_undo then
+        lyrics_box:ResetUndoState()
+    end
     lyrics_box:SetSelection(selection_range)
 end
 
@@ -330,7 +333,6 @@ local function update_from_active_lyric(options)
             if lyrics_instance:Load(context.current_lyric_number) then
                 local curr_lyrics = lyrics_instance:CreateString()
                 if curr_lyrics:Compare(context.current_lyric_text) ~= 0 then
-                    print("updating control because document changed")
                     update_dlg_text()
                 end
             else
@@ -364,7 +366,15 @@ end
 -- FCXCustomLuaWindow (mixin version) passes the dialog as the first parameter to HandleTimer
 local function on_timer(dialog, timer_id)
     if timer_id ~= context.global_timer_id then return end
-    update_from_active_lyric()
+    local curr_doc_id = finale.FCDocument().ID 
+    if curr_doc_id ~= context.current_document_id then
+        context.current_document_id = curr_doc_id
+        update_from_active_lyric({force = true})
+    elseif finenv.UI():IsOnMac() then
+        -- Windows can't poll the current contents of the control, because doing so is so visually
+        -- disruptive. Therefore the auto-update from FCActiveLyric is disabled on Windows.
+        update_from_active_lyric()
+    end
     if context.https_session then
         context.in_prog_counter = context.in_prog_counter and context.in_prog_counter + 1 or 1
         context.in_prog_counter = (context.in_prog_counter - 1) % context.in_prog_size + 1
@@ -374,13 +384,13 @@ local function on_timer(dialog, timer_id)
 end
 
 local function on_init_window()
-    -- RunModeless modifies it based on modifier keys, but we want it
-    -- always true
-    global_dialog.OkButtonCanClose = true
     global_dialog:SetTimer(context.global_timer_id, 100) -- timer can't be set until window is created
     context.current_lyric_type = global_dialog:GetControl("type"):GetSelectedItem() + 1
     context.current_lyric_number = global_dialog:GetControl("number"):GetInteger()
-    if context.current_editor_text then
+    local curr_doc_id = finale.FCDocument().ID
+    local use_current = context.current_editor_text and context.current_document_id == curr_doc_id
+    context.current_document_id = curr_doc_id
+    if use_current then
         global_dialog:GetControl("text"):SetEnigmaString(context.current_editor_text, context.current_lyric_type)
     else
         update_from_active_lyric({force = true})
@@ -517,7 +527,15 @@ local function create_dialog_box()
             :SetWidth(150)
             :SetCheck(1)
     yoff = yoff + 30
-    dlg:CreateCloseButton(text_width - 80, yoff)
+    -- bottom
+    local xoff = 10
+    dlg:CreateButton(xoff, yoff, "refresh")
+            :SetText("Get from Document")
+            :SetWidth(150)
+            :AddHandleCommand(function(control)
+                update_dlg_text({reset_undo = false})
+            end)
+    dlg:CreateCloseButton(xoff + text_width - 80, yoff)
             :SetWidth(80)
     -- registrations
     dlg:RegisterInitWindow(on_init_window)
@@ -529,7 +547,6 @@ end
 
 local function openai_hyphenation()
     global_dialog = global_dialog or create_dialog_box()
-    require('mobdebug').start()
     global_dialog:RunModeless()
 end
 
