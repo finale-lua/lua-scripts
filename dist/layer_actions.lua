@@ -1,96 +1,139 @@
-package.preload["library.layer"] = package.preload["library.layer"] or function()
+package.preload["library.configuration"] = package.preload["library.configuration"] or function()
 
-    local layer = {}
 
-    function layer.copy(region, source_layer, destination_layer, clone_articulations)
-        local start = region.StartMeasure
-        local stop = region.EndMeasure
-        local sysstaves = finale.FCSystemStaves()
-        sysstaves:LoadAllForRegion(region)
-        source_layer = source_layer - 1
-        destination_layer = destination_layer - 1
-        for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
-            noteentry_source_layer:SetUseVisibleLayer(false)
-            noteentry_source_layer:Load()
-            local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
-                destination_layer, staffNum, start)
-            noteentry_destination_layer:Save()
-            noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
 
-            if clone_articulations and noteentry_source_layer.Count == noteentry_destination_layer.Count then
-                for index = 0, noteentry_destination_layer.Count - 1 do
-                    local source_entry = noteentry_source_layer:GetItemAt(index)
-                    local destination_entry = noteentry_destination_layer:GetItemAt(index)
-                    local source_artics = source_entry:CreateArticulations()
-                    for articulation in each (source_artics) do
-                        articulation:SetNoteEntry(destination_entry)
-                        articulation:SaveNew()
-                    end
-                end
+    local configuration = {}
+    local utils = require("library.utils")
+    local script_settings_dir = "script_settings"
+    local comment_marker = "--"
+    local parameter_delimiter = "="
+    local path_delimiter = "/"
+    local file_exists = function(file_path)
+        local f = io.open(file_path, "r")
+        if nil ~= f then
+            io.close(f)
+            return true
+        end
+        return false
+    end
+    parse_parameter = function(val_string)
+        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "\"(.+)\"", "%1")
+        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "'(.+)'", "%1")
+        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
+            return load("return " .. val_string)()
+        elseif "true" == val_string then
+            return true
+        elseif "false" == val_string then
+            return false
+        end
+        return tonumber(val_string)
+    end
+    local get_parameters_from_file = function(file_path, parameter_list)
+        local file_parameters = {}
+        if not file_exists(file_path) then
+            return false
+        end
+        for line in io.lines(file_path) do
+            local comment_at = string.find(line, comment_marker, 1, true)
+            if nil ~= comment_at then
+                line = string.sub(line, 1, comment_at - 1)
             end
-            noteentry_destination_layer:Save()
+            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
+            if nil ~= delimiter_at then
+                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
+                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
+                file_parameters[name] = parse_parameter(val_string)
+            end
         end
-    end
-
-    function layer.clear(region, layer_to_clear)
-        layer_to_clear = layer_to_clear - 1
-        local start = region.StartMeasure
-        local stop = region.EndMeasure
-        local sysstaves = finale.FCSystemStaves()
-        sysstaves:LoadAllForRegion(region)
-        for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
-            noteentry_layer:SetUseVisibleLayer(false)
-            noteentry_layer:Load()
-            noteentry_layer:ClearAllEntries()
-        end
-    end
-
-    function layer.swap(region, swap_a, swap_b)
-
-        swap_a = swap_a - 1
-        swap_b = swap_b - 1
-        for measure, staff_number in eachcell(region) do
-            local cell_frame_hold = finale.FCCellFrameHold()
-            cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-            local loaded = cell_frame_hold:Load()
-            local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
-            local  noteentry_layer_one = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
-            noteentry_layer_one:SetUseVisibleLayer(false)
-            noteentry_layer_one:Load()
-            noteentry_layer_one.LayerIndex = swap_b
-
-            local  noteentry_layer_two = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
-            noteentry_layer_two:SetUseVisibleLayer(false)
-            noteentry_layer_two:Load()
-            noteentry_layer_two.LayerIndex = swap_a
-            noteentry_layer_one:Save()
-            noteentry_layer_two:Save()
-            if loaded then
-                local new_cell_frame_hold = finale.FCCellFrameHold()
-                new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-                if new_cell_frame_hold:Load() then
-                    if cell_frame_hold.IsClefList then
-                        if new_cell_frame_hold.SetCellClefChanges then
-                            new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
-                        end
-
-                    else
-                        new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
-                    end
-                    new_cell_frame_hold:Save()
+        local function process_table(param_table, param_prefix)
+            param_prefix = param_prefix and param_prefix.."." or ""
+            for param_name, param_val in pairs(param_table) do
+                local file_param_name = param_prefix .. param_name
+                local file_param_val = file_parameters[file_param_name]
+                if nil ~= file_param_val then
+                    param_table[param_name] = file_param_val
+                elseif type(param_val) == "table" then
+                        process_table(param_val, param_prefix..param_name)
                 end
             end
         end
+        process_table(parameter_list)
+        return true
     end
 
-    function layer.max_layers()
-        return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
+    function configuration.get_parameters(file_name, parameter_list)
+        local path = ""
+        if finenv.IsRGPLua then
+            path = finenv.RunningLuaFolderPath()
+        else
+            local str = finale.FCString()
+            str:SetRunningLuaFolderPath()
+            path = str.LuaString
+        end
+        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+        return get_parameters_from_file(file_path, parameter_list)
     end
-    return layer
+
+
+    local calc_preferences_filepath = function(script_name)
+        local str = finale.FCString()
+        str:SetUserOptionsPath()
+        local folder_name = str.LuaString
+        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+
+            folder_name = os.getenv("HOME") .. folder_name:sub(2)
+        end
+        if finenv.UI():IsOnWindows() then
+            folder_name = folder_name .. path_delimiter .. "FinaleLua"
+        end
+        local file_path = folder_name .. path_delimiter
+        if finenv.UI():IsOnMac() then
+            file_path = file_path .. "com.finalelua."
+        end
+        file_path = file_path .. script_name .. ".settings.txt"
+        return file_path, folder_name
+    end
+
+    function configuration.save_user_settings(script_name, parameter_list)
+        local file_path, folder_path = calc_preferences_filepath(script_name)
+        local file = io.open(file_path, "w")
+        if not file and finenv.UI():IsOnWindows() then
+
+            local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
+            if osutils then
+                osutils.process.make_dir(folder_path)
+            else
+                os.execute('mkdir "' .. folder_path ..'"')
+            end
+            file = io.open(file_path, "w")
+        end
+        if not file then
+            return false
+        end
+        file:write("-- User settings for " .. script_name .. ".lua\n\n")
+        for k,v in pairs(parameter_list) do
+            if type(v) == "string" then
+                v = "\"" .. v .."\""
+            else
+                v = tostring(v)
+            end
+            file:write(k, " = ", v, "\n")
+        end
+        file:close()
+        return true
+    end
+
+    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+        if create_automatically == nil then create_automatically = true end
+        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+        if not exists and create_automatically then
+            configuration.save_user_settings(script_name, parameter_list)
+        end
+        return exists
+    end
+    return configuration
 end
 package.preload["mixin.FCMControl"] = package.preload["mixin.FCMControl"] or function()
 
@@ -4747,75 +4790,333 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     end
     return mixin
 end
+package.preload["library.layer"] = package.preload["library.layer"] or function()
+
+    local layer = {}
+
+    function layer.copy(region, source_layer, destination_layer, clone_articulations)
+        local start = region.StartMeasure
+        local stop = region.EndMeasure
+        local sysstaves = finale.FCSystemStaves()
+        sysstaves:LoadAllForRegion(region)
+        source_layer = source_layer - 1
+        destination_layer = destination_layer - 1
+        for sysstaff in each(sysstaves) do
+            staffNum = sysstaff.Staff
+            local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
+            noteentry_source_layer:SetUseVisibleLayer(false)
+            noteentry_source_layer:Load()
+            local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
+                destination_layer, staffNum, start)
+            noteentry_destination_layer:Save()
+            noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
+
+            if clone_articulations and noteentry_source_layer.Count == noteentry_destination_layer.Count then
+                for index = 0, noteentry_destination_layer.Count - 1 do
+                    local source_entry = noteentry_source_layer:GetItemAt(index)
+                    local destination_entry = noteentry_destination_layer:GetItemAt(index)
+                    local source_artics = source_entry:CreateArticulations()
+                    for articulation in each (source_artics) do
+                        articulation:SetNoteEntry(destination_entry)
+                        articulation:SaveNew()
+                    end
+                end
+            end
+            noteentry_destination_layer:Save()
+        end
+    end
+
+    function layer.clear(region, layer_to_clear)
+        layer_to_clear = layer_to_clear - 1
+        local start = region.StartMeasure
+        local stop = region.EndMeasure
+        local sysstaves = finale.FCSystemStaves()
+        sysstaves:LoadAllForRegion(region)
+        for sysstaff in each(sysstaves) do
+            staffNum = sysstaff.Staff
+            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            noteentry_layer:SetUseVisibleLayer(false)
+            noteentry_layer:Load()
+            noteentry_layer:ClearAllEntries()
+        end
+    end
+
+    function layer.swap(region, swap_a, swap_b)
+
+        swap_a = swap_a - 1
+        swap_b = swap_b - 1
+        for measure, staff_number in eachcell(region) do
+            local cell_frame_hold = finale.FCCellFrameHold()
+            cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+            local loaded = cell_frame_hold:Load()
+            local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
+            local  noteentry_layer_one = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
+            noteentry_layer_one:SetUseVisibleLayer(false)
+            noteentry_layer_one:Load()
+            noteentry_layer_one.LayerIndex = swap_b
+
+            local  noteentry_layer_two = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
+            noteentry_layer_two:SetUseVisibleLayer(false)
+            noteentry_layer_two:Load()
+            noteentry_layer_two.LayerIndex = swap_a
+            noteentry_layer_one:Save()
+            noteentry_layer_two:Save()
+            if loaded then
+                local new_cell_frame_hold = finale.FCCellFrameHold()
+                new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+                if new_cell_frame_hold:Load() then
+                    if cell_frame_hold.IsClefList then
+                        if new_cell_frame_hold.SetCellClefChanges then
+                            new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
+                        end
+
+                    else
+                        new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
+                    end
+                    new_cell_frame_hold:Save()
+                end
+            end
+        end
+    end
+
+    function layer.max_layers()
+        return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
+    end
+    return layer
+end
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.12"
-    finaleplugin.Date = "2023/02/28"
-    finaleplugin.CategoryTags = "Note"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
+    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
+    finaleplugin.Version = "v0.06"
+    finaleplugin.Date = "2023/10/15"
+    finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
-        Clear all music from the chosen layer in the currently selected region.
-        (The chosen layer will be cleared for a whole measure even if the measure is only partially selected).
-    ]]
-    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/layer_clear_selective.hash"
-    return "Clear Layer Selective", "Clear Layer Selective", "Clear the chosen layer"
+        Perform specific actions on individual note layers in the current selection.
+        Each action in the list begins with a configurable hotkey.
+        Open the script, type the hotkey and hit RETURN or ENTER.
+        To repeat the same action as last time without a confirmation dialog
+        hold down the SHIFT key when starting the script.
+        Actions:
+        - Erase Layer
+        - Playback Enable
+        - Playback Mute
+        - Visible
+        - Invisible
+        - Stems Up
+        - Stems Down
+        - Stems Default
+        Note that "Erase Layer" will delete a whole measure even if only part of
+        it is selected. All other actions respect selection boundaries.
+        This script replaces four old (deprecated) ones in the repo:
+        "layer_hide.lua", "layer_mute.lua",
+        "stem_direction_by_layer.lua" and "layer_clear_selective.lua".
+	]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/layer_actions.hash"
+    return "Layer Actions...", "Layer Actions", "Perform specific actions on individual layers in the current selection"
 end
-local layer = require("library.layer")
+local dialog_options = {
+    { "erase", "Erase Layer"},
+    { "play_yes", "Playback Enable" },
+    { "play_no", "Playback Mute"},
+    { "see_yes", "Visible"},
+    { "see_no", "Invisible" },
+    { "stems_up", "Stems Up"},
+    { "stems_down", "Stems Down"},
+    { "stems_default", "Stems Default"},
+}
+local config = {
+    erase = "X",
+    play_yes = "P",
+    play_no = "M",
+    see_yes = "V",
+    see_no = "I",
+    stems_up = "Q",
+    stems_down = "W",
+    stems_default = "E",
+    layer_num = "1",
+    last_selected = 0,
+    window_pos_x = false,
+    window_pos_y = false,
+}
+local configuration = require("library.configuration")
 local mixin = require("library.mixin")
-function is_error(max_layers)
-    if config.layer < 1 or config.layer > max_layers then
-        local message = "Layer number must be an\ninteger between 1 and ".. max_layers .. "\n(not " .. config.layer .. ")"
-        finenv.UI():AlertInfo(message, "User Error")
-        return true
+local layer = require("library.layer")
+local script_name = "layer_actions"
+function dialog_set_position(dialog)
+    if config.window_pos_x and config.window_pos_y then
+        dialog:StorePosition()
+        dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
+        dialog:RestorePosition()
     end
-    return false
 end
-function user_dialog(region, max_layers)
-    local y_offset = 3
-    local x_offset = 140
-    local mac_offset = finenv.UI():IsOnMac() and 3 or 0
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    local message = "Clear layer number (1-" .. max_layers .. "):"
-    dialog:CreateStatic(0, y_offset)
-        :SetText(message)
-        :SetWidth(x_offset + 70)
-    local layer_num = dialog:CreateEdit(x_offset, y_offset - mac_offset)
-        :SetInteger(config.layer or 1)
-        :SetWidth(50)
-    local start = region.StartMeasure
-    local stop = region.EndMeasure
-    message = (start == stop) and ("measure " .. start) or ("measures " .. start .. " to " .. stop)
-    dialog:CreateStatic(0, y_offset + 20)
-        :SetText("from " .. message)
-        :SetWidth(x_offset + 70)
-    dialog:CreateOkButton()
+local function dialog_save_position(dialog)
+    dialog:StorePosition()
+    config.window_pos_x = dialog.StoredX
+    config.window_pos_y = dialog.StoredY
+    configuration.save_user_settings(script_name, config)
+end
+local function change_layer_state(state)
+    local rgn = finenv.Region()
+    local layer_num = tonumber(config.layer_num)
+    if state == "erase" then
+        if layer_num == 0 then
+            rgn:CutMusic()
+            rgn:ReleaseMusic()
+        else
+            layer.clear(rgn, layer_num)
+        end
+    else
+        for entry in eachentrysaved(rgn, layer_num) do
+            local note = entry:IsNote()
+            if state:find("see") then
+                entry.Visible = (state == "see_yes")
+            elseif state:find("play") then
+                if note then entry.Playback = (state == "play_yes") end
+            else
+                if note then
+                    local default = (state == "stems_default")
+                    entry.FreezeStem = not default
+                    if not default then
+                        entry.StemUp = (state == "stems_up")
+                    end
+                end
+            end
+        end
+    end
+end
+local function reassign_keystrokes(index)
+    local y_step, x_wide = 17, 180
+    local offset = finenv.UI():IsOnMac() and 3 or 0
+    local is_duplicate, errors = false, {}
+    local y = 0
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Reassign Keys")
+    for _, v in ipairs(dialog_options) do
+        dialog:CreateEdit(0, y - offset, v[1]):SetText(config[v[1]]):SetWidth(20)
+            :AddHandleCommand(function(self)
+                local str = self:GetText():upper()
+                self:SetText(str:sub(-1)):SetKeyboardFocus()
+            end)
+        dialog:CreateStatic(25, y):SetText(v[2]):SetWidth(x_wide)
+        y = y + y_step
+    end
+    y = y + 7
+    local ignore = dialog:CreateCheckbox(0, y):SetWidth(x_wide)
+        :SetText("Ignore duplicate assignments"):SetCheck(config.ignore_duplicates or 0)
+    dialog:CreateOkButton():SetText("Save")
     dialog:CreateCancelButton()
-    dialog:RegisterHandleOkButtonPressed(function()
-        config.layer = layer_num:GetInteger()
-        dialog:StorePosition()
-        config.pos_x = dialog.StoredX
-        config.pos_y = dialog.StoredY
+    dialog:RegisterInitWindow(function(self)
+        self:GetControl(dialog_options[index][1]):SetKeyboardFocus()
     end)
-    return dialog
+    dialog_set_position(dialog)
+    dialog:RegisterHandleOkButtonPressed(function(self)
+        local assigned = {}
+        for i, v in ipairs(dialog_options) do
+            local key = self:GetControl(v[1]):GetText() or "?"
+            if key == "" then key = "?" end
+            config[v[1]] = key
+            config.ignore_duplicates = ignore:GetCheck()
+            if config.ignore_duplicates == 0 then
+                if assigned[key] then
+                    is_duplicate = true
+                    if not errors[key] then errors[key] = { assigned[key] } end
+                    table.insert(errors[key], i)
+                else
+                    assigned[key] = i
+                end
+            end
+        end
+        if is_duplicate then
+            local msg = ""
+            for k, v in pairs(errors) do
+                msg = msg .. "Key \"" .. k .. "\" is assigned to: "
+                for i, w in ipairs(v) do
+                    if i > 1 then msg = msg .. " and " end
+                    msg = msg .. "\"" .. dialog_options[w][2] .. "\""
+                end
+                msg = msg .. "\n\n"
+            end
+            finenv.UI():AlertError(msg, "Duplicate Key Assignment")
+        end
+    end)
+    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    return ok, is_duplicate
 end
-function clear_layer()
-    config = config or {}
-    local region = finenv.Region()
-    local max_layers = layer.max_layers()
-    local dialog = user_dialog(region, max_layers)
-    if config.pos_x and config.pos_y then
-        dialog:StorePosition()
-            :SetRestorePositionOnlyData(config.pos_x, config.pos_y)
-            :RestorePosition()
-    end
-    if dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK or is_error(max_layers) then
-        return
-    end
-    if finenv.RetainLuaState ~= nil then
-        finenv.RetainLuaState = true
-    end
-    layer.clear(region, config.layer)
+local function user_chooses()
+    local max = layer.max_layers()
+    local offset = finenv.UI():IsOnMac() and 3 or 0
+    local y, y_step = 0, 17
+    local box_wide = 220
+    local box_high = (#dialog_options * y_step) + 4
+    local start, stop = finenv.Region().StartMeasure, finenv.Region().EndMeasure
+    local message = (start == stop) and ("(m." .. start) or ("(mm." .. start .. "-" .. stop)
+    local notes = finaleplugin.Notes:gsub(" %s+", " "):gsub("\n ", "\n"):sub(2)
+    local function show_info() finenv.UI():AlertInfo(notes, "About " .. plugindef()) end
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    dialog:CreateStatic(0, y):SetText("Choose Layer Action:"):SetWidth(box_wide)
+    dialog:CreateStatic(box_wide - 80, y):SetText(message .. ")"):SetWidth(80)
+    y = y + 20
+    local key_list = dialog:CreateListBox(0, y):SetWidth(box_wide):SetHeight(box_high)
+        local function fill_key_list()
+            local join = finenv.UI():IsOnMac() and "\t" or ": "
+            key_list:Clear()
+            for _, option in ipairs(dialog_options) do
+                key_list:AddString(config[option[1]] .. join .. option[2])
+            end
+            key_list:SetSelectedItem(config.last_selected)
+        end
+        local function change_keys()
+            local ok, is_duplicate = true, true
+            while ok and is_duplicate do
+                ok, is_duplicate = reassign_keystrokes(key_list:GetSelectedItem() + 1)
+            end
+            if ok then fill_key_list() end
+        end
+    fill_key_list()
+    local x_off = box_wide / 4
+    y = y + box_high + 7
+    dialog:CreateStatic(0, y):SetWidth(x_off + 4):SetText("Layer 1-" .. max .. ":")
+    local save_layer = config.layer_num
+    local layer_num = dialog:CreateEdit(x_off + 4, y - offset):SetWidth(30):SetText(save_layer)
+        :AddHandleCommand(function(self)
+            local val = self:GetText():lower()
+            if val:find("[^0-4]") then
+                if val:find("r") then change_keys()
+                elseif val:find("q") then show_info()
+                end
+                self:SetText(save_layer):SetKeyboardFocus()
+            else
+                val = val:sub(-1)
+                self:SetText(val)
+                save_layer = val
+            end
+        end)
+    dialog:CreateStatic(x_off + 36, y):SetWidth(80):SetText("(0 = all)")
+    y = y + y_step + 2
+    dialog:CreateButton(0, y)
+        :SetText("Reassign Hotkeys"):SetWidth(x_off * 2)
+        :AddHandleCommand(function() change_keys() end)
+    dialog:CreateButton(box_wide - 20, y):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() show_info() end)
+    dialog:CreateOkButton():SetText("Change")
+    dialog:CreateCancelButton()
+    dialog_set_position(dialog)
+    dialog:RegisterInitWindow(function() key_list:SetKeyboardFocus() end)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    dialog:RegisterHandleOkButtonPressed(function()
+        config.layer_num = layer_num:GetInteger()
+        config.last_selected = key_list:GetSelectedItem()
+    end)
+    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
-clear_layer()
+local function layer_state()
+    configuration.get_user_settings(script_name, config, true)
+    local shift_key = finenv.QueryInvokedModifierKeys and finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
+    if shift_key or user_chooses() then
+        local choice = config.last_selected + 1
+        change_layer_state(dialog_options[choice][1])
+    end
+    finenv.UI():ActivateDocumentWindow()
+end
+layer_state()
