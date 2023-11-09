@@ -64,7 +64,7 @@ local function call_openai(url, body, callback_or_timeout)
     local function internal_callback(success, result)
         local jsresult = json.decode(result)
         if not success then
-            if  type(jsresult) == "table" then
+            if type(jsresult) == "table" then
                 jsresult = jsresult.error.message
             else
                 jsresult = result
