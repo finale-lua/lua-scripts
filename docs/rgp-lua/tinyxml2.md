@@ -1,4 +1,5 @@
-# tinyxml2
+tinyxml2
+========
 
 Starting with version 0.67 of _RGP Lua_, the `tinyxml2` framework is available to Lua scripts in the global namespace `tinyxml2`.
 
