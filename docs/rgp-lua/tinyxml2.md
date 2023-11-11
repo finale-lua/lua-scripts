@@ -25,8 +25,8 @@ element->SetText(x); // uses uint64_t-typed overload of SetText
 Lua:
 
 ```lua
-local x = element.Unsigned64Text() + 1
-element.SetUnsigned64Text(x) -- typed name parallel to its getter.
+local x = element:Unsigned64Text() + 1
+element:SetUnsigned64Text(x) -- typed name parallel to its getter.
 ```
 
 - The `Query...` APIs return two values. The first is an error code and the second is the queried value if there is no error. This second returned value eliminates the need for the final pointer paremeters in the C++ versions.
@@ -41,7 +41,7 @@ tinyxml2::XMLError result = element->QueryDoubleAttribute("percent", &x) // 2 pa
 Lua:
 
 ```lua
-local result, x = element.QueryDoubleAttribute("percent") -- 1 parameter
+local result, x = element:QueryDoubleAttribute("percent") -- 1 parameter
 ```
 
 - Each of the classes has a `ClassName` method added that is not in the original documentation.
