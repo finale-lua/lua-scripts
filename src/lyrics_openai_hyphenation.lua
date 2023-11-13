@@ -541,7 +541,7 @@ local function create_dialog_box()
     dlg:RegisterInitWindow(on_init_window)
     dlg:RegisterCloseWindow(on_close_window)
     dlg:RegisterHandleTimer(on_timer)
-    dlg:RegisterHandleTextSelectionChanged(on_selection_changed)
+    dlg:RegisterTextSelectionChanged(on_selection_changed)
     return dlg
 end
 
