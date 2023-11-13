@@ -1,17 +1,15 @@
 RGP Lua Console
 ===============
 
-The RGP Lua Console is a tool for writing and executing ad hoc scripts or scripts that have not been configured in the [RGP Lua Configuration Window](/docs/rgp-lua/rgp-lua-configuration). It is included as `rgpluaconsole.lua` in the zip archive of RGP Lua Utilities available on the [download page](https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html) for RGP Lua.
+The RGP Lua Console is a re-implementation in pure Lua of the Developer Tab in _JW Lua_. It allows you write and/or execute ad hoc scripts or scripts that have not been configured in the [RGP Lua Configuration Window](/docs/rgp-lua/rgp-lua-configuration). It is included as `rgpluaconsole.lua` in the zip archive of RGP Lua Utilities available on the [download page](https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html) for RGP Lua.
 
 The `rgpluaconsole.lua` script requires version 0.68 or higher of _RGP Lua_. Other than that it has no dependencies. You may place it anywhere on your hard drive. Once you have configured it in RGP Lua, it will be available to run.
 
 ![RGP Lua Console](assets/rgpluaconsole.jpg "RGP Lua Console")
 
-The RGP Lua Console is designed to be similar to the Development tab of _JW Lua_.
-
 **Left Popup** A file menu, including `New`, `Open`, `Save`, `Save As`, `Close`, `Close All`, and recent files. In addition to these, the RGP Lua Console responds to the standard keyboard shortcuts for saving files: `cmd-S` on macOS and `ctrl-S` on Windows.
 
-**Right Popup** A menu of all the ways the script can be run. If the script includes Additional Menu Options, they are listed here. See the [finaleplugin properties](/docs/rgp-lua/finaleplugin-properties) for more information.
+**Right Popup** A menu of all the ways the script can be run. If the script includes [Additional Menu Options](/docs/rgp-lua/finaleplugin-properties#additional-menu-options), they are listed here.
 
 **Run As Trusted** Runs the script in trusted mode. The console itself must be configured as Trusted for this option to be available.
 
@@ -35,8 +33,11 @@ The RGP Lua Console is designed to be similar to the Development tab of _JW Lua_
 
 **Preferences** Opens the [Preferences Dialog](#preferences-dialog).
 
-Working With An IDE
--------------------
+---
+
+### Working With An IDE
+
+---
 
 The RGP Lua Console works well in tandem with both ZeroBraneStudio and Visual Studio Code. For more information about how to set these up, see instructions for the [Development Environment](/docs/rgp-lua/development-environment). Some items to keep in mind are
 
@@ -44,8 +45,11 @@ The RGP Lua Console works well in tandem with both ZeroBraneStudio and Visual St
 - ZeroBraneStudio does not allow edits while the script is running in debug mode. If you make external edits while it is running, you can get out of sync with ZeroBraneStudio.
 - If your script contains the necessary extra code to trigger your IDE's debugger, you can initiate a debug session from the `Run Script` command of RGP Lua Console. More information about the extra code needed is at the [development environment](/docs/rgp-lua/development-environment) page.
 
-Preferences Dialog
---------------------
+---
+
+### Preferences Dialog
+
+---
 
 ![Preferences Dialog](assets/rgpluaconsole_prefs.jpg "Preferences Dialog")
 
