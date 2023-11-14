@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.27"
-    finaleplugin.Date = "2023/11/14"
+    finaleplugin.Version = "v0.28"
+    finaleplugin.Date = "2023/11/15"
     finaleplugin.AdditionalMenuOptions = [[
         Noteheads Change Repeat
     ]]
@@ -25,18 +25,18 @@ function plugindef()
         selection to one of these options:  
         Circled | Default | Diamond | Guitar Diamond |  
         Hidden | Number | Round | Slash | Square |  
-        Strikethrough | Triangle | Wedge | X |
+        Strikethrough | Triangle | Wedge | X | 
 
         This script produces an ordered list of notehead types, 
         each line beginning with a configurable "hotkey". 
-        Call the script, type the hotkey and hit [Enter] or [Return].
+        Call the script, type the hotkey and hit [Enter] or [Return]. 
 
         In SMuFL fonts like Finale Maestro, shapes can vary according 
         to duration values. Most duration-dependent shapes are not available 
         in Finale's old (non-SMuFL) Maestro and Engraver fonts. 
         "Diamond (Guitar)" is like "Diamond" except quarter notes and shorter use filled diamonds. 
         "Number" lets you specify any shape character as a number including SMuFL (Unicode) numbers 
-        in the form "0xe0e1" or "0xE0E1".
+        in the form "0xe0e1" or "0xE0E1". 
 
         To repeat the same action as last time without a confirmation dialog either select the 
         "Noteheads Change Repeat" menu item or hold down the SHIFT key when opening the script.
@@ -47,23 +47,24 @@ end
 
 no_dialog = no_dialog or false
 
-local info_notes = [[Change notehead shapes on a specific layer of the current 
+local info_notes = [[
+Change notehead shapes on a specific layer of the current 
 selection to one of these options:  
 Circled | Default | Diamond | Guitar Diamond |  
 Hidden | Number | Round | Slash | Square |  
 Strikethrough | Triangle | Wedge | X |  
-
+]] .. "\n" .. [[
 This script produces an ordered list of notehead types, 
 each line beginning with a configurable "hotkey". 
 Call the script, type the hotkey and hit [Enter] or [Return].  
-
+]] .. "\n" .. [[
 In SMuFL fonts like Finale Maestro, shapes can vary according 
 to duration values. Most duration-dependent shapes are not available 
 in Finale's old (non-SMuFL) Maestro and Engraver fonts. 
 "Diamond (Guitar)" is like "Diamond" except quarter notes and shorter use filled diamonds. 
 "Number" lets you specify any shape character as a number including SMuFL (Unicode) numbers 
 in the form "0xe0e1" or "0xE0E1".  
-
+]] .. "\n" .. [[
 To repeat the same action as last time without a confirmation dialog either select the 
 "Noteheads Change Repeat" menu item or hold down the SHIFT key when opening the script.
 ]]
@@ -216,7 +217,7 @@ local function user_chooses_shape()
     local y_step = 17
     local join = finenv.UI():IsOnMac() and "\t" or ": "
     local box_high = (#dialog_options * y_step) + 5
-    info_notes = info_notes:gsub("  \n",  "\n\n"):gsub("\n ?(%S)", "%1")
+    info_notes = info_notes:gsub("  \n",  "\n"):gsub(" %s+", " "):gsub("\n ", "\n")
     local function show_info()
         finenv.UI():AlertInfo(info_notes, "About " .. finaleplugin.ScriptGroupName)
     end
