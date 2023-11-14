@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.26"
-    finaleplugin.Date = "2023/10/19"
+    finaleplugin.Version = "v0.27"
+    finaleplugin.Date = "2023/11/14"
     finaleplugin.AdditionalMenuOptions = [[
         Noteheads Change Repeat
     ]]
@@ -21,8 +21,8 @@ function plugindef()
     finaleplugin.ScriptGroupName = "Noteheads Change by Layer"
     finaleplugin.ScriptGroupDescription = "Change notehead shapes on a specific layer of the current selection"
     finaleplugin.Notes = [[ 
-        Change notehead shapes on a specific layer of the current selection to one of these options:
-
+        Change notehead shapes on a specific layer of the current 
+        selection to one of these options:  
         Circled | Default | Diamond | Guitar Diamond |  
         Hidden | Number | Round | Slash | Square |  
         Strikethrough | Triangle | Wedge | X |
@@ -46,6 +46,27 @@ function plugindef()
 end
 
 no_dialog = no_dialog or false
+
+local info_notes = [[Change notehead shapes on a specific layer of the current 
+selection to one of these options:  
+Circled | Default | Diamond | Guitar Diamond |  
+Hidden | Number | Round | Slash | Square |  
+Strikethrough | Triangle | Wedge | X |  
+
+This script produces an ordered list of notehead types, 
+each line beginning with a configurable "hotkey". 
+Call the script, type the hotkey and hit [Enter] or [Return].  
+
+In SMuFL fonts like Finale Maestro, shapes can vary according 
+to duration values. Most duration-dependent shapes are not available 
+in Finale's old (non-SMuFL) Maestro and Engraver fonts. 
+"Diamond (Guitar)" is like "Diamond" except quarter notes and shorter use filled diamonds. 
+"Number" lets you specify any shape character as a number including SMuFL (Unicode) numbers 
+in the form "0xe0e1" or "0xE0E1".  
+
+To repeat the same action as last time without a confirmation dialog either select the 
+"Noteheads Change Repeat" menu item or hold down the SHIFT key when opening the script.
+]]
 
 local notehead = require("library.notehead")
 local mixin = require("library.mixin")
@@ -195,8 +216,10 @@ local function user_chooses_shape()
     local y_step = 17
     local join = finenv.UI():IsOnMac() and "\t" or ": "
     local box_high = (#dialog_options * y_step) + 5
-    local notes = finaleplugin.Notes:gsub(" %s+", " "):gsub("\n ", "\n"):sub(2)
-    local function show_info() finenv.UI():AlertInfo(notes, "About " .. finaleplugin.ScriptGroupName) end
+    info_notes = info_notes:gsub("  \n",  "\n\n"):gsub("\n ?(%S)", "%1")
+    local function show_info()
+        finenv.UI():AlertInfo(info_notes, "About " .. finaleplugin.ScriptGroupName)
+    end
 
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:CreateStatic(0, 0):SetText("Select note shape:"):SetWidth(150)
@@ -230,7 +253,7 @@ local function user_chooses_shape()
     local layer_num = dialog:CreateEdit(x_offset + 38, y - mac_offset):SetWidth(30)
         :SetText(save_layer)
         :AddHandleCommand(function(self)
-            local val = self:GetText()
+            local val = self:GetText():lower()
             if val:find("[^0-4]") then
                 if val:find("r") then reassign_keys()
                 elseif val:find("[?q]") then show_info()
@@ -266,10 +289,8 @@ end
 
 local function change_noteheads()
     configuration.get_user_settings(script_name, config, true)
-    local mod_key = finenv.QueryInvokedModifierKeys and
-    (    finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT)
-      or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
-    )
+    local qimk = finenv.QueryInvokedModifierKeys
+    local mod_key = qimk and (qimk(finale.CMDMODKEY_ALT) or qimk(finale.CMDMODKEY_SHIFT))
 
     if no_dialog or mod_key or user_chooses_shape() then
         if config.shape == "number" then
