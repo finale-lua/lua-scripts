@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.69"
-    finaleplugin.Date = "2023/11/14"
+    finaleplugin.Version = "v0.70"
+    finaleplugin.Date = "2023/11/15"
     finaleplugin.AdditionalMenuOptions = [[
         Tuplet Chooser Repeat
     ]]
@@ -41,10 +41,11 @@ It shows an ordered list of options,
 each line starting with a configurable "hotkey". 
 Activate the script, type the hotkey and hit [Enter] or [Return]. 
 The action may also be limited by layer.  
-
+]] .. "\n" .. [[
 To repeat the same tuplet change as last time without a confirmation dialog, 
 hold down the SHIFT key when starting the script 
-or select the "Tuplet Chooser Repeat" menu.]]
+or select the "Tuplet Chooser Repeat" menu.
+]]
 
 no_dialog = no_dialog or false
 local dialog_options = { -- key, text description (ordered)
@@ -226,7 +227,7 @@ local function user_chooses()
     local y_step = 17
     local box_wide = 220
     local box_high = (#dialog_options * y_step) + 4
-    info_notes = info_notes:gsub("  \n",  "\n\n"):gsub("\n ?(%S)", "%1")
+    info_notes = info_notes:gsub("  \n",  "\n"):gsub(" %s+", " "):gsub("\n ", "\n")
     local function show_info()
         finenv.UI():AlertInfo(info_notes, "About " .. finaleplugin.ScriptGroupName)
     end
