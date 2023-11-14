@@ -3,7 +3,7 @@ RGP Lua Console
 
 The RGP Lua Console is a re-implementation in pure Lua of the Developer Tab in _JW Lua_. It allows you write and/or execute ad hoc scripts or scripts that have not been configured in the [RGP Lua Configuration Window](/docs/rgp-lua/rgp-lua-configuration). It is included as `rgpluaconsole.lua` in the zip archive of RGP Lua Utilities available on the [download page](https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html) for RGP Lua.
 
-The `rgpluaconsole.lua` script requires version 0.68 or higher of _RGP Lua_. Other than that it has no dependencies. You may place it anywhere on your hard drive. Once you have configured it in RGP Lua, it will be available to run.
+The `rgpluaconsole.lua` script requires version 0.68 or higher of _RGP Lua_. Other than that it has no dependencies. You may place it anywhere on your hard drive. Once you have [configured](/docs/rgp-lua/rgp-lua-configuration) it in RGP Lua, it will be available to run.
 
 ![RGP Lua Console](assets/rgpluaconsole.jpg "RGP Lua Console")
 

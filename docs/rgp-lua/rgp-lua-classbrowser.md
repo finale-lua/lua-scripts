@@ -8,7 +8,7 @@ The RGP Lua Class Browser is a re-implementation in pure Lua of the Class Browse
 
 The Class Browser is included as `rgpluaclassbrowser.lua` in the zip archive of RGP Lua Utilities available on the [download page](https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html) for RGP Lua.
 
-The `rgpluaclassbrowser.lua ` script requires version 0.56 or higher of _RGP Lua_. It also requires the `jwluatagfile.xml` from the zip file. Other than that it has no dependencies. You may place the two files together anywhere on your hard drive. Once you have configured the `.lua` file in RGP Lua, it will be available to run.
+The `rgpluaclassbrowser.lua ` script requires version 0.56 or higher of _RGP Lua_. It also requires the `jwluatagfile.xml` from the zip file. Other than that it has no dependencies. You may place the two files together anywhere on your hard drive. Once you have [configured](/docs/rgp-lua/ the `.lua` file in RGP Lua, it will be available to run.
 
 ![RGP Lua Class Browser](assets/rgpluaclassbrowser.jpg "RGP Lua Class Browser")
 
