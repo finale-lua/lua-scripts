@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.67"
-    finaleplugin.Date = "2023/10/20"
+    finaleplugin.Version = "v0.68"
+    finaleplugin.Date = "2023/11/14"
     finaleplugin.AdditionalMenuOptions = [[
         Tuplet Chooser Repeat
     ]]
@@ -34,6 +34,17 @@ function plugindef()
     return  "Tuplet Chooser...", "Tuplet Chooser",
             "Change the condition of tuplets in the current selection by layer"
 end
+
+local info_notes = [[
+This script changes the tuplets in the current selection in 18 ways. 
+It shows an ordered list of options, 
+each line starting with a configurable "hotkey". 
+Activate the script, type the hotkey and hit [Enter] or [Return]. 
+The action may also be limited by layer.]]
+.. "\n\n\n" ..
+[[To repeat the same tuplet change as last time without a confirmation dialog, 
+hold down the SHIFT key when starting the script 
+or select the "Tuplet Chooser Repeat" menu.]]
 
 no_dialog = no_dialog or false
 local dialog_options = { -- key, text description (ordered)
@@ -215,9 +226,9 @@ local function user_chooses()
     local y_step = 17
     local box_wide = 220
     local box_high = (#dialog_options * y_step) + 4
-    local notes = finaleplugin.Notes:gsub(" %s+", " "):gsub("\n ", "\n"):sub(2)
+    info_notes = info_notes:gsub("  \n",  "\n\n\n"):gsub("\n ?(%S)", "%1")
     local function show_info()
-        finenv.UI():AlertInfo(notes, "About " .. finaleplugin.ScriptGroupName)
+        finenv.UI():AlertInfo(info_notes, "About " .. finaleplugin.ScriptGroupName)
     end
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:CreateStatic(0, 0):SetText("Change Tuplets To:"):SetWidth(box_wide)
@@ -281,8 +292,8 @@ end
 
 local function tuplets_change()
     configuration.get_user_settings(script_name, config, true)
-    local shift_key = finenv.QueryInvokedModifierKeys
-        and finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
+    local qimk = finenv.QueryInvokedModifierKeys
+    local shift_key = qimk and (qimk(finale.CMDMODKEY_ALT) or qimk(finale.CMDMODKEY_SHIFT))
 
     if no_dialog or shift_key or user_chooses() then
         local state = dialog_options[config.last_selected + 1][1]
