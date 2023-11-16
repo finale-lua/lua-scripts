@@ -8,10 +8,10 @@ function plugindef()
     finaleplugin.Date = "November 15, 2023"
     finaleplugin.CategoryTags = "Expressions"
     finaleplugin.Notes = [[
-            Allows you to construct a string from SMuFL multi-segment "wiggle" characters
-            that can be use for random/uneven vibrato expressions.
+            Allows you to construct a string from SMuFL multi-segment curved-line characters
+            that can be used, e.g., for expressions or custom lines to indicate random/uneven motion.
         ]]
-    return "SMuFL Multi-Segment Vibrato...", "SMuFL Multi-Segment Vibrato", "Allows you to construct a string from SMuFL multi-segment \"wiggle\" characters"
+    return "SMuFL Multi-Segment Curves...", "SMuFL Multi-Segment Curves", "Allows you to construct a string from SMuFL multi-segment curved-line characters"
 end
 
 local library = require('library.general_library')
@@ -40,7 +40,9 @@ end
 local function on_char_button_hit(control)
     local text = finale.FCString()
     control:GetText(text)
-    global_dialog:GetControl("editor"):ReplaceSelectedText(text)
+    local editor = global_dialog:GetControl("editor")
+    editor:ReplaceSelectedText(text)
+    editor:SetKeyboardFocus()
 end
 
 local function create_dialog_box()
@@ -52,7 +54,7 @@ local function create_dialog_box()
     local x_sep = 10
     local button_height = 20
     local dlg = mixin.FCXCustomLuaWindow()
-        :SetTitle("Multi-Segment Vibrato")
+        :SetTitle("SMuFL Multi-Segment Curves")
     -- SMuFL popup and size
     local popup = dlg:CreatePopup(x_off, y_off, "fontlist")
         :SetWidth(200)
@@ -111,23 +113,31 @@ local function create_dialog_box()
             :AddHandleCommand(on_char_button_hit)
         x_off = x_off + 30 + x_sep
     end
-    local function add_button_row(label_text, utf8_first, utf8_last, fontsize)
-        x_off = 0
+    local function add_button_row(label_text, utf8_first, utf8_last, fontsize, right_side)
+        curr_y_off = y_off
+        x_off = right_side and text_width/2 + 40 or 0
         dlg:CreateStatic(x_off, y_off)
-            :SetWidth(200)
+            :SetWidth(250)
             :SetText("-----------" .. label_text .. "-----------")
         y_off = y_off + button_height
         for utf8char = utf8_first, utf8_last do
             add_button(utf8char, fontsize)
         end
         y_off = y_off + button_height + 5
+        if not right_side then
+            y_off = curr_y_off
+        end
     end
-    add_button_row("smallest", 0xeacd, 0xead3, win_mac(24, 24))
-    add_button_row("small", 0xead4, 0xeada, win_mac(24, 24))
-    add_button_row("medium", 0xeadb, 0xeae1, win_mac(20, 24))
-    add_button_row("large", 0xeae2, 0xeae8, win_mac(18, 24))
-    add_button_row("largest", 0xeae9, 0xeaef, win_mac(14, 18))
-    add_button_row("random", 0xeaf0, 0xeaf3, win_mac(12, 16))
+    add_button_row("smallest", 0xeacd, 0xead3, win_mac(24, 24), false)
+    add_button_row("small", 0xead4, 0xeada, win_mac(24, 24), true)
+    add_button_row("medium", 0xeadb, 0xeae1, win_mac(20, 24), false)
+    add_button_row("large", 0xeae2, 0xeae8, win_mac(18, 24), true)
+    add_button_row("largest", 0xeae9, 0xeaef, win_mac(14, 18), false)
+    add_button_row("random", 0xeaf0, 0xeaf3, win_mac(12, 16), true)
+    add_button_row("trill", 0xeaa0, 0xeaa8, win_mac(24, 24), false)
+    add_button_row("arpeggiato", 0xeaa9, 0xeaaf, win_mac(24, 24), true)
+    add_button_row("circular motion", 0xeac4, 0xeacb, win_mac(14, 16), false)
+    add_button_row("falls and scoops", 0xe5d4, 0xe5d9, win_mac(12, 16), true)
     y_off = y_off + y_sep
     -- copy and close buttons
     x_off = 0
@@ -144,11 +154,11 @@ local function create_dialog_box()
     return dlg
 end
 
-local function smufl_multisegment_vibrato()
+local function smufl_multisegment_curves()
     global_dialog = global_dialog or create_dialog_box()
     if global_dialog then
         global_dialog:RunModeless()
     end
 end
 
-smufl_multisegment_vibrato()
+smufl_multisegment_curves()
