@@ -103,31 +103,31 @@ local function create_dialog_box()
         :SetAutomaticEditing(false)
     y_off = y_off + text_height + y_sep
     -- squiggle buttons
-    local function add_button(utf8char)
+    local function add_button(utf8char, fontsize)
         dlg:CreateButton(x_off, y_off)
             :SetWidth(30)
             :SetText(finale.FCString(utf8.char(utf8char)))
-            :SetFont(finale.FCFontInfo(fontname_text, win_mac(12, 14)))
+            :SetFont(finale.FCFontInfo(fontname_text, fontsize))
             :AddHandleCommand(on_char_button_hit)
         x_off = x_off + 30 + x_sep
     end
-    local function add_button_row(label_text, utf8_first, utf8_last)
+    local function add_button_row(label_text, utf8_first, utf8_last, fontsize)
         x_off = 0
         dlg:CreateStatic(x_off, y_off)
             :SetWidth(200)
             :SetText("-----------" .. label_text .. "-----------")
         y_off = y_off + button_height
         for utf8char = utf8_first, utf8_last do
-            add_button(utf8char)
+            add_button(utf8char, fontsize)
         end
-        y_off = y_off + button_height
+        y_off = y_off + button_height + 5
     end
-    add_button_row("smallest", 0xeacd, 0xead3)
-    add_button_row("small", 0xead4, 0xeada)
-    add_button_row("medium", 0xeadb, 0xeae1)
-    add_button_row("large", 0xeae2, 0xeae8)
-    add_button_row("largest", 0xeae9, 0xeaef)
-    add_button_row("random", 0xeaf0, 0xeaf3)
+    add_button_row("smallest", 0xeacd, 0xead3, win_mac(24, 24))
+    add_button_row("small", 0xead4, 0xeada, win_mac(24, 24))
+    add_button_row("medium", 0xeadb, 0xeae1, win_mac(20, 24))
+    add_button_row("large", 0xeae2, 0xeae8, win_mac(18, 24))
+    add_button_row("largest", 0xeae9, 0xeaef, win_mac(14, 18))
+    add_button_row("random", 0xeaf0, 0xeaf3, win_mac(12, 16))
     y_off = y_off + y_sep
     -- copy and close buttons
     x_off = 0
