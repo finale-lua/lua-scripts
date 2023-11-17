@@ -66,6 +66,8 @@ Do not modify text with the following patterns (where [TEXT_PLACEHOLDER] is any 
 ^size([TEXT_PLACEHOLDER])
 ^nfx([TEXT_PLACEHOLDER])
 
+Do not modify any token that begins with "^".
+
 Special Processing:
 Do not modify line endings.
 Identify the language. If it is a language that does not use spaces, nevertheless separate each word with a space and each pronounced syllable inside each word with a hyphen.
@@ -82,6 +84,8 @@ Do not modify text with the following patterns (where [TEXT_PLACEHOLDER] is any 
 ^Font([TEXT_PLACEHOLDER])
 ^size([TEXT_PLACEHOLDER])
 ^nfx([TEXT_PLACEHOLDER])
+
+Do not modify any token that begins with "^".
 
 Special Processing:
 Do not remove any punctuation other than hyphens.
