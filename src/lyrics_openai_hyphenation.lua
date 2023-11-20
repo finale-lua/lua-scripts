@@ -263,21 +263,18 @@ local function get_hyphenation_text()
     local text_ctrl = global_dialog:GetControl("text")
     local selected_range = finale.FCRange()
     text_ctrl:GetSelection(selected_range)
-    local fcstr = finale.FCString()
     if selected_range.Length > 0 then
         context.range_for_hyphenation = selected_range
-        text_ctrl:GetTextInRange(fcstr, selected_range)
     else
         context.range_for_hyphenation = nil
-        fcstr = text_ctrl:CreateEnigmaString()
     end
-    return fcstr.LuaString
+    return text_ctrl:CreateEnigmaString(context.range_for_hyphenation).LuaString
 end
 
 local function set_hyphenation_text(text)
     local text_ctrl = global_dialog:GetControl("text")
     if context.range_for_hyphenation then
-        text_ctrl:ReplaceTextInRange(finale.FCString(text), context.range_for_hyphenation)
+        text_ctrl:ReplaceTextInRangeWithEnigmaString(finale.FCString(text), context.range_for_hyphenation)
     else
         text_ctrl:SetEnigmaString(finale.FCString(text), context.current_lyric_type)
     end
