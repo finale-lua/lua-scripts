@@ -45,6 +45,8 @@ The RGP Lua Console works well in tandem with both ZeroBraneStudio and Visual St
 - ZeroBraneStudio does not allow edits while the script is running in debug mode. If you make external edits while it is running, you can get out of sync with ZeroBraneStudio.
 - If your script contains the necessary extra code to trigger your IDE's debugger, you can initiate a debug session from the `Run Script` command of RGP Lua Console. More information about the extra code needed is at the [development environment](/docs/rgp-lua/development-environment) page.
 
+A particularly effective approach is to edit scripts with your IDE editor and use the console to trigger their execution. The console picks up saved changes from the IDE nearly instantaneously. This approach obviates the need to configure scripts in the [RGP Lua Configuration Window](/docs/rgp-lua/rgp-lua-configuration). Having both windows open side-by-side makes for very rapid code-and-test iteration.
+
 ---
 
 ### Preferences Dialog
