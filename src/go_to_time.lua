@@ -3,13 +3,14 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.04"
-    finaleplugin.Date = "2023/11/12"
+    finaleplugin.Version = "0.05"
+    finaleplugin.Date = "2023/11/21"
     finaleplugin.CategoryTags = "Measures, Region, Selection"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         To navigate to a specific time in the current file, 
-        enter the minutes (integers) and seconds (with decimals) in duration. 
+        enter the minutes and seconds in duration. 
+        Either value can include decimal points. 
         Accelerandos and Rallentandos are not considered and only the 
         first tempo mark in each measure is evaluated. 
         These are assumed to take effect at the start of that measure.
@@ -49,7 +50,7 @@ local function choose_target_time()
     y = y + 18
     local min = dialog:CreateEdit(0, y)
         min:SetWidth(x - 10)
-        min:SetInteger(0)
+        min:SetText(fs("0"))
     local sec = dialog:CreateEdit(x, y)
         sec:SetWidth(x - 10)
         sec:SetText(fs("0"))
@@ -69,18 +70,21 @@ local function choose_target_time()
     but:SetText(fs("GO"))
     dialog:CreateCancelButton()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+
+    s_min = finale.FCString()
+    min:GetText(s_min) -- get decimal minutes in (s_min)
     sec:GetText(s) -- get decimal seconds in (s)
     return ok,
-        min:GetInteger(),
+        tonumber(s_min.LuaString),
         tonumber(s.LuaString),
         (select:GetCheck() == 1)
 end
 
-local function move_to_target(rgn, matched, select)
-    finenv.UI():MoveToMeasure(matched, 0)
+local function move_to_target(rgn, match_measure, select)
+    finenv.UI():MoveToMeasure(match_measure, 0)
     if select then
-        rgn.StartMeasure = matched
-        rgn.EndMeasure = matched
+        rgn.StartMeasure = match_measure
+        rgn.EndMeasure = match_measure
         rgn.StartSlot = 1
         rgn.EndSlot = 1
         rgn:SetInDocument()
@@ -102,12 +106,12 @@ local function find_matching_measure()
 
     local target = min * 60 + sec
     local tally = 0
-    local matched = 0
+    local match_measure = 0
 
     -- measure tally duration loop
     for measure_num = 1, rgn.EndMeasure do
         if tally >= target then
-            matched = measure_num -- all done
+            match_measure = measure_num -- all done
             break
         end
         -- move to end of measure
@@ -116,12 +120,12 @@ local function find_matching_measure()
         local m_duration = (measure:GetDuration() * 60) / (beat * speed)
         tally = tally + m_duration
         if tally > target then
-            matched = measure_num
+            match_measure = measure_num
             break
         end
     end
-    if matched > 0 then -- found a matching measure
-        move_to_target(rgn, matched, select)
+    if match_measure > 0 then -- found a matching measure
+        move_to_target(rgn, match_measure, select)
     else
         local msg = "The target time of "
             .. string.format("[%02d:%05.2f]", min, sec)
