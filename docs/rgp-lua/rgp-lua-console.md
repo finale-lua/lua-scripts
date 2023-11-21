@@ -65,7 +65,9 @@ A particularly effective approach is to edit scripts with your IDE editor and us
 
 **Use Spaces for Tabs** Selecting this option causes the editor to substitute spaces for tabs.
 
-**Wrap Text In Editor** If checked, longer lines of text are wrapped to the visible area of the editor. If unchecked, a horizontal scrollbar allows one line on the screen per line of code.
+**Wrap Text in Editor** If checked, longer lines of text are wrapped to the visible area of the editor. If unchecked, a horizontal scrollbar allows one line on the screen per line of code.
+
+**Show Timestamps in Output** If checked, each line of output begins with a timestamp that measures 1000ths of a second from the start of the script run.
 
 **Output Tabstop Width** The width of tabs in the output console, in spaces.
 
