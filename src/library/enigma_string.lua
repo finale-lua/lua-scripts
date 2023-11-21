@@ -126,35 +126,35 @@ end
 --[[
 % remove_inserts
 
-Removes text inserts other than font commands and replaces them with
+Removes text inserts other than font and text formatting commands and either removes or replaces them with generic text
 
 @ fcstring (FCString) this is both the input and the modified output result
 @ replace_with_generic (boolean) if true, replace the insert with the text of the enigma command
+@ convert_tags_to_literals (boolean) if true, converts the tags to literal text by escaping the carets ("^") with double-carets ("^^"); replace_with_generic must also be true
 ]]
-function enigma_string.remove_inserts(fcstring, replace_with_generic)
-    -- so far this just supports page-level inserts. if this ever needs to work with expressions, we'll need to
-    -- add the last three items in the (Finale 26) text insert menu, which are playback inserts not available to page text
+function enigma_string.remove_inserts(fcstring, replace_with_generic, convert_tags_to_literals)
     local text_cmds = {
         "^arranger", "^composer", "^copyright", "^date", "^description", "^fdate", "^filename", "^lyricist", "^page",
-        "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages",
+        "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages", "^value", "^control", "^pass"
     }
     local lua_string = fcstring.LuaString
     for i, text_cmd in ipairs(text_cmds) do
         local starts_at = string.find(lua_string, text_cmd, 1, true) -- true: do a plain search
-        while nil ~= starts_at do
+        while starts_at ~= nil do
             local replace_with = ""
             if replace_with_generic then
-                replace_with = string.sub(text_cmd, 2)
+                if convert_tags_to_literals then
+                    replace_with = "^" .. text_cmd
+                else
+                    replace_with = "[" .. string.sub(text_cmd, 2) .. "]"
+                end
             end
-            local after_text_at = starts_at + string.len(text_cmd)
-            local next_at = string.find(lua_string, ")", after_text_at, true)
-            if nil ~= next_at then
-                next_at = next_at + 1
-            else
-                next_at = starts_at
+            local next_at = starts_at + #text_cmd
+            if not replace_with_generic or not convert_tags_to_literals then
+                next_at = string.find(lua_string, ")", next_at, true) + 1 or starts_at
             end
             lua_string = string.sub(lua_string, 1, starts_at - 1) .. replace_with .. string.sub(lua_string, next_at)
-            starts_at = string.find(lua_string, text_cmd, 1, true)
+            starts_at = string.find(lua_string, text_cmd, starts_at + #replace_with, true)
         end
     end
     fcstring.LuaString = lua_string
