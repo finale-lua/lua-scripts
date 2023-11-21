@@ -74,10 +74,8 @@ local function choose_target_time()
     s_min = finale.FCString()
     min:GetText(s_min) -- get decimal minutes in (s_min)
     sec:GetText(s) -- get decimal seconds in (s)
-    return ok,
-        tonumber(s_min.LuaString),
-        tonumber(s.LuaString),
-        (select:GetCheck() == 1)
+    local target = tonumber(s_min.LuaString) * 60 + tonumber(s.LuaString)
+    return ok, target, (select:GetCheck() == 1)
 end
 
 local function move_to_target(rgn, match_measure, select)
@@ -101,10 +99,9 @@ local function find_matching_measure()
     local beat = pb_prefs.MetronomeBeat
     local speed = pb_prefs.MetronomeSpeed
 
-    local ok, min, sec, select = choose_target_time()
+    local ok, target, select = choose_target_time()
     if not ok then return end -- user cancelled
 
-    local target = min * 60 + sec
     local tally = 0
     local match_measure = 0
 
@@ -127,6 +124,8 @@ local function find_matching_measure()
     if match_measure > 0 then -- found a matching measure
         move_to_target(rgn, match_measure, select)
     else
+        local min = math.floor(target / 60) -- whole minutes
+        local sec = target - (min * 60) -- leftover seconds
         local msg = "The target time of "
             .. string.format("[%02d:%05.2f]", min, sec)
             .. " is longer than the duration of the current score"
