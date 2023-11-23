@@ -514,8 +514,10 @@ function library.get_parent_class(classname)
             end
         end
     else
-        for k, _ in pairs(class.__parent) do
-            return tostring(k)  -- in RGP Lua the v is just a dummy value, and the key is the classname of the parent
+        if class.__parent then
+            for k, _ in pairs(class.__parent) do
+                return tostring(k)  -- in RGP Lua the v is just a dummy value, and the key is the classname of the parent
+            end
         end
     end
     return nil
