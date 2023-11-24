@@ -71,6 +71,8 @@ A particularly effective approach is to edit scripts with your IDE editor and us
 
 **Output Tabstop Width** The width of tabs in the output console, in spaces.
 
+**Wrap Text in Output** If checked, longer lines of text are wrapped to the visible area of the output console. If unchecked, a horizontal scrollbar allows one line on the screen per line of output.
+
 **Font** The font used in all three of the text panes. It is recommended to use a fixed-width font.
 
 **Change** Allows you to select the font and size for the text panes. Font effects are ignored.
