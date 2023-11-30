@@ -4892,30 +4892,54 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.62"
-    finaleplugin.Date = "2023/07/09"
+    finaleplugin.Version = "v0.70"
+    finaleplugin.Date = "2023/11/15"
+    finaleplugin.AdditionalMenuOptions = [[
+        Tuplet Chooser Repeat
+    ]]
+    finaleplugin.AdditionalUndoText = [[
+        Tuplet Chooser Repeat
+    ]]
+    finaleplugin.AdditionalDescriptions = [[
+        Repeat the last change of tuplet condition (no dialog)
+    ]]
+    finaleplugin.AdditionalPrefixes = [[
+        no_dialog = true
+    ]]
     finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.ScriptGroupName = "Tuplet Chooser"
+    finaleplugin.ScriptGroupDescription = "Change the condition of tuplets in the current selection by layer"
     finaleplugin.Notes = [[
-        Change the condition of tuplets in the current selection to:
-        - Avoid Staff
-        - Don't Avoid Staff
-        - Flat
-        - Not Flat
-        - Flip
-        - Invisible
-        - Visible
-        - Bracket Unbeamed Only
-        - Bracket Always
-        - Bracket Opposite Beamed Side
-        - Reset (to Default Preferences)
-
-        The script provides a list of options, each line beginning with a configurable "hotkey".
-        Open the script, type the hotkey and hit [Enter] or [Return].
-        Actions may optionally be limited to one of 4 layers.
+        This script changes the tuplets in the current selection in 18 ways.
+        It shows an ordered list of options,
+        each line starting with a configurable "hotkey".
+        Activate the script, type the hotkey and hit [Enter] or [Return].
+        The action may also be limited by layer.
+        To repeat the same tuplet change as last time without a confirmation dialog,
+        hold down the SHIFT key when starting the script
+        or select the "Tuplet Chooser Repeat" menu.
+        The layer number is "clamped" to a single character so to change
+        layer just type a new number - 'delete' key not needed.
 	]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/tuplet_chooser.hash"
-    return "Tuplet Chooser...", "Tuplet Chooser", "Change the condition of tuplets in the current selection"
+    return  "Tuplet Chooser...", "Tuplet Chooser",
+            "Change the condition of tuplets in the current selection by layer"
 end
+local info_notes = [[
+This script changes the tuplets in the current selection in 18 ways.
+It shows an ordered list of options,
+each line starting with a configurable "hotkey".
+Activate the script, type the hotkey and hit [Enter] or [Return].
+The action may also be limited by layer.
+]] .. "\n" .. [[
+To repeat the same tuplet change as last time without a confirmation dialog,
+hold down the SHIFT key when starting the script
+or select the "Tuplet Chooser Repeat" menu.
+]] .. "\n" .. [[
+The layer number is "clamped" to a single character so to change
+layer just type a new number - 'delete' key not needed.
+]]
+no_dialog = no_dialog or false
 local dialog_options = {
     { "avoid", "Avoid Staff" },
     { "not_avoid", "Don't Avoid Staff" },
@@ -4924,9 +4948,22 @@ local dialog_options = {
     { "flip", "Flip" },
     { "invisible", "Invisible" },
     { "visible", "Visible" },
-    { "bracket_unbeam", "Bracket Unbeamed Only" },
-    { "bracket_always", "Bracket Always" },
-    { "bracket_opp_beam", "Bracket Opp. Beamed Side" },
+    { "TUPLETBRACKET_ALWAYS",       "Bracket: Always" },
+    { "TUPLETBRACKET_NEVERBEAMEDONBEAMSIDE", "Bracket: Opp. Beamed Side" },
+    { "TUPLETBRACKET_UNBEAMEDONLY", "Bracket: Unbeamed Only" },
+    { "TUPLETPLACEMENT_ABOVE", "Place: Above" },
+    { "TUPLETPLACEMENT_BELOW", "Place: Below" },
+    { "TUPLETPLACEMENT_MANUAL", "Place: Manual" },
+    { "TUPLETPLACEMENT_NOTESIDE", "Place: Note Side" },
+    { "TUPLETPLACEMENT_STEMSIDE", "Place: Stem Side" },
+    { "TUPLETSHAPE_NONE",     "Shape: None" },
+    { "TUPLETSHAPE_BRACKET",  "Shape: Bracket" },
+    { "TUPLETSHAPE_SLUR",     "Shape: Slur" },
+    { "TUPLETNUMBER_NONE",    "Number: None" },
+    { "TUPLETNUMBER_REGULAR", "Number: Regular" },
+    { "TUPLETNUMBER_RATIO",   "Number: Ratio" },
+    { "TUPLETNUMBER_RATIOANDNOTE",      "Number: Ratio+Note" },
+    { "TUPLETNUMBER_RATIOANDNOTE_BOTH", "Number: Ratio+Note Both" },
     { "reset", "Reset (Default Preferences)" },
 }
 local config = {
@@ -4935,11 +4972,24 @@ local config = {
     flat = "F",
     not_flat = "N",
     flip = "X",
-    visible = "V",
     invisible = "I",
-    bracket_unbeam = "U",
-    bracket_always = "J",
-    bracket_opp_beam = "O",
+    visible = "V",
+    TUPLETPLACEMENT_ABOVE = "Y",
+    TUPLETPLACEMENT_BELOW = "B",
+    TUPLETPLACEMENT_MANUAL = "H",
+    TUPLETPLACEMENT_STEMSIDE = "G",
+    TUPLETPLACEMENT_NOTESIDE = "J",
+    TUPLETBRACKET_UNBEAMEDONLY = "U",
+    TUPLETBRACKET_ALWAYS = "K",
+    TUPLETBRACKET_NEVERBEAMEDONBEAMSIDE = "O",
+    TUPLETSHAPE_NONE = "0",
+    TUPLETSHAPE_BRACKET = "1",
+    TUPLETSHAPE_SLUR = "2",
+    TUPLETNUMBER_NONE = "Q",
+    TUPLETNUMBER_REGULAR = "W",
+    TUPLETNUMBER_RATIO = "E",
+    TUPLETNUMBER_RATIOANDNOTE = "R",
+    TUPLETNUMBER_RATIOANDNOTE_BOTH = "T",
     reset = "R",
     layer_num = 0,
     ignore_duplicates = 0,
@@ -4951,24 +5001,23 @@ local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local layer = require("library.layer")
 local script_name = "tuplet_chooser"
-configuration.get_user_settings(script_name, config, true)
-function dialog_set_position(dialog)
+local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
         dialog:RestorePosition()
     end
 end
-function dialog_save_position(dialog)
+local function dialog_save_position(dialog)
     dialog:StorePosition()
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
 end
-function change_tuplet_state(state)
+local function change_tuplet_state(state)
     for entry in eachentry(finenv.Region(), config.layer_num) do
         if entry:IsStartOfTuplet() then
-            for tuplet in each(entry:CreateTuplets()) do
+            for tuplet in eachbackwards(entry:CreateTuplets()) do
                 if state == "visible" or state == "invisible" then
                     tuplet.Visible = (state == "visible")
                 elseif state == "flat" or state == "not_flat" then
@@ -4979,30 +5028,29 @@ function change_tuplet_state(state)
                     tuplet:PrefsReset(true)
                 elseif state == "flip" then
                     local placement = tuplet.PlacementMode
-                    if placement == finale.TUPLETPLACEMENT_STEMSIDE then
-                        tuplet.PlacementMode = finale.TUPLETPLACEMENT_NOTESIDE
-                    elseif placement == finale.TUPLETPLACEMENT_NOTESIDE then
-                        tuplet.PlacementMode = finale.TUPLETPLACEMENT_STEMSIDE
-                    elseif placement == finale.TUPLETPLACEMENT_ABOVE then
-                        tuplet.PlacementMode = finale.TUPLETPLACEMENT_BELOW
-                    elseif placement == finale.TUPLETPLACEMENT_BELOW then
-                        tuplet.PlacementMode = finale.TUPLETPLACEMENT_ABOVE
+                    for _, v in ipairs({
+                            {finale.TUPLETPLACEMENT_STEMSIDE, finale.TUPLETPLACEMENT_NOTESIDE},
+                            {finale.TUPLETPLACEMENT_ABOVE,    finale.TUPLETPLACEMENT_BELOW}
+                        }) do
+                        if     placement == v[1] then tuplet.PlacementMode = v[2]
+                        elseif placement == v[2] then tuplet.PlacementMode = v[1]
+                        end
                     end
-                elseif state:find("bracket") then
-                    local bracket = finale.TUPLETBRACKET_ALWAYS
-                    if state == "bracket_unbeam" then
-                        bracket = finale.TUPLETBRACKET_UNBEAMEDONLY
-                    elseif state == "bracket_opp_beam" then
-                        bracket = finale.TUPLETBRACKET_NEVERBEAMEDONBEAMSIDE
-                    end
-                    tuplet.BracketMode = bracket
+                elseif state:find("TUPLETPLACEMENT") then
+                    tuplet.PlacementMode = finale[state]
+                elseif state:find("TUPLETBRACKET") then
+                    tuplet.BracketMode = finale[state]
+                elseif state:find("TUPLETSHAPE") then
+                    tuplet.ShapeStyle = finale[state]
+                elseif state:find("TUPLETNUMBER") then
+                    tuplet.NumberStyle = finale[state]
                 end
                 tuplet:Save()
             end
         end
     end
 end
-function reassign_keystrokes()
+local function reassign_keystrokes(index)
     local y_step, x_wide = 17, 180
     local offset = finenv.UI():IsOnMac() and 3 or 0
     local is_duplicate, errors = false, {}
@@ -5010,6 +5058,10 @@ function reassign_keystrokes()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Tuplets: Reassign Keys")
     for _, v in ipairs(dialog_options) do
         dialog:CreateEdit(0, y - offset, v[1]):SetText(config[v[1]]):SetWidth(20)
+            :AddHandleCommand(function(self)
+                local str = self:GetText():upper()
+                self:SetText(str:sub(-1)):SetKeyboardFocus()
+            end)
         dialog:CreateStatic(25, y):SetText(v[2]):SetWidth(x_wide)
         y = y + y_step
     end
@@ -5018,12 +5070,14 @@ function reassign_keystrokes()
         :SetText("Ignore duplicate assignments"):SetCheck(config.ignore_duplicates or 0)
     dialog:CreateOkButton():SetText("Save")
     dialog:CreateCancelButton()
+    dialog:RegisterInitWindow(function(self)
+        self:GetControl(dialog_options[index][1]):SetKeyboardFocus()
+    end)
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function(self)
         local assigned = {}
         for i, v in ipairs(dialog_options) do
             local key = self:GetControl(v[1]):GetText()
-            key = string.upper(string.sub(key, 1, 1))
             if key == "" then key = "?" end
             config[v[1]] = key
             config.ignore_duplicates = ignore:GetCheck()
@@ -5053,62 +5107,79 @@ function reassign_keystrokes()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
     return ok, is_duplicate
 end
-function user_chooses()
+local function user_chooses()
     local max = layer.max_layers()
     local offset = finenv.UI():IsOnMac() and 3 or 0
-    local join = finenv.UI():IsOnMac() and "\t" or ": "
     local y_step = 17
     local box_wide = 220
-    local box_high = (#dialog_options * y_step) + 5
+    local box_high = (#dialog_options * y_step) + 4
+    info_notes = info_notes:gsub("  \n",  "\n"):gsub(" %s+", " "):gsub("\n ", "\n")
+    local function show_info()
+        finenv.UI():AlertInfo(info_notes, "About " .. finaleplugin.ScriptGroupName)
+    end
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:CreateStatic(0, 0):SetText("Change Tuplets To:"):SetWidth(box_wide)
-    local key_list = dialog:CreateListBox(0, 20):SetWidth(box_wide):SetHeight(box_high)
-    local function fill_key_list()
-        key_list:Clear()
-        for _, option in ipairs(dialog_options) do
-            key_list:AddString(config[option[1]] .. join .. option[2])
+    dialog:CreateButton(box_wide - 20, 0):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() show_info() end)
+    local key_list = dialog:CreateListBox(0, 22):SetWidth(box_wide):SetHeight(box_high)
+        local function fill_key_list()
+            local join = finenv.UI():IsOnMac() and "\t" or ": "
+            key_list:Clear()
+            for _, option in ipairs(dialog_options) do
+                key_list:AddString(config[option[1]] .. join .. option[2])
+            end
+            key_list:SetSelectedItem(config.last_selected or 0)
         end
-        key_list:SetSelectedItem(config.last_selected or 0)
-    end
+        local function change_keys()
+            local ok, is_duplicate = true, true
+            while ok and is_duplicate do
+                ok, is_duplicate = reassign_keystrokes(key_list:GetSelectedItem() + 1)
+            end
+            if ok then fill_key_list() end
+        end
     fill_key_list()
     local x_off = box_wide / 4
-    local y = box_high + 30
-    local reassign = dialog:CreateButton(x_off, y)
-        :SetText("Reassign Keys"):SetWidth(x_off * 2)
-    reassign:AddHandleCommand(function()
-        local ok, is_duplicate = true, true
-        while ok and is_duplicate do
-            ok, is_duplicate = reassign_keystrokes()
-        end
-        if ok then
-            configuration.save_user_settings(script_name, config)
-            fill_key_list()
-        end
-    end)
+    local y = box_high + 32
+    dialog:CreateButton(x_off, y):SetText("Reassign Hotkeys")
+        :AddHandleCommand(function() change_keys() end):SetWidth(x_off * 2)
     y = y + 25
-    dialog:CreateStatic(12, y):SetWidth(x_off * 2)
-        :SetText("Active Layer 1-" .. max .. ":")
-    local layer_num = dialog:CreateEdit(x_off * 2, y - offset):SetWidth(20)
-        :SetInteger(config.layer_num or 0)
-    dialog:CreateStatic(x_off * 2 + 24, y):SetWidth(80)
-        :SetText("(0 = all)")
+    dialog:CreateStatic(50, y):SetWidth(x_off * 2):SetText("Layer 1-" .. max .. ":")
+    local save_layer = config.layer_num
+    local layer_num = dialog:CreateEdit(x_off * 2, y - offset)
+        :SetWidth(30):SetText(save_layer)
+        :AddHandleCommand(function(self)
+            local val = self:GetText():lower()
+            if val:find("[^0-4]") then
+                if val:find("[?q]") then show_info()
+                elseif val:find("r") then change_keys()
+                end
+                self:SetText(save_layer):SetKeyboardFocus()
+            elseif val ~= "" then
+                val = val:sub(-1)
+                self:SetText(val)
+                save_layer = val
+            end
+        end)
+    dialog:CreateStatic(x_off * 2 + 34, y):SetWidth(80):SetText("(0 = all)")
     dialog:CreateOkButton():SetText("Select")
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     dialog:RegisterInitWindow(function() key_list:SetKeyboardFocus() end)
     dialog:RegisterHandleOkButtonPressed(function(self)
         config.last_selected = key_list:GetSelectedItem()
-        config.layer_num = math.min(math.max(layer_num:GetInteger(), 0), max)
-        dialog_save_position(self)
+        config.layer_num = layer_num:GetInteger()
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
-function tuplets_change()
-    if user_chooses() then
+local function tuplets_change()
+    configuration.get_user_settings(script_name, config, true)
+    local qimk = finenv.QueryInvokedModifierKeys
+    local mod_key = qimk and (qimk(finale.CMDMODKEY_ALT) or qimk(finale.CMDMODKEY_SHIFT))
+    if no_dialog or mod_key or user_chooses() then
         local state = dialog_options[config.last_selected + 1][1]
         change_tuplet_state(state)
-        finenv.UI():ActivateDocumentWindow()
     end
+    finenv.UI():ActivateDocumentWindow()
 end
 tuplets_change()
