@@ -71,7 +71,7 @@ local function choose_target_time()
     dialog:CreateCancelButton()
     local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 
-    s_min = finale.FCString()
+    local s_min = finale.FCString()
     min:GetText(s_min) -- get decimal minutes in (s_min)
     sec:GetText(s) -- get decimal seconds in (s)
     local target = tonumber(s_min.LuaString) * 60 + tonumber(s.LuaString)
@@ -126,7 +126,7 @@ local function find_matching_measure()
     else
         local min = math.floor(target / 60) -- whole minutes
         local sec = target - (min * 60) -- leftover seconds
-        local msg = "The target time of "
+        local msg = "The nominated time of "
             .. string.format("[%02d:%05.2f]", min, sec)
             .. " is longer than the duration of the current score"
         finenv.UI():AlertInfo(msg, plugindef())
