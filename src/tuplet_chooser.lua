@@ -30,6 +30,9 @@ function plugindef()
         To repeat the same tuplet change as last time without a confirmation dialog, 
         hold down the SHIFT key when starting the script 
         or select the "Tuplet Chooser Repeat" menu.
+
+        The layer number is "clamped" to a single character so to change 
+        layer just type a new number - 'delete' key not needed.
 	]]
     return  "Tuplet Chooser...", "Tuplet Chooser",
             "Change the condition of tuplets in the current selection by layer"
@@ -44,7 +47,10 @@ The action may also be limited by layer.
 ]] .. "\n" .. [[
 To repeat the same tuplet change as last time without a confirmation dialog, 
 hold down the SHIFT key when starting the script 
-or select the "Tuplet Chooser Repeat" menu.
+or select the "Tuplet Chooser Repeat" menu.  
+]] .. "\n" .. [[
+The layer number is "clamped" to a single character so to change 
+layer just type a new number - 'delete' key not needed.
 ]]
 
 no_dialog = no_dialog or false
@@ -142,9 +148,10 @@ local function change_tuplet_state(state)
                 elseif state == "flip" then
                     local placement = tuplet.PlacementMode
                     for _, v in ipairs({
-                        {finale.TUPLETPLACEMENT_STEMSIDE, finale.TUPLETPLACEMENT_NOTESIDE},
-                        {finale.TUPLETPLACEMENT_ABOVE, finale.TUPLETPLACEMENT_BELOW} }) do
-                        if placement == v[1] then tuplet.PlacementMode = v[2]
+                            {finale.TUPLETPLACEMENT_STEMSIDE, finale.TUPLETPLACEMENT_NOTESIDE},
+                            {finale.TUPLETPLACEMENT_ABOVE,    finale.TUPLETPLACEMENT_BELOW}
+                        }) do
+                        if     placement == v[1] then tuplet.PlacementMode = v[2]
                         elseif placement == v[2] then tuplet.PlacementMode = v[1]
                         end
                     end
@@ -270,7 +277,7 @@ local function user_chooses()
                 elseif val:find("r") then change_keys()
                 end
                 self:SetText(save_layer):SetKeyboardFocus()
-            else
+            elseif val ~= "" then
                 val = val:sub(-1)
                 self:SetText(val)
                 save_layer = val
@@ -285,7 +292,6 @@ local function user_chooses()
     dialog:RegisterHandleOkButtonPressed(function(self)
         config.last_selected = key_list:GetSelectedItem() -- save list choice (0-based)
         config.layer_num = layer_num:GetInteger()
-        dialog_save_position(self)
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
@@ -294,9 +300,9 @@ end
 local function tuplets_change()
     configuration.get_user_settings(script_name, config, true)
     local qimk = finenv.QueryInvokedModifierKeys
-    local shift_key = qimk and (qimk(finale.CMDMODKEY_ALT) or qimk(finale.CMDMODKEY_SHIFT))
+    local mod_key = qimk and (qimk(finale.CMDMODKEY_ALT) or qimk(finale.CMDMODKEY_SHIFT))
 
-    if no_dialog or shift_key or user_chooses() then
+    if no_dialog or mod_key or user_chooses() then
         local state = dialog_options[config.last_selected + 1][1]
         change_tuplet_state(state)
     end
