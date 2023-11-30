@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.28"
-    finaleplugin.Date = "2023/11/15"
+    finaleplugin.Version = "v0.29"
+    finaleplugin.Date = "2023/11/30"
     finaleplugin.AdditionalMenuOptions = [[
         Noteheads Change Repeat
     ]]
@@ -25,21 +25,21 @@ function plugindef()
         selection to one of these options:  
         Circled | Default | Diamond | Guitar Diamond |  
         Hidden | Number | Round | Slash | Square |  
-        Strikethrough | Triangle | Wedge | X | 
+        Strikethrough | Triangle | Wedge | X |  
 
         This script produces an ordered list of notehead types, 
         each line beginning with a configurable "hotkey". 
-        Call the script, type the hotkey and hit [Enter] or [Return]. 
+        Call the script, type the hotkey and hit [enter] or [return].  
 
         In SMuFL fonts like Finale Maestro, shapes can vary according 
         to duration values. Most duration-dependent shapes are not available 
         in Finale's old (non-SMuFL) Maestro and Engraver fonts. 
         "Diamond (Guitar)" is like "Diamond" except quarter notes and shorter use filled diamonds. 
-        "Number" lets you specify any shape character as a number including SMuFL (Unicode) numbers 
+        "Number" lets you specify any font character as a number including SMuFL (Unicode) numbers 
         in the form "0xe0e1" or "0xE0E1". 
 
         To repeat the same action as last time without a confirmation dialog either select the 
-        "Noteheads Change Repeat" menu item or hold down the SHIFT key when opening the script.
+        "Noteheads Change Repeat" menu item or hold down the [shift] key when opening the script.
     ]]
     return "Noteheads Change by Layer...", "Noteheads Change by Layer",
         "Change notehead shapes on a specific layer of the current selection"
@@ -56,18 +56,19 @@ Strikethrough | Triangle | Wedge | X |
 ]] .. "\n" .. [[
 This script produces an ordered list of notehead types, 
 each line beginning with a configurable "hotkey". 
-Call the script, type the hotkey and hit [Enter] or [Return].  
+Call the script, type the hotkey and hit [enter] or [return].  
 ]] .. "\n" .. [[
 In SMuFL fonts like Finale Maestro, shapes can vary according 
 to duration values. Most duration-dependent shapes are not available 
 in Finale's old (non-SMuFL) Maestro and Engraver fonts. 
 "Diamond (Guitar)" is like "Diamond" except quarter notes and shorter use filled diamonds. 
-"Number" lets you specify any shape character as a number including SMuFL (Unicode) numbers 
+"Number" lets you specify any font character as a number including SMuFL (Unicode) numbers 
 in the form "0xe0e1" or "0xE0E1".  
 ]] .. "\n" .. [[
 To repeat the same action as last time without a confirmation dialog either select the 
-"Noteheads Change Repeat" menu item or hold down the SHIFT key when opening the script.
+"Noteheads Change Repeat" menu item or hold down the [shift] key when opening the script.
 ]]
+info_notes = info_notes:gsub("  \n",  "\n"):gsub(" %s+", " "):gsub("\n ", "\n")
 
 local notehead = require("library.notehead")
 local mixin = require("library.mixin")
@@ -77,9 +78,9 @@ local layer = require("library.layer")
 local diamond = { smufl = 0xE0E1, non_smufl = 79 }
 
 local dialog_options = { -- ordered list for menu (list_box) selection
-    "Circled", "Default", "Diamond", "Diamond_Guitar",
-    "Hidden", "Number", "Round", "Slash", "Square",
-    "Strikethrough", "Triangle", "Wedge", "X"
+    "Circled",  "Default",       "Diamond",  "Diamond_Guitar",
+    "Hidden",   "Number",        "Round",    "Slash",
+    "Square",   "Strikethrough", "Triangle", "Wedge",      "X"
 }
 local config = {
     Circled = "C", -- map dialog options onto key codes
@@ -95,7 +96,7 @@ local config = {
     Triangle = "T",
     Wedge = "W",
     X = "X",
-    layer_num = 3,
+    layer_num = 1,
     ignore_duplicates = 0,
     shape = "default",
     glyph = "0xe0e1",
@@ -217,7 +218,6 @@ local function user_chooses_shape()
     local y_step = 17
     local join = finenv.UI():IsOnMac() and "\t" or ": "
     local box_high = (#dialog_options * y_step) + 5
-    info_notes = info_notes:gsub("  \n",  "\n"):gsub(" %s+", " "):gsub("\n ", "\n")
     local function show_info()
         finenv.UI():AlertInfo(info_notes, "About " .. finaleplugin.ScriptGroupName)
     end
@@ -251,23 +251,23 @@ local function user_chooses_shape()
     y = y + y_step + 2
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- + vertical offset for Mac edit boxes
     local save_layer = config.layer_num
-    local layer_num = dialog:CreateEdit(x_offset + 38, y - mac_offset):SetWidth(30)
+    local layer_num = dialog:CreateEdit(x_offset + 38, y - mac_offset):SetWidth(20)
         :SetText(save_layer)
         :AddHandleCommand(function(self)
             local val = self:GetText():lower()
-            if val:find("[^0-4]") then
+            if val:find("[^0-" .. max .. "]") then
                 if val:find("r") then reassign_keys()
                 elseif val:find("[?q]") then show_info()
                 end
                 self:SetText(save_layer):SetKeyboardFocus()
-            else
+            elseif val ~= "" then
                 val = val:sub(-1) -- layer number has one char
                 self:SetText(val)
                 save_layer = val
             end
         end)
     y = y + y_step + 2
-    dialog:CreateStatic(x_offset + 15, y):SetText("(0 = all layers)"):SetWidth(105)
+    dialog:CreateStatic(x_offset + 12, y):SetText("(0 = all layers)"):SetWidth(105)
 
     y = y + y_step + 2
     dialog:CreateButton(x_offset + 38, y):SetText("?"):SetWidth(20)
