@@ -16,7 +16,11 @@
         "pairsbykeys",
         "bit32",
         "utf8",
-        "socket"
+        "socket",
+        "tinyxml2",
+        "xmlelements",
+        "xmlattributes",
+        "prettyformatjson"
     ],
     "files.exclude": {
         "decoder.lua": true,

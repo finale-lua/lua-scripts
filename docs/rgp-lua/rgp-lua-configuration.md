@@ -15,8 +15,6 @@ When you select “RGP Lua...” from Finale's plugin menu, the following config
 
 **About.** Shows information about RGP Lua and its components.
 
-**Enforce Trusted Code Policy.** Check this option to enforce trusted code. A future version of _RGP Lua_ will remove this option and always enforce trusted code, but it is optional in the current version to facilitate a smooth transition.
-
 **System Prefix.** Opens the [System Prefix Dialog](#system-prefix-dialog).
 
 **Download Scripts.** Opens the [Finale Lua](https://www.finalelua.com/) website which allows you to download scripts that can then be added to the configuration list.
@@ -56,6 +54,8 @@ Add/Edit Dialog
 **Allow At Startup.** If a script requests to be run when Finale starts up, the user can permit it to do so by selecting this option. See `ExecuteAtStartup` in the [finaleplugin properties](/docs/rgp-lua/finaleplugin-properties). If the script has not requested execution at startup, this option is not available.
 
 **Trusted.** Marks a script (or folder) as user-trusted. Use this option with caution. As a general rule, you should only mark scripts trusted that you have yourself authored. Even then, it is recommended to use it sparingly and only when required. Checking this option gives a script full access to run arbitrary external code on your system.
+
+**Error on Hash Mismatch.** This option affects how scripts that use the `finaleplugin.HashURL` feature are treated when there is a hash mismatch. When the hash matches, the script runs as trusted. When the hash does not match, if this option is checked then the script reports an error and does not run. If this option is unchecked, the script is silently allowed to run as untrusted. An example of where unchecking this is useful is the scripts at [finalelua.com](https://www.finalelua.com/). Only a very small number of them actually need to run in trusted mode, and a hash error does not matter for all but that handful.
 
 **Optional Menu Text.** Specifies the menu text to be used with this instance of the selected script file. If omitted, _RGP Lua_ uses the menu text returned by the `plugindef()` function in the script. If Optional Menu Text is supplied, this instance of the script will not load any `finaleplugin.AdditionalMenuOptions` configured in the `plugindef()` function. This option is not available for Auto Folders.
 

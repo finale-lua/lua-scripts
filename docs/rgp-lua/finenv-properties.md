@@ -1,12 +1,15 @@
-# Namespace 'finenv'
+Namespace 'finenv'
+==================
 
 This page contains a detailed description of the `finenv` functions and properties that are available in the Finale Lua environment.
 
 (Items with an asterisk are available in _RGP Lua_ but not _JW Lua_.)
 
+---
+
 #### ConsoleIsAvailable (read-only property)
 
-Returns true if there is a console available for `print()` statements. Scripts that run from the Finale menu do not have a console. _RGP Lua_ always returns this value as `false`.
+Returns true if there is a console available for `print()` statements. Scripts that run from the Finale menu do not have a console. _RGP Lua_ returns this value as `true` if the script was launched by `finenv.ExecuteLuaScriptItem` and a print function has been registered for the `FCLuaScriptItem`. Otherwise it returns false.
 
 Example:
 
@@ -18,18 +21,19 @@ else
 end
 ```
 
+---
+
 #### CreateLuaScriptItems\* (function)
 
 Returns an instance of `FCLuaScriptItems` containing a collection of every menu item configured for the current running instance of _RGP Lua_. You can execute these items from within your script, and they will behave as if you had selected them from the menu. More information can be found at [`FCLuaScriptItem`](https://pdk.finalelua.com/class_f_c_lua_script_item.html). You do not have to maintain your reference to the collection for the executed script(s) to keep running, nor does your script have to keep running. Invoking these items is launch-and-forget.
 
+##### Inputs:
 
-|Input Type|Description|
-|------|------|
-|(none)||
+- `(none)`
 
-|Output Type|Description|
-|------|------|
-|FCLuaScriptItems|A collection of all configured menu items in the current running instance of _RGP Lua_|
+##### Outputs
+
+- `FCLuaScriptItems` : A collection of all configured menu items in the current running instance of _RGP Lua_
 
 Example:
 
@@ -37,17 +41,20 @@ Example:
 local configured_items = finenv.CreateLuaScriptItems()
 ```
 
+---
+
 #### CreateLuaScriptItemsFromFilePath\* (function)
 
 Returns an instance of `FCLuaScriptItems` that can be used to launch ad-hoc scripts. The input is a string containing the fully qualified path to the script file.
 
-|Input Type|Description|
-|------|------|
-|string|A Lua string containing the fully qualified path to the script file.|
+##### Inputs:
 
-|Output Type|Description|
-|------|------|
-|FCLuaScriptItems|A collection of menu items defined in the script.|
+- `string1` : A Lua string containing the fully qualified path to the script file.
+- `string2` : [optional] A Lua string containing the Lua code to execute. If this parameter is provided, the contents of the fully qualified path are ignored, though RGP Lua will continue to use the path for display and security purposes.
+
+##### Outputs:
+
+- `FCLuaScriptItems` : A collection of menu items defined in the script.
 
 The returned collection includes one item for the script file and one item for each additional menu item specified in the `plugindef` function, if it has any. The items are also initialized with other properties from the `plugindef` function as appropriate, but you may modify them.
 
@@ -58,6 +65,8 @@ local script_items = finenv.CreateLuaScriptItemsFromFilePath("/Users/Me/MyScript
 ```
 
 See comments about executing ad-hoc scripts [below](#executeluascriptitem-function).
+
+---
 
 #### DebugEnabled\* (read-only property)
 
@@ -71,17 +80,19 @@ if finenv.DebugEnabled then
 end
 ```
 
+---
+
 #### EndUndoBlock\* (function)
 
 Ends the currently active Undo/Redo block in Finale (if any). Finale will only store Undo/Redo blocks that contain edit changes to the documents. These calls cannot be nested. If your script will make further changes to the document after this call, it should call `StartNewUndoBlock()` again before making them. Otherwise, Finale's Undo stack could become corrupted.
 
-|Input Type|Description|
-|------|------|
-|boolean|The current Undo/Redo block should be stored (=true) or canceled (=false).|
+##### Inputs:
 
-|Output Type|Description|
-|------|------|
-|(none)||
+- `boolean` : The current Undo/Redo block should be stored (=true) or canceled (=false).
+
+##### Outputs:
+
+- `(none)`
 
 Example
 
@@ -90,20 +101,21 @@ Example
 finenv.EndUndoBlock(false)
 ```
 
+---
+
 #### ExecuteLuaScriptItem\* (function)
 
 Accepts an instance of [`FCLuaScriptItem`](https://pdk.finalelua.com/class_f_c_lua_script_item.html) and launches it in a separate Lua state. If the item is an ad-hoc script (created with [CreateLuaScriptItemsFromFilePath](#createluascriptitemsfromfilepath-function)), you must maintain your reference to the script item until the ad-hoc script terminates. If you allow your reference to be garbage collected, or if your script terminates, the separate executing ad-hoc script terminates immediately. The function returns either a single value or three values if the executed item returns a message.
 
+##### Inputs:
 
-|Input Type|Description|
-|------|------|
-|FCLuaScriptItem|The script item to execute.|
+- FCLuaScriptItem` : The script item to execute.
 
-|Output Type|Description|
-|------|------|
-|boolean|true if success|
-|string|the returned message in a Lua string or `nil` if none|
-|number|one of the `finenv.MessageResultType` constants if there is a message or `nil` if none|
+##### Outputs:
+
+- `boolean` : true if success
+- `string` : the returned message in a Lua string or `nil` if none
+- `number` : one of the `finenv.MessageResultType` constants if there is a message or `nil` if none|
 
 If the boolean return value is `false` (_i.e._, an error occurred), the message is an error message that describes the error. If the return value `true`, the message is the first returned value from the executed script converted to a string. If the executed script returns nothing or `nil`, the message and message type are both `nil`.
 
@@ -118,6 +130,8 @@ A script cannot execute itself from the list returned by [CreateLuaScriptItems](
 
 Ad hoc scripts (those created with `CreateLuaScriptItemsFromFilePath`) cannot run in trusted mode. Configured scripts (those created with `CreateLuaScriptItems`) run in trusted mode if they are configured to run in trused mode.
 
+---
+
 #### FinaleVersion (read-only property)
 
 Returns the running Finale “year” version, such as 2011, 2012, etc. For Finale 25 and later, _JW Lua_ returns this value as 9999. However, _RGP Lua_ (starting with v0.56) returns the major version + 10000. So Finale 25 returns 10025, Finale 26 returns 10026, etc.
@@ -129,6 +143,8 @@ if finenv.FinaleVersion > 10025 then
    -- Finale 26+ feature implemented here
 end
 ```
+
+---
 
 #### IsFinaleDemo\* (read-only property)
 
@@ -142,6 +158,8 @@ if finenv.IsFinaleDemo then
 end
 ```
 
+---
+
 #### IsRGPLua\* (read-only property)
 
 Always returns `true` in _RGP Lua_. In _JW Lua_ it returns `nil`, which is syntactically the equivalent of `false` in nearly every situation.
@@ -153,6 +171,8 @@ if finenv.IsRGPLua then
    -- do something available only in RGP Lua
 end
 ```
+
+---
 
 #### LoadedAsString\* (read-only property)
 
@@ -166,10 +186,14 @@ if finenv.LoadedAsString then
 end
 ```
 
+---
+
 #### LuaBridgeVersion\* (read-only property)
 
 Returns a string with the current version of LuaBridge that is embedded in _RGP Lua_. LuaBridge is an open-source C++ library that allows a C++ program to import classes from a C++ class framework into Lua. This property exists for diagnostic purposes and is probably not of interest to general users of the plugin.
  
+---
+
 #### MajorVersion & MinorVersion (read-only properties)
 
 Return the major and minor version numbers, respectively, of the running Lua plugin. (Either _RGP Lua_ or _JW Lua_.)
@@ -182,19 +206,20 @@ if finenv.MajorVersion > 0 or finenv.MinorVersion > 54 then
 end
 ```
 
+---
+
 #### MessageResultType\* (constants)
 
 A list of constants that define the type of message returned by `finenv.ExecuteLuaScriptItem` (if any).
 
-|Value|Description|
-|-----|-----|
-|**SCRIPT\_RESULT**|The message was returned by Lua. It could be either an error or a value returned by the script. If it is an error, the first value returned by `ExecuteLuaScriptItem` is false.|
-|**DOCUMENT\_REQUIRED**|The script was not executed because it specified `finaleplugin.RequireDocument = true` but no document was open.|
-|**SELECTION\_REQUIRED**|The script was not executed because it specified `finaleplugin.RequireSelection = true` but there was no selection.|
-|**SCORE\_REQUIRED**|The script was not executed because it specified `finaleplugin.RequireScore = true` but the document was viewing a part.|
-|**FINALE\_VERSION\_MISMATCH**|The script was not executed because it specified a minimum or maximum Finale version and the current running version of Finale does not meet the requirement.|
-|**LUA\_PLUGIN\_VERSION\_MISMATCH**|The script was not executed because it specified a minimum or maximum Lua plugin version and the current running version of _RGP Lua_ does not meet the requirement.|
-|**MISCELLANEOUS**|Other types of error messages that do not fit any of the other categories.|
+- `SCRIPT_RESULT` : The message was returned by Lua. It could be either an error or a value returned by the script. If it is an error, the first value returned by `ExecuteLuaScriptItem` is false.|
+- `DOCUMENT_REQUIRED` : The script was not executed because it specified `finaleplugin.RequireDocument = true` but no document was open.
+- `SELECTION_REQUIRED` : The script was not executed because it specified `finaleplugin.RequireSelection = true` but there was no selection.
+- `SCORE_REQUIRED` : The script was not executed because it specified `finaleplugin.RequireScore = true` but the document was viewing a part.
+- `FINALE_VERSION_MISMATCH` : The script was not executed because it specified a minimum or maximum Finale version and the current running version of Finale does not meet the requirement.
+- `LUA_PLUGIN_VERSION_MISMATCH` : The script was not executed because it specified a minimum or maximum Lua plugin version and the current running version of _RGP Lua_ does not meet the requirement.
+- `MISCELLANEOUS` : Other types of error messages that do not fit any of the other categories.
+- `EXTERNAL_TERMINATION` : The script was externally terminated by the user or a controlling script.
 
 Example:
 
@@ -208,13 +233,15 @@ if not success then
 end
 ```
 
+---
+
 #### QueryInitializationInProgress\* (function)
 
 A function that returns `true` if the script is currently running at Finale startup. You can request your script to run at startup with `finaleplugin.ExecuteAtStartup = true` in your `plugindef` function.
 
-|Output Type|Description|
-|------|------|
-|boolean|True if Finale startup in progress.|
+##### Outputs:
+
+- `boolean` : True if Finale startup in progress.
 
 Example:
 
@@ -226,17 +253,19 @@ if finenv.QueryInitializationInProgress() then
 end
 ```
 
+---
+
 #### QueryInvokedModifierKeys\* (function)
 
 A function that returns `true` if the input modifier key(s) were pressed when the menu item was invoked that started the script. The input value is any combination of [COMMAND\_MOD\_KEYS](https://pdk.finalelua.com/class_____f_c_user_window.html#af07ed05132bac987ff3acab63a001e47). You can create combinations by adding together the key codes.
 
-|Input Type|Description|
-|------|------|
-|number|The modifier keys to check.|
+##### Inputs:
 
-|Output Type|Description|
-|------|------|
-|boolean|True if all of the specified modifier keys were pressed.|
+- `number` : The modifier key combination to check.
+
+##### Outputs:
+
+- `boolean` : True if all of the specified modifier keys were pressed.
 
 Example:
 
@@ -247,6 +276,8 @@ if finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT + finale.CMDMODKEY_SHIFT
     return
 end
 ```
+
+---
 
 #### RawFinaleVersion (read-only property)
 
@@ -260,17 +291,19 @@ if finenv.RawFinaleVersion >= 0x1b200000 then
 end
 ```
 
+---
+
 #### Region (function)
 
 Returns an object with the currently selected region (in the document/part currently in editing scope), without the need for any other method calls. When running a modeless dialog in _RGP Lua_, this value is reinitialized to the current selected region every time you call the function. This could have side-effects if you have assigned it to a Lua variable, because the assigned variable will change as well.
 
-|Input Type|Description|
-|------|------|
-|(none)||
+##### Inputs:
 
-|Output Type|Description|
-|------|------|
-|FCMusicRegion|The region currently selected in Finale. (Empty if none.)|
+- `(none)`
+
+##### Outputs:
+
+- `FCMusicRegion` : The region currently selected in Finale. (Empty if none.)
 
 Example:
 
@@ -291,17 +324,19 @@ if sel_rgn:SetCurrentSelection() then
 end
 ```
 
+---
+
 #### RegisterModelessDialog\* (function)
 
 Registers a newly created [`FCCustomLuaWindow`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html) dialog box with _RGP Lua_ so that you can then display it as a modeless window with [`ShowModeless`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html#a002f165377f6191657f809a30e42b0ad). You can register more than one dialog. The script terminates when all its modeless windows close unless `finenv.RetainLuaState = true` is specified.
 
-|Input Type|Description|
-|------|------|
-|FCCustomLuaWindow|The window to register.|
+##### Inputs:
 
-|Output Type|Description|
-|------|------|
-|(none)||
+- `FCCustomLuaWindow` : The window to register.
+
+##### Outputs:
+
+- `(none)`
 
 Example:
 
@@ -311,6 +346,8 @@ local dialog = finale.FCCustomLuaWindow()
 finenv.RegisterModelessDialog(dialog)
 dialog:ShowModeless()
 ```
+
+---
 
 #### RetainLuaState\* (read/write property)
 
@@ -323,17 +360,19 @@ global_var = global_var or initialize_global()
 finenv.RetainLuaState = true -- retain the global_var we just created
 ```
 
+---
+
 #### RunningLuaFilePath\* (function)
 
 Returns a Lua string containing the full path and filename of the current running script. Scripts written for _RGP Lua_ should always use this instead of `FCString::SetRunningLuaFilePath`. The `FCString` method depends on a global varible and is not reliable past the initial execution of the script. It exists only for backwards compatibility with older scripts.
 
-|Input Type|Description|
-|------|------|
-|(none)||
+##### Inputs:
 
-|Output Type|Description|
-|------|------|
-|string|A Lua string containing the path.|
+- `(none)`
+
+##### Outputs:
+
+- `string` : A Lua string containing the path.
 
 Example:
 
@@ -341,17 +380,19 @@ Example:
 local my_path = finenv.RunningLuaFilePath()
 ```
 
+---
+
 #### RunningLuaFolderPath\* (function)
 
 A function that returns a Lua string containing the full folder path of the current running script. Scripts written for _RGP Lua_ should always use this instead of `FCString::SetRunningLuaFolderPath`. The `FCString` method depends on a global varible and is not reliable past the initial execution of the script. It exists only for backwards compatibility with older scripts.
 
-|Input Type|Description|
-|------|------|
-|(none)||
+##### Inputs:
 
-|Output Type|Description|
-|------|------|
-|string|A Lua string containing the path.|
+- `(none)`
+
+##### Outputs:
+
+- `string` : A Lua string containing the path.
 
 Example:
 
@@ -359,19 +400,20 @@ Example:
 local my_path = finenv.RunningLuaFolderPath()
 ```
 
+---
+
 #### StartNewUndoBlock (function)
 
 Ends the currently active Undo/Redo block in Finale (if any) and starts a new one with new undo text. The first parameter (a Lua string) is the name of the new Undo/Redo block. The second parameter (optional, default is true) is a boolean, indicating if the edits in the previous Undo/Redo block should be stored (=true) or canceled (=false). Finale will only store Undo/Redo blocks that contain edit changes to the documents. These calls cannot be nested. If your script has set `finaleplugin.NoStore = true`, then this function has no effect and any changes to the document are rolled back.
 
+##### Inputs:
 
-|Input Type|Description|
-|------|------|
-|string|The name of the new Undo/Redo block.|
-|boolean|The previous Undo/Redo block should be stored (=true) or canceled (=false).|
+- `string` : The name of the new Undo/Redo block.
+- `boolean` : The previous Undo/Redo block should be stored (=true) or canceled (=false).
 
-|Output Type|Description|
-|------|------|
-|(none)||
+##### Outputs:
+
+- `(none)`
 
 Example:
 
@@ -380,6 +422,9 @@ Example:
 -- true: saves any prior changes
 finenv.StartNewUndoBlock("Merge Layers", true)
 ```
+
+---
+
 #### StringVersion (read-only property)
 
 Returns the full _RGP Lua_ or _JW Lua_ version. This string can potentially contain non-numeric characters, but normally it is just `<major>.<minor>`, e.g., "1.07".
@@ -389,6 +434,8 @@ Example:
 ```lua
 print("Running Lua plugin version: "..finenv.StringVersion)
 ```
+
+---
 
 #### TrustedMode\* (read-only property)
 
@@ -401,28 +448,30 @@ Example:
 print("Trusted Mode: "..tostring(finenv.TrustedMode))
 ```
 
+---
+
 #### TrustedModeType\* (constants)
 
 A list of constants that define if and how our script is running in trusted mode. This values is returned by `finenv.TrustedMode`.
 
-|Value|Description|
-|-----|-----|
-|**UNTRUSTED**|The script is not verified. This is the most restrictive option.|
-|**USER\_TRUSTED**|The script was marked Trusted by the user. This is the most permissive option.|
-|**HASH\_VERIFIED**|The script has a hash value that was verified by a known whitelisted server. These scripts can modify Finale menus and the metatables of Finale classes, but they cannot execute external code.|
-|**NOT\_ENFORCED**|Code trust is not being enforced, so the script is treated as USER\_TRUSTED. Eventually this value will not be possible. _RGP Lua_ will require enforcement in a future version.|
+- `UNTRUSTED` : The script is not verified. This is the most restrictive option.
+- `USER_TRUSTED` : The script was marked Trusted by the user. This is the most permissive option.
+- `HASH_VERIFIED`: The script has a hash value that was verified by a known whitelisted server. These scripts can modify Finale menus and the metatables of Finale classes, but they cannot execute external code.
+- `NOT_ENFORCED` : Code trust is not being enforced, so the script is treated as `USER_TRUSTED`. This value is not possible in version 0.68 of _RGP Lua_ and higher.
+
+---
 
 #### UI (function)
 
 Returns the global “user interface” instance (of the [`FCUI`](https://pdk.finalelua.com/class_f_c_u_i.html) class). The `FCUI` class contains Finale and system-global tasks, such as displaying alert boxes, sounding a system beep, or getting the width of the screen, etc.
 
-|Input Type|Description|
-|------|------|
-|(none)||
+##### Inputs:
 
-|Output Type|Description|
-|------|------|
-|FCUI|The global "user interface" instance.|
+- `(none)`
+
+##### Outputs:
+
+- `FCUI` : The global "user interface" instance.
 
 Example:
 
@@ -430,20 +479,21 @@ Example:
 finenv.UI():AlertInfo("This message appears in a message box.". "")
 ```
 
+---
+
 #### UserValueInput (deprecated function)
 
 **Not supported** in _RGP Lua_. Instead, it displays an error message box and returns `nil`. Use [`FCCustomWindow`](https://pdk.finalelua.com/class_f_c_custom_window.html) or [`FCCustomLuaWindow`](https://pdk.finalelua.com/class_f_c_custom_lua_window.html) instead. These work in _JW Lua_ as well.
 
 _JW Lua_ supports dialog boxes to the user through the `finenv.UserValueInput()` call. Programming of these dialog boxes is explained in full detail on [this page](http://jwmusic.nu//jwplugins/wiki/doku.php?id=jwlua:uservalueinput).
 
+##### Inputs:
 
-|Input Type|Description|
-|------|------|
-|(none)||
+- `(none)`
 
-|Output Type|Description|
-|------|------|
-|UserValueInput|An instance of the deprecated `UserValueInput` class (_JW Lua_) or `nil` (_RGP Lua_).|
+##### Outputs:
+
+- `UserValueInput` : An instance of the deprecated `UserValueInput` class (_JW Lua_) or `nil` (_RGP Lua_).
 
 Example:
 

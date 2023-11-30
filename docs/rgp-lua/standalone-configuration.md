@@ -19,12 +19,16 @@ Here is a simple example of a configuration file that installs a script called `
 ```xml
 <RGPPluginSettings>
     <RGPLua IncludeUI="false">
+    	 <ConfigHashUrl>https://whitelisted.com/hashes/config.hash</ConfigHashUrl>
         <Scripts>
-            <Script Path="myplugin.lua" IsDirectory="false" Debug="false" UseString="false" FromRGPLuaDirectory="true"/>
+            <Script Path="myplugin.lua" IsDirectory="false" Debug="false" UseString="false" FromRGPLuaDirectory="true">
+                <Hash File="myplugin.lua" Verified="true">2fd009asdf...(hash code)</Hash>
+            </Script>
         </Scripts>
     </RGPLua>
 </RGPPluginSettings>
 ```
+
 The file can have multiple `Script` elements. These can be directories (`IsDirectory="true"`) or individual files. The scripts do not have to reside in the same directory with _RGP Lua_ and your custom configuration file, but it makes for a clean installation if they do. (See below.)
 
 Everything about your custom configuration is separate from the main configuration. If you want a System Prefix for your custom configuration, it must be included in the custom configuration file. The scripts can overlap with scripts configured in the main configuration, but they run independently.
@@ -45,19 +49,32 @@ C:\Users\<user>\AppData\Roaming
 
 Note that if you change the contents of the config file in the preferences folder externally to _RGP Lua_, it will challenge the user to confirm the modified configuration the next time Finale starts up.
 
-Of particular interest are the following attributes. Neither can be modified by the _RGP Lua_ plugin itself. You must edit them in a text editor.
+Special Config Values
+---------------------
 
-```
-IncludeUI (RGPLua tag)
-```
+Of particular interest are the following attributes. None can be modified by the _RGP Lua_ plugin itself. You must edit them in a text editor.
+
+### IncludeUI (RGPLua tag)
+
 A setting of `false` suppresses the menu option to open RGP Lua’s configuration dialog. _RGP Lua_ ignores the attribute if it reads its configuration from the default location in the user’s preferences folder.
 
-```
-FromRGPLuaDirectory (Script tag)
-```
+### FromRGPLuaDirectory (Script tag)
+
 A setting of `true` causes _RGP Lua_ to prepend its running folder to the file path specified by the `Path` tag. It allows you to create a stand-alone configuration that is not dependent on any particular user's setup. If any `Script` element sets this value to `true`, it is advisable also to set `IncludeUI` to `false`.
 
 To keep the user experience as simple as possible, it is **strongly recommended** to suppress _RGP Lua’s_  configuration option for these kinds of installations. The goal should be that users only see configuration options for the instance(s) of the plugin that they have installed themselves.
+
+### ConfigHashUrl (sub-element of RGPLua element)
+
+If your scripts require trusted status, the stand-alone config file must be hash-verified against a whitelisted server. The [Finale Lua](https://github.com/finale-lua) organization maintains a whitelist of known and trusted servers. This element specifies the url containing the hash file that matches this config file. _RGP Lua_ verifies the local copy of the config file using this hash.
+
+In general, you will be better off not requiring trusted status. If so, you do not need to provide a `ConfigHashUrl` value.
+
+Configuring scripts to run at startup
+-------------------------------------
+
+A script does not have to be trusted to run at startup, but it must have the following attribute set to to `true`:
+
 
 ```
 AllowStartup (Script tag)
@@ -80,3 +97,4 @@ certutil -hashfile <filename> SHA512
 - Configure the file in RGP Lua and then copy the Script tag for it (including "Hash" xml tag) directly to your custom configuration file.
 
 Keep in mind that `ExecuteAtStartup` scripts are not included as part of an Auto Folder. You must provide a separate per-script Script tag for each.
+

@@ -66,22 +66,30 @@ Lua is a powerful language that has components that allow a script to access man
 
 The good news is that in the grand scheme of the internet, Finale is a niche, single-user environment. Only plugins you install will run, and even then they will run only if you invoke them or allow them to be invoked. Consequently there is little motivation for bad actors to create malicious scripts, and the risk is extremely low. As of this writing there have been no reported examples on either _RGP Lua_ or _JW Lua_. Nevertheless, if you are in any doubt, scan the script for uses of `io.write`, `os.remove`, `os.rename`, or other similar calls.
 
-_RGP Lua_ (starting with version 0.67) adds a layer of protection with the concept of trusted code. To gain full access to the language features of Lua and _RGP Lua_, you must be running as trusted. (Enforcement of trusted code will be mandatory starting in a release following v0.67. As of now you can switch enforcement off in the configuration dialog.) The vast majority of scripts do not need to run as trusted code, and it is recommended not to do so if you do not need to. A script is trusted if
+_RGP Lua_ (starting with version 0.67) adds a layer of protection with the concept of trusted code. To gain full access to the language features of Lua and _RGP Lua_, you must be running as trusted. The vast majority of scripts do not need to run as trusted code, and it is recommended not to do so if you do not need to. A script is trusted if
 
 - it is sourced from a known website such as the [Finale Lua](https://www.finalelua.com/) website, and it has not been modified. The Finale Lua organization on GitHub maintains a whitelist of known, trusted websites.
 - it is marked "Trusted" in the configurator. The "Trusted" option exists for script developers to mark their own code as trusted. If you are not the developer of the script, do not enable this option. And even if you are, do not enable it unless you have to.
 
-The limitations placed on untrusted scripts are relatively mild. Hash-verified scripts and unveried scripts cannot
+The limitations placed on untrusted scripts are relatively mild. Untrusted scripts cannot
 
 - execute external code.
 - load binary C libraries.
-
-Unverified scripts (in addition to the above) cannot
-
 - modify Finale's menus.
-- modify the metatables of bound Finale classes.
 
 Note that all scripts can access your file system with user level permission. The main goal of the trusted code restrictions is to limit the ability of a script to remain hidden while taking control of your computer for its own purposes.
+
+### Requesting Code Features
+
+Certain code features must be explicitly requested in the [`plugindef()`](#connect-to-finalelua) function. This allows a user quickly to see the kinds of features the plugin will be using that are unrelated directly to Finale. It also restricts the calls a loaded library can use, which may not be obvious by scanning the top-level script.
+
+Some of the features require trusted code and some do not. A summary is as follows:
+
+- `finaleplugin.ExecuteAtStartup` allows the script to run at startup. It must also be configured as "Allow At Startup", but trusted status is not required.
+- `finaleplugin.ExecuteExternalCode` allows the script to launch external code or load binary C libraries. Trusted status is required.
+- `finaleplugin.ExecuteHttpsCalls` allows the script to call the `get` or `put` functions in `luaosutils.internet`. Trusted status is not required.
+- `finaleplugin.LoadLuaSocket` pre-loads the full `socket` namespace. Trusted status is required.
+- `finaleplugin.ModifyFinaleMenus` allows the script to modify Finale's menus. Trusted status is required.
 
 ### The 'bit32' namespace
 
@@ -95,7 +103,9 @@ _RGP Lua_ (starting in version 0.67) pre-loads the lua-cjson 2.1.0 library, whic
 local cjson = require('cjson')
 ```
 
-More information on how to use the libray is available here:  
+The json strings formatted by cjson are flat, containing no line feeds. If you wish to format them in human-readable format, you can use the built-in function [`prettyformatjson`](#prettyformatjson).
+
+More information on how to use the cjson libray is available here:  
 [https://www.kyne.com.au/~mark/software/lua-cjson-manual.html](https://www.kyne.com.au/~mark/software/lua-cjson-manual.html)
 
 ### The 'finale' namespace
@@ -118,6 +128,17 @@ local sel_rgn = finenv.Region()
 
 It also allows for direct interaction with the Lua plugin itself. A full description of available functions and properties can be found on the [finenv properties](/docs/rgp-lua/finenv-properties) page.
 
+### The 'lfs' library
+
+_RGP Lua_ (starting in version 0.68) pre-loads the luafilesystem library ('lfs'), which is embedded in the plugin. This expands access to information about the file system.
+
+```lua
+local lfs = require('lfs')
+```
+
+More information on how to use the lfs libray is available here:  
+[https://lunarmodules.github.io/luafilesystem/](https://lunarmodules.github.io/luafilesystem/)
+
 ### The 'luosutils' library
 
 _RGP Lua_ (starting in version 0.66) optionally preloads an embedded version of the [`luaosutils`](https://github.com/finale-lua/luaosutils) library. This is a library of functions specifically written to help Lua scripts running on Finale. It allows them to interact with the host operating system or the Finale executable in ways that are not directly supported by either the Lua language or the PDK Framework.
@@ -128,7 +149,7 @@ _RGP Lua_ does not load the library into a global namespace, however. You must e
 local osutils = require('luaosutils')
 ```
 
-The advantage to this approach is that you do not need to change the body of your script if you wish to use an external version of `luaosutils` instead of the version embedded in _RGP Lua_. Simply disable the `LoadLuaOSUtils` option in `plugindef` and the script will pick up the external version instead, provided it is in your `cpath` list. (_RGP Lua_ automatically adds the script’s running folder path to the `cpath` list.)
+The advantage to this approach is that you do not need to change the body of your script if you wish to use an external version of `luaosutils` instead of the version embedded in _RGP Lua_. Simply disable the `LoadLuaOSUtils` option in [`plugindef`](#connect-to-finalelua) and the script will pick up the external version instead, provided it is in your `cpath` list. (_RGP Lua_ automatically adds the script’s running folder path to the `cpath` list.)
 
 A script must be running as trusted code to gain full access to the functions in the library. See the [readme file](https://github.com/finale-lua/luaosutils#readme) for details.
 
@@ -137,7 +158,7 @@ A script must be running as trusted code to gain full access to the functions in
 _RGP Lua_ contains an embedded version of [`luasocket`](https://aiq0.github.io/luasocket/index.html). You can elect for it to be available in the `socket` namespace in one of the following ways.
 
 - Select **Enable Debugging** when you [configure](/docs/rgp-lua/rgp-lua-configuration) your script.
-- Add `finaleplugin.LoadLuaSocket = true` to your `plugindef` function and be running as trusted code.
+- Add `finaleplugin.LoadLuaSocket = true` to your [`plugindef`](#connect-to-finalelua) function and be running with trusted status.
 
 When you request the `socket` namespace, _RGP Lua_ takes the following actions.
 
@@ -145,7 +166,7 @@ When you request the `socket` namespace, _RGP Lua_ takes the following actions.
 - Preloads `socket.lua`.
 - References ("requires") them together in the `socket` namespace.
 
-If you have only requested debugging, no further action is taken. If you have specified `finaleplugin.LoadLuaSocket = true` in your `plugindef` function, then _RGP Lua_ takes the following additional actions. (Your script must be running as trusted code.)
+If you have only requested debugging, no further action is taken. If you have specified `finaleplugin.LoadLuaSocket = true` in your [`plugindef`](#connect-to-finalelua) function, then _RGP Lua_ takes the following additional actions. (Your script must be running as trusted code.)
 
 - Preloads `mime.core` but does not include it in any namespace. You can access it with
 
@@ -494,6 +515,23 @@ for k, v in pairsbykeys(t) do
    print (k, "=", v)
 end
 ```
+
+### prettyformatjson()
+
+`prettyformatjson()` formats a flat json string into a tabbed, formatted string containing multiple lines. The first argument is the string to process. An optional second argument can supply the number of spaces to use as tab width. If omitted, the function defaults to 3 spaces.
+
+```lua
+t = {} -- your table
+local cjson = require('cjson')
+local json_string = cjson.encode(t)
+if json_string then
+   local pretty_json = prettyformatjson(json_string) -- using the default tab width of 3
+   -- OR --
+   local pretty_json = prettyformatjson(json_string, 4) -- supplying the tab width, in this case, 4
+end
+```
+
+If the input string is not json, or if it already is formatted, the output results are not predictable.
 
 ### xml functions
 
