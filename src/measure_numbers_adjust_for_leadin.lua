@@ -15,7 +15,10 @@ local library = require("library.general_library")
 
 local size_prefs = finale.FCSizePrefs()
 size_prefs:Load(1)
-local default_barline_thickness = math.floor(size_prefs.ThinBarlineThickness/64.0 + 0.5) -- barline thickness in evpu
+local default_barline_thickness = math.floor(size_prefs.ThinBarlineThickness / 64.0 + 0.5) -- barline thickness in evpu
+
+local misc_prefs = finale.FCMiscDocPrefs()
+misc_prefs:Load(1)
 
 -- additional_offset allows you to tweak the result. it is only applied if the measure number is being moved
 
@@ -56,7 +59,7 @@ function measure_numbers_adjust_for_leadin()
                                     local cell = finale.FCCell(meas_num, staff)
                                     if library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest) then
                                         local lead_in = 0
-                                        if cell.Measure ~= system.FirstMeasure then
+                                        if not misc_prefs.AlignMeasureNumbersWithBarline and cell.Measure ~= system.FirstMeasure then
                                             local cell_metrics = finale.FCCellMetrics()
                                             if cell_metrics:LoadAtCell(cell) then
                                                 lead_in = cell_metrics.MusicStartPos - cell_metrics:GetLeftEdge()
