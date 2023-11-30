@@ -435,8 +435,10 @@ package.preload["library.general_library"] = package.preload["library.general_li
                 end
             end
         else
-            for k, _ in pairs(class.__parent) do
-                return tostring(k)
+            if class.__parent then
+                for k, _ in pairs(class.__parent) do
+                    return tostring(k)
+                end
             end
         end
         return nil

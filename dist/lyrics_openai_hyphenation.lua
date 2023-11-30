@@ -1712,9 +1712,10 @@ package.preload["mixin.FCMCustomWindow"] = package.preload["mixin.FCMCustomWindo
 
 
 
+
     for num_args, ctrl_types in pairs({
         [0] = {"CancelButton", "OkButton",},
-        [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit",
+        [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit", "TextEditor",
             "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
         },
         [3] = {"HorizontalLine", "VerticalLine",},
@@ -3428,8 +3429,10 @@ package.preload["library.general_library"] = package.preload["library.general_li
                 end
             end
         else
-            for k, _ in pairs(class.__parent) do
-                return tostring(k)
+            if class.__parent then
+                for k, _ in pairs(class.__parent) do
+                    return tostring(k)
+                end
             end
         end
         return nil
@@ -4514,7 +4517,7 @@ package.preload["library.openai"] = package.preload["library.openai"] or functio
         local function internal_callback(success, result)
             local jsresult = json.decode(result)
             if not success then
-                if  type(jsresult) == "table" then
+                if type(jsresult) == "table" then
                     jsresult = jsresult.error.message
                 else
                     jsresult = result
@@ -4547,7 +4550,155 @@ package.preload["library.openai"] = package.preload["library.openai"] or functio
         }
         return call_openai(COMPLETION_URL, body, callback_or_timeout)
     end
+
+    function openai.create_chat(model, messages, temperature, callback_or_timeout)
+        callback_or_timeout = callback_or_timeout or 5.0
+        assert(type(messages) == "table", "openai.create_chat 2nd parameter should be a table.")
+        local body = {
+            model = model,
+            messages = messages,
+            temperature = temperature
+        }
+        return call_openai(COMPLETION_URL, body, callback_or_timeout)
+    end
     return openai
+end
+package.preload["library.configuration"] = package.preload["library.configuration"] or function()
+
+
+
+    local configuration = {}
+    local utils = require("library.utils")
+    local script_settings_dir = "script_settings"
+    local comment_marker = "--"
+    local parameter_delimiter = "="
+    local path_delimiter = "/"
+    local file_exists = function(file_path)
+        local f = io.open(file_path, "r")
+        if nil ~= f then
+            io.close(f)
+            return true
+        end
+        return false
+    end
+    parse_parameter = function(val_string)
+        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "\"(.+)\"", "%1")
+        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "'(.+)'", "%1")
+        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
+            return load("return " .. val_string)()
+        elseif "true" == val_string then
+            return true
+        elseif "false" == val_string then
+            return false
+        end
+        return tonumber(val_string)
+    end
+    local get_parameters_from_file = function(file_path, parameter_list)
+        local file_parameters = {}
+        if not file_exists(file_path) then
+            return false
+        end
+        for line in io.lines(file_path) do
+            local comment_at = string.find(line, comment_marker, 1, true)
+            if nil ~= comment_at then
+                line = string.sub(line, 1, comment_at - 1)
+            end
+            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
+            if nil ~= delimiter_at then
+                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
+                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
+                file_parameters[name] = parse_parameter(val_string)
+            end
+        end
+        local function process_table(param_table, param_prefix)
+            param_prefix = param_prefix and param_prefix.."." or ""
+            for param_name, param_val in pairs(param_table) do
+                local file_param_name = param_prefix .. param_name
+                local file_param_val = file_parameters[file_param_name]
+                if nil ~= file_param_val then
+                    param_table[param_name] = file_param_val
+                elseif type(param_val) == "table" then
+                        process_table(param_val, param_prefix..param_name)
+                end
+            end
+        end
+        process_table(parameter_list)
+        return true
+    end
+
+    function configuration.get_parameters(file_name, parameter_list)
+        local path = ""
+        if finenv.IsRGPLua then
+            path = finenv.RunningLuaFolderPath()
+        else
+            local str = finale.FCString()
+            str:SetRunningLuaFolderPath()
+            path = str.LuaString
+        end
+        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+        return get_parameters_from_file(file_path, parameter_list)
+    end
+
+
+    local calc_preferences_filepath = function(script_name)
+        local str = finale.FCString()
+        str:SetUserOptionsPath()
+        local folder_name = str.LuaString
+        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+
+            folder_name = os.getenv("HOME") .. folder_name:sub(2)
+        end
+        if finenv.UI():IsOnWindows() then
+            folder_name = folder_name .. path_delimiter .. "FinaleLua"
+        end
+        local file_path = folder_name .. path_delimiter
+        if finenv.UI():IsOnMac() then
+            file_path = file_path .. "com.finalelua."
+        end
+        file_path = file_path .. script_name .. ".settings.txt"
+        return file_path, folder_name
+    end
+
+    function configuration.save_user_settings(script_name, parameter_list)
+        local file_path, folder_path = calc_preferences_filepath(script_name)
+        local file = io.open(file_path, "w")
+        if not file and finenv.UI():IsOnWindows() then
+
+            local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
+            if osutils then
+                osutils.process.make_dir(folder_path)
+            else
+                os.execute('mkdir "' .. folder_path ..'"')
+            end
+            file = io.open(file_path, "w")
+        end
+        if not file then
+            return false
+        end
+        file:write("-- User settings for " .. script_name .. ".lua\n\n")
+        for k,v in pairs(parameter_list) do
+            if type(v) == "string" then
+                v = "\"" .. v .."\""
+            else
+                v = tostring(v)
+            end
+            file:write(k, " = ", v, "\n")
+        end
+        file:close()
+        return true
+    end
+
+    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+        if create_automatically == nil then create_automatically = true end
+        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+        if not exists and create_automatically then
+            configuration.save_user_settings(script_name, parameter_list)
+        end
+        return exists
+    end
+    return configuration
 end
 package.preload["library.utils"] = package.preload["library.utils"] or function()
 
@@ -4708,151 +4859,14 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     end
     return utils
 end
-package.preload["library.configuration"] = package.preload["library.configuration"] or function()
-
-
-
-    local configuration = {}
-    local utils = require("library.utils")
-    local script_settings_dir = "script_settings"
-    local comment_marker = "--"
-    local parameter_delimiter = "="
-    local path_delimiter = "/"
-    local file_exists = function(file_path)
-        local f = io.open(file_path, "r")
-        if nil ~= f then
-            io.close(f)
-            return true
-        end
-        return false
-    end
-    parse_parameter = function(val_string)
-        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "\"(.+)\"", "%1")
-        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "'(.+)'", "%1")
-        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-            return load("return " .. val_string)()
-        elseif "true" == val_string then
-            return true
-        elseif "false" == val_string then
-            return false
-        end
-        return tonumber(val_string)
-    end
-    local get_parameters_from_file = function(file_path, parameter_list)
-        local file_parameters = {}
-        if not file_exists(file_path) then
-            return false
-        end
-        for line in io.lines(file_path) do
-            local comment_at = string.find(line, comment_marker, 1, true)
-            if nil ~= comment_at then
-                line = string.sub(line, 1, comment_at - 1)
-            end
-            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
-            if nil ~= delimiter_at then
-                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
-                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
-                file_parameters[name] = parse_parameter(val_string)
-            end
-        end
-        local function process_table(param_table, param_prefix)
-            param_prefix = param_prefix and param_prefix.."." or ""
-            for param_name, param_val in pairs(param_table) do
-                local file_param_name = param_prefix .. param_name
-                local file_param_val = file_parameters[file_param_name]
-                if nil ~= file_param_val then
-                    param_table[param_name] = file_param_val
-                elseif type(param_val) == "table" then
-                        process_table(param_val, param_prefix..param_name)
-                end
-            end
-        end
-        process_table(parameter_list)
-        return true
-    end
-
-    function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
-        if finenv.IsRGPLua then
-            path = finenv.RunningLuaFolderPath()
-        else
-            local str = finale.FCString()
-            str:SetRunningLuaFolderPath()
-            path = str.LuaString
-        end
-        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
-        return get_parameters_from_file(file_path, parameter_list)
-    end
-
-
-    local calc_preferences_filepath = function(script_name)
-        local str = finale.FCString()
-        str:SetUserOptionsPath()
-        local folder_name = str.LuaString
-        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
-
-            folder_name = os.getenv("HOME") .. folder_name:sub(2)
-        end
-        if finenv.UI():IsOnWindows() then
-            folder_name = folder_name .. path_delimiter .. "FinaleLua"
-        end
-        local file_path = folder_name .. path_delimiter
-        if finenv.UI():IsOnMac() then
-            file_path = file_path .. "com.finalelua."
-        end
-        file_path = file_path .. script_name .. ".settings.txt"
-        return file_path, folder_name
-    end
-
-    function configuration.save_user_settings(script_name, parameter_list)
-        local file_path, folder_path = calc_preferences_filepath(script_name)
-        local file = io.open(file_path, "w")
-        if not file and finenv.UI():IsOnWindows() then
-
-            local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
-            if osutils then
-                osutils.process.make_dir(folder_path)
-            else
-                os.execute('mkdir "' .. folder_path ..'"')
-            end
-            file = io.open(file_path, "w")
-        end
-        if not file then
-            return false
-        end
-        file:write("-- User settings for " .. script_name .. ".lua\n\n")
-        for k,v in pairs(parameter_list) do
-            if type(v) == "string" then
-                v = "\"" .. v .."\""
-            else
-                v = tostring(v)
-            end
-            file:write(k, " = ", v, "\n")
-        end
-        file:close()
-        return true
-    end
-
-    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
-        if create_automatically == nil then create_automatically = true end
-        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
-        if not exists and create_automatically then
-            configuration.save_user_settings(script_name, parameter_list)
-        end
-        return exists
-    end
-    return configuration
-end
 function plugindef()
     finaleplugin.HandlesUndo = true
-    finaleplugin.MinJWLuaVersion = 0.67
+    finaleplugin.MinJWLuaVersion = 0.68
     finaleplugin.ExecuteHttpsCalls = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "September 13, 2023"
+    finaleplugin.Version = "3.0"
+    finaleplugin.Date = "October 29, 2023"
     finaleplugin.CategoryTags = "Lyrics"
     finaleplugin.Notes = [[
         Uses the OpenAI online api to add or correct lyrics hyphenation.
@@ -4885,20 +4899,24 @@ end
 local mixin = require("library.mixin")
 local openai = require("library.openai")
 local configuration = require("library.configuration")
+local utils = require("library.utils")
+local osutils = utils.require_embedded("luaosutils")
+local https = osutils.internet
 local config =
 {
-    use_edit_control = false,
-    api_model = "gpt-3.5-turbo",
+    api_model = "gpt-4",
     temperature = 0.2,
     add_hyphens_prompt = [[
 Hyphenate the following text, delimiting words with spaces and syllables with hyphens.
 If a word has multiple options for hyphenation, choose the one with the most syllables.
 If words are already hyphenated, correct any mistakes found.
+If there is no text to process, return the input without modifying it.
 Do not modify text with the following patterns (where [TEXT_PLACEHOLDER] is any sequence of characters):
 ^font([TEXT_PLACEHOLDER])
 ^Font([TEXT_PLACEHOLDER])
 ^size([TEXT_PLACEHOLDER])
 ^nfx([TEXT_PLACEHOLDER])
+Do not modify any token that begins with "^".
 Special Processing:
 Do not modify line endings.
 Identify the language. If it is a language that does not use spaces, nevertheless separate each word with a space and each pronounced syllable inside each word with a hyphen.
@@ -4907,11 +4925,13 @@ Input:
     remove_hyphens_prompt = [[
 Remove hyphens from the following text that has been used for musical text underlay.
 If a word should be hyphenated according to non-musical usage, leave those hyphens in place.
+If there is no text to process, return the input without modifying it.
 Do not modify text with the following patterns (where [TEXT_PLACEHOLDER] is any sequence of characters):
 ^font([TEXT_PLACEHOLDER])
 ^Font([TEXT_PLACEHOLDER])
 ^size([TEXT_PLACEHOLDER])
 ^nfx([TEXT_PLACEHOLDER])
+Do not modify any token that begins with "^".
 Special Processing:
 Do not remove any punctuation other than hyphens.
 Do not modify line endings.
@@ -4933,270 +4953,415 @@ local lyrics_prefs =
     finale.FONTPREF_LYRICSCHORUS,
     finale.FONTPREF_LYRICSSECTION
 }
-config.use_edit_control = config.use_edit_control and (finenv.UI():IsOnMac() or finale.FCCtrlEditText)
-local use_edit_text
-local use_active_lyric = finale.FCActiveLyric ~= nil
-https_session = nil
-update_automatically = true
-global_timer_id = 1
+context = context or
+{
+    https_session = nil,
+    global_timer_id = 1,
+    in_prog_indicators = {"|", "/", "—", "\\"},
+    in_prog_size = 4,
+    in_prog_counter = nil,
+    range_for_hyphenation = nil,
+    current_document_id = 0,
+    current_lyric_type = 0,
+    current_lyric_number = 0,
+
+    current_clean_text = nil,
+    current_lyric_text = nil,
+    current_editor_text = nil
+}
+local function is_current_in_editor(fcstr_lyrics)
+    if not context.current_clean_text then
+        local total_range = finale.FCRange()
+        global_dialog:GetControl("text"):GetTotalTextRange(total_range)
+        if total_range.Length <= 0 then
+            return true
+        end
+    elseif fcstr_lyrics:Compare(context.current_clean_text) == 0 then
+        return true
+    end
+    return false
+end
+local function update_document(options)
+    if context.https_session then
+        return
+    end
+    options = options or { update_active_lyric = true }
+    assert(type(options) == "table", "options argument must be a table")
+    local lyrics_box = global_dialog:GetControl("text")
+    local new_lyrics = lyrics_box:CreateEnigmaString()
+    local selected_text = finale.FCString()
+    global_dialog:GetControl("type"):GetText(selected_text)
+    finenv.StartNewUndoBlock("Update " .. selected_text.LuaString .. " " .. context.current_lyric_number .. " Lyrics", false)
+    if not is_current_in_editor(new_lyrics) then
+        local lyrics_instance = lyrics_classes[context.current_lyric_type]()
+        local loaded = lyrics_instance:Load(context.current_lyric_number)
+        local total_range = finale.FCRange()
+        lyrics_box:GetTotalTextRange(total_range)
+        local text_length = math.min(new_lyrics.Length, total_range.Length)
+        lyrics_instance:SetText(new_lyrics)
+        if loaded then
+            if text_length > 0 then
+                lyrics_instance:Save()
+            else
+                lyrics_instance:DeleteData()
+            end
+        else
+            if text_length > 0 then
+                lyrics_instance:SaveAs(context.current_lyric_number)
+            end
+        end
+
+        if lyrics_instance:Reload() then
+            context.current_lyric_text = lyrics_instance:CreateString()
+        else
+            context.current_lyric_text = nil
+        end
+    end
+    context.current_clean_text = new_lyrics
+    if options.update_active_lyric then
+        local active_lyric = finale.FCActiveLyric()
+        if active_lyric:Load() then
+            if active_lyric.BlockType ~= context.current_lyric_type or active_lyric.TextBlockID ~= context.current_lyric_number then
+                active_lyric.BlockType = context.current_lyric_type
+                active_lyric.TextBlockID = context.current_lyric_number
+                active_lyric.Syllable = 1
+                active_lyric:Save()
+            end
+        end
+    end
+    finenv.EndUndoBlock(true)
+end
 local function fixup_line_endings(input_str)
     local replacement = "\r"
     if finenv:UI():IsOnWindows() then
         replacement = "\r\n"
     end
-
-    local result = ""
+    local result = {}
     local is_previous_carriage_return = false
     for i = 1, #input_str do
         local char = input_str:sub(i, i)
         if char == "\n" and not is_previous_carriage_return then
-            result = result .. replacement
+            table.insert(result, replacement)
         else
-            result = result .. char
+
+
+            if char ~= "\n" or finale.UI():IsOnWindows() then
+                table.insert(result, char)
+            end
             is_previous_carriage_return = (char == "\r")
         end
     end
-    return result
+    return table.concat(result)
 end
-local function update_to_active_lyric(edit_type, popup)
-    if not use_active_lyric then return end
-    local selected_text = finale.FCString()
-    popup:GetText(selected_text)
-    name = selected_text.LuaString
-    finenv.StartNewUndoBlock("Update Current Lyric to "..name.." "..edit_type:GetInteger(), false)
-    local active_lyric = finale.FCActiveLyric()
-    if active_lyric:Load() then
-        if active_lyric.BlockType ~= popup:GetSelectedItem() + 1 or active_lyric.TextBlockID ~= edit_type:GetInteger() then
-            active_lyric.BlockType = popup:GetSelectedItem() + 1
-            active_lyric.TextBlockID = edit_type:GetInteger()
-            active_lyric.Syllable = 1
-            active_lyric:Save()
-        end
-    end
-    finenv.EndUndoBlock(true)
-end
-local function update_dlg_text(lyrics_box, edit_type, popup)
-    local itemno = edit_type:GetInteger()
-    local type = popup:GetSelectedItem() + 1
-    local lyrics_instance = lyrics_classes[type]()
-    if lyrics_instance:Load(itemno) then
-        local fcstr = lyrics_instance:CreateString()
-        if config.use_edit_control then
-            local font_info = fcstr:CreateLastFontInfo()
-            fcstr:TrimEnigmaTags()
-            lyrics_box:SetFont(font_info)
-            lyrics_box:SetText(fcstr)
-        else
-            lyrics_box.LuaString = fcstr.LuaString
-        end
+local function update_dlg_text(options)
+    options = options or {reset_undo = true}
+    assert(type(options) == "table", "input parameter must be a table")
+    local lyrics_box = global_dialog:GetControl("text")
+    local lyrics_instance = lyrics_classes[context.current_lyric_type]()
+    local selection_range = finale.FCRange()
+    lyrics_box:GetSelection(selection_range)
+    if lyrics_instance:Load(context.current_lyric_number) then
+        local lyrics_string = lyrics_instance:CreateString()
+        lyrics_box:SetEnigmaString(lyrics_string, lyrics_instance.BlockType)
+        context.current_lyric_text = lyrics_string
     else
         local font_prefs = finale.FCFontPrefs()
-        if font_prefs:Load(lyrics_prefs[type]) then
-            local font_info = finale:FCFontInfo()
+        if font_prefs:Load(lyrics_prefs[context.current_lyric_type]) then
+            local font_info = finale.FCFontInfo()
             font_prefs:GetFontInfo(font_info)
-            if config.use_edit_control then
-                lyrics_box:SetFont(font_info)
-            else
-                lyrics_box.LuaString = font_info:CreateEnigmaString(nil).LuaString
-            end
+            lyrics_box:SetFont(font_info)
         end
-        if config.use_edit_control then
-            lyrics_box:SetText("")
-        end
+        lyrics_box:SetText("")
+        context.current_lyric_text = nil
     end
-    update_to_active_lyric(edit_type, popup)
+    context.current_clean_text = lyrics_box:CreateEnigmaString()
+    if options.reset_undo then
+        lyrics_box:ResetUndoState()
+    end
+    lyrics_box:SetSelection(selection_range)
 end
-local function update_document(lyrics_box, edit_type, popup)
-    if https_session then
-        return
-    end
-    local itemno = edit_type:GetInteger()
-    local type = popup:GetSelectedItem() + 1
-    local selected_text = finale.FCString()
-    popup:GetText(selected_text)
-    name = selected_text.LuaString
-    finenv.StartNewUndoBlock("Update "..name.." "..itemno.." Lyrics", false)
-    local lyrics_instance = lyrics_classes[type]()
-    local loaded = lyrics_instance:Load(itemno)
-    if not loaded and not lyrics_instance.SaveAs then
-        finenv.UI():AlertError("This version of RGP Lua cannot create new lyrics blocks. Look for RGP Lua version 0.68 or higher.",
-            "RGP Lua Version Error")
-        finenv.EndUndoBlock(false)
-        return
-    end
-    if config.use_edit_control then
-        local text = finale.FCString()
-        local font = lyrics_box:CreateFontInfo()
-        lyrics_box:GetText(text)
-        local new_lyrics = font:CreateEnigmaString(nil)
-        new_lyrics:AppendString(text)
-        new_lyrics:TrimWhitespace()
-        lyrics_instance:SetText(new_lyrics)
-    else
-        lyrics_box:TrimWhitespace()
-        lyrics_instance:SetText(lyrics_box)
-    end
-    if loaded then
-        lyrics_instance:Save()
-    else
-        lyrics_instance:SaveAs(itemno)
-    end
-    finenv.EndUndoBlock(true)
+local function enable_disable()
+    local enable = not context.https_session and true or false
+    global_dialog:GetControl("text"):SetEnable(enable)
+    global_dialog:GetControl("number"):SetEnable(enable)
+    global_dialog:GetControl("type"):SetEnable(enable)
+    global_dialog:GetControl("hyphenate"):SetEnable(enable)
+    global_dialog:GetControl("dehyphenate"):SetEnable(enable)
 end
-local function hyphenate_dlg_text(lyrics_box, popup, edit_type, auto_update, dehyphenate)
+local function get_hyphenation_text()
+    local text_ctrl = global_dialog:GetControl("text")
+    local selected_range = finale.FCRange()
+    text_ctrl:GetSelection(selected_range)
+    if selected_range.Length > 0 then
+        context.range_for_hyphenation = selected_range
+    else
+        context.range_for_hyphenation = nil
+    end
+    return text_ctrl:CreateEnigmaString(context.range_for_hyphenation).LuaString
+end
+local function set_hyphenation_text(text)
+    local text_ctrl = global_dialog:GetControl("text")
+    if context.range_for_hyphenation then
+        text_ctrl:ReplaceTextInRangeWithEnigmaString(finale.FCString(text), context.range_for_hyphenation)
+    else
+        text_ctrl:SetEnigmaString(finale.FCString(text), context.current_lyric_type)
+    end
+end
+local function hyphenate_dlg_text(dehyphenate)
     local function callback(success, result)
-        if config.use_edit_control then
-            lyrics_box:SetEnable(true)
-        end
-        popup:SetEnable(true)
-        edit_type:SetEnable(true)
-        https_session = nil
+        context.https_session = nil
+        enable_disable()
+        global_dialog:GetControl("showprogress"):SetText("")
         if success then
             local fixed_text = fixup_line_endings(result.choices[1].message.content)
-            if config.use_edit_control then
-                lyrics_box:SetText(fixed_text)
-            else
-                lyrics_box.LuaString = fixed_text
-            end
-            if auto_update then
-                local selected_text = finale.FCString()
-                popup:GetText(selected_text)
-                update_document(lyrics_box, edit_type, popup)
+            set_hyphenation_text(fixed_text)
+            if global_dialog:GetControl("auto_update"):GetCheck() ~= 0 then
+                update_document()
             end
         else
             finenv.UI():AlertError(result, "OpenAI")
         end
+        context.range_for_hyphenation = nil
     end
-    if https_session then
+    if context.https_session then
         return
     end
-    local lyrics_text = finale.FCString()
-    if config.use_edit_control then
-        local lyrics_text = finale.FCString()
-        lyrics_box:GetText(lyrics_text)
-    else
-        update_dlg_text(lyrics_box, edit_type, popup)
-        lyrics_text.LuaString = lyrics_box.LuaString
-    end
-    lyrics_text:TrimWhitespace()
+    lyrics_text = finale.FCString(get_hyphenation_text())
     if lyrics_text.Length > 0 then
-        if config.use_edit_control then
-            lyrics_box:SetEnable(false)
-        end
-        popup:SetEnable(false)
-        edit_type:SetEnable(false)
         local prompt = dehyphenate and config.remove_hyphens_prompt or config.add_hyphens_prompt
         prompt = prompt..lyrics_text.LuaString.."\nOutput:\n"
-        https_session = openai.create_completion(config.api_model, prompt, config.temperature, callback)
+        context.https_session = openai.create_completion(config.api_model, prompt, config.temperature, callback)
+        enable_disable()
     end
 end
-local function update_from_active_lyric(lyrics_box, edit_type, popup)
-    if not use_active_lyric then return end
+local function update_from_active_lyric(options)
+    options = options or {}
+    assert(type(options) == "table", "input parameter must be a table")
+    local edit_type = global_dialog:GetControl("number")
+    local popup = global_dialog:GetControl("type")
     local active_lyric = finale.FCActiveLyric()
+    local updated = false
     if active_lyric:Load() then
-        if active_lyric.BlockType ~= popup:GetSelectedItem() + 1 or active_lyric.TextBlockID ~= edit_type:GetInteger() then
-            if update_automatically and use_edit_text then
-                local selected_text = finale.FCString()
-                popup:GetText(selected_text)
-                update_document(lyrics_box, edit_type, popup)
-            end
+        if options.force or (active_lyric.BlockType == context.current_lyric_type and active_lyric.TextBlockID == context.current_lyric_number) then
             popup:SetSelectedItem(active_lyric.BlockType - 1)
+            context.current_lyric_type = active_lyric.BlockType
             edit_type:SetInteger(active_lyric.TextBlockID)
-            update_dlg_text(lyrics_box, edit_type, popup)
+            context.current_lyric_number = active_lyric.TextBlockID
+            if options.force or is_current_in_editor(global_dialog:GetControl("text"):CreateEnigmaString()) then
+                update_dlg_text()
+            end
+            updated = true
         end
     end
+    if not updated then
+        local edit_text = global_dialog:GetControl("text")
+        if is_current_in_editor(edit_text:CreateEnigmaString()) then
+            local lyrics_instance = lyrics_classes[context.current_lyric_type]()
+            if lyrics_instance:Load(context.current_lyric_number) then
+                local curr_lyrics = lyrics_instance:CreateString()
+                if curr_lyrics:Compare(context.current_lyric_text) ~= 0 then
+                    update_dlg_text()
+                end
+            else
+                local total_range = finale.FCRange()
+                edit_text:GetTotalTextRange(total_range)
+                if total_range.Length > 0 then
+                    update_dlg_text()
+                end
+            end
+        end
+    end
+end
+local function get_current_font(text_ctrl)
+    local range = finale.FCRange()
+    text_ctrl:GetSelection(range)
+    local font = text_ctrl:CreateFontInfoAtIndex(range.Start)
+    if not font then font = finale.FCFontInfo() end
+    return font
+end
+local function on_selection_changed(text_ctrl)
+    local selRange = finale.FCRange()
+    text_ctrl:GetSelection(selRange)
+    local fontInfo = text_ctrl:CreateFontInfoAtIndex(selRange.Start)
+    if fontInfo then
+        global_dialog:GetControl("showfont"):SetText(fontInfo:CreateDescription())
+    end
+end
+local function on_timer(dialog, timer_id)
+    if timer_id ~= context.global_timer_id then return end
+    local curr_doc_id = finale.FCDocument().ID
+    if curr_doc_id ~= context.current_document_id then
+        context.current_document_id = curr_doc_id
+        update_from_active_lyric({force = true})
+    elseif finenv.UI():IsOnMac() then
+
+
+        update_from_active_lyric()
+    end
+    if context.https_session then
+        context.in_prog_counter = context.in_prog_counter and context.in_prog_counter + 1 or 1
+        context.in_prog_counter = (context.in_prog_counter - 1) % context.in_prog_size + 1
+        local prog_string = context.in_prog_indicators[context.in_prog_counter]
+        global_dialog:GetControl("showprogress"):SetText(prog_string)
+    end
+end
+local function on_init_window()
+    global_dialog:SetTimer(context.global_timer_id, 100)
+    context.current_lyric_type = global_dialog:GetControl("type"):GetSelectedItem() + 1
+    context.current_lyric_number = global_dialog:GetControl("number"):GetInteger()
+    local curr_doc_id = finale.FCDocument().ID
+    local use_current = context.current_editor_text and context.current_document_id == curr_doc_id
+    context.current_document_id = curr_doc_id
+    if use_current then
+        global_dialog:GetControl("text"):SetEnigmaString(context.current_editor_text, context.current_lyric_type)
+    else
+        update_from_active_lyric({force = true})
+    end
+    local range = finale.FCRange(0, 0)
+    global_dialog:GetControl("text"):SetSelection(range)
+end
+local function on_close_window()
+    global_dialog:StopTimer(context.global_timer_id)
+    context.https_session = https.cancel_session(context.https_session)
+    context.range_for_hyphenation = nil
+    enable_disable()
+    global_dialog:GetControl("showprogress"):SetText("")
+    if global_dialog:GetControl("auto_update"):GetCheck() ~= 0 then
+        update_document()
+    end
+    context.current_editor_text = global_dialog:GetControl("text"):CreateEnigmaString()
 end
 local function create_dialog_box()
+
+    local text_height = 300
+    local text_width = 500
     dlg = mixin.FCXCustomLuaWindow()
-                :SetTitle("Lyrics OpenAI Hyphenator")
-    local lyric_label = dlg:CreateStatic(10, 11)
-                :SetWidth(40)
-                :SetText("Lyric:")
-    local popup = dlg:CreatePopup(45, 10)
-                :SetWidth(70)
-                :AddString("Verse")
-                :AddString("Chorus")
-                :AddString("Section")
-    local lyric_num = dlg:CreateEdit(125, 9)
-                :SetWidth(25)
-                :SetInteger(1)
-    local lyrics_box
+            :SetTitle("Lyrics OpenAI Hyphenator")
+
+    dlg:CreateStatic(10, 11)
+            :SetWidth(30)
+            :SetText("Lyric:")
+    context.current_lyric_type = finale.RAWTEXTTYPE_VERSELYRIC
+    dlg:CreatePopup(45, 10, "type")
+            :SetWidth(70)
+            :AddString("Verse")
+            :AddString("Chorus")
+            :AddString("Section")
+            :SetSelectedItem(context.current_lyric_type)
+            :AddHandleCommand(function(popup)
+                local ctrl_val = popup:GetSelectedItem() + 1
+                if ctrl_val ~= context.current_lyric_type then
+                    context.current_lyric_type = ctrl_val
+                    update_dlg_text()
+                end
+            end)
+    context.current_lyric_number = 1
+    dlg:CreateEdit(125, 9, "number")
+            :SetWidth(25)
+            :SetInteger(context.current_lyric_number)
+            :AddHandleCommand(function(edit_number)
+                local ctrl_val = math.max(1, edit_number:GetInteger())
+                if ctrl_val ~= context.current_lyric_number then
+                    context.current_lyric_number = ctrl_val
+                    update_dlg_text()
+                end
+                if ctrl_val ~= edit_number:GetInteger() then
+                    edit_number:SetInteger(ctrl_val)
+                end
+            end)
+    local ctrlfont = finale.FCFontInfo("Arial", 11)
+    ctrlfont.Bold = true
+    ctrlfont.Italic = false
+    dlg:CreateButton(160, 10, "bold")
+            :SetWidth(15)
+            :SetText("B")
+            :SetFont(ctrlfont)
+            :AddHandleCommand(function()
+                local text_ctrl = dlg:GetControl("text")
+                local font = get_current_font(text_ctrl)
+                text_ctrl:SetFontBoldForSelection(not font:GetBold())
+            end)
+    ctrlfont.Bold = false
+    ctrlfont.Italic = true
+    dlg:CreateButton(185, 10, "italic")
+            :SetWidth(15)
+            :SetText("I")
+            :SetFont(ctrlfont)
+            :AddHandleCommand(function()
+                local text_ctrl = dlg:GetControl("text")
+                local font = get_current_font(text_ctrl)
+                text_ctrl:SetFontItalicForSelection(not font:GetItalic())
+            end)
+    dlg:CreateButton(210, 10, "fontsel")
+            :SetWidth(60)
+            :SetText("Font...")
+            :AddHandleCommand(function()
+                local ui = dlg:CreateChildUI()
+                local text_ctrl = dlg:GetControl("text")
+                local font = get_current_font(text_ctrl)
+                local selector = finale.FCFontDialog(ui, font)
+                if selector:Execute() then
+                    text_ctrl:SetFontForSelection(font)
+                end
+            end)
+    dlg:CreateStatic(280, 10, "showfont")
+            :SetWidth(text_width - 280 - 20)
+    dlg:CreateStatic(text_width - 15, 8, "showprogress")
+            :SetWidth(15)
+            :SetHeight(22)
+            :SetText("")
+            :SetFont(finale.FCFontInfo("Arial", 14, 0x01))
+            :SetTextColor(0, 255, 0)
     local yoff = 45
-    if config.use_edit_control then
-        if use_edit_text then
-            lyrics_box = dlg:CreateEditText(10, yoff)
-        else
-            lyrics_box = dlg:CreateEdit(10, yoff)
-        end
-        lyrics_box:SetHeight(300):SetWidth(500)
-        yoff = yoff + 310
-    else
-        lyrics_box = finale.FCString()
-    end
+
+    dlg:CreateTextEditor(10, yoff, "text")
+            :SetHeight(text_height)
+            :SetWidth(text_width)
+            :SetUseRichText(true)
+            :SetAutomaticEditing(true)
+            :SetWordWrap(true)
+    yoff = yoff + 310
+
     local xoff = 10
-    local hyphenate = dlg:CreateButton(xoff, yoff)
-                :SetText("Hyphenate")
-                :SetWidth(110)
+    dlg:CreateButton(xoff, yoff, "hyphenate")
+            :SetText("Hyphenate")
+            :SetWidth(110)
+            :AddHandleCommand(function()
+                hyphenate_dlg_text(false)
+            end)
     xoff = xoff + 120
-    local dehyphenate = dlg:CreateButton(xoff, yoff)
-                :SetText("Remove Hyphens")
-                :SetWidth(110)
-    if config.use_edit_control then
-        xoff = xoff + 120
-        local update = dlg:CreateButton(xoff, yoff)
-                    :SetText("Update")
-                    :SetWidth(110)
-        xoff = xoff + 120
-        local auto_update = dlg:CreateCheckbox(xoff, yoff)
-                    :SetText("Update Automatically")
-                    :SetWidth(150)
-                    :SetCheck(update_automatically and 1 or 0)
-        dlg:RegisterHandleControlEvent(update, function(control)
-            local selected_text = finale.FCString()
-            popup:GetText(selected_text)
-            update_document(lyrics_box, lyric_num, popup)
-        end)
-        dlg:RegisterHandleControlEvent(auto_update, function(control)
-            update_automatically = control:GetCheck() ~= 0
-        end)
-    end
-    dlg:CreateOkButton():SetText("Close")
-    dlg:RegisterInitWindow(function()
+    dlg:CreateButton(xoff, yoff, "dehyphenate")
+            :SetText("Remove Hyphens")
+            :SetWidth(110)
+            :AddHandleCommand(function()
+                hyphenate_dlg_text(true)
+            end)
+    xoff = xoff + 120
+    dlg:CreateButton(xoff, yoff, "update")
+            :SetText("Update")
+            :SetWidth(110)
+            :AddHandleCommand(function(control) update_document() end)
+    xoff = xoff + 120
+    dlg:CreateCheckbox(xoff, yoff, "auto_update")
+            :SetText("Update Automatically")
+            :SetWidth(150)
+            :SetCheck(1)
+    yoff = yoff + 30
 
+    local xoff = 10
+    dlg:CreateButton(xoff, yoff, "refresh")
+            :SetText("Get from Document")
+            :SetWidth(150)
+            :AddHandleCommand(function(control)
+                update_dlg_text({reset_undo = false})
+            end)
+    dlg:CreateCloseButton(xoff + text_width - 80, yoff)
+            :SetWidth(80)
 
-        dlg.OkButtonCanClose = true
-        if use_active_lyric then
-            dlg:SetTimer(global_timer_id, 100)
-        end
-    end)
-    if use_active_lyric then
-        dlg:RegisterHandleTimer(function(dialog, timer_id)
-            if timer_id ~= global_timer_id then return end
-            update_from_active_lyric(lyrics_box, lyric_num, popup)
-        end)
-    end
-    dlg:RegisterHandleControlEvent(popup, function(control)
-        update_dlg_text(lyrics_box, lyric_num, popup)
-    end)
-    dlg:RegisterHandleControlEvent(lyric_num, function(control)
-        update_dlg_text(lyrics_box, lyric_num, popup)
-    end)
-    dlg:RegisterHandleControlEvent(hyphenate, function(control)
-        hyphenate_dlg_text(lyrics_box, popup, lyric_num, update_automatically, false)
-    end)
-    dlg:RegisterHandleControlEvent(dehyphenate, function(control)
-        hyphenate_dlg_text(lyrics_box, popup, lyric_num, update_automatically, true)
-    end)
-    dlg:RegisterCloseWindow(function()
-        if finenv.UI():IsOnMac() and use_active_lyric then
-            finenv.RetainLuaState = false
-        end
-    end)
-    if use_active_lyric then
-        update_from_active_lyric(lyrics_box, lyric_num, popup)
-    else
-        update_dlg_text(lyrics_box, lyric_num, popup)
-    end
+    dlg:RegisterInitWindow(on_init_window)
+    dlg:RegisterCloseWindow(on_close_window)
+    dlg:RegisterHandleTimer(on_timer)
+    dlg:RegisterTextSelectionChanged(on_selection_changed)
     return dlg
 end
 local function openai_hyphenation()

@@ -375,7 +375,7 @@ Returns the name of the parent of a class.
 library.get_class_name(object)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L532)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L534)
 
 Returns the real class name of a Finale object. Some classes in older JW/RGPLua versions have incorrect class names, so this function attempts to resolve them with ducktyping
 
@@ -393,7 +393,7 @@ Returns the real class name of a Finale object. Some classes in older JW/RGPLua 
 library.system_indent_set_to_prefs(system, page_format_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L564)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L566)
 
 Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
 The page preferences may be provided optionally to avoid loading them for each call.
@@ -413,7 +413,7 @@ The page preferences may be provided optionally to avoid loading them for each c
 library.calc_script_name(include_extension)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L589)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L591)
 
 Returns the running script name, with or without extension.
 
@@ -431,7 +431,7 @@ Returns the running script name, with or without extension.
 library.get_default_music_font_name()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L618)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L620)
 
 Fetches the default music font from document options and processes the name into a usable format.
 

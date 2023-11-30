@@ -1,234 +1,3 @@
-package.preload["library.configuration"] = package.preload["library.configuration"] or function()
-
-
-
-    local configuration = {}
-    local utils = require("library.utils")
-    local script_settings_dir = "script_settings"
-    local comment_marker = "--"
-    local parameter_delimiter = "="
-    local path_delimiter = "/"
-    local file_exists = function(file_path)
-        local f = io.open(file_path, "r")
-        if nil ~= f then
-            io.close(f)
-            return true
-        end
-        return false
-    end
-    parse_parameter = function(val_string)
-        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "\"(.+)\"", "%1")
-        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "'(.+)'", "%1")
-        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-            return load("return " .. val_string)()
-        elseif "true" == val_string then
-            return true
-        elseif "false" == val_string then
-            return false
-        end
-        return tonumber(val_string)
-    end
-    local get_parameters_from_file = function(file_path, parameter_list)
-        local file_parameters = {}
-        if not file_exists(file_path) then
-            return false
-        end
-        for line in io.lines(file_path) do
-            local comment_at = string.find(line, comment_marker, 1, true)
-            if nil ~= comment_at then
-                line = string.sub(line, 1, comment_at - 1)
-            end
-            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
-            if nil ~= delimiter_at then
-                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
-                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
-                file_parameters[name] = parse_parameter(val_string)
-            end
-        end
-        local function process_table(param_table, param_prefix)
-            param_prefix = param_prefix and param_prefix.."." or ""
-            for param_name, param_val in pairs(param_table) do
-                local file_param_name = param_prefix .. param_name
-                local file_param_val = file_parameters[file_param_name]
-                if nil ~= file_param_val then
-                    param_table[param_name] = file_param_val
-                elseif type(param_val) == "table" then
-                        process_table(param_val, param_prefix..param_name)
-                end
-            end
-        end
-        process_table(parameter_list)
-        return true
-    end
-
-    function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
-        if finenv.IsRGPLua then
-            path = finenv.RunningLuaFolderPath()
-        else
-            local str = finale.FCString()
-            str:SetRunningLuaFolderPath()
-            path = str.LuaString
-        end
-        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
-        return get_parameters_from_file(file_path, parameter_list)
-    end
-
-
-    local calc_preferences_filepath = function(script_name)
-        local str = finale.FCString()
-        str:SetUserOptionsPath()
-        local folder_name = str.LuaString
-        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
-
-            folder_name = os.getenv("HOME") .. folder_name:sub(2)
-        end
-        if finenv.UI():IsOnWindows() then
-            folder_name = folder_name .. path_delimiter .. "FinaleLua"
-        end
-        local file_path = folder_name .. path_delimiter
-        if finenv.UI():IsOnMac() then
-            file_path = file_path .. "com.finalelua."
-        end
-        file_path = file_path .. script_name .. ".settings.txt"
-        return file_path, folder_name
-    end
-
-    function configuration.save_user_settings(script_name, parameter_list)
-        local file_path, folder_path = calc_preferences_filepath(script_name)
-        local file = io.open(file_path, "w")
-        if not file and finenv.UI():IsOnWindows() then
-
-            local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
-            if osutils then
-                osutils.process.make_dir(folder_path)
-            else
-                os.execute('mkdir "' .. folder_path ..'"')
-            end
-            file = io.open(file_path, "w")
-        end
-        if not file then
-            return false
-        end
-        file:write("-- User settings for " .. script_name .. ".lua\n\n")
-        for k,v in pairs(parameter_list) do
-            if type(v) == "string" then
-                v = "\"" .. v .."\""
-            else
-                v = tostring(v)
-            end
-            file:write(k, " = ", v, "\n")
-        end
-        file:close()
-        return true
-    end
-
-    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
-        if create_automatically == nil then create_automatically = true end
-        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
-        if not exists and create_automatically then
-            configuration.save_user_settings(script_name, parameter_list)
-        end
-        return exists
-    end
-    return configuration
-end
-package.preload["library.layer"] = package.preload["library.layer"] or function()
-
-    local layer = {}
-
-    function layer.copy(region, source_layer, destination_layer, clone_articulations)
-        local start = region.StartMeasure
-        local stop = region.EndMeasure
-        local sysstaves = finale.FCSystemStaves()
-        sysstaves:LoadAllForRegion(region)
-        source_layer = source_layer - 1
-        destination_layer = destination_layer - 1
-        for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
-            noteentry_source_layer:SetUseVisibleLayer(false)
-            noteentry_source_layer:Load()
-            local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
-                destination_layer, staffNum, start)
-            noteentry_destination_layer:Save()
-            noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
-
-            if clone_articulations and noteentry_source_layer.Count == noteentry_destination_layer.Count then
-                for index = 0, noteentry_destination_layer.Count - 1 do
-                    local source_entry = noteentry_source_layer:GetItemAt(index)
-                    local destination_entry = noteentry_destination_layer:GetItemAt(index)
-                    local source_artics = source_entry:CreateArticulations()
-                    for articulation in each (source_artics) do
-                        articulation:SetNoteEntry(destination_entry)
-                        articulation:SaveNew()
-                    end
-                end
-            end
-            noteentry_destination_layer:Save()
-        end
-    end
-
-    function layer.clear(region, layer_to_clear)
-        layer_to_clear = layer_to_clear - 1
-        local start = region.StartMeasure
-        local stop = region.EndMeasure
-        local sysstaves = finale.FCSystemStaves()
-        sysstaves:LoadAllForRegion(region)
-        for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
-            noteentry_layer:SetUseVisibleLayer(false)
-            noteentry_layer:Load()
-            noteentry_layer:ClearAllEntries()
-        end
-    end
-
-    function layer.swap(region, swap_a, swap_b)
-
-        swap_a = swap_a - 1
-        swap_b = swap_b - 1
-        for measure, staff_number in eachcell(region) do
-            local cell_frame_hold = finale.FCCellFrameHold()
-            cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-            local loaded = cell_frame_hold:Load()
-            local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
-            local  noteentry_layer_one = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
-            noteentry_layer_one:SetUseVisibleLayer(false)
-            noteentry_layer_one:Load()
-            noteentry_layer_one.LayerIndex = swap_b
-
-            local  noteentry_layer_two = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
-            noteentry_layer_two:SetUseVisibleLayer(false)
-            noteentry_layer_two:Load()
-            noteentry_layer_two.LayerIndex = swap_a
-            noteentry_layer_one:Save()
-            noteentry_layer_two:Save()
-            if loaded then
-                local new_cell_frame_hold = finale.FCCellFrameHold()
-                new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-                if new_cell_frame_hold:Load() then
-                    if cell_frame_hold.IsClefList then
-                        if new_cell_frame_hold.SetCellClefChanges then
-                            new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
-                        end
-
-                    else
-                        new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
-                    end
-                    new_cell_frame_hold:Save()
-                end
-            end
-        end
-    end
-
-    function layer.max_layers()
-        return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
-    end
-    return layer
-end
 package.preload["mixin.FCMControl"] = package.preload["mixin.FCMControl"] or function()
 
 
@@ -3097,6 +2866,86 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
     end
     return class
 end
+package.preload["library.measurement"] = package.preload["library.measurement"] or function()
+
+    local measurement = {}
+    local unit_names = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "EVPUs",
+        [finale.MEASUREMENTUNIT_INCHES] = "Inches",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "Centimeters",
+        [finale.MEASUREMENTUNIT_POINTS] = "Points",
+        [finale.MEASUREMENTUNIT_PICAS] = "Picas",
+        [finale.MEASUREMENTUNIT_SPACES] = "Spaces",
+    }
+    local unit_suffixes = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "e",
+        [finale.MEASUREMENTUNIT_INCHES] = "i",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "c",
+        [finale.MEASUREMENTUNIT_POINTS] = "pt",
+        [finale.MEASUREMENTUNIT_PICAS] = "p",
+        [finale.MEASUREMENTUNIT_SPACES] = "s",
+    }
+    local unit_abbreviations = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "ev",
+        [finale.MEASUREMENTUNIT_INCHES] = "in",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "cm",
+        [finale.MEASUREMENTUNIT_POINTS] = "pt",
+        [finale.MEASUREMENTUNIT_PICAS] = "pc",
+        [finale.MEASUREMENTUNIT_SPACES] = "sp",
+    }
+
+    function measurement.convert_to_EVPUs(text)
+        local str = finale.FCString()
+        str.LuaString = text
+        return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
+    end
+
+    function measurement.get_unit_name(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_names[unit]
+    end
+
+    function measurement.get_unit_suffix(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_suffixes[unit]
+    end
+
+    function measurement.get_unit_abbreviation(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_abbreviations[unit]
+    end
+
+    function measurement.is_valid_unit(unit)
+        return unit_names[unit] and true or false
+    end
+
+    function measurement.get_real_default_unit()
+        local str = finale.FCString()
+        finenv.UI():GetDecimalSeparator(str)
+        local separator = str.LuaString
+        str:SetMeasurement(72, finale.MEASUREMENTUNIT_DEFAULT)
+        if str.LuaString == "72" then
+            return finale.MEASUREMENTUNIT_EVPUS
+        elseif str.LuaString == "0" .. separator .. "25" then
+            return finale.MEASUREMENTUNIT_INCHES
+        elseif str.LuaString == "0" .. separator .. "635" then
+            return finale.MEASUREMENTUNIT_CENTIMETERS
+        elseif str.LuaString == "18" then
+            return finale.MEASUREMENTUNIT_POINTS
+        elseif str.LuaString == "1p6" then
+            return finale.MEASUREMENTUNIT_PICAS
+        elseif str.LuaString == "3" then
+            return finale.MEASUREMENTUNIT_SPACES
+        end
+    end
+    return measurement
+end
 package.preload["mixin.FCXCustomLuaWindow"] = package.preload["mixin.FCXCustomLuaWindow"] or function()
 
 
@@ -4807,269 +4656,160 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     end
     return mixin
 end
-package.preload["library.measurement"] = package.preload["library.measurement"] or function()
-
-    local measurement = {}
-    local unit_names = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "EVPUs",
-        [finale.MEASUREMENTUNIT_INCHES] = "Inches",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "Centimeters",
-        [finale.MEASUREMENTUNIT_POINTS] = "Points",
-        [finale.MEASUREMENTUNIT_PICAS] = "Picas",
-        [finale.MEASUREMENTUNIT_SPACES] = "Spaces",
-    }
-    local unit_suffixes = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "e",
-        [finale.MEASUREMENTUNIT_INCHES] = "i",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "c",
-        [finale.MEASUREMENTUNIT_POINTS] = "pt",
-        [finale.MEASUREMENTUNIT_PICAS] = "p",
-        [finale.MEASUREMENTUNIT_SPACES] = "s",
-    }
-    local unit_abbreviations = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "ev",
-        [finale.MEASUREMENTUNIT_INCHES] = "in",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "cm",
-        [finale.MEASUREMENTUNIT_POINTS] = "pt",
-        [finale.MEASUREMENTUNIT_PICAS] = "pc",
-        [finale.MEASUREMENTUNIT_SPACES] = "sp",
-    }
-
-    function measurement.convert_to_EVPUs(text)
-        local str = finale.FCString()
-        str.LuaString = text
-        return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
-    end
-
-    function measurement.get_unit_name(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_names[unit]
-    end
-
-    function measurement.get_unit_suffix(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_suffixes[unit]
-    end
-
-    function measurement.get_unit_abbreviation(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_abbreviations[unit]
-    end
-
-    function measurement.is_valid_unit(unit)
-        return unit_names[unit] and true or false
-    end
-
-    function measurement.get_real_default_unit()
-        local str = finale.FCString()
-        finenv.UI():GetDecimalSeparator(str)
-        local separator = str.LuaString
-        str:SetMeasurement(72, finale.MEASUREMENTUNIT_DEFAULT)
-        if str.LuaString == "72" then
-            return finale.MEASUREMENTUNIT_EVPUS
-        elseif str.LuaString == "0" .. separator .. "25" then
-            return finale.MEASUREMENTUNIT_INCHES
-        elseif str.LuaString == "0" .. separator .. "635" then
-            return finale.MEASUREMENTUNIT_CENTIMETERS
-        elseif str.LuaString == "18" then
-            return finale.MEASUREMENTUNIT_POINTS
-        elseif str.LuaString == "1p6" then
-            return finale.MEASUREMENTUNIT_PICAS
-        elseif str.LuaString == "3" then
-            return finale.MEASUREMENTUNIT_SPACES
-        end
-    end
-    return measurement
-end
 function plugindef()
-    finaleplugin.RequireSelection = true
-    finaleplugin.HandlesUndo = true
-    finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.57"
-    finaleplugin.Date = "2023/11/01"
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.RequireDocument = false
+    finaleplugin.NoStore = true
+    finaleplugin.MinJWLuaVersion = 0.68
+    finaleplugin.Author = "Robert Patterson"
+    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
+    finaleplugin.Version = "1.0"
+    finaleplugin.Date = "November 15, 2023"
+    finaleplugin.CategoryTags = "Expressions"
     finaleplugin.Notes = [[
-        When crossing notes to adjacent staves the stems of 'crossed' notes can be reversed
-        (on the "wrong"" side of the notehead) and look too far
-        to the right (if shifting downwards) by the width of a notehead, around 24 EVPUs.
-        This script shifts cross-staffed notes horizontally,
-        with a different offset for non-crossed notes, acting on one or all layers.
-        It is also a quick way to reset the horizontal position of all notes to zero.
-        To repeat your last settings without a confirmation dialog
-        hold down the SHIFT key when starting the script.
-        When crossing UP try EVPU offsets of 12 (crossed) and -12 (not crossed), or 24/0.
-        When crossing DOWN try crossed/uncrossed offsets of -12/12 EVPUs or -24/0.
-        To change measurement units without using the mouse, type one of these keys:
-        "e" (EVPUs), "i" (Inches), "c" (Centimeters),
-        "o" (Points), "a" (Picas), or "s" (Spaces).
-        Use "u" and "d" to set the default values for crossing staves Up/Down.
-        To view these notes type "q".
-    ]]
-    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/cross_staff_offset.hash"
-    return "CrossStaff Offset...", "CrossStaff Offset",
-        "Offset horizontal position of cross-staff note entries"
+            Allows you to construct a string from SMuFL multi-segment curved-line characters
+            that can be used, e.g., for expressions or custom lines to indicate random/uneven motion.
+        ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/smufl_multisegment_curves.hash"
+    return "SMuFL Multi-Segment Curves...", "SMuFL Multi-Segment Curves", "Allows you to construct a string from SMuFL multi-segment curved-line characters"
 end
-local config = {
-    cross_staff_offset  = 0,
-    non_cross_offset = 0,
-    layer_num = 0,
-    measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
-    pos_x = false,
-    pos_y = false,
-}
-local configuration = require("library.configuration")
-local layer = require("library.layer")
-local mixin = require("library.mixin")
-local measurement = require("library.measurement")
-local script_name = "cross_staff_offset"
-configuration.get_user_settings(script_name, config)
-local function dialog_set_position(dialog)
-    if config.window_pos_x and config.window_pos_y then
-        dialog:StorePosition()
-        dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
-        dialog:RestorePosition()
+local library = require('library.general_library')
+local mixin = require('library.mixin')
+local smufl_list = library.get_smufl_font_list()
+local function win_mac(win_val, mac_val)
+    if finenv.UI():IsOnWindows() then
+        return win_val
     end
+    return mac_val
 end
-local function dialog_save_position(dialog)
-    dialog:StorePosition()
-    config.window_pos_x = dialog.StoredX
-    config.window_pos_y = dialog.StoredY
-    configuration.save_user_settings(script_name, config)
+local function on_font_changed(control)
+    local fontlist = global_dialog:GetControl("fontlist")
+    local selected_item = fontlist:GetSelectedItem()
+    local fontsize = global_dialog:GetControl("editsize"):GetInteger()
+
+    local font_name = finale.FCString()
+    fontlist:GetItemText(selected_item, font_name)
+    local font = finale.FCFontInfo(font_name, fontsize)
+    global_dialog:GetControl("editor"):SetFont(font)
 end
-local function no_error()
-    local values = { 576, config.cross_staff_offset, config.non_cross_offset }
-    if math.abs(values[2]) <= values[1] and math.abs(values[3]) <= values[1] then
-        return true
-    end
-    local s = {}
-    local str = finale.FCString()
-    for _, v in ipairs(values) do
-        str:SetMeasurement(v, config.measurement_unit)
-        table.insert(s, str.LuaString)
-    end
-    local name = measurement.get_unit_name(config.measurement_unit)
-    local msg = "Choose realistic offset values, say from -" .. s[1] .. " to "
-    .. s[1] .. " " .. name .. " ...\nnot " .. s[2] .. " / " .. s[3] .. " " .. name
-    finenv.UI():AlertError(msg, "Error")
-    return false
+local function on_char_button_hit(control)
+    local text = finale.FCString()
+    control:GetText(text)
+    local editor = global_dialog:GetControl("editor")
+    editor:ReplaceSelectedText(text)
+    editor:SetKeyboardFocus()
 end
-local function user_chooses()
-    local x_grid = { 0, 113, 184 }
-    local box, save_value = {}, {}
-    local units = {
-        e = finale.MEASUREMENTUNIT_EVPUS,       i = finale.MEASUREMENTUNIT_INCHES,
-        c = finale.MEASUREMENTUNIT_CENTIMETERS, o = finale.MEASUREMENTUNIT_POINTS,
-        a = finale.MEASUREMENTUNIT_PICAS,       s = finale.MEASUREMENTUNIT_SPACES,
-    }
-    local max = layer.max_layers()
-    local e_width = 64
-    local y_step = 23
-    local offset = finenv.UI():IsOnMac() and 3 or 0
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    local notes = finaleplugin.Notes:gsub(" %s+", " "):gsub("\n ", "\n"):sub(2)
-    local function show_info() finenv.UI():AlertInfo(notes, "About " .. plugindef()) end
-    local function update_saved()
-        save_value[1] = box[1]:GetText()
-        save_value[2] = box[2]:GetText()
-    end
-    local y = 3
-    dialog:SetMeasurementUnit(config.measurement_unit)
-    local popup = dialog:CreateMeasurementUnitPopup(x_grid[3], y):SetWidth(97)
-        :AddHandleCommand(function() update_saved() end)
-        local function set_defaults(pole)
-            box[1]:SetMeasurementInteger(12 * pole)
-            box[2]:SetMeasurementInteger(-12 * pole)
-            save_value[1] = box[1]:GetText()
-            save_value[2] = box[2]:GetText()
+local function create_dialog_box()
+    local text_height = 150
+    local text_width = 700
+    local y_off = 5
+    local x_off = 0
+    local y_sep = 10
+    local x_sep = 10
+    local button_height = 20
+    local dlg = mixin.FCXCustomLuaWindow()
+        :SetTitle("SMuFL Multi-Segment Curves")
+
+    local popup = dlg:CreatePopup(x_off, y_off, "fontlist")
+        :SetWidth(200)
+        :AddHandleCommand(on_font_changed)
+    local bravura_index
+    local finale_index
+    for fontname, _ in pairsbykeys(smufl_list) do
+        if fontname == "Bravura" then
+            bravura_index = popup:GetCount()
+        elseif fontname == "Finale Maestro" then
+            finale_index = popup:GetCount()
         end
-        local function key_check(id)
-            local s = box[id]:GetText():lower()
-            if (    s:find("p") and dialog:GetMeasurementUnit() ~= finale.MEASUREMENTUNIT_PICAS)
-                    or s:find("[^-.p0-9]")
-                    or (id == 3 and s:find("[-.p5-9]")
-                )   then
-                if s:find("[?q]") then show_info()
-                elseif s:find("u") then set_defaults(1)
-                elseif s:find("d") then set_defaults(-1)
-                elseif s:find("[eicoas]") then
-                    for k, v in pairs(units) do
-                        if s:find(k) then
-                            box[id]:SetText(save_value[id])
-                            dialog:SetMeasurementUnit(v)
-                            popup:UpdateMeasurementUnit()
-                            update_saved()
-                            break
-                        end
-                    end
-                end
-                box[id]:SetText(save_value[id]):SetKeyboardFocus()
-            else
-                if id == 3 then s = s:sub(-1)
-                else
-                    if s == "." then s = "0."
-                    elseif s == "-." then s = "-0."
-                    end
-                end
-                box[id]:SetText(s)
-                save_value[id] = s
-            end
-        end
-    local dialog_options = {
-        { "Cross-staff offset:", "cross_staff_offset"},
-        { "Non-crossed offset:", "non_cross_offset" },
-        { "Layer 1-" .. max .. " (0 = all):", "layer_num" }
-    }
-    for i, v in ipairs(dialog_options) do
-        dialog:CreateStatic(0, y):SetText(v[1]):SetWidth(x_grid[2])
-        if i < 3 then
-            box[i] = dialog.CreateMeasurementEdit(dialog, x_grid[2], y - offset, v[2])
-                :SetWidth(e_width):SetMeasurementInteger(config[v[2]])
-                :AddHandleCommand(function() key_check(i) end)
-        else
-            box[i] = dialog:CreateEdit(x_grid[2], y - offset, v[2]):SetText(config[v[2]])
-                :SetWidth(e_width / 2):AddHandleCommand(function() key_check(i) end)
-            dialog:CreateButton(x_grid[3] + 77, y):SetText("?"):SetWidth(20)
-                :AddHandleCommand(function() show_info() end)
-        end
-        if i == 2 then
-            dialog:CreateButton(x_grid[3], y):SetText("up (u)"):SetWidth(40)
-                :AddHandleCommand(function() set_defaults(1) end)
-            dialog:CreateButton(x_grid[3] + 42, y):SetText("down (d)"):SetWidth(55)
-                :AddHandleCommand(function() set_defaults(-1) end)
-        end
-        save_value[i] = box[i]:GetText()
-        y = y + y_step
+        popup:AddString(fontname)
     end
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function() box[1]:SetKeyboardFocus() end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    dialog:RegisterHandleOkButtonPressed(function(self)
-        config["cross_staff_offset"] = box[1]:GetMeasurementInteger()
-        config["non_cross_offset"] = box[2]:GetMeasurementInteger()
-        config["layer_num"] = box[3]:GetInteger()
-        config.measurement_unit = self:GetMeasurementUnit()
-        dialog_save_position(self)
-    end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-end
-local function cross_staff_offset()
-    local shift_key = finenv.QueryInvokedModifierKeys and finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
-    if shift_key or (user_chooses() and no_error()) then
-        for entry in eachentrysaved(finenv.Region(), config.layer_num) do
-            if entry:IsNote() then
-                entry.ManualPosition = entry.CrossStaff and config.cross_staff_offset or config.non_cross_offset
-            end
+    if popup:GetCount() <= 0 then
+        finenv.UI():AlertInfo("No SMuFL fonts found on system.", "Not Found")
+        finenv.RetainLuaState = false
+        return nil
+    end
+    if bravura_index then
+        popup:SetSelectedItem(bravura_index)
+    elseif finale_index then
+        popup:SetSelectedItem(finale_index)
+    else
+        popup:SetSelectedItem(0)
+    end
+    x_off = x_off + 200 + x_sep
+    dlg:CreateStatic(x_off, y_off)
+        :SetText("Size:")
+        :SetWidth(35)
+    x_off = x_off + 35 + x_sep
+    dlg:CreateEdit(x_off, y_off - win_mac(1, 5), "editsize")
+        :SetInteger(24)
+        :AddHandleCommand(on_font_changed)
+    y_off = y_off + button_height + y_sep
+
+    x_off = 0
+    local fontname_text = finale.FCString()
+    popup:GetItemText(popup:GetSelectedItem(), fontname_text)
+    local initial_font = finale.FCFontInfo(fontname_text, dlg:GetControl("editsize"):GetInteger())
+    dlg:CreateTextEditor(x_off, y_off, "editor")
+        :SetWidth(text_width)
+        :SetHeight(text_height)
+        :SetFont(initial_font)
+        :SetWordWrap(false)
+        :SetReadOnly(false)
+        :SetUseRichText(true)
+        :SetAutomaticEditing(false)
+    y_off = y_off + text_height + y_sep
+
+    local function add_button(utf8char, fontsize)
+        dlg:CreateButton(x_off, y_off)
+            :SetWidth(30)
+            :SetText(finale.FCString(utf8.char(utf8char)))
+            :SetFont(finale.FCFontInfo(fontname_text, fontsize))
+            :AddHandleCommand(on_char_button_hit)
+        x_off = x_off + 30 + x_sep
+    end
+    local function add_button_row(label_text, utf8_first, utf8_last, fontsize, right_side)
+        curr_y_off = y_off
+        x_off = right_side and text_width/2 + 40 or 0
+        dlg:CreateStatic(x_off, y_off)
+            :SetWidth(250)
+            :SetText("-
+        y_off = y_off + button_height
+        for utf8char = utf8_first, utf8_last do
+            add_button(utf8char, fontsize)
+        end
+        y_off = y_off + button_height + 5
+        if not right_side then
+            y_off = curr_y_off
         end
     end
+    add_button_row("smallest", 0xeacd, 0xead3, win_mac(24, 24), false)
+    add_button_row("small", 0xead4, 0xeada, win_mac(24, 24), true)
+    add_button_row("medium", 0xeadb, 0xeae1, win_mac(20, 24), false)
+    add_button_row("large", 0xeae2, 0xeae8, win_mac(18, 24), true)
+    add_button_row("largest", 0xeae9, 0xeaef, win_mac(14, 18), false)
+    add_button_row("random", 0xeaf0, 0xeaf3, win_mac(12, 16), true)
+    add_button_row("trill", 0xeaa0, 0xeaa8, win_mac(24, 24), false)
+    add_button_row("arpeggiato", 0xeaa9, 0xeaaf, win_mac(24, 24), true)
+    add_button_row("circular motion", 0xeac4, 0xeacb, win_mac(14, 16), false)
+    add_button_row("falls and scoops", 0xe5d4, 0xe5d9, win_mac(12, 16), true)
+    y_off = y_off + y_sep
+
+    x_off = 0
+    dlg:CreateButton(x_off, y_off, "copy2clip")
+        :SetWidth(150)
+        :SetText("Copy to Clipboard")
+        :AddHandleCommand(function(control)
+            dlg:GetControl("editor"):TextToClipboard()
+            dlg:CreateChildUI():AlertInfo("Text copied to clipboard.", "Text Copied")
+        end)
+    x_off = x_off + 150 + x_sep
+    dlg:CreateCloseButton(text_width - 70, y_off)
+        :SetWidth(70)
+    return dlg
 end
-cross_staff_offset()
+local function smufl_multisegment_curves()
+    global_dialog = global_dialog or create_dialog_box()
+    if global_dialog then
+        global_dialog:RunModeless()
+    end
+end
+smufl_multisegment_curves()

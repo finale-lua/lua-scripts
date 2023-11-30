@@ -15,6 +15,7 @@
 - [CreateCloseButton(self, x, y, control_name)](#createclosebutton)
 - [CreateDataList(self, x, y, control_name)](#createdatalist)
 - [CreateEdit(self, x, y, control_name)](#createedit)
+- [CreateTextEditor(self, x, y, control_name)](#createtexteditor)
 - [CreateListBox(self, x, y, control_name)](#createlistbox)
 - [CreatePopup(self, x, y, control_name)](#createpopup)
 - [CreateSlider(self, x, y, control_name)](#createslider)
@@ -214,6 +215,31 @@ Override Changes:
 | Return type | Description |
 | ----------- | ----------- |
 | `FCMCtrlEdit` |  |
+
+### CreateTextEditor
+
+```lua
+fcmcustomwindow.CreateTextEditor(self, x, y, control_name)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L-1)
+
+**[Override]**
+
+Override Changes:
+- Added optional `control_name` parameter.
+- Store reference to original control object.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCustomWindow` |  |
+| `x` | `number` |  |
+| `y` | `number` |  |
+| `control_name` (optional) | `FCString \| string` | Optional name to allow access from `GetControl` method. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `FCMCtrlTextEditor` |  |
 
 ### CreateListBox
 
@@ -448,7 +474,7 @@ Override Changes:
 fcmcustomwindow.FindControl(self, control_id)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L349)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L365)
 
 **[PDK Port]**
 
@@ -472,7 +498,7 @@ Port Changes:
 fcmcustomwindow.GetControl(self, control_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L364)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L380)
 
 Finds a control based on its name.
 
@@ -491,7 +517,7 @@ Finds a control based on its name.
 fcmcustomwindow.Each(self, class_filter)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L379)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L395)
 
 An iterator for controls that can filter by class.
 
@@ -510,7 +536,7 @@ An iterator for controls that can filter by class.
 fcmcustomwindow.GetItemAt(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L406)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L422)
 
 **[Override]**
 
@@ -532,7 +558,7 @@ Override Changes:
 fcmcustomwindow.GetParent(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L421)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L437)
 
 **[PDK Port]**
 
@@ -552,7 +578,7 @@ Returns the parent window. The parent will only be available while the window is
 fcmcustomwindow.ExecuteModal(self, parent)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L437)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCustomWindow.lua#L453)
 
 **[Override]**
 

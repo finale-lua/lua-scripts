@@ -1849,9 +1849,10 @@ package.preload["mixin.FCMCustomWindow"] = package.preload["mixin.FCMCustomWindo
 
 
 
+
     for num_args, ctrl_types in pairs({
         [0] = {"CancelButton", "OkButton",},
-        [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit",
+        [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit", "TextEditor",
             "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
         },
         [3] = {"HorizontalLine", "VerticalLine",},
@@ -3724,8 +3725,10 @@ package.preload["library.general_library"] = package.preload["library.general_li
                 end
             end
         else
-            for k, _ in pairs(class.__parent) do
-                return tostring(k)
+            if class.__parent then
+                for k, _ in pairs(class.__parent) do
+                    return tostring(k)
+                end
             end
         end
         return nil

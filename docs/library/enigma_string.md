@@ -7,7 +7,7 @@
 - [change_first_text_block_font(text_block, font_info)](#change_first_text_block_font)
 - [change_string_font(string, font_info)](#change_string_font)
 - [change_text_block_font(text_block, font_info)](#change_text_block_font)
-- [remove_inserts(fcstring, replace_with_generic)](#remove_inserts)
+- [remove_inserts(fcstring, replace_with_generic, convert_tags_to_literals)](#remove_inserts)
 - [expand_value_tag(fcstring, value_num)](#expand_value_tag)
 - [calc_text_advance_width(inp_string)](#calc_text_advance_width)
 
@@ -100,17 +100,18 @@ Changes the entire text block to have the input font info.
 ### remove_inserts
 
 ```lua
-enigma_string.remove_inserts(fcstring, replace_with_generic)
+enigma_string.remove_inserts(fcstring, replace_with_generic, convert_tags_to_literals)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/enigma_string.lua#L134)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/enigma_string.lua#L135)
 
-Removes text inserts other than font commands and replaces them with
+Removes text inserts other than font and text formatting commands and either removes or replaces them with generic text
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
 | `fcstring` | `FCString` | this is both the input and the modified output result |
 | `replace_with_generic` | `boolean` | if true, replace the insert with the text of the enigma command |
+| `convert_tags_to_literals` | `boolean` | if true, converts the tags to literal text by escaping the carets ("^") with double-carets ("^^"); replace_with_generic must also be true |
 
 ### expand_value_tag
 
