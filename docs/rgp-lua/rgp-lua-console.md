@@ -7,7 +7,7 @@ The `rgpluaconsole.lua` script requires version 0.68 or higher of _RGP Lua_. Oth
 
 ![RGP Lua Console](assets/rgpluaconsole.jpg "RGP Lua Console")
 
-**Left Popup** A file menu, including `New`, `Open`, `Save`, `Save As`, `Close`, `Close All`, and recent files. In addition to these, the RGP Lua Console responds to the standard keyboard shortcuts for saving files: `cmd-S` on macOS and `ctrl-S` on Windows.
+**Left Popup** A file menu, including `New`, `Open`, `Save`, `Save As`, `Close`, `Close All`, and recent files.
 
 **Right Popup** A menu of all the ways the script can be run. If the script includes [Additional Menu Options](/docs/rgp-lua/finaleplugin-properties#additional-menu-options), they are listed here.
 
@@ -32,6 +32,24 @@ The `rgpluaconsole.lua` script requires version 0.68 or higher of _RGP Lua_. Oth
 **Clear Before Run** Tells the console to clear itself each time your press Run Script.
 
 **Preferences** Opens the [Preferences Dialog](#preferences-dialog).
+
+---
+
+### Keyboard Commands
+
+---
+
+The Console recognizes standard keyboard navigation commands for each operating system. It also recognizes the folowing:
+
+|Task|Mac|Windows|
+|----|---|-------|
+|New File|`cmd+N`|`ctrl+N`|
+|Open File|`cmd+O`|`ctrl+O`|
+|Save File|`cmd+S`|`ctrl+S`|
+|Cut|`cmd+X`|`ctrl+X`|
+|Copy|`cmd+C`|`ctrl+C`|
+|Paste|`cmd+V`|`ctrl+V`|
+
 
 ---
 
