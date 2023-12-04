@@ -33,23 +33,33 @@ The `rgpluaconsole.lua` script requires version 0.68 or higher of _RGP Lua_. Oth
 
 **Preferences** Opens the [Preferences Dialog](#preferences-dialog).
 
+**Search** Opens the [Find Text Dialog](#find-text-dialog). If you hold down the shift key while clicking, it finds the next occurence of the text without opening the dialog.
+
 ---
 
 ### Keyboard Commands
 
 ---
 
-The Console recognizes standard keyboard navigation commands for each operating system. It also recognizes the folowing:
+The Console recognizes standard keyboard navigation commands for each operating system. It also recognizes the following:
 
-|Task|Mac|Windows|
-|----|---|-------|
-|New File|`cmd+N`|`ctrl+N`|
-|Open File|`cmd+O`|`ctrl+O`|
-|Save File|`cmd+S`|`ctrl+S`|
-|Cut|`cmd+X`|`ctrl+X`|
-|Copy|`cmd+C`|`ctrl+C`|
-|Paste|`cmd+V`|`ctrl+V`|
+#### File Popup Shortcuts
 
+- **New File**: `cmd+N`mac(OS) `ctrl+N`(Windows)
+- **Open File**: `cmd+O`mac(OS) `ctrl+O`(Windows)
+- **Save File**: `cmd+S`mac(OS) `ctrl+S`(Windows)
+- **Close File**: `cmd+W`mac(OS) `ctrl+W`(Windows)
+
+#### Search Shortcuts
+
+- **Find Text**: `cmd+F`mac(OS) `ctrl+F`(Windows)
+- **Find Again**: `cmd+G`mac(OS) `ctrl+G`(Windows)
+
+#### Edit Shortcuts
+
+- **Cut**:  `cmd+X`mac(OS) `ctrl+X`(Windows)
+- **Copy**:  `cmd+C`mac(OS) `ctrl+C`(Windows)
+- **Paste**:  `cmd+V`mac(OS) `ctrl+V`(Windows)
 
 ---
 
@@ -94,3 +104,23 @@ A particularly effective approach is to edit scripts with your IDE editor and us
 **Font** The font used in all three of the text panes. It is recommended to use a fixed-width font.
 
 **Change** Allows you to select the font and size for the text panes. Font effects are ignored.
+
+---
+
+### Find Text Dialog
+
+---
+
+![Find Text Dialog](assets/rgpluaconsole_search.jpg "Preferences Dialog")
+
+**Text** The text or pattern for which to search.
+
+**Case Sensitive** Specifies whether to search exact case or ignore case.
+
+**Whole Words** If checked, only find whole words.
+
+**Regular Expressions** If checked, the search pattern is a regular expression. 
+(Overrides the **Whole Words** option.)
+
+**Current Selection Only** If checked, only the current selection is searched.
+
