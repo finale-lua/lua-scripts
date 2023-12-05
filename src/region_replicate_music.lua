@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.Author = "Michael McClennan & Jacob Winkler"
     finaleplugin.Version = 2.0
     finaleplugin.Copyright = "2023/12/05"
-    finaleplugin.HandlesUndo = true
+    finaleplugin.RequireSelection = true
 return "Replicate Music", "Replicate Music", "Inspired by the 'r' key in Sibelius, this script copies the selected music, and pastes it directly to the right"
 end
 
