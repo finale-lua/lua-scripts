@@ -4771,7 +4771,7 @@ local function create_dialog_box()
         x_off = right_side and text_width/2 + 40 or 0
         dlg:CreateStatic(x_off, y_off)
             :SetWidth(250)
-            :SetText("-
+            :SetText("–––––––––––" .. label_text .. "–––––––––––")
         y_off = y_off + button_height
         for utf8char = utf8_first, utf8_last do
             add_button(utf8char, fontsize)
