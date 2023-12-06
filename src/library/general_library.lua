@@ -431,8 +431,6 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 : string
 ]]
 function library.simple_input(title, text)
-    local return_value = finale.FCString()
-    return_value.LuaString = ""
     local str = finale.FCString()
     local min_width = 160
     --
@@ -462,16 +460,14 @@ function library.simple_input(title, text)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     --
-    function callback(ctrl)
-    end -- callback
+    --function callback(control)
+    --end -- callback
     --
-    dialog:RegisterHandleCommand(callback)
+    --dialog:RegisterHandleCommand(callback)
     --
     if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
-        return_value.LuaString = input:GetText(return_value)
-        -- print(return_value.LuaString)
-        return return_value.LuaString
-        -- OK button was pressed
+        input:GetText(str)
+        return str.LuaString
     end
 end -- function simple_input
 
