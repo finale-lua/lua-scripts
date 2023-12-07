@@ -45,21 +45,21 @@ The Console recognizes standard keyboard navigation commands for each operating 
 
 #### File Popup Shortcuts
 
-- **New File**: `cmd+N`mac(OS) `ctrl+N`(Windows)
-- **Open File**: `cmd+O`mac(OS) `ctrl+O`(Windows)
-- **Save File**: `cmd+S`mac(OS) `ctrl+S`(Windows)
-- **Close File**: `cmd+W`mac(OS) `ctrl+W`(Windows)
+- **New File**: `cmd+N` (macOS) `ctrl+N` (Windows)
+- **Open File**: `cmd+O` (macOS) `ctrl+O` (Windows)
+- **Save File**: `cmd+S` (macOS) `ctrl+S` (Windows)
+- **Close File**: `cmd+W` (macOS) `ctrl+W` (Windows)
 
 #### Search Shortcuts
 
-- **Find Text**: `cmd+F`mac(OS) `ctrl+F`(Windows)
-- **Find Again**: `cmd+G`mac(OS) `ctrl+G`(Windows)
+- **Find Text**: `cmd+F` (macOS) `ctrl+F` (Windows)
+- **Find Again**: `cmd+G` (macOS) `ctrl+G` (Windows)
 
 #### Edit Shortcuts
 
-- **Cut**:  `cmd+X`mac(OS) `ctrl+X`(Windows)
-- **Copy**:  `cmd+C`mac(OS) `ctrl+C`(Windows)
-- **Paste**:  `cmd+V`mac(OS) `ctrl+V`(Windows)
+- **Cut**:  `cmd+X` (macOS) `ctrl+X` (Windows)
+- **Copy**:  `cmd+C` (macOS) `ctrl+C` (Windows)
+- **Paste**:  `cmd+V` (macOS) `ctrl+V` (Windows)
 
 ---
 
