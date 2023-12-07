@@ -809,6 +809,7 @@ function plugindef()
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "2.0"
     finaleplugin.Date = "2022-07-17"
+    finaleplugin.HandlesUndo = true
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/harp_pedal_wizard.hash"
     return "Harp Pedal Wizard", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
@@ -2133,9 +2134,7 @@ or a chord from the drop down lists.]])
                     local root = root_calc()
                     if diagram_checkbox:GetCheck() == 1 then use_diagram = true
                     elseif diagram_checkbox:GetCheck() == 0 then use_diagram = false end
-                    return_string.LuaString = harp_notes:GetText(return_string)
-                    if return_string.LuaString ~= "" then
-                    end
+                    harp_notes:GetText(return_string)
                     if scale_check:GetCheck() == 1 then
                         harp_scale(root.LuaString, scales[sel_scale:GetSelectedItem() + 1], use_diagram, use_chord)
                     elseif chord_check:GetCheck() == 1 then
@@ -2159,7 +2158,7 @@ or a chord from the drop down lists.]])
                 function apply()
                     update_variables()
                     local return_string = finale.FCString()
-                    return_string.LuaString = harp_notes:GetText(return_string)
+                    harp_notes:GetText(return_string)
                     strings_read()
                     if partial_checkbox:GetCheck() == 1 then partial = true
                     elseif partial_checkbox:GetCheck() == 0 then partial = false end
