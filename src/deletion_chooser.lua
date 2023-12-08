@@ -5,7 +5,7 @@ function plugindef()
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "0.86"
     finaleplugin.Date = "2023/12/08"
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.MinJWLuaVersion = 0.68
 	finaleplugin.Notes = [[ 
         This script presents an alphabetical list of 24 individual types 
         of data to delete, each line beginning with a configurable "hotkey". 
@@ -31,7 +31,6 @@ function plugindef()
     return "Deletion Chooser...", "Deletion Chooser", "Choose specific items to delete by keystroke"
 end
 
-local lua_version = finenv.MajorVersion + (finenv.MinorVersion / 100)
 local info_notes = [[ 
 This script presents an alphabetical list of 24 individual types 
 of data to delete, each line beginning with a configurable "hotkey". 
@@ -237,7 +236,7 @@ local function delete_selected(delete_type)
                 local ss = { L = style.StartMeasure, R = style.EndMeasure }
                 local rr = { L = rgn.StartMeasure, R = rgn.EndMeasure }
                 if (ss.L >= rr.L) and (ss.R <= rr.R) then
-                    style:DeleteData() -- selection encapsulates style
+                    style:DeleteData() -- selection encloses style
                 else
                     if ss.L >= rr.L then -- RH side cropped
                         style.StartMeasure = rr.R + 1
@@ -248,7 +247,7 @@ local function delete_selected(delete_type)
                         if ss.R > rr.R then -- continues to right of selection
                             local assign = finale.FCStaffStyleAssign()
                             assign.StyleID = style.StyleID -- copy it
-                            assign.StartMeasure = rr.R + 1
+                            assign.StartMeasure = rr.R + 1 -- move to end
                             assign.EndMeasure = ss.R
                             assign:SaveNew(staff_number)
                         end
@@ -316,10 +315,8 @@ local function delete_selected(delete_type)
                 entry.FreezeBeam = false
                 entry.FreezeStem = false
                 entry.ManualPosition = 0
-                if lua_version > 0.67 then
-                    entry.ReverseUpStem = false  -- reverse stem support: RGP 0.68+
-                    entry.ReverseDownStem = false
-                end
+                entry.ReverseUpStem = false
+                entry.ReverseDownStem = false
                 if entry:IsRest() then
                     entry.FloatingRest = true
                 else
