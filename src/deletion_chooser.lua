@@ -3,49 +3,58 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.82"
-    finaleplugin.Date = "2023/08/16"
+    finaleplugin.Version = "0.86"
+    finaleplugin.Date = "2023/12/08"
     finaleplugin.MinJWLuaVersion = 0.62
 	finaleplugin.Notes = [[ 
-        This script presents an alphabetical list of 24 types of data to delete, 
-        each line beginning with a configurable "hotkey". 
+        This script presents an alphabetical list of 24 individual types 
+        of data to delete, each line beginning with a configurable "hotkey". 
         Call the script, type the hotkey and hit [Enter] or [Return]. 
-        Twelve of the datatypes can be filtered by layer.
+        Half of the datatypes can be filtered by layer.
 
-        Delete independently:
-
-        - Articulations*
-        - Articulations on Rests*
-        - Cross Staff Entries*  
-        - Custom Line
-        - Dynamics*
-        - Expressions (Not Dynamics)*  
-        - Expressions (All)*
-        - Expressions (Measure-Attached)
-        - Glissandos  
-        - Hairpins
-        - Lyrics*
-        - MIDI Continuous Data
-        - MIDI Note Data*  
-        - Note Position Offsets*
-        - Notehead Modifications*
-        - Secondary Beam Breaks*  
-        - Slurs
-        - Smart Shapes (Note Attached)
-        - Smart Shapes (Measure Attached)  
-        - Smart Shapes (Beat Attached)
-        - Smart Shapes (All)
-        - Staff Styles  
-        - Tuplets*
-        - User Selected...  
-        
+        DELETE INDEPENDENTLY:  
+        Articulations* | Articulations on Rests* | Cross Staff Entries*  
+        Custom Lines | Dynamics* | Expressions (Not Dynamics)*  
+        Expressions (All)* | Expressions (Measure-Attached) | Glissandos  
+        Hairpins | Lyrics* | MIDI Continuous Data | MIDI Note Data*  
+        Note Position Offsets* | Notehead Modifications* | Secondary Beam Breaks*  
+        Slurs | Smart Shapes (Note Attached) | Smart Shapes (Measure Attached)  
+        Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles  
+        Tuplets* | User Selected...  
         (* = filter by layer)
 
         To delete the same data as last time without a confirmation dialog, 
-        hold down the SHIFT key when starting the script.
+        hold down the SHIFT key when starting the script. 
+        The layer number is "clamped" to a single character so to change 
+        layer just type a new number - 'delete' key not needed.
     ]]
     return "Deletion Chooser...", "Deletion Chooser", "Choose specific items to delete by keystroke"
 end
+
+local lua_version = finenv.MajorVersion + (finenv.MinorVersion / 100)
+local info_notes = [[ 
+This script presents an alphabetical list of 24 individual types 
+of data to delete, each line beginning with a configurable "hotkey". 
+Call the script, type the hotkey and hit [Enter] or [Return]. 
+Half of the datatypes can be filtered by layer.
+]] .. "\n" .. [[
+DELETE INDEPENDENTLY:  
+Articulations* | Articulations on Rests* | Cross Staff Entries*  
+Custom Lines | Dynamics* | Expressions (Not Dynamics)*  
+Expressions (All)* | Expressions (Measure-Attached) | Glissandos  
+Hairpins | Lyrics* | MIDI Continuous Data | MIDI Note Data*  
+Note Position Offsets* | Notehead Modifications* | Secondary Beam Breaks*  
+Slurs | Smart Shapes (Note Attached) | Smart Shapes (Measure Attached)  
+Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles  
+Tuplets* | User Selected...  
+(* = filter by layer)
+]] .. "\n" .. [[
+To delete the same data as last time without a confirmation dialog, 
+hold down the SHIFT key when starting the script. 
+The layer number is "clamped" to a single character so to change 
+layer just type a new number - 'delete' key not needed.
+]]
+info_notes = info_notes:gsub("  \n",  "\n"):gsub(" %s+", " "):gsub("\n ", "\n")
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
@@ -53,7 +62,7 @@ local expression = require("library.expression")
 local layer = require("library.layer")
 local script_name = "deletion_chooser"
 -- Mac / Windows menu command value ...
-local clear_selected_items_menu = (finenv.UI():IsOnMac()) and 1296385394 or 16010
+local clear_selected_items_menu = finenv.UI():IsOnMac() and 1296385394 or 16010
 
 local dialog_options = { -- key, text description (ordered)
     { "entry_articulation", "Articulations*" },
@@ -88,8 +97,8 @@ local config = { -- keystroke assignments, layer number and window position
     cross_staff = "X",
     shape_custom = "C",
     expression_dynamic = "D",
-    expression_not_dynamic = "F",
-    expression_all = "E",
+    expression_not_dynamic = "E",
+    expression_all = "F",
     measure_attached = "M",
     shape_glissando = "G",
     shape_hairpin = "H",
@@ -114,7 +123,7 @@ local config = { -- keystroke assignments, layer number and window position
     layer_num = 0,
 }
 
-function dialog_set_position(dialog)
+local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
@@ -122,14 +131,14 @@ function dialog_set_position(dialog)
     end
 end
 
-function dialog_save_position(dialog)
+local function dialog_save_position(dialog)
     dialog:StorePosition()
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
 end
 
-function match_shape_type(shape, type)
+local function match_shape_type(shape, type)
     if (type == "shape_all")
         or (type == "shape_hairpin" and shape:IsHairpin())
         or (type == "shape_slur" and shape:IsSlur())
@@ -144,8 +153,9 @@ function match_shape_type(shape, type)
     return false
 end
 
-function delete_selected(delete_type)
+local function delete_selected(delete_type)
     local rgn = finenv.Region()
+    local layer_num = tonumber(config.layer_num)
 
     if delete_type == "user_selected" then -- access Finale menu: Edit -> "Clear Selected Items"
         if not finenv.UI():ExecuteOSMenuCommand(clear_selected_items_menu) then
@@ -184,7 +194,7 @@ function delete_selected(delete_type)
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(rgn)
         for exp in eachbackwards(expressions) do
-            if config.layer_num == 0 or exp.LayerAssignment == 0 or config.layer_num == exp.LayerAssignment then
+            if layer_num == 0 or exp.LayerAssignment == 0 or layer_num == exp.LayerAssignment then
                 if not exp:IsShape() and exp.StaffGroupID == 0 and
                 (      (delete_type == "expression_all")
                     or (delete_type == "expression_not_dynamic" and not expression.is_dynamic(exp))
@@ -224,14 +234,31 @@ function delete_selected(delete_type)
             local style_assign = finale.FCStaffStyleAssigns()
             style_assign:LoadAllForItem(staff_number)
             for style in eachbackwards(style_assign) do
-                if rgn:IsMeasureIncluded(style.StartMeasure) and rgn:IsMeasureIncluded(style.EndMeasure) then
-                    style:DeleteData()
+                local ss = { L = style.StartMeasure, R = style.EndMeasure }
+                local rr = { L = rgn.StartMeasure, R = rgn.EndMeasure }
+                if (ss.L >= rr.L) and (ss.R <= rr.R) then
+                    style:DeleteData() -- selection encapsulates style
+                else
+                    if ss.L >= rr.L then -- RH side cropped
+                        style.StartMeasure = rr.R + 1
+                        style:Save()
+                    elseif ss.L < rr.L then
+                        style.EndMeasure = rr.L - 1
+                        style:Save() -- LH side cropped before selection
+                        if ss.R > rr.R then -- continues to right of selection
+                            local assign = finale.FCStaffStyleAssign()
+                            assign.StyleID = style.StyleID -- copy it
+                            assign.StartMeasure = rr.R + 1
+                            assign.EndMeasure = ss.R
+                            assign:SaveNew(staff_number)
+                        end
+                    end
                 end
             end
         end
     --
     else -- only ENTRY-attached datatypes remain: step through selected region
-        for entry in eachentrysaved(rgn, config.layer_num) do
+        for entry in eachentrysaved(rgn, layer_num) do
             --
             if delete_type:find("artic") and entry.ArticulationFlag then -- ARTICULATION
                 if delete_type == "entry_articulation" or (entry:IsRest() and delete_type == "rest_articulation") then
@@ -241,7 +268,7 @@ function delete_selected(delete_type)
                     entry:SetArticulationFlag(false)
                 end
             --
-            elseif delete_type == "notehead_mods" and entry:IsNote() then -- NOTE-BASED MIDI
+            elseif delete_type == "notehead_mods" and entry:IsNote() then -- NOTE-HEAD MODS
                 local mods = entry:CreateNoteheadMods()
                 if mods.Count > 0 then
                     for mod in eachbackwards(mods) do
@@ -281,22 +308,27 @@ function delete_selected(delete_type)
             elseif delete_type == "secondary_beam_breaks" then -- SECONDARY BEAM BREAKS
                 local sbbm = finale.FCSecondaryBeamBreakMod()
                 sbbm:SetNoteEntry(entry)
-                if sbbm:LoadFirst() then
+                while sbbm:LoadFirst() do
                     sbbm:DeleteData()
                 end
             --
             elseif delete_type == "cross_staff" then -- CROSS-STAFF
                 entry.FreezeBeam = false
                 entry.FreezeStem = false
-                --entry.ManualPosition = 0
-                if entry.ReverseStem then entry.ReverseStem = false end -- check spelling in RGPLua 0.68
-                if entry:IsRest() then entry.FloatingRest = true end
-
-                for _, type in ipairs( {"FCCrossStaffMods", "FCPrimaryBeamMods"} ) do
-                    local mods = finale[type](entry)
-                    mods:LoadAll()
-                    for i = mods.Count, 1, -1 do
-                        mods:GetItemAt(i - 1):DeleteData()
+                entry.ManualPosition = 0
+                if lua_version > 0.67 then
+                    entry.ReverseUpStem = false  -- reverse stem support: RGP 0.68+
+                    entry.ReverseDownStem = false
+                end
+                if entry:IsRest() then
+                    entry.FloatingRest = true
+                else
+                    for _, type in ipairs( {"FCCrossStaffMods", "FCPrimaryBeamMods"} ) do
+                        local mods = finale[type](entry)
+                        mods:LoadAll()
+                        for m in eachbackwards(mods) do
+                            m:DeleteData()
+                        end
                     end
                 end
                 entry.CrossStaff = false
@@ -305,7 +337,7 @@ function delete_selected(delete_type)
     end
 end
 
-function reassign_keys()
+local function reassign_keys(selected)
     local y_step, x_wide = 17, 180
     local offset = finenv.UI():IsOnMac() and 3 or 0
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Reassign Hotkeys")
@@ -313,6 +345,10 @@ function reassign_keys()
     local y = 0
     for _, v in ipairs(dialog_options) do -- add all options with keycodes
         dialog:CreateEdit(0, y - offset, v[1]):SetText(config[v[1]]):SetWidth(20)
+            :AddHandleCommand(function(self)
+                local str = self:GetText():upper()
+                self:SetText(str:sub(-1)):SetKeyboardFocus()
+            end)
         dialog:CreateStatic(25, y):SetText(v[2]):SetWidth(x_wide)
         y = y + y_step
     end
@@ -321,12 +357,12 @@ function reassign_keys()
         :SetText("Ignore duplicate assignments"):SetCheck(config.ignore_duplicates or 0)
     dialog:CreateOkButton():SetText("Save")
     dialog:CreateCancelButton()
+    dialog:RegisterInitWindow(function(self) self:GetControl(selected):SetKeyboardFocus() end)
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function(self)
         local assigned = {}
         for i, v in ipairs(dialog_options) do
             local key = self:GetControl(v[1]):GetText()
-            key = string.upper(string.sub(key, 1, 1)) -- 1st character, upper case
             if key == "" then key = "?" end -- not null
             config[v[1]] = key -- save for another possible run-through
             config.ignore_duplicates = ignore:GetCheck()
@@ -357,7 +393,7 @@ function reassign_keys()
     return ok, is_duplicate
 end
 
-function user_chooses()
+local function user_chooses()
     local y_step = 17
     local box_wide = 236
     local box_high = (#dialog_options * y_step) + 5
@@ -365,61 +401,73 @@ function user_chooses()
     local y = box_high + 27
     local max = layer.max_layers()
     local offset = finenv.UI():IsOnMac() and 3 or 0
-    local join = finenv.UI():IsOnMac() and "\t" or ":  "
+    local function show_info() finenv.UI():AlertInfo(info_notes, "About " .. plugindef()) end
 
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:CreateStatic(0, 0):SetText("Delete data of type:"):SetWidth(box_wide)
 
     local key_list = dialog:CreateListBox(0, 20):SetWidth(box_wide):SetHeight(box_high)
         local function fill_key_list()
+            local join = finenv.UI():IsOnMac() and "\t" or ":  "
             key_list:Clear()
-            for _, v in ipairs(dialog_options) do -- add all options with keycodes
+            for _, v in ipairs(dialog_options) do
                 key_list:AddString(config[v[1]] .. join .. v[2])
             end
             key_list:SetSelectedItem(config.last_selected or 0)
         end
+        local function change_keys()
+            local ok, is_duplicate = true, true
+            local selected = dialog_options[key_list:GetSelectedItem() + 1][1]
+            while ok and is_duplicate do -- wait for valid choice in reassign_keystrokes()
+                ok, is_duplicate = reassign_keys(selected)
+            end
+            if ok then fill_key_list() end
+        end
+
     fill_key_list()
     dialog:CreateStatic(0, y):SetWidth(x_off * 3):SetText("For data types marked *:")
     y = y + y_step
-    dialog:CreateStatic(0, y):SetWidth(x_off * 2):SetText("Active Layer 1-" .. max)
-    local layer_num = dialog:CreateEdit(x_off + 35, y - offset):SetWidth(20)
-        :SetInteger(config.layer_num or 0)
-    dialog:CreateStatic(x_off * 2, y):SetWidth(x_off):SetText("(0 = all)")
+    dialog:CreateStatic(0, y):SetWidth(x_off + 36):SetText("Active Layer 1-" .. max)
+    local save_layer = config.layer_num or "0"
+    local layer_num = dialog:CreateEdit(x_off + 37, y - offset):SetWidth(20):SetText(save_layer)
+        :AddHandleCommand(function(self)
+            local val = self:GetText():lower()
+            if val:find("[^0-" .. max .. "]") then
+                if val:find("[?q]") then show_info()
+                elseif val:find("r") then change_keys()
+                end
+                self:SetText(save_layer):SetKeyboardFocus()
+            elseif val ~= "" then
+                val = val:sub(-1)
+                self:SetText(val)
+                save_layer = val
+            end
+        end)
+
+    dialog:CreateStatic(x_off + 60, y):SetWidth(x_off):SetText("(0 = all)")
     y = y + y_step + 2
     dialog:CreateButton(0, y):SetText("Reassign Hotkeys"):SetWidth(x_off * 2)
-        :AddHandleCommand(function()
-            local ok, is_duplicate = true, true
-            while ok and is_duplicate do -- wait for valid choices in reassign_keys()
-                ok, is_duplicate = reassign_keys()
-            end
-            if ok then -- no error ... new key assignments in config
-                configuration.save_user_settings(script_name, config)
-                fill_key_list()
-            end
-        end)
-    local notes = finaleplugin.Notes:gsub("  \n", "\n")
+        :AddHandleCommand(function() change_keys() end)
     dialog:CreateButton(box_wide - 20, y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function()
-            finenv.UI():AlertInfo(notes:gsub(" %s+", " "), "About " .. plugindef())
-        end)
+        :AddHandleCommand(function() show_info() end)
     dialog:CreateOkButton():SetText("Select")
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterHandleOkButtonPressed(function(self)
+    dialog:RegisterHandleOkButtonPressed(function()
             config.last_selected = key_list:GetSelectedItem() -- save list choice
-            config.layer_num = math.min(math.max(layer_num:GetInteger(), 0), max)
+            config.layer_num = layer_num:GetInteger()
         end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     dialog:RegisterInitWindow(function() key_list:SetKeyboardFocus() end)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
 
-function select_delete_type()
+local function select_delete_type()
     configuration.get_user_settings(script_name, config, true)
-    local shift_key = finenv.QueryInvokedModifierKeys and
-        (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT)
-         or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT))
-    if shift_key or user_chooses() then
+    local qimk = finenv.QueryInvokedModifierKeys
+    local mod_key = qimk and (qimk(finale.CMDMODKEY_ALT) or qimk(finale.CMDMODKEY_SHIFT))
+
+    if mod_key or user_chooses() then
         local delete_type = dialog_options[config.last_selected + 1][1]
         delete_selected(delete_type)
     end
