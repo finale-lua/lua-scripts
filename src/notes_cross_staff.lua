@@ -21,7 +21,7 @@ function plugindef()
         Selected notes are cross-staffed to the next higher staff
         Set the horizontal offsets and active layer that will be applied to cross-staffed notes
     ]]
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.MinJWLuaVersion = 0.68
     finaleplugin.ScriptGroupName = "Notes Cross-Staff"
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below the selection"
 	finaleplugin.Notes = [[ 
@@ -175,7 +175,6 @@ end
 
 local function cross_staff(next_staff, rgn)
     local beam_groups = {}
-    local reversible = (finenv.MajorVersion > 0 or finenv.MinorVersion > 67) -- RGP 0.68+
 
     for entry in eachentrysaved(rgn, config.layer_num) do
         if entry:IsNote() then -- cross it?
@@ -198,7 +197,7 @@ local function cross_staff(next_staff, rgn)
                     entry.ManualPosition = config[direction .. "_Crossed"]
                 end
                 if not unbeamed then -- reverse/stem direction?
-                    if reversible and (not config.no_reverse) then
+                    if not config.no_reverse then
                         entry["Reverse" .. direction .. "Stem"] = true
                     end
                     entry.StemUp = (direction == "Up")
@@ -246,7 +245,7 @@ local function cross_staff(next_staff, rgn)
     end
 
     if not config.no_shift then -- adjust position of uncrossed entries
-        if config.whole_measure then -- whoel measure
+        if config.whole_measure then -- whole measure
             local whole_measure = mixin.FCMMusicRegion()
             whole_measure:SetRegion(rgn):SetStartMeasurePosLeft():SetEndMeasurePosRight()
             for entry in eachentrysaved(whole_measure, config.layer_num) do
