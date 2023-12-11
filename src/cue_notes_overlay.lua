@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.12"
-    finaleplugin.Date = "2023/12/09"
+    finaleplugin.Version = "v0.13"
+    finaleplugin.Date = "2023/12/11"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         This script takes music from a nominated layer in the selected staff 
@@ -109,6 +109,7 @@ local config = { -- retained and over-written by the user's "settings" file
     abbreviate          =   true, -- abbreviate staff names when creating new titles
     cuename_item        =   0,    -- ItemNo of the last selected cue_name expression
     -- not user accessible:
+    prefer_overwrite    =   false,
     shift_expression_down = -24 * 9, -- when cue_name is below staff
     shift_expression_left = -24, -- EVPUs; cue names generally need to be LEFT of music start
     -- if creating a new "Cue Names" category ...
@@ -186,18 +187,22 @@ local function change_cue_layer(staff_name, empty_layer)
         local toggle = (id % 2 + 1) -- the other checkbox
         check[toggle]:SetCheck((state + 1) % 2) -- "ON" <-> "OFF"
     end
-    check[1] = dialog:CreateCheckbox(0, 50):SetWidth(200):SetCheck(1)
+    local c = config.prefer_overwrite and 1 or 0
+    check[1] = dialog:CreateCheckbox(0, 50):SetWidth(200):SetCheck(c)
         :SetText("overwrite cue layer " .. config.cuenote_layer)
         :AddHandleCommand(function(self) radio_change(1, self:GetCheck()) end)
-    check[2] = dialog:CreateCheckbox(0, 70):SetWidth(200):SetCheck(0)
+    check[2] = dialog:CreateCheckbox(0, 70):SetWidth(200):SetCheck((c + 1) % 2)
         :SetText("copy the cue to empty layer " .. empty_layer)
         :AddHandleCommand(function(self) radio_change(2, self:GetCheck()) end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
+    dialog:RegisterHandleOkButtonPressed(function(self)
+        config.prefer_overwrite = (check[1]:GetCheck() == 1)
+    end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     local answer = -1 -- assume cancellation
-    if (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK) then
+    if (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK) then -- reasoned choice
         answer = (check[1]:GetCheck() == 1) and config.cuenote_layer or empty_layer
     end
     return answer
