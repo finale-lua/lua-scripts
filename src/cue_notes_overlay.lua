@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.11"
+    finaleplugin.Version = "v0.12"
     finaleplugin.Date = "2023/12/09"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
@@ -80,8 +80,8 @@ field and these key commands are available:
 *• t @t flip [copy lyrics]
 *• y @t flip [mute cuenotes]
 *– – –
-*• a @t all options checked
-*• s @t no options checked
+*• a @t check all options
+*• s @t check no options
 *• d @t select all staves
 *• f @t select no staves
 *• g @t select empty staves
@@ -159,13 +159,48 @@ local function show_error(error_code)
     return -1
 end
 
-local function overwrite_existing_music(staff_number, layer_number)
-    local staff = finale.FCStaff()
-    staff:Load(staff_number) -- staff number of this slot
-    local msg = "Are you sure you want to overwrite existing music on layer [" .. layer_number
-        .. "] of staff: \"" .. staff:CreateDisplayFullNameString().LuaString .. "\"?"
-    local alert = finenv.UI():AlertOkCancel(msg, nil)
-    return (alert == finale.OKRETURN)
+local function overwrite_existing_music(staff_name)
+    -- mixin dialog for consistency's sake
+    local msg = "All layers of the destination at staff \""
+        .. staff_name .. "\" already contain music. "
+        .. "Are you sure you want to overwrite existing music on cuenote layer ("
+        .. config.cuenote_layer .. ") of staff \"" .. staff_name .. "\"?"
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    dialog:CreateStatic(0, 0):SetText(msg):SetWidth(300):SetHeight(70)
+    dialog:CreateOkButton():SetText("Yes")
+    dialog:CreateCancelButton()
+    dialog_set_position(dialog)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+end
+
+local function change_cue_layer(staff_name, empty_layer)
+    local msg = "The destination at staff \"" .. staff_name .. "\" already contains "
+        .. "music on your nominated \"cuenote\" layer ("
+        .. config.cuenote_layer .. "), but layer (" .. empty_layer
+        .. ") is empty. "
+    local check = {} -- 2 checkboxes
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    dialog:CreateStatic(0, 0):SetText(msg):SetWidth(300):SetHeight(51)
+    local function radio_change(id, state) -- for checkboxes "1" and "2"
+        local toggle = (id % 2 + 1) -- the other checkbox
+        check[toggle]:SetCheck((state + 1) % 2) -- "ON" <-> "OFF"
+    end
+    check[1] = dialog:CreateCheckbox(0, 50):SetWidth(200):SetCheck(1)
+        :SetText("overwrite cue layer " .. config.cuenote_layer)
+        :AddHandleCommand(function(self) radio_change(1, self:GetCheck()) end)
+    check[2] = dialog:CreateCheckbox(0, 70):SetWidth(200):SetCheck(0)
+        :SetText("copy the cue to empty layer " .. empty_layer)
+        :AddHandleCommand(function(self) radio_change(2, self:GetCheck()) end)
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    dialog_set_position(dialog)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    local answer = -1 -- assume cancellation
+    if (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK) then
+        answer = (check[1]:GetCheck() == 1) and config.cuenote_layer or empty_layer
+    end
+    return answer
 end
 
 local function region_is_empty(region, layer_number)
@@ -448,20 +483,24 @@ local function get_layer_rest_offset(layer_num)
     return rest_offset
 end
 
-local function get_empty_cue_layer(rgn)
+local function check_empty_cue_layer(rgn)
     if region_is_empty(rgn, config.cuenote_layer) then
-        return config.cuenote_layer
+        return config.cuenote_layer -- user's layer choice is CONFIRMED
     end
-    for i = 1, 4 do
-        if i ~= config.cuenote_layer and region_is_empty(rgn, i) then
-            return  i -- got an empty layer
+    local staff = finale.FCStaff()
+    staff:Load(rgn.StartStaff) -- staff number of this slot
+    local staff_name = staff:CreateDisplayFullNameString().LuaString
+
+    for empty = 1, 4 do -- any empty layers?
+        if empty ~= config.cuenote_layer and region_is_empty(rgn, empty) then
+            return change_cue_layer(staff_name, empty)
         end
     end
-    -- no empty layers available
-    if overwrite_existing_music(rgn.StartStaff, config.cuenote_layer) then
-        return config.cuenote_layer
-    end
-    return -1
+    -- no empties found
+    if overwrite_existing_music(staff_name) then
+        return config.cuenote_layer -- yeah - overwrite
+    end -- otherwise
+    return -1 -- forget about it
 end
 
 local function add_measure_rests(dest_region, cue_layer)
@@ -492,7 +531,7 @@ local function notelayer_copy(rgn, dest_staff)
     local dest_region = mixin.FCMMusicRegion()
     dest_region:SetRegion(rgn):SetStartStaff(dest_staff):SetEndStaff(dest_staff)
 
-    local cue_layer = get_empty_cue_layer(dest_region)
+    local cue_layer = check_empty_cue_layer(dest_region) -- may or may not be config.cuenote_layer
     if cue_layer < 0 then return false end -- couldn't find one
     add_measure_rests(dest_region, cue_layer) -- if needed
 
