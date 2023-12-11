@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.13"
+    finaleplugin.Version = "v0.14"
     finaleplugin.Date = "2023/12/11"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
@@ -11,8 +11,6 @@ function plugindef()
         and creates a "Cue" version on one or more other staves. 
         It is specifically intended to create cue notes above or below 
         existing "played" material in the destination. 
-        If the nominated "cue" layer already contains music 
-        the cue will copy to the first empty layer. 
         If the destination measure is completely empty a whole-measure 
         rest will be created as a reminder that the cue isn't played.
 
@@ -44,8 +42,6 @@ This script takes music from a nominated layer in the selected staff
 and creates a "Cue" version on one or more other staves.
 It is specifically intended to create cue notes above or below
 existing "played" material in the destination.
-If the nominated "cue" layer already contains music
-the cue will copy to the first empty layer.
 If the destination measure is completely empty a whole-measure
 rest will be created as a reminder that the cue isn't played.
 **
@@ -109,7 +105,7 @@ local config = { -- retained and over-written by the user's "settings" file
     abbreviate          =   true, -- abbreviate staff names when creating new titles
     cuename_item        =   0,    -- ItemNo of the last selected cue_name expression
     -- not user accessible:
-    prefer_overwrite    =   false,
+    overwrite_layer     =   3,
     shift_expression_down = -24 * 9, -- when cue_name is below staff
     shift_expression_left = -24, -- EVPUs; cue names generally need to be LEFT of music start
     -- if creating a new "Cue Names" category ...
@@ -158,54 +154,6 @@ local function show_error(error_code)
     local msg = errors[error_code] or "Unknown error condition"
     finenv.UI():AlertInfo(msg, plugindef() .. " Error")
     return -1
-end
-
-local function overwrite_existing_music(staff_name)
-    -- mixin dialog for consistency's sake
-    local msg = "All layers of the destination at staff \""
-        .. staff_name .. "\" already contain music. "
-        .. "Are you sure you want to overwrite existing music on cuenote layer ("
-        .. config.cuenote_layer .. ") of staff \"" .. staff_name .. "\"?"
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    dialog:CreateStatic(0, 0):SetText(msg):SetWidth(300):SetHeight(70)
-    dialog:CreateOkButton():SetText("Yes")
-    dialog:CreateCancelButton()
-    dialog_set_position(dialog)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
-end
-
-local function change_cue_layer(staff_name, empty_layer)
-    local msg = "The destination at staff \"" .. staff_name .. "\" already contains "
-        .. "music on your nominated \"cuenote\" layer ("
-        .. config.cuenote_layer .. "), but layer (" .. empty_layer
-        .. ") is empty. "
-    local check = {} -- 2 checkboxes
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    dialog:CreateStatic(0, 0):SetText(msg):SetWidth(300):SetHeight(51)
-    local function radio_change(id, state) -- for checkboxes "1" and "2"
-        local toggle = (id % 2 + 1) -- the other checkbox
-        check[toggle]:SetCheck((state + 1) % 2) -- "ON" <-> "OFF"
-    end
-    local c = config.prefer_overwrite and 1 or 0
-    check[1] = dialog:CreateCheckbox(0, 50):SetWidth(200):SetCheck(c)
-        :SetText("overwrite cue layer " .. config.cuenote_layer)
-        :AddHandleCommand(function(self) radio_change(1, self:GetCheck()) end)
-    check[2] = dialog:CreateCheckbox(0, 70):SetWidth(200):SetCheck((c + 1) % 2)
-        :SetText("copy the cue to empty layer " .. empty_layer)
-        :AddHandleCommand(function(self) radio_change(2, self:GetCheck()) end)
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    dialog_set_position(dialog)
-    dialog:RegisterHandleOkButtonPressed(function(self)
-        config.prefer_overwrite = (check[1]:GetCheck() == 1)
-    end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    local answer = -1 -- assume cancellation
-    if (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK) then -- reasoned choice
-        answer = (check[1]:GetCheck() == 1) and config.cuenote_layer or empty_layer
-    end
-    return answer
 end
 
 local function region_is_empty(region, layer_number)
@@ -479,6 +427,41 @@ local function choose_destination_staff(source_staff)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), chosen_staves
 end
 
+local function choose_overwrite_layer(staff_name, empty)
+    local msg = "The chosen \"cuenote\" layer (" .. config.cuenote_layer
+        .. ") on staff \"" .. staff_name .. "\" already contains music."
+    local wide = 200
+
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    dialog:CreateStatic(0, 0):SetText(msg):SetWidth(wide):SetHeight(52)
+    make_info_button(dialog, wide - 20, 52)
+    dialog:CreateStatic(0, 55):SetText("Please confirm:"):SetWidth(100)
+    local list = dialog:CreateListBox(0, 75):SetWidth(wide):SetHeight(70)
+    for i = 1, 4 do
+        local si = tostring(i)
+        if i == config.cuenote_layer then
+            list:AddString("overwrite CUENOTE LAYER " .. si)
+        else
+            msg = empty[i] and "use empty layer " or "overwrite layer "
+            list:AddString(msg .. si)
+        end
+        if i == config.overwrite_layer then list:SetSelectedItem(i - 1) end
+    end
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    dialog_set_position(dialog)
+    dialog:RegisterHandleOkButtonPressed(function(self)
+        config.overwrite_layer = list:GetSelectedItem() + 1
+    end)
+    dialog:RegisterInitWindow(function() list:SetKeyboardFocus() end)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    local answer = -1 -- assume cancellation
+    if (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK) then -- reasoned choice
+        answer = list:GetSelectedItem() + 1
+    end
+    return answer
+end
+
 local function get_layer_rest_offset(layer_num)
     local layer_prefs = finale.FCLayerPrefs()
     layer_prefs:Load(layer_num - 1)
@@ -495,17 +478,11 @@ local function check_empty_cue_layer(rgn)
     local staff = finale.FCStaff()
     staff:Load(rgn.StartStaff) -- staff number of this slot
     local staff_name = staff:CreateDisplayFullNameString().LuaString
-
-    for empty = 1, 4 do -- any empty layers?
-        if empty ~= config.cuenote_layer and region_is_empty(rgn, empty) then
-            return change_cue_layer(staff_name, empty)
-        end
+    local empty = {} -- collate empty layers
+    for i = 1, 4 do -- any empty layers?
+        empty[i] = region_is_empty(rgn, i)
     end
-    -- no empties found
-    if overwrite_existing_music(staff_name) then
-        return config.cuenote_layer -- yeah - overwrite
-    end -- otherwise
-    return -1 -- forget about it
+    return choose_overwrite_layer(staff_name, empty)
 end
 
 local function add_measure_rests(dest_region, cue_layer)
