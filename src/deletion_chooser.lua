@@ -32,28 +32,29 @@ function plugindef()
 end
 
 local info_notes = [[ 
-This script presents an alphabetical list of 24 individual types 
-of data to delete, each line beginning with a configurable "hotkey". 
-Call the script, type the hotkey and hit [Enter] or [Return]. 
+This script presents an alphabetical list of 24 individual types
+of data to delete, each line beginning with a configurable "hotkey".
+Call the script, type the hotkey and hit [Enter] or [Return].
 Half of the datatypes can be filtered by layer.
-]] .. "\n" .. [[
-DELETE INDEPENDENTLY:  
-Articulations* | Articulations on Rests* | Cross Staff Entries*  
-Custom Lines | Dynamics* | Expressions (Not Dynamics)*  
-Expressions (All)* | Expressions (Measure-Attached) | Glissandos  
-Hairpins | Lyrics* | MIDI Continuous Data | MIDI Note Data*  
-Note Position Offsets* | Notehead Modifications* | Secondary Beam Breaks*  
-Slurs | Smart Shapes (Note Attached) | Smart Shapes (Measure Attached)  
-Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles  
-Tuplets* | User Selected...  
-(* = filter by layer)
-]] .. "\n" .. [[
-To delete the same data as last time without a confirmation dialog, 
-hold down the SHIFT key when starting the script. 
-The layer number is "clamped" to a single character so to change 
+**
+DELETE INDEPENDENTLY:
+*Articulations• | Articulations on Rests• | Cross Staff Entries•
+*Custom Lines | Dynamics• | Expressions (Not Dynamics)•
+*Expressions (All)• | Expressions (Measure-Attached) | Glissandos
+*Hairpins | Lyrics• | MIDI Continuous Data | MIDI Note Data•
+*Note Position Offsets• | Notehead Modifications• | Secondary Beam Breaks•
+*Slurs | Smart Shapes (Note Attached) | Smart Shapes (Measure Attached)
+*Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles
+*Tuplets• | User Selected...
+*(• = filter by layer)
+**
+To delete the same data as last time without a confirmation dialog,
+hold down the SHIFT key when starting the script.
+The layer number is "clamped" to a single character so to change
 layer just type a new number - 'delete' key not needed.
 ]]
-info_notes = info_notes:gsub("  \n",  "\n"):gsub(" %s+", " "):gsub("\n ", "\n")
+
+info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n")
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
@@ -235,21 +236,23 @@ local function delete_selected(delete_type)
             for style in eachbackwards(style_assign) do
                 local ss = { L = style.StartMeasure, R = style.EndMeasure }
                 local rr = { L = rgn.StartMeasure, R = rgn.EndMeasure }
-                if (ss.L >= rr.L) and (ss.R <= rr.R) then
-                    style:DeleteData() -- selection encloses style
-                else
-                    if ss.L >= rr.L then -- RH side cropped
-                        style.StartMeasure = rr.R + 1
-                        style:Save()
-                    elseif ss.L < rr.L then
-                        style.EndMeasure = rr.L - 1
-                        style:Save() -- LH side cropped before selection
-                        if ss.R > rr.R then -- continues to right of selection
-                            local assign = finale.FCStaffStyleAssign()
-                            assign.StyleID = style.StyleID -- copy it
-                            assign.StartMeasure = rr.R + 1 -- move to end
-                            assign.EndMeasure = ss.R
-                            assign:SaveNew(staff_number)
+                if (ss.L <= rr.R and ss.R >= rr.L) then -- this style is in range
+                    if (ss.L >= rr.L) and (ss.R <= rr.R) then
+                        style:DeleteData() -- selection encloses style
+                    else
+                        if ss.L >= rr.L then -- RH side cropped
+                            style.StartMeasure = rr.R + 1
+                            style:Save()
+                        elseif ss.L < rr.L then
+                            style.EndMeasure = rr.L - 1
+                            style:Save() -- LH side cropped before selection
+                            if ss.R > rr.R then -- continues to right of selection
+                                local assign = finale.FCStaffStyleAssign()
+                                assign.StyleID = style.StyleID -- copy it
+                                assign.StartMeasure = rr.R + 1 -- move to end
+                                assign.EndMeasure = ss.R
+                                assign:SaveNew(staff_number)
+                            end
                         end
                     end
                 end
