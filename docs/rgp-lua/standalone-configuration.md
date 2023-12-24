@@ -23,7 +23,7 @@ Here is a simple example of a configuration file that installs a script called `
         <Scripts>
             <Script Path="myplugin.lua" IsDirectory="false" Debug="false" UseString="false" FromRGPLuaDirectory="true">
                 <Hash File="myplugin.lua" Verified="true">2fd009asdf...(hash code)</Hash>
-            </Script>
+            <\/Script>
         </Scripts>
     </RGPLua>
 </RGPPluginSettings>
