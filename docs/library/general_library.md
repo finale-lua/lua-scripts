@@ -19,7 +19,7 @@
 - [get_smufl_font_list()](#get_smufl_font_list)
 - [get_smufl_metadata_file(font_info)](#get_smufl_metadata_file)
 - [is_font_smufl_font(font_info)](#is_font_smufl_font)
-- [simple_input(title, text)](#simple_input)
+- [simple_input(title, text, default)](#simple_input)
 - [is_finale_object(object)](#is_finale_object)
 - [get_parent_class(classname)](#get_parent_class)
 - [get_class_name(object)](#get_class_name)
@@ -319,10 +319,10 @@ library.is_font_smufl_font(font_info)
 ### simple_input
 
 ```lua
-library.simple_input(title, text)
+library.simple_input(title, text, default)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L433)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L434)
 
 Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
 
@@ -332,6 +332,7 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 | ----- | ---- | ----------- |
 | `title` (optional) | `string` | the title of the input dialog box |
 | `text` (optional) | `string` | descriptive text above the edit field |
+| `default` (optional) | `string` | optional text for default value of edit field |
 
 ### is_finale_object
 
@@ -339,7 +340,7 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 library.is_finale_object(object)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L486)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L479)
 
 Attempts to determine if an object is a Finale object through ducktyping
 
@@ -357,7 +358,7 @@ Attempts to determine if an object is a Finale object through ducktyping
 library.get_parent_class(classname)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L499)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L492)
 
 Returns the name of the parent of a class.
 
@@ -375,7 +376,7 @@ Returns the name of the parent of a class.
 library.get_class_name(object)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L534)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L527)
 
 Returns the real class name of a Finale object. Some classes in older JW/RGPLua versions have incorrect class names, so this function attempts to resolve them with ducktyping
 
@@ -393,7 +394,7 @@ Returns the real class name of a Finale object. Some classes in older JW/RGPLua 
 library.system_indent_set_to_prefs(system, page_format_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L566)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L559)
 
 Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
 The page preferences may be provided optionally to avoid loading them for each call.
@@ -413,7 +414,7 @@ The page preferences may be provided optionally to avoid loading them for each c
 library.calc_script_name(include_extension)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L591)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L584)
 
 Returns the running script name, with or without extension.
 
@@ -431,7 +432,7 @@ Returns the running script name, with or without extension.
 library.get_default_music_font_name()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L620)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L613)
 
 Fetches the default music font from document options and processes the name into a usable format.
 

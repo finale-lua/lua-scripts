@@ -1,3 +1,140 @@
+package.preload["library.configuration"] = package.preload["library.configuration"] or function()
+
+
+
+    local configuration = {}
+    local utils = require("library.utils")
+    local script_settings_dir = "script_settings"
+    local comment_marker = "--"
+    local parameter_delimiter = "="
+    local path_delimiter = "/"
+    local file_exists = function(file_path)
+        local f = io.open(file_path, "r")
+        if nil ~= f then
+            io.close(f)
+            return true
+        end
+        return false
+    end
+    parse_parameter = function(val_string)
+        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "\"(.+)\"", "%1")
+        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "'(.+)'", "%1")
+        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
+            return load("return " .. val_string)()
+        elseif "true" == val_string then
+            return true
+        elseif "false" == val_string then
+            return false
+        end
+        return tonumber(val_string)
+    end
+    local get_parameters_from_file = function(file_path, parameter_list)
+        local file_parameters = {}
+        if not file_exists(file_path) then
+            return false
+        end
+        for line in io.lines(file_path) do
+            local comment_at = string.find(line, comment_marker, 1, true)
+            if nil ~= comment_at then
+                line = string.sub(line, 1, comment_at - 1)
+            end
+            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
+            if nil ~= delimiter_at then
+                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
+                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
+                file_parameters[name] = parse_parameter(val_string)
+            end
+        end
+        local function process_table(param_table, param_prefix)
+            param_prefix = param_prefix and param_prefix.."." or ""
+            for param_name, param_val in pairs(param_table) do
+                local file_param_name = param_prefix .. param_name
+                local file_param_val = file_parameters[file_param_name]
+                if nil ~= file_param_val then
+                    param_table[param_name] = file_param_val
+                elseif type(param_val) == "table" then
+                        process_table(param_val, param_prefix..param_name)
+                end
+            end
+        end
+        process_table(parameter_list)
+        return true
+    end
+
+    function configuration.get_parameters(file_name, parameter_list)
+        local path = ""
+        if finenv.IsRGPLua then
+            path = finenv.RunningLuaFolderPath()
+        else
+            local str = finale.FCString()
+            str:SetRunningLuaFolderPath()
+            path = str.LuaString
+        end
+        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+        return get_parameters_from_file(file_path, parameter_list)
+    end
+
+
+    local calc_preferences_filepath = function(script_name)
+        local str = finale.FCString()
+        str:SetUserOptionsPath()
+        local folder_name = str.LuaString
+        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+
+            folder_name = os.getenv("HOME") .. folder_name:sub(2)
+        end
+        if finenv.UI():IsOnWindows() then
+            folder_name = folder_name .. path_delimiter .. "FinaleLua"
+        end
+        local file_path = folder_name .. path_delimiter
+        if finenv.UI():IsOnMac() then
+            file_path = file_path .. "com.finalelua."
+        end
+        file_path = file_path .. script_name .. ".settings.txt"
+        return file_path, folder_name
+    end
+
+    function configuration.save_user_settings(script_name, parameter_list)
+        local file_path, folder_path = calc_preferences_filepath(script_name)
+        local file = io.open(file_path, "w")
+        if not file and finenv.UI():IsOnWindows() then
+
+            local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
+            if osutils then
+                osutils.process.make_dir(folder_path)
+            else
+                os.execute('mkdir "' .. folder_path ..'"')
+            end
+            file = io.open(file_path, "w")
+        end
+        if not file then
+            return false
+        end
+        file:write("-- User settings for " .. script_name .. ".lua\n\n")
+        for k,v in pairs(parameter_list) do
+            if type(v) == "string" then
+                v = "\"" .. v .."\""
+            else
+                v = tostring(v)
+            end
+            file:write(k, " = ", v, "\n")
+        end
+        file:close()
+        return true
+    end
+
+    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+        if create_automatically == nil then create_automatically = true end
+        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+        if not exists and create_automatically then
+            configuration.save_user_settings(script_name, parameter_list)
+        end
+        return exists
+    end
+    return configuration
+end
 package.preload["mixin.FCMControl"] = package.preload["mixin.FCMControl"] or function()
 
 
@@ -2866,86 +3003,6 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
     end
     return class
 end
-package.preload["library.measurement"] = package.preload["library.measurement"] or function()
-
-    local measurement = {}
-    local unit_names = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "EVPUs",
-        [finale.MEASUREMENTUNIT_INCHES] = "Inches",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "Centimeters",
-        [finale.MEASUREMENTUNIT_POINTS] = "Points",
-        [finale.MEASUREMENTUNIT_PICAS] = "Picas",
-        [finale.MEASUREMENTUNIT_SPACES] = "Spaces",
-    }
-    local unit_suffixes = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "e",
-        [finale.MEASUREMENTUNIT_INCHES] = "i",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "c",
-        [finale.MEASUREMENTUNIT_POINTS] = "pt",
-        [finale.MEASUREMENTUNIT_PICAS] = "p",
-        [finale.MEASUREMENTUNIT_SPACES] = "s",
-    }
-    local unit_abbreviations = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "ev",
-        [finale.MEASUREMENTUNIT_INCHES] = "in",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "cm",
-        [finale.MEASUREMENTUNIT_POINTS] = "pt",
-        [finale.MEASUREMENTUNIT_PICAS] = "pc",
-        [finale.MEASUREMENTUNIT_SPACES] = "sp",
-    }
-
-    function measurement.convert_to_EVPUs(text)
-        local str = finale.FCString()
-        str.LuaString = text
-        return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
-    end
-
-    function measurement.get_unit_name(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_names[unit]
-    end
-
-    function measurement.get_unit_suffix(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_suffixes[unit]
-    end
-
-    function measurement.get_unit_abbreviation(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_abbreviations[unit]
-    end
-
-    function measurement.is_valid_unit(unit)
-        return unit_names[unit] and true or false
-    end
-
-    function measurement.get_real_default_unit()
-        local str = finale.FCString()
-        finenv.UI():GetDecimalSeparator(str)
-        local separator = str.LuaString
-        str:SetMeasurement(72, finale.MEASUREMENTUNIT_DEFAULT)
-        if str.LuaString == "72" then
-            return finale.MEASUREMENTUNIT_EVPUS
-        elseif str.LuaString == "0" .. separator .. "25" then
-            return finale.MEASUREMENTUNIT_INCHES
-        elseif str.LuaString == "0" .. separator .. "635" then
-            return finale.MEASUREMENTUNIT_CENTIMETERS
-        elseif str.LuaString == "18" then
-            return finale.MEASUREMENTUNIT_POINTS
-        elseif str.LuaString == "1p6" then
-            return finale.MEASUREMENTUNIT_PICAS
-        elseif str.LuaString == "3" then
-            return finale.MEASUREMENTUNIT_SPACES
-        end
-    end
-    return measurement
-end
 package.preload["mixin.FCXCustomLuaWindow"] = package.preload["mixin.FCXCustomLuaWindow"] or function()
 
 
@@ -4648,295 +4705,633 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     end
     return mixin
 end
-package.preload["library.enigma_string"] = package.preload["library.enigma_string"] or function()
+package.preload["library.layer"] = package.preload["library.layer"] or function()
 
-    local enigma_string = {}
-    local starts_with_font_command = function(string)
-        local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
-        for i, text_cmd in ipairs(text_cmds) do
-            if string:StartsWith(text_cmd) then
-                return true
-            end
-        end
-        return false
-    end
+    local layer = {}
 
+    function layer.copy(region, source_layer, destination_layer, clone_articulations)
+        local start = region.StartMeasure
+        local stop = region.EndMeasure
+        local sysstaves = finale.FCSystemStaves()
+        sysstaves:LoadAllForRegion(region)
+        source_layer = source_layer - 1
+        destination_layer = destination_layer - 1
+        for sysstaff in each(sysstaves) do
+            staffNum = sysstaff.Staff
+            local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
+            noteentry_source_layer:SetUseVisibleLayer(false)
+            noteentry_source_layer:Load()
+            local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
+                destination_layer, staffNum, start)
+            noteentry_destination_layer:Save()
+            noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
 
-    function enigma_string.trim_first_enigma_font_tags(string)
-        local font_info = finale.FCFontInfo()
-        local found_tag = false
-        while true do
-            if not starts_with_font_command(string) then
-                break
-            end
-            local end_of_tag = string:FindFirst(")")
-            if end_of_tag < 0 then
-                break
-            end
-            local font_tag = finale.FCString()
-            if string:SplitAt(end_of_tag, font_tag, nil, true) then
-                font_info:ParseEnigmaCommand(font_tag)
-            end
-            string:DeleteCharactersAt(0, end_of_tag + 1)
-            found_tag = true
-        end
-        if found_tag then
-            return font_info
-        end
-        return nil
-    end
-
-    function enigma_string.change_first_string_font(string, font_info)
-        local final_text = font_info:CreateEnigmaString(nil)
-        local current_font_info = enigma_string.trim_first_enigma_font_tags(string)
-        if (current_font_info == nil) or not font_info:IsIdenticalTo(current_font_info) then
-            final_text:AppendString(string)
-            string:SetString(final_text)
-            return true
-        end
-        return false
-    end
-
-    function enigma_string.change_first_text_block_font(text_block, font_info)
-        local new_text = text_block:CreateRawTextString()
-        if enigma_string.change_first_string_font(new_text, font_info) then
-            text_block:SaveRawTextString(new_text)
-            return true
-        end
-        return false
-    end
-
-
-
-    function enigma_string.change_string_font(string, font_info)
-        local final_text = font_info:CreateEnigmaString(nil)
-        string:TrimEnigmaFontTags()
-        final_text:AppendString(string)
-        string:SetString(final_text)
-    end
-
-    function enigma_string.change_text_block_font(text_block, font_info)
-        local new_text = text_block:CreateRawTextString()
-        enigma_string.change_string_font(new_text, font_info)
-        text_block:SaveRawTextString(new_text)
-    end
-
-    function enigma_string.remove_inserts(fcstring, replace_with_generic, convert_tags_to_literals)
-        local text_cmds = {
-            "^arranger", "^composer", "^copyright", "^date", "^description", "^fdate", "^filename", "^lyricist", "^page",
-            "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages", "^value", "^control", "^pass"
-        }
-        local lua_string = fcstring.LuaString
-        for i, text_cmd in ipairs(text_cmds) do
-            local starts_at = string.find(lua_string, text_cmd, 1, true)
-            while starts_at ~= nil do
-                local replace_with = ""
-                if replace_with_generic then
-                    if convert_tags_to_literals then
-                        replace_with = "^" .. text_cmd
-                    else
-                        replace_with = "[" .. string.sub(text_cmd, 2) .. "]"
+            if clone_articulations and noteentry_source_layer.Count == noteentry_destination_layer.Count then
+                for index = 0, noteentry_destination_layer.Count - 1 do
+                    local source_entry = noteentry_source_layer:GetItemAt(index)
+                    local destination_entry = noteentry_destination_layer:GetItemAt(index)
+                    local source_artics = source_entry:CreateArticulations()
+                    for articulation in each (source_artics) do
+                        articulation:SetNoteEntry(destination_entry)
+                        articulation:SaveNew()
                     end
                 end
-                local next_at = starts_at + #text_cmd
-                if not replace_with_generic or not convert_tags_to_literals then
-                    next_at = string.find(lua_string, ")", next_at, true) + 1 or starts_at
+            end
+            noteentry_destination_layer:Save()
+        end
+    end
+
+    function layer.clear(region, layer_to_clear)
+        layer_to_clear = layer_to_clear - 1
+        local start = region.StartMeasure
+        local stop = region.EndMeasure
+        local sysstaves = finale.FCSystemStaves()
+        sysstaves:LoadAllForRegion(region)
+        for sysstaff in each(sysstaves) do
+            staffNum = sysstaff.Staff
+            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            noteentry_layer:SetUseVisibleLayer(false)
+            noteentry_layer:Load()
+            noteentry_layer:ClearAllEntries()
+        end
+    end
+
+    function layer.swap(region, swap_a, swap_b)
+
+        swap_a = swap_a - 1
+        swap_b = swap_b - 1
+        for measure, staff_number in eachcell(region) do
+            local cell_frame_hold = finale.FCCellFrameHold()
+            cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+            local loaded = cell_frame_hold:Load()
+            local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
+            local  noteentry_layer_one = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
+            noteentry_layer_one:SetUseVisibleLayer(false)
+            noteentry_layer_one:Load()
+            noteentry_layer_one.LayerIndex = swap_b
+
+            local  noteentry_layer_two = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
+            noteentry_layer_two:SetUseVisibleLayer(false)
+            noteentry_layer_two:Load()
+            noteentry_layer_two.LayerIndex = swap_a
+            noteentry_layer_one:Save()
+            noteentry_layer_two:Save()
+            if loaded then
+                local new_cell_frame_hold = finale.FCCellFrameHold()
+                new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+                if new_cell_frame_hold:Load() then
+                    if cell_frame_hold.IsClefList then
+                        if new_cell_frame_hold.SetCellClefChanges then
+                            new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
+                        end
+
+                    else
+                        new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
+                    end
+                    new_cell_frame_hold:Save()
                 end
-                lua_string = string.sub(lua_string, 1, starts_at - 1) .. replace_with .. string.sub(lua_string, next_at)
-                starts_at = string.find(lua_string, text_cmd, starts_at + #replace_with, true)
             end
         end
-        fcstring.LuaString = lua_string
     end
 
-    function enigma_string.expand_value_tag(fcstring, value_num)
-        value_num = math.floor(value_num + 0.5)
-        fcstring.LuaString = fcstring.LuaString:gsub("%^value%(%)", tostring(value_num))
+    function layer.max_layers()
+        return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
+    end
+    return layer
+end
+package.preload["library.measurement"] = package.preload["library.measurement"] or function()
+
+    local measurement = {}
+    local unit_names = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "EVPUs",
+        [finale.MEASUREMENTUNIT_INCHES] = "Inches",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "Centimeters",
+        [finale.MEASUREMENTUNIT_POINTS] = "Points",
+        [finale.MEASUREMENTUNIT_PICAS] = "Picas",
+        [finale.MEASUREMENTUNIT_SPACES] = "Spaces",
+    }
+    local unit_suffixes = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "e",
+        [finale.MEASUREMENTUNIT_INCHES] = "i",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "c",
+        [finale.MEASUREMENTUNIT_POINTS] = "pt",
+        [finale.MEASUREMENTUNIT_PICAS] = "p",
+        [finale.MEASUREMENTUNIT_SPACES] = "s",
+    }
+    local unit_abbreviations = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "ev",
+        [finale.MEASUREMENTUNIT_INCHES] = "in",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "cm",
+        [finale.MEASUREMENTUNIT_POINTS] = "pt",
+        [finale.MEASUREMENTUNIT_PICAS] = "pc",
+        [finale.MEASUREMENTUNIT_SPACES] = "sp",
+    }
+
+    function measurement.convert_to_EVPUs(text)
+        local str = finale.FCString()
+        str.LuaString = text
+        return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
     end
 
-    function enigma_string.calc_text_advance_width(inp_string)
-        local accumulated_string = ""
-        local accumulated_width = 0
-        local enigma_strings = inp_string:CreateEnigmaStrings(true)
-        for str in each(enigma_strings) do
-            accumulated_string = accumulated_string .. str.LuaString
-            if string.sub(str.LuaString, 1, 1) ~= "^" then
-                local fcstring = finale.FCString()
-                local text_met = finale.FCTextMetrics()
-                fcstring.LuaString = accumulated_string
-                local font_info = fcstring:CreateLastFontInfo()
-                fcstring.LuaString = str.LuaString
-                fcstring:TrimEnigmaTags()
-                text_met:LoadString(fcstring, font_info, 100)
-                accumulated_width = accumulated_width + text_met:GetAdvanceWidthEVPUs()
-            end
+    function measurement.get_unit_name(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
         end
-        return accumulated_width
+        return unit_names[unit]
     end
-    return enigma_string
+
+    function measurement.get_unit_suffix(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_suffixes[unit]
+    end
+
+    function measurement.get_unit_abbreviation(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_abbreviations[unit]
+    end
+
+    function measurement.is_valid_unit(unit)
+        return unit_names[unit] and true or false
+    end
+
+    function measurement.get_real_default_unit()
+        local str = finale.FCString()
+        finenv.UI():GetDecimalSeparator(str)
+        local separator = str.LuaString
+        str:SetMeasurement(72, finale.MEASUREMENTUNIT_DEFAULT)
+        if str.LuaString == "72" then
+            return finale.MEASUREMENTUNIT_EVPUS
+        elseif str.LuaString == "0" .. separator .. "25" then
+            return finale.MEASUREMENTUNIT_INCHES
+        elseif str.LuaString == "0" .. separator .. "635" then
+            return finale.MEASUREMENTUNIT_CENTIMETERS
+        elseif str.LuaString == "18" then
+            return finale.MEASUREMENTUNIT_POINTS
+        elseif str.LuaString == "1p6" then
+            return finale.MEASUREMENTUNIT_PICAS
+        elseif str.LuaString == "3" then
+            return finale.MEASUREMENTUNIT_SPACES
+        end
+    end
+    return measurement
 end
 function plugindef()
-
-
-    finaleplugin.Author = "Robert Patterson"
-    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "February 21, 2021"
-    finaleplugin.CategoryTags = "Page"
-    finaleplugin.Notes = [[
-        Finale makes it surprisingly difficult to remove text inserts from an existing Page Text.
-        It requires extremely precise positioning of the cursor, and even then it frequently modifies
-        the insert instead of the Page Text. This is especially true if the Page Text contains *only*
-        one or more inserts. This script allows you to select a Page Text and remove
-        the inserts with no fuss.
-        For version 0.68 and higher of RGP Lua, you can edit the text inserts directly.
+    finaleplugin.RequireSelection = false
+    finaleplugin.Author = "Carl Vine"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
+    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
+    finaleplugin.Version = "0.51"
+    finaleplugin.Date = "2023/12/03"
+    finaleplugin.AdditionalMenuOptions = [[
+        Notes Cross-Staff Up
+        Notes Cross-Staff Configuration...
     ]]
-    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/page_title_remove_inserts.hash"
-    return "Remove Inserts From Page Text...", "Remove Inserts From Page Text",
-           "Removes text inserts from selected Page Text."
+    finaleplugin.AdditionalUndoText = [[
+        Notes Cross-Staff Up
+        Notes Cross-Staff Configuration
+    ]]
+    finaleplugin.AdditionalPrefixes = [[
+        direction = "Up"
+        direction = "Configuration"
+    ]]
+    finaleplugin.AdditionalDescriptions = [[
+        Selected notes are cross-staffed to the next higher staff
+        Set the horizontal offsets and active layer that will be applied to cross-staffed notes
+    ]]
+    finaleplugin.MinJWLuaVersion = 0.68
+    finaleplugin.ScriptGroupName = "Notes Cross-Staff"
+    finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below the selection"
+	finaleplugin.Notes = [[
+        Selected notes are "crossed" to the next staff above or below the selection.
+        This duplicates Finale's inbuilt ALT (option) up/down arrow
+        shortcuts for cross-staff entries, but in my
+        experience these malfunction at random.
+        This script doesn't, but also offers filtering by layer, optional
+        stem reversal and horizontal note shift to counteract stem reversal.
+        Tobias Giesen's TGTools -> Cross Staff is great for
+        more complex tasks, but this is slicker for simple ones
+        than the inbuilt shortcuts (and has more options).
+        To change options use the "Notes Cross-Staff Configuration..."
+        menu or hold down the SHIFT key when starting the script.
+        When crossing with stem reversal to the staff ABOVE try
+        EVPU offsets of 12 (crossed) and -12 (not crossed), or 24/0.
+        Crossing to the staff BELOW try offsets of -12/12 or -24/0 EVPUs.
+        By default only notes within the selection or part of the
+        beam groups it contains will be shifted horizontally.
+        Select "whole measure" (g) to shift every note in the selected measure.
+        Key Commands (in the Configuration window):
+        [d] [f] [g] [h] toggle the checkboxes
+        [z] reset to default values
+        [q] display these notes
+        To change measurement units type:
+        [e] EVPUs  [i] Inches [c] Centimeters
+        [o] Points [a] Picas  [s] Spaces
+        Layer number:
+        [0]-[4] (delete key not needed)
+	]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/notes_cross_staff.hash"
+    return "Notes Cross-Staff Down", "Notes Cross-Staff Down", "Selected notes are cross-staffed to the next lower staff"
 end
+local info_notes = [[
+Selected notes are "crossed" to the next staff above or below the selection.
+This duplicates Finale's inbuilt ALT (option) up/down arrow
+shortcuts for cross-staff entries, but in my
+experience these malfunction at random.
+This script doesn't, but also offers filtering by layer, optional
+stem reversal and horizontal note shift to counteract stem reversal.
+Tobias Giesen's TGTools -> Cross Staff is great for
+more complex tasks, but this is slicker for simple ones
+than the inbuilt shortcuts (and has more options).
+]] .. "\n" .. [[
+To change options use the "Notes Cross-Staff Configuration..."
+menu or hold down the SHIFT key when starting the script.
+When crossing with stem reversal to the staff ABOVE try
+EVPU offsets of 12 (crossed) and -12 (not crossed), or 24/0.
+Crossing to the staff BELOW try offsets of -12/12 or -24/0 EVPUs.
+]] .. "\n" .. [[
+By default only notes within the selection or part of the
+beam groups it contains will be shifted horizontally.
+Select "whole measure" (g) to shift every note in the selected measure.
+]] .. "\n" .. [[
+Key Commands (in the Configuration window):
+[d] [f] [g] [h] toggle the checkboxes
+[z] reset to default values
+[q] display these notes
+To change measurement units type:
+[e] EVPUs  [i] Inches [c] Centimeters
+[o] Points [a] Picas  [s] Spaces
+Layer number:
+[0]-[4] (delete key not needed)
+]]
+info_notes = info_notes:gsub("  \n",  "\n"):gsub(" %s+", " "):gsub("\n ", "\n")
+direction = direction or "Down"
+local configuration = require("library.configuration")
 local mixin = require("library.mixin")
-local enigma_string = require("library.enigma_string")
-local editor_available = finale.FCCtrlTextEditor and true or false
-local initial_replace_option = true
-local clean_texts = {}
-local page_texts_with_inserts = {}
-function on_update_editor(dialog)
-    local editor = dialog:GetControl("editor")
-    if editor then
-        local selected_page_text = dialog:GetControl("pagetext"):GetSelectedItem() + 1
-        local page_text = page_texts_with_inserts[selected_page_text]
-        text = page_text:CreateTextString()
-        enigma_string.remove_inserts(text, dialog:GetControl("replace"):GetCheck() ~= 0, editor_available)
-        editor:SetEnigmaString(text)
-        local range = finale.FCRange(0, 0)
-        dialog:GetControl("editor"):SetSelection(range)
+local layer = require("library.layer")
+local measurement = require("library.measurement")
+local script_name = "notes_cross_staff"
+local config = {
+    Up_Crossed = 12,
+    Up_Uncrossed = -12,
+    Down_Crossed = -12,
+    Down_Uncrossed = 12,
+    no_reverse    = false,
+    not_unbeamed  = false,
+    no_shift      = false,
+    whole_measure  = true,
+    measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
+    layer_num     = 0,
+    window_pos_x  = false,
+    window_pos_y  = false,
+}
+local offsets = {
+    { "Up_Crossed",     12 },
+    { "Up_Uncrossed",  -12 },
+    { "Down_Crossed",  -12 },
+    { "Down_Uncrossed", 12 },
+}
+local checks = {
+    {"no_reverse", "Don't reverse note stems (d)" },
+    {"not_unbeamed", "Don't cross unbeamed notes (f)" },
+    {"whole_measure", "Shift horizontals across whole measure (g)" },
+    {"no_shift", "No horizontal shift (h)" },
+}
+local function dialog_set_position(dialog)
+    if config.window_pos_x and config.window_pos_y then
+        dialog:StorePosition()
+        dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
+        dialog:RestorePosition()
     end
 end
-local function get_current_font(text_ctrl)
-    local range = finale.FCRange()
-    text_ctrl:GetSelection(range)
-    local font = text_ctrl:CreateFontInfoAtIndex(range.Start)
-    if not font then font = finale.FCFontInfo() end
-    return font
+local function dialog_save_position(dialog)
+    dialog:StorePosition()
+    config.window_pos_x = dialog.StoredX
+    config.window_pos_y = dialog.StoredY
+    configuration.save_user_settings(script_name, config)
 end
-function create_dialog()
-    local current_y = 0
-    local current_x = 0
-    local y_increment = 10
-    local x_increment = 10
-    local label_width = 65
-    local popup_width = 190
-    local total_width = 500
-    local editor_height = 150
-    local button_height = 20
-    local dialog = mixin.FCXCustomLuaWindow()
-        :SetTitle("Select Page Text")
-
-    dialog:CreateStatic(current_x, current_y+2)
-        :SetText("Page Text:")
-        :SetWidth(label_width)
-    current_x = current_x + label_width + x_increment
-    local page_text = dialog:CreatePopup(current_x, current_y, "pagetext")
-        :SetWidth(popup_width)
-        :AddHandleCommand(function(control)
-            on_update_editor(dialog)
-        end)
-    for _, v in pairs(clean_texts) do
-        page_text:AddString(v)
+local function next_staff_or_error(rgn)
+    local next_staff = -1
+    local msg = ""
+    local stack = mixin.FCMMusicRegion()
+    stack:SetRegion(rgn):SetFullMeasureStack()
+    local next_slot = rgn.StartSlot
+    if rgn:IsEmpty() then
+        msg = "Please select some music \nbefore running this script"
+    elseif rgn.StartStaff ~= rgn.EndStaff then
+        msg = "This script will only work \non a selection from one staff"
+    else
+        if direction == "Down" then
+            next_slot = next_slot + 1
+            if next_slot > stack.EndSlot then msg = "below" end
+        else
+            next_slot = next_slot - 1
+            if next_slot < 1 then msg = "above" end
+        end
+        if msg ~= "" then
+            msg = "You can't cross notes to the staff " .. msg
+                .. " because there is no staff " .. msg .. " the selected music."
+        end
     end
-    current_x = current_x + popup_width + x_increment
-    if editor_available then
-        dialog:CreateButton(current_x, current_y, "fontsel")
-        :SetWidth(60)
-        :SetText("Font...")
-        :AddHandleCommand(function()
-            local ui = dlg:CreateChildUI()
-            local editor = dlg:GetControl("editor")
-            local font = get_current_font(editor)
-            local selector = finale.FCFontDialog(ui, font)
-            if selector:Execute() then
-                editor:SetFontForSelection(font)
+    if msg ~= "" then
+        finenv.UI():AlertError(msg, finaleplugin.ScriptGroupName .. ": Error")
+    else
+        next_staff = stack:CalcStaffNumber(next_slot)
+    end
+    return next_staff
+end
+local function cross_staff(next_staff, rgn)
+    local beam_groups = {}
+    for entry in eachentrysaved(rgn, config.layer_num) do
+        if entry:IsNote() then
+            local unbeamed = entry:CalcUnbeamedNote()
+            if unbeamed and (config.not_unbeamed) then
+                if not config.no_shift then
+                    entry.ManualPosition = config[direction .. "_Uncrossed"]
+                end
+                entry.FreezeStem = false
+            else
+                local cross_mod = finale.FCCrossStaffMod()
+                cross_mod:SetNoteEntry(entry)
+                local loaded = cross_mod:LoadFirst()
+                cross_mod.Staff = next_staff
+                for note in each(entry) do
+                    cross_mod:SaveAt(note)
+                end
+                local _ = loaded and cross_mod:Save() or cross_mod:SaveNew()
+                if not config.no_shift then
+                    entry.ManualPosition = config[direction .. "_Crossed"]
+                end
+                if not unbeamed then
+                    if not config.no_reverse then
+                        entry["Reverse" .. direction .. "Stem"] = true
+                    end
+                    entry.StemUp = (direction == "Up")
+                    entry.FreezeStem = true
+                end
             end
-        end)
-        current_x = current_x + 60 + x_increment
-        dialog:CreateStatic(current_x, current_y, "showfont")
-            :SetWidth(total_width - current_x)
+            if not (unbeamed or config.no_shift or config.whole_measure) then
+
+                local beam_start_entry = entry:CalcBeamStartEntry()
+                if beam_start_entry ~= nil then
+                    local start_number = beam_start_entry.EntryNumber
+                    if beam_groups[start_number] == nil then
+                        local next_entry = entry:Next()
+                        local end_of_selection = (next_entry == nil) or (not rgn:IsEntryPosWithin(next_entry))
+                        local end_of_group = entry:CalcBeamedGroupEnd()
+
+                        if end_of_group or end_of_selection then
+                            beam_groups[start_number] = {
+                                StartStaff = entry.Staff,
+                                EndStaff = entry.Staff,
+                                StartMeasure = beam_start_entry.Measure,
+                                EndMeasure = entry.Measure,
+                                StartMeasurePos = beam_start_entry.MeasurePos,
+                                EndMeasurePos = entry.MeasurePos
+                            }
+                        end
+                        if end_of_selection and not end_of_group then
+                            local new_entry = entry
+                            while new_entry and not new_entry:CalcUnbeamedNote() do
+                                new_entry = new_entry:Next()
+                                if new_entry and new_entry:CalcBeamedGroupEnd() then
+                                    if new_entry and beam_groups[start_number] then
+                                        beam_groups[start_number].EndMeasure = new_entry.Measure
+                                        beam_groups[start_number].EndMeasurePos = new_entry.MeasurePos
+                                    end
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
     end
-    current_y = current_y + button_height + y_increment
-
-    if editor_available then
-        dialog:CreateTextEditor(0, current_y, "editor")
-            :SetWidth(total_width)
-            :SetHeight(editor_height)
-            :SetUseRichText(true)
-            :SetReadOnly(false)
-            :SetAutomaticEditing(true)
-            :SetWordWrap(false)
-        current_y = current_y + editor_height + y_increment
+    if not config.no_shift then
+        if config.whole_measure then
+            local whole_measure = mixin.FCMMusicRegion()
+            whole_measure:SetRegion(rgn):SetStartMeasurePosLeft():SetEndMeasurePosRight()
+            for entry in eachentrysaved(whole_measure, config.layer_num) do
+                local crossing = entry.CrossStaff and "_Crossed" or "_Uncrossed"
+                entry.ManualPosition = config[direction .. crossing]
+            end
+        elseif beam_groups ~= {} then
+            local beam_region = mixin.FCMMusicRegion()
+            beam_region:SetRegion(rgn)
+            for _, group in pairs(beam_groups) do
+                for key, value in pairs(group) do
+                    beam_region[key] = value
+                end
+                for entry in eachentrysaved(beam_region, config.layer_num) do
+                    if (entry.Staff == rgn.StartStaff) and (not entry.CrossStaff) then
+                        entry.ManualPosition = config[direction .. "_Uncrossed"]
+                    end
+                end
+            end
+        end
+    end
+end
+local function configuration_dialog()
+    local max = layer.max_layers()
+    local x = { 0, 140, 210, 245, 110, 260 }
+    local units = {
+        e = finale.MEASUREMENTUNIT_EVPUS,       i = finale.MEASUREMENTUNIT_INCHES,
+        c = finale.MEASUREMENTUNIT_CENTIMETERS, o = finale.MEASUREMENTUNIT_POINTS,
+        a = finale.MEASUREMENTUNIT_PICAS,       s = finale.MEASUREMENTUNIT_SPACES,
+    }
+    local answer, save_value = {}, {}
+    local function show_info()
+        finenv.UI():AlertInfo(info_notes, "About " .. finaleplugin.ScriptGroupName)
     end
 
-    local do_replace = dialog:CreateCheckbox(0, current_y+2, "replace")
-        :SetText("Replace Inserts With Generic Text")
-        :SetWidth(250)
-        :SetCheck(initial_replace_option and 1 or 0)
-        :AddHandleCommand(function(control)
-            on_update_editor(dialog)
+    local dialog = mixin.FCXCustomLuaWindow()
+        :SetTitle(finaleplugin.ScriptGroupName .. " Configuration")
+    local y = 0
+    dialog:SetMeasurementUnit(config.measurement_unit)
+        local function dy(diff)
+            y = diff and (y + diff) or (y + 25)
+        end
+        local function cstat(cx, cy, ctext, cwide, chigh)
+            local stat = dialog:CreateStatic(cx, cy):SetText(ctext)
+            if cwide then stat:SetWidth(cwide) end
+            if chigh then stat:SetHeight(chigh) end
+        end
+        local function toggle(id)
+            answer[id]:SetCheck((answer[id]:GetCheck() + 1) % 2)
+        end
+        local function toggle_offset_disable()
+            local off = (answer.no_shift:GetCheck() == 0)
+            for i = 1, 4 do answer[offsets[i][1]]:SetEnable(off) end
+            answer[off and "Up_Crossed" or "layer_num"]:SetKeyboardFocus()
+        end
+        local function update_saved()
+            for _, v in ipairs(offsets) do
+                save_value[v[1]] = answer[v[1]]:GetText()
+            end
+        end
+        local function set_default_values()
+            for _, v in ipairs(offsets) do
+                answer[v[1]]:SetMeasurementInteger(v[2])
+            end
+            update_saved()
+        end
+        local function key_check(id)
+            local ctl = answer[id]
+            local s = ctl:GetText():lower()
+            if (    (s:find("p") and dialog:GetMeasurementUnit() ~= finale.MEASUREMENTUNIT_PICAS)
+                    or s:find("[^-.p0-9]")
+                    or (id == "layer_num" and s:find("[-.p5-9]"))
+                )   then
+                local test = "dfghq?z"
+                if s:find("[" .. test .. "]") then
+                    for i = 1, test:len() do
+                        if s:find(test:sub(i, i)) then
+                            if i <= 4 then
+                                toggle(checks[i][1])
+                                if i == 3 then
+                                    answer.no_shift:SetCheck(0)
+                                    toggle_offset_disable()
+                                elseif i == 4 then
+                                    answer.whole_measure:SetCheck(0)
+                                    toggle_offset_disable()
+                                end
+                            elseif i == 5 or i == 6 then show_info()
+                            elseif i == 7 then set_default_values()
+                            end
+                            break
+                        end
+                    end
+                elseif s:find("[eicoas]") then
+                    for k, v in pairs(units) do
+                        if s:find(k) then
+                            ctl:SetText(save_value[id])
+                            dialog:SetMeasurementUnit(v)
+                            answer.popup:UpdateMeasurementUnit()
+                            update_saved()
+                            break
+                        end
+                    end
+                end
+                ctl:SetText(save_value[id])
+            elseif s ~= "" then
+                if id == "layer_num" then
+                    s = s:sub(-1)
+                else
+                    if s == "." then s = "0."
+                    elseif s == "-." then s = "-0."
+                    end
+                end
+                ctl:SetText(s)
+                save_value[id] = s
+            end
+        end
+    cstat(x[1], y, "HORIZONTAL ENTRY OFFSETS", 170)
+    local y_off = finenv.UI():IsOnMac() and 3 or 0
+    answer.popup = dialog:CreateMeasurementUnitPopup(x[3] - 26, y - 1):SetWidth(90)
+        :AddHandleCommand(function() update_saved() end)
+    dy()
+    cstat(x[2], y, "Crossed", 70)
+    cstat(x[3] - 4, y, "Not Crossed", 70)
+    dy(20)
+    cstat(20, y, "Cross to staff above:", x[2])
+    for i, v in ipairs(offsets) do
+        if i == 3 then y = y + 25 end
+        local x_pos = (i % 2 == 1) and x[2] or x[3]
+        answer[v[1]] = dialog:CreateMeasurementEdit(x_pos, y - y_off):SetWidth(64)
+            :SetMeasurementInteger(config[v[1]])
+            :AddHandleCommand(function() key_check(v[1]) end)
+    end
+    update_saved()
+    cstat(20, y, "Cross to staff below:", x[2])
+    dy(30)
+    cstat(x[1], y, "Layer 1-" .. max .. ":", x[4])
+    answer.layer_num = dialog:CreateEdit(60, y - y_off):SetText(config.layer_num)
+        :AddHandleCommand(function() key_check("layer_num") end):SetWidth(20)
+    save_value.layer_num = config.layer_num
+    cstat(82, y, "(0 = all)", x[2])
+    dialog:CreateButton(x[2], y):SetText("default values (z)"):SetWidth(105)
+        :AddHandleCommand(function() set_default_values() end)
+    dialog:CreateButton(x[3] + 44, y):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() show_info() end)
+    dy(20)
+    for _, v in ipairs(checks) do
+        answer[v[1]] = dialog:CreateCheckbox(20, y):SetText(v[2]):SetWidth(x[6])
+            :SetCheck(config[v[1]] and 1 or 0)
+        dy(18)
+    end
+    answer.whole_measure:AddHandleCommand(function()
+            answer.no_shift:SetCheck(0)
+            toggle_offset_disable()
         end)
-    current_y = current_y + button_height + y_increment
-
+    answer.no_shift:AddHandleCommand(function()
+            answer.whole_measure:SetCheck(0)
+            toggle_offset_disable()
+        end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-
-    dialog:RegisterInitWindow(function()
-        on_update_editor(dialog)
-    end)
-    dialog:RegisterTextSelectionChanged(function(text_ctrl)
-        local selRange = finale.FCRange()
-        text_ctrl:GetSelection(selRange)
-        local fontInfo = text_ctrl:CreateFontInfoAtIndex(selRange.Start)
-        if fontInfo then
-            dialog:GetControl("showfont"):SetText(fontInfo:CreateDescription())
-        end
-    end)
-    return dialog
+    dialog_set_position(dialog)
+    dialog:RegisterInitWindow(function() toggle_offset_disable() end)
+    dialog:RegisterHandleOkButtonPressed(function(self)
+            for _, v in ipairs(offsets) do
+                config[v[1]] = answer[v[1]]:GetMeasurementInteger()
+            end
+            for _, v in ipairs(checks) do
+                config[v[1]] = (answer[v[1]]:GetCheck() == 1)
+            end
+            config.layer_num = answer.layer_num:GetInteger()
+            config.measurement_unit = self:GetMeasurementUnit()
+        end)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
-function page_title_remove_inserts()
-    local page_texts = finale.FCPageTexts()
-    page_texts:LoadAll()
-    for page_text in each(page_texts) do
-        local clean_text = page_text:CreateTextString()
-        if clean_text:ContainsEnigmaTextInsert() then
-            clean_text:TrimEnigmaFontTags()
-            if nil ~= clean_text then
-                local page_string
-                if page_text.FirstPage == page_text.LastPage then
-                    page_string = " [" .. page_text.FirstPage .. "]"
-                elseif page_text.LastPage == 0 then
-                    page_string = " [" .. page_text.FirstPage .. " - end]"
-                else
-                    page_string = " [" .. page_text.FirstPage .. " - " .. page_text.LastPage .. "]"
-                end
-                table.insert(clean_texts, clean_text.LuaString .. page_string)
-                table.insert(page_texts_with_inserts, page_text)
+local function input_error()
+    if not config.no_shift then
+        local max_evpu = 576
+        local m_unit = config.measurement_unit
+        local u_name = " " .. measurement.get_unit_name(m_unit)
+        local msg, str = "", finale.FCString()
+        local function us(evpu)
+            str:SetMeasurement(evpu, m_unit)
+            return str.LuaString
+        end
+        local function usi(idx)
+            return us(config[offsets[idx][1]])
+        end
+        for _, v in ipairs(offsets) do
+            if math.abs(config[v[1]]) > max_evpu then
+                msg = msg .. "Choose realistic entry offset values, \nsay from -"
+                    .. us(max_evpu) .. " to " .. us(max_evpu) .. u_name .. ", not:\n"
+                    .. usi(1) .. " ... " .. usi(2) .. u_name .. " (upwards)\n"
+                    .. usi(3) .. " ... " .. usi(4) .. u_name .. " (downwards)"
+                error = true
+                break
             end
         end
-    end
-    local dialog = create_dialog()
-    if dialog:ExecuteModal() == finale.EXECMODAL_OK then
-        local selected_page_text = page_texts_with_inserts[1 + dialog:GetControl("pagetext"):GetSelectedItem()]
-        local editor = dialog:GetControl("editor")
-        if editor then
-            local text = editor:CreateEnigmaString()
-            text.LuaString = text.LuaString:gsub("%^%^", "^")
-            selected_page_text:SaveTextString(text)
-        else
-            local selected_text_string = selected_page_text:CreateTextString()
-            enigma_string.remove_inserts(selected_text_string, dialog:GetControl("replace"):GetCheck() ~= 0, editor_available)
-            selected_page_text:SaveTextString(selected_text_string)
+        if msg ~= "" then
+            finenv.UI():AlertError(msg, finaleplugin.ScriptGroupName .. " Error")
+            return true
         end
-        selected_page_text:Save()
-        finenv.UI():RedrawDocument()
     end
+    return false
 end
-page_title_remove_inserts()
+local function choose_action()
+    configuration.get_user_settings(script_name, config, true)
+    local rgn = mixin.FCMMusicRegion()
+    rgn:SetRegion(finenv.Region())
+    local qimk = finenv.QueryInvokedModifierKeys
+    local mod_key = qimk and (qimk(finale.CMDMODKEY_ALT) or qimk(finale.CMDMODKEY_SHIFT))
+    local change_values = (direction == "Configuration")
+    local user_error = true
+    while user_error and (mod_key or change_values) do
+        if not configuration_dialog() then return end
+        user_error = input_error()
+    end
+    if change_values then return end
+    local next_staff = next_staff_or_error(rgn)
+    if next_staff > 0 then cross_staff(next_staff, rgn) end
+end
+choose_action()

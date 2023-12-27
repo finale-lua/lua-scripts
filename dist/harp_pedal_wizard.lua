@@ -367,17 +367,17 @@ package.preload["library.general_library"] = package.preload["library.general_li
         return false
     end
 
-    function library.simple_input(title, text)
-        local return_value = finale.FCString()
-        return_value.LuaString = ""
+    function library.simple_input(title, text, default)
         local str = finale.FCString()
         local min_width = 160
 
         function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
-            str.LuaString = st
-            ctrl:SetText(str)
+            if st then
+                str.LuaString = st
+                ctrl:SetText(str)
+            end
         end
 
         title_width = string.len(title) * 6 + 54
@@ -395,20 +395,12 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local descr = dialog:CreateStatic(0, 0)
         format_ctrl(descr, 16, min_width, text)
         local input = dialog:CreateEdit(0, 20)
-        format_ctrl(input, 20, min_width, "")
+        format_ctrl(input, 20, min_width, default)
         dialog:CreateOkButton()
         dialog:CreateCancelButton()
-
-        function callback(ctrl)
-        end
-
-        dialog:RegisterHandleCommand(callback)
-
         if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
-            return_value.LuaString = input:GetText(return_value)
-
-            return return_value.LuaString
-
+            input:GetText(str)
+            return str.LuaString
         end
     end
 
@@ -817,6 +809,7 @@ function plugindef()
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "2.0"
     finaleplugin.Date = "2022-07-17"
+    finaleplugin.HandlesUndo = true
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/harp_pedal_wizard.hash"
     return "Harp Pedal Wizard", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
@@ -2141,9 +2134,7 @@ or a chord from the drop down lists.]])
                     local root = root_calc()
                     if diagram_checkbox:GetCheck() == 1 then use_diagram = true
                     elseif diagram_checkbox:GetCheck() == 0 then use_diagram = false end
-                    return_string.LuaString = harp_notes:GetText(return_string)
-                    if return_string.LuaString ~= "" then
-                    end
+                    harp_notes:GetText(return_string)
                     if scale_check:GetCheck() == 1 then
                         harp_scale(root.LuaString, scales[sel_scale:GetSelectedItem() + 1], use_diagram, use_chord)
                     elseif chord_check:GetCheck() == 1 then
@@ -2167,7 +2158,7 @@ or a chord from the drop down lists.]])
                 function apply()
                     update_variables()
                     local return_string = finale.FCString()
-                    return_string.LuaString = harp_notes:GetText(return_string)
+                    harp_notes:GetText(return_string)
                     strings_read()
                     if partial_checkbox:GetCheck() == 1 then partial = true
                     elseif partial_checkbox:GetCheck() == 0 then partial = false end

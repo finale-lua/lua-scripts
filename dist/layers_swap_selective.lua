@@ -3614,17 +3614,17 @@ package.preload["library.general_library"] = package.preload["library.general_li
         return false
     end
 
-    function library.simple_input(title, text)
-        local return_value = finale.FCString()
-        return_value.LuaString = ""
+    function library.simple_input(title, text, default)
         local str = finale.FCString()
         local min_width = 160
 
         function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
-            str.LuaString = st
-            ctrl:SetText(str)
+            if st then
+                str.LuaString = st
+                ctrl:SetText(str)
+            end
         end
 
         title_width = string.len(title) * 6 + 54
@@ -3642,20 +3642,12 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local descr = dialog:CreateStatic(0, 0)
         format_ctrl(descr, 16, min_width, text)
         local input = dialog:CreateEdit(0, 20)
-        format_ctrl(input, 20, min_width, "")
+        format_ctrl(input, 20, min_width, default)
         dialog:CreateOkButton()
         dialog:CreateCancelButton()
-
-        function callback(ctrl)
-        end
-
-        dialog:RegisterHandleCommand(callback)
-
         if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
-            return_value.LuaString = input:GetText(return_value)
-
-            return return_value.LuaString
-
+            input:GetText(str)
+            return str.LuaString
         end
     end
 

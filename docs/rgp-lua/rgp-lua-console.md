@@ -7,7 +7,7 @@ The `rgpluaconsole.lua` script requires version 0.68 or higher of _RGP Lua_. Oth
 
 ![RGP Lua Console](assets/rgpluaconsole.jpg "RGP Lua Console")
 
-**Left Popup** A file menu, including `New`, `Open`, `Save`, `Save As`, `Close`, `Close All`, and recent files. In addition to these, the RGP Lua Console responds to the standard keyboard shortcuts for saving files: `cmd-S` on macOS and `ctrl-S` on Windows.
+**Left Popup** A file menu, including `New`, `Open`, `Save`, `Save As`, `Close`, `Close All`, and recent files.
 
 **Right Popup** A menu of all the ways the script can be run. If the script includes [Additional Menu Options](/docs/rgp-lua/finaleplugin-properties#additional-menu-options), they are listed here.
 
@@ -32,6 +32,34 @@ The `rgpluaconsole.lua` script requires version 0.68 or higher of _RGP Lua_. Oth
 **Clear Before Run** Tells the console to clear itself each time your press Run Script.
 
 **Preferences** Opens the [Preferences Dialog](#preferences-dialog).
+
+**Search** Opens the [Find Text Dialog](#find-text-dialog). If you hold down the shift key while clicking, it finds the next occurence of the text without opening the dialog.
+
+---
+
+### Keyboard Commands
+
+---
+
+The Console recognizes standard keyboard navigation commands for each operating system. It also recognizes the following:
+
+#### File Popup Shortcuts
+
+- **New File**: `cmd+N` (macOS) `ctrl+N` (Windows)
+- **Open File**: `cmd+O` (macOS) `ctrl+O` (Windows)
+- **Save File**: `cmd+S` (macOS) `ctrl+S` (Windows)
+- **Close File**: `cmd+W` (macOS) `ctrl+W` (Windows)
+
+#### Search Shortcuts
+
+- **Find Text**: `cmd+F` (macOS) `ctrl+F` (Windows)
+- **Find Again**: `cmd+G` (macOS) `ctrl+G` (Windows)
+
+#### Edit Shortcuts
+
+- **Cut**:  `cmd+X` (macOS) `ctrl+X` (Windows)
+- **Copy**:  `cmd+C` (macOS) `ctrl+C` (Windows)
+- **Paste**:  `cmd+V` (macOS) `ctrl+V` (Windows)
 
 ---
 
@@ -76,3 +104,23 @@ A particularly effective approach is to edit scripts with your IDE editor and us
 **Font** The font used in all three of the text panes. It is recommended to use a fixed-width font.
 
 **Change** Allows you to select the font and size for the text panes. Font effects are ignored.
+
+---
+
+### Find Text Dialog
+
+---
+
+![Find Text Dialog](assets/rgpluaconsole_search.jpg "Preferences Dialog")
+
+**Text** The text or pattern for which to search.
+
+**Case Sensitive** Specifies whether to search exact case or ignore case.
+
+**Whole Words** If checked, only find whole words.
+
+**Regular Expressions** If checked, the search pattern is a regular expression. 
+(Overrides the **Whole Words** option.)
+
+**Current Selection Only** If checked, only the current selection is searched.
+
