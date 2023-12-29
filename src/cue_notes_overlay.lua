@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.16"
-    finaleplugin.Date = "2023/12/12"
+    finaleplugin.Version = "v0.17"
+    finaleplugin.Date = "2023/12/29"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         This script takes music from a nominated layer in the selected staff 
@@ -17,7 +17,7 @@ function plugindef()
         Cue notes are often shown in a different octave to 
         accommodate the clef and transposition of the destination. 
         Use "cue octave offset" setting for this. 
-        Cues can interact visually with "played" "material in countless ways 
+        Cues can interact visually with "played" material in countless ways 
         so settings probably need to change between scenarios.
 
         The cue copy is reduced in size and muted, and can optionally duplicate 
@@ -48,7 +48,7 @@ rest will be created as a reminder that the cue isn't played.
 Cue notes are often shown in a different octave to
 accommodate the clef and transposition of the destination.
 Use "cue octave offset" setting for this.
-Cues can interact visually with "played" "material in countless ways
+Cues can interact visually with "played" material in countless ways
 so settings probably need to change between scenarios.
 **
 The cue copy is reduced in size and muted, and can optionally duplicate
@@ -98,14 +98,14 @@ local config = { -- retained and over-written by the user's "settings" file
     mute_cuenotes       =   true,
     cuenote_percent     =   70,    -- (75% too big, 66% too small)
     source_layer        =   1,     -- layer the cue comes from
-    cuenote_layer       =   3,     -- layer the cue ends up
+    cuenote_layer       =   4,     -- layer the cue ends up
     stem_direction      =   0,     -- "0" up, "1" down
-    stems_oppose        =   false, -- destination stem direction opposite to cue stem
+    stems_oppose        =   true, -- destination stem direction opposite to cue stem
     octave_offset       =   0,     -- octave displacement (-5 to +5) of copied cue version
     abbreviate          =   true, -- abbreviate staff names when creating new titles
     cuename_item        =   0,    -- ItemNo of the last selected cue_name expression
     -- not user accessible:
-    overwrite_layer     =   3,    -- overriden by user
+    overwrite_layer     =   4,    -- overriden by user
     shift_expression_down = -24 * 9, -- when cue_name is below staff
     shift_expression_left = -24, -- EVPUs; cue names generally need to be LEFT of music start
     -- if creating a new "Cue Names" category ...
@@ -173,19 +173,16 @@ end
 
 local function get_staff_name(staff_num)
     local str = finale.FCString()
-    local name = {}
     local staff = finale.FCStaff() -- copy the source Staff Name
     staff:Load(staff_num)
     str = staff:CreateDisplayFullNameString()
-    name.full = str.LuaString
+    local name = { full = str.LuaString }
     str = staff:CreateDisplayAbbreviatedNameString()
     name.abbrev = str.LuaString
     return name
 end
 
 local function new_cue_name(source_staff)
-    local staff = mixin.FCMStaff() -- copy the source Staff Name
-    staff:Load(source_staff)
     local name = get_staff_name(source_staff)
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:CreateStatic(0, 0):SetText("Cue Staff: " .. name.full):SetWidth(200)
@@ -343,8 +340,8 @@ local function choose_destination_staff(source_staff)
                 elseif s:find("d") then set_list_state(1) -- all staves
                 elseif s:find("f") then set_list_state(0) -- no staves
                 elseif s:find("g") then set_list_state(-1) -- empty staves
-                elseif s:find("[-z_]") then octave_change(-1) -- octave -1
-                elseif s:find("[+x=]") then octave_change(1) -- octave +1
+                elseif s:find("[-z_]") then octave_change(1) -- octave - 1
+                elseif s:find("[+x=]") then octave_change(-1) -- octave + 1
                 elseif s:find("c") then flip_direction() -- up/down stem
                 elseif s:find("v") then flip_check("stems_oppose")
                 end
@@ -400,11 +397,11 @@ local function choose_destination_staff(source_staff)
     dialog:CreateStatic(x_grid[3] + 15, y_step * 3 + 3):SetText("SELECT:"):SetWidth(80)
     dialog:CreateStatic(x_grid[3], (y_step * 7) + 9):SetText("cue octave offset:"):SetWidth(100)
     answer.octave_offset = dialog:CreatePopup(x_grid[3] + 25, (y_step * 8) + 6):SetWidth(40)
-    for i = -5, 5 do
+    for i = 5, -5, -1 do
         local pole = (i > 0) and "+" or ""
         answer.octave_offset:AddString(pole .. i)
     end
-    answer.octave_offset:SetSelectedItem(config.octave_offset + 5)
+    answer.octave_offset:SetSelectedItem(5 - config.octave_offset)
     make_info_button(dialog, x_grid[3] + 60, y_step * 10 + 3)
 
     -- run the dialog
@@ -432,7 +429,7 @@ local function choose_destination_staff(source_staff)
             config[v] = answer[v]:GetInteger()
         end
         config.stem_direction = answer.stem_direction:GetSelectedItem() -- 0-based
-        config.octave_offset  = answer.octave_offset:GetSelectedItem() - 5 -- octave offset value
+        config.octave_offset  = 5 - answer.octave_offset:GetSelectedItem() -- octave offset value
         config.stems_oppose = (answer.stems_oppose:GetCheck() == 1)
     end)
     dialog:RegisterInitWindow(function() data_list:SetKeyboardFocus() end)
