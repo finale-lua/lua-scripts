@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.86"
-    finaleplugin.Date = "2023/12/08"
+    finaleplugin.Version = "0.89"
+    finaleplugin.Date = "2023/12/29"
     finaleplugin.MinJWLuaVersion = 0.68
 	finaleplugin.Notes = [[ 
         This script presents an alphabetical list of 24 individual types 
@@ -13,18 +13,17 @@ function plugindef()
         Half of the datatypes can be filtered by layer.
 
         DELETE INDEPENDENTLY:  
-        Articulations* | Articulations on Rests* | Cross Staff Entries*  
-        Custom Lines | Dynamics* | Expressions (Not Dynamics)*  
-        Expressions (All)* | Expressions (Measure-Attached) | Glissandos  
-        Hairpins | Lyrics* | MIDI Continuous Data | MIDI Note Data*  
-        Note Position Offsets* | Notehead Modifications* | Secondary Beam Breaks*  
-        Slurs | Smart Shapes (Note Attached) | Smart Shapes (Measure Attached)  
-        Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles  
-        Tuplets* | User Selected...  
-        (* = filter by layer)
+        Articulations• | Articulations on Rests• | Chords | Cross Staff Entries•  
+        Custom Lines | Dynamics• | Expressions (Not Dynamics)•  
+        Expressions (All)• | Expressions (Measure-Attached) | Glissandos  
+        Hairpins | Lyrics• | MIDI Continuous Data | MIDI Note Data•  
+        Note Position Offsets• | Notehead Modifications• | Secondary Beam Breaks•  
+        Slurs | Smart Shapes (Note Attached) • | Smart Shapes (Beat Attached)  
+        Smart Shapes (All) | Staff Styles | Tuplets• | User Selected...  
+        (• = filter by layer)
 
-        To delete the same data as last time without a confirmation dialog, 
-        hold down the SHIFT key when starting the script. 
+        To delete the same data as last time without a confirmation dialog 
+        hold down [shift] when starting the script. 
         The layer number is "clamped" to a single character so to change 
         layer just type a new number - 'delete' key not needed.
     ]]
@@ -38,22 +37,20 @@ Call the script, type the hotkey and hit [Enter] or [Return].
 Half of the datatypes can be filtered by layer.
 **
 DELETE INDEPENDENTLY:
-*Articulations• | Articulations on Rests• | Cross Staff Entries•
-*Custom Lines | Dynamics• | Expressions (Not Dynamics)•
-*Expressions (All)• | Expressions (Measure-Attached) | Glissandos
-*Hairpins | Lyrics• | MIDI Continuous Data | MIDI Note Data•
+*Articulations • | Articulations on Rests • | Chords | Cross Staff Entries •
+*Custom Lines | Dynamics • | Expressions (Not Dynamics) •
+*Expressions (All) • | Expressions (Measure-Attached) | Glissandos
+*Hairpins | Lyrics • | MIDI Continuous Data | MIDI Note Data •
 *Note Position Offsets• | Notehead Modifications• | Secondary Beam Breaks•
-*Slurs | Smart Shapes (Note Attached) | Smart Shapes (Measure Attached)
-*Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles
-*Tuplets• | User Selected...
+*Slurs | Smart Shapes (Note Attached) • | Smart Shapes (Beat Attached)
+*Smart Shapes (All) | Staff Styles | Tuplets• | User Selected...
 *(• = filter by layer)
 **
 To delete the same data as last time without a confirmation dialog,
-hold down the SHIFT key when starting the script.
+hold down [shift] when starting the script.
 The layer number is "clamped" to a single character so to change
 layer just type a new number - 'delete' key not needed.
 ]]
-
 info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n")
 
 local configuration = require("library.configuration")
@@ -65,53 +62,53 @@ local script_name = "deletion_chooser"
 local clear_selected_items_menu = finenv.UI():IsOnMac() and 1296385394 or 16010
 
 local dialog_options = { -- key, text description (ordered)
-    { "entry_articulation", "Articulations*" },
-    { "rest_articulation", "Articulations on Rests*" },
-    { "cross_staff", "Cross Staff Entries*" },
-    { "shape_custom", "Custom Lines" },
-    { "expression_dynamic", "Dynamics*" },
-    { "expression_not_dynamic", "Expressions (Not Dynamics)*" },
-    { "expression_all", "Expressions (All Note-Attached)*" },
+    { "entry_articulation", "Articulations •" },
+    { "rest_articulation", "Articulations on Rests •" },
+    { "chords", "Chords" },
+    { "cross_staff", "Cross Staff Entries •" },
+    { "shape_IsCustomLine", "Custom Lines" },
+    { "expression_dynamic", "Dynamics •" },
+    { "expression_not_dynamic", "Expressions (Not Dynamics) •" },
+    { "expression_all", "Expressions (All Note-Attached) •" },
     { "measure_attached", "Expressions (Measure-Attached)" },
-    { "shape_glissando", "Glissandos" },
-    { "shape_hairpin", "Hairpins" },
-    { "entry_lyrics", "Lyrics*" },
+    { "shape_IsGlissando", "Glissandos" },
+    { "shape_IsHairpin", "Hairpins" },
+    { "entry_lyrics", "Lyrics •" },
     { "midi_continuous", "MIDI Continuous Data" },
-    { "midi_entry", "MIDI Note Data*" },
-    { "entry_position", "Note Position Offsets*" },
-    { "notehead_mods", "Notehead Modifications*" },
-    { "secondary_beam_breaks", "Secondary Beam Breaks*" }, 
-    { "shape_slur", "Slurs" },
-    { "shape_note_attached", "Smart Shapes (Note Attached)" },
-    { "shape_beat_attached", "Smart Shapes (Beat Attached)" },
-    { "shape_measure_attached", "Smart Shapes (Measure Attached)" },
+    { "midi_entry", "MIDI Note Data •" },
+    { "entry_position", "Note Position Offsets •" },
+    { "notehead_mods", "Notehead Modifications •" },
+    { "secondary_beam_breaks", "Secondary Beam Breaks •" }, 
+    { "shape_IsSlur", "Slurs" },
+    { "shape_IsEntryBased", "Smart Shapes (Note Attached) •" },
+    { "shape_GetBeatAttached", "Smart Shapes (Beat Attached)" },
     { "shape_all", "Smart Shapes (All)" },
     { "staff_styles", "Staff Styles (Current Score/Part)" },
-    { "entry_tuplets", "Tuplets*" },
+    { "entry_tuplets", "Tuplets •" },
     { "user_selected", "User Selected Items ..."}
 }
 
 local config = { -- keystroke assignments, layer number and window position
     entry_articulation = "A",
     rest_articulation = "R",
+    chords = "W",
     cross_staff = "X",
-    shape_custom = "C",
+    shape_IsCustomLine = "C",
     expression_dynamic = "D",
     expression_not_dynamic = "E",
     expression_all = "F",
     measure_attached = "M",
-    shape_glissando = "G",
-    shape_hairpin = "H",
+    shape_IsGlissando = "G",
+    shape_IsHairpin = "H",
     entry_lyrics = "L",
     midi_continuous = "O",
     midi_entry = "I",
     entry_position = "N",
     notehead_mods = "J",
     secondary_beam_breaks = "K",
-    shape_slur = "S",
-    shape_note_attached = "P",
-    shape_beat_attached = "B",
-    shape_measure_attached = "U",
+    shape_IsSlur = "S",
+    shape_IsEntryBased = "P",
+    shape_GetBeatAttached = "B",
     shape_all = "V",
     staff_styles = "Y",
     entry_tuplets = "T",
@@ -138,19 +135,14 @@ local function dialog_save_position(dialog)
     configuration.save_user_settings(script_name, config)
 end
 
-local function match_shape_type(shape, type)
-    if (type == "shape_all")
-        or (type == "shape_hairpin" and shape:IsHairpin())
-        or (type == "shape_slur" and shape:IsSlur())
-        or (type == "shape_custom" and shape:IsCustomLine())
-        or (type == "shape_glissando" and shape:IsGlissando())
-        or (type == "shape_note_attached" and shape.EntryBased)
-        or (type == "shape_beat_attached" and shape.BeatAttached)
-        or (type == "shape_measure_attached" and shape.MeasureAttached)
-    then
-        return true
-    end
-    return false
+function shape_check_layer(shape, layer_num)
+    if layer_num == 0 then return true end -- no layer check
+    local left_seg = shape:GetTerminateSegmentLeft()
+    local cell = finale.FCNoteEntryCell(left_seg.Measure, left_seg.Staff)
+    cell:Load()
+    -- assume both ends of the shape are on the same layer!
+    local entry = cell:FindEntryNumber(left_seg.EntryNumber)
+    return (entry.LayerNumber == layer_num)
 end
 
 local function delete_selected(delete_type)
@@ -164,29 +156,14 @@ local function delete_selected(delete_type)
         end
     --
     elseif delete_type:find("shape") then -- SMART SHAPE of some description
-        -- start with beat-attached
+        -- both beat-attached and note-attached with RGPLua 0.68+
         for mark in loadallforregion(finale.FCSmartShapeMeasureMarks(), rgn) do
             local shape = mark:CreateSmartShape()
-            if shape and not shape.EntryBased and match_shape_type(shape, delete_type) then
-                shape:DeleteData()
-            end
-        end
-        -- then note-attached
-        local shape_starts, shape_ends = {}, {}
-        for entry in eachentry(rgn) do
-            for mark in loadall(finale.FCSmartShapeEntryMarks(entry)) do
-                local shape = mark:CreateSmartShape()
-                if match_shape_type(shape, delete_type) then
-                    if mark:CalcLeftMark() then shape_starts[shape.ItemNo] = true end
-                    if mark:CalcRightMark() then shape_ends[shape.ItemNo] = true end
+            local test = delete_type:sub(7, -1) -- extract shape "function" from type key value
+            if shape and (delete_type == "shape_all" or shape[test](shape)) then
+                if not delete_type:find("Entry") or shape_check_layer(shape, layer_num) then
+                    shape:DeleteData()
                 end
-            end
-        end
-        for itemno, _ in pairs(shape_starts) do
-            if shape_ends[itemno] then
-                local shape = finale.FCSmartShape()
-                shape:Load(itemno)
-                shape:DeleteData()
             end
         end
     --
@@ -195,7 +172,7 @@ local function delete_selected(delete_type)
         expressions:LoadAllForRegion(rgn)
         for exp in eachbackwards(expressions) do
             if layer_num == 0 or exp.LayerAssignment == 0 or layer_num == exp.LayerAssignment then
-                if not exp:IsShape() and exp.StaffGroupID == 0 and
+                if exp.StaffGroupID == 0 and -- ??? not exp:IsShape() and 
                 (      (delete_type == "expression_all")
                     or (delete_type == "expression_not_dynamic" and not expression.is_dynamic(exp))
                     or (delete_type == "expression_dynamic" and expression.is_dynamic(exp))
@@ -211,6 +188,13 @@ local function delete_selected(delete_type)
         midi_ex:LoadAllForRegion(rgn)
         for exp in eachbackwards(midi_ex) do
             exp:DeleteData()
+        end
+    --
+    elseif delete_type == "chords" then -- CHORDS
+        local chords = finale.FCChords()
+        chords:LoadAllForRegion(rgn)
+        for chord in eachbackwards(chords) do
+            if chord then chord:DeleteData() end
         end
     --
     elseif delete_type == "measure_attached" then -- MEASURE-ATTACHED EXPRESSIONS type
@@ -240,18 +224,18 @@ local function delete_selected(delete_type)
                     if (ss.L >= rr.L) and (ss.R <= rr.R) then
                         style:DeleteData() -- selection encloses style
                     else
-                        if ss.L >= rr.L then -- RH side cropped
+                        if ss.L >= rr.L then -- (ss.R > rr.R) so move LH to right of selection
                             style.StartMeasure = rr.R + 1
                             style:Save()
-                        elseif ss.L < rr.L then
+                        else -- ss.L < rr.L: style starts before selection
                             style.EndMeasure = rr.L - 1
-                            style:Save() -- LH side cropped before selection
+                            style:Save() -- move LH side to before selection
                             if ss.R > rr.R then -- continues to right of selection
-                                local assign = finale.FCStaffStyleAssign()
-                                assign.StyleID = style.StyleID -- copy it
-                                assign.StartMeasure = rr.R + 1 -- move to end
-                                assign.EndMeasure = ss.R
-                                assign:SaveNew(staff_number)
+                                local style_copy = mixin.FCMStaffStyleAssign()
+                                style_copy:SetStyleID(style.StyleID) -- copy it
+                                    :SetStartMeasure(rr.R + 1) -- move past selection
+                                    :SetEndMeasure(ss.R)
+                                    :SaveNew(staff_number)
                             end
                         end
                     end
@@ -259,7 +243,7 @@ local function delete_selected(delete_type)
             end
         end
     --
-    else -- only ENTRY-attached datatypes remain: step through selected region
+    else -- ENTRY-attached datatypes remain: step through selected region
         for entry in eachentrysaved(rgn, layer_num) do
             --
             if delete_type:find("artic") and entry.ArticulationFlag then -- ARTICULATION
@@ -346,8 +330,8 @@ local function reassign_keys(selected)
     for _, v in ipairs(dialog_options) do -- add all options with keycodes
         dialog:CreateEdit(0, y - offset, v[1]):SetText(config[v[1]]):SetWidth(20)
             :AddHandleCommand(function(self)
-                local str = self:GetText():upper()
-                self:SetText(str:sub(-1)):SetKeyboardFocus()
+                local str = self:GetText():upper():sub(-1)
+                self:SetText(str):SetKeyboardFocus()
             end)
         dialog:CreateStatic(25, y):SetText(v[2]):SetWidth(x_wide)
         y = y + y_step
@@ -425,7 +409,7 @@ local function user_chooses()
         end
 
     fill_key_list()
-    dialog:CreateStatic(0, y):SetWidth(x_off * 3):SetText("For data types marked *:")
+    dialog:CreateStatic(0, y):SetWidth(x_off * 3):SetText("For data types marked [•]:")
     y = y + y_step
     dialog:CreateStatic(0, y):SetWidth(x_off + 36):SetText("Active Layer 1-" .. max)
     local save_layer = config.layer_num or "0"
