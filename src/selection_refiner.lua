@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "0.53"
-    finaleplugin.Date = "2023/13/11"
+    finaleplugin.Date = "2023/12/11"
     finaleplugin.CategoryTags = "Measures, Region, Selection"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = [[
