@@ -1,12 +1,12 @@
 function plugindef()
 
 
-   finaleplugin.RequireSelection = false
-   finaleplugin.Author = "The JWs: Jacob Winkler & Jari Williamsson"
-   finaleplugin.Version = "2.0"
-   finaleplugin.Date = "2/2/2022"
-   finaleplugin.CategoryTags = "Layout, Measure, Rest"
-   finaleplugin.Notes = [[
+    finaleplugin.RequireSelection = false
+    finaleplugin.Author = "The JWs: Jacob Winkler & Jari Williamsson"
+    finaleplugin.Version = "3.0"
+    finaleplugin.Date = "12/27/2023"
+    finaleplugin.CategoryTags = "Layout, Measure, Rest"
+    finaleplugin.Notes = [[
    This script takes a region and creates a multimeasure rest with the text 'TACET'
    above as an expression. The font settings for the expression are taken from the 'Tempo' category.
    If the region includes the last measure of the file but NOT the first measure, it will instead
@@ -20,36 +20,24 @@ function plugindef()
    ```
    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/region_multimeasure_rest_tacet.hash"
-   return "TACET", "Create Tacet", "Creates a mm-rest and TACET expression"
+    return "TACET", "Create Tacet", "Creates a mm-rest and TACET expression"
 end
 tacet_text = tacet_text or "TACET"
 local tacet_description = "TACET for Multimeasure Rests"
 al_fine_text = al_fine_text or "tacet al fine"
 local al_fine_description = "'tacet al fine' for Multimeasure Rests"
 local nudge_horizontal = -24
-function tacet_mm()
+local str = finale.FCString()
+local ui = finenv.UI()
+function tacet_mm(region)
     local al_fine_check = false
-    local region = finenv.Region()
-
-
     if region.StartMeasure > 1  and region:IsLastEndMeasure() then
-            al_fine_check = true
+        al_fine_check = true
     end
 
     local mm_rest_prefs = finale.FCMultiMeasureRestPrefs()
     mm_rest_prefs:Load(1)
-    local ui = finenv.UI()
     local mm_update = false
-    local process_all = 0
-
-    if region.StartMeasure == 0 then
-        process_all = ui:AlertYesNo("There is no active selection. Would you like to process the current part?", "No Selection:")
-        if process_all == 3 then
-            return
-        elseif process_all == 2 then
-            region:SetFullDocument()
-        end
-    end
 
     if mm_rest_prefs.AutoUpdate then
         mm_update = ui:AlertYesNo("Automatic Update is ON in the multimeasure preferences. Would you like to turn it OFF and proceed?", "Unable to create tacet:")
@@ -112,11 +100,11 @@ function tacet_expr(al_fine_check)
     local tacet_ted = 0
     local ted_descr = finale.FCString()
     local ted_text = finale.FCString()
-        if al_fine_check == true then
-            ted_descr.LuaString = al_fine_description
-        else
-            ted_descr.LuaString = tacet_description
-        end
+    if al_fine_check == true then
+        ted_descr.LuaString = al_fine_description
+    else
+        ted_descr.LuaString = tacet_description
+    end
     print(ted_descr.LuaString)
     for ted in each(text_expression_definitions) do
         if ted:CreateDescription().LuaString == ted_descr.LuaString then
@@ -160,8 +148,8 @@ function tacet_expr(al_fine_check)
     expressions:LoadAllForRegion(region)
 
     for e in each(expressions) do
-         local create_def = e:CreateTextExpressionDef()
-         if create_def.ItemNo == tacet_ted then
+        local create_def = e:CreateTextExpressionDef()
+        if create_def.ItemNo == tacet_ted then
             tacet_assigned = true
             print ("tacet_assigned = ",tacet_assigned)
         end
@@ -173,7 +161,7 @@ function tacet_expr(al_fine_check)
         for sys in each(system_staves) do
             local staff_num = sys.Staff
             if first_staff == 1 then
-               region:SetStartStaff(sys.Staff)
+                region:SetStartStaff(sys.Staff)
                 first_staff = 0
             end
         end
@@ -189,4 +177,59 @@ function tacet_expr(al_fine_check)
         add_expression:SaveNewToCell(and_cell)
     end
 end
-tacet_mm()
+local function process_tacets()
+    local region = finenv.Region()
+    local parts = finale.FCParts()
+    parts:LoadAll()
+    local current_part = parts:GetCurrent()
+    local process_all = 0
+
+    if region.StartMeasure == 0 and current_part:IsPart() then
+        process_all = ui:AlertYesNo("There is no active selection. Would you like to process the current part?", "No Selection:")
+        if process_all == 3 then
+            goto bypass
+        elseif process_all == 2 then
+            region:SetFullDocument()
+            tacet_mm(region)
+            goto bypass
+        end
+    end
+    local process_score = 0
+    if current_part:IsScore() then
+        process_score = ui:AlertYesNo("Would you like to process the whole score?", "Score:")
+        if process_score == 3 then
+            goto bypass
+        elseif process_score == 2 then
+            region:SetFullDocument()
+        end
+    end
+    for part in each(parts) do
+        print("Part number "..part.ItemNo)
+        if part:IsPart() then
+            part:SwitchTo()
+            local count = 0
+            local staves = finale.FCSystemStaves()
+            staves:LoadScrollView()
+            local part_region = finale.FCMusicRegion()
+            part_region.StartMeasure = region.StartMeasure
+            part_region.StartMeasurePos = region.StartMeasurePos
+            part_region.EndMeasure = region.EndMeasure
+            part_region.EndMeasurePos = region.EndMeasurePos
+            part_region.StartStaff = staves:GetStartStaff()
+            part_region.EndStaff = staves:GetEndStaff()
+            for entry in eachentry(part_region) do
+                count = count + 1
+                if count > 0 then
+                    goto skip_part
+                end
+            end
+            if count < 1 then
+                tacet_mm(part_region)
+            end
+        end
+        ::skip_part::
+    end
+    current_part:SwitchTo()
+    ::bypass::
+end
+process_tacets()

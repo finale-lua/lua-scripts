@@ -1,466 +1,3 @@
-package.preload["library.configuration"] = package.preload["library.configuration"] or function()
-
-
-
-    local configuration = {}
-    local utils = require("library.utils")
-    local script_settings_dir = "script_settings"
-    local comment_marker = "--"
-    local parameter_delimiter = "="
-    local path_delimiter = "/"
-    local file_exists = function(file_path)
-        local f = io.open(file_path, "r")
-        if nil ~= f then
-            io.close(f)
-            return true
-        end
-        return false
-    end
-    parse_parameter = function(val_string)
-        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "\"(.+)\"", "%1")
-        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "'(.+)'", "%1")
-        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-            return load("return " .. val_string)()
-        elseif "true" == val_string then
-            return true
-        elseif "false" == val_string then
-            return false
-        end
-        return tonumber(val_string)
-    end
-    local get_parameters_from_file = function(file_path, parameter_list)
-        local file_parameters = {}
-        if not file_exists(file_path) then
-            return false
-        end
-        for line in io.lines(file_path) do
-            local comment_at = string.find(line, comment_marker, 1, true)
-            if nil ~= comment_at then
-                line = string.sub(line, 1, comment_at - 1)
-            end
-            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
-            if nil ~= delimiter_at then
-                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
-                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
-                file_parameters[name] = parse_parameter(val_string)
-            end
-        end
-        local function process_table(param_table, param_prefix)
-            param_prefix = param_prefix and param_prefix.."." or ""
-            for param_name, param_val in pairs(param_table) do
-                local file_param_name = param_prefix .. param_name
-                local file_param_val = file_parameters[file_param_name]
-                if nil ~= file_param_val then
-                    param_table[param_name] = file_param_val
-                elseif type(param_val) == "table" then
-                        process_table(param_val, param_prefix..param_name)
-                end
-            end
-        end
-        process_table(parameter_list)
-        return true
-    end
-
-    function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
-        if finenv.IsRGPLua then
-            path = finenv.RunningLuaFolderPath()
-        else
-            local str = finale.FCString()
-            str:SetRunningLuaFolderPath()
-            path = str.LuaString
-        end
-        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
-        return get_parameters_from_file(file_path, parameter_list)
-    end
-
-
-    local calc_preferences_filepath = function(script_name)
-        local str = finale.FCString()
-        str:SetUserOptionsPath()
-        local folder_name = str.LuaString
-        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
-
-            folder_name = os.getenv("HOME") .. folder_name:sub(2)
-        end
-        if finenv.UI():IsOnWindows() then
-            folder_name = folder_name .. path_delimiter .. "FinaleLua"
-        end
-        local file_path = folder_name .. path_delimiter
-        if finenv.UI():IsOnMac() then
-            file_path = file_path .. "com.finalelua."
-        end
-        file_path = file_path .. script_name .. ".settings.txt"
-        return file_path, folder_name
-    end
-
-    function configuration.save_user_settings(script_name, parameter_list)
-        local file_path, folder_path = calc_preferences_filepath(script_name)
-        local file = io.open(file_path, "w")
-        if not file and finenv.UI():IsOnWindows() then
-
-            local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
-            if osutils then
-                osutils.process.make_dir(folder_path)
-            else
-                os.execute('mkdir "' .. folder_path ..'"')
-            end
-            file = io.open(file_path, "w")
-        end
-        if not file then
-            return false
-        end
-        file:write("-- User settings for " .. script_name .. ".lua\n\n")
-        for k,v in pairs(parameter_list) do
-            if type(v) == "string" then
-                v = "\"" .. v .."\""
-            else
-                v = tostring(v)
-            end
-            file:write(k, " = ", v, "\n")
-        end
-        file:close()
-        return true
-    end
-
-    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
-        if create_automatically == nil then create_automatically = true end
-        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
-        if not exists and create_automatically then
-            configuration.save_user_settings(script_name, parameter_list)
-        end
-        return exists
-    end
-    return configuration
-end
-package.preload["library.clef"] = package.preload["library.clef"] or function()
-
-    local clef = {}
-    local client = require("library.client")
-    local clef_map = {
-        treble = 0,
-        alto = 1,
-        tenor = 2,
-        bass = 3,
-        perc_old = 4,
-        treble_8ba = 5,
-        treble_8vb = 5,
-        tenor_voice = 5,
-        bass_8ba = 6,
-        bass_8vb = 6,
-        baritone = 7,
-        baritone_f = 7,
-        french_violin_clef = 8,
-        baritone_c = 9,
-        mezzo_soprano = 10,
-        soprano = 11,
-        percussion = 12,
-        perc_new = 12,
-        treble_8va = 13,
-        bass_8va = 14,
-        blank = 15,
-        tab_sans = 16,
-        tab_serif = 17
-    }
-
-    function clef.get_cell_clef(measure, staff_number)
-        local cell_clef = -1
-        local cell = finale.FCCell(measure, staff_number)
-        local cell_frame_hold = finale.FCCellFrameHold()
-        cell_frame_hold:ConnectCell(cell)
-        if cell_frame_hold:Load() then
-            if cell_frame_hold.IsClefList then
-                cell_clef = cell_frame_hold:CreateFirstCellClefChange().ClefIndex
-            else
-                cell_clef = cell_frame_hold.ClefIndex
-            end
-        end
-        return cell_clef
-    end
-
-    function clef.get_default_clef(first_measure, last_measure, staff_number)
-        local staff = finale.FCStaff()
-        local cell_clef = clef.get_cell_clef(first_measure - 1, staff_number)
-        if cell_clef < 0 then
-            cell_clef = clef.get_cell_clef(last_measure + 1, staff_number)
-            if cell_clef < 0 then
-                cell_clef = staff:Load(staff_number) and staff.DefaultClef or 0
-            end
-        end
-        return cell_clef
-    end
-
-    function clef.set_measure_clef(first_measure, last_measure, staff_number, clef_index)
-        client.assert_supports("clef_change")
-        for measure = first_measure, last_measure do
-            local cell = finale.FCCell(measure, staff_number)
-            local cell_frame_hold = finale.FCCellFrameHold()
-            local clef_change = cell_frame_hold:CreateFirstCellClefChange()
-            clef_change:SetClefIndex(clef_index)
-            cell_frame_hold:ConnectCell(cell)
-            if cell_frame_hold:Load() then
-                cell_frame_hold:MakeCellSingleClef(clef_change)
-                cell_frame_hold:SetClefIndex(clef_index)
-                cell_frame_hold:Save()
-            else
-                cell_frame_hold:MakeCellSingleClef(clef_change)
-                cell_frame_hold:SetClefIndex(clef_index)
-                cell_frame_hold:SaveNew()
-            end
-        end
-    end
-
-    function clef.restore_default_clef(first_measure, last_measure, staff_number)
-        client.assert_supports("clef_change")
-        local default_clef = clef.get_default_clef(first_measure, last_measure, staff_number)
-        clef.set_measure_clef(first_measure, last_measure, staff_number, default_clef)
-
-    end
-
-    function clef.process_clefs(mid_clefs)
-        local clefs = {}
-        local new_mid_clefs = finale.FCCellClefChanges()
-        for mid_clef in each(mid_clefs) do
-            table.insert(clefs, mid_clef)
-        end
-        table.sort(clefs, function (k1, k2) return k1.MeasurePos < k2.MeasurePos end)
-        for k, mid_clef in ipairs(clefs) do
-            new_mid_clefs:InsertCellClefChange(mid_clef)
-            new_mid_clefs:SaveAllAsNew()
-        end
-
-        for i = new_mid_clefs.Count - 1, 1, -1 do
-            local later_clef_change = new_mid_clefs:GetItemAt(i)
-            local earlier_clef_change = new_mid_clefs:GetItemAt(i - 1)
-            if later_clef_change.MeasurePos < 0 then
-                new_mid_clefs:ClearItemAt(i)
-                new_mid_clefs:SaveAll()
-                goto continue
-            end
-            if earlier_clef_change.ClefIndex == later_clef_change.ClefIndex then
-                new_mid_clefs:ClearItemAt(i)
-                new_mid_clefs:SaveAll()
-            end
-            ::continue::
-        end
-        return new_mid_clefs
-    end
-
-    function clef.clef_change(clef_type, region)
-        local clef_index = clef_map[clef_type]
-        local cell_frame_hold = finale.FCCellFrameHold()
-        local last_clef
-        local last_staff = -1
-        for cell_measure, cell_staff in eachcell(region) do
-            local cell = finale.FCCell(region.EndMeasure, cell_staff)
-            if cell_staff ~= last_staff then
-                last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)
-                last_staff = cell_staff
-            end
-            cell = finale.FCCell(cell_measure, cell_staff)
-            cell_frame_hold:ConnectCell(cell)
-            if cell_frame_hold:Load() then
-            end
-            if  region:IsFullMeasureIncluded(cell_measure) then
-                clef.set_measure_clef(cell_measure, cell_measure, cell_staff, clef_index)
-                if not region:IsLastEndMeasure() then
-                    cell = finale.FCCell(cell_measure + 1, cell_staff)
-                    cell_frame_hold:ConnectCell(cell)
-                    if cell_frame_hold:Load() then
-                        cell_frame_hold:SetClefIndex(last_clef)
-                        cell_frame_hold:Save()
-                    else
-                        cell_frame_hold:SetClefIndex(last_clef)
-                        cell_frame_hold:SaveNew()
-                    end
-                end
-            else
-                local mid_measure_clefs = cell_frame_hold:CreateCellClefChanges()
-                local new_mid_measure_clefs = finale.FCCellClefChanges()
-                local mid_measure_clef = finale.FCCellClefChange()
-                if not mid_measure_clefs then
-                    mid_measure_clefs = finale.FCCellClefChanges()
-                    mid_measure_clef:SetClefIndex(cell_frame_hold.ClefIndex)
-                    mid_measure_clef:SetMeasurePos(0)
-                    mid_measure_clef:Save()
-                    mid_measure_clefs:InsertCellClefChange(mid_measure_clef)
-                    mid_measure_clefs:SaveAllAsNew()
-                end
-                if cell_frame_hold.Measure == region.StartMeasure and region.StartMeasure ~= region.EndMeasure then
-
-                    for mid_clef in each(mid_measure_clefs) do
-                        if mid_clef.MeasurePos < region.StartMeasurePos then
-                            new_mid_measure_clefs:InsertCellClefChange(mid_clef)
-                            new_mid_measure_clefs:SaveAllAsNew()
-                        end
-                    end
-
-                    mid_measure_clef:SetClefIndex(clef_index)
-                    mid_measure_clef:SetMeasurePos(region.StartMeasurePos)
-                    mid_measure_clef:Save()
-                    new_mid_measure_clefs:InsertCellClefChange(mid_measure_clef)
-                    new_mid_measure_clefs:SaveAllAsNew()
-                end
-                if cell_frame_hold.Measure == region.EndMeasure and region.StartMeasure ~= region.EndMeasure then
-
-                    for mid_clef in each(mid_measure_clefs) do
-                        if mid_clef.MeasurePos == 0 then
-                            mid_clef:SetClefIndex(clef_index)
-                            mid_clef:Save()
-                            new_mid_measure_clefs:InsertCellClefChange(mid_clef)
-                            new_mid_measure_clefs:SaveAllAsNew()
-                        elseif mid_clef.MeasurePos > region.EndMeasurePos then
-                            new_mid_measure_clefs:InsertCellClefChange(mid_clef)
-                            new_mid_measure_clefs:SaveAllAsNew()
-                        end
-                    end
-
-                    mid_measure_clef:SetClefIndex(last_clef)
-                    mid_measure_clef:SetMeasurePos(region.EndMeasurePos)
-                    mid_measure_clef:Save()
-                    new_mid_measure_clefs:InsertCellClefChange(mid_measure_clef)
-                    new_mid_measure_clefs:SaveAllAsNew()
-                end
-                if cell_frame_hold.Measure == region.StartMeasure and region.StartMeasure == region.EndMeasure then
-                    local last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)
-                    for mid_clef in each(mid_measure_clefs) do
-                        if mid_clef.MeasurePos == 0 then
-                            if region.StartMeasurePos == 0 then
-                                mid_clef:SetClefIndex(clef_index)
-                                mid_clef:Save()
-                            end
-                            new_mid_measure_clefs:InsertCellClefChange(mid_clef)
-                            new_mid_measure_clefs:SaveAllAsNew()
-                        elseif mid_clef.MeasurePos < region.StartMeasurePos or
-                        mid_clef.MeasurePos > region.EndMeasurePos then
-                            new_mid_measure_clefs:InsertCellClefChange(mid_clef)
-                            new_mid_measure_clefs:SaveAllAsNew()
-                        end
-                    end
-
-                    mid_measure_clef:SetClefIndex(clef_index)
-                    mid_measure_clef:SetMeasurePos(region.StartMeasurePos)
-                    mid_measure_clef:Save()
-                    new_mid_measure_clefs:InsertCellClefChange(mid_measure_clef)
-                    new_mid_measure_clefs:SaveAllAsNew()
-
-                    mid_measure_clef:SetClefIndex(last_clef)
-                    mid_measure_clef:SetMeasurePos(region.EndMeasurePos)
-                    mid_measure_clef:Save()
-                    new_mid_measure_clefs:InsertCellClefChange(mid_measure_clef)
-                    new_mid_measure_clefs:SaveAllAsNew()
-                end
-
-                new_mid_measure_clefs = clef.process_clefs(new_mid_measure_clefs)
-
-                if cell_frame_hold:Load() then
-                    cell_frame_hold:SetCellClefChanges(new_mid_measure_clefs)
-                    cell_frame_hold:Save()
-                else
-                    cell_frame_hold:SetCellClefChanges(new_mid_measure_clefs)
-                    cell_frame_hold:SaveNew()
-                end
-            end
-        end
-    end
-    return clef
-end
-package.preload["library.layer"] = package.preload["library.layer"] or function()
-
-    local layer = {}
-
-    function layer.copy(region, source_layer, destination_layer, clone_articulations)
-        local start = region.StartMeasure
-        local stop = region.EndMeasure
-        local sysstaves = finale.FCSystemStaves()
-        sysstaves:LoadAllForRegion(region)
-        source_layer = source_layer - 1
-        destination_layer = destination_layer - 1
-        for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
-            noteentry_source_layer:SetUseVisibleLayer(false)
-            noteentry_source_layer:Load()
-            local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
-                destination_layer, staffNum, start)
-            noteentry_destination_layer:Save()
-            noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
-
-            if clone_articulations and noteentry_source_layer.Count == noteentry_destination_layer.Count then
-                for index = 0, noteentry_destination_layer.Count - 1 do
-                    local source_entry = noteentry_source_layer:GetItemAt(index)
-                    local destination_entry = noteentry_destination_layer:GetItemAt(index)
-                    local source_artics = source_entry:CreateArticulations()
-                    for articulation in each (source_artics) do
-                        articulation:SetNoteEntry(destination_entry)
-                        articulation:SaveNew()
-                    end
-                end
-            end
-            noteentry_destination_layer:Save()
-        end
-    end
-
-    function layer.clear(region, layer_to_clear)
-        layer_to_clear = layer_to_clear - 1
-        local start = region.StartMeasure
-        local stop = region.EndMeasure
-        local sysstaves = finale.FCSystemStaves()
-        sysstaves:LoadAllForRegion(region)
-        for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
-            noteentry_layer:SetUseVisibleLayer(false)
-            noteentry_layer:Load()
-            noteentry_layer:ClearAllEntries()
-        end
-    end
-
-    function layer.swap(region, swap_a, swap_b)
-
-        swap_a = swap_a - 1
-        swap_b = swap_b - 1
-        for measure, staff_number in eachcell(region) do
-            local cell_frame_hold = finale.FCCellFrameHold()
-            cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-            local loaded = cell_frame_hold:Load()
-            local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
-            local  noteentry_layer_one = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
-            noteentry_layer_one:SetUseVisibleLayer(false)
-            noteentry_layer_one:Load()
-            noteentry_layer_one.LayerIndex = swap_b
-
-            local  noteentry_layer_two = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
-            noteentry_layer_two:SetUseVisibleLayer(false)
-            noteentry_layer_two:Load()
-            noteentry_layer_two.LayerIndex = swap_a
-            noteentry_layer_one:Save()
-            noteentry_layer_two:Save()
-            if loaded then
-                local new_cell_frame_hold = finale.FCCellFrameHold()
-                new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-                if new_cell_frame_hold:Load() then
-                    if cell_frame_hold.IsClefList then
-                        if new_cell_frame_hold.SetCellClefChanges then
-                            new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
-                        end
-
-                    else
-                        new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
-                    end
-                    new_cell_frame_hold:Save()
-                end
-            end
-        end
-    end
-
-    function layer.max_layers()
-        return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
-    end
-    return layer
-end
 package.preload["mixin.FCMControl"] = package.preload["mixin.FCMControl"] or function()
 
 
@@ -3455,165 +2992,6 @@ package.preload["library.lua_compatibility"] = package.preload["library.lua_comp
     end
     return true
 end
-package.preload["library.utils"] = package.preload["library.utils"] or function()
-
-    local utils = {}
-
-
-
-
-    function utils.copy_table(t)
-        if type(t) == "table" then
-            local new = {}
-            for k, v in pairs(t) do
-                new[utils.copy_table(k)] = utils.copy_table(v)
-            end
-            setmetatable(new, utils.copy_table(getmetatable(t)))
-            return new
-        else
-            return t
-        end
-    end
-
-    function utils.table_remove_first(t, value)
-        for k = 1, #t do
-            if t[k] == value then
-                table.remove(t, k)
-                return
-            end
-        end
-    end
-
-    function utils.iterate_keys(t)
-        local a, b, c = pairs(t)
-        return function()
-            c = a(b, c)
-            return c
-        end
-    end
-
-    function utils.round(value, places)
-        places = places or 0
-        local multiplier = 10^places
-        local ret = math.floor(value * multiplier + 0.5)
-
-        return places == 0 and ret or ret / multiplier
-    end
-
-    function utils.to_integer_if_whole(value)
-        local int = math.floor(value)
-        return value == int and int or value
-    end
-
-    function utils.calc_roman_numeral(num)
-        local thousands = {'M','MM','MMM'}
-        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
-        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
-        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
-        local roman_numeral = ''
-        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
-        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
-        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
-        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
-        return roman_numeral
-    end
-
-    function utils.calc_ordinal(num)
-        local units = num % 10
-        local tens = num % 100
-        if units == 1 and tens ~= 11 then
-            return num .. "st"
-        elseif units == 2 and tens ~= 12 then
-            return num .. "nd"
-        elseif units == 3 and tens ~= 13 then
-            return num .. "rd"
-        end
-        return num .. "th"
-    end
-
-    function utils.calc_alphabet(num)
-        local letter = ((num - 1) % 26) + 1
-        local n = math.floor((num - 1) / 26)
-        return string.char(64 + letter) .. (n > 0 and n or "")
-    end
-
-    function utils.clamp(num, minimum, maximum)
-        return math.min(math.max(num, minimum), maximum)
-    end
-
-    function utils.ltrim(str)
-        return string.match(str, "^%s*(.*)")
-    end
-
-    function utils.rtrim(str)
-        return string.match(str, "(.-)%s*$")
-    end
-
-    function utils.trim(str)
-        return utils.ltrim(utils.rtrim(str))
-    end
-
-    local pcall_wrapper
-    local rethrow_placeholder = "tryfunczzz"
-    local pcall_line = debug.getinfo(1, "l").currentline + 2
-    function utils.call_and_rethrow(levels, tryfunczzz, ...)
-        return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
-
-    end
-
-    local source = debug.getinfo(1, "S").source
-    local source_is_file = source:sub(1, 1) == "@"
-    if source_is_file then
-        source = source:sub(2)
-    end
-
-    pcall_wrapper = function(levels, success, result, ...)
-        if not success then
-            local file
-            local line
-            local msg
-            file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
-            msg = msg or result
-            local file_is_truncated = file and file:sub(1, 3) == "..."
-            file = file_is_truncated and file:sub(4) or file
-
-
-
-            if file
-                and line
-                and source_is_file
-                and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
-                and tonumber(line) == pcall_line
-            then
-                local d = debug.getinfo(levels, "n")
-
-                msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
-
-                if d.namewhat == "method" then
-                    local arg = msg:match("^bad argument #(%d+)")
-                    if arg then
-                        msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
-                    end
-                end
-                error(msg, levels + 1)
-
-
-            else
-                error(result, 0)
-            end
-        end
-        return ...
-    end
-
-    function utils.rethrow_placeholder()
-        return "'" .. rethrow_placeholder .. "'"
-    end
-
-    function utils.require_embedded(library_name)
-        return require(library_name)
-    end
-    return utils
-end
 package.preload["library.client"] = package.preload["library.client"] or function()
 
     local client = {}
@@ -5111,666 +4489,701 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     end
     return mixin
 end
+package.preload["library.layer"] = package.preload["library.layer"] or function()
+
+    local layer = {}
+
+    function layer.copy(region, source_layer, destination_layer, clone_articulations)
+        local start = region.StartMeasure
+        local stop = region.EndMeasure
+        local sysstaves = finale.FCSystemStaves()
+        sysstaves:LoadAllForRegion(region)
+        source_layer = source_layer - 1
+        destination_layer = destination_layer - 1
+        for sysstaff in each(sysstaves) do
+            staffNum = sysstaff.Staff
+            local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
+            noteentry_source_layer:SetUseVisibleLayer(false)
+            noteentry_source_layer:Load()
+            local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
+                destination_layer, staffNum, start)
+            noteentry_destination_layer:Save()
+            noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
+
+            if clone_articulations and noteentry_source_layer.Count == noteentry_destination_layer.Count then
+                for index = 0, noteentry_destination_layer.Count - 1 do
+                    local source_entry = noteentry_source_layer:GetItemAt(index)
+                    local destination_entry = noteentry_destination_layer:GetItemAt(index)
+                    local source_artics = source_entry:CreateArticulations()
+                    for articulation in each (source_artics) do
+                        articulation:SetNoteEntry(destination_entry)
+                        articulation:SaveNew()
+                    end
+                end
+            end
+            noteentry_destination_layer:Save()
+        end
+    end
+
+    function layer.clear(region, layer_to_clear)
+        layer_to_clear = layer_to_clear - 1
+        local start = region.StartMeasure
+        local stop = region.EndMeasure
+        local sysstaves = finale.FCSystemStaves()
+        sysstaves:LoadAllForRegion(region)
+        for sysstaff in each(sysstaves) do
+            staffNum = sysstaff.Staff
+            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            noteentry_layer:SetUseVisibleLayer(false)
+            noteentry_layer:Load()
+            noteentry_layer:ClearAllEntries()
+        end
+    end
+
+    function layer.swap(region, swap_a, swap_b)
+
+        swap_a = swap_a - 1
+        swap_b = swap_b - 1
+        for measure, staff_number in eachcell(region) do
+            local cell_frame_hold = finale.FCCellFrameHold()
+            cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+            local loaded = cell_frame_hold:Load()
+            local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
+            local  noteentry_layer_one = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
+            noteentry_layer_one:SetUseVisibleLayer(false)
+            noteentry_layer_one:Load()
+            noteentry_layer_one.LayerIndex = swap_b
+
+            local  noteentry_layer_two = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
+            noteentry_layer_two:SetUseVisibleLayer(false)
+            noteentry_layer_two:Load()
+            noteentry_layer_two.LayerIndex = swap_a
+            noteentry_layer_one:Save()
+            noteentry_layer_two:Save()
+            if loaded then
+                local new_cell_frame_hold = finale.FCCellFrameHold()
+                new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
+                if new_cell_frame_hold:Load() then
+                    if cell_frame_hold.IsClefList then
+                        if new_cell_frame_hold.SetCellClefChanges then
+                            new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
+                        end
+
+                    else
+                        new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
+                    end
+                    new_cell_frame_hold:Save()
+                end
+            end
+        end
+    end
+
+    function layer.max_layers()
+        return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
+    end
+    return layer
+end
+package.preload["library.utils"] = package.preload["library.utils"] or function()
+
+    local utils = {}
+
+
+
+
+    function utils.copy_table(t)
+        if type(t) == "table" then
+            local new = {}
+            for k, v in pairs(t) do
+                new[utils.copy_table(k)] = utils.copy_table(v)
+            end
+            setmetatable(new, utils.copy_table(getmetatable(t)))
+            return new
+        else
+            return t
+        end
+    end
+
+    function utils.table_remove_first(t, value)
+        for k = 1, #t do
+            if t[k] == value then
+                table.remove(t, k)
+                return
+            end
+        end
+    end
+
+    function utils.iterate_keys(t)
+        local a, b, c = pairs(t)
+        return function()
+            c = a(b, c)
+            return c
+        end
+    end
+
+    function utils.round(value, places)
+        places = places or 0
+        local multiplier = 10^places
+        local ret = math.floor(value * multiplier + 0.5)
+
+        return places == 0 and ret or ret / multiplier
+    end
+
+    function utils.to_integer_if_whole(value)
+        local int = math.floor(value)
+        return value == int and int or value
+    end
+
+    function utils.calc_roman_numeral(num)
+        local thousands = {'M','MM','MMM'}
+        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
+        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
+        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
+        local roman_numeral = ''
+        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
+        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
+        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
+        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
+        return roman_numeral
+    end
+
+    function utils.calc_ordinal(num)
+        local units = num % 10
+        local tens = num % 100
+        if units == 1 and tens ~= 11 then
+            return num .. "st"
+        elseif units == 2 and tens ~= 12 then
+            return num .. "nd"
+        elseif units == 3 and tens ~= 13 then
+            return num .. "rd"
+        end
+        return num .. "th"
+    end
+
+    function utils.calc_alphabet(num)
+        local letter = ((num - 1) % 26) + 1
+        local n = math.floor((num - 1) / 26)
+        return string.char(64 + letter) .. (n > 0 and n or "")
+    end
+
+    function utils.clamp(num, minimum, maximum)
+        return math.min(math.max(num, minimum), maximum)
+    end
+
+    function utils.ltrim(str)
+        return string.match(str, "^%s*(.*)")
+    end
+
+    function utils.rtrim(str)
+        return string.match(str, "(.-)%s*$")
+    end
+
+    function utils.trim(str)
+        return utils.ltrim(utils.rtrim(str))
+    end
+
+    local pcall_wrapper
+    local rethrow_placeholder = "tryfunczzz"
+    local pcall_line = debug.getinfo(1, "l").currentline + 2
+    function utils.call_and_rethrow(levels, tryfunczzz, ...)
+        return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
+
+    end
+
+    local source = debug.getinfo(1, "S").source
+    local source_is_file = source:sub(1, 1) == "@"
+    if source_is_file then
+        source = source:sub(2)
+    end
+
+    pcall_wrapper = function(levels, success, result, ...)
+        if not success then
+            local file
+            local line
+            local msg
+            file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
+            msg = msg or result
+            local file_is_truncated = file and file:sub(1, 3) == "..."
+            file = file_is_truncated and file:sub(4) or file
+
+
+
+            if file
+                and line
+                and source_is_file
+                and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
+                and tonumber(line) == pcall_line
+            then
+                local d = debug.getinfo(levels, "n")
+
+                msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
+
+                if d.namewhat == "method" then
+                    local arg = msg:match("^bad argument #(%d+)")
+                    if arg then
+                        msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
+                    end
+                end
+                error(msg, levels + 1)
+
+
+            else
+                error(result, 0)
+            end
+        end
+        return ...
+    end
+
+    function utils.rethrow_placeholder()
+        return "'" .. rethrow_placeholder .. "'"
+    end
+
+    function utils.require_embedded(library_name)
+        return require(library_name)
+    end
+    return utils
+end
+package.preload["library.configuration"] = package.preload["library.configuration"] or function()
+
+
+
+    local configuration = {}
+    local utils = require("library.utils")
+    local script_settings_dir = "script_settings"
+    local comment_marker = "--"
+    local parameter_delimiter = "="
+    local path_delimiter = "/"
+    local file_exists = function(file_path)
+        local f = io.open(file_path, "r")
+        if nil ~= f then
+            io.close(f)
+            return true
+        end
+        return false
+    end
+    parse_parameter = function(val_string)
+        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "\"(.+)\"", "%1")
+        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "'(.+)'", "%1")
+        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
+            return load("return " .. val_string)()
+        elseif "true" == val_string then
+            return true
+        elseif "false" == val_string then
+            return false
+        end
+        return tonumber(val_string)
+    end
+    local get_parameters_from_file = function(file_path, parameter_list)
+        local file_parameters = {}
+        if not file_exists(file_path) then
+            return false
+        end
+        for line in io.lines(file_path) do
+            local comment_at = string.find(line, comment_marker, 1, true)
+            if nil ~= comment_at then
+                line = string.sub(line, 1, comment_at - 1)
+            end
+            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
+            if nil ~= delimiter_at then
+                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
+                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
+                file_parameters[name] = parse_parameter(val_string)
+            end
+        end
+        local function process_table(param_table, param_prefix)
+            param_prefix = param_prefix and param_prefix.."." or ""
+            for param_name, param_val in pairs(param_table) do
+                local file_param_name = param_prefix .. param_name
+                local file_param_val = file_parameters[file_param_name]
+                if nil ~= file_param_val then
+                    param_table[param_name] = file_param_val
+                elseif type(param_val) == "table" then
+                        process_table(param_val, param_prefix..param_name)
+                end
+            end
+        end
+        process_table(parameter_list)
+        return true
+    end
+
+    function configuration.get_parameters(file_name, parameter_list)
+        local path = ""
+        if finenv.IsRGPLua then
+            path = finenv.RunningLuaFolderPath()
+        else
+            local str = finale.FCString()
+            str:SetRunningLuaFolderPath()
+            path = str.LuaString
+        end
+        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+        return get_parameters_from_file(file_path, parameter_list)
+    end
+
+
+    local calc_preferences_filepath = function(script_name)
+        local str = finale.FCString()
+        str:SetUserOptionsPath()
+        local folder_name = str.LuaString
+        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+
+            folder_name = os.getenv("HOME") .. folder_name:sub(2)
+        end
+        if finenv.UI():IsOnWindows() then
+            folder_name = folder_name .. path_delimiter .. "FinaleLua"
+        end
+        local file_path = folder_name .. path_delimiter
+        if finenv.UI():IsOnMac() then
+            file_path = file_path .. "com.finalelua."
+        end
+        file_path = file_path .. script_name .. ".settings.txt"
+        return file_path, folder_name
+    end
+
+    function configuration.save_user_settings(script_name, parameter_list)
+        local file_path, folder_path = calc_preferences_filepath(script_name)
+        local file = io.open(file_path, "w")
+        if not file and finenv.UI():IsOnWindows() then
+
+            local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
+            if osutils then
+                osutils.process.make_dir(folder_path)
+            else
+                os.execute('mkdir "' .. folder_path ..'"')
+            end
+            file = io.open(file_path, "w")
+        end
+        if not file then
+            return false
+        end
+        file:write("-- User settings for " .. script_name .. ".lua\n\n")
+        for k,v in pairs(parameter_list) do
+            if type(v) == "string" then
+                v = "\"" .. v .."\""
+            else
+                v = tostring(v)
+            end
+            file:write(k, " = ", v, "\n")
+        end
+        file:close()
+        return true
+    end
+
+    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+        if create_automatically == nil then create_automatically = true end
+        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+        if not exists and create_automatically then
+            configuration.save_user_settings(script_name, parameter_list)
+        end
+        return exists
+    end
+    return configuration
+end
 function plugindef()
     finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Carl Vine with additional coding by Aaron Sherber"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.92i"
-    finaleplugin.Date = "2023/12/25"
-    finaleplugin.AdditionalMenuOptions = [[
-        Cue Notes Flip Frozen
-    ]]
-    finaleplugin.AdditionalUndoText = [[
-        Cue Notes Flip Frozen
-    ]]
-    finaleplugin.AdditionalPrefixes = [[
-        action = "flip"
-    ]]
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.Author = "Carl Vine"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
+    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
+    finaleplugin.Version = "0.15"
+    finaleplugin.Date = "2023/12/15"
+    finaleplugin.CategoryTags = "Rests, Selection"
+    finaleplugin.MinJWLuaVersion = 0.68
     finaleplugin.Notes = [[
-        This script is designed to take music from one staff and create
-        "cue note" copies in the same measure on one or more empty staves.
-        The copy is smaller and muted, and can include chosen markings from the original.
-        It is copied to the chosen layer with a whole-note rest placed in the original layer.
-        Preferences are preserved between each run.
-        This script uses an expression category called "Cue Names" which
-        will be created if needed.
-        An extra menu, "Cue Notes Flip Frozen", will look for notes in the
-        previously selected "cue note" layer and flip the direction of their
-        stems if they have been "frozen" up or down.
+        Slide rests up and down on the nominated layer with continuous visual feedback.
+        This was designed especially to help align rests midway
+        between staves with cross-staff notes.
+        The "mid-staff above" and "mid-staff below" buttons achieve this with one click.
+        Cancel the script to leave rests unchanged.
+        "Reset Zero" sets nil offset.
+        Note that with transposing instruments this is NOT the middle
+        of the staff if "Display in Concert Pitch" is selected.
+        In those instances use "Floating Rests" to return them to
+        their virgin state where the only offset is that set at
+        Document → Document Options → Layers → Adjust Floating Rests by...
+        At startup all rests in the chosen layer are moved to the
+        same offset as the first rest in the selection.
+        Layer numbers can be changed "on the fly" to help
+        balance rests in multiple layers.
+        KEY COMMANDS:
+        - [a] [+] move rests up by single steps
+        - [s] [-] move rests down by single steps
+        - [d] move to mid-staff above (if one staff selected)
+        - [f] move to mid-staff below (if one staff selected)
+        - [z] reset to "zero" shift (not floating)
+        - [x] floating rests
+        - [q] show these script notes
+        - [0]-[4] layer number (delete key not needed)
     ]]
-    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/cue_notes_create.hash"
-    return "Cue Notes Create...", "Cue Notes Create", "Copy as cue notes to another staff"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/rest_slider.hash"
+    return "Rest Slider...", "Rest Slider", "Slide rests up and down with continuous visual feedback"
 end
-action = action or ""
 local info_notes = [[
-This script is designed to take music from one staff and create
-"cue note" copies in the same measure on one or more empty staves.
-The copy is smaller and muted, and can include chosen markings from the original.
-It is copied to the chosen layer with a whole-note rest placed in the original layer.
+Slide rests up and down on the nominated layer with continuous visual feedback.
+This was designed especially to help align rests midway
+between staves with cross-staff notes.
+The "mid-staff above" and "mid-staff below" buttons achieve this with one click.
+Cancel the script to leave rests unchanged.
 **
-Preferences are preserved between each run.
-This script uses an expression category called "Cue Names" which
-will be created if needed.
+"Reset Zero" sets nil offset.
+Note that with transposing instruments this is NOT the middle
+of the staff if "Display in Concert Pitch" is selected.
+In those instances use "Floating Rests" to return them to
+their virgin state where the only offset is that set at
+Document → Document Options → Layers → Adjust Floating Rests by...
 **
-An extra menu, "Cue Notes Flip Frozen", will look for notes in the
-previously selected "cue note" layer and flip the direction of their
-stems if they have been "frozen" up or down.
+At startup all rests in the chosen layer are moved to the
+same offset as the first rest in the selection.
+Layer numbers can be changed "on the fly" to help
+balance rests in multiple layers.
 **
-== Command Keys ==
-*In the "Destination Staff" window,
-hit the tab key to move the cursor into a numeric
-field and these key commands are available:
-*q @t show these script notes
-*w @t flip [copy articulations]
-*e @t flip [copy expressions]
-*r @t flip [copy smartshapes]
-*t @t flip [copy slurs]
-*y @t flip [copy clef]
-*u @t flip [copy lyrics]
-*i @t flip [copy chords]
-*o @t flip [mute cuenotes]
-*– – –
-*a @t all options checked
-*s @t no options checked
-*d @t select all staves
-*f @t select no staves
-*g @t select empty staves
-*– – –
-*z @t next stem direction
-*x @t previous stem direction
+Key Commands:
+*• [a] [+] move rests up by single steps
+*• [s] [-] move rests down by single steps
+*• [d] move to mid-staff above (if one staff selected)
+*• [f] move to mid-staff below (if one staff selected)
+*• [z] reset to "zero" shift (not floating)
+*• [x] floating rests
+*• [q] show these script notes
+*• [0]-[4] layer number (delete key not needed)
 ]]
-info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
+info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n")
 local config = {
-    copy_articulations  =   false,
-    copy_expressions    =   false,
-    copy_smartshapes    =   false,
-    copy_slurs          =   true,
-    copy_clef           =   false,
-    copy_lyrics         =   false,
-    copy_chords         =   false,
-    mute_cuenotes       =   true,
-    cuenote_percent     =   70,
-    source_layer        =   1,
-    cuenote_layer       =   3,
-    rest_layer          =   1,
-    freeze_up_down      =   0,
-    cuename_item        =   0,
-
-    cue_category_name   =   "Cue Names",
-    cue_font_smaller    =   1,
-    window_pos_x        =   false,
-    window_pos_y        =   false,
-    abbreviate          =   false
+    layer_num = 0,
+    window_pos_x = false,
+    window_pos_y = false
 }
-local option = {
-    check = {   "copy_articulations", "copy_expressions", "copy_smartshapes",
-                "copy_slurs", "copy_clef", "copy_lyrics", "copy_chords", "mute_cuenotes" },
-    integer = { "cuenote_percent", "source_layer", "cuenote_layer" },
-    stem = {  "normal", "freeze up", "freeze down", "away from middle" },
-    button = { "Set All", "Clear All", "All Staves", "No Staves", "Empty Staves" }
- }
-local freeze = {
-    none = 0,
-    up = 1,
-    down = 2,
-    away_from_middle = 3
-}
-local configuration = require("library.configuration")
-local clef = require("library.clef")
-local layer = require("library.layer")
+local first_offset = 0
 local mixin = require("library.mixin")
-local script_name = "cue_notes_create"
-configuration.get_user_settings(script_name, config, true)
-function show_error(error_code)
-    local errors = {
-        only_one_staff = "Please select just one staff \nas the source for the new cue",
-        empty_region = "Please select a region \nwith some notes in it!",
-        no_notes_in_source_layer = "The selected music contains\nno notes in layer " .. config.source_layer,
-        first_make_expression_category = "You must first create a new Text Expression Category called \""..config.cue_category_name.."\" containing at least one entry",
-        no_cue_notes = "The selected music contains \nno cue notes in layer " .. config.cuenote_layer,
-        unknown = "Unknown error condition"
-    }
-    local msg = errors[error_code] or errors.unknown
-    finenv.UI():AlertInfo(msg, "User Error")
-    return -1
-end
-function dont_overwrite_existing_music(staff_number)
-    local staff = finale.FCStaff()
-    staff:Load(staff_number)
-    local msg = "Overwrite existing music on staff: " .. staff:CreateDisplayFullNameString().LuaString .. "?"
-    local alert = finenv.UI():AlertOkCancel(msg, nil)
-    return (alert ~= finale.OKRETURN)
-end
-function region_is_empty(region, layer_number)
-    for entry in eachentry(region, layer_number) do
-        if entry.Count > 0 then return false end
-    end
-    return true
-end
-function dialog_set_position(dialog)
+local layer = require("library.layer")
+local configuration = require("library.configuration")
+local script_name = "rest_slider"
+local save_displacement = {}
+local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
         dialog:RestorePosition()
     end
 end
-function dialog_save_position(dialog)
+local function dialog_save_position(dialog)
     dialog:StorePosition()
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
 end
-local function info_dialog()
-    finenv.UI():AlertInfo(info_notes, "About " .. plugindef())
+local function get_rest_offset(entry)
+
+    if entry:IsNote() then return 0 end
+    local spec = finale.FCCurrentStaffSpec()
+    spec:LoadForEntry(entry)
+    local rest_pos = spec.OtherRestPosition
+    if entry.Duration >= finale.BREVE then
+        rest_pos = spec.DoubleWholeRestPosition
+    elseif entry.Duration >= finale.WHOLE_NOTE then
+        rest_pos = spec.WholeRestPosition
+    elseif entry.Duration >= finale.HALF_NOTE then
+        rest_pos = spec.HalfRestPosition
+    end
+    entry:MakeMovableRest()
+    local rest = entry:GetItemAt(0)
+    return rest:CalcStaffPosition() - rest_pos
 end
-local function make_info_button(dialog, x, y)
-    dialog:CreateButton(x, y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() info_dialog() end)
+local function offset_rest(entry, shift, float)
+    if float then
+        entry:SetFloatingRest(true)
+    else
+        local offset = get_rest_offset(entry)
+        entry:SetRestDisplacement(entry:GetRestDisplacement() + shift - offset)
+    end
 end
-function new_cue_name(source_staff)
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    dialog:CreateStatic(0, 0):SetText("New cue name:"):SetWidth(100)
-    make_info_button(dialog, 180, 0)
-    local staff = finale.FCStaff()
-    staff:Load(source_staff)
-    local name = {
-        full = staff:CreateDisplayFullNameString(),
-        abbrev = staff:CreateDisplayAbbreviatedNameString()
+local function adjacent_staff_offsets(rgn)
+    local start = {
+        staff = rgn.StartStaff,
+        slot  = rgn:CalcSlotNumber(rgn.StartStaff)
     }
-    local the_name = dialog:CreateEdit(0, 22):SetWidth(200)
-        :SetText(config.abbreviate and name.abbrev or name.full)
-    local abbrev_checkbox = dialog:CreateCheckbox(0, 47):SetText("Abbreviate staff name")
-        :SetWidth(150):SetCheck(config.abbreviate and 1 or 0)
-        :AddHandleCommand(function(self)
-            the_name:SetText(self:GetCheck() == 1 and name.abbrev or name.full)
-        end)
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    dialog_set_position(dialog)
-    dialog:RegisterHandleOkButtonPressed(function()
-        config.abbreviate = (abbrev_checkbox:GetCheck() == 1)
-    end)
-    dialog:RegisterInitWindow(function() the_name:SetFocus() end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), the_name:GetText()
+    local adjacent, offset = {}, {}
+    if rgn.StartStaff == rgn.EndStaff then
+        local stack = mixin.FCMMusicRegion()
+        stack:SetRegion(rgn):SetFullMeasureStack()
+        if start.slot > 1 then
+            adjacent.above = stack:CalcStaffNumber(start.slot - 1)
+        end
+        if start.slot < stack.EndSlot then
+            adjacent.below = stack:CalcStaffNumber(start.slot + 1)
+        end
+        local system_staves = finale.FCSystemStaves()
+        system_staves:LoadAllForRegion(stack)
+        local sys_staff = system_staves:FindStaff(start.staff)
+        start.position = sys_staff.Distance
+        for key, staff_num in pairs(adjacent) do
+            sys_staff = system_staves:FindStaff(staff_num)
+            local n = start.position - sys_staff.Distance
+            offset[key] = math.floor(n / 24)
+        end
+    end
+    return offset
 end
-function choose_name_index(name_list)
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    dialog:CreateStatic(0, 0):SetText("Select cue name:"):SetWidth(100)
-
-    local staff_list = dialog:CreateListBox(0, 22):SetWidth(200):AddString("*** new name ***")
-    for i, v in ipairs(name_list) do
-        staff_list:AddString(v[1])
-        if v[2] == config.cuename_item then staff_list:SetSelectedItem(i) end
-    end
-    make_info_button(dialog, 180, 0)
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    dialog_set_position(dialog)
-    dialog:RegisterHandleOkButtonPressed(function()
-        local idx = staff_list:GetSelectedItem()
-        if idx ~= 0 then
-            config.cuename_item = name_list[idx][2]
-        end
-    end)
-    dialog:RegisterInitWindow(function() staff_list:SetKeyboardFocus() end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), staff_list:GetSelectedItem()
-end
-function create_new_expression(exp_name, category_number)
-    local cat_def = finale.FCCategoryDef()
-    cat_def:Load(category_number)
-    local tfi = cat_def:CreateTextFontInfo()
-    local str = finale.FCString()
-    str.LuaString = "^fontTxt"
-        .. tfi:CreateEnigmaString(finale.FCString()).LuaString
-        .. exp_name
-    local ted = mixin.FCMTextExpressionDef()
-    ted:SaveNewTextBlock(str)
-        :AssignToCategory(cat_def)
-        :SetUseCategoryPos(true)
-        :SetUseCategoryFont(true)
-        :SaveNew()
-    config.cuename_item = ted:GetItemNo()
-end
-function choose_destination_staff(source_staff)
-    local staff_list = {}
-    local rgn = finale.FCMusicRegion()
-    local max = layer.max_layers()
-    rgn:SetCurrentSelection()
-    rgn:SetFullMeasureStack()
-    local staff = finale.FCStaff()
-    for staff_number in eachstaff(rgn) do
-        if staff_number ~= source_staff then
-            staff:Load(staff_number)
-            local full_name = staff:CreateDisplayFullNameString().LuaString
-            table.insert(staff_list, { staff_number, full_name } )
-        end
-    end
-    local answer, saved, buttons = {}, {}, {}
-
-    local x_grid = { 210, 310, 370 }
-    local y_step = 19
-    local y_offset = finenv.UI():IsOnMac() and 3 or 0
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    dialog:CreateStatic(0, 20):SetText("Select cue name:"):SetWidth(100)
-    local max_rows = #option.check + #option.integer + 2
-    local num_rows = (#staff_list > (max_rows + 2)) and max_rows or (#staff_list + 2)
-    local data_list = dialog:CreateDataList(0, 0):SetUseCheckboxes(true)
-        :SetHeight(num_rows * y_step):AddColumn("Destination Staff(s):", 120)
-    if finenv.UI():IsOnMac() then
-        data_list:UseAlternatingBackgroundRowColors()
-    end
-    for _, v in ipairs(staff_list) do
-        local row = data_list:CreateRow()
-        row:GetItemAt(0).LuaString = v[2]
-    end
-        local function set_check_state(state)
-            for _, v in ipairs(option.check) do
-                answer[v]:SetCheck(state)
+local function first_rest_offset(rgn, layer_num)
+    local offset = 0
+    for entry in eachentry(rgn, layer_num) do
+        if entry:IsRest() then
+            if not entry.FloatingRest then
+                offset = entry:GetRestDisplacement() + get_rest_offset(entry)
             end
-            data_list:SetKeyboardFocus()
-        end
-        local function set_list_state(state)
-            for i, v in ipairs(staff_list) do
-                local list_row = data_list:GetItemAt(i - 1)
-                if state > -1 then
-                    list_row.Check = (state == 1)
-                else
-                    rgn.StartStaff = v[1]
-                    rgn.EndStaff = v[1]
-                    list_row.Check = region_is_empty(rgn, 0)
-                    if list_row.Check then
-                        data_list:SelectLine(i - 1)
-                    end
-                end
-            end
-        end
-        local function flip_check(idx)
-            local ctl = answer[option.check[idx]]
-            ctl:SetCheck((ctl:GetCheck() + 1) % 2)
-        end
-        local function flip_direction(add)
-            local item = answer.stem_direction:GetSelectedItem() + add
-            item = (item < 0) and 3 or (item % 4)
-            answer.stem_direction:SetSelectedItem(item)
-        end
-        local function key_check(name)
-            local ctl = answer[name]
-            local s = ctl:GetText():lower()
-            if  (   s:find("[^0-9]") or
-                    (name:find("layer") and s:find("[^1-" .. max .. "]"))
-                ) then
-                if     s:find("[q?]") then info_dialog()
-                elseif s:find("w") then flip_check(1)
-                elseif s:find("e") then flip_check(2)
-                elseif s:find("r") then flip_check(3)
-                elseif s:find("t") then flip_check(4)
-                elseif s:find("y") then flip_check(5)
-                elseif s:find("u") then flip_check(6)
-                elseif s:find("i") then flip_check(7)
-                elseif s:find("o") then flip_check(8)
-                elseif s:find("a") then set_check_state(1)
-                elseif s:find("s") then set_check_state(0)
-                elseif s:find("d") then set_list_state(1)
-                elseif s:find("f") then set_list_state(0)
-                elseif s:find("g") then set_list_state(-1)
-                elseif s:find("z") then flip_direction(1)
-                elseif s:find("x") then flip_direction(-1)
-                end
-                ctl:SetText(saved[name]):SetKeyboardFocus()
-            elseif s ~= "" then
-                if name:find("layer") then s = s:sub(-1)
-                else s = s:sub(1, 3)
-                end
-                ctl:SetText(s)
-                saved[name] = s
-            end
-        end
-    local y = y_step
-    dialog:CreateStatic(x_grid[1], 0):SetText("Cue Options:"):SetWidth(150)
-    for _, v in ipairs(option.check) do
-        answer[v] = dialog:CreateCheckbox(x_grid[1], y):SetText(v:gsub("_", " "))
-        :SetWidth(120):SetCheck(config[v] and 1 or 0)
-        y = y + y_step
-    end
-    for i, v in ipairs(option.integer) do
-        dialog:CreateStatic(x_grid[1], y):SetText(v:gsub("_", " ") .. ":"):SetWidth(150)
-        answer[v] = dialog:CreateEdit(x_grid[2], y - y_offset):SetInteger(config[v])
-            :AddHandleCommand(function() key_check(v) end)
-        answer[v]:SetWidth(i == 1 and 40 or 20)
-        saved[v] = config[v]
-        y = y + y_step
-    end
-    answer.stem_direction = dialog:CreatePopup(x_grid[1], y + 5):SetWidth(160)
-    for _, v in ipairs(option.stem) do
-        answer.stem_direction:AddString("Stems: " .. v)
-    end
-    answer.stem_direction:SetSelectedItem(config.freeze_up_down)
-
-    for i, name in ipairs(option.button) do
-        buttons[name] = dialog:CreateButton(x_grid[3], y_step * 2 * (i - 1)):SetWidth(80):SetText(name)
-        if i < 3 then
-            buttons[name]:AddHandleCommand(function() set_check_state(2 - i) end)
-        else
-            buttons[name]:AddHandleCommand(function() set_list_state(4 - i) end)
-        end
-    end
-    make_info_button(dialog, x_grid[3] + 60, y_step * 11 + 3)
-
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    dialog_set_position(dialog)
-    local chosen_staves = {}
-    dialog:RegisterHandleOkButtonPressed(function()
-        local selection = data_list:GetSelectedLine() + 1
-        if selection > 0 then
-            table.insert(chosen_staves, staff_list[selection][1])
-        end
-        for i, v in ipairs(staff_list) do
-            local list_row = data_list:GetItemAt(i - 1)
-            if list_row.Check and i ~= selection then
-                table.insert(chosen_staves, v[1])
-            end
-        end
-
-        for _, v in ipairs(option.check) do
-            config[v] = (answer[v]:GetCheck() == 1)
-        end
-        for _, v in ipairs(option.integer) do
-            config[v] = answer[v]:GetInteger()
-        end
-        if config.source_layer ~= config.cuenote_layer then
-            config.rest_layer = config.source_layer
-        else
-            config.rest_layer = (config.source_layer % max) + 1
-        end
-        config.freeze_up_down = answer.stem_direction:GetSelectedItem()
-    end)
-    dialog:RegisterInitWindow(function() data_list:SetKeyboardFocus() end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), chosen_staves
-end
-function fix_text_expressions(region)
-    local expressions = finale.FCExpressions()
-    expressions:LoadAllForRegion(region)
-    for expression in eachbackwards(expressions) do
-        if expression.StaffGroupID == 0 then
-            if config.copy_expressions then
-                expression.LayerAssignment = config.cuenote_layer
-                expression.ScaleWithEntry = true
-                expression:Save()
-            else
-                expression:DeleteData()
-            end
-        end
-    end
-end
-function get_away_from_middle_is_up(region)
-    if config.freeze_up_down ~= freeze.away_from_middle then return false end
-    local total_displacement = 0
-    for entry in eachentry(region) do
-        if entry:IsNote() then
-            for note in each(entry) do
-                total_displacement = total_displacement + (note:CalcStaffPosition() + 4)
-            end
-        end
-    end
-    return total_displacement >= 0
-end
-function freeze_tuplets_and_ties(entry, up)
-    if entry:IsNote() and entry:IsTied() then
-        for note in each(entry) do
-            if note.Tie then
-                local tie_mod = finale.FCTieMod(finale.TIEMODTYPE_TIESTART)
-                tie_mod.TieDirection = up and finale.TIEMODDIR_OVER or finale.TIEMODDIR_UNDER
-                tie_mod:SaveAt(note)
-            end
-        end
-    end
-    if entry.TupletStartFlag then
-        for tuplet in each(entry:CreateTuplets()) do
-            tuplet.PlacementMode = finale.TUPLETPLACEMENT_STEMSIDE
-            tuplet:Save()
-        end
-    end
-end
-function freeze_slurs(region, up)
-    local marks = finale.FCSmartShapeMeasureMarks()
-    marks:LoadAllForRegion(region, true)
-    for m in each(marks) do
-        local shape = m:CreateSmartShape()
-        if shape:IsSolidSlur() then
-            shape:SetShapeType(up and finale.SMARTSHAPE_SLURUP or finale.SMARTSHAPE_SLURDOWN)
-            shape:Save()
-        elseif shape:IsDashedSlur() then
-            shape:SetShapeType(up and finale.SMARTSHAPE_DASHEDSLURUP or finale.SMARTSHAPE_DASHEDSLURDOWN)
-            shape:Save()
-        end
-    end
-end
-function copy_to_destination(source_region, destination_staff)
-    local destination_region = mixin.FCMMusicRegion()
-    destination_region:SetRegion(source_region):CopyMusic()
-    destination_region:SetStartStaff(destination_staff):SetEndStaff(destination_staff)
-    if not region_is_empty(destination_region, 0)
-        and dont_overwrite_existing_music(destination_staff) then
-            destination_region:ReleaseMusic()
-            return false
-    elseif region_is_empty(source_region, config.source_layer) then
-        destination_region:ReleaseMusic()
-        show_error("no_notes_in_source_layer")
-        return false
-    end
-
-    destination_region:PasteMusic()
-    destination_region:ReleaseMusic()
-    for layer_number = 1, layer.max_layers() do
-        if layer_number ~= config.source_layer then
-            layer.clear(destination_region, layer_number)
-        end
-    end
-
-    layer.swap(destination_region, config.source_layer, config.cuenote_layer)
-    if not config.copy_clef then
-        clef.restore_default_clef(destination_region.StartMeasure, destination_region.EndMeasure, destination_staff)
-    end
-    local away_from_middle_is_up = get_away_from_middle_is_up(destination_region)
-
-    for entry in eachentrysaved(destination_region) do
-        if entry:IsNote() and config.mute_cuenotes then
-            entry.Playback = false
-        end
-        entry:SetNoteDetailFlag(true)
-        mixin.FCMEntryAlterMod()
-            :SetNoteEntry(entry)
-            :SetResize(config.cuenote_percent)
-            :Save()
-        if entry.ArticulationFlag and not config.copy_articulations then
-            for articulation in each(entry:CreateArticulations()) do
-                articulation:DeleteData()
-            end
-            entry.ArticulationFlag = false
-        end
-        if entry.LyricFlag and not config.copy_lyrics then
-            local lyrics = { finale.FCChorusSyllable(), finale.FCSectionSyllable(), finale.FCVerseSyllable() }
-            for _, v in ipairs(lyrics) do
-                v:SetNoteEntry(entry)
-                while v:LoadFirst() do
-                    v:DeleteData()
-                end
-            end
-        end
-        if config.freeze_up_down > freeze.none then
-            entry.FreezeStem = true
-            local freeze_stem_up = {
-                true,
-                false,
-                away_from_middle_is_up
-            }
-            entry.StemUp = freeze_stem_up[config.freeze_up_down]
-        else
-            entry.FreezeStem = false
-        end
-
-        if config.freeze_up_down == freeze.away_from_middle then
-            freeze_tuplets_and_ties(entry, away_from_middle_is_up)
-        end
-    end
-
-    fix_text_expressions(destination_region)
-
-    if not config.copy_smartshapes or not config.copy_slurs then
-        for mark in loadallforregion(finale.FCSmartShapeMeasureMarks(), destination_region) do
-            local shape = mark:CreateSmartShape()
-            if  (shape:IsSlur() and not config.copy_slurs) or
-                (not shape:IsSlur() and not config.copy_smartshapes) then
-                shape:DeleteData()
-            end
-        end
-    end
-    if config.copy_slurs and config.freeze_up_down == freeze.away_from_middle then
-        freeze_slurs(destination_region, away_from_middle_is_up)
-    end
-
-    if not config.copy_chords then
-        for chord in loadallforregion(finale.FCChords(), destination_region) do
-            if chord then chord:DeleteData() end
-        end
-    end
-
-    for measure = destination_region.StartMeasure, destination_region.EndMeasure do
-        local notecell = finale.FCNoteEntryCell(measure, destination_staff)
-        notecell:Load()
-        local whole_note = notecell:AppendEntriesInLayer(config.rest_layer, 1)
-        if whole_note then
-            whole_note.Duration = finale.WHOLE_NOTE
-            whole_note.Legality = true
-            whole_note:MakeRest()
-            notecell:Save()
-        end
-    end
-    return true
-end
-function new_expression_category(new_name)
-    local category_id = 0
-    if not finenv.IsRGPLua then
-        return false, category_id
-    end
-    local new_category = mixin.FCMCategoryDef()
-    new_category:Load(finale.DEFAULTCATID_TECHNIQUETEXT)
-    local str = finale.FCString()
-    str.LuaString = new_name
-    new_category:SetName(str)
-        :SetVerticalAlignmentPoint(finale.ALIGNVERT_STAFF_REFERENCE_LINE)
-        :SetVerticalBaselineOffset(30)
-        :SetHorizontalAlignmentPoint(finale.ALIGNHORIZ_CLICKPOS)
-        :SetHorizontalOffset(-18)
-
-    local tfi = new_category:CreateTextFontInfo()
-    tfi.Size = tfi.Size - config.cue_font_smaller
-    new_category:SetTextFontInfo(tfi)
-    ok = new_category:SaveNewWithType(finale.DEFAULTCATID_TECHNIQUETEXT)
-    if ok then
-        category_id = new_category:GetID()
-    end
-    return ok, category_id
-end
-function create_cue_notes()
-    local cue_names = { }
-    local source_region = finenv.Region()
-    local start_staff = source_region.StartStaff
-
-    local ok, name_index, new_expression, destination_staves
-    if source_region:CalcStaffSpan() > 1 then
-        return show_error("only_one_staff")
-    elseif region_is_empty(source_region, 0) then
-        return show_error("empty_region")
-    end
-    local cat_ID = -1
-    local cat_defs = finale.FCCategoryDefs()
-    cat_defs:LoadAll()
-    for cat in each(cat_defs) do
-        if cat:CreateName().LuaString == config.cue_category_name then
-            cat_ID = cat.ID
             break
         end
     end
-    local expression_defs = finale.FCTextExpressionDefs()
-    expression_defs:LoadAll()
-    if cat_ID > -1 then
-        for text_def in each(expression_defs) do
-            if text_def.CategoryID == cat_ID then
-                local str = text_def:CreateTextString()
-                str:TrimEnigmaTags()
-                table.insert(cue_names, { str.LuaString, text_def.ItemNo } )
+    return offset
+end
+local function save_rests(rgn)
+    first_offset = first_rest_offset(rgn, config.layer_num)
+    for entry in eachentry(rgn) do
+        if entry:IsRest() then
+            save_displacement[entry.EntryNumber] = {
+                entry:GetRestDisplacement(), entry.FloatingRest
+            }
+        end
+    end
+end
+local function restore_rests(rgn)
+    for entry in eachentrysaved(rgn) do
+        local v = save_displacement[entry.EntryNumber]
+        if entry:IsRest() and v ~= nil then
+            entry:SetRestDisplacement(v[1])
+            entry.FloatingRest = v[2]
+        end
+    end
+    rgn:Redraw()
+end
+local function user_chooses(rgn)
+    local max_thumb, center = 72, 36
+    local y, x =  0, { 0, 107, max_thumb * 2.5, max_thumb * 5 }
+    local y_off = finenv.UI():IsOnMac() and 3 or 0
+    local max, butt_wide = layer.max_layers(), 100
+    local save_layer, answer = config.layer_num, {}
+    local mid_offset = adjacent_staff_offsets(rgn)
+        local function yd(diff)
+            y = diff and y + diff or y + 25
+        end
+        local function show_info()
+            finenv.UI():AlertInfo(info_notes, "About " .. plugindef())
+        end
+        local function shift_rests(shift, float)
+            for entry in eachentrysaved(rgn, save_layer) do
+                if entry:IsRest() then
+                    offset_rest(entry, shift, float)
+                end
+            end
+            rgn:Redraw()
+        end
+        local function set_value(thumb, float, set_thumb)
+            local pos = thumb - center
+            local sign = pos > 0 and "[ +" or "[ "
+            answer.value:SetText(sign .. pos .. " ]")
+            shift_rests(pos, float)
+            if set_thumb then answer.slider:SetThumbPosition(thumb) end
+        end
+        local function set_zero(float)
+            set_value(center, float, true)
+        end
+        local function nudge_thumb(add)
+            local thumb = answer.slider:GetThumbPosition()
+            if (add < 0 and thumb > 0) or (add > 0 and thumb < max_thumb) then
+                thumb = thumb + add
+                set_value(thumb, false, true)
             end
         end
-        table.sort(cue_names, function(a, b) return string.lower(a[1]) < string.lower(b[1]) end)
-    end
+        local function set_midstaff(direction)
+            if mid_offset[direction] then
+                local n = mid_offset[direction] + center
+                set_value(n, false, true)
+            end
+        end
+        local function key_change()
+            local val = answer.layer_num:GetText():lower()
+            if val == "" then
+                answer.layer_num:SetText("0")
+                save_layer = 0
+            else
+                if val:find("[^0-" .. max .. "4]") then
+                    if val:find("[?q]") then show_info()
+                    elseif val:find("[+a=]") then nudge_thumb(1)
+                    elseif val:find("[-s_]") then nudge_thumb(-1)
+                    elseif val:find("d") then set_midstaff("above")
+                    elseif val:find("f") then set_midstaff("below")
+                    elseif val:find("z") then set_zero(false)
+                    elseif val:find("x") then set_zero(true)
+                    end
+                    answer.layer_num:SetText(save_layer):SetKeyboardFocus()
+                else
+                    val = val:sub(-1)
+                    local n = tonumber(val) or 0
+                    if save_layer ~= 0 and save_layer ~= n then
+                        save_layer = n
+                        first_offset = first_rest_offset(rgn, n)
+                        set_value(first_offset + center, false, true)
+                    end
+                    answer.layer_num:SetText(n)
+                    save_layer = n
+                end
+            end
+        end
 
-    if cat_ID < 0 then
-        ok, cat_ID = new_expression_category(config.cue_category_name)
-        if not ok then
-            return show_error("first_make_expression_category")
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    answer.slider = dialog:CreateSlider(0, y):SetMinValue(0):SetMaxValue(max_thumb)
+        :SetWidth(x[4]):SetThumbPosition(first_offset + center)
+        :AddHandleCommand(function(self) set_value(self:GetThumbPosition(), false, false) end)
+    yd()
+    dialog:CreateStatic(0, y):SetWidth(x[2]):SetText("Layer 1-" .. max .. " (0 = all):")
+    save_layer = config.layer_num
+    answer.layer_num = dialog:CreateEdit(x[2], y - y_off):SetWidth(20):SetText(save_layer)
+        :AddHandleCommand(function() key_change() end )
+    answer.value = dialog:CreateStatic(x[3] - 12, y):SetWidth(75)
+    dialog:CreateButton(x[4] - 110, y):SetText("reset zero (z)"):SetWidth(butt_wide)
+        :AddHandleCommand(function() set_zero() end)
+    yd()
+    dialog:CreateButton(0, y):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() show_info() end)
+    dialog:CreateButton(x[4] - 110, 50):SetText("floating rests (x)"):SetWidth(butt_wide)
+        :AddHandleCommand(function() set_zero(true) end)
+
+    if rgn.StartStaff ~= rgn.EndStaff then
+        dialog:CreateStatic(50, y - 3):SetWidth(x[3]):SetText("select music in a single staff to \n")
+        dialog:CreateStatic(47, y + 11):SetWidth(x[3]):SetText("enable auto mid-staff placement")
+    else
+        if mid_offset.above then
+            dialog:CreateButton(30, y):SetText("mid-staff above"):SetWidth(butt_wide)
+            :AddHandleCommand(function() set_midstaff("above") end)
+        else
+            dialog:CreateStatic(40, y):SetWidth(x[3] / 2):SetText("(highest staff)")
+        end
+        if mid_offset.below then
+            dialog:CreateButton(135, y):SetText("mid-staff below"):SetWidth(butt_wide)
+            :AddHandleCommand(function() set_midstaff("below") end)
+        else
+            dialog:CreateStatic(145, y):SetWidth(x[3] / 2):SetText("(lowest staff)")
         end
     end
-
-    ok, name_index = choose_name_index(cue_names)
-    if not ok then return end
-    if name_index == 0 then	
-        ok, new_expression = new_cue_name(start_staff)
-        if not ok or new_expression == "" then return end
-        create_new_expression(new_expression, cat_ID)
-    end
-
-    ok, destination_staves = choose_destination_staff(start_staff)
-    if not ok then return end
-    if region_is_empty(source_region, config.source_layer) then
-        return show_error("no_notes_in_source_layer")
-    end
-
-    for _, one_staff in ipairs(destination_staves) do
-        if copy_to_destination(source_region, one_staff) then
-            mixin.FCMExpression()
-                :SetStaff(one_staff)
-                :SetVisible(true)
-                :SetMeasurePos(0)
-                :SetScaleWithEntry(false)
-                :SetPartAssignment(true)
-                :SetScoreAssignment(true)
-                :SetID(config.cuename_item)
-                :SaveNewToCell(finale.FCCell(source_region.StartMeasure, one_staff))
-        end
-    end
-    source_region:SetInDocument()
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    dialog:RegisterInitWindow(function()
+        set_value(first_offset + center, false, false)
+        answer.layer_num:SetKeyboardFocus()
+    end)
+    dialog_set_position(dialog)
+    dialog:RegisterHandleOkButtonPressed(function()
+        config.layer_num = answer.layer_num:GetInteger()
+    end)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
-function flip_cue_notes()
-    local region = finenv.Region()
-    if region_is_empty(region, config.cuenote_layer) then
-        show_error("no_cue_notes")
-        return
-    end
-    for staff = region.StartStaff, region.EndStaff do
-        local freeze_up = nil
-        local staff_region = mixin.FCMMusicRegion()
-            :SetRegion(region)
-            :SetStartStaff(staff)
-            :SetEndStaff(staff)
-        for entry in eachentrysaved(staff_region, config.cuenote_layer) do
-            if entry:IsNote() and not entry.FreezeStem then goto next_staff end
-            entry.StemUp = not entry.StemUp
-            if freeze_up == nil then freeze_up = entry.StemUp end
-            freeze_tuplets_and_ties(entry, freeze_up)
-        end
-        freeze_slurs(staff_region, freeze_up)
-        ::next_staff::
+local function slide_rests()
+    configuration.get_user_settings(script_name, config)
+    local rgn = mixin.FCMMusicRegion()
+    rgn:SetRegion(finenv.Region())
+    save_rests(rgn)
+    if not user_chooses(rgn) then
+        restore_rests(rgn)
     end
 end
-if action == "flip" then
-    flip_cue_notes()
-else
-    create_cue_notes()
-end
+slide_rests()
