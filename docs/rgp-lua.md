@@ -105,7 +105,7 @@ local cjson = require('cjson')
 
 The json strings formatted by cjson are flat, containing no line feeds. If you wish to format them in human-readable format, you can use the built-in function [`prettyformatjson`](#prettyformatjson).
 
-More information on how to use the cjson libray is available here:  
+More information on how to use the cjson library is available here:  
 [https://www.kyne.com.au/~mark/software/lua-cjson-manual.html](https://www.kyne.com.au/~mark/software/lua-cjson-manual.html)
 
 ### The 'finale' namespace
