@@ -456,7 +456,7 @@ A list of constants that define if and how our script is running in trusted mode
 
 - `UNTRUSTED` : The script is not verified. This is the most restrictive option.
 - `USER_TRUSTED` : The script was marked Trusted by the user. This is the most permissive option.
-- `HASH_VERIFIED`: The script has a hash value that was verified by a known whitelisted server. These scripts can modify Finale menus and the metatables of Finale classes, but they cannot execute external code.
+- `HASH_VERIFIED`: The script has a hash value that was verified by a known whitelisted server. These scripts are trusted as long as they are not modified.
 - `NOT_ENFORCED` : Code trust is not being enforced, so the script is treated as `USER_TRUSTED`. This value is not possible in version 0.68 of _RGP Lua_ and higher.
 
 ---
