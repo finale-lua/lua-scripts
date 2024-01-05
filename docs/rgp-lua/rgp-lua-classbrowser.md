@@ -1,14 +1,15 @@
 RGP Lua Class Browser
 =====================
 
-The RGP Lua Class Browser is a re-implementation in pure Lua of the Class Browser in _JW Lua_. It displays the available classes from embedded C++ frameworks, along with their methods and properties. As of version 0.68 of _RGP Lua_, the embedded C++ frameworks are:
+The RGP Lua Class Browser is a re-implementation in pure Lua of the Class Browser in _JW Lua_. It displays the available classes from embedded C++ frameworks, along with their methods and properties. As of version 0.70 of _RGP Lua_, the embedded C++ frameworks are:
 
-- `finale` : the classes in the [PDK Framework](https://pdk.finalelua.com/) for Finale.
-- `tinyxml2` : the classes in the [tinyxml2](/docs/rgp-lua/tinyxml2) library.
+- `finale` : the classes and constants in the [PDK Framework](https://pdk.finalelua.com/) for Finale.
+- `finenv` : the methods and properties in the [finenv](https://www.finalelua.com/docs/rgp-lua/finenv-properties) namespace.
+- `tinyxml2` : the classes and constants in the [tinyxml2](/docs/rgp-lua/tinyxml2) library.
 
 The Class Browser is included as `rgpluaclassbrowser.lua` in the zip archive of RGP Lua Utilities available on the [download page](https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html) for RGP Lua.
 
-The `rgpluaclassbrowser.lua ` script requires version 0.56 or higher of _RGP Lua_. It also requires the `jwluatagfile.xml` from the zip file. Other than that it has no dependencies. You may place the two files together anywhere on your hard drive. Once you have [configured](/docs/rgp-lua/ the `.lua` file in RGP Lua, it will be available to run.
+The `rgpluaclassbrowser.lua ` script requires version 0.56 or higher of _RGP Lua_. It also requires the `jwluatagfile.xml` from the zip file. Other than that it has no dependencies. You may place the two files together anywhere on your hard drive. Once you have [configured](/docs/rgp-lua/rgp-lua-configuration) the `.lua` file in RGP Lua, it will be available to run.
 
 ![RGP Lua Class Browser](assets/rgpluaclassbrowser.jpg "RGP Lua Class Browser")
 
@@ -63,9 +64,9 @@ The Details Dialog appears when you select an item in one of the list boxes, eit
 
 The editable text field is initialized with the same value that the Copy button would copy to the clipboard. You can edit it to anything you wish and then copy it from there.
 
-The rest of the dialog shows static information about the class or method. This information is gathered from the `jwluatagfile.xml` file as well as internal metadata that _RGP Lua_ provides to the Lua environment. In particular, _RGP Lua_ (starting with v0.70) provides the following metadata about each method directly:
+The rest of the dialog shows static information about the class or method. This information is gathered from the `jwluatagfile.xml` file as well as internal metadata that _RGP Lua_ provides to the Lua environment. In particular, _RGP Lua_ (starting with v0.70) provides the following metadata about each method or property directly:
 
 - deprecation status
 - first available _RGP Lua_ version or blank if it was available in _JW Lua_
 
-These values are manually maintained based on the [PDK Framework](https://pdk.finalelua.com/) documentation. Every effort is made to keep them current and accurate, but they should be treated as information only. Do not use these to control program flow as there are more reliable approaches to determine the availability of a particular method or property inside your scripts. (The most straightforward is checking for `nil`.)
+These values are manually maintained based on the [PDK Framework](https://pdk.finalelua.com/) documentation. Every effort is made to keep them current and accurate, but they should be treated as information only. Do not use these to control program flow as there are more reliable approaches to determine the availability of a particular method or property inside your scripts. (The most straightforward is checking it for `nil`.)
