@@ -36,7 +36,7 @@ Both _RGP Lua_ and _JW Lua_ map the Lua script language to the [PDK Framework](h
 
 All accessible PDK Framework classes starts with the `FC` prefix, such as [`FCMeasure`](https://pdk.finalelua.com/class_f_c_measure.html), [`FCMusicRegion`](https://pdk.finalelua.com/class_f_c_music_region.html), [`FCNoteEntry`](https://pdk.finalelua.com/class_f_c_note_entry.html), etc.
 
-The methods names (and as a result, the Lua properties) in the PDK Framework are in _CamelCase_. The constants are all-uppercase.
+The methods names (and as a result, the Lua properties) in the PDK Framework are in [_UpperCamelCase_](https://en.wikipedia.org/wiki/Camel_case) (sometimes called "Pascal case"). The constants are all-uppercase.
 
 The Lua Language
 ----------------
@@ -547,13 +547,14 @@ The Lua language handles memory through garbage collection, so allocated memory 
 * The memory allocated by the PDK Framework's `Create` methods is handled automatically in different ways by _RGP Lua_ and _JW Lua_. _JW Lua_ releases these memory objects _after_ the full script has been run. _RGP Lua_ allows the Lua engine to release them as part of normal Lua garbage collection.
 * For _JW Lua_, the `Create` methods can sometimes result in a huge number of objects waiting for release, for example, in a tight loop. `Lookup` classes (classes that end with `Lookup`) are available as a faster and more memory-efficient approach.
 * For _RGP Lua_, calling `Create` methods in tight loops is less of an issue, since Lua garbage collection releases unused items as the loop progresses. However the same `Lookup` classes are supported as in _JW Lua_.
-* When using the `FCCellMetrics` or `FCNoteEntryMetrics` class, make sure to call the `FreeMetrics()` method separately for the loaded object as soon as the data is no longer is needed. Finale allocates loaded metrics data internally, and metrics with a garbage collector can otherwise impact performance in scripts where lots of metrics data are loaded without release. This is not as big of an issue in _RGP Lua_ because Lua garbage collection also releases the internal metrics data, but `FreeMetrics()` still gives you the control to free it as soon as you no longer need it.
+* When using the `FCCellMetrics` or `FCEntryMetrics` class, make sure to call the `FreeMetrics()` method separately for the loaded object as soon as the data is no longer is needed. Finale allocates loaded metrics data internally, and metrics with a garbage collector can otherwise impact performance in scripts where lots of metrics data are loaded without release. This is not as big of an issue in _RGP Lua_ because Lua garbage collection also releases the internal metrics data, but `FreeMetrics()` still gives you the control to free it as soon as you no longer need it. Metrics also allow the `<close>` keyword in Lua 5.4, which calls `FreeMetrics()` automatically when the variable goes out of scope.
 
 Tips
 ----
 
 * If you don't need a collection object anymore, you can set it to `nil`. That might benefit the performance in large scripts with huge collections of data (since it signals to the garbage collector that it can free the allocated memory).
-* There's virtually no performance penalty to put lots of comments in the script code. Once the script has been loaded into the Lua engine, the code resides in (quite efficient) bytecode where only the actual execution code appears.
+* _RGP Lua_ uses Lua 5.4, which includes the `<close>` keyword. Most of the collection classes in the PDK Framework support `<close>`. (See the [documentation](https://pdk.finalelua.com).) If you define your collection instances with `<close>`, they free their memory as soon as they go out of scope.
+* There is virtually no performance penalty to put lots of comments in the script code. Once the script has been loaded into the Lua engine, the code resides in (quite efficient) bytecode where only the actual execution code appears.
 * An alternative syntax for properties is to use the property name as a string table index with the object as a table. For example, the syntax `mymeasure.Width` is equivalent to `mymeasure["Width"]`. This alternative syntax might be useful when referencing properties dynamically through the code, especially in string variables. Example:
 
 ```lua

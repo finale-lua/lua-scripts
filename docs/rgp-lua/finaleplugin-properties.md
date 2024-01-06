@@ -150,6 +150,18 @@ Default is `false`.
 
 ---
 
+#### HashURL\* (string)
+
+If this property is present, _RGP Lua_ will attempt to hash-verify the script. As long as it has not been modified, a hash-verified script runs in trusted mode. The website specified in the URL must be a trusted website on a whitelist maintained by the Finale Lua organization at GitHub. The URL should point to a text file in the following format:
+
+```
+<sha-512 hash> <file name>
+```
+
+_RGP Lua_ computes the hash on the local copy of the script and compares it to the hash specified in the file at the URL. The file names must also match. As of v0.70, file names may contain spaces. Note that line endings affect the hash, so the line endings must be the same on both the server copy and the local copy of the script. If either the hash code or file name does not match, _RGP Lua_ still runs the script in untrusted mode. You can force an error instead by setting the "Error on Hash Mismatch" opton in the [configuration dialog](/docs/rgp-lua/rgp-lua-configuration).
+
+---
+
 #### IgnoreReturnValue\* (boolean)
 
 _RGP Lua_ displays to the user any non-nil value returned by a script, regardless of whether an error occurred. You can suppress this display when there is no error by setting this value to `true`. Example:

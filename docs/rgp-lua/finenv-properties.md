@@ -146,6 +146,28 @@ end
 
 ---
 
+#### GetFinaleMainWindow\* (function)
+
+Returns an opaque handle to the main Finale window (Windows) or `nil` (macOS). This can be used to pass to functions in `luaosutils.menu` for manipulating Finale's menus. To Lua it looks like light userdata.
+
+```lua
+local menu = require("luaosutils").menu
+local finale_menu = menu.get_top_level_menu(finenv.GetFinaleMainWindow())
+```
+
+---
+
+#### GetPluginDefFunction\* (function)
+
+Returns a string containing the `plugindef` function that _RGP Lua_ parsed out of the script file. You can use this for diagnostic purposes if you think your `plugindef` function is not being parsed correctly.
+
+```lua
+local parsed_plugindef = finenv.GetPluginDefFunction()
+-- You can now inspect parsed_plugindef to see what RGP Lua parsed from your script.
+```
+
+---
+
 #### IsFinaleDemo\* (read-only property)
 
 Returns `true` if the version of Finale that is currently running is the demo version that cannot save or print. (Available starting in version 0.67 of _RGP Lua_.)
@@ -194,9 +216,20 @@ Returns a string with the current version of LuaBridge that is embedded in _RGP 
  
 ---
 
-#### MajorVersion & MinorVersion (read-only properties)
+#### LuaReleaseVersion\* (read-only property)
 
-Return the major and minor version numbers, respectively, of the running Lua plugin. (Either _RGP Lua_ or _JW Lua_.)
+Returns a string containing the full release version of the embedded Lua, including the minor update version.
+
+```lua
+print(finenv.LuaReleaseVersion)
+-- prints "Lua 5.4.6" or whatever the current value is
+```
+
+---
+
+#### MajorVersion (read-only property)
+
+Return the major version number of the running Lua plugin. (Either _RGP Lua_ or _JW Lua_.)
 
 Example:
 
@@ -230,6 +263,20 @@ if not success then
    if msg_type == finenv.MessageResultType.SCRIPT_RESULT then
       -- take some action
    end
+end
+```
+
+---
+
+#### MinorVersion (read-only property)
+
+Returns the minor version number of the running Lua plugin. (Either _RGP Lua_ or _JW Lua_.)
+
+Example:
+
+```lua
+if finenv.MajorVersion > 0 or finenv.MinorVersion > 54 then
+   -- RGP Lua v0.55+ feature implemented here
 end
 ```
 

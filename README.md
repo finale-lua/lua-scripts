@@ -15,18 +15,23 @@
 
 ---
 
-RGP Lua and JW Lua allow you to create plugins for Finale. This repo will allow you to easily create and share Lua plugins with other Finale users. For developers, this repo even includes a standard library with common functions, drastically improving development time.
+RGP Lua and JW Lua allow you to create plugins for Finale. This repo will allow you easily to create and share Lua plugins with other Finale users. For developers, this repo even includes a standard library with common functions, drastically improving development time.
 
 Table of Contents:
 
 1. [Usage](#usage)
-2. [Contribute](#contribute)
+2. [Samples](#samples)
+3. [Contribute](#contribute)
    1. [Become a collaborator](#become-a-collaborator)
-3. [License](#license)
+4. [License](#license)
 
 ## Usage
 
-To use these scripts, the current best way is to download the entire repository, then add your desired scripts to RGP Lua or JW Lua. See https://youtu.be/EFGNuGCEIq4.
+To use these scripts, you can download the entire repository, then add your desired scripts to RGP Lua or JW Lua. See https://youtu.be/EFGNuGCEIq4 (JW Lua) or https://youtu.be/ju99glhwsMs (RGP Lua). Alternatively, you can use the [Finale Lua site](https://www.finalelua.com/).
+
+## Samples
+
+In addition to the working scripts in the [`src`](src/) directory, you can find script samples in the [`samples`](samples/) directory that illustrate how to use various features of the Finale Lua environment.
 
 ## Contribute
 
