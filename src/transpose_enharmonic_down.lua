@@ -2,8 +2,8 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "March 25, 2021"
+    finaleplugin.Version = "1.1"
+    finaleplugin.Date = "January 9, 2024"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.Notes = [[
         In normal 12-note music, enharmonically transposing is the same as transposing by a diminished 2nd.
@@ -35,10 +35,8 @@ local transposition = require("library.transposition")
 function transpose_enharmonic_down()
     local success = true
     for entry in eachentrysaved(finenv.Region()) do
-        for note in each(entry) do
-            if not transposition.enharmonic_transpose(note, -1) then
-                success = false
-            end
+        if not transposition.entry_enharmonic_transpose(entry, -1) then
+            success = false
         end
     end
     if not success then
