@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.1"
-    finaleplugin.Date = "January 20, 2022"
+    finaleplugin.Version = "1.2"
+    finaleplugin.Date = "January 9, 2024"
     finaleplugin.CategoryTags = "Note"
     finaleplugin.Notes = [[
         This script allows you to specify a number of chromatic steps by which to transpose and the script

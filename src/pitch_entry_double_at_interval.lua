@@ -2,8 +2,8 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0"
-    finaleplugin.Date = "May 5, 2022"
+    finaleplugin.Version = "2.1"
+    finaleplugin.Date = "January 9, 2024"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.MinJWLuaVersion = 0.62

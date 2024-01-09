@@ -147,6 +147,10 @@ Transpose the note by the given number of octaves.
 @ number_of_octaves (number) 0 = no change, 1 = up an octave, -2 = down 2 octaves, etc.
 ]]
 function transposition.change_octave(note, number_of_octaves)
+    if note.GetTransposer then
+        note:GetTransposer():OctaveTranspose(number_of_octaves)
+        return
+    end
     transposition.diatonic_transpose(note, 7 * number_of_octaves)
 end
 
@@ -318,9 +322,9 @@ end
 % stepwise_transpose
 
 Transposes the note by the input number of steps and simplifies the spelling.
+
 For predefined key signatures, each step is a half-step.
-For microtone systems defined with custom key signatures and matching options in the `custom_key_sig.config.txt` file,
-each step is the smallest division of the octave defined by the custom key signature.
+For microtone systems defined with custom key signatures, the number of steps is determined by the key signature.
 
 @ note (FCNote) input and modified output
 @ number_of_steps (number) positive = up, negative = down
@@ -383,12 +387,14 @@ Feeds a for loop with notes to transpose. Nothing happens if the entry is a rest
 @ [preserve_originals] (boolean) if true, creates new notes to be transposed rather than feeding the original notes (defaults to false)
 ]]
 function transposition.each_to_transpose(entry, preserve_originals)
-    if not entry or entry:IsRest() then
-        return nil
-    end
+    if not entry then return nil end
+    assert(entry:ClassName() == "FCNoteEntry", "argument 1 must be FCNoteEntry")
     local note_count = entry.Count
     local note_index = -1
     return function()
+        if entry:IsRest() then
+            return nil
+        end
         note_index = note_index + 1
         if note_index >= note_count then
             return nil
@@ -418,21 +424,26 @@ end
 --[[
 % entry_chromatic_transpose
 
-Transpose all the notes in an entry diatonically by the specified interval
+Transpose all the notes in an entry diatonically by the specified interval. If any note in the entry
+fails to transpose, the return value is false. However, only the failed notes are reverted to their
+original state. (See `enharmonic_transpose` for what causes failure.)
 
 @ entry (FCNoteEntry) input and modified output
 @ interval (number) the diatonic displacement (negative for transposing down)
 @ alteration (number) the chromatic alteration that defines the chromatic interval (reverse sign for transposing down)
 @ [simplify] (boolean) if present and true causes the spelling of the transposed note to be simplified
+@ [plus_octaves] (number) if present and non-zero, specifies the number of octaves to further transpose the result
 @ [preserve_originals] (boolean) if present and true create duplicates of the original notes and transposes them,
 : (boolean) success or failure (see `enharmonic_transpose` for what causes failure)
 ]]
-function transposition.entry_chromatic_transpose(entry, interval, alteration, simplify, preserve_originals)
+function transposition.entry_chromatic_transpose(entry, interval, alteration, simplify, plus_octaves, preserve_originals)
+    plus_octaves = plus_octaves or 0
     local success = true
     for note in transposition.each_to_transpose(entry, preserve_originals) do
         if not transposition.chromatic_transpose(note, interval, alteration, simplify) then
             success = false
         end
+        transposition.change_octave(note, plus_octaves)
     end
     return success
 end
@@ -440,15 +451,17 @@ end
 --[[
 % entry_stepwise_transpose
 
-Transposes the note by the input number of steps and simplifies the spelling.
+Transposes the note by the input number of steps and simplifies the spelling. If any note in the entry
+fails to transpose, the return value is false. However, only the failed notes are reverted to their
+original state. (See `enharmonic_transpose` for what causes failure.)
+
 For predefined key signatures, each step is a half-step.
-For microtone systems defined with custom key signatures and matching options in the `custom_key_sig.config.txt` file,
-each step is the smallest division of the octave defined by the custom key signature.
+For microtone systems defined with custom key signatures, the number of steps is determined by the key signature.
 
 @ entry (FCNoteEntry) input and modified output
 @ number_of_steps (number) positive = up, negative = down
 @ [preserve_originals] (boolean) if present and true create duplicates of the original notes and transposes them,
-: (boolean) success or failure (see `enharmonic_transpose` for what causes failure)
+: (boolean) success or failure
 ]]
 function transposition.entry_stepwise_transpose(entry, number_of_steps, preserve_originals)
     local success = true
@@ -459,5 +472,27 @@ function transposition.entry_stepwise_transpose(entry, number_of_steps, preserve
     end
     return success
 end
+
+
+--[[
+% entry_enharmonic_transpose
+
+Transpose all the notes enharmonically in the given direction. In some microtone systems this yields a different result than transposing by a diminished 2nd.
+Failure occurs if any note's `RaiseLower` value exceeds an absolute value of 7. This is a hard-coded limit in Finale.
+
+@ entry (FCNoteEntry) input and modified output
+@ direction (number) positive = up, negative = down (normally 1 or -1, but any positive or negative numbers work)
+: (boolean) success or failure
+]]
+function transposition.entry_enharmonic_transpose(entry, direction)
+    local success = true
+    for note in transposition.each_to_transpose(entry) do
+        if not transposition.enharmonic_transpose(note, direction) then
+            success = false
+        end
+    end
+    return success
+end
+
     
 return transposition

@@ -2,8 +2,8 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "August 22, 2021"
+    finaleplugin.Version = "1.1"
+    finaleplugin.Date = "January 9, 2024"
     finaleplugin.CategoryTags = "Accidental"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     return "Simplify accidentals", "Simplify accidentals", "Removes all double sharps and flats by respelling them"
@@ -17,7 +17,7 @@ function accidentals_simplify()
         local staff_number = entry.Staff
         local cell = finale.FCCell(measure_number, staff_number)
         local key_signature = cell:GetKeySignature()
-
+        
         for note in transposition.each_to_transpose(entry) do
             if note.RaiseLower ~= 0 then
                 -- Use note_string rather than note.RaiseLower because
