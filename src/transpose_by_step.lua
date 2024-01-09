@@ -42,13 +42,6 @@ end
 local transposition = require("library.transposition")
 local mixin = require("library.mixin")
 
-local function do_stepwise(note, number_of_steps)
-    if not note.GetTransposer then -- if our plugin verison does not have FCTransposer
-        return transposition.stepwise_transpose(note, number_of_steps)
-    end
-    return note:GetTransposer():EDOStepTranspose(number_of_steps)
-end
-
 function do_transpose_by_step(global_number_of_steps_edit)
     if finenv.Region():IsEmpty() then
         return
@@ -60,10 +53,8 @@ function do_transpose_by_step(global_number_of_steps_edit)
     local success = true
     finenv.StartNewUndoBlock(undostr, false) -- this works on both JW Lua and RGP Lua
     for entry in eachentrysaved(finenv.Region()) do
-        for note in each(entry) do
-            if not do_stepwise(note, global_number_of_steps_edit) then
-                success = false
-            end
+        if not transposition.entry_stepwise_transpose(entry, global_number_of_steps_edit) then
+            success = false
         end
     end
     if finenv.EndUndoBlock then -- EndUndoBlock only exists on RGP Lua 0.56 and higher
