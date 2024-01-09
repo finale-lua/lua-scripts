@@ -77,7 +77,7 @@ package.preload["library.client"] = package.preload["library.client"] or functio
     }
 
     function client.supports(feature)
-        if features[feature].test == nil then
+        if features[feature] == nil then
             error("a test does not exist for feature " .. feature, 2)
         end
         return features[feature].test
@@ -392,233 +392,6 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
     return configuration
 end
-package.preload["library.transposition"] = package.preload["library.transposition"] or function()
-
-
-
-
-
-
-
-    local transposition = {}
-    local client = require("library.client")
-    local configuration = require("library.configuration")
-    local standard_key_number_of_steps = 12
-    local standard_key_major_diatonic_steps = {0, 2, 4, 5, 7, 9, 11}
-    local standard_key_minor_diatonic_steps = {0, 2, 3, 5, 7, 8, 10}
-    local max_allowed_abs_alteration = 7
-
-
-    local diatonic_interval_adjustments = {{0, 0}, {2, -1}, {4, -2}, {-1, 1}, {1, 0}, {3, -1}, {5, -2}, {0, 1}}
-    local custom_key_sig_config = {number_of_steps = standard_key_number_of_steps, diatonic_steps = standard_key_major_diatonic_steps}
-    configuration.get_parameters("custom_key_sig.config.txt", custom_key_sig_config)
-
-
-
-    local sign = function(n)
-        if n < 0 then
-            return -1
-        end
-        return 1
-    end
-
-
-    local signed_modulus = function(n, d)
-        return sign(n) * (math.abs(n) % d)
-    end
-    local get_key = function(note)
-        local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
-        return cell:GetKeySignature()
-    end
-
-
-
-    local get_key_info = function(key)
-        local number_of_steps = standard_key_number_of_steps
-        local diatonic_steps = standard_key_major_diatonic_steps
-        if client.supports("FCKeySignature::CalcTotalChromaticSteps") then
-            number_of_steps = key:CalcTotalChromaticSteps()
-            diatonic_steps = key:CalcDiatonicStepsMap()
-        else
-            if not key:IsPredefined() then
-                number_of_steps = custom_key_sig_config.number_of_steps
-                diatonic_steps = custom_key_sig_config.diatonic_steps
-            elseif key:IsMinor() then
-                diatonic_steps = standard_key_minor_diatonic_steps
-            end
-        end
-
-
-
-        local fifth_steps = math.floor((number_of_steps * 0.5849625) + 0.5)
-        return number_of_steps, diatonic_steps, fifth_steps
-    end
-    local calc_scale_degree = function(interval, number_of_diatonic_steps_in_key)
-        local interval_normalized = signed_modulus(interval, number_of_diatonic_steps_in_key)
-        if interval_normalized < 0 then
-            interval_normalized = interval_normalized + number_of_diatonic_steps_in_key
-        end
-        return interval_normalized
-    end
-    local calc_steps_between_scale_degrees = function(key, first_disp, second_disp)
-        local number_of_steps_in_key, diatonic_steps = get_key_info(key)
-        local first_scale_degree = calc_scale_degree(first_disp, #diatonic_steps)
-        local second_scale_degree = calc_scale_degree(second_disp, #diatonic_steps)
-        local number_of_steps = sign(second_disp - first_disp) * (diatonic_steps[second_scale_degree + 1] - diatonic_steps[first_scale_degree + 1])
-        if number_of_steps < 0 then
-            number_of_steps = number_of_steps + number_of_steps_in_key
-        end
-        return number_of_steps
-    end
-    local calc_steps_in_alteration = function(key, interval, alteration)
-        local number_of_steps_in_key, _, fifth_steps = get_key_info(key)
-        local plus_fifths = sign(interval) * alteration * 7
-        local minus_octaves = sign(interval) * alteration * -4
-        local new_alteration = sign(interval) * ((plus_fifths * fifth_steps) + (minus_octaves * number_of_steps_in_key))
-        return new_alteration
-    end
-    local calc_steps_in_normalized_interval = function(key, interval_normalized)
-        local number_of_steps_in_key, _, fifth_steps = get_key_info(key)
-        local plus_fifths = diatonic_interval_adjustments[math.abs(interval_normalized) + 1][1]
-        local minus_octaves = diatonic_interval_adjustments[math.abs(interval_normalized) + 1][2]
-        local number_of_steps_in_interval = sign(interval_normalized) * ((plus_fifths * fifth_steps) + (minus_octaves * number_of_steps_in_key))
-        return number_of_steps_in_interval
-    end
-    local simplify_spelling = function(note, min_abs_alteration)
-        while math.abs(note.RaiseLower) > min_abs_alteration do
-            local curr_sign = sign(note.RaiseLower)
-            local curr_abs_disp = math.abs(note.RaiseLower)
-            local direction = curr_sign
-            local success = transposition.enharmonic_transpose(note, direction, true)
-            if not success then
-                return false
-            end
-            if math.abs(note.RaiseLower) >= curr_abs_disp then
-                return transposition.enharmonic_transpose(note, -1 * direction)
-            end
-            if curr_sign ~= sign(note.RaiseLower) then
-                break
-            end
-        end
-        return true
-    end
-
-
-
-
-    function transposition.diatonic_transpose(note, interval)
-        note.Displacement = note.Displacement + interval
-    end
-
-    function transposition.change_octave(note, number_of_octaves)
-        transposition.diatonic_transpose(note, 7 * number_of_octaves)
-    end
-
-
-
-
-    function transposition.enharmonic_transpose(note, direction, ignore_error)
-        ignore_error = ignore_error or false
-        local curr_disp = note.Displacement
-        local curr_alt = note.RaiseLower
-        local key = get_key(note)
-        local key_step_enharmonic = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + sign(direction))
-        transposition.diatonic_transpose(note, sign(direction))
-        note.RaiseLower = note.RaiseLower - sign(direction) * key_step_enharmonic
-        if ignore_error then
-            return true
-        end
-        if math.abs(note.RaiseLower) > max_allowed_abs_alteration then
-            note.Displacement = curr_disp
-            note.RaiseLower = curr_alt
-            return false
-        end
-        return true
-    end
-
-    function transposition.enharmonic_transpose_default(note)
-        if note.RaiseLower ~= 0 then
-            return transposition.enharmonic_transpose(note, sign(note.RaiseLower))
-        end
-        local original_displacement = note.Displacement
-        local original_raiselower = note.RaiseLower
-        if not transposition.enharmonic_transpose(note, 1) then
-            return false
-        end
-
-
-
-        if math.abs(note.RaiseLower) ~= 2 then
-            return true
-        end
-        local up_displacement = note.Displacement
-        local up_raiselower = note.RaiseLower
-        note.Displacement = original_displacement
-        note.RaiseLower = original_raiselower
-        if not transposition.enharmonic_transpose(note, -1) then
-            return false
-        end
-        if math.abs(note.RaiseLower) < math.abs(up_raiselower) then
-            return true
-        end
-        note.Displacement = up_displacement
-        note.RaiseLower = up_raiselower
-        return true
-    end
-
-
-
-
-    function transposition.chromatic_transpose(note, interval, alteration, simplify)
-        simplify = simplify or false
-        local curr_disp = note.Displacement
-        local curr_alt = note.RaiseLower
-        local key = get_key(note)
-        local number_of_steps, diatonic_steps, fifth_steps = get_key_info(key)
-        local interval_normalized = signed_modulus(interval, #diatonic_steps)
-        local steps_in_alteration = calc_steps_in_alteration(key, interval, alteration)
-        local steps_in_interval = calc_steps_in_normalized_interval(key, interval_normalized)
-        local steps_in_diatonic_interval = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + interval_normalized)
-        local effective_alteration = steps_in_alteration + steps_in_interval - sign(interval) * steps_in_diatonic_interval
-        transposition.diatonic_transpose(note, interval)
-        note.RaiseLower = note.RaiseLower + effective_alteration
-        local min_abs_alteration = max_allowed_abs_alteration
-        if simplify then
-            min_abs_alteration = 0
-        end
-        local success = simplify_spelling(note, min_abs_alteration)
-        if not success then
-            note.Displacement = curr_disp
-            note.RaiseLower = curr_alt
-        end
-        return success
-    end
-
-    function transposition.stepwise_transpose(note, number_of_steps)
-        local curr_disp = note.Displacement
-        local curr_alt = note.RaiseLower
-        note.RaiseLower = note.RaiseLower + number_of_steps
-        local success = simplify_spelling(note, 0)
-        if not success then
-            note.Displacement = curr_disp
-            note.RaiseLower = curr_alt
-        end
-        return success
-    end
-
-    function transposition.chromatic_major_third_down(note)
-        transposition.chromatic_transpose(note, -2, -0)
-    end
-
-    function transposition.chromatic_perfect_fourth_up(note)
-        transposition.chromatic_transpose(note, 3, 0)
-    end
-
-    function transposition.chromatic_perfect_fifth_down(note)
-        transposition.chromatic_transpose(note, -4, -0)
-    end
-    return transposition
-end
 package.preload["library.note_entry"] = package.preload["library.note_entry"] or function()
 
     local note_entry = {}
@@ -924,12 +697,326 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
     end
     return note_entry
 end
+package.preload["library.transposition"] = package.preload["library.transposition"] or function()
+
+
+
+
+
+
+
+    local transposition = {}
+    local client = require("library.client")
+    local configuration = require("library.configuration")
+    local note_entry = require("library.note_entry")
+    local standard_key_number_of_steps = 12
+    local standard_key_major_diatonic_steps = {0, 2, 4, 5, 7, 9, 11}
+    local standard_key_minor_diatonic_steps = {0, 2, 3, 5, 7, 8, 10}
+    local max_allowed_abs_alteration = 7
+
+
+    local diatonic_interval_adjustments = {{0, 0}, {2, -1}, {4, -2}, {-1, 1}, {1, 0}, {3, -1}, {5, -2}, {0, 1}}
+    local custom_key_sig_config = {number_of_steps = standard_key_number_of_steps, diatonic_steps = standard_key_major_diatonic_steps}
+    configuration.get_parameters("custom_key_sig.config.txt", custom_key_sig_config)
+
+
+
+    local sign = function(n)
+        if n < 0 then
+            return -1
+        end
+        return 1
+    end
+
+
+    local signed_modulus = function(n, d)
+        return sign(n) * (math.abs(n) % d)
+    end
+    local get_key = function(note)
+        local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+        return cell:GetKeySignature()
+    end
+
+
+
+    local get_key_info = function(key)
+        local number_of_steps = standard_key_number_of_steps
+        local diatonic_steps = standard_key_major_diatonic_steps
+        if client.supports("FCKeySignature::CalcTotalChromaticSteps") then
+            number_of_steps = key:CalcTotalChromaticSteps()
+            diatonic_steps = key:CalcDiatonicStepsMap()
+        else
+            if not key:IsPredefined() then
+                number_of_steps = custom_key_sig_config.number_of_steps
+                diatonic_steps = custom_key_sig_config.diatonic_steps
+            elseif key:IsMinor() then
+                diatonic_steps = standard_key_minor_diatonic_steps
+            end
+        end
+
+
+
+        local fifth_steps = math.floor((number_of_steps * 0.5849625) + 0.5)
+        return number_of_steps, diatonic_steps, fifth_steps
+    end
+    local calc_scale_degree = function(interval, number_of_diatonic_steps_in_key)
+        local interval_normalized = signed_modulus(interval, number_of_diatonic_steps_in_key)
+        if interval_normalized < 0 then
+            interval_normalized = interval_normalized + number_of_diatonic_steps_in_key
+        end
+        return interval_normalized
+    end
+    local calc_steps_between_scale_degrees = function(key, first_disp, second_disp)
+        local number_of_steps_in_key, diatonic_steps = get_key_info(key)
+        local first_scale_degree = calc_scale_degree(first_disp, #diatonic_steps)
+        local second_scale_degree = calc_scale_degree(second_disp, #diatonic_steps)
+        local number_of_steps = sign(second_disp - first_disp) * (diatonic_steps[second_scale_degree + 1] - diatonic_steps[first_scale_degree + 1])
+        if number_of_steps < 0 then
+            number_of_steps = number_of_steps + number_of_steps_in_key
+        end
+        return number_of_steps
+    end
+    local calc_steps_in_alteration = function(key, interval, alteration)
+        local number_of_steps_in_key, _, fifth_steps = get_key_info(key)
+        local plus_fifths = sign(interval) * alteration * 7
+        local minus_octaves = sign(interval) * alteration * -4
+        local new_alteration = sign(interval) * ((plus_fifths * fifth_steps) + (minus_octaves * number_of_steps_in_key))
+        return new_alteration
+    end
+    local calc_steps_in_normalized_interval = function(key, interval_normalized)
+        local number_of_steps_in_key, _, fifth_steps = get_key_info(key)
+        local plus_fifths = diatonic_interval_adjustments[math.abs(interval_normalized) + 1][1]
+        local minus_octaves = diatonic_interval_adjustments[math.abs(interval_normalized) + 1][2]
+        local number_of_steps_in_interval = sign(interval_normalized) * ((plus_fifths * fifth_steps) + (minus_octaves * number_of_steps_in_key))
+        return number_of_steps_in_interval
+    end
+
+
+
+
+    function transposition.diatonic_transpose(note, interval)
+        if note.GetTransposer then
+            note:GetTransposer():DiatonicTranspose(interval)
+            return
+        end
+        note.Displacement = note.Displacement + interval
+    end
+
+    function transposition.change_octave(note, number_of_octaves)
+        if note.GetTransposer then
+            note:GetTransposer():OctaveTranspose(number_of_octaves)
+            return
+        end
+        transposition.diatonic_transpose(note, 7 * number_of_octaves)
+    end
+
+
+
+
+    function transposition.enharmonic_transpose(note, direction, ignore_error)
+        ignore_error = ignore_error or false
+        if note.GetTransposer and not ignore_error then
+            return note:GetTransposer():EnharmonicTranspose(direction)
+        end
+        local curr_disp = note.Displacement
+        local curr_alt = note.RaiseLower
+        local key = get_key(note)
+        local key_step_enharmonic = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + sign(direction))
+        transposition.diatonic_transpose(note, sign(direction))
+        note.RaiseLower = note.RaiseLower - sign(direction) * key_step_enharmonic
+        if ignore_error then
+            return true
+        end
+        if math.abs(note.RaiseLower) > max_allowed_abs_alteration then
+            note.Displacement = curr_disp
+            note.RaiseLower = curr_alt
+            return false
+        end
+        return true
+    end
+
+    function transposition.enharmonic_transpose_default(note)
+        if note.GetTransposer then
+            return note:GetTransposer():DefaultEnharmonicTranspose()
+        end
+        if note.RaiseLower ~= 0 then
+            return transposition.enharmonic_transpose(note, sign(note.RaiseLower))
+        end
+        local original_displacement = note.Displacement
+        local original_raiselower = note.RaiseLower
+        if not transposition.enharmonic_transpose(note, 1) then
+            return false
+        end
+
+
+
+        if math.abs(note.RaiseLower) ~= 2 then
+            return true
+        end
+        local up_displacement = note.Displacement
+        local up_raiselower = note.RaiseLower
+        note.Displacement = original_displacement
+        note.RaiseLower = original_raiselower
+        if not transposition.enharmonic_transpose(note, -1) then
+            return false
+        end
+        if math.abs(note.RaiseLower) < math.abs(up_raiselower) then
+            return true
+        end
+        note.Displacement = up_displacement
+        note.RaiseLower = up_raiselower
+        return true
+    end
+
+    function transposition.simplify_spelling(note, min_abs_alteration)
+        min_abs_alteration = min_abs_alteration or 0
+        if note.GetTransposer and min_abs_alteration == 0 then
+            return note:GetTransposer():SimplifySpelling()
+        end
+        while math.abs(note.RaiseLower) > min_abs_alteration do
+            local curr_sign = sign(note.RaiseLower)
+            local curr_abs_disp = math.abs(note.RaiseLower)
+            local direction = curr_sign
+            local success = transposition.enharmonic_transpose(note, direction, true)
+            if not success then
+                return false
+            end
+            if math.abs(note.RaiseLower) >= curr_abs_disp then
+                return transposition.enharmonic_transpose(note, -1 * direction)
+            end
+            if curr_sign ~= sign(note.RaiseLower) then
+                break
+            end
+        end
+        return true
+    end
+
+
+
+
+    function transposition.chromatic_transpose(note, interval, alteration, simplify)
+        if note.GetTransposer then
+            return note:GetTransposer():ChromaticTranspose(interval, alteration, simplify)
+        end
+        simplify = simplify or false
+        local curr_disp = note.Displacement
+        local curr_alt = note.RaiseLower
+        local key = get_key(note)
+        local number_of_steps, diatonic_steps, fifth_steps = get_key_info(key)
+        local interval_normalized = signed_modulus(interval, #diatonic_steps)
+        local steps_in_alteration = calc_steps_in_alteration(key, interval, alteration)
+        local steps_in_interval = calc_steps_in_normalized_interval(key, interval_normalized)
+        local steps_in_diatonic_interval = calc_steps_between_scale_degrees(key, note.Displacement, note.Displacement + interval_normalized)
+        local effective_alteration = steps_in_alteration + steps_in_interval - sign(interval) * steps_in_diatonic_interval
+        transposition.diatonic_transpose(note, interval)
+        note.RaiseLower = note.RaiseLower + effective_alteration
+        local min_abs_alteration = max_allowed_abs_alteration
+        if simplify then
+            min_abs_alteration = 0
+        end
+        local success = transposition.simplify_spelling(note, min_abs_alteration)
+        if not success then
+            note.Displacement = curr_disp
+            note.RaiseLower = curr_alt
+        end
+        return success
+    end
+
+    function transposition.stepwise_transpose(note, number_of_steps)
+        if note.GetTransposer then
+            return note:GetTransposer():EDOStepTranspose(number_of_steps)
+        end
+        local curr_disp = note.Displacement
+        local curr_alt = note.RaiseLower
+        note.RaiseLower = note.RaiseLower + number_of_steps
+        local success = transposition.simplify_spelling(note)
+        if not success then
+            note.Displacement = curr_disp
+            note.RaiseLower = curr_alt
+        end
+        return success
+    end
+
+    function transposition.chromatic_major_third_down(note)
+        transposition.chromatic_transpose(note, -2, -0)
+    end
+
+    function transposition.chromatic_perfect_fourth_up(note)
+        transposition.chromatic_transpose(note, 3, 0)
+    end
+
+    function transposition.chromatic_perfect_fifth_down(note)
+        transposition.chromatic_transpose(note, -4, -0)
+    end
+
+    function transposition.each_to_transpose(entry, preserve_originals)
+        if not entry then return nil end
+        assert(entry:ClassName() == "FCNoteEntry", "argument 1 must be FCNoteEntry")
+        local note_count = entry.Count
+        local note_index = -1
+        return function()
+            if entry:IsRest() then
+                return nil
+            end
+            note_index = note_index + 1
+            if note_index >= note_count then
+                return nil
+            end
+            local note = entry:GetItemAt(note_index)
+            assert(note, "invalid note found")
+            if preserve_originals then
+                return note_entry.duplicate_note(note)
+            end
+            return note
+        end
+    end
+
+    function transposition.entry_diatonic_transpose(entry, interval, preserve_originals)
+        for note in transposition.each_to_transpose(entry, preserve_originals) do
+            transposition.diatonic_transpose(note, interval)
+        end
+    end
+
+    function transposition.entry_chromatic_transpose(entry, interval, alteration, simplify, plus_octaves, preserve_originals)
+        plus_octaves = plus_octaves or 0
+        local success = true
+        for note in transposition.each_to_transpose(entry, preserve_originals) do
+            if not transposition.chromatic_transpose(note, interval, alteration, simplify) then
+                success = false
+            end
+            transposition.change_octave(note, plus_octaves)
+        end
+        return success
+    end
+
+    function transposition.entry_stepwise_transpose(entry, number_of_steps, preserve_originals)
+        local success = true
+        for note in transposition.each_to_transpose(entry, preserve_originals) do
+            if not transposition.stepwise_transpose(note, number_of_steps) then
+                success = false
+            end
+        end
+        return success
+    end
+
+    function transposition.entry_enharmonic_transpose(entry, direction)
+        local success = true
+        for note in transposition.each_to_transpose(entry) do
+            if not transposition.enharmonic_transpose(note, direction) then
+                success = false
+            end
+        end
+        return success
+    end
+
+    return transposition
+end
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0"
-    finaleplugin.Date = "May 5, 2022"
+    finaleplugin.Version = "2.1"
+    finaleplugin.Date = "January 9, 2024"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.MinJWLuaVersion = 0.62
@@ -966,21 +1053,9 @@ function plugindef()
     return "Octave Doubling Up", "Octave Doubling Up", "Doubles the current note an octave higher"
 end
 local transposition = require("library.transposition")
-local note_entry = require("library.note_entry")
 function pitch_entry_double_at_interval(interval)
     for entry in eachentrysaved(finenv.Region()) do
-        local note_count = entry.Count
-        local note_index = 0
-        for note in each(entry) do
-            note_index = note_index + 1
-            if note_index > note_count then
-                break
-            end
-            local new_note = note_entry.duplicate_note(note)
-            if new_note then
-                transposition.diatonic_transpose(new_note, interval)
-            end
-        end
+        transposition.entry_diatonic_transpose(entry, interval, true)
     end
 end
 input_interval = input_interval or 7

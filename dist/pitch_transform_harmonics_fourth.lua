@@ -57,6 +57,7 @@ package.preload["library.transposition"] = package.preload["library.transpositio
     local transposition = {}
     local client = require("library.client")
     local configuration = require("library.configuration")
+    local note_entry = require("library.note_entry")
     local standard_key_number_of_steps = 12
     local standard_key_major_diatonic_steps = {0, 2, 4, 5, 7, 9, 11}
     local standard_key_minor_diatonic_steps = {0, 2, 3, 5, 7, 8, 10}
@@ -138,33 +139,23 @@ package.preload["library.transposition"] = package.preload["library.transpositio
         local number_of_steps_in_interval = sign(interval_normalized) * ((plus_fifths * fifth_steps) + (minus_octaves * number_of_steps_in_key))
         return number_of_steps_in_interval
     end
-    local simplify_spelling = function(note, min_abs_alteration)
-        while math.abs(note.RaiseLower) > min_abs_alteration do
-            local curr_sign = sign(note.RaiseLower)
-            local curr_abs_disp = math.abs(note.RaiseLower)
-            local direction = curr_sign
-            local success = transposition.enharmonic_transpose(note, direction, true)
-            if not success then
-                return false
-            end
-            if math.abs(note.RaiseLower) >= curr_abs_disp then
-                return transposition.enharmonic_transpose(note, -1 * direction)
-            end
-            if curr_sign ~= sign(note.RaiseLower) then
-                break
-            end
-        end
-        return true
-    end
 
 
 
 
     function transposition.diatonic_transpose(note, interval)
+        if note.GetTransposer then
+            note:GetTransposer():DiatonicTranspose(interval)
+            return
+        end
         note.Displacement = note.Displacement + interval
     end
 
     function transposition.change_octave(note, number_of_octaves)
+        if note.GetTransposer then
+            note:GetTransposer():OctaveTranspose(number_of_octaves)
+            return
+        end
         transposition.diatonic_transpose(note, 7 * number_of_octaves)
     end
 
@@ -173,6 +164,9 @@ package.preload["library.transposition"] = package.preload["library.transpositio
 
     function transposition.enharmonic_transpose(note, direction, ignore_error)
         ignore_error = ignore_error or false
+        if note.GetTransposer and not ignore_error then
+            return note:GetTransposer():EnharmonicTranspose(direction)
+        end
         local curr_disp = note.Displacement
         local curr_alt = note.RaiseLower
         local key = get_key(note)
@@ -191,6 +185,9 @@ package.preload["library.transposition"] = package.preload["library.transpositio
     end
 
     function transposition.enharmonic_transpose_default(note)
+        if note.GetTransposer then
+            return note:GetTransposer():DefaultEnharmonicTranspose()
+        end
         if note.RaiseLower ~= 0 then
             return transposition.enharmonic_transpose(note, sign(note.RaiseLower))
         end
@@ -220,10 +217,36 @@ package.preload["library.transposition"] = package.preload["library.transpositio
         return true
     end
 
+    function transposition.simplify_spelling(note, min_abs_alteration)
+        min_abs_alteration = min_abs_alteration or 0
+        if note.GetTransposer and min_abs_alteration == 0 then
+            return note:GetTransposer():SimplifySpelling()
+        end
+        while math.abs(note.RaiseLower) > min_abs_alteration do
+            local curr_sign = sign(note.RaiseLower)
+            local curr_abs_disp = math.abs(note.RaiseLower)
+            local direction = curr_sign
+            local success = transposition.enharmonic_transpose(note, direction, true)
+            if not success then
+                return false
+            end
+            if math.abs(note.RaiseLower) >= curr_abs_disp then
+                return transposition.enharmonic_transpose(note, -1 * direction)
+            end
+            if curr_sign ~= sign(note.RaiseLower) then
+                break
+            end
+        end
+        return true
+    end
+
 
 
 
     function transposition.chromatic_transpose(note, interval, alteration, simplify)
+        if note.GetTransposer then
+            return note:GetTransposer():ChromaticTranspose(interval, alteration, simplify)
+        end
         simplify = simplify or false
         local curr_disp = note.Displacement
         local curr_alt = note.RaiseLower
@@ -240,7 +263,7 @@ package.preload["library.transposition"] = package.preload["library.transpositio
         if simplify then
             min_abs_alteration = 0
         end
-        local success = simplify_spelling(note, min_abs_alteration)
+        local success = transposition.simplify_spelling(note, min_abs_alteration)
         if not success then
             note.Displacement = curr_disp
             note.RaiseLower = curr_alt
@@ -249,10 +272,13 @@ package.preload["library.transposition"] = package.preload["library.transpositio
     end
 
     function transposition.stepwise_transpose(note, number_of_steps)
+        if note.GetTransposer then
+            return note:GetTransposer():EDOStepTranspose(number_of_steps)
+        end
         local curr_disp = note.Displacement
         local curr_alt = note.RaiseLower
         note.RaiseLower = note.RaiseLower + number_of_steps
-        local success = simplify_spelling(note, 0)
+        local success = transposition.simplify_spelling(note)
         if not success then
             note.Displacement = curr_disp
             note.RaiseLower = curr_alt
@@ -271,6 +297,67 @@ package.preload["library.transposition"] = package.preload["library.transpositio
     function transposition.chromatic_perfect_fifth_down(note)
         transposition.chromatic_transpose(note, -4, -0)
     end
+
+    function transposition.each_to_transpose(entry, preserve_originals)
+        if not entry then return nil end
+        assert(entry:ClassName() == "FCNoteEntry", "argument 1 must be FCNoteEntry")
+        local note_count = entry.Count
+        local note_index = -1
+        return function()
+            if entry:IsRest() then
+                return nil
+            end
+            note_index = note_index + 1
+            if note_index >= note_count then
+                return nil
+            end
+            local note = entry:GetItemAt(note_index)
+            assert(note, "invalid note found")
+            if preserve_originals then
+                return note_entry.duplicate_note(note)
+            end
+            return note
+        end
+    end
+
+    function transposition.entry_diatonic_transpose(entry, interval, preserve_originals)
+        for note in transposition.each_to_transpose(entry, preserve_originals) do
+            transposition.diatonic_transpose(note, interval)
+        end
+    end
+
+    function transposition.entry_chromatic_transpose(entry, interval, alteration, simplify, plus_octaves, preserve_originals)
+        plus_octaves = plus_octaves or 0
+        local success = true
+        for note in transposition.each_to_transpose(entry, preserve_originals) do
+            if not transposition.chromatic_transpose(note, interval, alteration, simplify) then
+                success = false
+            end
+            transposition.change_octave(note, plus_octaves)
+        end
+        return success
+    end
+
+    function transposition.entry_stepwise_transpose(entry, number_of_steps, preserve_originals)
+        local success = true
+        for note in transposition.each_to_transpose(entry, preserve_originals) do
+            if not transposition.stepwise_transpose(note, number_of_steps) then
+                success = false
+            end
+        end
+        return success
+    end
+
+    function transposition.entry_enharmonic_transpose(entry, direction)
+        local success = true
+        for note in transposition.each_to_transpose(entry) do
+            if not transposition.enharmonic_transpose(note, direction) then
+                success = false
+            end
+        end
+        return success
+    end
+
     return transposition
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -648,7 +735,7 @@ package.preload["library.client"] = package.preload["library.client"] or functio
     }
 
     function client.supports(feature)
-        if features[feature].test == nil then
+        if features[feature] == nil then
             error("a test does not exist for feature " .. feature, 2)
         end
         return features[feature].test
