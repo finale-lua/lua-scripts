@@ -3,13 +3,13 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.08"
-    finaleplugin.Date = "2023/12/28"
+    finaleplugin.Version = "v0.10"
+    finaleplugin.Date = "2024/01/10"
     finaleplugin.AdditionalMenuOptions = [[
-        Diatonic Doubler Repeat
+        Double Diatonic Repeat
     ]]
     finaleplugin.AdditionalUndoText = [[
-        Diatonic Doubler Repeat
+        Double Diatonic Repeat
     ]]
     finaleplugin.AdditionalDescriptions = [[
         Repeat the last diatonic doubling (no dialog)
@@ -18,8 +18,8 @@ function plugindef()
         no_dialog = true
     ]]
     finaleplugin.MinJWLuaVersion = 0.62
-    finaleplugin.CategoryTags = "Pitch"
-    finaleplugin.ScriptGroupName = "Diatonic Doubler"
+    finaleplugin.CategoryTags = "Pitch, Transposition"
+    finaleplugin.ScriptGroupName = "Double Diatonic"
     finaleplugin.ScriptGroupDescription = "Double notes and chords up or down by a chosen diatonic interval"
     finaleplugin.Notes = [[
         Notes and chords in the current music selection are doubled 
@@ -28,9 +28,10 @@ function plugindef()
         To repeat the last action without a confirmation dialog use 
         the "Repeat" menu or hold down [shift] when starting the script.
 	]]
-   return "Diatonic Doubler...", "Diatonic Doubler",
+   return "Double Diatonic...", "Double Diatonic",
         "Double notes and chords up or down by a chosen diatonic interval"
 end
+
 no_dialog = no_dialog or false
 
 local info_notes = [[
@@ -57,7 +58,7 @@ info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
-local note_entry = require("library.note_entry")
+local transposition = require("library.transposition")
 local script_name = "diatonic_doubler"
 
 local config = {
@@ -168,7 +169,7 @@ local function user_chooses()
         config.layer_num = layer_num:GetInteger()
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
 end
 
 function interval_doubler()
@@ -177,24 +178,12 @@ function interval_doubler()
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
 
     if no_dialog or mod_key or user_chooses() then
-        -- double those intervals
         local shift = config.interval
         if shift < 0 then config.octave = -config.octave end
         shift = shift + (config.octave * 7)
         if shift ~= 0 then
             for entry in eachentrysaved(finenv.Region(), config.layer_num) do
-                if entry:IsNote() then
-                    local note_count = entry.Count
-                    local index = 0
-                    for note in each(entry) do
-                        index = index + 1
-                        if index > note_count then break end
-                        local new_note = note_entry.duplicate_note(note)
-                        if new_note then
-                            new_note.Displacement = new_note.Displacement + shift
-                        end
-                    end
-                end
+                transposition.entry_diatonic_transpose(entry, shift, true)
             end
         end
     end
