@@ -2,8 +2,8 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0"
-    finaleplugin.Date = "May 5, 2022"
+    finaleplugin.Version = "2.1"
+    finaleplugin.Date = "January 9, 2024"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.MinJWLuaVersion = 0.62
@@ -43,22 +43,10 @@ function plugindef()
 end
 
 local transposition = require("library.transposition")
-local note_entry = require("library.note_entry")
 
 function pitch_entry_double_at_interval(interval)
     for entry in eachentrysaved(finenv.Region()) do
-        local note_count = entry.Count
-        local note_index = 0
-        for note in each(entry) do
-            note_index = note_index + 1
-            if note_index > note_count then
-                break
-            end
-            local new_note = note_entry.duplicate_note(note)
-            if new_note then
-                transposition.diatonic_transpose(new_note, interval)
-            end
-        end
+        transposition.entry_diatonic_transpose(entry, interval, true) -- true: preserve originals
     end
 end
 

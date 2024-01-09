@@ -20,6 +20,7 @@ local transposition = {}
 
 local client = require("library.client")
 local configuration = require("library.configuration")
+local note_entry = require("library.note_entry")
 
 local standard_key_number_of_steps = 12
 local standard_key_major_diatonic_steps = {0, 2, 4, 5, 7, 9, 11}
@@ -117,25 +118,6 @@ local calc_steps_in_normalized_interval = function(key, interval_normalized)
     return number_of_steps_in_interval
 end
 
-local simplify_spelling = function(note, min_abs_alteration)
-    while math.abs(note.RaiseLower) > min_abs_alteration do
-        local curr_sign = sign(note.RaiseLower)
-        local curr_abs_disp = math.abs(note.RaiseLower)
-        local direction = curr_sign
-        local success = transposition.enharmonic_transpose(note, direction, true) -- true: ignore errors (success is always true)
-        if not success then
-            return false
-        end
-        if math.abs(note.RaiseLower) >= curr_abs_disp then
-            return transposition.enharmonic_transpose(note, -1 * direction)
-        end
-        if curr_sign ~= sign(note.RaiseLower) then
-            break
-        end
-    end
-    return true
-end
-
 --
 -- DIATONIC transposition (affect only Displacement)
 --
@@ -149,6 +131,10 @@ Transpose the note diatonically by the given interval displacement.
 @ interval (number) 0 = unison, 1 = up a diatonic second, -2 = down a diatonic third, etc.
 ]]
 function transposition.diatonic_transpose(note, interval)
+    if note.GetTransposer then
+        note:GetTransposer():DiatonicTranspose(interval)
+        return
+    end
     note.Displacement = note.Displacement + interval
 end
 
@@ -161,6 +147,10 @@ Transpose the note by the given number of octaves.
 @ number_of_octaves (number) 0 = no change, 1 = up an octave, -2 = down 2 octaves, etc.
 ]]
 function transposition.change_octave(note, number_of_octaves)
+    if note.GetTransposer then
+        note:GetTransposer():OctaveTranspose(number_of_octaves)
+        return
+    end
     transposition.diatonic_transpose(note, 7 * number_of_octaves)
 end
 
@@ -181,6 +171,9 @@ Failure occurs if the note's `RaiseLower` value exceeds an absolute value of 7. 
 ]]
 function transposition.enharmonic_transpose(note, direction, ignore_error)
     ignore_error = ignore_error or false
+    if note.GetTransposer and not ignore_error then
+        return note:GetTransposer():EnharmonicTranspose(direction)
+    end
     local curr_disp = note.Displacement
     local curr_alt = note.RaiseLower
     local key = get_key(note)
@@ -211,6 +204,9 @@ score as well. This code is based on observed Finale behavior in Finale 27.
 : (boolean) success or failure
 ]]
 function transposition.enharmonic_transpose_default(note)
+    if note.GetTransposer then
+        return note:GetTransposer():DefaultEnharmonicTranspose()
+    end
     if note.RaiseLower ~= 0 then
         return transposition.enharmonic_transpose(note, sign(note.RaiseLower))
     end
@@ -240,6 +236,38 @@ function transposition.enharmonic_transpose_default(note)
     return true
 end
 
+--[[
+% simplify_spelling
+
+Simplifies the spelling of a note. See FCTransposer::SimplifySpelling at https://pdk.finalelua.com/ for more information
+about why it can fail. External calls to this function should never fail, provided they omit the `min_abs_alteration` parameter.
+
+@ note (FCNote) the note to transpose
+@ [min_abs_alteration] (number) a value used internally. External calls should omit this parameter.
+]]
+function transposition.simplify_spelling(note, min_abs_alteration)
+    min_abs_alteration = min_abs_alteration or 0
+    if note.GetTransposer and min_abs_alteration == 0 then
+        return note:GetTransposer():SimplifySpelling()
+    end
+    while math.abs(note.RaiseLower) > min_abs_alteration do
+        local curr_sign = sign(note.RaiseLower)
+        local curr_abs_disp = math.abs(note.RaiseLower)
+        local direction = curr_sign
+        local success = transposition.enharmonic_transpose(note, direction, true) -- true: ignore errors (success is always true)
+        if not success then
+            return false
+        end
+        if math.abs(note.RaiseLower) >= curr_abs_disp then
+            return transposition.enharmonic_transpose(note, -1 * direction)
+        end
+        if curr_sign ~= sign(note.RaiseLower) then
+            break
+        end
+    end
+    return true
+end
+
 --
 -- CHROMATIC transposition (affect Displacement and RaiseLower)
 --
@@ -261,6 +289,9 @@ allows for downwards transposition.
 : (boolean) success or failure (see `enharmonic_transpose` for what causes failure)
 --]]
 function transposition.chromatic_transpose(note, interval, alteration, simplify)
+    if note.GetTransposer then
+        return note:GetTransposer():ChromaticTranspose(interval, alteration, simplify)
+    end
     simplify = simplify or false
     local curr_disp = note.Displacement
     local curr_alt = note.RaiseLower
@@ -279,7 +310,7 @@ function transposition.chromatic_transpose(note, interval, alteration, simplify)
     if simplify then
         min_abs_alteration = 0
     end
-    local success = simplify_spelling(note, min_abs_alteration)
+    local success = transposition.simplify_spelling(note, min_abs_alteration)
     if not success then -- if Finale can't represent the transposition, revert it to original value
         note.Displacement = curr_disp
         note.RaiseLower = curr_alt
@@ -291,19 +322,22 @@ end
 % stepwise_transpose
 
 Transposes the note by the input number of steps and simplifies the spelling.
+
 For predefined key signatures, each step is a half-step.
-For microtone systems defined with custom key signatures and matching options in the `custom_key_sig.config.txt` file,
-each step is the smallest division of the octave defined by the custom key signature.
+For microtone systems defined with custom key signatures, the number of steps is determined by the key signature.
 
 @ note (FCNote) input and modified output
 @ number_of_steps (number) positive = up, negative = down
 : (boolean) success or failure (see `enharmonic_transpose` for what causes failure)
 ]]
 function transposition.stepwise_transpose(note, number_of_steps)
+    if note.GetTransposer then
+        return note:GetTransposer():EDOStepTranspose(number_of_steps)
+    end
     local curr_disp = note.Displacement
     local curr_alt = note.RaiseLower
     note.RaiseLower = note.RaiseLower + number_of_steps
-    local success = simplify_spelling(note, 0)
+    local success = transposition.simplify_spelling(note)
     if not success then -- if Finale can't represent the transposition, revert it to original value
         note.Displacement = curr_disp
         note.RaiseLower = curr_alt
@@ -344,4 +378,121 @@ function transposition.chromatic_perfect_fifth_down(note)
     transposition.chromatic_transpose(note, -4, -0)
 end
 
+--[[
+% each_to_transpose
+
+Feeds a for loop with notes to transpose. Nothing happens if the entry is a rest.
+
+@ entry (FCNoteEntry) input and modified output
+@ [preserve_originals] (boolean) if true, creates new notes to be transposed rather than feeding the original notes (defaults to false)
+]]
+function transposition.each_to_transpose(entry, preserve_originals)
+    if not entry then return nil end
+    assert(entry:ClassName() == "FCNoteEntry", "argument 1 must be FCNoteEntry")
+    local note_count = entry.Count
+    local note_index = -1
+    return function()
+        if entry:IsRest() then
+            return nil
+        end
+        note_index = note_index + 1
+        if note_index >= note_count then
+            return nil
+        end
+        local note = entry:GetItemAt(note_index)
+        assert(note, "invalid note found")
+        if preserve_originals then
+            return note_entry.duplicate_note(note)
+        end
+        return note
+    end
+end
+
+--[[
+% entry_diatonic_transpose
+
+Transpose all the notes in an entry diatonically by the specified interval
+
+@ entry (FCNoteEntry) input and modified output
+]]
+function transposition.entry_diatonic_transpose(entry, interval, preserve_originals)
+    for note in transposition.each_to_transpose(entry, preserve_originals) do
+        transposition.diatonic_transpose(note, interval)
+    end
+end
+
+--[[
+% entry_chromatic_transpose
+
+Transpose all the notes in an entry diatonically by the specified interval. If any note in the entry
+fails to transpose, the return value is false. However, only the failed notes are reverted to their
+original state. (See `enharmonic_transpose` for what causes failure.)
+
+@ entry (FCNoteEntry) input and modified output
+@ interval (number) the diatonic displacement (negative for transposing down)
+@ alteration (number) the chromatic alteration that defines the chromatic interval (reverse sign for transposing down)
+@ [simplify] (boolean) if present and true causes the spelling of the transposed note to be simplified
+@ [plus_octaves] (number) if present and non-zero, specifies the number of octaves to further transpose the result
+@ [preserve_originals] (boolean) if present and true create duplicates of the original notes and transposes them,
+: (boolean) success or failure (see `enharmonic_transpose` for what causes failure)
+]]
+function transposition.entry_chromatic_transpose(entry, interval, alteration, simplify, plus_octaves, preserve_originals)
+    plus_octaves = plus_octaves or 0
+    local success = true
+    for note in transposition.each_to_transpose(entry, preserve_originals) do
+        if not transposition.chromatic_transpose(note, interval, alteration, simplify) then
+            success = false
+        end
+        transposition.change_octave(note, plus_octaves)
+    end
+    return success
+end
+
+--[[
+% entry_stepwise_transpose
+
+Transposes the note by the input number of steps and simplifies the spelling. If any note in the entry
+fails to transpose, the return value is false. However, only the failed notes are reverted to their
+original state. (See `enharmonic_transpose` for what causes failure.)
+
+For predefined key signatures, each step is a half-step.
+For microtone systems defined with custom key signatures, the number of steps is determined by the key signature.
+
+@ entry (FCNoteEntry) input and modified output
+@ number_of_steps (number) positive = up, negative = down
+@ [preserve_originals] (boolean) if present and true create duplicates of the original notes and transposes them,
+: (boolean) success or failure
+]]
+function transposition.entry_stepwise_transpose(entry, number_of_steps, preserve_originals)
+    local success = true
+    for note in transposition.each_to_transpose(entry, preserve_originals) do
+        if not transposition.stepwise_transpose(note, number_of_steps) then
+            success = false
+        end
+    end
+    return success
+end
+
+
+--[[
+% entry_enharmonic_transpose
+
+Transpose all the notes enharmonically in the given direction. In some microtone systems this yields a different result than transposing by a diminished 2nd.
+Failure occurs if any note's `RaiseLower` value exceeds an absolute value of 7. This is a hard-coded limit in Finale.
+
+@ entry (FCNoteEntry) input and modified output
+@ direction (number) positive = up, negative = down (normally 1 or -1, but any positive or negative numbers work)
+: (boolean) success or failure
+]]
+function transposition.entry_enharmonic_transpose(entry, direction)
+    local success = true
+    for note in transposition.each_to_transpose(entry) do
+        if not transposition.enharmonic_transpose(note, direction) then
+            success = false
+        end
+    end
+    return success
+end
+
+    
 return transposition
