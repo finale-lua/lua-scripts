@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.1"
-    finaleplugin.Date = "January 20, 2022"
+    finaleplugin.Version = "1.2"
+    finaleplugin.Date = "January 9, 2024"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.Notes = [[
         This script transposes the selected region by a chromatic interval. It works correctly even with
@@ -82,22 +82,7 @@ if not finenv.IsRGPLua then
 end
 
 local transposition = require("library.transposition")
-local note_entry = require("library.note_entry")
 local mixin = require("library.mixin")
-
-local function chromatic_transpose(note, interval, alteration, simplify)
-    if not note.GetTransposer then -- if our plugin does not have FCTransposer
-        return transposition.chromatic_transpose(note, interval, alteration, simplify)
-    end
-    return note:GetTransposer():ChromaticTranspose(interval, alteration, simplify)
-end
-
-local function change_octave(note, plus_octaves)
-    if not note.GetTransposer then -- if our plugin does not have FCTransposer
-        return transposition.change_octave(note, plus_octaves)
-    end
-    return note:GetTransposer():OctaveTranspose(plus_octaves)
-end
 
 function do_transpose_chromatic(direction, interval_index, simplify, plus_octaves, preserve_originals)
     if finenv.Region():IsEmpty() then
@@ -113,23 +98,8 @@ function do_transpose_chromatic(direction, interval_index, simplify, plus_octave
     finenv.StartNewUndoBlock(undostr, false) -- this works on both JW Lua and RGP Lua
     local success = true
     for entry in eachentrysaved(finenv.Region()) do
-        local note_count = entry.Count
-        local note_index = 0
-        for note in each(entry) do
-            if preserve_originals then
-                note_index = note_index + 1
-                if note_index > note_count then
-                    break
-                end
-                local dup_note = note_entry.duplicate_note(note)
-                if nil ~= dup_note then
-                    note = dup_note
-                end
-            end
-            if not chromatic_transpose(note, interval, alteration, simplify) then
-                success = false
-            end
-            change_octave(note, plus_octaves)
+        if not transposition.entry_chromatic_transpose(entry, interval, alteration, simplify, plus_octaves, preserve_originals) then
+            success = false
         end
     end
     if finenv.EndUndoBlock then -- EndUndoBlock only exists on RGP Lua 0.56 and higher

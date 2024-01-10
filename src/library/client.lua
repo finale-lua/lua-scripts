@@ -124,7 +124,7 @@ For a list of valid features, see the [`features` table in the codebase](https:/
 : (boolean)
 ]]
 function client.supports(feature)
-    if features[feature].test == nil then
+    if features[feature] == nil then
         error("a test does not exist for feature " .. feature, 2)
     end
     return features[feature].test
