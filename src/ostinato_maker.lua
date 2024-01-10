@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.10 modeless"
+    finaleplugin.Version = "v0.12"
     finaleplugin.Date = "2024/01/10"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
@@ -58,6 +58,10 @@ info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
 global_timer_id = 1
 global_info = global_info or nil -- static text "INFO" listing
 
+local configuration = require("library.configuration")
+local mixin = require("library.mixin")
+local script_name = "ostinato_maker"
+
 local config = {
     num_repeats  =   1,
     window_pos_x = false,
@@ -68,9 +72,18 @@ local dialog_options = { -- and populate config values (unchecked)
 }
 for _, v in ipairs(dialog_options) do config[v] = 0 end -- (default unchecked)
 
-local configuration = require("library.configuration")
-local mixin = require("library.mixin")
-local script_name = "ostinato_maker"
+local bounds = { -- primary region selection boundary
+    "StartStaff", "StartMeasure", "StartMeasurePos",
+    "EndStaff",   "EndMeasure",   "EndMeasurePos",
+}
+
+local function copy_region_bounds()
+    local copy = {}
+    for _, v in ipairs(bounds) do
+        copy[v] = finenv.Region()[v]
+    end
+    return copy
+end
 
 function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -258,10 +271,7 @@ local function paste_many_copies()
         return
     end
     local rgn = finenv.Region()
-    local origin = {
-        m_start = rgn.StartMeasure, p_start = rgn.StartMeasurePos,
-        m_end = rgn.EndMeasure, p_end = rgn.EndMeasurePos
-    }
+    local origin = copy_region_bounds() -- copy current bounds
     local undo_str = "Ostinato Maker " .. selection_id()
     finenv.StartNewUndoBlock(undo_str, false)
     --  ---- DO THE WORK
@@ -284,10 +294,7 @@ local function paste_many_copies()
     rgn.StartMeasurePos = first_rpt.pos
     region_erasures(rgn)
     -- reset to start of operation
-    rgn.StartMeasure = origin.m_start
-    rgn.StartMeasurePos = origin.p_start
-    rgn.EndMeasure = origin.m_end
-    rgn.EndMeasurePos = origin.p_end
+    for _, v in ipairs(bounds) do rgn[v] = origin[v] end
     rgn:SetInDocument()
     --  ----
     if finenv.EndUndoBlock then
@@ -299,7 +306,17 @@ local function paste_many_copies()
 end
 
 local function on_timer()
-    global_info:SetText("Selection " .. selection_id() .. "\n" .. staff_id())
+    local changed = false
+    for _, v in ipairs(bounds) do
+        if global_selection[v] ~= finenv.Region()[v] then
+            changed = true
+            break
+        end
+    end
+    if changed then
+        global_selection = copy_region_bounds()
+        global_info:SetText("Selection " .. selection_id() .. "\n" .. staff_id())
+    end
 end
 
 local function create_dialog_box()
@@ -360,16 +377,16 @@ local function create_dialog_box()
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
+    dialog:RegisterHandleTimer(on_timer)
+    dialog:RegisterInitWindow(function()
+        q:SetFont(q:CreateFontInfo():SetBold(true))
+        num_repeats:SetKeyboardFocus()
+        dialog:SetTimer(global_timer_id, 125)
+    end)
     dialog:RegisterCloseWindow(function()
         dialog_save_position(dialog)
         dialog:StopTimer(global_timer_id)
     end)
-    dialog:RegisterInitWindow(function()
-        q:SetFont(q:CreateFontInfo():SetBold(true))
-        num_repeats:SetKeyboardFocus()
-        dialog:SetTimer(global_timer_id, 100)
-    end)
-    dialog:RegisterHandleTimer(on_timer)
     dialog:RegisterHandleOkButtonPressed(function()
         config.num_repeats = num_repeats:GetInteger()
         for _, v in ipairs(dialog_options) do
@@ -382,6 +399,7 @@ end
 
 local function make_ostinato()
     configuration.get_user_settings(script_name, config, true)
+    global_selection = global_selection or copy_region_bounds()
     global_dialog = global_dialog or create_dialog_box()
     global_dialog:RunModeless()
 end
