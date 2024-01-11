@@ -42,7 +42,7 @@ end
 local transposition = require("library.transposition")
 local mixin = require("library.mixin")
 
-function do_transpose_by_step(global_number_of_steps_edit)
+function do_transpose_by_step(global_number_of_steps_edit, global_layer_number)
     if finenv.Region():IsEmpty() then
         return
     end
@@ -52,7 +52,7 @@ function do_transpose_by_step(global_number_of_steps_edit)
     end
     local success = true
     finenv.StartNewUndoBlock(undostr, false) -- this works on both JW Lua and RGP Lua
-    for entry in eachentrysaved(finenv.Region()) do
+    for entry in eachentrysaved(finenv.Region(), global_layer_number) do
         if not transposition.entry_stepwise_transpose(entry, global_number_of_steps_edit) then
             success = false
         end
@@ -72,16 +72,23 @@ end
 function create_dialog_box()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Transpose By Steps")
     local current_y = 0
-    local x_increment = 105
+    local x_step = 103
     -- number of steps
     dialog:CreateStatic(0, current_y + 2):SetText("Number Of Steps:")
-    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
-    dialog:CreateEdit(edit_x, current_y, "num_steps"):SetText("")
+    local y_offset = finenv.UI():IsOnMac() and 3 or 0
+    dialog:CreateEdit(x_step, current_y - y_offset, "num_steps"):SetText("")
+    current_y = current_y + 22
+    -- layer number
+    dialog:CreateStatic(0, current_y):SetText("Layer Number:")
+    dialog:CreateEdit(x_step, current_y - y_offset, "layer_num"):SetText("0")
     -- ok/cancel
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterHandleOkButtonPressed(function(self)
-            do_transpose_by_step(self:GetControl("num_steps"):GetInteger())
+            do_transpose_by_step(
+                self:GetControl("num_steps"):GetInteger(),
+                self:GetControl("layer_num"):GetInteger()
+            )
         end
     )
     return dialog
