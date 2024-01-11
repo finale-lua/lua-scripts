@@ -21,6 +21,9 @@ local usecheckboxes = true
 local showheader = true
 local expandlast = true
 local multiselect = true
+local preselect_in_initwindow = false
+local pre_select = {2, 4}
+local pre_check = {1, 5}
 
 local dlg = finale.FCCustomLuaWindow()
 dlg:SetTitle(finale.FCString("Test DataList Control"))
@@ -42,6 +45,26 @@ for r = 1, numrows do
     for c = 1, numcols do
         row:GetItemAt(c - 1).LuaString = "RowCol [" .. r .. ", " .. c .. "]"
     end
+end
+-- pre-select
+-- NOTE: pre-selection of rows is broken in 0.70. This code checks to see if
+--      it has been fixed in a later version. For 0.70, rows should be pre-selected
+--      inside an InitWindow function.
+local function do_preselect()
+    for _, rownum in ipairs(pre_select) do
+        if rownum <= numrows then
+            data_list:AddSelectedLine(rownum)
+            print("select rownum " .. rownum)
+        end
+    end
+    for _, rownum in ipairs(pre_check) do
+        if usecheckboxes and rownum <= numrows then
+            data_list:GetItemAt(rownum).Check = true
+        end
+    end
+end
+if not preselect_in_initwindow then
+    do_preselect()
 end
 -- status controls
 local y = 310
@@ -137,6 +160,11 @@ if usecheckboxes then
         show_checkbox:SetText(finale.FCString(state_str .. line_index))
     end)
 end
+dlg:RegisterInitWindow(function()
+    if preselect_in_initwindow then
+        do_preselect()
+    end
+end)
 
 dlg:CreateOkButton()
 dlg:ExecuteModal(nil)
