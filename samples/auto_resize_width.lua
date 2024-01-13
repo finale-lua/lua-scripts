@@ -7,7 +7,7 @@ end
 local mixin = require('library.mixin')
 
 --local dlg = finale.FCCustomLuaWindow()
-local dlg = mixin.FCXCustomLuaWindow()
+local dlg = mixin.FCMCustomWindow()
 dlg:SetTitle(finale.FCString("Test Auto Resize Width"))
 
 local y = 0
@@ -38,11 +38,11 @@ y = y + 30
 
 local ctrl_popup = dlg:CreatePopup(0, y)
 ctrl_popup:SetAutoResizeWidth(true)
---ctrl_popup:SetWidth(0)
+ctrl_popup:SetWidth(100)
 for counter = 1, 3 do
-    ctrl_popup:AddString(finale.FCString("This is long option text " .. counter))
+    ctrl_popup:AddString(finale.FCString("This is long option text " .. counter .."."))
 end
---ctrl_popup:SetText(finale.FCString("Test."))
+--ctrl_popup:SetText(finale.FCString("This is long option text 1\nThis is long option text 2\nThis is long option text 3\n"))
 y = y + 20
 
 local ctrl_radiobuttons = dlg:CreateRadioButtonGroup(0, y, 3)
@@ -50,7 +50,7 @@ local counter = 1
 for rbtn in each(ctrl_radiobuttons) do
     rbtn:SetWidth(0)
     rbtn:SetAutoResizeWidth(true)
-    rbtn:SetText(finale.FCString("This is long option text " .. counter))
+    rbtn:SetText(finale.FCString("This is long option text " .. counter .."."))
     counter = counter + 1
 end
 
