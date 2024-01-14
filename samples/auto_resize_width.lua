@@ -14,7 +14,7 @@ local y = 0
 
 local ctrl_static = dlg:CreateStatic(0, y)
 ctrl_static:SetAutoResizeWidth(true)
-ctrl_static:SetWidth(0)
+ctrl_static:SetWidth(20)
 ctrl_static:SetText(finale.FCString("Short."))
 y = y + 20
 
@@ -48,7 +48,7 @@ y = y + 20
 local ctrl_radiobuttons = dlg:CreateRadioButtonGroup(0, y, 3)
 local counter = 1
 for rbtn in each(ctrl_radiobuttons) do
-    rbtn:SetWidth(0)
+    rbtn:SetWidth(20)
     rbtn:SetAutoResizeWidth(true)
     rbtn:SetText(finale.FCString("This is long option text " .. counter .."."))
     counter = counter + 1
