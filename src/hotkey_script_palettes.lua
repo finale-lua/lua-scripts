@@ -3,9 +3,9 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.58"
+    finaleplugin.Version = "v0.60"
     finaleplugin.LoadLuaOSUtils = true
-    finaleplugin.Date = "2024/01/13"
+    finaleplugin.Date = "2024/01/15"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[ 
@@ -372,11 +372,9 @@ Note that many Finale menus do nothing unless part of the score is already selec
     dialog:CreateCancelButton()
         --
         local function check_status()
+            if menu_list_box:GetCount() < 1 then return end
             local index = menu_list_box:GetSelectedItem() + 1
             chosen_now = menu_levels[level].members[index]
-            if not chosen_now then
-                chosen_now = menu_levels[level].members[1]
-            end
             local is_submenu = (chosen_now.sub ~= nil)
             open_submenu:SetEnable(is_submenu)
             ok_button:SetEnable(not is_submenu)
@@ -419,7 +417,7 @@ Note that many Finale menus do nothing unless part of the score is already selec
     inputs[5]:AddHandleCommand(function() -- Test Menu Item BUTTON
         finenv.UI():ExecuteOSMenuCommand(chosen_now.id)
     end)
-    open_submenu:AddHandleCommand(function() one_level_down() end)-- OPEN SUBMENU
+    open_submenu:AddHandleCommand(function() one_level_down() end)-- Open Submenu
     up_to_parent:AddHandleCommand(function() -- Up To Parent Menu
         if level > 1 then
             selected = menu_levels[level].last_selected
