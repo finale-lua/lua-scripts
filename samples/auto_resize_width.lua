@@ -64,7 +64,7 @@ function create_dialog()
     ctrl_cbobox:SetSelectedItem(2)
     y = y + 20
 
-        --[[
+    --[[
     local ctrl_radiobuttons = dlg:CreateRadioButtonGroup(0, y, 3)
     local counter = 1
     for rbtn in each(ctrl_radiobuttons) do
@@ -75,7 +75,6 @@ function create_dialog()
         counter = counter + 1
     end
 ]]
-
     dlg:RegisterInitWindow(function()
         --ctrl_edit:SetMeasurement(1, finale.MEASUREMENTUNIT_DEFAULT)
     end)
