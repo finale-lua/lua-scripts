@@ -871,7 +871,7 @@ local function format_wizard()
         parts_settings.staff_spacing_scale_other_pages = 100   
         page_size_update(parts_ctrls, parts_settings, parts_ctrls_collection)
       end
-      if score_enable_checkbox:GetCheck() == 1 then
+      if special_enable_checkbox:GetCheck() == 1 then
         special_settings.staff_spacing_scale_first_page = 100
         special_settings.staff_spacing_scale_other_pages = 100
         page_size_update(special_ctrls, special_settings, special_ctrls_collection)
