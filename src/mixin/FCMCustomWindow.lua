@@ -326,7 +326,7 @@ Override Changes:
 for num_args, ctrl_types in pairs({
     [0] = {"CancelButton", "OkButton",},
     [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit", "TextEditor",
-        "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
+        "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown", "ComboBox",
     },
     [3] = {"HorizontalLine", "VerticalLine",},
 }) do

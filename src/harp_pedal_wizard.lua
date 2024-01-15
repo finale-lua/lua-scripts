@@ -8,7 +8,7 @@ function plugindef()
     finaleplugin.Date = "2022-07-17"
     finaleplugin.HandlesUndo = true
     finaleplugin.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
-    return "Harp Pedal Wizard", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
+    return "Harp Pedal Wizard...", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
 end
 
 local library = require("library.general_library")
@@ -35,10 +35,10 @@ function harp_pedal_wizard()
     local pedal_lanes = true
     local direct = false
     local override = false
-    local context =
+    context = context or -- keep context as global so that it survives across calls
     {
-        window_pos_x = window_pos_x or nil,
-        window_pos_y = window_pos_y or nil
+        window_pos_x = nil,
+        window_pos_y = nil
     }
 
     local SMuFL = library.is_font_smufl_font(nil)
@@ -148,7 +148,7 @@ function harp_pedal_wizard()
             if harpstrings[i] == compare_notes[i] then
                 new_pedals[i] = 0
             else
-                new_pedals[i] = harpstrings[i]
+                new_pedals[i] = tonumber(harpstrings[i]) or 0
                 if changes_str.LuaString == "" then
                     changes_str.LuaString = "New: "
                 end
@@ -270,7 +270,7 @@ function harp_pedal_wizard()
                 if harpstrings[i] == compare_notes[i] then
                     new_pedals[i] = 0
                 else
-                    new_pedals[i] = harpstrings[i]
+                    new_pedals[i] = tonumber(harpstrings[i]) or 0
                     changes = true
                 end
             end
@@ -783,8 +783,10 @@ function harp_pedal_wizard()
             function format_ctrl(ctrl, h, w, st)
                 ctrl:SetHeight(h)
                 ctrl:SetWidth(w)
-                str.LuaString = st
-                ctrl:SetText(str)
+                if ctrl:ClassName() ~= "FCCtrlPopup" then
+                    str.LuaString = st
+                    ctrl:SetText(str)
+                end
             end -- function format_ctrl
 --
             local dialog = finale.FCCustomLuaWindow()
