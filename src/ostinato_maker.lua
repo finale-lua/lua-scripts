@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.12"
-    finaleplugin.Date = "2024/01/10"
+    finaleplugin.Version = "v0.13"
+    finaleplugin.Date = "2024/01/15"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         Copy the current selection and paste it consecutively 
@@ -55,6 +55,8 @@ Key Commands:
 *• z @t copy none
 ]]
 info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
+    .. "\n(" .. finaleplugin.Version .. ")"
+
 global_timer_id = 1
 global_info = global_info or nil -- static text "INFO" listing
 
@@ -122,7 +124,7 @@ local function staff_id()
     staff:Load(finenv.Region().StartStaff)
     local str = finale.FCString()
     str = staff:CreateDisplayFullNameString()
-    local id = "Staff " .. str.LuaString .. "-"
+    local id = "Staff: " .. str.LuaString .. " → "
     staff:Load(finenv.Region().EndStaff)
     str = staff:CreateDisplayFullNameString()
     return id .. str.LuaString
@@ -252,7 +254,7 @@ local function region_erasures(rgn)
                 entry:SetArticulationFlag(false)
             end
             if entry.LyricFlag and config.copy_lyrics == 0 then -- erase LYRICS
-                for _, v in ipairs({ "FCChorusSyllable", "FCSectionSyllable", "FCVerseSyllable" }) do
+                for _, v in ipairs{"FCChorusSyllable", "FCSectionSyllable", "FCVerseSyllable"} do
                     local lyric = finale[v]()
                     lyric:SetNoteEntry(entry)
                     while lyric:LoadFirst() do
@@ -401,6 +403,8 @@ local function make_ostinato()
     configuration.get_user_settings(script_name, config, true)
     global_selection = global_selection or copy_region_bounds()
     global_dialog = global_dialog or create_dialog_box()
+    --finenv.RegisterModelessDialog(global_dialog)
+    --global_dialog:ShowModeless()
     global_dialog:RunModeless()
 end
 
