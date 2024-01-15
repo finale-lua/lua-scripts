@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "2.0"
-    finaleplugin.Date = "2022-07-17"
+    finaleplugin.Version = "2.0.1"
+    finaleplugin.Date = "2024-01-15"
     finaleplugin.HandlesUndo = true
     finaleplugin.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     return "Harp Pedal Wizard...", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
