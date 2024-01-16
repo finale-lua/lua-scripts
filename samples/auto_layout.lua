@@ -6,17 +6,25 @@ end
 
 local mixin = require('library.mixin')
 
+local function win_mac(winval, macval)
+    if finenv.UI():IsOnWindows() then return winval end
+    return macval
+end
+
 function create_dialog()
     --local dlg = finale.FCCustomLuaWindow()
     local dlg = mixin.FCXCustomLuaWindow()
-    dlg:SetTitle(finale.FCString("Test Auto Resize Width"))
+    dlg:SetTitle(finale.FCString("Test Autolayout"))
 
     local y = 0
 
-    local ctrl_static = dlg:CreateStatic(0, y)
-    ctrl_static:SetAutoResizeWidth(true)
-    ctrl_static:SetWidth(20)
-    ctrl_static:SetText(finale.FCString("This is long option text."))
+    local ctrl_label = dlg:CreateStatic(0, y)
+    ctrl_label.AutoResizeWidth = true
+    ctrl_label:SetWidth(0)
+    ctrl_label:SetText(finale.FCString("Label:"))
+    local ctrl_edit = dlg:CreateEdit(0, y - win_mac(5, 3))
+    ctrl_edit:SetText("Editable")
+    ctrl_edit:AssureNoHorizontalOverlap(ctrl_label, 0)
     y = y + 20
 
     local ctrl_checkbox = dlg:CreateCheckbox(0, y)
@@ -62,24 +70,27 @@ function create_dialog()
         end
     end
     ctrl_cbobox:SetSelectedItem(2)
-    y = y + 20
+    y = y + 30
 
-    --[[
     local ctrl_radiobuttons = dlg:CreateRadioButtonGroup(0, y, 3)
     local counter = 1
     for rbtn in each(ctrl_radiobuttons) do
-        rbtn:SetWidth(20)
-        rbtn:SetAutoResizeWidth(true)
-        --rbtn:SetText(finale.FCString("This is long option text " .. counter .. "."))
-        rbtn:SetText(finale.FCString("Short " .. counter .. "."))
+        rbtn:SetWidth(0)
+        rbtn.AutoResizeWidth = true
+        if counter == 2 then
+            rbtn:SetText(finale.FCString("This is long option text " .. counter .. "."))
+        else
+            rbtn:SetText(finale.FCString("Short " .. counter .. "."))
+        end
         counter = counter + 1
     end
-]]
+
     dlg:RegisterInitWindow(function()
         --ctrl_edit:SetMeasurement(1, finale.MEASUREMENTUNIT_DEFAULT)
     end)
 
     dlg:CreateOkButton()
+    dlg:CreateCancelButton()
 
     return dlg
 end
