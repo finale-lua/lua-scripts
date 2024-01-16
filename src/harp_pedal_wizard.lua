@@ -1018,10 +1018,11 @@ or a chord from the drop down lists.]])
                 local f_stg_sharp = dialog:CreateCheckbox(col_x + (col * col_width) - nudge_rt_ped, sharp_y)
                 format_ctrl(f_stg_sharp, 16, 13, str.LuaString)
                 f_stg_sharp:SetText(blank)
-                
-                local reset_button_x = col * col_width - 16
+
+--                local reset_button_x = col * col_width - 16
+                local reset_button_x = 0
                 local reset_button_y = sharp_y + row_h
-                
+
                 col = col + 1
                 --  
                 str.LuaString = "G"
@@ -1052,7 +1053,7 @@ or a chord from the drop down lists.]])
                 a_stg_sharp:SetText(blank)
 
                 reset_button = dialog:CreateButton(reset_button_x, reset_button_y)
-                format_ctrl(reset_button, 14, 50, "Reset")
+                format_ctrl(reset_button, 14, 80, "Set to 'Last'")
 
 
 
