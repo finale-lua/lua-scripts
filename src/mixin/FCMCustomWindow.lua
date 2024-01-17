@@ -342,19 +342,19 @@ for num_args, ctrl_types in pairs({
     [3] = {"HorizontalLine", "VerticalLine", "RadioButtonGroup"},
 }) do
     for _, control_type in pairs(ctrl_types) do
-        local got1 = false
+        local type_exists = false
         if finenv.IsRGPLua then
-            got1 = finale.FCCustomWindow.__class["Create" .. control_type]      
+            type_exists = finale.FCCustomWindow.__class["Create" .. control_type]      
         else
             -- JW Lua crashes if we index the __class table with an invalid key, so instead search it
             for k, _ in pairs(finale.FCCustomWindow.__class) do
                 if tostring(k) == "Create" .. control_type then
-                    got1 = true
+                    type_exists = true
                     break
                 end
             end
         end
-        if not got1 then
+        if not type_exists then
             goto continue
         end
 
