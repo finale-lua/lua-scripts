@@ -113,7 +113,7 @@ function class:Init()
         -- Align to closest step if needed
         if private[self].AlignWhenMoving then
             -- Casting back and forth works around floating point issues, such as 0.3/0.1 not being equal to 3 (even though 3 is displayed)
-            local num_steps = tonumber(tostring(value / step_def.value))
+            local num_steps = tonumber(tostring(value / step_def.value)) or 0
 
             if num_steps ~= math.floor(num_steps) then
                 if delta > 0 then

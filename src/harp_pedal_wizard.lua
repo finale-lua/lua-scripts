@@ -4,11 +4,11 @@ function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "2.0"
-    finaleplugin.Date = "2022-07-17"
+    finaleplugin.Version = "2.0.1"
+    finaleplugin.Date = "2024-01-15"
     finaleplugin.HandlesUndo = true
     finaleplugin.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
-    return "Harp Pedal Wizard", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
+    return "Harp Pedal Wizard...", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
 end
 
 local library = require("library.general_library")
@@ -35,10 +35,10 @@ function harp_pedal_wizard()
     local pedal_lanes = true
     local direct = false
     local override = false
-    local context =
+    context = context or -- keep context as global so that it survives across calls
     {
-        window_pos_x = window_pos_x or nil,
-        window_pos_y = window_pos_y or nil
+        window_pos_x = nil,
+        window_pos_y = nil
     }
 
     local SMuFL = library.is_font_smufl_font(nil)
@@ -148,7 +148,7 @@ function harp_pedal_wizard()
             if harpstrings[i] == compare_notes[i] then
                 new_pedals[i] = 0
             else
-                new_pedals[i] = harpstrings[i]
+                new_pedals[i] = tonumber(harpstrings[i]) or 0
                 if changes_str.LuaString == "" then
                     changes_str.LuaString = "New: "
                 end
@@ -270,7 +270,7 @@ function harp_pedal_wizard()
                 if harpstrings[i] == compare_notes[i] then
                     new_pedals[i] = 0
                 else
-                    new_pedals[i] = harpstrings[i]
+                    new_pedals[i] = tonumber(harpstrings[i]) or 0
                     changes = true
                 end
             end
@@ -495,8 +495,10 @@ function harp_pedal_wizard()
                 local result = ui:AlertYesNo("There seems to be a problem with your harp diagram. \n Would you like to try again?", nil)
 --                if result == 2 then harp_dialog() end
             end -- error
+
             if is_dialog_assigned then
                 ui:AlertInfo("There is already a harp diagram assigned to this region.", nil)
+                is_dialog_assigned = false
             end
         end -- function add_pedals
 
@@ -783,8 +785,10 @@ function harp_pedal_wizard()
             function format_ctrl(ctrl, h, w, st)
                 ctrl:SetHeight(h)
                 ctrl:SetWidth(w)
-                str.LuaString = st
-                ctrl:SetText(str)
+                if ctrl:ClassName() ~= "FCCtrlPopup" then
+                    str.LuaString = st
+                    ctrl:SetText(str)
+                end
             end -- function format_ctrl
 --
             local dialog = finale.FCCustomLuaWindow()
@@ -1014,6 +1018,11 @@ or a chord from the drop down lists.]])
                 local f_stg_sharp = dialog:CreateCheckbox(col_x + (col * col_width) - nudge_rt_ped, sharp_y)
                 format_ctrl(f_stg_sharp, 16, 13, str.LuaString)
                 f_stg_sharp:SetText(blank)
+
+--                local reset_button_x = col * col_width - 16
+                local reset_button_x = 0
+                local reset_button_y = sharp_y + row_h
+
                 col = col + 1
                 --  
                 str.LuaString = "G"
@@ -1042,9 +1051,15 @@ or a chord from the drop down lists.]])
                 local a_stg_sharp = dialog:CreateCheckbox(col_x + (col * col_width) - nudge_rt_ped, sharp_y)
                 format_ctrl(a_stg_sharp, 16, 13, str.LuaString)
                 a_stg_sharp:SetText(blank)
+
+                reset_button = dialog:CreateButton(reset_button_x, reset_button_y)
+                format_ctrl(reset_button, 14, 80, "Set to 'Last'")
+
+
+
                 col = col + 1
                 --
-                local tracker_v_line = dialog:CreateVerticalLine(col_x + (col * col_width) - 8, row_y, row_h * 4)
+                local tracker_v_line = dialog:CreateVerticalLine(col_x + (col * col_width) - 8, row_y, row_h * 5)
                 col = col + 1
                 --
                 local last_static = dialog:CreateStatic(col_x + (col * col_width) - 19, row_y)
@@ -1055,6 +1070,7 @@ or a chord from the drop down lists.]])
                 local lastnotes_static = dialog:CreateStatic(col_x + (col * col_width) + 11, row_y)
                 format_ctrl(lastnotes_static, 20, 150, config.last_notes)
 --                    lastnotes_static:SetVisible(false)        
+
 --
                 changes_static = dialog:CreateStatic(col_x + (col * col_width) - 19, row_y + 18)
                 format_ctrl(changes_static, 20, 166, changes_str.LuaString)
@@ -1189,7 +1205,7 @@ or a chord from the drop down lists.]])
                         lanes_checkbox:SetEnable(false)
                     end
                     changes_update()
-                end
+                end -- pedals_update()
 
                 function pedal_buttons()
                     scale_check:SetCheck(0)
@@ -1200,6 +1216,66 @@ or a chord from the drop down lists.]])
                     sel_chord:SetEnable(false)
                     pedals_update()
                 end
+
+                local function get_pedals()
+                    if d_stg_flat:GetCheck() == 1 then
+                        harpstrings[1] = "Db"
+                    elseif d_stg_nat:GetCheck() == 1 then
+                        harpstrings[1] = "D"
+                    elseif d_stg_sharp:GetCheck() == 1 then
+                        harpstrings[1] = "D#"
+                    end
+                    if c_stg_flat:GetCheck() == 1 then
+                        harpstrings[2] = "Cb"
+                    elseif  c_stg_nat:GetCheck() == 1 then
+                        harpstrings[2] = "C"
+                    elseif  c_stg_sharp:GetCheck() == 1 then
+                        harpstrings[2] = "C#"
+                    end
+                    if b_stg_flat:GetCheck() == 1 then
+                        harpstrings[3] = "Bb"
+                    elseif  b_stg_nat:GetCheck() == 1 then
+                        harpstrings[3] = "B"
+                    elseif b_stg_sharp:GetCheck() == 1 then
+                        harpstrings[3] = "B#"
+                    end
+                    if e_stg_flat:GetCheck() == 1 then
+                        harpstrings[4] = "Eb"
+                    elseif  e_stg_nat:GetCheck() == 1 then
+                        harpstrings[4] = "E"
+                    elseif  e_stg_sharp:GetCheck() == 1 then
+                        harpstrings[4] = "E#"
+                    end
+                    if  f_stg_flat:GetCheck() == 1 then
+                        harpstrings[5] = "Fb"
+                    elseif f_stg_nat:GetCheck() == 1 then
+                        harpstrings[5] = "F"
+                    elseif  f_stg_sharp:GetCheck() == 1 then
+                        harpstrings[5] = "F#"
+                    end
+                    if g_stg_flat:GetCheck() == 1 then
+                        harpstrings[6] = "Gb"
+                    elseif g_stg_nat:GetCheck() == 1 then
+                        harpstrings[6] = "G"
+                    elseif g_stg_sharp:GetCheck() == 1 then
+                        harpstrings[6] = "G#"
+                    end
+                    if a_stg_flat:GetCheck() == 1 then
+                        harpstrings[7] = "Ab"
+                    elseif a_stg_nat:GetCheck() == 1 then
+                        harpstrings[7] = "A"
+                    elseif a_stg_sharp:GetCheck() == 1 then
+                        harpstrings[7] = "A#"
+                    end
+                    pedal_buttons()
+                end -- get_pedals()
+
+                local function update_lastnotes()
+                    str.LuaString = harpstrings[1] .. ", " .. harpstrings[2] .. ", " .. harpstrings[3] .. ", " .. harpstrings[4] .. ", " .. harpstrings[5] .. ", " .. harpstrings[6] .. ", " .. harpstrings[7]
+                    config.last_notes = str.LuaString
+                    lastnotes_static:SetText(str)
+                end
+
 
                 function config_update()
                     config.root = sel_root:GetSelectedItem()
@@ -1382,6 +1458,11 @@ or a chord from the drop down lists.]])
                         harpstrings[7] = "A#"
                         pedal_buttons()                              
                     end
+
+                    if ctrl:GetControlID() == reset_button:GetControlID() then
+                        get_pedals()
+                        update_lastnotes()
+                    end
                     --
                     pedals_update()
                     update_variables()
@@ -1408,8 +1489,6 @@ or a chord from the drop down lists.]])
                 end
 
                 function scale_update()
-                    --local config = harp_config_load()
-
                     local use_chord = false
                     if chord_check:GetCheck() == 1 then use_chord = true end
                     local return_string = finale.FCString()
@@ -1482,8 +1561,7 @@ or a chord from the drop down lists.]])
                     str.LuaString = ""
                     harp_notes:SetText(str)
                     changes_static:SetText(str)
-                    str.LuaString = harpstrings[1] .. ", " .. harpstrings[2] .. ", " .. harpstrings[3] .. ", " .. harpstrings[4] .. ", " .. harpstrings[5] .. ", " .. harpstrings[6] .. ", " .. harpstrings[7]
-                    config.last_notes = str.LuaString
+                    update_lastnotes()
                     configuration.save_user_settings(script_name, config)
                     finenv.Region():Redraw()
                     direct = false
@@ -1495,6 +1573,7 @@ or a chord from the drop down lists.]])
                 dialog:RegisterHandleCommand(callback)
                 dialog:RegisterHandleOkButtonPressed(callback_ok)
                 dialog:RegisterHandleDataListSelect(callback_update)
+
                 if dialog.RegisterCloseWindow then
                     dialog:RegisterCloseWindow(on_close)
                 end

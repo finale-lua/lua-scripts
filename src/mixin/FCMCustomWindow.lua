@@ -16,9 +16,20 @@ local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local function create_control(self, func, num_args, ...)
-    local control = self["Create" .. func .. "__"](self, ...)
-    private[self].Controls[control:GetControlID()] = control
-    control:RegisterParent(self)
+    local result = self["Create" .. func .. "__"](self, ...)
+
+    local function add_control(control)
+        private[self].Controls[control:GetControlID()] = control
+        control:RegisterParent(self)
+    end
+
+    if func == "RadioButtonGroup" then
+        for control in each(result) do
+            add_control(control)
+        end
+    else
+        add_control(result)
+    end
 
     local control_name = select(num_args + 1, ...)
     if control_name then
@@ -28,10 +39,10 @@ local function create_control(self, func, num_args, ...)
             error("A control is already registered with the name '" .. control_name .. "'", 2)
         end
 
-        private[self].NamedControls[control_name] = control
+        private[self].NamedControls[control_name] = result
     end
 
-    return control
+    return result
 end
 
 --[[
@@ -326,12 +337,24 @@ Override Changes:
 for num_args, ctrl_types in pairs({
     [0] = {"CancelButton", "OkButton",},
     [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit", "TextEditor",
-        "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
+        "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown", "ComboBox",
     },
-    [3] = {"HorizontalLine", "VerticalLine",},
+    [3] = {"HorizontalLine", "VerticalLine", "RadioButtonGroup"},
 }) do
     for _, control_type in pairs(ctrl_types) do
-        if not finale.FCCustomWindow.__class["Create" .. control_type] then
+        local type_exists = false
+        if finenv.IsRGPLua then
+            type_exists = finale.FCCustomWindow.__class["Create" .. control_type]      
+        else
+            -- JW Lua crashes if we index the __class table with an invalid key, so instead search it
+            for k, _ in pairs(finale.FCCustomWindow.__class) do
+                if tostring(k) == "Create" .. control_type then
+                    type_exists = true
+                    break
+                end
+            end
+        end
+        if not type_exists then
             goto continue
         end
 
