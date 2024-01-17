@@ -440,6 +440,7 @@ local config = {
     include_end_measure = true
 }
 configuration.get_parameters("playback_selected_region.config.txt", config)
+mute_staves = mute_staves or false
 function set_layer_playback_data(layer_playback_data, region, staff_number)
     layer_playback_data.Play = not region:IsStaffIncluded(staff_number) or not mute_staves
     layer_playback_data.Solo = region:IsStaffIncluded(staff_number) and not mute_staves
