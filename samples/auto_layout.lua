@@ -4,101 +4,150 @@ function plugindef()
     return "0--auto resize width test"
 end
 
+local utils = require('library.utils')
 local mixin = require('library.mixin')
 
-local function win_mac(winval, macval)
-    if finenv.UI():IsOnWindows() then return winval end
-    return macval
-end
-
 function create_dialog()
-    --local dlg = finale.FCCustomLuaWindow()
     local dlg = mixin.FCXCustomLuaWindow()
     dlg:SetTitle(finale.FCString("Test Autolayout"))
 
     local y = 0
+    local line_no = 0
+    local y_increment = 22
+    local label_edit_separ = 3
+    local center_padding = 20
 
-    local ctrl_label = dlg:CreateStatic(0, y)
-    ctrl_label:DoAutoResizeWidth(true)
-    ctrl_label:SetWidth(0)
-    ctrl_label:SetText(finale.FCString("Label:"))
-    local ctrl_edit = dlg:CreateEdit(0, y - win_mac(2, 3))
-    ctrl_edit:SetText(finale.FCString("Editable"))
-    ctrl_edit:AssureNoHorizontalOverlap(ctrl_label, 2)
-    y = y + 20
+    -- left side
+    dlg:CreateStatic(0, line_no * y_increment, "option1-label")
+        :DoAutoResizeWidth(true)
+        :SetWidth(0)
+        :SetText("First Option:")
+    dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option1")
+        :SetInteger(1)
+        :AssureNoHorizontalOverlap(dlg:GetControl("option1-label"), label_edit_separ)
+    line_no = line_no + 1
 
-    local ctrl_checkbox = dlg:CreateCheckbox(0, y)
-    ctrl_checkbox:DoAutoResizeWidth(true)
-    ctrl_checkbox:SetWidth(0)
-    ctrl_checkbox:SetText(finale.FCString("Short."))
-    y = y + 20
+    dlg:CreateCheckbox(0, line_no * y_increment, "left-checkbox1")
+        :DoAutoResizeWidth(true)
+        :SetWidth(0)
+        :SetText("Left Checkbox Option 1")
+    line_no = line_no + 1
 
-    local ctrl_edit2 = dlg:CreateEdit(0, y)
-    ctrl_edit2:DoAutoResizeWidth(true)
-    ctrl_edit2:SetWidth(0)
-    ctrl_edit2:SetText(finale.FCString("Short."))
-    --ctrl_edit2:SetMeasurement(1, finale.MEASUREMENTUNIT_DEFAULT)
-    y = y + 30
+    dlg:CreateStatic(0, line_no * y_increment, "option2-label")
+        :DoAutoResizeWidth(true)
+        :SetWidth(0)
+        :SetText("Second Option:")
+    dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option2")
+        :SetInteger(2)
+        :AssureNoHorizontalOverlap(dlg:GetControl("option2-label"), label_edit_separ)
+        :HorizontallyAlignWith(dlg:GetControl("option1"))
+    line_no = line_no + 1
 
-    local ctrl_button = dlg:CreateButton(0, 70)
-    ctrl_button:DoAutoResizeWidth(true)
-    ctrl_button:SetWidth(0)
-    ctrl_button:SetText(finale.FCString("Short."))
-    y = y + 30
+    dlg:CreateCheckbox(0, line_no * y_increment, "left-checkbox2")
+        :DoAutoResizeWidth(true)
+        :SetWidth(0)
+        :SetText("Left Checkbox Option 2")
+    line_no = line_no + 1
 
-    local popup_label = dlg:CreateStatic(0, y)
-    popup_label:DoAutoResizeWidth(true)
-    popup_label:SetWidth(0)
-    popup_label:SetText(finale.FCString("Popup:"))
-    local ctrl_popup = dlg:CreatePopup(0, y - win_mac(2, 2))
-    ctrl_popup:DoAutoResizeWidth(true)
-    ctrl_popup:SetWidth(0)
-    ctrl_popup:AssureNoHorizontalOverlap(popup_label, 2)
-    --ctrl_popup:HorizontallyAlignWith(ctrl_edit)
-    for k, v in pairs(finale.FCControl.__propget) do
-        print (tostring(k), tostring(v), tostring(ctrl_popup[k]))
-    end
+    -- center line
+    local vertical_line= dlg:CreateVerticalLine(0, 0 - utils.win_mac(2, 3), line_no * y_increment)
+        :AssureNoHorizontalOverlap(dlg:GetControl("option1"), center_padding)
+        :AssureNoHorizontalOverlap(dlg:GetControl("left-checkbox1"), center_padding)
+        :AssureNoHorizontalOverlap(dlg:GetControl("option2"), center_padding)
+        :AssureNoHorizontalOverlap(dlg:GetControl("left-checkbox2"), center_padding)
+    line_no = 0
+
+    -- right side
+    dlg:CreateStatic(0, line_no * y_increment, "option3-label")
+        :DoAutoResizeWidth(true)
+        :SetWidth(0)
+        :SetText("Third Option:")
+        :AssureNoHorizontalOverlap(vertical_line, center_padding)
+    dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option3")
+        :SetInteger(3)
+        :AssureNoHorizontalOverlap(dlg:GetControl("option3-label"), label_edit_separ)
+    line_no = line_no + 1
+
+    dlg:CreateCheckbox(0, line_no * y_increment, "right-checkbox1")
+        :DoAutoResizeWidth(true)
+        :SetWidth(0)
+        :SetText("Right Checkbox Option 1")
+        :AssureNoHorizontalOverlap(vertical_line, center_padding)
+    line_no = line_no + 1
+
+    dlg:CreateStatic(0, line_no * y_increment, "option4-label")
+        :DoAutoResizeWidth(true)
+        :SetWidth(0)
+        :SetText("Fourth Option:")
+        :AssureNoHorizontalOverlap(vertical_line, center_padding)
+    dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option4")
+        :SetInteger(4)
+        :AssureNoHorizontalOverlap(dlg:GetControl("option4-label"), label_edit_separ)
+        :HorizontallyAlignWith(dlg:GetControl("option3"))
+    line_no = line_no + 1
+
+    dlg:CreateButton(0, line_no * y_increment)
+        :DoAutoResizeWidth(true)
+        :SetWidth(0)
+        :SetText("Action Button")
+        :AssureNoHorizontalOverlap(vertical_line, center_padding)
+        :HorizontallyAlignWith(dlg:GetControl("option4"), true)
+    line_no = line_no + 1
+
+    -- horizontal line here
+    line_no = line_no + 1
+
+    -- bottom side
+    local start_line_no = line_no
+    dlg:CreateStatic(0, line_no * y_increment, "popup_label")
+        :DoAutoResizeWidth(true)
+        :SetWidth(0)
+        :SetText("Menu:")
+    local ctrl_popup = dlg:CreatePopup(0, line_no * y_increment - utils.win_mac(2, 2), "popup")
+        :DoAutoResizeWidth(true)
+        :SetWidth(0)
+        :AssureNoHorizontalOverlap(dlg:GetControl("popup_label"), label_edit_separ)
     for counter = 1, 3 do
         if counter == 3 then
-            ctrl_popup:AddString(finale.FCString("This is long option text " .. counter .. "."))
+            ctrl_popup:AddString(finale.FCString("This is long menu text " .. counter .. "."))
         else
             ctrl_popup:AddString(finale.FCString("Short " .. counter .. "."))
         end
     end
-    ctrl_popup:SetSelectedItem(1)
-    y = y + 22
+    ctrl_popup:SetSelectedItem(0)
+    line_no = line_no + 1
 
-    local cbobox_label = dlg:CreateStatic(0, y)
-    cbobox_label:DoAutoResizeWidth(true)
-    cbobox_label:SetWidth(0)
-    cbobox_label:SetText(finale.FCString("ComboBox:"))
-    local ctrl_cbobox = dlg:CreateComboBox(0, y - win_mac(2, 4))
-    ctrl_cbobox:DoAutoResizeWidth(true)
-    ctrl_cbobox:SetWidth(40)
-    ctrl_cbobox:AssureNoHorizontalOverlap(cbobox_label, 2)
-    ctrl_cbobox:HorizontallyAlignWith(ctrl_popup)
-    for k, v in pairs(finale.FCControl.__propget) do
-        print (tostring(k), tostring(v), tostring(ctrl_cbobox[k]))
-    end
+    dlg:CreateStatic(0, line_no * y_increment, "cbobox_label")
+        :DoAutoResizeWidth(true)
+        :SetWidth(0)
+        :SetText("Choices:")
+    local ctrl_cbobox = dlg:CreateComboBox(0, line_no * y_increment - utils.win_mac(2, 4), "cbobox")
+        :DoAutoResizeWidth(true)
+        :SetWidth(40)
+        :AssureNoHorizontalOverlap(dlg:GetControl("cbobox_label"), label_edit_separ)
+        :HorizontallyAlignWith(ctrl_popup)
     for counter = 1, 3 do
         if counter == 3 then
-            ctrl_cbobox:AddString(finale.FCString("This is long option text " .. counter .. "."))
+            ctrl_cbobox:AddString(finale.FCString("This is long text choice " .. counter .. "."))
         else
             ctrl_cbobox:AddString(finale.FCString("Short " .. counter .. "."))
         end
     end
-    ctrl_cbobox:SetSelectedItem(2)
-    y = y + 30
+    ctrl_cbobox:SetSelectedItem(0)
+    line_no = line_no + 1
 
-    local ctrl_radiobuttons = dlg:CreateRadioButtonGroup(0, y, 3)
+    line_no = start_line_no
+    local ctrl_radiobuttons = dlg:CreateRadioButtonGroup(0, line_no * y_increment, 3)
     local counter = 1
     for rbtn in each(ctrl_radiobuttons) do
         rbtn:SetWidth(0)
-        rbtn:DoAutoResizeWidth(true)
+            :DoAutoResizeWidth(true)
+            :AssureNoHorizontalOverlap(ctrl_popup, 10)
+            :AssureNoHorizontalOverlap(ctrl_cbobox, 10)
         if counter == 2 then
-            rbtn:SetText(finale.FCString("This is long option text " .. counter .. "."))
+            rbtn:SetText(finale.FCString("This is longer option text " .. counter))
         else
-            rbtn:SetText(finale.FCString("Short " .. counter .. "."))
+            rbtn:SetText(finale.FCString("Short " .. counter))
         end
         counter = counter + 1
     end
