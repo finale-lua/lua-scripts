@@ -71,7 +71,7 @@ function create_dialog()
     dlg:CreateCheckbox(0, line_no * y_increment, "right-checkbox1")
         :DoAutoResizeWidth(true)
         :SetWidth(0)
-        :SetText("Right Checkbox Option 1")
+        :SetText("Right Three-State Option")
         :SetThreeStatesMode(true)
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
     line_no = line_no + 1
