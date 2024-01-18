@@ -40,7 +40,7 @@ function create_dialog()
     dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option2")
         :SetInteger(2)
         :AssureNoHorizontalOverlap(dlg:GetControl("option2-label"), label_edit_separ)
-        :HorizontallyAlignWith(dlg:GetControl("option1"))
+        :HorizontallyAlignLeftWith(dlg:GetControl("option1"))
     line_no = line_no + 1
 
     dlg:CreateCheckbox(0, line_no * y_increment, "left-checkbox2")
@@ -49,7 +49,7 @@ function create_dialog()
         :SetText("Left Checkbox Option 2")
     line_no = line_no + 1
 
-    -- center line
+    -- center vertical line
     local vertical_line= dlg:CreateVerticalLine(0, 0 - utils.win_mac(2, 3), line_no * y_increment)
         :AssureNoHorizontalOverlap(dlg:GetControl("option1"), center_padding)
         :AssureNoHorizontalOverlap(dlg:GetControl("left-checkbox1"), center_padding)
@@ -83,7 +83,7 @@ function create_dialog()
     dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option4")
         :SetInteger(4)
         :AssureNoHorizontalOverlap(dlg:GetControl("option4-label"), label_edit_separ)
-        :HorizontallyAlignWith(dlg:GetControl("option3"))
+        :HorizontallyAlignLeftWith(dlg:GetControl("option3"))
     line_no = line_no + 1
 
     dlg:CreateButton(0, line_no * y_increment)
@@ -91,10 +91,12 @@ function create_dialog()
         :SetWidth(0)
         :SetText("Action Button")
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
-        :HorizontallyAlignWith(dlg:GetControl("option4"), true)
+        :HorizontallyAlignRightWith(dlg:GetControl("option4"))
     line_no = line_no + 1
 
     -- horizontal line here
+    dlg:CreateHorizontalLine(0, line_no * y_increment + utils.win_mac(7, 5), 20)
+        :StretchToAlignWithRight()
     line_no = line_no + 1
 
     -- bottom side
@@ -109,9 +111,9 @@ function create_dialog()
         :AssureNoHorizontalOverlap(dlg:GetControl("popup_label"), label_edit_separ)
     for counter = 1, 3 do
         if counter == 3 then
-            ctrl_popup:AddString(finale.FCString("This is long menu text " .. counter .. "."))
+            ctrl_popup:AddString(finale.FCString("This is long menu text " .. counter))
         else
-            ctrl_popup:AddString(finale.FCString("Short " .. counter .. "."))
+            ctrl_popup:AddString(finale.FCString("Short " .. counter))
         end
     end
     ctrl_popup:SetSelectedItem(0)
@@ -125,12 +127,12 @@ function create_dialog()
         :DoAutoResizeWidth(true)
         :SetWidth(40)
         :AssureNoHorizontalOverlap(dlg:GetControl("cbobox_label"), label_edit_separ)
-        :HorizontallyAlignWith(ctrl_popup)
+        :HorizontallyAlignLeftWith(ctrl_popup)
     for counter = 1, 3 do
         if counter == 3 then
-            ctrl_cbobox:AddString(finale.FCString("This is long text choice " .. counter .. "."))
+            ctrl_cbobox:AddString(finale.FCString("This is long text choice " .. counter))
         else
-            ctrl_cbobox:AddString(finale.FCString("Short " .. counter .. "."))
+            ctrl_cbobox:AddString(finale.FCString("Short " .. counter))
         end
     end
     ctrl_cbobox:SetSelectedItem(0)
@@ -151,13 +153,11 @@ function create_dialog()
         end
         counter = counter + 1
     end
+    line_no = line_no + 2
 
-    dlg:RegisterInitWindow(function()
-        --ctrl_edit:SetMeasurement(1, finale.MEASUREMENTUNIT_DEFAULT)
-    end)
-
-    dlg:CreateOkButton()
-    dlg:CreateCancelButton()
+    dlg:CreateCloseButton(0, line_no * y_increment + 5)
+        :HorizontallyAlignRightWithFurthest()
+        :DoAutoResizeWidth()
 
     return dlg
 end
