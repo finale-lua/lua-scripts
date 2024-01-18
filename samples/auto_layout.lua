@@ -72,6 +72,7 @@ function create_dialog()
         :DoAutoResizeWidth(true)
         :SetWidth(0)
         :SetText("Right Checkbox Option 1")
+        :SetThreeStatesMode(true)
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
     line_no = line_no + 1
 
