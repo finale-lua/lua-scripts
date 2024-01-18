@@ -342,6 +342,7 @@ function library.get_smufl_font_list()
             -- Starting in 0.67, io.popen may fail due to being untrusted.
             local cmd = finenv.UI():IsOnWindows() and "dir " or "ls "
             local handle = io.popen(cmd .. options .. " \"" .. smufl_directory .. "\"")
+            if not handle then return "" end
             local retval = handle:read("*a")
             handle:close()
             return retval
@@ -573,14 +574,13 @@ function library.system_indent_set_to_prefs(system, page_format_prefs)
 end
 
 --[[
-% calc_script_name
+% calc_script_filepath
 
-Returns the running script name, with or without extension.
+Returns the full filepath of the running script.
 
-@ [include_extension] (boolean) Whether to include the file extension in the return value: `false` if omitted
-: (string) The name of the current running script.
+: (string) a string containing the filepath, encoded in UTF-8
 ]]
-function library.calc_script_name(include_extension)
+function library.calc_script_filepath()
     local fc_string = finale.FCString()
     if finenv.RunningLuaFilePath then
         -- Use finenv.RunningLuaFilePath() if available because it doesn't ever get overwritten when retaining state.
@@ -590,6 +590,20 @@ function library.calc_script_name(include_extension)
         -- SetRunningLuaFilePath is not reliable when retaining state, so later versions use finenv.RunningLuaFilePath.
         fc_string:SetRunningLuaFilePath()
     end
+    return fc_string.LuaString
+end
+
+--[[
+% calc_script_name
+
+Returns the running script name, with or without extension.
+
+@ [include_extension] (boolean) Whether to include the file extension in the return value: `false` if omitted
+: (string) The name of the current running script.
+]]
+function library.calc_script_name(include_extension)
+    local fc_string = finale.FCString()
+    fc_string.LuaString = library.calc_script_filepath()
     local filename_string = finale.FCString()
     fc_string:SplitToPathAndFile(nil, filename_string)
     local retval = filename_string.LuaString

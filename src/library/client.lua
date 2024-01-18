@@ -17,7 +17,7 @@ end
 
 local function requires_later_plugin_version(feature)
     if feature then
-        return "This script uses " .. to_human_string(feature) .. "which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
+        return "This script uses " .. to_human_string(feature) .. " which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
     end
     return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
 end
@@ -108,6 +108,10 @@ local features = {
         test = finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1),
         error = requires_finale_version("27.1", "a SMUFL font"),
     },
+    luaosutils = {
+        test = finenv.EmbeddedLuaOSUtils,
+        error = requires_later_plugin_version("the embedded luaosutils library")
+    }
 }
 
 --[[
@@ -154,6 +158,34 @@ function client.assert_supports(feature)
         error("Your Finale version does not support " .. to_human_string(feature), error_level)
     end
     return true
+end
+
+
+--[[
+% encode_with_client_codepage
+
+If the client supports LuaOSUtils, the filepath is encoded from UTF-8 to the current client
+encoding. On macOS, this is always also UTF-8, so the situation where the string may be re-encoded
+is only on Windows. (Recent versions of Windows also allow UTF-8 as the client encoding, so it may
+not be re-encoded even on Windows.)
+
+If LuaOSUtils is not available, the string is returned unchanged.
+
+A primary use-case for this function is filepaths. Windows requires 8-bit filepaths to be encoded
+with the client codepage.
+
+@ input_string (string) the UTF-encoded string to re-encode
+: (string) the string re-encoded with the clieng codepage
+]]
+
+function client.encode_with_client_codepage(input_string)
+    if client.supports("luaosutils") then
+        local text = require("luaosutils").text
+        if text and text.get_default_codepage() ~= text.get_utf8_codepage() then
+            return text.convert_encoding(input_string, text.get_utf8_codepage(), text.get_default_codepage())
+        end
+    end
+    return input_string
 end
 
 return client
