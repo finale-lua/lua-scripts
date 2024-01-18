@@ -11,9 +11,27 @@ local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}
 local methods = class.Methods
+local private = setmetatable({}, {__mode = "k"})
 
 local trigger_check_change
 local each_last_check_change
+
+--[[
+% Init
+
+**[Internal]**
+
+@ self (FCMCtrlCheckbox)
+]]
+function class:Init()
+    if private[self] then
+        return
+    end
+
+    private[self] = {
+        Check = 0,
+    }
+end
 
 --[[
 % SetCheck
@@ -77,5 +95,39 @@ methods.AddHandleCheckChange, methods.RemoveHandleCheckChange, trigger_check_cha
         initial = 0,
     }
 )
+
+--[[
+% StoreState
+
+**[Fluid] [Internal] [Override]**
+
+Override Changes:
+- Stores `FCMCtrlCheckbox`-specific properties.
+
+*Do not disable this method. Override as needed but call the parent first.*
+
+@ self (FCMCtrlCheckbox)
+]]
+function methods:StoreState()
+    mixin.FCMControl.StoreState(self)
+    private[self].Check = self:GetCheck__()
+end
+
+--[[
+% RestoreState
+
+**[Fluid] [Internal] [Override]**
+
+Override Changes:
+- Restores `FCMCtrlCheckbox`-specific properties.
+
+*Do not disable this method. Override as needed but call the parent first.*
+
+@ self (FCMCtrlCheckbox)
+]]
+function methods:RestoreState()
+    mixin.FCMControl.RestoreState(self)
+    self:SetCheck__(private[self].Check)
+end
 
 return class
