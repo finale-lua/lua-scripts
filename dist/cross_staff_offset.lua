@@ -376,12 +376,33 @@ package.preload["mixin.FCMCtrlCheckbox"] = package.preload["mixin.FCMCtrlCheckbo
     local mixin_helper = require("library.mixin_helper")
     local class = {Methods = {}}
     local methods = class.Methods
+    local private = setmetatable({}, {__mode = "k"})
     local trigger_check_change
     local each_last_check_change
 
+    function class:Init()
+        if private[self] then
+            return
+        end
+        private[self] = {
+            Check = 0,
+        }
+    end
+
+    function methods:GetCheck()
+        if mixin.FCMControl.UseStoredState(self) then
+            return private[self].Check
+        end
+        return self:GetCheck__()
+    end
+
     function methods:SetCheck(checked)
         mixin_helper.assert_argument_type(2, checked, "number")
-        self:SetCheck__(checked)
+        if mixin.FCMControl.UseStoredState(self) then
+            private[self].Check = checked
+        else
+            self:SetCheck__(checked)
+        end
         trigger_check_change(self)
     end
 
@@ -396,6 +417,16 @@ package.preload["mixin.FCMCtrlCheckbox"] = package.preload["mixin.FCMCtrlCheckbo
             initial = 0,
         }
     )
+
+    function methods:StoreState()
+        mixin.FCMControl.StoreState(self)
+        private[self].Check = self:GetCheck__()
+    end
+
+    function methods:RestoreState()
+        mixin.FCMControl.RestoreState(self)
+        self:SetCheck__(private[self].Check)
+    end
     return class
 end
 package.preload["mixin.FCMCtrlDataList"] = package.preload["mixin.FCMCtrlDataList"] or function()
