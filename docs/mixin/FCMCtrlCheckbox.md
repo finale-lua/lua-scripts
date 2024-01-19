@@ -5,10 +5,49 @@
 
 ## Functions
 
+- [Init(self)](#init)
+- [GetCheck(self)](#getcheck)
 - [SetCheck(self, checked)](#setcheck)
 - [HandleCheckChange(control, last_check)](#handlecheckchange)
 - [AddHandleCheckChange(self, callback)](#addhandlecheckchange)
 - [RemoveHandleCheckChange(self, callback)](#removehandlecheckchange)
+- [StoreState(self)](#storestate)
+- [RestoreState(self)](#restorestate)
+
+### Init
+
+```lua
+fcmctrlcheckbox.Init(self)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L26)
+
+**[Internal]**
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCtrlCheckbox` |  |
+
+### GetCheck
+
+```lua
+fcmctrlcheckbox.GetCheck(self)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L47)
+
+**[Override]**
+
+Override Changes:
+- Hooks into control state preservation.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCtrlCheckbox` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` |  |
 
 ### SetCheck
 
@@ -16,7 +55,7 @@
 fcmctrlcheckbox.SetCheck(self, checked)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L29)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L66)
 
 **[Fluid] [Override]**
 
@@ -34,7 +73,7 @@ Override Changes:
 fcmctrlcheckbox.HandleCheckChange(control, last_check)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L47)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L88)
 
 **[Callback Template]**
 
@@ -49,7 +88,7 @@ fcmctrlcheckbox.HandleCheckChange(control, last_check)
 fcmctrlcheckbox.AddHandleCheckChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L66)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L107)
 
 **[Fluid]**
 
@@ -70,7 +109,7 @@ The event will fire when:
 fcmctrlcheckbox.RemoveHandleCheckChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L71)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L112)
 
 **[Fluid]**
 
@@ -80,3 +119,41 @@ Removes a handler added with `AddHandleCheckChange`.
 | ----- | ---- | ----------- |
 | `self` | `FCMCtrlCheckbox` |  |
 | `callback` | `function` |  |
+
+### StoreState
+
+```lua
+fcmctrlcheckbox.StoreState(self)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L134)
+
+**[Fluid] [Internal] [Override]**
+
+Override Changes:
+- Stores `FCMCtrlCheckbox`-specific properties.
+
+*Do not disable this method. Override as needed but call the parent first.*
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCtrlCheckbox` |  |
+
+### RestoreState
+
+```lua
+fcmctrlcheckbox.RestoreState(self)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlCheckbox.lua#L151)
+
+**[Fluid] [Internal] [Override]**
+
+Override Changes:
+- Restores `FCMCtrlCheckbox`-specific properties.
+
+*Do not disable this method. Override as needed but call the parent first.*
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMCtrlCheckbox` |  |

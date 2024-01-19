@@ -719,12 +719,33 @@ package.preload["mixin.FCMCtrlCheckbox"] = package.preload["mixin.FCMCtrlCheckbo
     local mixin_helper = require("library.mixin_helper")
     local class = {Methods = {}}
     local methods = class.Methods
+    local private = setmetatable({}, {__mode = "k"})
     local trigger_check_change
     local each_last_check_change
 
+    function class:Init()
+        if private[self] then
+            return
+        end
+        private[self] = {
+            Check = 0,
+        }
+    end
+
+    function methods:GetCheck()
+        if mixin.FCMControl.UseStoredState(self) then
+            return private[self].Check
+        end
+        return self:GetCheck__()
+    end
+
     function methods:SetCheck(checked)
         mixin_helper.assert_argument_type(2, checked, "number")
-        self:SetCheck__(checked)
+        if mixin.FCMControl.UseStoredState(self) then
+            private[self].Check = checked
+        else
+            self:SetCheck__(checked)
+        end
         trigger_check_change(self)
     end
 
@@ -739,6 +760,16 @@ package.preload["mixin.FCMCtrlCheckbox"] = package.preload["mixin.FCMCtrlCheckbo
             initial = 0,
         }
     )
+
+    function methods:StoreState()
+        mixin.FCMControl.StoreState(self)
+        private[self].Check = self:GetCheck__()
+    end
+
+    function methods:RestoreState()
+        mixin.FCMControl.RestoreState(self)
+        self:SetCheck__(private[self].Check)
+    end
     return class
 end
 package.preload["mixin.FCMCtrlDataList"] = package.preload["mixin.FCMCtrlDataList"] or function()
@@ -2245,18 +2276,27 @@ package.preload["mixin.FCMCustomWindow"] = package.preload["mixin.FCMCustomWindo
     local methods = class.Methods
     local private = setmetatable({}, {__mode = "k"})
     local function create_control(self, func, num_args, ...)
-        local control = self["Create" .. func .. "__"](self, ...)
-        private[self].Controls[control:GetControlID()] = control
-        control:RegisterParent(self)
+        local result = self["Create" .. func .. "__"](self, ...)
+        local function add_control(control)
+            private[self].Controls[control:GetControlID()] = control
+            control:RegisterParent(self)
+        end
+        if func == "RadioButtonGroup" then
+            for control in each(result) do
+                add_control(control)
+            end
+        else
+            add_control(result)
+        end
         local control_name = select(num_args + 1, ...)
         if control_name then
             control_name = type(control_name) == "userdata" and control_name.LuaString or control_name
             if private[self].NamedControls[control_name] then
                 error("A control is already registered with the name '" .. control_name .. "'", 2)
             end
-            private[self].NamedControls[control_name] = control
+            private[self].NamedControls[control_name] = result
         end
-        return control
+        return result
     end
 
     function class:Init()
@@ -2290,12 +2330,24 @@ package.preload["mixin.FCMCustomWindow"] = package.preload["mixin.FCMCustomWindo
     for num_args, ctrl_types in pairs({
         [0] = {"CancelButton", "OkButton",},
         [2] = {"Button", "Checkbox", "CloseButton", "DataList", "Edit", "TextEditor",
-            "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown",
+            "ListBox", "Popup", "Slider", "Static", "Switcher", "Tree", "UpDown", "ComboBox",
         },
-        [3] = {"HorizontalLine", "VerticalLine",},
+        [3] = {"HorizontalLine", "VerticalLine", "RadioButtonGroup"},
     }) do
         for _, control_type in pairs(ctrl_types) do
-            if not finale.FCCustomWindow.__class["Create" .. control_type] then
+            local type_exists = false
+            if finenv.IsRGPLua then
+                type_exists = finale.FCCustomWindow.__class["Create" .. control_type]
+            else
+
+                for k, _ in pairs(finale.FCCustomWindow.__class) do
+                    if tostring(k) == "Create" .. control_type then
+                        type_exists = true
+                        break
+                    end
+                end
+            end
+            if not type_exists then
                 goto continue
             end
             methods["Create" .. control_type] = function(self, ...)
@@ -3280,7 +3332,7 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
 
             if private[self].AlignWhenMoving then
 
-                local num_steps = tonumber(tostring(value / step_def.value))
+                local num_steps = tonumber(tostring(value / step_def.value)) or 0
                 if num_steps ~= math.floor(num_steps) then
                     if delta > 0 then
                         value = math.ceil(num_steps) * step_def.value
