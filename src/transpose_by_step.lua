@@ -1,4 +1,4 @@
-function plugindef()
+function plugindef(locale)
     finaleplugin.RequireSelection = false
     finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"
@@ -14,23 +14,37 @@ function plugindef()
         Normally the script opens a modeless window. However, if you invoke the plugin with a shift, option, or
         alt key pressed, it skips opening a window and uses the last settings you entered into the window.
         (This works with RGP Lua version 0.60 and higher.)
-        
+
         If you are using custom key signatures with JW Lua or an early version of RGP Lua, you must create
         a custom_key_sig.config.txt file in a folder called `script_settings` within the same folder as the script.
         It should contains the following two lines that define the custom key signature you are using. Unfortunately,
         the JW Lua and early versions of RGP Lua do not allow scripts to read this information from the Finale document.
-        
+
         (This example is for 31-EDO.)
-        
+
         ```
         number_of_steps = 31
         diatonic_steps = {0, 5, 10, 13, 18, 23, 28}
         ```
-        
+
         Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
-    return "Transpose By Steps...", "Transpose By Steps", "Transpose by the number of steps given, simplifying spelling as needed."
+    local loc = {}
+    loc.en = {
+        menu = "Transpose By Steps",
+        desc = "Transpose by the number of steps given, simplifying spelling as needed."
+    }
+    loc.es = {
+        menu = "Transponer Por Pasos",
+        desc = "Transponer por el número de pasos dado, simplificando la ortografía según sea necesario.",
+    }
+    loc.de = {
+        menu = "Transponieren nach Schritten",
+        desc = "Transponieren Sie nach der angegebenen Anzahl von Schritten und vereinfachen Sie die Schreibweise nach Bedarf.",
+    }
+    local t = locale and loc[locale:sub(1,2)] or loc.en
+    return t.menu .. "...", t.menu, t.desc
 end
 
 -- luacheck: ignore 11./global_dialog
