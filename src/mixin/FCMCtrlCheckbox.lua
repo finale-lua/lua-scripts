@@ -34,6 +34,25 @@ function class:Init()
 end
 
 --[[
+% GetCheck
+
+**[Override]**
+
+Override Changes:
+- Hooks into control state preservation.
+
+@ self (FCMCtrlCheckbox)
+: (number)
+]]
+function methods:GetCheck()
+    if mixin.FCMControl.UseStoredState(self) then
+        return private[self].Check
+    end
+
+    return self:GetCheck__()
+end
+
+--[[
 % SetCheck
 
 **[Fluid] [Override]**
@@ -47,7 +66,11 @@ Override Changes:
 function methods:SetCheck(checked)
     mixin_helper.assert_argument_type(2, checked, "number")
 
-    self:SetCheck__(checked)
+    if mixin.FCMControl.UseStoredState(self) then
+        private[self].Check = checked
+    else
+        self:SetCheck__(checked)
+    end
 
     trigger_check_change(self)
 end
