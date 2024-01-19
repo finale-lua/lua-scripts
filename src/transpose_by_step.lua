@@ -33,15 +33,15 @@ function plugindef(locale)
     local loc = {}
     loc.en = {
         menu = "Transpose By Steps",
-        desc = "Transpose by the number of steps given, simplifying spelling as needed."
+        desc = "Transpose by the number of steps given, simplifying the note spelling as needed."
     }
     loc.es = {
         menu = "Transponer Por Pasos",
-        desc = "Transponer por el número de pasos dado, simplificando la ortografía según sea necesario.",
+        desc = "Transponer por el número de pasos dado, simplificando la enarmonización según sea necesario.",
     }
     loc.de = {
         menu = "Transponieren nach Schritten",
-        desc = "Transponieren Sie nach der angegebenen Anzahl von Schritten und vereinfachen Sie die Schreibweise nach Bedarf.",
+        desc = "Transponieren Sie nach der angegebenen Anzahl von Schritten und vereinfachen Sie die Notation nach Bedarf.",
     }
     local t = locale and loc[locale:sub(1,2)] or loc.en
     return t.menu .. "...", t.menu, t.desc

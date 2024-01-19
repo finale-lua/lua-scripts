@@ -301,24 +301,24 @@ A localized version of the same function might look like this:
 
 ```lua
 function plugindef(locale)
+    finaleplugin.RequireSelection = true
+    finaleplugin.CategoryTags = "Rest, Region"
     local localization = {}
     localization.en = {
-        ["Hide Rests"] = "Hide Rests",
-        ["Hides all rests in the selected region."] = "Hides all rests in the selected region."
+        menu = "Hide Rests",
+        desc = "Hides all rests in the selected region."
     }
     localization.es = {
-        ["Hide Rests"] = "Ocultar Silencios",
-        ["Hides all rests in the selected region."] = "Oculta todos los silencios en la región seleccionada."
+        menu = "Ocultar Silencios",
+        desc = "Oculta todos los silencios en la región seleccionada."
     }
     localization.jp = {
-        ["Hide Rests"] = "休符を隠す",
-        ["Hides all rests in the selected region."] = "選択した領域内のすべての休符を隠します。",
+        menu = "休符を隠す",
+        desc = "選択した領域内のすべての休符を隠します。",
     }
     -- add more localizations as desired
     local t = locale and localization[locale:sub(1,2)] or localization.en
-    finaleplugin.RequireSelection = true
-    finaleplugin.CategoryTags = "Rest, Region"
-    return t["Hide Rests"], t["Hide Rests"], t["Hides all rests in the selected region."]
+    return t.menu, t.menu, t.desc
 end
 ```
 
