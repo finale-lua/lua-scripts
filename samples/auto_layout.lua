@@ -12,7 +12,7 @@ local localization = require('library.localization')
 -- This table was auto-generated with localization_developer.create_localized_base_table_string(en)
 -- Then it was edited to include only the strings that need to be localized.
 --
-localization_en =
+localization.en = -- this is en_GB due to spelling of "Localisation"
 {
     ["Action Button"] = "Action Button",
     ["Choices"] = "Choices",
@@ -24,19 +24,24 @@ localization_en =
     ["Right Three-State Option"] = "Right Three-State Option",
     ["Second Option"] = "Second Option",
     ["Short "] = "Short ",
-    ["Test Autolayout"] = "Test Autolayout",
+    ["Test Autolayout With Localisation"] = "Test Autolayout With Localisation",
     ["Third Option"] = "Third Option",
     ["This is long menu text "] = "This is long menu text ",
     ["This is long text choice "] = "This is long text choice ",
     ["This is longer option text "] = "This is longer option text ",
 }
 
+localization.en_US =
+{
+    ["Test Autolayout With Localisation"] = "Test Autolayout With Localization",
+}
+
 --
 -- The rest of the localization tables were created one-at-a-time with the auto_layout_localizing_script.lua
 --
--- This table was auto-generated with localization_developer.translate_localized_table_string(localization_en, "en", "es")
+-- This table was auto-generated with localization_developer.translate_localized_table_string(localization.en, "en", "es")
 --
-localization_es = {
+localization.es = {
     ["Action Button"] = "Botón de Acción",
     ["Choices"] = "Opciones",
     ["First Option"] = "Primera Opción",
@@ -47,7 +52,7 @@ localization_es = {
     ["Right Three-State Option"] = "Opción de Tres Estados a la Derecha",
     ["Second Option"] = "Segunda Opción",
     ["Short "] = "Corto ",
-    ["Test Autolayout"] = "Prueba de Autodiseño",
+    ["Test Autolayout With Localisation"] = "Prueba de Autodiseño con Localización",
     ["Third Option"] = "Tercera Opción",
     ["This is long menu text "] = "Este es un texto de menú largo ",
     ["This is long text choice "] = "Esta es una elección de texto largo ",
@@ -55,9 +60,9 @@ localization_es = {
 }
 
 --
--- This table was auto-generated with localization_developer.translate_localized_table_string(localization_en, "en", "es")
+-- This table was auto-generated with localization_developer.translate_localized_table_string(localization.en, "en", "es")
 --
-localization_jp = {
+localization.jp = {
     ["Action Button"] = "アクションボタン",
     ["Choices"] = "選択肢",
     ["First Option"] = "最初のオプション",
@@ -68,7 +73,7 @@ localization_jp = {
     ["Right Three-State Option"] = "右三状態オプション",
     ["Second Option"] = "第二のオプション",
     ["Short "] = "短い ",
-    ["Test Autolayout"] = "テスト自動レイアウト",
+    ["Test Autolayout With Localisation"] = "ローカリゼーションでのオートレイアウトのテスト",
     ["Third Option"] = "第三のオプション",
     ["This is long menu text "] = "これは長いメニューテキストです ",
     ["This is long text choice "] = "これは長いテキスト選択です ",
@@ -76,9 +81,9 @@ localization_jp = {
 }
 
 --
--- This table was auto-generated with localization_developer.translate_localized_table_string(localization_en, "en", "de")
+-- This table was auto-generated with localization_developer.translate_localized_table_string(localization.en, "en", "de")
 --
-localization_de = {
+localization.de = {
     ["Action Button"] = "Aktionsknopf",
     ["Choices"] = "Auswahlmöglichkeiten",
     ["First Option"] = "Erste Option",
@@ -89,14 +94,14 @@ localization_de = {
     ["Right Three-State Option"] = "Rechte Dreizustandsoption",
     ["Second Option"] = "Zweite Option",
     ["Short "] = "Kurz ",
-    ["Test Autolayout"] = "Test Autolayout",
+    ["Test Autolayout With Localisation"] = "Test von Autolayout mit Lokalisierung",
     ["Third Option"] = "Dritte Option",
     ["This is long menu text "] = "Dies ist ein langer Menütext ",
     ["This is long text choice "] = "Dies ist eine lange Textauswahl ",
     ["This is longer option text "] = "Dies ist ein längerer Optionstext ",
 }
 
-localization_fr = {
+localization.fr = {
     ["Action Button"] = "Bouton d'action",
     ["Choices"] = "Choix",
     ["First Option"] = "Première Option",
@@ -107,14 +112,14 @@ localization_fr = {
     ["Right Three-State Option"] = "Option à trois états à droite",
     ["Second Option"] = "Deuxième Option",
     ["Short "] = "Court ",
-    ["Test Autolayout"] = "Test Autolayout",
+    ["Test Autolayout With Localisation"] = "Test de AutoLayout avec Localisation",
     ["Third Option"] = "Troisième Option",
     ["This is long menu text "] = "Ceci est un long texte de menu ",
     ["This is long text choice "] = "Ceci est un long choix de texte ",
     ["This is longer option text "] = "Ceci est un texte d'option plus long ",
 }
 
-localization_zh = {
+localization.zh = {
     ["Action Button"] = "操作按钮",
     ["Choices"] = "选择：",
     ["First Option"] = "第一选项：",
@@ -125,14 +130,14 @@ localization_zh = {
     ["Right Three-State Option"] = "右侧三态选项",
     ["Second Option"] = "第二选项：",
     ["Short "] = "短 ",
-    ["Test Autolayout"] = "测试自动布局",
+    ["Test Autolayout With Localisation"] = "自动布局与本地化测试",
     ["Third Option"] = "第三选项：",
     ["This is long menu text "] = "这是长菜单文本 ",
     ["This is long text choice "] = "这是长文本选择 ",
     ["This is longer option text "] = "这是更长的选项文本 ",
 }
 
-localization_ar = {
+localization.ar = {
     ["Action Button"] = "زر العمل",
     ["Choices"] = "الخيارات",
     ["First Option"] = "الخيار الأول",
@@ -143,14 +148,14 @@ localization_ar = {
     ["Right Three-State Option"] = "خيار الحالة الثلاثية اليمين",
     ["Second Option"] = "الخيار الثاني",
     ["Short "] = "قصير ",
-    ["Test Autolayout"] = "اختبار التخطيط التلقائي",
+    ["Test Autolayout With Localisation"] = "اختبار التخطيط التلقائي مع التعريب",
     ["Third Option"] = "الخيار الثالث",
     ["This is long menu text "] = "هذا نص قائمة طويل ",
     ["This is long text choice "] = "هذا خيار نص طويل ",
     ["This is longer option text "] = "هذا نص خيار أطول ",
 }
 
-localization_fa = {
+localization.fa = {
     ["Action Button"] = "دکمه عملیات",
     ["Choices"] = "گزینه ها",
     ["First Option"] = "گزینه اول",
@@ -161,18 +166,18 @@ localization_fa = {
     ["Right Three-State Option"] = "گزینه سه حالته سمت راست",
     ["Second Option"] = "گزینه دوم",
     ["Short "] = "کوتاه ",
-    ["Test Autolayout"] = "تست خودکار طرح بندی",
+    ["Test Autolayout With Localisation"] = "تست آتولایوت با بومی سازی",
     ["Third Option"] = "گزینه سوم",
     ["This is long menu text "] = "این متن منوی طولانی است ",
     ["This is long text choice "] = "این یک انتخاب متن طولانی است ",
     ["This is longer option text "] = "این متن گزینه طولانی تر است ",
 }
 
-localization.set_language("fa")
+--localization.set_locale("fa")
 
 function create_dialog()
     local dlg = mixin.FCXCustomLuaWindow()
-    dlg:SetTitle(localization.localize("Test Autolayout"))
+    dlg:SetTitle(localization.localize("Test Autolayout With Localisation"))
 
     local y = 0
     local line_no = 0

@@ -85,7 +85,7 @@ end
 
 local function make_flat_table_string(lang, t)
     local concat = {}
-    table.insert(concat, "localization_" .. lang .. " = {\n")
+    table.insert(concat, "localization." .. lang .. " = {\n")
     for k, v in pairsbykeys(t) do
         table.insert(concat, "    [\"" .. tostring(k) .. "\"] = \"" .. tostring(v) .. "\",\n")
     end
@@ -120,8 +120,8 @@ function localization_developer.translate_localized_table_string(source_table, s
     ]] .. "Here is a lua table of keys and values:\n\n```\n" .. table_string .. "\n```\n" ..
                         [[
                     Provide a string that is Lua source code of a table definition of a table that has the same keys
-                    but with the values translated to languages specified by the code
-                ]] .. target_lang .. ". The table name should be `localization_`" .. target_lang .. "`.\n" ..
+                    but with the values translated to locale specified by the code
+                ]] .. target_lang .. ". The table name should be `localization." .. target_lang .. "`.\n" ..
                 [[
                     Return only the Lua code without any commentary. There may or may not be musical terms
                     in the provided text. This information is provided for context if needed.
