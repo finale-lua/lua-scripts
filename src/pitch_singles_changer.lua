@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.04"
-    finaleplugin.Date = "2024/01/11"
+    finaleplugin.Version = "0.05"
+    finaleplugin.Date = "2024/01/20"
     finaleplugin.CategoryTags = "Entries, Pitch, Transposition"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = [[
@@ -152,8 +152,8 @@ local function change_pitches()
 
         for note in each(entry) do
             note:GetString(pitch_str, keysig, false, false)
-            for i, v in ipairs(pitch_set) do
-                if pitch_str.LuaString == v[1] then
+            for _, v in ipairs(pitch_set) do
+                if pitch_str.LuaString == v[1] and v[2] ~= "" then
                     pitch_str.LuaString = v[2]
                     note:SetString(pitch_str, keysig, false)
                 end
