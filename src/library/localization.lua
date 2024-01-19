@@ -10,13 +10,13 @@ local localization = require("library.localization")
 --
 -- append localizations to the library table:
 --
-localization.en = {
+localization.en = localization.en or {
     ["Hello"] = "Hello",
     ["Goodbye"] = "Goodbye",
     ["Computer"] = "Computer"
 }
 
-localization.es = {
+localization.es = localization.es or {
     ["Hello"] = "Hola",
     ["Goodbye"] = "Adiós",
     ["Computer"] = "Ordenador"
@@ -24,11 +24,11 @@ localization.es = {
 
 -- specific localization for Mexico
 -- it is only necessary to specify items that are different from the fallback language table.
-localization.es_MX = {
+localization.es_MX = localization.es_MX or {
     ["Computer"] = "Computadora"
 }
 
-localization.jp = {
+localization.jp = localization.jp or {
     ["Hello"] = "今日は",
     ["Goodbye"] = "さようなら",
     ["Computer"] =  "コンピュータ" 
@@ -86,9 +86,11 @@ Localizes a string based on the localization language
 : (string) the localized version of the string or input_string if not found
 ]]
 function localization.localize(input_string)
-    assert(type(locale) == "string", "no localization language is set")
     assert(type(input_string) == "string", "expected string, got " .. type(input_string))
 
+    if not locale then return input_string end
+    assert(type(locale) == "string", "invalid locale setting " .. tostring(locale))
+    
     local t = localization[locale]
     if t and t[input_string] then
         return t[input_string]

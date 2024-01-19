@@ -41,7 +41,7 @@ function plugindef(locale)
     }
     loc.de = {
         menu = "Transponieren nach Schritten",
-        desc = "Transponieren Sie nach der angegebenen Anzahl von Schritten und vereinfachen Sie die Notation nach Bedarf.",
+        desc = "Transponieren nach der angegebenen Anzahl von Schritten und vereinfachen die Notation nach Bedarf.",
     }
     local t = locale and loc[locale:sub(1,2)] or loc.en
     return t.menu .. "...", t.menu, t.desc
@@ -57,12 +57,38 @@ end
 
 local transposition = require("library.transposition")
 local mixin = require("library.mixin")
+local loc = require("library.localization")
+local utils = require("library.utils")
+
+loc.en = loc.en or {
+    ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
+        "Finale is unable to represent some of the transposed pitches. These pitches were left at their original value.",
+    ["Number Of Steps"] = "Number Of Steps",
+    ["Transpose By Steps"] = "Transpose By Steps",
+    ["Transposition Error"] = "Transposition Error",
+}
+
+loc.es = loc.es or {
+    ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
+        "Finale no puede representar algunas de las notas transpuestas. Estas notas se dejaron en su valor original.",
+    ["Number Of Steps"] = "Número De Pasos",
+    ["Transpose By Steps"] = "Transponer Por Pasos",
+    ["Transposition Error"] = "Error De Transposición",
+}
+
+loc.de = loc.de or {
+    ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
+        "Finale kann einige der transponierten Töne nicht darstellen. Diese Töne wurden auf ihren ursprünglichen Wert belassen.",
+    ["Number Of Steps"] = "Anzahl der Schritte",
+    ["Transpose By Steps"] = "Transponieren nach Schritten",
+    ["Transposition Error"] = "Transpositionsfehler",
+}
 
 function do_transpose_by_step(global_number_of_steps_edit)
     if finenv.Region():IsEmpty() then
         return
     end
-    local undostr = "Transpose By Steps " .. tostring(finenv.Region().StartMeasure)
+    local undostr = loc.localize("Transpose By Steps") .. " " .. tostring(finenv.Region().StartMeasure)
     if finenv.Region().StartMeasure ~= finenv.Region().EndMeasure then
         undostr = undostr .. " - " .. tostring(finenv.Region().EndMeasure)
     end
@@ -80,18 +106,22 @@ function do_transpose_by_step(global_number_of_steps_edit)
         finenv.StartNewUndoBlock(undostr, true) -- JW Lua automatically terminates the final undo block we start here
     end
     if not success then
-        finenv.UI():AlertError("Finale is unable to represent some of the transposed pitches. These pitches were left at their original value.", "Transposition Error")
+        finenv.UI():AlertError(
+            loc.localize(
+                "Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."),
+            loc.localize("Transposition Error")
+        )
     end
     return success
 end
 
 function create_dialog_box()
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Transpose By Steps")
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(loc.localize("Transpose By Steps"))
     local current_y = 0
     local x_increment = 105
     -- number of steps
-    dialog:CreateStatic(0, current_y + 2):SetText("Number Of Steps:")
-    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
+    dialog:CreateStatic(0, current_y + 2):SetText(loc.localize("Number Of Steps"))
+    local edit_x = x_increment + utils.win_mac(0, 4)
     dialog:CreateEdit(edit_x, current_y, "num_steps"):SetText("")
     -- ok/cancel
     dialog:CreateOkButton()

@@ -85,7 +85,7 @@ end
 
 local function make_flat_table_string(lang, t)
     local concat = {}
-    table.insert(concat, "localization." .. lang .. " = {\n")
+    table.insert(concat, "localization." .. lang .. " = "localization." .. lang .. " or {\n")
     for k, v in pairsbykeys(t) do
         table.insert(concat, "    [\"" .. tostring(k) .. "\"] = \"" .. tostring(v) .. "\",\n")
     end
@@ -131,7 +131,7 @@ function localization_developer.translate_localized_table_string(source_table, s
     if success then
         local retval = string.gsub(result.choices[1].message.content, "```", "")
         finenv.UI():TextToClipboard(retval)
-        finenv.UI():AlertInfo("localization_" .. target_lang .. " table copied to clipboard", "")
+        finenv.UI():AlertInfo("localization." .. target_lang .. " table copied to clipboard", "")
     else
         finenv.UI():AlertError(result, "OpenAI Error")
     end
