@@ -70,10 +70,10 @@ loc.en = loc.en or {
 
 loc.es = loc.es or {
     ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
-        "Finale no puede representar algunas de las notas transpuestas. Estas notas se dejaron en su valor original.",
+        "Finale no puede representar algunas de las notas traspuestas. Estas notas no se han cambiado.",
     ["Number Of Steps"] = "Número De Pasos",
-    ["Transpose By Steps"] = "Transponer Por Pasos",
-    ["Transposition Error"] = "Error De Transposición",
+    ["Transpose By Steps"] = "Trasponer Por Pasos",
+    ["Transposition Error"] = "Error De Trasposición",
 }
 
 loc.de = loc.de or {

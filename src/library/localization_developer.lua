@@ -85,7 +85,7 @@ end
 
 local function make_flat_table_string(lang, t)
     local concat = {}
-    table.insert(concat, "localization." .. lang .. " = "localization." .. lang .. " or {\n")
+    table.insert(concat, "localization." .. lang .. " = localization." .. lang .. " or {\n")
     for k, v in pairsbykeys(t) do
         table.insert(concat, "    [\"" .. tostring(k) .. "\"] = \"" .. tostring(v) .. "\",\n")
     end
