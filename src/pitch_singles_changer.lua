@@ -29,7 +29,7 @@ end
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local utils = require("library.utils")
-local library = require("libary.general_library")
+local library = require("library.general_library")
 
 local cjson = utils.require_embedded("cjson")
 
@@ -78,7 +78,7 @@ end
 local function user_selects_pitches(pitches)
     local y, yd, x = 0, 25, { 83, 126, 150 }
     local answer = {}
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef():gsub("%.%.%.", ""))
         local function cstat(dx, dy, txt, wid)
             local y_off = finenv.UI():IsOnMac() and 3 or 0
             return dialog:CreateStatic(dx, dy + y_off):SetText(txt):SetWidth(wid)
