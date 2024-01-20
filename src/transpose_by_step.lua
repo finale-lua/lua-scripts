@@ -17,7 +17,7 @@ function plugindef(locale)
 
         If you are using custom key signatures with JW Lua or an early version of RGP Lua, you must create
         a custom_key_sig.config.txt file in a folder called `script_settings` within the same folder as the script.
-        It should contains the following two lines that define the custom key signature you are using. Unfortunately,
+        It should contain the following two lines that define the custom key signature you are using. Unfortunately,
         the JW Lua and early versions of RGP Lua do not allow scripts to read this information from the Finale document.
 
         (This example is for 31-EDO.)
@@ -62,8 +62,8 @@ local utils = require("library.utils")
 
 if finenv.IsRGPLua then
     loc.en = loc.en or {
-        ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
-            "Finale is unable to represent some of the transposed pitches. These pitches were left at their original value.",
+        ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
+            "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",
         ["Number Of Steps"] = "Number Of Steps",
         ["Transpose By Steps"] = "Transpose By Steps",
         ["Transposition Error"] = "Transposition Error",
@@ -72,7 +72,7 @@ if finenv.IsRGPLua then
     }
 
     loc.es = loc.es or {
-        ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
+        ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
             "Finale no puede representar algunas de las notas traspuestas. Estas notas no se han cambiado.",
         ["Number Of Steps"] = "Número De Pasos",
         ["Transpose By Steps"] = "Trasponer Por Pasos",
@@ -82,8 +82,8 @@ if finenv.IsRGPLua then
     }
 
     loc.de = loc.de or {
-        ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
-            "Finale kann einige der transponierten Töne nicht darstellen. Diese Töne wurden auf ihren ursprünglichen Wert belassen.",
+        ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
+            "Finale kann einige der transponierten Tönhöhen nicht darstellen. Diese Tönhöhen wurden unverändert gelassen.",
         ["Number Of Steps"] = "Anzahl der Schritte",
         ["Transpose By Steps"] = "Transponieren nach Schritten",
         ["Transposition Error"] = "Transpositionsfehler",
@@ -116,7 +116,7 @@ function do_transpose_by_step(global_number_of_steps_edit)
     if not success then
         finenv.UI():AlertError(
             loc.localize(
-                "Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."),
+                "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."),
             loc.localize("Transposition Error")
         )
     end
