@@ -76,7 +76,7 @@ if finenv.IsRGPLua then
             "Finale no puede representar algunas de las notas traspuestas. Estas notas no se han cambiado.",
         ["Number Of Steps"] = "Número De Pasos",
         ["Transpose By Steps"] = "Trasponer Por Pasos",
-        ["Transposition Error"] = "Error De Trasposición",
+        ["Transposition Error"] = "Error de trasposición",
         ["OK"] = "Aceptar",
         ["Cancel"] = "Cancelar",
     }

@@ -1,4 +1,4 @@
-function plugindef()
+function plugindef(locale)
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -26,11 +26,43 @@ function plugindef()
         Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
-    return "Enharmonic Transpose Up", "Enharmonic Transpose Up",
-           "Transpose up enharmonically all notes in selected regions."
+    local loc = {}
+    loc.en = {
+        menu = "Enharmonic Transpose Up",
+        desc = "Transpose up enharmonically all notes in the selected region."
+    }
+    loc.es = {
+        menu = "Trasposición enarmónica hacia arriba",
+        desc = "Trasponer hacia arriba enarmónicamente todas las notas en la región seleccionada.",
+    }
+    loc.de = {
+        menu = "Enharmonische Transposition nach oben",
+        desc = "Transponieren alle Noten im ausgewählten Abschnitt enharmonisch nach oben.",
+    }
+    local t = locale and loc[locale:sub(1,2)] or loc.en
+    return t.menu, t.menu, t.desc
 end
 
 local transposition = require("library.transposition")
+local loc = require('library.localization')
+
+loc.en = loc.en or {
+    ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
+        "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",
+    ["Transposition Error"] = "Transposition Error",
+}
+
+loc.es = loc.es or {
+    ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
+        "Finale no puede representar algunas de las notas traspuestas. Estas notas no se han cambiado.",
+    ["Transposition Error"] = "Error de trasposición",
+}
+
+loc.de = loc.de or {
+    ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
+        "Finale kann einige der transponierten Tönhöhen nicht darstellen. Diese Tönhöhen wurden unverändert gelassen.",
+    ["Transposition Error"] = "Transpositionsfehler",
+}
 
 function transpose_enharmonic_up()
     local success = true
@@ -40,7 +72,11 @@ function transpose_enharmonic_up()
         end
     end
     if not success then
-        finenv.UI():AlertError("Finale is unable to represent some of the transposed pitches. These pitches were left at their original value.", "Transposition Error")
+        finenv.UI():AlertError(
+            loc.localize(
+                "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."),
+            loc.localize("Transposition Error")
+        )
     end
 end
 
