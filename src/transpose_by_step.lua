@@ -60,29 +60,37 @@ local mixin = require("library.mixin")
 local loc = require("library.localization")
 local utils = require("library.utils")
 
-loc.en = loc.en or {
-    ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
-        "Finale is unable to represent some of the transposed pitches. These pitches were left at their original value.",
-    ["Number Of Steps"] = "Number Of Steps",
-    ["Transpose By Steps"] = "Transpose By Steps",
-    ["Transposition Error"] = "Transposition Error",
-}
+if finenv.IsRGPLua then
+    loc.en = loc.en or {
+        ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
+            "Finale is unable to represent some of the transposed pitches. These pitches were left at their original value.",
+        ["Number Of Steps"] = "Number Of Steps",
+        ["Transpose By Steps"] = "Transpose By Steps",
+        ["Transposition Error"] = "Transposition Error",
+        ["OK"] = "OK",
+        ["Cancel"] = "Cancel",
+    }
 
-loc.es = loc.es or {
-    ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
-        "Finale no puede representar algunas de las notas traspuestas. Estas notas no se han cambiado.",
-    ["Number Of Steps"] = "Número De Pasos",
-    ["Transpose By Steps"] = "Trasponer Por Pasos",
-    ["Transposition Error"] = "Error De Trasposición",
-}
+    loc.es = loc.es or {
+        ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
+            "Finale no puede representar algunas de las notas traspuestas. Estas notas no se han cambiado.",
+        ["Number Of Steps"] = "Número De Pasos",
+        ["Transpose By Steps"] = "Trasponer Por Pasos",
+        ["Transposition Error"] = "Error De Trasposición",
+        ["OK"] = "Aceptar",
+        ["Cancel"] = "Cancelar",
+    }
 
-loc.de = loc.de or {
-    ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
-        "Finale kann einige der transponierten Töne nicht darstellen. Diese Töne wurden auf ihren ursprünglichen Wert belassen.",
-    ["Number Of Steps"] = "Anzahl der Schritte",
-    ["Transpose By Steps"] = "Transponieren nach Schritten",
-    ["Transposition Error"] = "Transpositionsfehler",
-}
+    loc.de = loc.de or {
+        ["Finale is unable to represent some of the transposed pitches. These pitches were left at their original value."] =
+            "Finale kann einige der transponierten Töne nicht darstellen. Diese Töne wurden auf ihren ursprünglichen Wert belassen.",
+        ["Number Of Steps"] = "Anzahl der Schritte",
+        ["Transpose By Steps"] = "Transponieren nach Schritten",
+        ["Transposition Error"] = "Transpositionsfehler",
+        ["OK"] = "OK",
+        ["Cancel"] = "Abbrechen",
+    }
+end
 
 function do_transpose_by_step(global_number_of_steps_edit)
     if finenv.Region():IsEmpty() then
@@ -116,16 +124,25 @@ function do_transpose_by_step(global_number_of_steps_edit)
 end
 
 function create_dialog_box()
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(loc.localize("Transpose By Steps"))
+    local dialog = mixin.FCXCustomLuaWindow()
+        :SetTitle(loc.localize("Transpose By Steps"))
     local current_y = 0
     local x_increment = 105
     -- number of steps
-    dialog:CreateStatic(0, current_y + 2):SetText(loc.localize("Number Of Steps"))
+    dialog:CreateStatic(0, current_y + 2, "steps_label")
+        :SetText(loc.localize("Number Of Steps"))
+        :fallback_call("DoAutoResizeWidth", nil, true)
     local edit_x = x_increment + utils.win_mac(0, 4)
-    dialog:CreateEdit(edit_x, current_y, "num_steps"):SetText("")
+    dialog:CreateEdit(edit_x, current_y, "num_steps")
+        :SetText("")
+        :fallback_call("AssureNoHorizontalOverlap", nil, dialog:GetControl("steps_label"), 10)
     -- ok/cancel
     dialog:CreateOkButton()
+        :SetText(loc.localize("OK"))
+        :fallback_call("DoAutoResizeWidth", nil, true)
     dialog:CreateCancelButton()
+        :SetText(loc.localize("Cancel"))
+        :fallback_call("DoAutoResizeWidth", nil, true)
     dialog:RegisterHandleOkButtonPressed(function(self)
             do_transpose_by_step(self:GetControl("num_steps"):GetInteger())
         end
