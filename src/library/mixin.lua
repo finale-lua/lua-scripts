@@ -760,6 +760,10 @@ function mixin_private.apply_mixin_foundation(object)
             return mixin_private.create_fluid_proxy(prop)
         end
 
+        if not prop and k == "fallback_call" then
+            return mixin_public.fallback_call
+        end
+
         return prop
     end
 
@@ -1022,7 +1026,7 @@ function mixin_public.eachentry(region, layer)
     local c = mixin.FCMNoteEntryCell(measure, region:CalcStaffNumber(slotno))
     c:SetLoadLayerMode(layertouse)
     c:Load()
-    return function ()
+    return function()
         while true do
             i = i + 1;
             local returnvalue = c:GetItemAt(i - 1)
@@ -1047,6 +1051,26 @@ function mixin_public.eachentry(region, layer)
             end
         end
     end
+end
+
+--[[
+% fallback_call
+
+Checks the existence of a class method before calling it. If the method exists, it returns
+as expected. If the method does not exist, it returns the fallback_value. This function allows
+a script to call a method that does not exist in earlier versions of Lua (specifically, in JW Lua.)
+
+@ instance (userdata) The class instance on which to call the method.
+@ method_name (string) The name of the method to return.
+@ fallback_value (any) The value that will be returned if the method does not exist. If this value is `nil`, the function returns `self`.
+@ additional_parameters (...) The additional parameters of the method.
+]]
+function mixin_public.fallback_call(instance, method_name, fallback_value, ...)
+    if not instance[method_name] then
+        return fallback_value or instance
+    end
+    
+    return instance[method_name](instance, ...)
 end
 
 return mixin
