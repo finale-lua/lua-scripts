@@ -103,6 +103,13 @@ _RGP Lua_ (starting in version 0.67) pre-loads the lua-cjson 2.1.0 library, whic
 local cjson = require('cjson')
 ```
 
+If you are writing a script to be deployed at the [Finale Lua](https://finalelua.com) website, you must wrap the call to `require` as follows:
+
+```lua
+local utils = require('library.utils')
+local cjson = utils.require_embedded('cjson')
+```
+
 The json strings formatted by cjson are flat, containing no line feeds. If you wish to format them in human-readable format, you can use the built-in function [`prettyformatjson`](#prettyformatjson).
 
 More information on how to use the cjson library is available here:  
@@ -136,6 +143,13 @@ _RGP Lua_ (starting in version 0.68) pre-loads the luafilesystem library ('lfs')
 local lfs = require('lfs')
 ```
 
+If you are writing a script to be deployed at the [Finale Lua](https://finalelua.com) website, you must wrap the call to `require` as follows:
+
+```lua
+local utils = require('library.utils')
+local lfs = utils.require_embedded('lfs')
+```
+
 More information on how to use the lfs libray is available here:  
 [https://lunarmodules.github.io/luafilesystem/](https://lunarmodules.github.io/luafilesystem/)
 
@@ -147,6 +161,13 @@ _RGP Lua_ does not load the library into a global namespace, however. You must e
 
 ```lua
 local osutils = require('luaosutils')
+```
+
+If you are writing a script to be deployed at the [Finale Lua](https://finalelua.com) website, you must wrap the call to `require` as follows:
+
+```lua
+local utils = require('library.utils')
+local osutils = utils.require_embedded('luaosutils')
 ```
 
 The advantage to this approach is that you do not need to change the body of your script if you wish to use an external version of `luaosutils` instead of the version embedded in _RGP Lua_. Simply disable the `LoadLuaOSUtils` option in [`plugindef`](#connect-to-finalelua) and the script will pick up the external version instead, provided it is in your `cpath` list. (_RGP Lua_ automatically adds the script’s running folder path to the `cpath` list.)
