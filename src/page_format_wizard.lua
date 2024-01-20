@@ -210,7 +210,7 @@ end
 
 function add_ctrl(dialog, ctrl_type, text, x, y, w, h)
   str.LuaString = text
-  local ctrl = ""
+  local ctrl
   if ctrl_type == "button" then
     ctrl = dialog:CreateButton(x, y - win_mac(3, 3))
   elseif ctrl_type == "checkbox" then
