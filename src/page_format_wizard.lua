@@ -281,9 +281,9 @@ local function config_load()
       special_settings[k] = v
     end
   end
-  configuration.get_user_settings(special_config, special_settings, create_automatically)
+  configuration.get_user_settings(special_config, special_settings)
   --
-  configuration.get_user_settings(config_file, config, create_automatically)
+  configuration.get_user_settings(config_file, config)
 
   score_settings.system_units = config.score_system_units
   parts_settings.system_units = config.parts_system_units
