@@ -316,7 +316,8 @@ local function on_timer()
     end
     if changed then
         global_selection = copy_region_bounds()
-        global_info:SetText("Selection " .. selection_id() .. "\n" .. staff_id())
+        global_dialog:GetControl("info")
+            :SetText("Selection " .. selection_id() .. "\n" .. staff_id())
     end
 end
 
