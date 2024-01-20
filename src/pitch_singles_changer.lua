@@ -28,8 +28,12 @@ end
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
-local cjson = require("cjson")
-local script_name = "pitch_singles_changer"
+local utils = require("library.utils")
+local library = require("libary.general_library")
+
+local cjson = utils.require_embedded("cjson")
+
+local script_name = library.calc_script_name()
 
 local config = {
     pitch_set = '[["C4","C5"]]', -- JSON encoded pitch replacement set
