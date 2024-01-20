@@ -36,8 +36,8 @@ function plugindef(locale)
         desc = "Transpose by the number of steps given, simplifying the note spelling as needed."
     }
     loc.es = {
-        menu = "Transponer Por Pasos",
-        desc = "Transponer por el número de pasos dado, simplificando la enarmonización según sea necesario.",
+        menu = "Trasponer Por Pasos",
+        desc = "Trasponer por el número de pasos dado, simplificando la enarmonización según sea necesario.",
     }
     loc.de = {
         menu = "Transponieren nach Schritten",
