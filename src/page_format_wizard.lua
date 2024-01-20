@@ -188,14 +188,14 @@ local special_ctrls_collection = {}
 local function match_page(w, h)
   w = math.round(w, 1)
   h = math.round(h, 1)
-  local matched = false
+  local matched = -1
   local landscape = 0
   for k, v in pairs(page_sizes) do
     if (w == v[2] and h == v[3]) or (h == v[2] and w == v[3]) then
       matched = k
     end
   end
-  if not matched then 
+  if matched < 0 then 
     local count = 0 
     for i,k in pairs(page_sizes) do
       count = count + 1
@@ -1786,8 +1786,6 @@ local function format_wizard()
   bold_control(score_ctrls.staff_settings)
   bold_control(parts_ctrls.staff_settings)
   bold_control(special_ctrls.staff_settings)
---    require('mobdebug').start()
---  finale.FCFileSaveAsDialog(finenv.UI()):GetFileName(str)
 end
 
 format_wizard()
