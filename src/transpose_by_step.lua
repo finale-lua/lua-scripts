@@ -65,7 +65,6 @@ if finenv.IsRGPLua then
         ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
             "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",
         ["Number Of Steps"] = "Number Of Steps",
-        ["Transpose By Steps"] = "Transpose By Steps",
         ["Transposition Error"] = "Transposition Error",
         ["OK"] = "OK",
         ["Cancel"] = "Cancel",
@@ -75,7 +74,6 @@ if finenv.IsRGPLua then
         ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
             "Finale no puede representar algunas de las notas traspuestas. Estas notas no se han cambiado.",
         ["Number Of Steps"] = "Número De Pasos",
-        ["Transpose By Steps"] = "Trasponer Por Pasos",
         ["Transposition Error"] = "Error de trasposición",
         ["OK"] = "Aceptar",
         ["Cancel"] = "Cancelar",
@@ -85,7 +83,6 @@ if finenv.IsRGPLua then
         ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
             "Finale kann einige der transponierten Tönhöhen nicht darstellen. Diese Tönhöhen wurden unverändert gelassen.",
         ["Number Of Steps"] = "Anzahl der Schritte",
-        ["Transpose By Steps"] = "Transponieren nach Schritten",
         ["Transposition Error"] = "Transpositionsfehler",
         ["OK"] = "OK",
         ["Cancel"] = "Abbrechen",
@@ -96,7 +93,7 @@ function do_transpose_by_step(global_number_of_steps_edit)
     if finenv.Region():IsEmpty() then
         return
     end
-    local undostr = loc.localize("Transpose By Steps") .. " " .. tostring(finenv.Region().StartMeasure)
+    local undostr = ({plugindef(loc.get_locale())})[2] .. " " .. tostring(finenv.Region().StartMeasure)
     if finenv.Region().StartMeasure ~= finenv.Region().EndMeasure then
         undostr = undostr .. " - " .. tostring(finenv.Region().EndMeasure)
     end
@@ -125,28 +122,28 @@ end
 
 function create_dialog_box()
     local dialog = mixin.FCXCustomLuaWindow()
-        :SetTitle(loc.localize("Transpose By Steps"))
+        :SetTitle(plugindef(loc.get_locale()):gsub("%.%.%.", ""))
     local current_y = 0
     local x_increment = 105
     -- number of steps
     dialog:CreateStatic(0, current_y + 2, "steps_label")
         :SetText(loc.localize("Number Of Steps"))
-        :fallback_call("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil, true)
     local edit_x = x_increment + utils.win_mac(0, 4)
     dialog:CreateEdit(edit_x, current_y, "num_steps")
         :SetText("")
-        :fallback_call("AssureNoHorizontalOverlap", nil, dialog:GetControl("steps_label"), 10)
+        :_FallbackCall("AssureNoHorizontalOverlap", nil, dialog:GetControl("steps_label"), 10)
     -- ok/cancel
     dialog:CreateOkButton()
         :SetText(loc.localize("OK"))
-        :fallback_call("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil, true)
     dialog:CreateCancelButton()
         :SetText(loc.localize("Cancel"))
-        :fallback_call("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil, true)
+    -- registrations
     dialog:RegisterHandleOkButtonPressed(function(self)
-            do_transpose_by_step(self:GetControl("num_steps"):GetInteger())
-        end
-    )
+        do_transpose_by_step(self:GetControl("num_steps"):GetInteger())
+    end)
     return dialog
 end
 

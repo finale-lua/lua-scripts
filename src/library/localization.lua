@@ -1,14 +1,17 @@
 --[[
 $module Localization
 
-This library provides localization services to scripts. To use it, scripts must define each localization
+This library provides localization services to scripts. Note that this library cannot be used inside
+a `plugindef` function, because the Lua plugin does not load any dependencies when it calls `plugindef`.
+
+To use the library, scripts must define each localization
 as a table appended to this library table. If you provide region-specific localizations, you should also
 provide a generic localization for the 2-character language code as a fallback.
 
 ```
 local localization = require("library.localization")
 --
--- append localizations to the library table:
+-- append localizations to the table returned by `require`:
 --
 localization.en = localization.en or {
     ["Hello"] = "Hello",
@@ -19,13 +22,13 @@ localization.en = localization.en or {
 localization.es = localization.es or {
     ["Hello"] = "Hola",
     ["Goodbye"] = "Adiós",
-    ["Computer"] = "Ordenador"
+    ["Computer"] = "Computadora"
 }
 
--- specific localization for Mexico
--- it is only necessary to specify items that are different from the fallback language table.
-localization.es_MX = localization.es_MX or {
-    ["Computer"] = "Computadora"
+-- specific localization for Spain
+-- it is only necessary to specify items that are different than the fallback language table.
+localization.es_ES = localization.es_ES or {
+    ["Computer"] = "Ordenador"
 }
 
 localization.jp = localization.jp or {
@@ -39,7 +42,7 @@ The keys do not have to be in English, but they should be the same in all tables
 in your script or include them with `require`. Example:
 
 ```
-local region_code = "de_CH" -- get this from `finenv.UI():GetUserLocaleName(): you could also use just the language code "de"
+local region_code = "de_CH" -- get this from `finenv.UI():GetUserLocaleName(): you could also strip out just the language code "de"
 local localization_table_name = "localization_" region_code
 localization[region_code] = require(localization_table_name)
 ```
@@ -60,14 +63,15 @@ local locale = (function()
             finenv.UI():GetUserLocaleName(fcstr)
             return fcstr.LuaString:gsub("-", "_")
         end
-        return nil
+        return "en_US"
     end)()
 
 --[[
 % set_locale
 
 Sets the locale to a specified value. By default, the locale language is the same value as finenv.UI():GetUserLocaleName.
-If you are running a version of Finale Lua that does not have GetUserLocaleName, you must manually set the locale from your script.
+If you are running a version of Finale Lua that does not have GetUserLocaleName, you can either manually set the locale
+from your script or accept the default, "en_US".
 
 This function can also be used to test different localizations without the need to switch user preferences in the OS.
 
@@ -76,6 +80,19 @@ This function can also be used to test different localizations without the need 
 function localization.set_locale(input_locale)
     locale = input_locale:gsub("-", "_")
 end
+
+--[[
+% get_locale
+
+Returns the locale value that the localization library is using. Normally it matches the value returned by
+`finenv.UI():GetUserLocaleName`, however it returns a value in any Lua plugin version including JW Lua.
+
+: (string) the current locale string that the localization library is using
+]]
+function localization.get_locale()
+    return locale
+end
+
 
 --[[
 % localize
@@ -88,7 +105,9 @@ Localizes a string based on the localization language
 function localization.localize(input_string)
     assert(type(input_string) == "string", "expected string, got " .. type(input_string))
 
-    if not locale then return input_string end
+    if locale == nil then
+        return input_string
+    end
     assert(type(locale) == "string", "invalid locale setting " .. tostring(locale))
     
     local t = localization[locale]
