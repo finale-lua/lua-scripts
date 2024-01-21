@@ -28,7 +28,10 @@ and get a default return value in that case.
 ]]
 function methods:_FallbackCall(method_name, fallback_value, ...)
     if not self[method_name] then
-        return fallback_value or self
+        if fallback_value ~= nil then
+            return fallback_value
+        end
+        return self
     end
     
     return self[method_name](self, ...)
