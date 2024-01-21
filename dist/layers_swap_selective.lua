@@ -3118,6 +3118,27 @@ package.preload["mixin.FCXCustomLuaWindow"] = package.preload["mixin.FCXCustomLu
     end
     return class
 end
+package.preload["mixin.__FCMBase"] = package.preload["mixin.__FCMBase"] or function()
+
+
+
+    local mixin = require("library.mixin")
+    local mixin_helper = require("library.mixin_helper")
+    local class = {Methods = {}}
+    local methods = class.Methods
+
+    function methods:_FallbackCall(method_name, fallback_value, ...)
+        if not self[method_name] then
+            if fallback_value ~= nil then
+                return fallback_value
+            end
+            return self
+        end
+
+        return self[method_name](self, ...)
+    end
+    return class
+end
 package.preload["library.lua_compatibility"] = package.preload["library.lua_compatibility"] or function()
 
 
@@ -4766,7 +4787,7 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
         local c = mixin.FCMNoteEntryCell(measure, region:CalcStaffNumber(slotno))
         c:SetLoadLayerMode(layertouse)
         c:Load()
-        return function ()
+        return function()
             while true do
                 i = i + 1;
                 local returnvalue = c:GetItemAt(i - 1)

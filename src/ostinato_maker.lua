@@ -58,7 +58,6 @@ info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
     .. "\n(" .. finaleplugin.Version .. ")"
 
 global_timer_id = 1
-global_info = global_info or nil -- static text "INFO" listing
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
@@ -317,7 +316,8 @@ local function on_timer()
     end
     if changed then
         global_selection = copy_region_bounds()
-        global_info:SetText("Selection " .. selection_id() .. "\n" .. staff_id())
+        global_dialog:GetControl("info")
+            :SetText("Selection " .. selection_id() .. "\n" .. staff_id())
     end
 end
 
@@ -358,7 +358,7 @@ local function create_dialog_box()
             save_rpt = s
         end
     end
-    global_info = dialog:CreateStatic(0, y)
+    dialog:CreateStatic(0, y, "info")
         :SetText("Selection " .. selection_id() .. "\n" .. staff_id())
         :SetWidth(edit_x * 2):SetHeight(30)
     y = y + 35

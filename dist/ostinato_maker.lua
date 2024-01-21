@@ -3161,6 +3161,27 @@ package.preload["mixin.FCXCustomLuaWindow"] = package.preload["mixin.FCXCustomLu
     end
     return class
 end
+package.preload["mixin.__FCMBase"] = package.preload["mixin.__FCMBase"] or function()
+
+
+
+    local mixin = require("library.mixin")
+    local mixin_helper = require("library.mixin_helper")
+    local class = {Methods = {}}
+    local methods = class.Methods
+
+    function methods:_FallbackCall(method_name, fallback_value, ...)
+        if not self[method_name] then
+            if fallback_value ~= nil then
+                return fallback_value
+            end
+            return self
+        end
+
+        return self[method_name](self, ...)
+    end
+    return class
+end
 package.preload["library.lua_compatibility"] = package.preload["library.lua_compatibility"] or function()
 
 
@@ -4809,7 +4830,7 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
         local c = mixin.FCMNoteEntryCell(measure, region:CalcStaffNumber(slotno))
         c:SetLoadLayerMode(layertouse)
         c:Load()
-        return function ()
+        return function()
             while true do
                 i = i + 1;
                 local returnvalue = c:GetItemAt(i - 1)
@@ -4837,212 +4858,391 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     end
     return mixin
 end
-package.preload["library.layer"] = package.preload["library.layer"] or function()
-
-    local layer = {}
-
-    function layer.copy(region, source_layer, destination_layer, clone_articulations)
-        local start = region.StartMeasure
-        local stop = region.EndMeasure
-        local sysstaves = finale.FCSystemStaves()
-        sysstaves:LoadAllForRegion(region)
-        source_layer = source_layer - 1
-        destination_layer = destination_layer - 1
-        for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
-            noteentry_source_layer:SetUseVisibleLayer(false)
-            noteentry_source_layer:Load()
-            local noteentry_destination_layer = noteentry_source_layer:CreateCloneEntries(
-                destination_layer, staffNum, start)
-            noteentry_destination_layer:Save()
-            noteentry_destination_layer:CloneTuplets(noteentry_source_layer)
-
-            if clone_articulations and noteentry_source_layer.Count == noteentry_destination_layer.Count then
-                for index = 0, noteentry_destination_layer.Count - 1 do
-                    local source_entry = noteentry_source_layer:GetItemAt(index)
-                    local destination_entry = noteentry_destination_layer:GetItemAt(index)
-                    local source_artics = source_entry:CreateArticulations()
-                    for articulation in each (source_artics) do
-                        articulation:SetNoteEntry(destination_entry)
-                        articulation:SaveNew()
-                    end
-                end
-            end
-            noteentry_destination_layer:Save()
-        end
-    end
-
-    function layer.clear(region, layer_to_clear)
-        layer_to_clear = layer_to_clear - 1
-        local start = region.StartMeasure
-        local stop = region.EndMeasure
-        local sysstaves = finale.FCSystemStaves()
-        sysstaves:LoadAllForRegion(region)
-        for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
-            noteentry_layer:SetUseVisibleLayer(false)
-            noteentry_layer:Load()
-            noteentry_layer:ClearAllEntries()
-        end
-    end
-
-    function layer.swap(region, swap_a, swap_b)
-
-        swap_a = swap_a - 1
-        swap_b = swap_b - 1
-        for measure, staff_number in eachcell(region) do
-            local cell_frame_hold = finale.FCCellFrameHold()
-            cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-            local loaded = cell_frame_hold:Load()
-            local cell_clef_changes = loaded and cell_frame_hold.IsClefList and cell_frame_hold:CreateCellClefChanges() or nil
-            local  noteentry_layer_one = finale.FCNoteEntryLayer(swap_a, staff_number, measure, measure)
-            noteentry_layer_one:SetUseVisibleLayer(false)
-            noteentry_layer_one:Load()
-            noteentry_layer_one.LayerIndex = swap_b
-
-            local  noteentry_layer_two = finale.FCNoteEntryLayer(swap_b, staff_number, measure, measure)
-            noteentry_layer_two:SetUseVisibleLayer(false)
-            noteentry_layer_two:Load()
-            noteentry_layer_two.LayerIndex = swap_a
-            noteentry_layer_one:Save()
-            noteentry_layer_two:Save()
-            if loaded then
-                local new_cell_frame_hold = finale.FCCellFrameHold()
-                new_cell_frame_hold:ConnectCell(finale.FCCell(measure, staff_number))
-                if new_cell_frame_hold:Load() then
-                    if cell_frame_hold.IsClefList then
-                        if new_cell_frame_hold.SetCellClefChanges then
-                            new_cell_frame_hold:SetCellClefChanges(cell_clef_changes)
-                        end
-
-                    else
-                        new_cell_frame_hold.ClefIndex = cell_frame_hold.ClefIndex
-                    end
-                    new_cell_frame_hold:Save()
-                end
-            end
-        end
-    end
-
-    function layer.max_layers()
-        return finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
-    end
-    return layer
-end
 function plugindef()
-    finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "http://carlvine.com/lua/"
-    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.53"
-    finaleplugin.Date = "2023/04/22"
-    finaleplugin.AdditionalMenuOptions = [[
-        Tuplet State Visible
-        Tuplet State Invisible
-        Tuplet State Flat
-        Tuplet State Not Flat
-        Tuplet State Avoid Staff
-        Tuplet State Don't Avoid Staff
-        Tuplet State Set Active Layer...
-    ]]
-    finaleplugin.AdditionalUndoText = [[
-        Tuplet State Visible
-        Tuplet State Invisible
-        Tuplet State Flat
-        Tuplet State Not Flat
-        Tuplet State Avoid Staff
-        Tuplet State Don't Avoid Staff
-        Tuplet State Set Active Layer
-    ]]
-    finaleplugin.AdditionalDescriptions = [[
-        Show tuplets in the current selection
-        Hide tuplets in the current selection
-        Make tuplets flat in the current selection
-        Make tuplets not flat in the current selection
-        Make tuplets avoid the staff
-        Make tuplets not avoid the staff
-        Set the active layer for Tuplet State
-    ]]
-    finaleplugin.AdditionalPrefixes = [[
-        action = "show"
-        action = "hide"
-        action = "flat"
-        action = "notflat"
-        action = "avoid"
-        action = "notavoid"
-        action = "change_layer"
-    ]]
+    finaleplugin.RequireSelection = false
+    finaleplugin.HandlesUndo = true
+    finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
+    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
+    finaleplugin.Version = "v0.13"
+    finaleplugin.Date = "2024/01/15"
     finaleplugin.MinJWLuaVersion = 0.62
-    finaleplugin.ScriptGroupName = "Tuplet State"
-    finaleplugin.ScriptGroupDescription = "Change all tuplets in the selected region in seven ways"
     finaleplugin.Notes = [[
-        Change the state of all tuplets in the selection via the menus provided:
-        - Tuplet State Visible
-        - Tuplet State Invisible
-        - Tuplet State Flat
-        - Tuplet State Not Flat
-        - Tuplet State Avoid Staff
-        - Tuplet State Don't Avoid Staff
-        - Tuplet State Reset (to Default Preferences)
-        - Tuplet State Set Active Layer (for all actions)
-        To change tuplets on a specific layer number choose the "Set Active Layer..." menu
-        or hold down the SHIFT or ALT (option) key when selecting a menu item.
-        The layer choice will persist until it is changed.
-	]]
-    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/tuplet_state.hash"
-    return "Tuplet State Reset", "Tuplet State Reset", "Reset tuplet state in the current selection to default preferences"
+        Copy the current selection and paste it consecutively
+        to the right a nominated number of times.
+        The replicas can span barlines ignoring time signatures.
+        The same effect can be achieved with Edit → Paste Multiple
+        but this script is simpler to use and works intuitively
+        on the current music selection in a single step.
+        To repeat the last action without confirmation
+        dialog hold down [shift] when starting the script.
+        Choose to independently include or remove articulations,
+        expressions, smartshapes, lyrics or chords from the repeats.
+        This script grew from the "region_replicate_music.lua" script in
+        the FinaleLua.com repository by Michael McClennan and Jacob Winkler.
+    ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/ostinato_maker.hash"
+    return "Ostinato Maker...", "Ostinato Maker",
+        "Copy the current selection and paste it consecutively to the right a number of times"
 end
-action = action or "reset"
-local config = { layer_num = 0 }
+local info_notes = [[
+Copy the current selection and paste it consecutively
+to the right a nominated number of times.
+The replicas can span barlines ignoring time signatures.
+The same effect can be achieved with Edit → Paste Multiple
+but this script is simpler to use and works intuitively
+on the current music selection in a single step.
+**
+To repeat the last action without confirmation
+dialog hold down [shift] when starting the script.
+Choose to independently include or remove articulations,
+expressions, smartshapes, lyrics or chords from the repeats.
+**
+This script grew from the "region_replicate_music.lua" script in
+the FinaleLua.com repository by Michael McClennan and Jacob Winkler.
+**
+Key Commands:
+*• q @t show these script notes
+*• w @t flip [copy articulations]
+*• e @t flip [copy expressions]
+*• r @t flip [copy smartshapes]
+*• t @t flip [copy lyrics]
+*• y @t flip [copy chords]
+*– – –
+*• a @t copy all
+*• z @t copy none
+]]
+info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
+    .. "\n(" .. finaleplugin.Version .. ")"
+global_timer_id = 1
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
-local layer = require("library.layer")
-local script_name = "tuplet_state"
-configuration.get_user_settings(script_name, config, true)
-function change_active_layer()
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Tuplet State")
-    local max = layer.max_layers()
-    dialog:CreateStatic(0, 0):SetWidth(180)
-        :SetText("Set Layer Number 1-" .. max .. " (\"0\" = all):")
-    dialog:CreateEdit(70, 20, "layer"):SetInteger(config.layer_num or 0):SetWidth(40)
+local script_name = "ostinato_maker"
+local config = {
+    num_repeats  =   1,
+    window_pos_x = false,
+    window_pos_y = false,
+}
+local dialog_options = {
+    "copy_articulations", "copy_expressions", "copy_smartshapes", "copy_lyrics", "copy_chords"
+}
+for _, v in ipairs(dialog_options) do config[v] = 0 end
+local bounds = {
+    "StartStaff", "StartMeasure", "StartMeasurePos",
+    "EndStaff",   "EndMeasure",   "EndMeasurePos",
+}
+local function copy_region_bounds()
+    local copy = {}
+    for _, v in ipairs(bounds) do
+        copy[v] = finenv.Region()[v]
+    end
+    return copy
+end
+function dialog_set_position(dialog)
+    if config.window_pos_x and config.window_pos_y then
+        dialog:StorePosition()
+        dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
+        dialog:RestorePosition()
+    end
+end
+function dialog_save_position(dialog)
+    dialog:StorePosition()
+    config.window_pos_x = dialog.StoredX
+    config.window_pos_y = dialog.StoredY
+    configuration.save_user_settings(script_name, config)
+end
+local function measure_duration(measure_number)
+    local m = finale.FCMeasure()
+    return m:Load(measure_number) and m:GetDuration() or 0
+end
+local function selection_id()
+    if finenv.Region():IsEmpty() then return " - no selection - " end
+    local rgn = finenv.Region()
+    local ratio = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
+    local id = "m" .. string.format("%.2f", ratio) .. "-"
+    local m = measure_duration(rgn.EndMeasure)
+    ratio = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
+    id = id .. "m" .. string.format("%.2f", ratio)
+    return id
+end
+local function staff_id()
+    if finenv.Region():IsEmpty() then return "" end
+    local staff = finale.FCStaff()
+    staff:Load(finenv.Region().StartStaff)
+    local str = finale.FCString()
+    str = staff:CreateDisplayFullNameString()
+    local id = "Staff: " .. str.LuaString .. " → "
+    staff:Load(finenv.Region().EndStaff)
+    str = staff:CreateDisplayFullNameString()
+    return id .. str.LuaString
+end
+local function add_duration(measure_number, position, add_edu)
+    local m_width = measure_duration(measure_number)
+    if m_width == 0 then
+        return 0, 0
+    end
+    if position > m_width then
+        position = m_width
+    end
+    local remaining_to_add = position + add_edu
+    while remaining_to_add > m_width do
+        remaining_to_add = remaining_to_add - m_width
+        local next_width = measure_duration(measure_number + 1)
+        if next_width == 0 then
+            remaining_to_add = m_width
+        else
+            measure_number = measure_number + 1
+            m_width = next_width
+        end
+    end
+    return measure_number, remaining_to_add
+end
+local function shift_region_by_EDU(rgn, add_edu)
+    rgn.EndMeasure, rgn.EndMeasurePos =
+            add_duration(rgn.EndMeasure, rgn.EndMeasurePos, add_edu)
+    if rgn.EndMeasure == 0 then return false end
+    rgn.StartMeasure, rgn.StartMeasurePos =
+            add_duration(rgn.StartMeasure, rgn.StartMeasurePos, add_edu)
+    if rgn.StartMeasure == 0 then return false end
+    return true
+end
+local function round_measure_position(measure_num, pos)
+
+    local measure = finale.FCMeasure()
+    local beat_edu = finale.NOTE_QUARTER
+    measure:Load(measure_num)
+    local time_sig = measure:GetTimeSignature()
+    if not time_sig.CompositeTop then
+        beat_edu = time_sig.BeatDuration
+        if (beat_edu % 3 == 0) then beat_edu = beat_edu / 3 end
+    end
+    local ok, count = false, 1
+    while not ok and count <= 3 do
+        local remainder = pos % beat_edu
+        if remainder == 0 then
+            ok = true
+        else
+            local ratio = remainder / beat_edu
+            local num_beats = math.floor(pos / beat_edu)
+            if ratio >= 7/8 or ratio <= 1/8 then
+                if ratio >= 7/8 then num_beats = num_beats + 1 end
+                pos = num_beats * beat_edu
+                ok = true
+            end
+        end
+        if not ok then
+            count = count + 1
+            beat_edu = beat_edu / 2
+        end
+    end
+    return pos
+end
+local function region_duration(rgn)
+    local meas = {
+        start = rgn.StartMeasure,
+        stop = rgn.EndMeasure
+    }
+    local pos = {
+        start = round_measure_position(meas.start, rgn.StartMeasurePos),
+        stop = round_measure_position(meas.stop, rgn.EndMeasurePos)
+    }
+    local diff, duration = 0, 0
+    if meas.start == meas.stop then
+        diff = pos.stop - pos.start
+    else
+        duration = -pos.start
+        while meas.start < meas.stop do
+            duration = duration + measure_duration(meas.start)
+            meas.start = meas.start + 1
+        end
+        diff = duration + pos.stop
+    end
+    return diff
+end
+local function region_erasures(rgn)
+
+    if config.copy_smartshapes == 0 then
+        local sh_rgn = finale.FCMusicRegion()
+        sh_rgn:SetRegion(rgn)
+        sh_rgn.EndMeasure, sh_rgn.EndMeasurePos =
+            add_duration(sh_rgn.EndMeasure, sh_rgn.EndMeasurePos, 256)
+        for mark in loadallforregion(finale.FCSmartShapeMeasureMarks(), sh_rgn) do
+            local shape = mark:CreateSmartShape()
+            if shape then shape:DeleteData() end
+        end
+    end
+    if config.copy_expressions == 0 then
+        local expressions = finale.FCExpressions()
+        expressions:LoadAllForRegion(rgn)
+        for exp in eachbackwards(expressions) do
+            if exp.StaffGroupID == 0 then exp:DeleteData() end
+        end
+    end
+    if config.copy_chords == 0 then
+        local chords = finale.FCChords()
+        chords:LoadAllForRegion(rgn)
+        for chord in eachbackwards(chords) do
+            if chord then chord:DeleteData() end
+        end
+    end
+
+    if config.copy_articulations == 0 or config.copy_lyrics == 0 then
+        for entry in eachentrysaved(rgn) do
+            if entry.ArticulationFlag and config.copy_articulations == 0 then
+                for articulation in eachbackwards(entry:CreateArticulations()) do
+                    articulation:DeleteData()
+                end
+                entry:SetArticulationFlag(false)
+            end
+            if entry.LyricFlag and config.copy_lyrics == 0 then
+                for _, v in ipairs{"FCChorusSyllable", "FCSectionSyllable", "FCVerseSyllable"} do
+                    local lyric = finale[v]()
+                    lyric:SetNoteEntry(entry)
+                    while lyric:LoadFirst() do
+                        lyric:DeleteData()
+                    end
+                end
+            end
+        end
+    end
+end
+local function paste_many_copies()
+    if finenv.Region():IsEmpty() then
+        finenv.UI():AlertError("Please select some music before\n"
+            .. "running this script.", plugindef() .. " Error" )
+        return
+    end
+    local rgn = finenv.Region()
+    local origin = copy_region_bounds()
+    local undo_str = "Ostinato Maker " .. selection_id()
+    finenv.StartNewUndoBlock(undo_str, false)
+
+    if rgn.EndMeasurePos >= measure_duration(rgn.EndMeasure) then
+        rgn.EndMeasurePos = measure_duration(rgn.EndMeasure) - 1
+    end
+    rgn:CopyMusic()
+    local duration = region_duration(rgn)
+    local first_rpt = nil
+    for _ = 1, config.num_repeats do
+        if not shift_region_by_EDU(rgn, duration) then break end
+        rgn:PasteMusic()
+        if not first_rpt then
+            first_rpt = { measure = rgn.StartMeasure, pos = rgn.StartMeasurePos }
+        end
+    end
+    rgn:ReleaseMusic()
+
+    rgn.StartMeasure = first_rpt.measure
+    rgn.StartMeasurePos = first_rpt.pos
+    region_erasures(rgn)
+
+    for _, v in ipairs(bounds) do rgn[v] = origin[v] end
+    rgn:SetInDocument()
+
+    if finenv.EndUndoBlock then
+        finenv.EndUndoBlock(true)
+        finenv.Region():Redraw()
+    else
+        finenv.StartNewUndoBlock(undo_str, true)
+    end
+end
+local function on_timer()
+    local changed = false
+    for _, v in ipairs(bounds) do
+        if global_selection[v] ~= finenv.Region()[v] then
+            changed = true
+            break
+        end
+    end
+    if changed then
+        global_selection = copy_region_bounds()
+        global_dialog:GetControl("info")
+            :SetText("Selection " .. selection_id() .. "\n" .. staff_id())
+    end
+end
+local function create_dialog_box()
+    local edit_x, e_wide, y_step = 110, 40, 18
+    local y_offset = finenv.UI():IsOnMac() and 3 or 0
+    local save_rpt, answer = config.num_repeats, {}
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    local y = 0
+    local function flip_check(id)
+        local ctl = answer[dialog_options[id]]
+        ctl:SetCheck((ctl:GetCheck() + 1) % 2)
+    end
+    local function check_all_state(state)
+        for _, v in ipairs(dialog_options) do
+            answer[v]:SetCheck(state)
+        end
+    end
+    local function info_dialog()
+        finenv.UI():AlertInfo(info_notes, "About " .. plugindef())
+    end
+    local function key_check(ctl)
+        local s = ctl:GetText():lower()
+        if s:find("[^0-9]") then
+            if s:find("q") then info_dialog()
+            elseif s:find("w") then flip_check(1)
+            elseif s:find("e") then flip_check(2)
+            elseif s:find("r") then flip_check(3)
+            elseif s:find("t") then flip_check(4)
+            elseif s:find("y") then flip_check(5)
+            elseif s:find("a") then check_all_state(1)
+            elseif s:find("z") then check_all_state(0)
+            end
+            ctl:SetText(save_rpt):SetKeyboardFocus()
+        else
+            s = s:sub(-3)
+            ctl:SetText(s)
+            save_rpt = s
+        end
+    end
+    dialog:CreateStatic(0, y, "info")
+        :SetText("Selection " .. selection_id() .. "\n" .. staff_id())
+        :SetWidth(edit_x * 2):SetHeight(30)
+    y = y + 35
+    dialog:CreateStatic(0, y):SetText("Repeat ostinato:"):SetWidth(edit_x)
+    dialog:CreateStatic(edit_x, y):SetText("Include:"):SetWidth(90)
+    y = y + y_step
+    local num_repeats = dialog:CreateEdit(0, y + 2 - y_offset)
+        :SetWidth(e_wide - 4):SetText(config.num_repeats)
+        :AddHandleCommand(function(self) key_check(self) end)
+    dialog:CreateStatic(e_wide, y + 2):SetText("times"):SetWidth(edit_x)
+    for _, v in ipairs(dialog_options) do
+        answer[v] = dialog:CreateCheckbox(edit_x, y):SetCheck(config[v])
+           :SetText(v:sub(6, -1):gsub("^%l", string.upper)):SetWidth(90)
+        y = y + y_step
+    end
+    local q = dialog:CreateButton(0, y - 19):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() info_dialog() end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    dialog:RegisterHandleOkButtonPressed(function(self)
-        local n = self:GetControl("layer"):GetInteger()
-        if n < 0 then n = 0
-        elseif n > max then n = max
+    dialog_set_position(dialog)
+    dialog:RegisterHandleTimer(on_timer)
+    dialog:RegisterInitWindow(function()
+        q:SetFont(q:CreateFontInfo():SetBold(true))
+        num_repeats:SetKeyboardFocus()
+        dialog:SetTimer(global_timer_id, 125)
+    end)
+    dialog:RegisterCloseWindow(function()
+        dialog_save_position(dialog)
+        dialog:StopTimer(global_timer_id)
+    end)
+    dialog:RegisterHandleOkButtonPressed(function()
+        config.num_repeats = num_repeats:GetInteger()
+        for _, v in ipairs(dialog_options) do
+            config[v] = answer[v]:GetCheck()
         end
-        config.layer_num = n
+        paste_many_copies()
     end)
     return dialog
 end
-function tuplets_change()
-    local mod_key = finenv.QueryInvokedModifierKeys and
-        (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT)
-            or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT) )
-    if mod_key or action == "change_layer" then
-        local dialog = change_active_layer()
-        if (dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK) then return end
-        configuration.save_user_settings(script_name, config)
-        if action == "change_layer" then return end
-    end
-    for entry in eachentry(finenv.Region(), config.layer_num) do
-        if entry:IsStartOfTuplet() then
-            for tuplet in each(entry:CreateTuplets()) do
-                if action == "hide" or action == "show" then
-                    tuplet.Visible = (action == "show")
-                elseif action == "flat" or action == "notflat" then
-                    tuplet.AlwaysFlat = (action == "flat")
-                elseif action == "avoid" or action == "notavoid" then
-                    tuplet.AvoidStaff = (action == "avoid")
-                elseif action == "reset" then
-                    tuplet:PrefsReset(true)
-                end
-                tuplet:Save()
-            end
-        end
-    end
+local function make_ostinato()
+    configuration.get_user_settings(script_name, config, true)
+    global_selection = global_selection or copy_region_bounds()
+    global_dialog = global_dialog or create_dialog_box()
+
+
+    global_dialog:RunModeless()
 end
-tuplets_change()
+make_ostinato()
