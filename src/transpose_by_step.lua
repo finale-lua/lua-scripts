@@ -128,6 +128,7 @@ function create_dialog_box()
     -- number of steps
     dialog:CreateStatic(0, current_y + 2, "steps_label")
         :SetText(loc.localize("Number Of Steps"))
+        :SetWidth(x_increment - 5)
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     local edit_x = x_increment + utils.win_mac(0, 4)
     dialog:CreateEdit(edit_x, current_y, "num_steps")

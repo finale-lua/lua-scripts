@@ -16,6 +16,7 @@ localization.en = -- this is en_GB due to spelling of "Localisation"
 {
     ["Action Button"] = "Action Button",
     ["Choices"] = "Choices",
+    ["Close"] = "Close",
     ["First Option"] = "First Option",
     ["Fourth Option"] = "Fourth Option",
     ["Left Checkbox Option 1"] = "Left Checkbox Option 1",
@@ -44,6 +45,7 @@ localization.en_US =
 localization.es = {
     ["Action Button"] = "Botón de Acción",
     ["Choices"] = "Opciones",
+    ["Close"] = "Cerrar",
     ["First Option"] = "Primera Opción",
     ["Fourth Option"] = "Cuarta Opción",
     ["Left Checkbox Option 1"] = "Opción de Casilla de Verificación Izquierda 1",
@@ -65,6 +67,7 @@ localization.es = {
 localization.jp = {
     ["Action Button"] = "アクションボタン",
     ["Choices"] = "選択肢",
+    ["Close"] = "閉じる",
     ["First Option"] = "最初のオプション",
     ["Fourth Option"] = "第四のオプション",
     ["Left Checkbox Option 1"] = "左チェックボックスオプション1",
@@ -86,6 +89,7 @@ localization.jp = {
 localization.de = {
     ["Action Button"] = "Aktionsknopf",
     ["Choices"] = "Auswahlmöglichkeiten",
+    ["Close"] = "Schließen",
     ["First Option"] = "Erste Option",
     ["Fourth Option"] = "Vierte Option",
     ["Left Checkbox Option 1"] = "Linke Checkbox Option 1",
@@ -104,6 +108,7 @@ localization.de = {
 localization.fr = {
     ["Action Button"] = "Bouton d'action",
     ["Choices"] = "Choix",
+    ["Close"] = "Close",
     ["First Option"] = "Première Option",
     ["Fourth Option"] = "Quatrième Option",
     ["Left Checkbox Option 1"] = "Option de case à cocher gauche 1",
@@ -122,6 +127,7 @@ localization.fr = {
 localization.zh = {
     ["Action Button"] = "操作按钮",
     ["Choices"] = "选择：",
+    ["Close"] = "关闭",
     ["First Option"] = "第一选项：",
     ["Fourth Option"] = "第四选项：",
     ["Left Checkbox Option 1"] = "左侧复选框选项1",
@@ -140,6 +146,7 @@ localization.zh = {
 localization.ar = {
     ["Action Button"] = "زر العمل",
     ["Choices"] = "الخيارات",
+    ["Close"] = "إغلاق",
     ["First Option"] = "الخيار الأول",
     ["Fourth Option"] = "الخيار الرابع",
     ["Left Checkbox Option 1"] = "خيار المربع الأول على اليسار",
@@ -158,6 +165,7 @@ localization.ar = {
 localization.fa = {
     ["Action Button"] = "دکمه عملیات",
     ["Choices"] = "گزینه ها",
+    ["Close"] = "بستن",
     ["First Option"] = "گزینه اول",
     ["Fourth Option"] = "گزینه چهارم",
     ["Left Checkbox Option 1"] = "گزینه چک باکس سمت چپ 1",
@@ -173,7 +181,7 @@ localization.fa = {
     ["This is longer option text "] = "این متن گزینه طولانی تر است ",
 }
 
---localization.set_locale("fa")
+localization.set_locale("fa")
 
 function create_dialog()
     local dlg = mixin.FCXCustomLuaWindow()
@@ -205,7 +213,7 @@ function create_dialog()
         :DoAutoResizeWidth(true)
         :SetWidth(0)
         :SetText(localization.localize("Second Option"))
-    dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option2")
+    dlg:CreateEdit(10, line_no * y_increment - utils.win_mac(2, 3), "option2")
         :SetInteger(2)
         :AssureNoHorizontalOverlap(dlg:GetControl("option2-label"), label_edit_separ)
         :HorizontallyAlignLeftWith(dlg:GetControl("option1"))
@@ -261,6 +269,7 @@ function create_dialog()
         :SetText(localization.localize("Action Button"))
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
         :HorizontallyAlignRightWith(dlg:GetControl("option4"))
+--        :HorizontallyAlignRightWithFurthest()
     line_no = line_no + 1
 
     -- horizontal line here
@@ -325,8 +334,9 @@ function create_dialog()
     line_no = line_no + 2
 
     dlg:CreateCloseButton(0, line_no * y_increment + 5)
+        :SetText(localization.localize("Close"))
+        :DoAutoResizeWidth(true)
         :HorizontallyAlignRightWithFurthest()
-        :DoAutoResizeWidth()
 
     return dlg
 end
