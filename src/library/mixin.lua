@@ -1022,7 +1022,7 @@ function mixin_public.eachentry(region, layer)
     local c = mixin.FCMNoteEntryCell(measure, region:CalcStaffNumber(slotno))
     c:SetLoadLayerMode(layertouse)
     c:Load()
-    return function ()
+    return function()
         while true do
             i = i + 1;
             local returnvalue = c:GetItemAt(i - 1)
