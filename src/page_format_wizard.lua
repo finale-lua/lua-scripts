@@ -3,16 +3,17 @@ function plugindef()
   finaleplugin.Author = "Jacob Winkler" 
   finaleplugin.Copyright = "©2024 Jacob Winkler"
   finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
-  finaleplugin.Date = "2024/1/13"
-  finaleplugin.Version = "1.0"
+  finaleplugin.Date = "2024/1/21"
+  finaleplugin.Version = "1.1"
   finaleplugin.HandlesUndo = true
   finaleplugin.NoStore = false
+  finaleplugin.MinJWLuaVersion = 0.70 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
   finaleplugin.Notes = [[
         USING THE 'PAGE FORMAT WIZARD'
         
         The Page Format Wizard duplicates and extends the functionality of both the 'Page Format for Score' and 'Page Format for Parts' dialogs, and works instantly without needing to call 'Redefine Pages' from the Page Layout Tool menu.
         
-        Staff height is entered using millimeters, rather than Finale's method of using "Resulting System Scaling" (a fixed value multiplied by a scaling factor). Presets for various raster sizes can be selected from the popup menu. A brief description of each raster size pops up when it is selected, paraphrased from Elaine Gould's "Behind Bars".
+        Staff height is entered using millimeters, rather than Finale's method of using "Resulting System Scaling" (a fixed value multiplied by a scaling factor). Presets for various raster sizes can be selected from the popup menu. A brief description of each raster size pops up when it is selected, paraphrased from the MOLA guidelines on parts and scores, Elaine Gould's "Behind Bars", and Steven Powell's "Music Engraving Today: The Art and Practice of Digital Notesetting."
         
         System margins can use different units than page units. The default unit for system related measurements are spaces, but the plug-in will remember what was last used.
         
@@ -20,7 +21,7 @@ function plugindef()
         
         In addition to formatting the score and parts, you can set up "special parts" to have alternate formatting. This makes it easy to do something like create something like a Piano/Vocal score that may have different requirements than both the full score and the regular instrumental parts. The "special parts" feature could also be used to reformat a subset of parts without touching the others simply by diabling the 'Score' and 'Default Parts' sections of the plug-in.
     ]]
-  return "Page Format Wizard", "Page Format Wizard", "Page Format Wizard"
+  return "Page Format Wizard v2", "Page Format Wizard v2", "Page Format Wizard v2"
 end
 
 local configuration = require("library.configuration")
@@ -32,7 +33,10 @@ local config = {
   score_system_units = 6,
   parts_system_units = 6,
   special_system_units = 6,
-  score_staff_spacing = 0, 
+  score_bypass_systems_bool = 1,
+  parts_bypass_systems_bool = 1,
+  special_bypass_sytems_bool = 1,
+  score_staff_spacing = 0,
   parts_staff_spacing = 0,
   special_staff_spacing = 0,
   score_staff_spacing_first_page_bool = 0, 
@@ -55,10 +59,8 @@ local config = {
   special_lock = 0,
   score_reflect_bool = 0,
   parts_reflect_bool = 0,
-  special_reflect_bool = 0,
-  last_file = ""
+  special_reflect_bool = 0
 }
-
 local special_config = "Page_Format_Wizard_Special_Part_Prefs"
 
 local function win_mac(winval, macval)
@@ -188,14 +190,14 @@ local special_ctrls_collection = {}
 local function match_page(w, h)
   w = math.round(w, 1)
   h = math.round(h, 1)
-  local matched = -1
+  local matched = false
   local landscape = 0
   for k, v in pairs(page_sizes) do
     if (w == v[2] and h == v[3]) or (h == v[2] and w == v[3]) then
       matched = k
     end
   end
-  if matched < 0 then 
+  if not matched then 
     local count = 0 
     for i,k in pairs(page_sizes) do
       count = count + 1
@@ -210,7 +212,7 @@ end
 
 function add_ctrl(dialog, ctrl_type, text, x, y, w, h)
   str.LuaString = text
-  local ctrl
+  local ctrl = ""
   if ctrl_type == "button" then
     ctrl = dialog:CreateButton(x, y - win_mac(3, 3))
   elseif ctrl_type == "checkbox" then
@@ -289,6 +291,10 @@ local function config_load()
   parts_settings.system_units = config.parts_system_units
   special_settings.system_units = config.special_system_units
 
+  score_settings.bypass_systems_bool = config.score_bypass_systems_bool
+  parts_settings.bypass_systems_bool = config.parts_bypass_systems_bool
+  special_settings.bypass_systems_bool = config.special_bypass_sytems_bool
+
   score_settings.staff_spacing = config.score_staff_spacing
   parts_settings.staff_spacing = config.parts_staff_spacing
   special_settings.staff_spacing = config.special_staff_spacing
@@ -296,7 +302,6 @@ local function config_load()
   score_settings.staff_spacing_first_page_bool = config.score_staff_spacing_first_page_bool
   parts_settings.staff_spacing_first_page_bool = config.parts_staff_spacing_first_page_bool
   special_settings.staff_spacing_first_page_bool = config.special_staff_spacing_first_page_bool
-
 
   score_settings.staff_spacing_set_first_page = config.score_staff_spacing_set_first_page 
   score_settings.staff_spacing_set_other_pages = config.score_staff_spacing_set_other_pages
@@ -326,6 +331,10 @@ local function config_save()
   config.score_system_units = score_settings.system_units
   config.parts_system_units = parts_settings.system_units
   config.special_system_units = special_settings.system_units
+
+  config.score_bypass_systems_bool = score_settings.bypass_systems_bool
+  config.parts_bypass_systems_bool =  parts_settings.bypass_systems_bool
+  config.special_bypass_systems_bool = special_settings.bypass_systems_bool
 
   config.score_staff_spacing = score_settings.staff_spacing
   config.parts_staff_spacing = parts_settings.staff_spacing
@@ -461,6 +470,7 @@ local function format_wizard()
       controls.first_page_top_edit:SetEnable(false)
       controls.first_page_top_units:SetVisible(false)
     end
+
     controls.first_page_top_edit:SetMeasurement(page_settings.first_page_top_margin, page_settings.page_units)
 
     if page_settings.facing_pages_bool then
@@ -480,10 +490,7 @@ local function format_wizard()
         v:SetVisible(false)
       end
     end
-
-
     --
-
     if page_settings.first_system_bool then
       controls.first_system_checkbox:SetCheck(1)
       for k,v in ipairs(ctrls_collection.first_sys_ctrls) do
@@ -495,6 +502,19 @@ local function format_wizard()
         v:SetVisible(false)
       end
     end
+    --
+    if page_settings.bypass_systems_bool > 0 then
+      controls.system_margins_check:SetCheck(1)
+      for k,v in ipairs(ctrls_collection.system_margin_ctrls) do
+        v:SetEnable(true)
+      end
+    else
+      controls.system_margins_check:SetCheck(0)
+      for k,v in ipairs(ctrls_collection.system_margin_ctrls) do
+        v:SetEnable(false)
+      end
+    end
+
     --
     page_settings.system_units = units[controls.system_units_popup:GetSelectedItem()+1][3]
     str.LuaString = units[controls.system_units_popup:GetSelectedItem()+1][2]
@@ -618,7 +638,17 @@ local function format_wizard()
         end
       end
     end
-  end
+
+    if page_settings.bypass_systems_bool < 1 then
+      for k,v in pairs(ctrls_collection.system_margin_ctrls) do
+        v:SetEnable(false)
+      end
+    end
+
+  end -- function section_enable()
+
+
+
 
   local function format_pages_and_save()
     local controls = {}
@@ -755,7 +785,7 @@ local function format_wizard()
         page:SetPercent(page_settings.page_scale)
 
         local is_right_page = page:GetItemNo() % 2
-        
+
         if is_right_page == 1 and page_settings.facing_pages_bool then
           page:SetTopMargin(page_settings.right_page_top_margin)
           page:SetLeftMargin(page_settings.right_page_left_margin)
@@ -767,7 +797,7 @@ local function format_wizard()
           page:SetRightMargin(page_settings.left_page_right_margin)
           page:SetBottomMargin(page_settings.left_page_bottom_margin)
         end
-        
+
         if page:GetItemNo() == 1 and page_settings.first_page_top_margin_bool then -- Proess First Page
           page:SetTopMargin(page_settings.first_page_top_margin)
         end
@@ -788,17 +818,19 @@ local function format_wizard()
       local systems = finale.FCStaffSystems()
       systems:LoadAll()
       for system in each(systems) do
-        if system:GetItemNo() == 1 and page_settings.first_system_bool then
-          system:SetTopMargin(page_settings.first_system_top_margin)
-          system:SetLeftMargin(page_settings.first_system_left_margin)
-          system:SetSpaceAbove(page_settings.first_system_distance)
-        else
-          system:SetTopMargin(page_settings.system_top_margin)
-          system:SetLeftMargin(page_settings.system_left_margin)
-          system:SetSpaceAbove(page_settings.system_distance_between*-1)
+        if page_settings.bypass_systems_bool > 0 then
+          if system:GetItemNo() == 1 and page_settings.first_system_bool then
+            system:SetTopMargin(page_settings.first_system_top_margin)
+            system:SetLeftMargin(page_settings.first_system_left_margin)
+            system:SetSpaceAbove(page_settings.first_system_distance)
+          else
+            system:SetTopMargin(page_settings.system_top_margin)
+            system:SetLeftMargin(page_settings.system_left_margin)
+            system:SetSpaceAbove(page_settings.system_distance_between*-1)
+          end
+          system:SetRightMargin(page_settings.system_right_margin)
+          system:SetBottomMargin(page_settings.system_bottom_margin)
         end
-        system:SetRightMargin(page_settings.system_right_margin)
-        system:SetBottomMargin(page_settings.system_bottom_margin)
         --
         staff_height_set(system, page_settings.staff_h)
 
@@ -1099,7 +1131,8 @@ local function format_wizard()
     --
     row = row + 1
     y = row*row_h
-    controls.system_margins_section = add_ctrl(dialog, "static", "System Settings:", x, y, col_w, row_h)
+    controls.system_margins_check = add_ctrl(dialog, "checkbox", "", x, y, 10, 10)
+    controls.system_margins_section = add_ctrl(dialog, "static", "System Settings:", x + 12, y, col_w, row_h)
     row = row + 1
     y = row*row_h
     controls.system_units = add_ctrl(dialog, "static", "System Units:", x, y, col_w, row_h)
@@ -1288,6 +1321,36 @@ local function format_wizard()
     end
     ---- END OF SPECIAL PARTS CONTROLS ----
     --
+    ctrls_collection.system_margin_ctrls = {
+      controls.system_units, 
+      controls.system_units_popup,
+      controls.margins_static, 
+      controls.first_system_checkbox,
+      controls.first_system_top,
+      controls.first_system_line,
+      controls.between_systems,
+      controls.between_systems_edit,
+      controls.between_systems_units,
+      controls.first_system_from_top,
+      controls.first_system_from_top_edit,
+      controls.first_system_from_top_units,
+      controls.system_top_static,
+      controls.first_system_top_static,
+      controls.system_top_edit,
+      controls.system_units_static,
+      controls.first_system_top_edit,
+      controls.first_system_units_static,
+      controls.system_left_static,
+      controls.system_left_edit,
+      controls.system_right_edit,
+      controls.system_right_static,
+      controls.first_system_left_static,
+      controls.first_system_left_edit,
+      controls.system_bottom_edit,
+      controls.system_bottom_static
+    }
+
+
     ctrls_collection.staff_spacing_ctrls = {
       controls.staff_spacing_first_page_checkbox,
       controls.staff_spacing_first_page_static,
@@ -1542,6 +1605,15 @@ local function format_wizard()
         end
       end)
 
+    dialog:RegisterHandleControlEvent (controls.system_margins_check, function(control)
+        if not hold then
+          hold = true
+          page_settings.bypass_systems_bool = controls.system_margins_check:GetCheck()
+          page_size_update(controls, page_settings, ctrls_collection) 
+          hold = false
+        end
+      end)
+
     dialog:RegisterHandleControlEvent (controls.system_units_popup, function(control)
         if not hold then
           hold = true
@@ -1786,6 +1858,8 @@ local function format_wizard()
   bold_control(score_ctrls.staff_settings)
   bold_control(parts_ctrls.staff_settings)
   bold_control(special_ctrls.staff_settings)
+--    require('mobdebug').start()
+--  finale.FCFileSaveAsDialog(finenv.UI()):GetFileName(str)
 end
 
 format_wizard()
