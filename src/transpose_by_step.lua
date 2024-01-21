@@ -36,7 +36,7 @@ function plugindef(locale)
         desc = "Transpose by the number of steps given, simplifying the note spelling as needed."
     }
     loc.es = {
-        menu = "Trasponer Por Pasos",
+        menu = "Trasponer por pasos",
         desc = "Trasponer por el número de pasos dado, simplificando la enarmonización según sea necesario.",
     }
     loc.de = {
@@ -132,7 +132,7 @@ function create_dialog_box()
     local edit_x = x_increment + utils.win_mac(0, 4)
     dialog:CreateEdit(edit_x, current_y, "num_steps")
         :SetText("")
-        :_FallbackCall("AssureNoHorizontalOverlap", nil, dialog:GetControl("steps_label"), 10)
+        :_FallbackCall("AssureNoHorizontalOverlap", nil, dialog:GetControl("steps_label"), 5)
     -- ok/cancel
     dialog:CreateOkButton()
         :SetText(loc.localize("OK"))
