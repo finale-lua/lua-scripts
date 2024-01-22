@@ -16,14 +16,17 @@ export const getImport = (line: string): { importedFile: string; isImport: boole
 }
 
 const ignoreValues: string[] = ["luaosutils", "mime.core", "cjson", "lfs"]
+const commentRegex = /^\s*--/
 
 export const getAllImports = (file: string): string[] => {
     const imports: Set<string> = new Set()
     const lines = file.split('\n')
     for (const line of lines) {
-        const { isImport, importedFile } = getImport(line)
-        if (isImport && !ignoreValues.includes(importedFile))
-            imports.add(importedFile)
+        if (!line.match(commentRegex)) {
+            const { isImport, importedFile } = getImport(line)
+            if (isImport && !ignoreValues.includes(importedFile))
+                imports.add(importedFile)
+        }
     }
     return [...imports]
 }
