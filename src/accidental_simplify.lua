@@ -10,6 +10,12 @@ function plugindef()
 end
 
 local transposition = require("library.transposition")
+local json = require("cjson")
+local lfs = require("lfs")
+local luaosutils = require("luaosutils")
+-- local foo = require("foo")
+    --      local bar = require("bar")
+
 
 function accidentals_simplify()
     for entry in eachentrysaved(finenv.Region()) do
