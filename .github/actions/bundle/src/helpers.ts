@@ -15,7 +15,7 @@ export const getImport = (line: string): { importedFile: string; isImport: boole
     };
 }
 
-const ignoreValues: string[] = ["luaosutils", "mime.core"]
+const ignoreValues: string[] = ["luaosutils", "mime.core", "cjson", "lfs"]
 
 export const getAllImports = (file: string): string[] => {
     const imports: Set<string> = new Set()
