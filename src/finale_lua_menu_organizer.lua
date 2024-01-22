@@ -10,7 +10,7 @@ function plugindef()
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "2023"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "2023-02-24"
     finaleplugin.MinJWLuaVersion = 0.66 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
         --[[
@@ -97,7 +97,7 @@ local create_template_if_not_found = false      -- change this value to `true` i
 local utils = require("library.utils")
 local library = require("library.general_library")
 
-local osutils = utils.require_embedded("luaosutils")
+local osutils = require("luaosutils")
 local menu = osutils.menu
 
 local layout_file_name = "finale_lua_menus.txt"

@@ -245,7 +245,7 @@ function configuration.save_user_settings(script_name, parameter_list)
     local file = io.open(file_path, "w")
     if not file and finenv.UI():IsOnWindows() then -- file not found
          -- so try to make a folder (windows only, since the folder is guaranteed to exist on mac)
-        local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
+        local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
         if osutils then
             osutils.process.make_dir(folder_path)
         else

@@ -3,7 +3,6 @@ $module Library
 ]] --
 local library = {}
 
-local utils = require("library.utils")
 local client = require("library.client")
 
 --[[
@@ -331,7 +330,7 @@ the .json files for each font. The table is in the format:
 ]]
 
 function library.get_smufl_font_list()
-    local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
+    local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
     local font_names = {}
     local add_to_table = function(for_user)
         local smufl_directory = calc_smufl_directory(for_user)

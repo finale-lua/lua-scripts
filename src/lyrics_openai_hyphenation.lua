@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.ExecuteHttpsCalls = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "3.0"
+    finaleplugin.Version = "3.0.1"
     finaleplugin.Date = "October 29, 2023"
     finaleplugin.CategoryTags = "Lyrics"
     finaleplugin.Notes = [[
@@ -46,8 +46,7 @@ local mixin = require("library.mixin")
 local openai = require("library.openai")
 local configuration = require("library.configuration")
 
-local utils = require("library.utils")
-local osutils = utils.require_embedded("luaosutils")
+local osutils = require("luaosutils")
 local https = osutils.internet
 
 local config =
