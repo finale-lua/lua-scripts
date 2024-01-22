@@ -21,7 +21,7 @@ function plugindef()
         
         In addition to formatting the score and parts, you can set up "special parts" to have alternate formatting. This makes it easy to do something like create something like a Piano/Vocal score that may have different requirements than both the full score and the regular instrumental parts. The "special parts" feature could also be used to reformat a subset of parts without touching the others simply by diabling the 'Score' and 'Default Parts' sections of the plug-in.
     ]]
-  return "Page Format Wizard v2", "Page Format Wizard v2", "Page Format Wizard v2"
+  return "Page Format Wizard", "Page Format Wizard", "Page Format Wizard"
 end
 
 local configuration = require("library.configuration")
@@ -190,14 +190,14 @@ local special_ctrls_collection = {}
 local function match_page(w, h)
   w = math.round(w, 1)
   h = math.round(h, 1)
-  local matched = false
+  local matched = -1
   local landscape = 0
   for k, v in pairs(page_sizes) do
     if (w == v[2] and h == v[3]) or (h == v[2] and w == v[3]) then
       matched = k
     end
   end
-  if not matched then 
+  if matched < 0 then 
     local count = 0 
     for i,k in pairs(page_sizes) do
       count = count + 1
@@ -212,7 +212,7 @@ end
 
 function add_ctrl(dialog, ctrl_type, text, x, y, w, h)
   str.LuaString = text
-  local ctrl = ""
+  local ctrl
   if ctrl_type == "button" then
     ctrl = dialog:CreateButton(x, y - win_mac(3, 3))
   elseif ctrl_type == "checkbox" then
@@ -376,7 +376,7 @@ local parts_list = {}
 
 local function format_wizard()
   local dialog = finale.FCCustomLuaWindow()
-  str.LuaString = "Page Format Wizard"
+  str.LuaString = "Page Format Wizard - v"..finaleplugin.Version
   dialog:SetTitle(str)
   --
   local row_h = 20
