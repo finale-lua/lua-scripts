@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.60"
+    finaleplugin.Version = "v0.60.1"
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.Date = "2024/01/15"
     finaleplugin.CategoryTags = "Menu, Utilities"
@@ -94,8 +94,7 @@ local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local osutils = require("luaosutils")
 local menu = osutils.menu
-local utils = require("library.utils")
-local cjson = utils.require_embedded("cjson")
+local cjson = require("cjson")
 
 local script_array = {} -- assemble all script items from the RGPLua menu
 local script_name = "hotkey_script_palettes"
