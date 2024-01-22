@@ -48,7 +48,7 @@ okay as long as the timeout is reasonably short.
 openai.create_completion(model, prompt, temperature, callback_or_timeout)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/openai.lua#L105)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/openai.lua#L103)
 
 Sends a request to the OpenAI API to generate a completion for a given prompt.
 
@@ -70,7 +70,7 @@ Sends a request to the OpenAI API to generate a completion for a given prompt.
 openai.create_chat(model, messages, temperature, callback_or_timeout)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/openai.lua#L150)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/openai.lua#L148)
 
 Sends a request to the OpenAI API to generate a chat session. If you start a new chat session, the
 chat session value is returned in the reply sting. You can then use that value to continue the same
