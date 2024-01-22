@@ -15,7 +15,15 @@ export const getImport = (line: string): { importedFile: string; isImport: boole
     };
 }
 
-const ignoreValues: string[] = ["luaosutils", "mime.core", "cjson", "lfs"]
+const ignoreValues: string[] = [
+    "cjson",
+    "cjson.safe",
+    "lfs",
+    "luaosutils",
+    "mime.core",
+    "socket.core",
+    "socket",
+]
 const commentRegex = /^\s*--/
 
 export const getAllImports = (file: string): string[] => {

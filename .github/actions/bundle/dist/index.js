@@ -6810,7 +6810,15 @@ const getImport = (line) => {
     };
 };
 exports.getImport = getImport;
-const ignoreValues = ["luaosutils", "mime.core", "cjson", "lfs"];
+const ignoreValues = [
+    "cjson",
+    "cjson.safe",
+    "lfs",
+    "luaosutils",
+    "mime.core",
+    "socket.core",
+    "socket",
+];
 const commentRegex = /^\s*--/;
 const getAllImports = (file) => {
     const imports = new Set();
