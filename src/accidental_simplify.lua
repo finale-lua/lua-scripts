@@ -13,6 +13,7 @@ local transposition = require("library.transposition")
 local json = require("cjson")
 local lfs = require("lfs")
 local luaosutils = require("luaosutils")
+local mime = require("mime.core")
 -- local foo = require("foo")
     --      local bar = require("bar")
 
