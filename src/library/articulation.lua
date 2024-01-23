@@ -53,7 +53,6 @@ function articulation.is_note_side(artic, curr_pos)
         top_pos = math.floor(((10000 * top_pos) / cell_metrics.StaffScaling) + 0.5)
         return curr_pos.Y >= top_pos
     end
-    return false
 end
 
 --[[

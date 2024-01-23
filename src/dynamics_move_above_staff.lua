@@ -5,7 +5,7 @@ function plugindef()
    finaleplugin.RequireSelection = true
    finaleplugin.Author = "Jacob Winkler"
    finaleplugin.Copyright = "2021"
-   finaleplugin.Version = "1.0"
+   finaleplugin.Version = "1.0.1"
    return "Dynamics Above Staff", "Dynamics Above Staff", "Moves dynamics above staff"
 end
 
@@ -65,7 +65,7 @@ function metrics(sys_region)
     return highest, hairpins
 end -- function metrics
 
-function expr_move(staff_region, e_vert_target)
+function expr_move(staff_region, e_vert_target)   -- luacheck: ignore e_vert_target
     local expressions = finale.FCExpressions()
     expressions:LoadAllForRegion(staff_region)
     for e in each(expressions) do
@@ -98,7 +98,7 @@ function expr_move(staff_region, e_vert_target)
 end -- func expr_move
 
 
-function hairpin_move(staff_region, h_vert_target)
+function hairpin_move(staff_region, h_vert_target)   -- luacheck: ignore h_vert_target
         local ssmm = finale.FCSmartShapeMeasureMarks()
         ssmm:LoadAllForRegion(staff_region, true)
         for mark in each(ssmm) do

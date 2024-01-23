@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.AuthorURL = "https://www.robertgpatterson.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.0"
+    finaleplugin.Version = "v1.0.1"
     finaleplugin.Date = "2023/1/11"
     finaleplugin.Notes = [[
         Chords from the source layers in the selected region are split into another layer on the same staff based on a split point. 
@@ -125,7 +125,7 @@ function create_dialog_box()
     dialog:CreateStatic(0, current_y + 2)
         :SetWidth(x_increment - 5)
         :SetText("To Layer (1-4):")
-    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
+    edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
     dialog:CreateEdit(edit_x, current_y, "to_layer")
         :SetWidth(edit_width)
         :SetInteger(2)
@@ -134,7 +134,7 @@ function create_dialog_box()
     dialog:CreateStatic(0, current_y + 2)
         :SetWidth(100)
         :SetText("Split At:")
-    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
+    edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
     dialog:CreateEdit(edit_x, current_y, "split_after")
         :SetWidth(edit_width)
         :SetInteger(1)

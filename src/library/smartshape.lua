@@ -46,7 +46,7 @@ Creates an entry based SmartShape based on two input notes. If a type is not spe
 @ shape_type (string) or (number) The type of shape to add, pulled from table, or finale.SMARTSHAPE_TYPES number
 ]]
 function smartshape.add_entry_based_smartshape(start_note, end_note, shape_type)
-    local smartshape = finale.FCSmartShape()
+    local smartshape = finale.FCSmartShape()   -- luacheck: ignore smartshape
     smartshape:SetEntryAttachedFlags(true)
 
     local shape
@@ -135,7 +135,7 @@ function smartshape.delete_entry_based_smartshape(music_region, shape_type)
         local smartshape_entry_marks = finale.FCSmartShapeEntryMarks(noteentry)
         smartshape_entry_marks:LoadAll(music_region)
         for ss_entry_mark in each(smartshape_entry_marks) do
-            local smartshape = ss_entry_mark:CreateSmartShape()
+            local smartshape = ss_entry_mark:CreateSmartShape()   -- luacheck: ignore smartshape
             if smartshape ~= nil then
                 if ss_entry_mark:CalcLeftMark() or (ss_entry_mark:CalcRightMark()) then
                     if smartshape.ShapeType == shape then

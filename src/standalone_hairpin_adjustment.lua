@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "CJ Garcia"
     finaleplugin.Copyright = "© 2021 CJ Garcia Music"
-    finaleplugin.Version = "1.3"
+    finaleplugin.Version = "1.3.1"
     finaleplugin.Date = "8/4/2022"
     finaleplugin.Notes = [[
         This plugin has several configuration options. To set the options, create a plain text file called
@@ -132,7 +132,6 @@ function vertical_dynamic_adjustment(region, direction)
     table.sort(lowest_item)
 
     if has_dynamics then
-        local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(region)
         for e in each(expressions) do
             if e.Visible and expression.is_dynamic(e) then -- non-visible exps have incorrect metrics, so ignore them
@@ -178,7 +177,6 @@ function vertical_dynamic_adjustment(region, direction)
     end
 
     if has_hairpins then
-        local ssmm = finale.FCSmartShapeMeasureMarks()
         ssmm:LoadAllForRegion(region, true)
         for mark in each(ssmm) do
             local smart_shape = mark:CreateSmartShape()

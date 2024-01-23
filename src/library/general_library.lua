@@ -381,7 +381,7 @@ function library.get_smufl_metadata_file(font_info)
         font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
     end
 
-    local try_prefix = function(prefix, font_info)
+    local try_prefix = function(prefix, font_info)   -- luacheck: ignore font_info
         local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
         return io.open(file_path, "r")
     end
@@ -507,7 +507,7 @@ function library.get_parent_class(classname)
         end
     else
         if class.__parent then
-            for k, _ in pairs(class.__parent) do
+            for k, _ in pairs(class.__parent) do   -- luacheck: ignore
                 return tostring(k)  -- in RGP Lua the v is just a dummy value, and the key is the classname of the parent
             end
         end

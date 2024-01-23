@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.ExecuteHttpsCalls = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "3.0.1"
+    finaleplugin.Version = "3.0.2"
     finaleplugin.Date = "October 29, 2023"
     finaleplugin.CategoryTags = "Lyrics"
     finaleplugin.Notes = [[
@@ -528,7 +528,7 @@ local function create_dialog_box()
             :SetCheck(1)
     yoff = yoff + 30
     -- bottom
-    local xoff = 10
+    xoff = 10
     dlg:CreateButton(xoff, yoff, "refresh")
             :SetText("Get from Document")
             :SetWidth(150)

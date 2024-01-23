@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Jacob Winkler" 
     finaleplugin.Copyright = "©2022 Jacob Winkler"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "2022-07-02"
     return "Lyrics - Space Baselines", "Lyrics - Space Baselines", "Lyrics - Space Baselines"
 end
@@ -57,7 +57,7 @@ function lyrics_spacing(title)
     end
 --
 
-    function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)
+    function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)   -- luacheck: ignore dialog
         str.LuaString = tostring(text)
         local ctrl = ""
         if ctrl_type == "checkbox" then

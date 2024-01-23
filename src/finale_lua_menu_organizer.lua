@@ -10,7 +10,7 @@ function plugindef()
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "2023"
-    finaleplugin.Version = "1.0.1"
+    finaleplugin.Version = "1.0.2"
     finaleplugin.Date = "2023-02-24"
     finaleplugin.MinJWLuaVersion = 0.66 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
         --[[
@@ -207,7 +207,6 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
     end
 
     to_menu = to_menu or from_menu
-    local success = false
     local from_menu_text = menu.get_title(from_menu, finenv.GetFinaleMainWindow())
     while true do
         local line = file:read("*line")

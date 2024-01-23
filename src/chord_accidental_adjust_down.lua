@@ -1,7 +1,7 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Michael McClennan"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "August 14, 2021"
     finaleplugin.AuthorURL = "www.michaelmcclennan.com"
     finaleplugin.AuthorEmail = "info@michaelmcclennan.com"
@@ -21,13 +21,9 @@ function chord_accidental_adjust_down()
     local my_distance_result_flat = chordprefs:GetFlatBaselineAdjustment()
     local my_distance_result_sharp = chordprefs:GetSharpBaselineAdjustment()
     local my_distance_result_natural = chordprefs:GetNaturalBaselineAdjustment()
-    local chordprefs = finale.FCChordPrefs()
-    chordprefs:Load(1)
-    chordprefs:GetFlatBaselineAdjustment()
+    
     chordprefs.FlatBaselineAdjustment = -1 * config.vertical_increment + my_distance_result_flat
-    chordprefs:GetSharpBaselineAdjustment()
     chordprefs.SharpBaselineAdjustment = -1 * config.vertical_increment + my_distance_result_sharp
-    chordprefs:GetNaturalBaselineAdjustment()
     chordprefs.NaturalBaselineAdjustment = -1 * config.vertical_increment + my_distance_result_natural
     chordprefs:Save()
 end

@@ -5,7 +5,7 @@ function plugindef()
     finaleplugin.Author = "Aaron Sherber"
     finaleplugin.AuthorURL = "https://aaron.sherber.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.1.2"
+    finaleplugin.Version = "2.1.3"
     finaleplugin.Date = "2023-03-25"
     finaleplugin.CategoryTags = "Report"   
     finaleplugin.Id = "9c05a4c4-9508-4608-bb1b-2819cba96101" 
@@ -16,6 +16,7 @@ function plugindef()
         action = "import"
     ]]
     finaleplugin.RevisionNotes = [[
+        v2.1.3      Luacheck hinting
         v2.1.2      Resync expression definitions
         v2.1.1      Add music spacing allotments (requires RGPLua v0.66)
         v2.0.1      Add ability to import
@@ -1117,7 +1118,7 @@ function get_as_ordered_json(t, indent_level, in_array)
     end
 
     local function has_entries(this_table)
-        for _ in pairs(this_table) do return true end
+        for _ in pairs(this_table) do return true end  -- luacheck: ignore
         return false
     end
 

@@ -3,7 +3,7 @@ function plugindef()
     -- are both reserved for the plug-in definition.
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "2.0"
+    finaleplugin.Version = "2.0.1"
     finaleplugin.Date = "8/13/2022"
     finaleplugin.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     finaleplugin.Notes = [[
@@ -198,7 +198,7 @@ function staff_rename()
             col[i] = col[i] + 40
         end
         --
-        function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)
+        function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)   -- luacheck: ignore dialog
             str.LuaString = tostring(text)
             local ctrl = ""
             if ctrl_type == "button" then
@@ -433,7 +433,7 @@ function staff_rename()
         if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
             config.use_doc_fonts = doc_fonts_check:GetCheck()
             configuration.save_user_settings(script_name, config)
-            local str = finale.FCString()
+            local str = finale.FCString()   -- luacheck: ignore str
             local font_str = finale.FCString()
             for i, j in pairs(staves) do
                 for k, l in pairs(multi_staves) do 
