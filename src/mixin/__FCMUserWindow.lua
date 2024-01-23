@@ -60,4 +60,23 @@ function methods:SetTitle(title)
     self:SetTitle__(mixin_helper.to_fcstring(title, temp_str))
 end
 
+--[[
+% CreateChildUI
+
+**[Override]**
+
+Override Changes:
+- Returns original `CreateChildUI` if the method exists, otherwise it returns `mixin.UI()`
+
+@ self (__FCMUserWindow)
+: (FCMUI)
+]]
+function methods:CreateChildUI()
+    if self.CreateChildUI__ then
+        return self:CreateChildUI__()
+    end
+
+    return mixin.UI()
+end
+
 return class

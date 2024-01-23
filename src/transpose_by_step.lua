@@ -111,7 +111,7 @@ function do_transpose_by_step(global_number_of_steps_edit)
         finenv.StartNewUndoBlock(undostr, true) -- JW Lua automatically terminates the final undo block we start here
     end
     if not success then
-        finenv.UI():AlertError(
+        global_dialog:CreateChildUI():AlertError(
             loc.localize(
                 "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."),
             loc.localize("Transposition Error")
