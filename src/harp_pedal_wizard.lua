@@ -11,6 +11,9 @@ function plugindef()
     return "Harp Pedal Wizard...", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
 end
 
+-- just for now
+-- luacheck: ignore
+
 local library = require("library.general_library")
 local configuration = require("library.configuration")
 

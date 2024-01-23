@@ -180,7 +180,7 @@ function harp_gliss()
         local harp_tuplet = get_matching_tuplet(entry)
         if harp_tuplet then
             harp_tuplets_exist = true
-            for i = 1, 6 do
+            for _ = 1, 6 do
                 entry = entry:Next()
                 entry.BeamBeat = false
             end

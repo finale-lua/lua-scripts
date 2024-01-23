@@ -57,7 +57,7 @@ function lyrics_spacing(title)
     end
 --
 
-    function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)   -- luacheck: ignore dialog
+    local function add_ctrl(dialog, ctrl_type, text, x, y, h, w)   -- luacheck: ignore dialog
         str.LuaString = tostring(text)
         local ctrl = ""
         if ctrl_type == "checkbox" then
@@ -83,23 +83,23 @@ function lyrics_spacing(title)
     local chorus_static = add_ctrl(dialog, "static", "", col[4], row[1], row_h, col_w, 0, 0)
     local section_static = add_ctrl(dialog, "static", "", col[5], row[1], row_h, col_w, 0, 0)
     --
-    local lyric1_static = add_ctrl(dialog, "static", "Lyric 1 baseline:", col[1] + 31, row[2], row_h, col_w * 2, 0, 0)
+    add_ctrl(dialog, "static", "Lyric 1 baseline:", col[1] + 31, row[2], row_h, col_w * 2, 0, 0)
     local verse1_edit = add_ctrl(dialog, "edit", verse1_start, col[3], row[2], row_h, col_w, 0, 0)  
     local chorus1_edit = add_ctrl(dialog, "edit", chorus1_start, col[4], row[2], row_h, col_w, 0, 0)  
     local section1_edit = add_ctrl(dialog, "edit", section1_start, col[5], row[2], row_h, col_w, 0, 0)
     --
-    local gap_static = add_ctrl(dialog, "static", "Gap:", col[2] + 29, row[3], row_h, col_w, 0, 0)
+    add_ctrl(dialog, "static", "Gap:", col[2] + 29, row[3], row_h, col_w, 0, 0)
     local verse_gap_edit = add_ctrl(dialog, "edit", verse_gap, col[3], row[3], row_h, col_w, 0, 0)  
     local chorus_gap_edit = add_ctrl(dialog, "edit", chorus_gap, col[4], row[3], row_h, col_w, 0, 0)  
     local section_gap_edit = add_ctrl(dialog, "edit", section_gap, col[5], row[3], row_h, col_w, 0, 0)  
     --
-        local all_lyrics_static = add_ctrl(dialog, "static", "Edit all:", col[2] + 14, row[4], row_h, col_w, 0, 0)
+    add_ctrl(dialog, "static", "Edit all:", col[2] + 14, row[4], row_h, col_w, 0, 0)
     local all_lyrics_check = add_ctrl(dialog, "checkbox", "", col[3], row[4], row_h, col_w * 2, 0, 0) 
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     --
-    function apply()
+    local function apply()
         if config.all_lyrics == true then
             verse1_edit:GetText(str)
             chorus1_edit:SetText(str)
@@ -139,21 +139,7 @@ function lyrics_spacing(title)
         end
     end
 
-    function callback(ctrl)
-        if ctrl:GetControlID() == all_lyrics_check:GetControlID()  then
-
-            if all_lyrics_check:GetCheck() == 1 then
-                config.all_lyrics = true
-            else
-                config.all_lyrics = false
-            end
-            update()
-        end
-    end -- callback
-    --
-    dialog:RegisterHandleCommand(callback)
-    --
-    function update()
+    local function update()
         if not config.all_lyrics then
             independent_lyrics = true
             str.LuaString = "Verse"
@@ -179,6 +165,20 @@ function lyrics_spacing(title)
         --
     end
 
+    local function callback(ctrl)
+        if ctrl:GetControlID() == all_lyrics_check:GetControlID()  then
+
+            if all_lyrics_check:GetCheck() == 1 then
+                config.all_lyrics = true
+            else
+                config.all_lyrics = false
+            end
+            update()
+        end
+    end -- callback
+    --
+    dialog:RegisterHandleCommand(callback)
+    --
     update()
     if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
         apply()

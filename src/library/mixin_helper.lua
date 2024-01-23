@@ -293,7 +293,7 @@ local function create_change_event(...)
         for _, cb in ipairs(callbacks[target].order) do
             -- If any of the last values are not equal to the current ones, call the handler
             local called = false
-            for k, v in pairs(current) do
+            for k, _ in pairs(current) do
                 if current[k] ~= callbacks[target].history[cb][k] then
                     cb(target, unpack_arguments(callbacks[target].history[cb], table.unpack(params)))
                     called = true
@@ -528,7 +528,7 @@ function mixin_helper.create_custom_window_change_event(...)
 
     local function trigger_func(window, immediate)
         if type(window) == "boolean" and window then
-            for win in event.target_iterator() do
+            for _ in event.target_iterator() do
                 if immediate then
                     event.dispatcher(window)
                 else

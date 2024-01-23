@@ -125,7 +125,7 @@ local function user_chooses_glyph()
     local y_diff = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
 
     local base_glyph = tonumber(config.glyph) or diamond.smufl
-    local msg = ""
+    local msg
     if library.is_font_smufl_font() then
         if base_glyph < 0xE000 then base_glyph = diamond.smufl end -- < 57344
         config.glyph = string.format("0x%X", base_glyph)
@@ -183,7 +183,7 @@ local function reassign_keystrokes(index)
         local assigned = {}
         for i, v in ipairs(dialog_options) do
             local key = self:GetControl(v):GetText()
-            if key == "" then k = "?" end
+            if key == "" then key = "?" end
             config[v] = key -- save for another possible run-through
             config.ignore_duplicates = ignore:GetCheck()
             if config.ignore_duplicates == 0 then -- DON'T ignore duplicates

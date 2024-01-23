@@ -25,8 +25,6 @@ end
 
 local region = finenv.Region()
 
-local layer = 2
-
 function layer_add_whole_rest_tuplet(region, layer)    -- luacheck: ignore region layer
     for cell_measure, cell_staff in eachcell(region) do
         local cell = finale.FCCell(cell_measure, cell_staff)

@@ -58,7 +58,6 @@ function staff_rename()
     local abbrevgroup_font_info = finale.FCFontInfo()
     abbrevgroup_font_info:LoadFontPrefs(finale.FONTPREF_ABRVGROUPNAME)
     --  tables for dialog controls
-    local static_staff = {}
     local edit_fullname = {}
     local edit_abbname = {}
     local copy_button = {}
@@ -68,7 +67,7 @@ function staff_rename()
     local form_0_names = {"Clarinet in B[b]", "Clarinet in A", "Clarinet in E[b]","Horn in F", "Trumpet in B[b]", "Trumpet in C", "Horn in E[b]", "Piccolo Trumpet in A", "Trumpet in D", "Cornet in E[b]", "Pennywhistle in D", "Pennywhistle in G", "Tin Whistle in B[b]", "Melody Sax in C"}
     local form_1_names = {"B[b] Clarinet", "A Clarinet", "E[b] Clarinet", "F Horn", "B[b] Trumpet", "C Trumpet", "E[b] Horn", "A Piccolo Trumpet", "D Trumpet", "E[b] Cornet", "D Pennywhistle", "G Pennywhistle", "B[b] Tin Whistle", "C Melody Sax"}
 
-    function enigma_to_accidental(str)
+    local function enigma_to_accidental(str)
         str.LuaString = string.gsub(str.LuaString, "%^flat%(%)", "[b]")
         str.LuaString = string.gsub(str.LuaString, "%^natural%(%)", "[n]")
         str.LuaString = string.gsub(str.LuaString, "%^sharp%(%)", "[#]")
@@ -76,7 +75,7 @@ function staff_rename()
         return str
     end
 
-    function accidental_to_enigma(s)
+    local function accidental_to_enigma(s)
         s.LuaString = string.gsub(s.LuaString, "%[b%]", "^flat()")
         s.LuaString = string.gsub(s.LuaString, "%[n%]", "^natural()")
         s.LuaString = string.gsub(s.LuaString, "%[%#%]", "^sharp()")
@@ -92,8 +91,7 @@ function staff_rename()
         enigma_to_accidental(str)
 
         table.insert(multi_fullnames, str.LuaString)
-        local font_enigma = finale.FCString()
-        font_enigma = font:CreateEnigmaString(nil)
+        local font_enigma = font:CreateEnigmaString(nil)
         table.insert(multi_full_fonts, font_enigma.LuaString)
         --
         str = grp:CreateAbbreviatedNameString()
@@ -116,8 +114,7 @@ function staff_rename()
     end
 
     local sysstaves = finale.FCSystemStaves()
-    local region = finale.FCMusicRegion()
-    region = finenv.Region()
+    local region = finenv.Region()
     if region:IsEmpty() then
         region:SetFullDocument()
     end
@@ -125,9 +122,9 @@ function staff_rename()
 
     for sysstaff in each(sysstaves) do
         -- Process multi-staff instruments
-        for i,j in pairs(multi_staves) do
+        for i in pairs(multi_staves) do
 
-            for k,l in pairs(multi_staves[i]) do
+            for k in pairs(multi_staves[i]) do
                 if multi_staves[i][k] == sysstaff.Staff and multi_staves[i][k] ~= 0 then
                     local staff = finale.FCStaff()
                     staff:Load(sysstaff.Staff)
@@ -148,7 +145,7 @@ function staff_rename()
                 end
             end
         end
-        for i, j in pairs(omit_staves) do
+        for i in pairs(omit_staves) do
             if omit_staves[i] == sysstaff.Staff then
                 goto done
             end
@@ -162,8 +159,7 @@ function staff_rename()
         enigma_to_accidental(str)
         table.insert(fullnames, str.LuaString)
         staff_count = staff_count + 1
-        local font_enigma = finale.FCString()
-        font_enigma = font:CreateEnigmaString(nil)
+        local font_enigma = font:CreateEnigmaString(nil)
         table.insert(full_fonts, font_enigma.LuaString)
         str = staff:CreateAbbreviatedNameString()
         font = str:CreateLastFontInfo()
@@ -177,14 +173,14 @@ function staff_rename()
         ::done::
     end
 
-    function dialog(title)
+    local function dialog(title)
         local row_h = 20
         local row_count = 1
         local col_w = 140
         local col_gap = 20
         local str = finale.FCString()
         str.LuaString = title
-        local dialog = finale.FCCustomLuaWindow()
+        local dialog = finale.FCCustomLuaWindow()  --luacheck: ignore dialog
         dialog:SetTitle(str)
         --
         local row = {}
@@ -198,7 +194,7 @@ function staff_rename()
             col[i] = col[i] + 40
         end
         --
-        function add_ctrl(dialog, ctrl_type, text, x, y, h, w, min, max)   -- luacheck: ignore dialog
+        local function add_ctrl(dialog, ctrl_type, text, x, y, h, w)   -- luacheck: ignore dialog
             str.LuaString = tostring(text)
             local ctrl = ""
             if ctrl_type == "button" then
@@ -232,30 +228,30 @@ function staff_rename()
         local autonumber_style_list = {"Instrument 1, 2, 3", "Instrument I, II, II", "1st, 2nd, 3rd Instrument",
             "Instrument A, B, C", "1., 2., 3. Instrument"}
         local auto_x_width = 40
-        local staff_num_static = add_ctrl(dialog, "static", "Staff", 0, row[1], row_h, col_w, 0, 0)
-        local staff_name_full_static = add_ctrl(dialog, "static", "Full Name", col[1], row[1], row_h, col_w, 0, 0)
-        local staff_name_abb_static = add_ctrl(dialog, "static", "Abbr. Name", col[2], row[1], row_h, col_w, 0, 0)
-        local copy_all = add_ctrl(dialog, "button", "→", col[2] - col_gap + 2, row[1], row_h-4, 16, 0, 0)
-        local master_autonumber_static = add_ctrl(dialog, "static", "Auto #", col[3] , row[1], row_h, auto_x_width, 0, 0)
-        local master_autonumber_check = add_ctrl(dialog, "checkbox", "Auto #", col[3] + auto_x_width, row[1], row_h, 13, 0, 0)
+        add_ctrl(dialog, "static", "Staff", 0, row[1], row_h, col_w)
+        add_ctrl(dialog, "static", "Full Name", col[1], row[1], row_h, col_w)
+        add_ctrl(dialog, "static", "Abbr. Name", col[2], row[1], row_h, col_w)
+        local copy_all = add_ctrl(dialog, "button", "→", col[2] - col_gap + 2, row[1], row_h-4, 16)
+        add_ctrl(dialog, "static", "Auto #", col[3] , row[1], row_h, auto_x_width)
+        local master_autonumber_check = add_ctrl(dialog, "checkbox", "Auto #", col[3] + auto_x_width, row[1], row_h, 13)
         master_autonumber_check:SetCheck(1)
-        local master_autonumber_popup = add_ctrl(dialog, "popup", "", col[3] + 60, row[1], row_h, col_w - col_gap, 0, 0)
-        for i, k in pairs(autonumber_style_list) do
+        local master_autonumber_popup = add_ctrl(dialog, "popup", "", col[3] + 60, row[1], row_h, col_w - col_gap)
+        for i in pairs(autonumber_style_list) do
             str.LuaString = autonumber_style_list[i]
             master_autonumber_popup:AddString(str)
         end
-        add_ctrl(dialog, "horizontalline", "", 0, row[2] + 8, 0, col_w * 3.5 + 20, 0, 0)
+        add_ctrl(dialog, "horizontalline", "", 0, row[2] + 8, 0, col_w * 3.5 + 20)
         str.LuaString = "*Custom*"
         master_autonumber_popup:AddString(str)
         --
-        for i, j in pairs(staves) do
-            static_staff[i] = add_ctrl(dialog, "static", staves[i], 10, row[i + 2], row_h, col_w, 0, 0)
-            edit_fullname[i] = add_ctrl(dialog, "edit", fullnames[i], col[1], row[i + 2], row_h, col_w, 0, 0)
-            edit_abbname[i] = add_ctrl(dialog, "edit", abbnames[i], col[2], row[i + 2], row_h, col_w, 0, 0)
-            copy_button[i] = add_ctrl(dialog, "button", "→", col[2] - col_gap + 2, row[i + 2], row_h-4, 16, 0, 0)
-            autonumber_check[i] = add_ctrl(dialog, "checkbox", "", col[3] + auto_x_width, row[i+2], row_h, 13, 0, 0)
-            autonumber_popup[i] = add_ctrl(dialog, "popup", "", col[3] + 60, row[i+2], row_h, col_w - 20, 0, 0)
-            for key, val in pairs(autonumber_style_list) do
+        for i in pairs(staves) do
+            add_ctrl(dialog, "static", staves[i], 10, row[i + 2], row_h, col_w)
+            edit_fullname[i] = add_ctrl(dialog, "edit", fullnames[i], col[1], row[i + 2], row_h, col_w)
+            edit_abbname[i] = add_ctrl(dialog, "edit", abbnames[i], col[2], row[i + 2], row_h, col_w)
+            copy_button[i] = add_ctrl(dialog, "button", "→", col[2] - col_gap + 2, row[i + 2], row_h-4, 16)
+            autonumber_check[i] = add_ctrl(dialog, "checkbox", "", col[3] + auto_x_width, row[i+2], row_h, 13)
+            autonumber_popup[i] = add_ctrl(dialog, "popup", "", col[3] + 60, row[i+2], row_h, col_w - 20)
+            for key in pairs(autonumber_style_list) do
                 str.LuaString = autonumber_style_list[key]
                 autonumber_popup[i]:AddString(str)
             end
@@ -276,7 +272,7 @@ function staff_rename()
         --
         local form_select = add_ctrl(dialog, "popup", "", col[1], row[row_count + 3], row_h, col_w - col_gap, 0, 0)
         local forms = {"Instrument in Trn.","Trn. Instrument"}
-        for i,j in pairs(forms) do
+        for i in pairs(forms) do
             str.LuaString = forms[i]
             form_select:AddString(str)
         end
@@ -289,14 +285,14 @@ function staff_rename()
         dialog:CreateOkButton()
         dialog:CreateCancelButton()
         --
-        function hardcode_autonumbers()
+        local function hardcode_autonumbers()
             local staff_name = {}
             local inst_nums = {}
             local inst_num = 1
-            for i,k in pairs(staves) do
+            for i in pairs(staves) do
                 edit_fullname[i]:GetText(str)
                 local is_present = false
-                for j, l in pairs(staff_name) do
+                for j in pairs(staff_name) do
                     if staff_name[j] == str.LuaString then
                         is_present = true
                     end
@@ -306,12 +302,12 @@ function staff_rename()
                     table.insert(inst_nums, 1)
                 end
             end
-            for i,k in pairs(staves) do
+            for i in pairs(staves) do
                 local str_two = finale.FCString()
                 local is_match = false
                 edit_fullname[i]:GetText(str)
                 edit_abbname[i]:GetText(str_two)
-                for j, l in pairs(staff_name) do
+                for j in pairs(staff_name) do
                     if (staff_name[j] == str.LuaString) and (autonumber_check[i]:GetCheck() == 1) then
                         is_match = true
                         inst_num = inst_nums[j]
@@ -339,13 +335,12 @@ function staff_rename()
                 edit_fullname[i]:SetText(str)
                 edit_abbname[i]:SetText(str_two)
                 autonumber_check[i]:SetCheck(0)
-                autonumber_popup[i]:SetEnable(false)
-                is_match = false
+                autonumber_popup[i]:SetEnable(false)                
             end
         end
 
         --
-        function callback(ctrl)
+        local function callback(ctrl)
             if ctrl:GetControlID() == form_select:GetControlID() then
                 local form = form_select:GetSelectedItem()
                 local search = {}
@@ -358,28 +353,28 @@ function staff_rename()
                     replace = form_1_names
                 end
 
-                for a,b in pairs(search) do
+                for a in pairs(search) do
                     search[a] = string.gsub(search[a], "%[", "%%[")
                     search[a] = string.gsub(search[a], "%]", "%%]")
                     replace[a] = string.gsub(replace[a], "%%", "")
                 end
 
-                for i,j in pairs(fullnames) do
+                for i in pairs(fullnames) do
                     edit_fullname[i]:GetText(str)
-                    for k,l in pairs(search) do
+                    for k in pairs(search) do
                         str.LuaString = string.gsub(str.LuaString, search[k], replace[k])
                     end                    
                     edit_fullname[i]:SetText(str)
                     --
                     edit_abbname[i]:GetText(str)
-                    for k,l in pairs(search) do
+                    for k in pairs(search) do
                         str.LuaString = string.gsub(str.LuaString, search[k], replace[k])
                     end                    
                     edit_abbname[i]:SetText(str)
                 end
             end
 
-            for i, j in pairs(edit_fullname) do
+            for i in pairs(edit_fullname) do
                 if ctrl:GetControlID() == copy_button[i]:GetControlID() then
                     edit_fullname[i]:GetText(str)
                     edit_abbname[i]:SetText(str)
@@ -399,27 +394,27 @@ function staff_rename()
             end
 
             if ctrl:GetControlID() == copy_all:GetControlID() then
-                for i,j in pairs(edit_fullname) do
+                for i in pairs(edit_fullname) do
                     edit_fullname[i]:GetText(str)
                     edit_abbname[i]:SetText(str)
                 end
             elseif ctrl:GetControlID() == master_autonumber_check:GetControlID() then
                 if master_autonumber_check:GetCheck() == 1 then
                     master_autonumber_popup:SetEnable(true)
-                    for i, k in pairs(edit_fullname) do
+                    for i in pairs(edit_fullname) do
                         autonumber_check[i]:SetCheck(1)
                         autonumber_popup[i]:SetEnable(true)
                     end
                 else
                     master_autonumber_popup:SetEnable(false)
-                    for i, k in pairs(edit_fullname) do
+                    for i in pairs(edit_fullname) do
                         autonumber_check[i]:SetCheck(0)
                         autonumber_popup[i]:SetEnable(false)
                     end
                 end
             elseif ctrl:GetControlID() == master_autonumber_popup:GetControlID() then
                 if master_autonumber_popup:GetSelectedItem() < 5 then
-                    for i, k in pairs(edit_fullname) do
+                    for i in pairs(edit_fullname) do
                         autonumber_popup[i]:SetSelectedItem(master_autonumber_popup:GetSelectedItem())
                     end
                 end
@@ -434,10 +429,10 @@ function staff_rename()
             config.use_doc_fonts = doc_fonts_check:GetCheck()
             configuration.save_user_settings(script_name, config)
             local str = finale.FCString()   -- luacheck: ignore str
-            local font_str = finale.FCString()
-            for i, j in pairs(staves) do
-                for k, l in pairs(multi_staves) do 
-                    for m, n in pairs(multi_staves[k]) do
+            local font_str
+            for i in pairs(staves) do
+                for k in pairs(multi_staves) do 
+                    for m in pairs(multi_staves[k]) do
                         if staves[i] == multi_staves[k][m] then
                             local grp = finale.FCGroup()
                             grp:Load(0, multi_inst_grp[k])
@@ -472,7 +467,7 @@ function staff_rename()
                 end
                 staff.AutoNumberingStyle = autonumber_popup[i]:GetSelectedItem()
                 staff:Save()
-                for k, l in pairs(omit_staves) do
+                for k in pairs(omit_staves) do
                     if staves[i] == omit_staves[k] then
                         goto done_with_staff
                     end

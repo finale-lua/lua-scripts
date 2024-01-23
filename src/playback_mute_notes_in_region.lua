@@ -9,13 +9,13 @@ function playback_entries_mute(layers_input) -- argument optional
     layers_input = layers_input or {1, 2, 3, 4}
     local layers = {[1] = true, [2] = true, [3] = true, [4] = true}
 
-    for k, v in ipairs(layers_input) do
+    for _, v in ipairs(layers_input) do
         layers[v] = false
     end
 
     for entry in eachentrysaved(finenv.Region()) do
-	entry.Playback = false;
+	    entry.Playback = layers[entry.LayerNumber]
     end
 end
 
-playback_entries_mute({})
+playback_entries_mute()

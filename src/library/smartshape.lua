@@ -164,7 +164,7 @@ function smartshape.delete_all_slurs(music_region)
         "dashedcurvedown",
         "dashedcurveup"
     }
-    for key, val in pairs(slurs) do
+    for _, val in pairs(slurs) do
         smartshape.delete_entry_based_smartshape(music_region, val)
     end
 end

@@ -44,14 +44,14 @@ local function tie_notes_in_selection()
                     for note in each(entry) do
                         if untie_notes then
                             if note.TieBackwards then
-                                local tie_span_from, start_note = tie.calc_tie_span(note, true)
+                                local _, start_note = tie.calc_tie_span(note, true)
                                 if not start_note or region:IsEntryPosWithin(start_note.Entry) or not start_note.Tie then
                                     note.TieBackwards = false
                                     finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
                                 end
                             end
                             if note.Tie then
-                                local tie_span_to, _, end_note = tie.calc_tie_span(note, false)
+                                local _, _, end_note = tie.calc_tie_span(note, false)
                                 if not end_note or region:IsEntryPosWithin(end_note.Entry) or not end_note.TieBackwards then
                                     note.Tie = false
                                     finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)

@@ -101,7 +101,7 @@ function do_file_open_dialog(document)
     local text_extension = ".json"
     local filter_text = "JSON files"
 
-    local path_name, file_name = get_path_and_file(document)
+    local path_name, _ = get_path_and_file(document)
     local open_dialog = mixin.FCMFileOpenDialog(finenv.UI())
             :SetWindowTitle(fcstr("Open JSON Settings"))
             :SetInitFolder(path_name)
@@ -158,7 +158,6 @@ function do_save_as_dialog(document)
     local filter_text = "JSON files"
 
     local path_name, file_name = get_path_and_file(document)
-    local full_file_name = file_name.LuaString
     local extension = mixin.FCMString()
                             :SetLuaString(file_name.LuaString)
                             :ExtractFileExtension()

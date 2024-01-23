@@ -10,12 +10,11 @@ $module FCMTextExpressionDef
 - Methods that returned a boolean to indicate success/failure now throw an error instead.
 ]] --
 
-local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}
 local methods = class.Methods
-local private = setmetatable({}, {__mode = "k"})
+local private = setmetatable({}, {__mode = "k"})   -- luacheck: ignore
 
 local temp_str = finale.FCString()
 

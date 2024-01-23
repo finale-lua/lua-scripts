@@ -18,6 +18,7 @@ local library = require('library.general_library')
 local mixin = require('library.mixin')
 
 local smufl_list = library.get_smufl_font_list()
+local global_dialog
 
 local function win_mac(win_val, mac_val)
     if finenv.UI():IsOnWindows() then
@@ -26,7 +27,7 @@ local function win_mac(win_val, mac_val)
     return mac_val
 end
 
-local function on_font_changed(control)
+local function on_font_changed(_)
     local fontlist = global_dialog:GetControl("fontlist")
     local selected_item = fontlist:GetSelectedItem()
     local fontsize = global_dialog:GetControl("editsize"):GetInteger()
@@ -114,7 +115,7 @@ local function create_dialog_box()
         x_off = x_off + 30 + x_sep
     end
     local function add_button_row(label_text, utf8_first, utf8_last, fontsize, right_side)
-        curr_y_off = y_off
+        local curr_y_off = y_off
         x_off = right_side and text_width/2 + 40 or 0
         dlg:CreateStatic(x_off, y_off)
             :SetWidth(250)
@@ -144,7 +145,7 @@ local function create_dialog_box()
     dlg:CreateButton(x_off, y_off, "copy2clip")
         :SetWidth(150)
         :SetText("Copy to Clipboard")
-        :AddHandleCommand(function(control)
+        :AddHandleCommand(function(_)
             dlg:GetControl("editor"):TextToClipboard()
             dlg:CreateChildUI():AlertInfo("Text copied to clipboard.", "Text Copied")
         end)

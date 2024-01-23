@@ -48,6 +48,7 @@ local configuration = require("library.configuration")
 
 local osutils = require("luaosutils")
 local https = osutils.internet
+local global_dialog
 
 local config =
 {
@@ -298,7 +299,7 @@ local function hyphenate_dlg_text(dehyphenate)
     if context.https_session then
         return -- do not do anything if a request is in progress
     end
-    lyrics_text = finale.FCString(get_hyphenation_text())
+    local lyrics_text = finale.FCString(get_hyphenation_text())
     if lyrics_text.Length > 0 then
         local prompt = dehyphenate and config.remove_hyphens_prompt or config.add_hyphens_prompt
         prompt = prompt..lyrics_text.LuaString.."\nOutput:\n"
@@ -364,7 +365,7 @@ local function on_selection_changed(text_ctrl)
 end
 
 -- FCXCustomLuaWindow (mixin version) passes the dialog as the first parameter to HandleTimer
-local function on_timer(dialog, timer_id)
+local function on_timer(_, timer_id)
     if timer_id ~= context.global_timer_id then return end
     local curr_doc_id = finale.FCDocument().ID 
     if curr_doc_id ~= context.current_document_id then
@@ -415,7 +416,7 @@ local function create_dialog_box()
     -- size parameters
     local text_height = 300
     local text_width = 500
-    dlg = mixin.FCXCustomLuaWindow()
+    local dlg = mixin.FCXCustomLuaWindow()
             :SetTitle("Lyrics OpenAI Hyphenator")
     -- Lyrics type, number, and font selections
     dlg:CreateStatic(10, 11)
@@ -520,7 +521,7 @@ local function create_dialog_box()
     dlg:CreateButton(xoff, yoff, "update")
             :SetText("Update")
             :SetWidth(110)
-            :AddHandleCommand(function(control) update_document() end)
+            :AddHandleCommand(function(_) update_document() end)
     xoff = xoff + 120
     dlg:CreateCheckbox(xoff, yoff, "auto_update")
             :SetText("Update Automatically")
@@ -532,7 +533,7 @@ local function create_dialog_box()
     dlg:CreateButton(xoff, yoff, "refresh")
             :SetText("Get from Document")
             :SetWidth(150)
-            :AddHandleCommand(function(control)
+            :AddHandleCommand(function(_)
                 update_dlg_text({reset_undo = false})
             end)
     dlg:CreateCloseButton(xoff + text_width - 80, yoff)

@@ -12,7 +12,6 @@ end
 
 local library = require("library.general_library")
 local configuration = require("library.configuration")
-local enigma_string = require("library.enigma_string")
 local expression = require("library.expression")
 
 local config = {

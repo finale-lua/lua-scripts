@@ -617,12 +617,13 @@ function restore_joined_shapes(shapes, measure_num, dur)
     local shape = finale.FCSmartShape()
     for _, v in ipairs(shapes) do
         shape:Load(v[1])
-        local seg = { L = shape:GetTerminateSegmentLeft(), R = shape:GetTerminateSegmentRight() }
-        if v[2] == measure_num + 1 then seg.L.MeasurePos = v[4] + dur end
-        if v[2] >= measure_num + 1 then seg.L.Measure = v[2] - 1
-        else seg.L.Measure = v[2] end
+        local l_seg = shape:GetTerminateSegmentLeft()
+        local r_seg = shape:GetTerminateSegmentRight()
+        if v[2] == measure_num + 1 then l_seg.MeasurePos = v[4] + dur end
+        if v[2] >= measure_num + 1 then l_seg.Measure = v[2] - 1
+        else l_seg.Measure = v[2] end
 
-        seg.R.Measure = v[3] - 1
+        r_seg.Measure = v[3] - 1
         shape:SaveNewEverything(nil, nil)
         shape:Load(v[1]) -- delete the original non-"fixed" shape
         shape:DeleteData()

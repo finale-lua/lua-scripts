@@ -290,7 +290,7 @@ Returns the default page format prefs for score or parts based on which is curre
 function library.get_page_format_prefs()
     local current_part = library.get_current_part()
     local page_format_prefs = finale.FCPageFormatPrefs()
-    local success = false
+    local success
     if current_part:IsScore() then
         success = page_format_prefs:LoadScore()
     else
@@ -434,7 +434,7 @@ function library.simple_input(title, text, default)
     local str = finale.FCString()
     local min_width = 160
     --
-    function format_ctrl(ctrl, h, w, st)
+    local function format_ctrl(ctrl, h, w, st)
         ctrl:SetHeight(h)
         ctrl:SetWidth(w)
         if st then
@@ -443,11 +443,11 @@ function library.simple_input(title, text, default)
         end
     end -- function format_ctrl
     --
-    title_width = string.len(title) * 6 + 54
+    local title_width = string.len(title) * 6 + 54
     if title_width > min_width then
         min_width = title_width
     end
-    text_width = string.len(text) * 6
+    local text_width = string.len(text) * 6
     if text_width > min_width then
         min_width = text_width
     end

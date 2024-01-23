@@ -32,7 +32,7 @@ function on_update_editor(dialog)
     if editor then -- editor with be nil if editor_available is false
         local selected_page_text = dialog:GetControl("pagetext"):GetSelectedItem() + 1
         local page_text = page_texts_with_inserts[selected_page_text]
-        text = page_text:CreateTextString()
+        local text = page_text:CreateTextString()
         enigma_string.remove_inserts(text, dialog:GetControl("replace"):GetCheck() ~= 0, editor_available)
         editor:SetEnigmaString(text)
         local range = finale.FCRange(0, 0)
@@ -69,7 +69,7 @@ function create_dialog()
     current_x = current_x + label_width + x_increment
     local page_text = dialog:CreatePopup(current_x, current_y, "pagetext")
         :SetWidth(popup_width)
-        :AddHandleCommand(function(control)
+        :AddHandleCommand(function(_)
             on_update_editor(dialog)
         end)
     for _, v in pairs(clean_texts) do
@@ -81,8 +81,8 @@ function create_dialog()
         :SetWidth(60)
         :SetText("Font...")
         :AddHandleCommand(function()
-            local ui = dlg:CreateChildUI()
-            local editor = dlg:GetControl("editor")
+            local ui = dialog:CreateChildUI()
+            local editor = dialog:GetControl("editor")
             local font = get_current_font(editor)
             local selector = finale.FCFontDialog(ui, font)
             if selector:Execute() then
@@ -108,15 +108,14 @@ function create_dialog()
     end
 
     -- Replace Checkbox
-    local do_replace = dialog:CreateCheckbox(0, current_y+2, "replace")
+    dialog:CreateCheckbox(0, current_y+2, "replace")
         :SetText("Replace Inserts With Generic Text")
         :SetWidth(250)
         :SetCheck(initial_replace_option and 1 or 0)
-        :AddHandleCommand(function(control)
+        :AddHandleCommand(function(_)
             on_update_editor(dialog)
         end)
-    current_y = current_y + button_height + y_increment
-
+    
     -- OK/Cxl
     dialog:CreateOkButton()
     dialog:CreateCancelButton()

@@ -7,7 +7,6 @@ $module __FCMUserWindow
 - Setters that accept `FCString` will also accept a Lua `string`.
 - `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
 ]] --
-local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}

@@ -164,7 +164,7 @@ function clef.process_clefs(mid_clefs)
     end
     table.sort(clefs, function (k1, k2) return k1.MeasurePos < k2.MeasurePos end)
 
-    for k, mid_clef in ipairs(clefs) do
+    for _, mid_clef in ipairs(clefs) do
         new_mid_clefs:InsertCellClefChange(mid_clef)
         new_mid_clefs:SaveAllAsNew()
     end

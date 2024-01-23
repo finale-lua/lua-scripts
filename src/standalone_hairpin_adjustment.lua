@@ -163,7 +163,7 @@ function vertical_dynamic_adjustment(region, direction)
         table.sort(staff_pos)
 
         if (nil ~= staff_pos[1]) and ("far" == direction) and (#lowest_item > 0) then
-            local min_lowest_position = lowest_item[1]
+            local min_lowest_position
             if staff_pos[1] > -7 then
                 min_lowest_position = -160
             else
@@ -334,7 +334,7 @@ function hairpin_adjustments(range_settings)
         end
     end
 
-    function has_dynamic(region)
+    local function has_dynamic(region)
 
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(region)
@@ -387,7 +387,7 @@ function hairpin_adjustments(range_settings)
 
     if "none" ~= config.horizontal_adjustment_type then
         local multiple_hairpins = (#hairpin_list > 1)
-        for key, value in pairs(hairpin_list) do
+        for _, value in pairs(hairpin_list) do
             if ("both" == config.horizontal_adjustment_type) or ("left" == config.horizontal_adjustment_type) then
                 horizontal_hairpin_adjustment("left", value, {range_settings[1], range_settings[2], range_settings[4]}, end_cushion, multiple_hairpins)
             end
@@ -409,7 +409,6 @@ end
 function set_first_last_note_in_range(staff)
 
     local music_region = finale.FCMusicRegion()
-    local range_settings = {}
     music_region:SetCurrentSelection()
     music_region:SetStartStaff(staff)
     music_region:SetEndStaff(staff)

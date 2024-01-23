@@ -1,3 +1,4 @@
+-- luacheck: ignore 131
 include_files = { "src/**/*.lua"}
 exclude_files = {
     "mobdebug.lua",
@@ -28,10 +29,7 @@ globals = {
     "plugindef"
 }
 codes = true
-unused = false
-unused_args = false
 ignore = { 
     "6..",   -- formatting
-    "131",   -- Unused implicitly defined global variable
 }
-allow_defined = true
+allow_defined_top = true

@@ -32,6 +32,8 @@ function plugindef()
     return "Transpose Chromatic...", "Transpose Chromatic", "Chromatic transposition of selected region (supports microtone systems)."
 end
 
+local global_dialog
+
 if not finenv.RetainLuaState then
     -- do initial setup once per Lua state
     interval_names = {
@@ -124,7 +126,7 @@ function create_dialog_box()
     dialog:CreatePopup(x_increment, current_y, "direction_choice"):AddStrings("Up", "Down"):SetWidth(x_increment):SetSelectedItem(0)
     current_y = current_y + y_increment
     -- interval
-    static = dialog:CreateStatic(0, current_y + 2):SetText("Interval:")
+    dialog:CreateStatic(0, current_y + 2):SetText("Interval:")
     dialog:CreatePopup(x_increment, current_y, "interval_choice"):AddStrings(table.unpack(interval_names)):SetWidth(140):SetSelectedItem(0)
     current_y = current_y + y_increment
     -- simplify checkbox
@@ -137,7 +139,6 @@ function create_dialog_box()
     current_y = current_y + y_increment
     -- preserve existing notes
     dialog:CreateCheckbox(0, current_y + 2, "do_preserve"):SetText("Preserve Existing Notes"):SetWidth(140):SetCheck(0)
-    current_y = current_y + y_increment
     -- OK/Cxl
     dialog:CreateOkButton()
     dialog:CreateCancelButton()

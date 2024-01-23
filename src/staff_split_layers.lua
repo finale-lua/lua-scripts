@@ -26,6 +26,8 @@ local note_entry = require("library.note_entry")
 local layer = require("library.layer")
 local mixin = require("library.mixin")
 
+local global_dialog
+
 function explode_one_slot(slot, split_from_top, source_layer, destination_layer, clone_artics)
     local region = finale.FCMusicRegion()
     region:SetCurrentSelection()
@@ -34,10 +36,6 @@ function explode_one_slot(slot, split_from_top, source_layer, destination_layer,
     region:SetStartMeasurePosLeft()
     region:SetEndMeasurePosRight()
 
-    local start_measure = region.StartMeasure
-    local end_measure = region.EndMeasure
-    local staff = region:CalcStaffNumber(slot)
-
     layer.copy(region, source_layer, destination_layer, clone_artics)
 
     -- run through all entries and split by layer
@@ -45,13 +43,13 @@ function explode_one_slot(slot, split_from_top, source_layer, destination_layer,
         if entry:IsNote() then
             local this_layer = entry.LayerNumber
             if this_layer == source_layer and entry.Count > split_from_top then
-                for index = 0, entry.Count - split_from_top - 1 do
+                for _ = 0, entry.Count - split_from_top - 1 do
                     note_entry.delete_note(entry:GetItemAt(0))
                 end
             end
             if this_layer == destination_layer then
                 if entry.Count > split_from_top then
-                    for index = 0, split_from_top - 1 do
+                    for _ = 0, split_from_top - 1 do
                         note_entry.delete_note(entry:GetItemAt(entry.Count-1))
                     end
                 else
@@ -149,7 +147,7 @@ function create_dialog_box()
     -- ok/cancel
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    dialog:RegisterHandleOkButtonPressed(function(self)
+    dialog:RegisterHandleOkButtonPressed(function(_)
             do_staff_split_layers()
         end
     )

@@ -102,6 +102,7 @@ function smufl_load_engraving_defaults()
                 repeat_prefs:SetForwardSpace(math.floor(newVal + 0.5))
                 repeat_prefs:SetBackwardSpace(math.floor(newVal + 0.5))
             end,
+        -- luacheck: push ignore
         bracketThickness = function(v) end, -- Not supported. (Finale doesn't seem to have this pref setting.)
         subBracketThickness = function(v) end, -- Not supported. (Finale doesn't seem to have this pref setting.)
         hairpinThickness = function(v) smart_shape_prefs.HairpinLineWidth = math.floor(efixPerSpace*v + 0.5) end,
@@ -109,6 +110,7 @@ function smufl_load_engraving_defaults()
         pedalLineThickness = function(v) end, -- To Do: requires finding and editing Custom Lines
         repeatEndingLineThickness = function(v) repeat_prefs.EndingLineThickness = math.floor(efixPerSpace*v + 0.5) end,
         arrowShaftThickness = function(v) end, -- To Do: requires finding and editing Custom Lines
+        -- luacheck: pop
         lyricLineThickness = function(v) lyrics_prefs.WordExtLineThickness = math.floor(efixPerSpace*v + 0.5) end,
         textEnclosureThickness = function(v)
                 size_prefs.EnclosureThickness = math.floor(efixPerSpace*v + 0.5)
@@ -162,7 +164,8 @@ function smufl_load_engraving_defaults()
         tupletBracketThickness = function(v)
                 tuplet_prefs.BracketThickness = math.floor(efixPerSpace*v + 0.5)
             end,
-        hBarThickness = function(v) end -- Not supported. (Can't edit FCShape in Lua. Hard even in PDK.)
+        -- Not supported. (Can't edit FCShape in Lua. Hard even in PDK.) 
+        hBarThickness = function(v) end -- luacheck: ignore    
     }
 
     -- apply each action from the json file

@@ -42,6 +42,8 @@ end
 local transposition = require("library.transposition")
 local mixin = require("library.mixin")
 
+local global_dialog
+
 function do_transpose_by_step(global_number_of_steps_edit)
     if finenv.Region():IsEmpty() then
         return

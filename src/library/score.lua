@@ -816,8 +816,7 @@ function score.calc_voice_staff(staff_num)
     local staff = finale.FCStaff()
     if staff:Load(staff_num) then
         local staff_instrument = staff:GetInstrumentUUID()
-        local test = finale.FFUID_YODEL
-        for k, v in pairs(VOICE_INSTRUMENTS) do
+        for _, v in pairs(VOICE_INSTRUMENTS) do
             if staff_instrument == v then
                 is_voice_staff = true
             end

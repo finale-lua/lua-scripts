@@ -6,7 +6,6 @@ $module FCMCtrlTree
 ## Summary of Modifications
 - Methods that accept `FCString` will also accept Lua `string` or `number`.
 ]] --
-local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}

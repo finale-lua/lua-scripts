@@ -447,7 +447,6 @@ local function input_error()
                     .. us(max_evpu) .. " to " .. us(max_evpu) .. u_name .. ", not:\n"
                     .. usi(1) .. " ... " .. usi(2) .. u_name .. " (upwards)\n"
                     .. usi(3) .. " ... " .. usi(4) .. u_name .. " (downwards)"
-                error = true
                 break -- one bad offset ruins it for everyone
             end
         end

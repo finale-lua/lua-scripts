@@ -37,7 +37,7 @@ local function process_notes(music_region)
 
     for entry in eachentrysaved(music_region) do
         local span = entry:CalcDisplacementRange(nil)
-        local stem_direction = stem_dir[i]
+        local stem_direction
         if entry.LayerNumber == 1 then
             stem_direction = stem_dir[i]
             if entry:IsNote() then
@@ -85,7 +85,7 @@ local function process_notes(music_region)
         end
         entry.CheckAccidentals = true
         if entry:IsNote() then
-            n = 1
+            local n = 1
             for note in each(entry) do
                 note.NoteID = n
                 n = n + 1
