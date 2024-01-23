@@ -1,0 +1,16 @@
+name: Build and deploy scripts/docs
+
+on:
+  push:
+  pull_request:
+    branches:
+      - "master"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Luacheck linter
+        uses: lunarmodules/luacheck@v1
