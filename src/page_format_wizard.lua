@@ -89,7 +89,7 @@ end
 
 function math.round(number, round_to)
   round_to = round_to or 1
-  return math.floor(number/round_to + math.sign(number) * 0.5) * round_to
+  return math.floor((number or 0) / round_to + ((number or 0) >= 0 and 0.5 or -0.5)) * round_to
 end
 
 local function mm_to_efix(mm)
