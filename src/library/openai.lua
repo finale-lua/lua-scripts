@@ -39,10 +39,8 @@ calls for better user responsiveness. If there is no dialog box, synchronous cal
 okay as long as the timeout is reasonably short.
 ]]
 
-local utils = require("library.utils")
-
-local json = utils.require_embedded("cjson.safe")
-local osutils = utils.require_embedded("luaosutils")
+local json = require("cjson.safe")
+local osutils = require("luaosutils")
 local https = osutils.internet
 
 local ORIGIN = 'https://api.openai.com'

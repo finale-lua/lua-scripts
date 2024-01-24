@@ -151,10 +151,6 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
-
-    function utils.require_embedded(library_name)
-        return require(library_name)
-    end
     return utils
 end
 package.preload["library.client"] = package.preload["library.client"] or function()
@@ -258,7 +254,6 @@ end
 package.preload["library.general_library"] = package.preload["library.general_library"] or function()
 
     local library = {}
-    local utils = require("library.utils")
     local client = require("library.client")
 
     function library.group_overlaps_region(staff_group, region)
@@ -453,7 +448,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     end
 
     function library.get_smufl_font_list()
-        local osutils = finenv.EmbeddedLuaOSUtils and utils.require_embedded("luaosutils")
+        local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
         local font_names = {}
         local add_to_table = function(for_user)
             local smufl_directory = calc_smufl_directory(for_user)
@@ -676,7 +671,7 @@ function plugindef()
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "2023"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "2023-02-24"
     finaleplugin.MinJWLuaVersion = 0.66
 
@@ -731,7 +726,7 @@ end
 local create_template_if_not_found = false
 local utils = require("library.utils")
 local library = require("library.general_library")
-local osutils = utils.require_embedded("luaosutils")
+local osutils = require("luaosutils")
 local menu = osutils.menu
 local layout_file_name = "finale_lua_menus.txt"
 local comment_string = "//"

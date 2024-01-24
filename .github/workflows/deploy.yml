@@ -4,6 +4,9 @@ on:
     push:
         branches:
             - 'master'
+    pull_request:
+        branches:
+            - 'master'
 
 jobs:
     deploy:
@@ -17,6 +20,7 @@ jobs:
                   path: './lua'
             - run: 'rm -f ./lua/dist/*'
             - name: Checkout docs website repository
+              if: github.event_name == 'push'
               uses: actions/checkout@v4
               with:
                   persist-credentials: false
@@ -56,6 +60,7 @@ jobs:
             - run: 'rm -rf website/docs'
             - run: 'cp -R lua/docs website/docs'
             - name: Commit & Push docs to website
+              if: github.event_name == 'push'
               uses: actions-js/push@v1.4
               with:
                   github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
@@ -63,6 +68,7 @@ jobs:
                   branch: main
                   repository: finale-lua/jw-lua-scripts-docs
             - name: Commit & Push docs to this repo
+              if: github.event_name == 'push'
               uses: actions-js/push@v1.4
               with:
                   github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}

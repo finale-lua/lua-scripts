@@ -18,7 +18,6 @@ A library of general Lua utility functions.
 - [trim(str)](#trim)
 - [call_and_rethrow(levels, tryfunczzz)](#call_and_rethrow)
 - [rethrow_placeholder()](#rethrow_placeholder)
-- [require_embedded()](#require_embedded)
 
 ### copy_table
 
@@ -278,17 +277,3 @@ Use this in error messages where the function name is variable or unknown (eg be
 | Return type | Description |
 | ----------- | ----------- |
 | `string` |  |
-
-### require_embedded
-
-```lua
-utility_functions.require_embedded()
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L302)
-
-Bypasses the deployment rewrite of `require` to allow for requiring of libraries embedded in RGP Lua.
-
-| Return type | Description |
-| ----------- | ----------- |
-| `string` | The name of the embedded library to require. |
