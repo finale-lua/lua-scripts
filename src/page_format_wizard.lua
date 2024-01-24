@@ -1858,7 +1858,6 @@ local function format_wizard()
   bold_control(score_ctrls.staff_settings)
   bold_control(parts_ctrls.staff_settings)
   bold_control(special_ctrls.staff_settings)
---  finale.FCFileSaveAsDialog(finenv.UI()):GetFileName(str)
 end
 
 format_wizard()
