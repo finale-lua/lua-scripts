@@ -1,5 +1,4 @@
--- luacheck: ignore 131
-include_files = { "src/**/*.lua", "samples/**/*.lua"}
+include_files = { "src/**/*.lua"}
 exclude_files = {
     "mobdebug.lua",
     "src/lunajson/**/*.lua",
@@ -29,8 +28,10 @@ globals = {
     "plugindef"
 }
 codes = true
+unused = false
+unused_args = false
 ignore = { 
-    "6..",           -- formatting
-    "131/plugindef"  -- ignore plugindef errors; seems to be needed just for VS Code
+    "6..",   -- formatting
+    "131",   -- Unused implicitly defined global variable
 }
-allow_defined_top = true
+allow_defined = true
