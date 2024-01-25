@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.05"
-    finaleplugin.Date = "2024/01/20"
+    finaleplugin.Version = "0.07"
+    finaleplugin.Date = "2024/01/24"
     finaleplugin.CategoryTags = "Entries, Pitch, Transposition"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = [[
@@ -21,22 +21,20 @@ function plugindef()
         (you can use "s" instead of "#" - automatic replacement)
 
         If you make a mistake with the pitch format you will be asked to 
-        "FIX" the mistake before the pitch change can take place.
+        "FIX" the mistake before the pitch change can take place. 
+        "C4" is middle C. "B4" is a major seventh above that.
     ]]
     return "Pitch Singles Changer...", "Pitch Singles Changer", "Change up to four specific pitches to other specific pitches"
 end
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
-local utils = require("library.utils")
+local cjson = require("cjson")
 local library = require("library.general_library")
-
-local cjson = utils.require_embedded("cjson")
-
 local script_name = library.calc_script_name()
 
 local config = {
-    pitch_set = '[["C4","C5"]]', -- JSON encoded pitch replacement set
+    pitch_set = '[["C4", "C5"]]', -- JSON encoded pitch replacement set
     window_pos_x = false,
     window_pos_y = false,
 }
