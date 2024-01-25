@@ -3,32 +3,36 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.70"
-    finaleplugin.Date = "2023/07/25"
+    finaleplugin.Version = "0.82"
+    finaleplugin.Date = "2024/01/25"
     finaleplugin.MinJWLuaVersion = 0.60
-    finaleplugin.Notes = [[
-        This script provides rapid entry of simple or complex 
+    finaleplugin.Notes = [[ 
+        This script allows rapid creation of simple or complex 
         time signatures with a few keystrokes. 
         It supports composite numerators like [3+2+3/16] and can join 
-        with further composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]). 
-        "Display only" time signatures can be equally complex and set without using a mouse. 
+        easily with extra composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]). 
+        "Display only" time signatures can be equally complex and set without using a mouse.  
+
         At startup the time signature of the first selected measure is shown. 
-        Click the "Clear All" button to revert to a simple 4/4 with no other options.
+        To revert to a simple 4/4 with no other options click the "Clear All" button or type [x]. 
+        To read these script notes click the [?] button or type [q]. 
+        To respace notes on completion click the "Respace" button or type [r].
 
         All measures in the current selection will be assigned the new time signature. 
+        Use this feature to quickly copy the initial meter throughout the selection. 
         If just one measure is selected only it will be changed.
 
-        "Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, 64. 
+        "Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, or 64. 
         "Top" numbers (numerators) are integers, optionally joined by '+' signs for composite meters. 
-        Multiples of 3 automatically convert to compound signatures so [9/16] will 
-        convert to three groups of dotted 8ths. 
-        To prevent automatic compounding, instead of the bottom 'note' number enter its EDU value 
-        (quarter note = 1024; eighth note = 512 etc).
+        Numerators that are multiples of 3 automatically convert to compound signatures 
+        so [9/16] will convert to three groups of dotted 8ths. 
+        To prevent automatic compounding, instead of the bottom 'note' number enter its 
+        EDU value (quarter note = 1024; eighth note = 512; sixteenth = 256 etc).
 
         Empty and zero "Top" numbers will be ignored. 
-        If "Secondary" numbers are zero then "Tertiary" values are ignored. 
+        "Tertiary" values will be ignored if "Secondary" numbers are blank or zero.
     ]]
-	return "Meter Set Numeric", "Meter Set Numeric", "Set the Meter Numerically"
+	return "Meter Set Numeric...", "Meter Set Numeric", "Set the Meter Numerically"
 end
 
 --[[
@@ -45,20 +49,51 @@ end
     }
 ]]
 
+local info_notes = [[
+This script allows rapid creation of simple or complex
+time signatures with a few keystrokes.
+It supports composite numerators like [3+2+3/16] and can join
+easily with extra composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]).
+"Display only" time signatures can be equally complex and set without using a mouse.
+**
+At startup the time signature of the first selected measure is shown.
+To revert to a simple 4/4 with no other options click the "Clear All" button or type [x].
+To read these script notes click the [?] button or type [q].
+To respace notes on completion click the "Respace" button or type [r].
+**
+All measures in the current selection will be assigned the new time signature.
+Use this feature to quickly copy the initial meter throughout the selection.
+If just one measure is selected only it will be changed.
+**
+"Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, or 64.
+"Top" numbers (numerators) are integers, optionally joined by '+' signs for composite meters.
+Numerators that are multiples of 3 automatically convert to compound signatures
+so [9/16] will convert to three groups of dotted 8ths.
+To prevent automatic compounding, instead of the bottom 'note' number enter its
+EDU value (quarter note = 1024; eighth note = 512; sixteenth = 256 etc).
+**
+Empty and zero "Top" numbers will be ignored.
+"Tertiary" values will be ignored if "Secondary" numbers are blank or zero.
+]]
+info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n")
+    .. "\n(v" .. finaleplugin.Version .. ")"
+
 local mixin = require("library.mixin")
 local configuration = require("library.configuration")
+local library = require("library.general_library")
+local script_name = library.calc_script_name()
+
 local config = {
     note_spacing = true,
     window_pos_x = false,
     window_pos_y = false,
 }
-local script_name = "meter_set_numeric"
 configuration.get_user_settings(script_name, config, true)
 
 function blank_meter()
     return { -- empty composite meter record
-        main = { top = {}, bottom = {} },
-        display =  { top = {}, bottom = {} }
+        main    = { top = {}, bottom = {} },
+        display = { top = {}, bottom = {} }
     }
 end
 
@@ -79,90 +114,125 @@ end
 
 function user_chooses_meter(meter, rgn)
     local x = { 0, 70, 130, 210, 280, 290 } -- horizontal grid
-    local label = {"PRIMARY", "(+ SECONDARY)", "(+ TERTIARY)"}
-    local label_off = { 0, -37, -21 } -- horizontal offset for these names (ranged right)
+    local label = { -- data type descriptors and (range right) horizontal offset
+        { "PRIMARY", 0}, -- name, horiz (left) offset
+        { "(+ SECONDARY)", -37 },
+        { "(+ TERTIARY)", -21 }
+    }
     local y_middle = 118 -- window vertical mid-point
     local offset = finenv.UI():IsOnMac() and 3 or 0
+    local name = plugindef():gsub("%.%.%.", "") -- remove trailing dots
+    local function show_info() finenv.UI():AlertInfo(info_notes, "About " .. name) end
+    local box, save_text = {}, {} -- user's edit-box entry responses
     local message = "m. " .. rgn.StartMeasure -- measure selection information
     if rgn.StartMeasure ~= rgn.EndMeasure then  -- multiple measures
         message = "m" .. message .. "-" .. rgn.EndMeasure
     end
+    local respace_check -- pre-declare the "respace" checkbox
+
     local y = 0
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    -- STATIC TEXT ELEMENTS
-    local function cstat(nx, ny, nwide, ntext)
-        local dx = (type(nx) == "number") and x[nx] or tonumber(nx)
-        return dialog:CreateStatic(dx, ny):SetWidth(nwide):SetText(ntext)
-    end
-    local function join(values) -- join integers from the meter.top array with '+' signs
-        if not values or #values == 0 then return "0" end
-        return table.concat(values, "+")
-    end
-    local shadow = cstat("1", y + 1, x[3], "TIME SIGNATURE")
-    if shadow.SetTextColor then shadow:SetTextColor(153, 153, 153) end
-    cstat(1, y, x[3], "TIME SIGNATURE")
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
+        local function cstat(nx, ny, nwide, ntext, id)
+            local dx = (type(nx) == "number") and x[nx] or tonumber(nx)
+            return dialog:CreateStatic(dx, ny, id):SetWidth(nwide):SetText(ntext)
+        end
+        local function join(values) -- join integers from the meter.top array with '+' signs
+            if not values or #values == 0 then return "0" end
+            return table.concat(values, "+")
+        end
+        local function clear_entries()
+            for j = 0, 6, 6 do
+                for i = 1, 3 do
+                    local n = (j == 0 and i == 1) and 4 or 0
+                    box[j + i]:SetText(n)
+                    box[j + i + 3]:SetInteger(n)
+                    save_text[j + i] = n
+                    save_text[j + i + 3] = n
+                end
+            end
+            box[1]:SetKeyboardFocus()
+        end
+        local function key_check(id)
+            local s = box[id]:GetText():lower()
+            if s:find("[^0-9+]") then
+                if s:find("x") then
+                    clear_entries()
+                else
+                    if s:find("[?q]") then
+                        show_info()
+                    elseif s:find("r") then
+                        local n = respace_check:GetCheck()
+                        respace_check:SetCheck((n + 1) % 2)
+                    end
+                    box[id]:SetText(save_text[id])
+                end
+            elseif s ~= "" then
+                save_text[id] = s -- save newly entered text
+            end
+        end
+
+    cstat(1, y + 1, x[3], "TIME SIGNATURE", "main")
     cstat(3, y, x[3], "TOP")
     cstat(4, y, x[3], "BOTTOM")
     cstat(6, 25, 80, "Selection:")
     cstat(6, 40, 80, message)
+    dialog:CreateButton(x[5], y):SetWidth(80):SetText("Clear All (x)")
+        :AddHandleCommand(function() clear_entries() end)
     y = y_middle
     cstat(x[2] - 30, y - 30, 330, "'TOP' entries can include integers joined by '+' signs")
     dialog:CreateHorizontalLine(x[1], y - 9, x[5] + 50)
     dialog:CreateHorizontalLine(x[1], y - 8, x[5] + 50)
-    shadow = cstat("1", y + 1, x[3], "DISPLAY SIGNATURE")
-    if shadow.SetTextColor then shadow:SetTextColor(153, 153, 153) end
-    cstat(1, y, x[3], "DISPLAY SIGNATURE")
+    cstat(1, y + 1, x[3], "DISPLAY SIGNATURE", "second")
     cstat(3, y, 150, "(set to '0' for none)")
-    dialog:CreateButton(x[5] + 60, y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function()
-            finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" %s+", " "), "About " .. plugindef())
-        end)
-    -- USER EDIT BOXES
+
+    -- COMPOSITE TIME SIG BOXES
     y = 0
-    local box = {} -- user's edit-box entry responses
     for jump = 0, 6, 6 do
         local t_sig = (jump == 0) and meter.main or meter.display
         for group = 1, 3 do
             y = y + 20
             local id = group + jump
-            box[id] = dialog:CreateEdit(x[3], y - offset, tostring(id))
+            box[id] = dialog:CreateEdit(x[3], y - offset)
                 :SetText(join(t_sig.top[group])):SetWidth(65)
-            box[id + 3] = dialog:CreateEdit(x[4], y - offset, tostring(id + 3))
+                :AddHandleCommand(function() key_check(id) end)
+            box[id + 3] = dialog:CreateEdit(x[4], y - offset)
                 :SetInteger(t_sig.bottom[group] or 0):SetWidth(65)
-            cstat(x[2] + label_off[group], y, 56 - label_off[group], label[group])
+                :AddHandleCommand(function() key_check(id + 3) end)
+            cstat(x[2] + label[group][2], y, 56 - label[group][2], label[group][1])
+            save_text[id] = box[id]:GetText()
+            save_text[id + 3] = box[id + 3]:GetText()
         end
         y = y_middle
     end
-    dialog:CreateCheckbox(x[3], y_middle + 85, "spacing"):SetText("Respace notes on completion")
-        :SetCheck(config.note_spacing and 1 or 0):SetWidth(170)
-    local clear_button = dialog:CreateButton(x[5], 0):SetWidth(80):SetText("Clear All")
-    clear_button:AddHandleCommand(function()
-            box[1]:SetText("4")
-            box[4]:SetInteger(4)
-            for _, i in ipairs({2, 3, 7, 8, 9}) do -- "clear" the other edit boxes
-                box[i]:SetText("0")
-                box[i + 3]:SetInteger(0)
-            end
-            box[1]:SetKeyboardFocus()
-        end
-    )
+    y = y + 60
+    dialog:CreateButton(x[5] + 60, y, "q"):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() show_info() end)
+    y = y + 25
+    respace_check = dialog:CreateCheckbox(x[3], y):SetText("Respace notes on completion (r)")
+        :SetCheck(config.note_spacing and 1 or 0):SetWidth(185)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     local choices = {} -- convert edit box values to 12-element table
-    dialog:RegisterInitWindow(function() box[1]:SetKeyboardFocus() end)
-    -- "TOP" values are strings, "BOTTOMS" are integers
-    dialog:RegisterHandleOkButtonPressed(function(self)
-        for count = 0, 6, 6 do -- "main" then "display" t_sig values
+    dialog:RegisterInitWindow(function(self)
+        box[1]:SetKeyboardFocus()
+        local q = self:GetControl("q")
+        local bold = q:CreateFontInfo():SetBold(true)
+        q:SetFont(bold)
+        self:GetControl("main"):SetFont(bold)
+        self:GetControl("second"):SetFont(bold)
+    end)
+    dialog:RegisterHandleOkButtonPressed(function()
+        for count = 0, 6, 6 do -- "main" then "display" time_sig values
             for group = 1, 3 do
                 local id = count + group
-                choices[id] = self:GetControl(tostring(id)):GetText() or "0"
+                choices[id] = box[id]:GetText() or "0"
                 if choices[id] == "" then choices[id] = "0" end
-                choices[id + 3] = math.abs(self:GetControl(tostring(id + 3)):GetInteger()) or 0
+                choices[id + 3] = box[id + 3]:GetInteger() or 0
             end
         end
-        config.note_spacing = (self:GetControl("spacing"):GetCheck() == 1)
-        dialog_save_position(self) -- save window position and config choices
+        config.note_spacing = (respace_check:GetCheck() == 1)
     end)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     dialog_set_position(dialog)
     local ok = dialog:ExecuteModal(nil)  -- run the dialog
     return ok, choices
@@ -231,7 +301,7 @@ function is_power_of_two(num)
 end
 
 function convert_choices_to_meter(choices, meter)
-    if choices[1] == "0" or choices[4] == 0 then
+    if choices[1] == "0" or choices[1] == "" or choices[4] == 0 then
         return "Primary time signature cannot be zero"
     end
     for jump = 0, 6, 6 do -- 'main' meter then 'display' meter
@@ -338,7 +408,7 @@ function create_new_meter()
         main = { top = nil, bottom = nil},
         display = { top = nil, bottom = nil}
     }
-    for _, kind in ipairs({"main", "display"}) do
+    for _, kind in ipairs{"main", "display"} do
         if meter[kind].top[1] and (#meter[kind].top > 1 or #meter[kind].top[1] > 1) then
             composites[kind].top = new_composite_top(meter[kind].top)
             if #meter[kind].bottom > 1 then
