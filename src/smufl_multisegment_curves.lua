@@ -14,11 +14,12 @@ function plugindef()
     return "SMuFL Multi-Segment Curves...", "SMuFL Multi-Segment Curves", "Allows you to construct a string from SMuFL multi-segment curved-line characters"
 end
 
+-- luacheck: ignore 11./global_dialog
+
 local library = require('library.general_library')
 local mixin = require('library.mixin')
 
 local smufl_list = library.get_smufl_font_list()
-local global_dialog
 
 local function win_mac(win_val, mac_val)
     if finenv.UI():IsOnWindows() then

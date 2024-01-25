@@ -42,13 +42,14 @@ function plugindef()
            "Add or correct lyrics hypenation using your OpenAI account."
 end
 
+-- luacheck: ignore 11./global_dialog
+
 local mixin = require("library.mixin")
 local openai = require("library.openai")
 local configuration = require("library.configuration")
 
 local osutils = require("luaosutils")
 local https = osutils.internet
-local global_dialog
 
 local config =
 {

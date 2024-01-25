@@ -33,6 +33,8 @@ function plugindef()
     return "Transpose By Steps...", "Transpose By Steps", "Transpose by the number of steps given, simplifying spelling as needed."
 end
 
+-- luacheck: ignore 11./global_dialog
+
 if not finenv.IsRGPLua then
     local path = finale.FCString()
     path:SetRunningLuaFolderPath()
@@ -41,8 +43,6 @@ end
 
 local transposition = require("library.transposition")
 local mixin = require("library.mixin")
-
-local global_dialog
 
 function do_transpose_by_step(global_number_of_steps_edit)
     if finenv.Region():IsEmpty() then

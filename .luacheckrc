@@ -30,6 +30,7 @@ globals = {
 }
 codes = true
 ignore = { 
-    "6..",   -- formatting
+    "6..",           -- formatting
+    "131/plugindef"  -- ignore plugindef errors; seems to be needed just for VS Code
 }
 allow_defined_top = true

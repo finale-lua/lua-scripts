@@ -32,7 +32,7 @@ function plugindef()
     return "Transpose Chromatic...", "Transpose Chromatic", "Chromatic transposition of selected region (supports microtone systems)."
 end
 
-local global_dialog
+-- luacheck: ignore 11./global_dialog
 
 if not finenv.RetainLuaState then
     -- do initial setup once per Lua state

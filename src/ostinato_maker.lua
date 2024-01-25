@@ -57,12 +57,12 @@ Key Commands:
 info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
     .. "\n(" .. finaleplugin.Version .. ")"
 
+--luacheck: ignore 11./global_dialog 11./global_selection
 global_timer_id = 1
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local script_name = "ostinato_maker"
-local global_selection, global_dialog
 
 local config = {
     num_repeats  =   1,
@@ -403,8 +403,6 @@ local function make_ostinato()
     configuration.get_user_settings(script_name, config, true)
     global_selection = global_selection or copy_region_bounds()
     global_dialog = global_dialog or create_dialog_box()
-    --finenv.RegisterModelessDialog(global_dialog)
-    --global_dialog:ShowModeless()
     global_dialog:RunModeless()
 end
 

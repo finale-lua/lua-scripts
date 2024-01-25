@@ -22,11 +22,11 @@ function plugindef()
     return "Staff Split Layers...", "Staff Split Layers", "Split chords from one layer 1 into two independent layers, based on a split point."
 end
 
+-- luacheck: ignore 11./global_dialog
+
 local note_entry = require("library.note_entry")
 local layer = require("library.layer")
 local mixin = require("library.mixin")
-
-local global_dialog
 
 function explode_one_slot(slot, split_from_top, source_layer, destination_layer, clone_artics)
     local region = finale.FCMusicRegion()
