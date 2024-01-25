@@ -221,7 +221,7 @@ function tie.calc_default_direction(note, for_tieend, tie_prefs)
             if end_note then
                 local start_entry = end_note.Entry:Previous()
                 if start_entry then
-                    adjacent_stemdir = start_entry:CalcStemUp() and 1 or -1
+                    adjacent_stemdir = start_entry:CalcStemUp() and 1 or -1    -- luacheck: ignore
                 end
             end
         else
