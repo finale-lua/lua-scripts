@@ -124,8 +124,7 @@ local function staff_id()
     if finenv.Region():IsEmpty() then return "" end
     local staff = finale.FCStaff()
     staff:Load(finenv.Region().StartStaff)
-    local str = finale.FCString()
-    str = staff:CreateDisplayFullNameString()
+    local str = staff:CreateDisplayFullNameString()
     local id = "Staff: " .. str.LuaString .. " → "
     staff:Load(finenv.Region().EndStaff)
     str = staff:CreateDisplayFullNameString()
@@ -206,7 +205,7 @@ local function region_duration(rgn)
         start = round_measure_position(meas.start, rgn.StartMeasurePos),
         stop = round_measure_position(meas.stop, rgn.EndMeasurePos)
     }
-    local diff, duration = 0, 0
+    local diff, duration
     if meas.start == meas.stop then -- simple EDU offset
         diff = pos.stop - pos.start
     else
