@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.13"
-    finaleplugin.Date = "2024/01/15"
+    finaleplugin.Version = "v0.15"
+    finaleplugin.Date = "2024/01/26"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         Copy the current selection and paste it consecutively 
@@ -58,10 +58,10 @@ info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
     .. "\n(" .. finaleplugin.Version .. ")"
 
 global_timer_id = 1
-
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
-local script_name = "ostinato_maker"
+local library = require("library.general_library")
+local script_name = library.calc_script_name()
 
 local config = {
     num_repeats  =   1,
@@ -72,6 +72,8 @@ local dialog_options = { -- and populate config values (unchecked)
     "copy_articulations", "copy_expressions", "copy_smartshapes", "copy_lyrics", "copy_chords"
 }
 for _, v in ipairs(dialog_options) do config[v] = 0 end -- (default unchecked)
+
+configuration.get_user_settings(script_name, config, true)
 
 local bounds = { -- primary region selection boundary
     "StartStaff", "StartMeasure", "StartMeasurePos",
@@ -85,6 +87,8 @@ local function copy_region_bounds()
     end
     return copy
 end
+
+local current_selection = copy_region_bounds()
 
 function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -309,13 +313,13 @@ end
 local function on_timer()
     local changed = false
     for _, v in ipairs(bounds) do
-        if global_selection[v] ~= finenv.Region()[v] then
+        if current_selection[v] ~= finenv.Region()[v] then
             changed = true
             break
         end
     end
     if changed then
-        global_selection = copy_region_bounds()
+        current_selection = copy_region_bounds()
         global_dialog:GetControl("info")
             :SetText("Selection " .. selection_id() .. "\n" .. staff_id())
     end
@@ -325,7 +329,8 @@ local function create_dialog_box()
     local edit_x, e_wide, y_step = 110, 40, 18
     local y_offset = finenv.UI():IsOnMac() and 3 or 0
     local save_rpt, answer = config.num_repeats, {}
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    local name = plugindef():gsub("%.%.%.", "")
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
     local y = 0
     local function flip_check(id)
         local ctl = answer[dialog_options[id]]
@@ -337,7 +342,7 @@ local function create_dialog_box()
         end
     end
     local function info_dialog()
-        finenv.UI():AlertInfo(info_notes, "About " .. plugindef())
+        finenv.UI():AlertInfo(info_notes, "About " .. name)
     end
     local function key_check(ctl) -- some stray key commands
         local s = ctl:GetText():lower()
@@ -399,13 +404,5 @@ local function create_dialog_box()
     return dialog
 end
 
-local function make_ostinato()
-    configuration.get_user_settings(script_name, config, true)
-    global_selection = global_selection or copy_region_bounds()
-    global_dialog = global_dialog or create_dialog_box()
-    --finenv.RegisterModelessDialog(global_dialog)
-    --global_dialog:ShowModeless()
-    global_dialog:RunModeless()
-end
-
-make_ostinato()
+global_dialog = global_dialog or create_dialog_box()
+global_dialog:RunModeless()
