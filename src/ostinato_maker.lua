@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.15"
+    finaleplugin.Version = "v0.16"
     finaleplugin.Date = "2024/01/26"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
@@ -57,6 +57,7 @@ Key Commands:
 info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
     .. "\n(" .. finaleplugin.Version .. ")"
 
+--luacheck: ignore 11./global_dialog
 global_timer_id = 1
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
@@ -73,8 +74,6 @@ local dialog_options = { -- and populate config values (unchecked)
 }
 for _, v in ipairs(dialog_options) do config[v] = 0 end -- (default unchecked)
 
-configuration.get_user_settings(script_name, config, true)
-
 local bounds = { -- primary region selection boundary
     "StartStaff", "StartMeasure", "StartMeasurePos",
     "EndStaff",   "EndMeasure",   "EndMeasurePos",
@@ -90,7 +89,7 @@ end
 
 local current_selection = copy_region_bounds()
 
-function dialog_set_position(dialog)
+local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
@@ -98,7 +97,7 @@ function dialog_set_position(dialog)
     end
 end
 
-function dialog_save_position(dialog)
+local function dialog_save_position(dialog)
     dialog:StorePosition()
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
@@ -404,5 +403,11 @@ local function create_dialog_box()
     return dialog
 end
 
-global_dialog = global_dialog or create_dialog_box()
-global_dialog:RunModeless()
+local function make_ostinato()
+    configuration.get_user_settings(script_name, config, true)
+    if finenv.RetainLuaState then finenv.RetainLuaState = false end
+    global_dialog = global_dialog or create_dialog_box()
+    global_dialog:RunModeless()
+end
+
+make_ostinato()
