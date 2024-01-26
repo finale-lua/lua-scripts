@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.16"
+    finaleplugin.Version = "v0.17"
     finaleplugin.Date = "2024/01/26"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
@@ -57,12 +57,13 @@ Key Commands:
 info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
     .. "\n(" .. finaleplugin.Version .. ")"
 
---luacheck: ignore 11./global_dialog
 global_timer_id = 1
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
+local global_dialog
+local current_selection
 
 local config = {
     num_repeats  =   1,
@@ -86,8 +87,6 @@ local function copy_region_bounds()
     end
     return copy
 end
-
-local current_selection = copy_region_bounds()
 
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -405,6 +404,7 @@ end
 local function make_ostinato()
     configuration.get_user_settings(script_name, config, true)
     if finenv.RetainLuaState then finenv.RetainLuaState = false end
+    current_selection = copy_region_bounds()
     global_dialog = global_dialog or create_dialog_box()
     global_dialog:RunModeless()
 end
