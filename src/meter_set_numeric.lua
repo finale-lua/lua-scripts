@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.82"
-    finaleplugin.Date = "2024/01/25"
+    finaleplugin.Version = "0.83"
+    finaleplugin.Date = "2024/01/27"
     finaleplugin.MinJWLuaVersion = 0.60
     finaleplugin.Notes = [[ 
         This script allows rapid creation of simple or complex 
@@ -90,14 +90,14 @@ local config = {
 }
 configuration.get_user_settings(script_name, config, true)
 
-function blank_meter()
+local function blank_meter()
     return { -- empty composite meter record
         main    = { top = {}, bottom = {} },
         display = { top = {}, bottom = {} }
     }
 end
 
-function dialog_set_position(dialog)
+local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
@@ -105,14 +105,14 @@ function dialog_set_position(dialog)
     end
 end
 
-function dialog_save_position(dialog)
+local function dialog_save_position(dialog)
     dialog:StorePosition()
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
 end
 
-function user_chooses_meter(meter, rgn)
+local function user_chooses_meter(meter, rgn)
     local x = { 0, 70, 130, 210, 280, 290 } -- horizontal grid
     local label = { -- data type descriptors and (range right) horizontal offset
         { "PRIMARY", 0}, -- name, horiz (left) offset
@@ -238,7 +238,7 @@ function user_chooses_meter(meter, rgn)
     return ok, choices
 end
 
-function encode_current_meter(time_sig, sub_meter)
+local function encode_current_meter(time_sig, sub_meter)
     local function numerators_treble(top_table)
         for j = 1, #top_table do
             top_table[j] = top_table[j] * 3
@@ -281,7 +281,7 @@ function encode_current_meter(time_sig, sub_meter)
     end
 end
 
-function copy_meter_from_score(measure_number)
+local function copy_meter_from_score(measure_number)
     local measure = finale.FCMeasure()
     measure:Load(measure_number)
     local meter = blank_meter()
@@ -292,7 +292,7 @@ function copy_meter_from_score(measure_number)
     return meter
 end
 
-function is_power_of_two(num)
+local function is_power_of_two(num)
     local current = 1
     while current < num do
         current = current * 2
@@ -300,7 +300,7 @@ function is_power_of_two(num)
     return current == num
 end
 
-function convert_choices_to_meter(choices, meter)
+local function convert_choices_to_meter(choices, meter)
     if choices[1] == "0" or choices[1] == "" or choices[4] == 0 then
         return "Primary time signature cannot be zero"
     end
@@ -343,7 +343,7 @@ function convert_choices_to_meter(choices, meter)
     return "" -- no error
 end
 
-function new_composite_top(sub_meter)
+local function new_composite_top(sub_meter)
     local composite_top = finale.FCCompositeTimeSigTop()
     for count = 1, 3 do
         if not sub_meter[count] or sub_meter[count][1] == 0 then break end
@@ -356,7 +356,7 @@ function new_composite_top(sub_meter)
     return composite_top
 end
 
-function new_composite_bottom(sub_meter)
+local function new_composite_bottom(sub_meter)
     local composite_bottom = finale.FCCompositeTimeSigBottom()
     for count = 1, 3 do
         if not sub_meter[count] or sub_meter[count] == 0 then break end
@@ -367,8 +367,7 @@ function new_composite_bottom(sub_meter)
     return composite_bottom
 end
 
-
-function fix_new_top(composite_top, time_sig, numerator)
+local function fix_new_top(composite_top, time_sig, numerator)
     if composite_top ~= nil then    -- COMPOSITE top
         time_sig:SaveNewCompositeTop(composite_top)
     else
@@ -380,7 +379,7 @@ function fix_new_top(composite_top, time_sig, numerator)
     end
 end
 
-function fix_new_bottom(composite_bottom, time_sig, denominator)
+local function fix_new_bottom(composite_bottom, time_sig, denominator)
     if composite_bottom ~= nil then    -- COMPOSITE bottom
         time_sig:SaveNewCompositeBottom(composite_bottom)
     else
@@ -392,7 +391,7 @@ function fix_new_bottom(composite_bottom, time_sig, denominator)
     end
 end
 
-function create_new_meter()
+local function create_new_meter()
     local region = mixin.FCMMusicRegion()
     region:SetRegion(finenv.Region()):SetStartMeasurePosLeft():SetEndMeasurePosRight()
 
