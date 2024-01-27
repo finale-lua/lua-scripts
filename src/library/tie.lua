@@ -221,7 +221,7 @@ function tie.calc_default_direction(note, for_tieend, tie_prefs)
             if end_note then
                 local start_entry = end_note.Entry:Previous()
                 if start_entry then
-                    adjacent_stemdir = start_entry:CalcStemUp() and 1 or -1    -- luacheck: ignore
+                    adjacent_stemdir = start_entry:CalcStemUp() and 1 or -1
                 end
             end
         else
@@ -246,12 +246,12 @@ function tie.calc_default_direction(note, for_tieend, tie_prefs)
                     end
                 end
             end
-            if adjacent_stemdir ~= 0 and adjacent_stemdir ~= stemdir then
-                if tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_OVER then
-                    return finale.TIEMODDIR_OVER
-                elseif tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_UNDER then
-                    return finale.TIEMODDIR_UNDER
-                end
+        end
+        if adjacent_stemdir ~= 0 and adjacent_stemdir ~= stemdir then
+            if tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_OVER then
+                return finale.TIEMODDIR_OVER
+            elseif tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_UNDER then
+                return finale.TIEMODDIR_UNDER
             end
         end
     end
