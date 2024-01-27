@@ -6,7 +6,7 @@ $module FCMNoteEntryCell
 Summary of modifications:
 - Attach collection to child object before returning
 ]] --
-
+local mixin = require("library.mixin") -- luacheck: ignore
 local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}

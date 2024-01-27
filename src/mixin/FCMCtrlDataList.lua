@@ -7,6 +7,7 @@ $module FCMCtrlDataList
 - Setters that accept `FCString` will also accept a Lua `string` or `number`.
 - Added methods to allow handlers for the `DataListCheck` and `DataListSelect` events be set directly on the control.
 ]] --
+local mixin = require("library.mixin") -- luacheck: ignore
 local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}

@@ -8,6 +8,7 @@ $module FCMCtrlUpDown
 - `GetConnectedEdit` returns the original control object.
 - Added methods to allow handlers for the `UpDownPressed` event to be set directly on the control.
 ]] --
+local mixin = require("library.mixin") -- luacheck: ignore
 local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}
