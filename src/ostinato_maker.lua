@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.17"
-    finaleplugin.Date = "2024/01/26"
+    finaleplugin.Version = "v0.18"
+    finaleplugin.Date = "2024/01/28"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         Copy the current selection and paste it consecutively 
@@ -57,25 +57,25 @@ Key Commands:
 info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
     .. "\n(" .. finaleplugin.Version .. ")"
 
-global_timer_id = 1
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
-local global_dialog
-local current_selection
+local dialog, current_selection
 
 local config = {
-    num_repeats  =   1,
+    num_repeats  = 1,
+    timer_id     = 1,
     window_pos_x = false,
     window_pos_y = false,
 }
 local dialog_options = { -- and populate config values (unchecked)
-    "copy_articulations", "copy_expressions", "copy_smartshapes", "copy_lyrics", "copy_chords"
+    "copy_articulations", "copy_expressions", "copy_smartshapes",
+    "copy_lyrics", "copy_chords"
 }
 for _, v in ipairs(dialog_options) do config[v] = 0 end -- (default unchecked)
 
-local bounds = { -- primary region selection boundary
+local bounds = { -- primary region selection boundary properties
     "StartStaff", "StartMeasure", "StartMeasurePos",
     "EndStaff",   "EndMeasure",   "EndMeasurePos",
 }
@@ -88,7 +88,7 @@ local function copy_region_bounds()
     return copy
 end
 
-local function dialog_set_position(dialog)
+local function dialog_set_position()
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
@@ -96,7 +96,7 @@ local function dialog_set_position(dialog)
     end
 end
 
-local function dialog_save_position(dialog)
+local function dialog_save_position()
     dialog:StorePosition()
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
@@ -277,8 +277,9 @@ local function paste_many_copies()
     local undo_str = "Ostinato Maker " .. selection_id()
     finenv.StartNewUndoBlock(undo_str, false)
     --  ---- DO THE WORK
-    if rgn.EndMeasurePos >= measure_duration(rgn.EndMeasure) then
-        rgn.EndMeasurePos = measure_duration(rgn.EndMeasure) - 1
+    local m_d = measure_duration(rgn.EndMeasure)
+    if rgn.EndMeasurePos >= m_d then
+        rgn.EndMeasurePos = m_d - 1
     end
     rgn:CopyMusic() -- save a copy of the current selection
     local duration = region_duration(rgn)
@@ -317,17 +318,17 @@ local function on_timer()
     end
     if changed then
         current_selection = copy_region_bounds()
-        global_dialog:GetControl("info")
+        dialog:GetControl("info")
             :SetText("Selection " .. selection_id() .. "\n" .. staff_id())
     end
 end
 
-local function create_dialog_box()
+local function create_dialog()
     local edit_x, e_wide, y_step = 110, 40, 18
     local y_offset = finenv.UI():IsOnMac() and 3 or 0
     local save_rpt, answer = config.num_repeats, {}
     local name = plugindef():gsub("%.%.%.", "")
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
+    dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
     local y = 0
     local function flip_check(id)
         local ctl = answer[dialog_options[id]]
@@ -380,16 +381,16 @@ local function create_dialog_box()
         :AddHandleCommand(function() info_dialog() end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    dialog_set_position(dialog)
+    dialog_set_position()
     dialog:RegisterHandleTimer(on_timer)
     dialog:RegisterInitWindow(function()
         q:SetFont(q:CreateFontInfo():SetBold(true))
         num_repeats:SetKeyboardFocus()
-        dialog:SetTimer(global_timer_id, 125)
+        dialog:SetTimer(config.timer_id, 125)
     end)
     dialog:RegisterCloseWindow(function()
-        dialog_save_position(dialog)
-        dialog:StopTimer(global_timer_id)
+        dialog_save_position()
+        dialog:StopTimer(config.timer_id)
     end)
     dialog:RegisterHandleOkButtonPressed(function()
         config.num_repeats = num_repeats:GetInteger()
@@ -398,15 +399,13 @@ local function create_dialog_box()
         end
         paste_many_copies()
     end)
-    return dialog
 end
 
 local function make_ostinato()
     configuration.get_user_settings(script_name, config, true)
-    if finenv.RetainLuaState then finenv.RetainLuaState = false end
     current_selection = copy_region_bounds()
-    global_dialog = global_dialog or create_dialog_box()
-    global_dialog:RunModeless()
+    create_dialog()
+    dialog:RunModeless()
 end
 
 make_ostinato()
