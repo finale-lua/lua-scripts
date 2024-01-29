@@ -245,7 +245,7 @@ end
 
 A list of constants that define the type of message returned by `finenv.ExecuteLuaScriptItem` (if any).
 
-- `SCRIPT_RESULT` : The message was returned by Lua. It could be either an error or a value returned by the script. If it is an error, the first value returned by `ExecuteLuaScriptItem` is false.|
+- `SCRIPT_RESULT` : The message was returned by the Lua script. This is not an error message.
 - `DOCUMENT_REQUIRED` : The script was not executed because it specified `finaleplugin.RequireDocument = true` but no document was open.
 - `SELECTION_REQUIRED` : The script was not executed because it specified `finaleplugin.RequireSelection = true` but there was no selection.
 - `SCORE_REQUIRED` : The script was not executed because it specified `finaleplugin.RequireScore = true` but the document was viewing a part.
@@ -253,6 +253,7 @@ A list of constants that define the type of message returned by `finenv.ExecuteL
 - `LUA_PLUGIN_VERSION_MISMATCH` : The script was not executed because it specified a minimum or maximum Lua plugin version and the current running version of _RGP Lua_ does not meet the requirement.
 - `MISCELLANEOUS` : Other types of error messages that do not fit any of the other categories.
 - `EXTERNAL_TERMINATION` : The script was externally terminated by the user or a controlling script.
+- `LUA_ERROR` : The message is an error message returned by Lua.
 
 Example:
 
@@ -260,7 +261,7 @@ Example:
 local scripts = finenv.CreateLuaScriptItems()
 local success, error_msg, msg_type = finenv.ExecuteLuaScriptItem(scripts:GetItemAt(0))
 if not success then
-   if msg_type == finenv.MessageResultType.SCRIPT_RESULT then
+   if msg_type == finenv.MessageResultType.LUA_ERROR then
       -- take some action
    end
 end
