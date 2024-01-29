@@ -38,3 +38,17 @@ export const getAllImports = (file: string): string[] => {
     }
     return [...imports]
 }
+
+const plugindefRegex = /(?<plugindef>^function\s+plugindef.*?^end)/ms;
+
+export const getFileParts = (contents: string): { prolog: string, plugindef: string, epilog: string } => {
+
+    const plugindefMatch = contents.match(plugindefRegex);
+    if (plugindefMatch?.index !== undefined) {
+        const prolog = contents.slice(0, plugindefMatch.index);
+        const epilog = contents.slice(plugindefMatch.index + plugindefMatch[0].length);
+        return { prolog, plugindef: plugindefMatch[0], epilog };
+    } else {
+        return { prolog: '', plugindef: '', epilog: contents };
+    }
+}
