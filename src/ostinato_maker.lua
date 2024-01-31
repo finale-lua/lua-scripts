@@ -57,6 +57,7 @@ Key Commands:
 info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
     .. "\n(" .. finaleplugin.Version .. ")"
 
+--luacheck: ignore 11./global_dialog 11./global_selection
 global_timer_id = 1
 
 local configuration = require("library.configuration")
@@ -121,8 +122,7 @@ local function staff_id()
     if finenv.Region():IsEmpty() then return "" end
     local staff = finale.FCStaff()
     staff:Load(finenv.Region().StartStaff)
-    local str = finale.FCString()
-    str = staff:CreateDisplayFullNameString()
+    local str = staff:CreateDisplayFullNameString()
     local id = "Staff: " .. str.LuaString .. " → "
     staff:Load(finenv.Region().EndStaff)
     str = staff:CreateDisplayFullNameString()
@@ -203,7 +203,7 @@ local function region_duration(rgn)
         start = round_measure_position(meas.start, rgn.StartMeasurePos),
         stop = round_measure_position(meas.stop, rgn.EndMeasurePos)
     }
-    local diff, duration = 0, 0
+    local diff, duration
     if meas.start == meas.stop then -- simple EDU offset
         diff = pos.stop - pos.start
     else
@@ -403,8 +403,6 @@ local function make_ostinato()
     configuration.get_user_settings(script_name, config, true)
     global_selection = global_selection or copy_region_bounds()
     global_dialog = global_dialog or create_dialog_box()
-    --finenv.RegisterModelessDialog(global_dialog)
-    --global_dialog:ShowModeless()
     global_dialog:RunModeless()
 end
 

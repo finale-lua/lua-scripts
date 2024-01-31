@@ -11,7 +11,6 @@ $module FCMStrings
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
-local library = require("library.general_library")
 
 local class = {Methods = {}}
 local methods = class.Methods

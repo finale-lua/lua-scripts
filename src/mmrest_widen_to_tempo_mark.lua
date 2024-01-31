@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "March 8, 2021"
     finaleplugin.CategoryTags = "Multimeasure Rest"
     return "Widen Multimeasure Rests to Tempo Mark", "Widen Multimeasure Rests to Tempo Mark", "Widens any multimeasure rest with a tempo mark to be wide enough for the mark."
@@ -12,7 +12,6 @@ end
 
 local library = require("library.general_library")
 local configuration = require("library.configuration")
-local enigma_string = require("library.enigma_string")
 local expression = require("library.expression")
 
 local config = {
@@ -68,7 +67,7 @@ function mmrest_widen_to_tempo_mark()
                                 end
                             else
                                 local cell = finale.FCCell(meas.ItemNo, expression_assignment.Staff)
-                                local this_width = this_width + get_expression_offset(expression_assignment, cell)
+                                this_width = this_width + get_expression_offset(expression_assignment, cell)
                                 if this_width > new_width_staff then
                                     got_staff = true
                                     new_width_staff = this_width

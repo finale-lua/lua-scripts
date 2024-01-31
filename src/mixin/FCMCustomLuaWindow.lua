@@ -28,7 +28,7 @@ local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local trigger_measurement_unit_change
-local each_last_measurement_unit_change
+local each_last_measurement_unit_change   -- luacheck: ignore
 
 -- HandleTimer is omitted from this list because it is handled separately
 local window_events = {"HandleCancelButtonPressed", "HandleOkButtonPressed", "InitWindow", "CloseWindow"}
@@ -1048,7 +1048,7 @@ Returns a boolean indicating whether this window will use the measurement unit o
 @ self (FCMCustomLuaWindow)
 : (boolean)
 ]]
-function methods:GetUseParentMeasurementUnit(enabled)
+function methods:GetUseParentMeasurementUnit(enabled)   -- luacheck: ignore
     return private[self].UseParentMeasurementUnit
 end
 

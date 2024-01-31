@@ -10,7 +10,7 @@ function plugindef()
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "2023"
-    finaleplugin.Version = "1.0.1"
+    finaleplugin.Version = "1.0.2"
     finaleplugin.Date = "2023-02-24"
     finaleplugin.MinJWLuaVersion = 0.66 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
         --[[
@@ -95,7 +95,6 @@ end
 local create_template_if_not_found = false      -- change this value to `true` if you want the script to create a template file.
 
 local utils = require("library.utils")
-local library = require("library.general_library")
 
 local osutils = require("luaosutils")
 local menu = osutils.menu
@@ -190,13 +189,12 @@ end
 
 local parse_layout_file_to_menu -- create local variable for recursive call
 parse_layout_file_to_menu = function(file, from_menu, to_menu)
-    local retval = true
     local menus_to_delete = {}
-    local function function_exit(success) -- all function exits must use this exit function
+    local function function_exit() -- all function exits must use this exit function
         for k, _ in pairs(menus_to_delete) do
             menu.delete_submenu(k, finenv.GetFinaleMainWindow())
         end
-        return success
+        return true
     end
     local function extract_keyword_value(keyword, line)
         local result = utils.trim(line:sub(#keyword + 1))
@@ -207,8 +205,6 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
     end
 
     to_menu = to_menu or from_menu
-    local success = false
-    local from_menu_text = menu.get_title(from_menu, finenv.GetFinaleMainWindow())
     while true do
         local line = file:read("*line")
         if not line then break end
@@ -235,11 +231,9 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
                 end
                 if line:find(downsubmenu_indicator, 1, true) == 1 then
                     local submenu = menu.insert_submenu(line:sub(2), to_menu)
-                    if parse_layout_file_to_menu(file, from_menu, submenu) then
-                        retval = true
-                    end
+                    parse_layout_file_to_menu(file, from_menu, submenu) 
                 elseif line:find(upsubmenu_indicator, 1, true) == 1 then
-                    return function_exit(retval)
+                    return function_exit()
                 elseif line:find(separator_indicator, 1, true) == 1 then
                     menu.insert_separator(to_menu)
                 else
@@ -274,11 +268,10 @@ parse_layout_file_to_menu = function(file, from_menu, to_menu)
                         end
                     end
                 end
-                retval = true
             end
         end
     end
-    return function_exit(retval)
+    return function_exit()
 end
 
 local function organize_finale_lua_menus()

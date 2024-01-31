@@ -203,11 +203,11 @@ function note_automatic_jete()
                                     x = x + 1
                                 end
                                 -- get first and last points for artic defs
-                                local lartic = nil
+                                local lartic
                                 lartic, lpoint = find_staccato_articulation(entry)
                                 if nil ~= lartic then
                                     dot_artic_def = lartic.ID
-                                    _, rpoint = find_staccato_articulation(last_entry, dot_artic_def)
+                                    _, rpoint = find_staccato_articulation(last_entry, dot_artic_def)  -- luacheck: ignore _
                                 end
                             end
                         elseif (entry.EntryNumber ~= last_entry_num) or config.hide_last_note then
@@ -230,12 +230,11 @@ function note_automatic_jete()
                     local linear_multplier = (rpoint.Y - lpoint.Y) / (rpoint.X - lpoint.X)
                     local linear_constant = (rpoint.X * lpoint.Y - lpoint.X * rpoint.Y) / (rpoint.X - lpoint.X)
                     finale.FCNoteEntry.MarkEntryMetricsForUpdate()
-                    for key, entry in pairs(entries) do
+                    for _, entry in pairs(entries) do
                         if (entry.EntryNumber ~= first_entry_num) and (entry.EntryNumber ~= last_entry_num) then
                             local artic, arg_point = find_staccato_articulation(entry, dot_artic_def)
                             if artic and arg_point then
                                 local new_y = linear_multplier * arg_point.X + linear_constant -- apply linear equation
-                                local old_vpos = artic.VerticalPos
                                 artic.VerticalPos = artic.VerticalPos -
                                                         (note_entry.stem_sign(entry) *
                                                             (math.floor(new_y + 0.5) - arg_point.Y))

@@ -114,7 +114,7 @@ function articulation_autoposition_rolled_chords()
                                 artic.Visible = false
                             else
                                 local this_bottom = note_entry.get_bottom_note_position(entry)
-                                staff_scale = mm.StaffScaling / 10000
+                                local staff_scale = mm.StaffScaling / 10000
                                 top_page_pos = top_page_pos / staff_scale
                                 bottom_page_pos = bottom_page_pos / staff_scale
                                 left_page_pos = left_page_pos / staff_scale

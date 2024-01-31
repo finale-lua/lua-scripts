@@ -16,7 +16,7 @@ local class = {Methods = {}}
 local methods = class.Methods
 
 local trigger_change
-local each_last_change
+local each_last_change  -- luacheck: ignore
 local temp_str = mixin.FCMString()
 
 --[[
