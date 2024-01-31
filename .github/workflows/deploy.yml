@@ -51,13 +51,13 @@ jobs:
           source: ./lua/src
           output: ./website/src/lib/lib/script-data.json
       - name: Generate the docs
-        uses: finale-lua/lua-docs-generator@1.3.3
+        uses: finale-lua/lua-docs-generator@1.3.4
         with:
           input: "./lua/src/library"
           repositoryUrl: "https://github.com/finale-lua/lua-scripts/tree/${{ github.ref }}/src/library"
           output: "./lua/docs/library"
       - name: Generate the docs
-        uses: finale-lua/lua-docs-generator@1.3.3
+        uses: finale-lua/lua-docs-generator@1.3.4
         with:
           input: "./lua/src/mixin"
           repositoryUrl: "https://github.com/finale-lua/lua-scripts/tree/${{ github.ref }}/src/mixin"
@@ -66,7 +66,7 @@ jobs:
       - run: "cp -R lua/docs website/docs"
       - name: Commit & Push docs to website
         if: github.event_name == 'push'
-        uses: actions-js/push@v1.4
+        uses: finale-lua/commit-and-push@1.4.1
         with:
           github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
           directory: website
@@ -74,7 +74,7 @@ jobs:
           repository: finale-lua/jw-lua-scripts-docs
       - name: Commit & Push docs to this repo
         if: github.event_name == 'push'
-        uses: actions-js/push@v1.4
+        uses: finale-lua/commit-and-push@1.4.1
         with:
           github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
           directory: lua
