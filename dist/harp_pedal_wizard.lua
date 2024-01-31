@@ -267,7 +267,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -370,7 +370,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -379,11 +379,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -657,6 +657,59 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.show_notes_dialog(caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+
+        width = width or 500
+        height = height or 350
+
+        if not caption then
+            caption = plugindef()
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        local dlg = finale.FCCustomLuaWindow()
+        dlg:SetTitle(finale.FCString(caption))
+        local edit_text = dlg:CreateTextEditor(10, 10)
+        edit_text:SetWidth(width)
+        edit_text:SetHeight(height)
+        edit_text:SetUseRichText(finaleplugin.RTFNotes)
+        edit_text:SetReadOnly(true)
+        edit_text:SetWordWrap(true)
+        local ok = dlg:CreateOkButton()
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        dlg:RegisterInitWindow(
+            function()
+                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
+                local notes_str = finale.FCString(notes)
+                if edit_text:GetUseRichText() then
+                    edit_text:SetRTFString(notes_str)
+                else
+                    local edit_font = finale.FCFontInfo()
+                    edit_font.Name = "Arial"
+                    edit_font.Size = 10
+                    edit_text:SetFont(edit_font)
+                    edit_text:SetText(notes_str)
+                end
+                edit_text:ResetColors()
+                ok:SetKeyboardFocus()
+            end)
+        dlg:ExecuteModal(nil)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -725,7 +778,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -797,15 +850,15 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     return configuration
 end
 function plugindef()
-
-
+    
+    
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "2.0.1"
+    finaleplugin.Version = "2.0.2"
     finaleplugin.Date = "2024-01-15"
     finaleplugin.HandlesUndo = true
-    finaleplugin.MinJWLuaVersion = 0.63
+    finaleplugin.MinJWLuaVersion = 0.63 
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/harp_pedal_wizard.hash"
     return "Harp Pedal Wizard...", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
 end
@@ -881,11 +934,9 @@ function harp_pedal_wizard()
             local first_upper = string.upper(first)
             harp_tbl[i] = first_upper .. second
             if string.len(harp_tbl[i]) == 2 then
-                if string.sub(harp_tbl[i], -1) == "b"
-                or string.sub(harp_tbl[i], -1) == "#"
-                or string.sub(harp_tbl[i], -1) == "n" then
-
-                else
+                if string.sub(harp_tbl[i], -1) ~= "b"
+                and string.sub(harp_tbl[i], -1) ~= "#"
+                and string.sub(harp_tbl[i], -1) ~= "n" then
                     is_error = true
 
                 end
@@ -912,7 +963,6 @@ function harp_pedal_wizard()
             elseif harp_tbl[i]:sub(1,1) == "G" then
                 harpstrings[6] = harp_tbl[i]
                 direct_notes[6] = harp_tbl[i]
-            else
             end
             count = i
         end
@@ -1002,11 +1052,9 @@ function harp_pedal_wizard()
             local first_upper = string.upper(first)
             harp_tbl[i] = first_upper .. second
             if string.len(harp_tbl[i]) == 2 then
-                if string.sub(harp_tbl[i], -1) == "b"
-                or string.sub(harp_tbl[i], -1) == "#"
-                or string.sub(harp_tbl[i], -1) == "n" then
-
-                else
+                if string.sub(harp_tbl[i], -1) ~= "b"
+                and string.sub(harp_tbl[i], -1) ~= "#"
+                and string.sub(harp_tbl[i], -1) ~= "n" then
                     harp_error = true
                     goto on_error
                 end

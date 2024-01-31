@@ -47,7 +47,7 @@ function measure_numbers_adjust_for_leadin()
                     local meas_num_region = meas_num_regions:FindMeasure(meas_num)
                     if nil ~= meas_num_region then
                         local parts_val = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
-                        multimeasure_rest = finale.FCMultiMeasureRest()
+                        local multimeasure_rest = finale.FCMultiMeasureRest()
                         local is_for_multimeasure_rest = multimeasure_rest:Load(meas_num)
                         if is_for_multimeasure_rest then
                             skip_past_meas_num = multimeasure_rest.EndMeasure

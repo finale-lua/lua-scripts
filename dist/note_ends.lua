@@ -21,10 +21,19 @@ function plugindef()
     finaleplugin.ScriptGroupName = "Change note endings"
     finaleplugin.ScriptGroupDescription = "Align the ends of notes followed by a rest to selected duration boundaries"
     finaleplugin.Notes = [[
-        This plug-in aligns the ends of notes followed by a rest to a specific "duration boundary".
-        It helps improve readability of music with lots of short notes and rests.
+        This plug-in aligns the ends of notes followed by a rest to a specific "duration boundary". 
+        It helps improve readability of music with lots of short notes and rests. 
         It creates two menu items, `Note Ends Eighths` and `Note Ends Quarters`.
 ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This plug-in aligns the ends of notes followed by a rest to a specific \u8220"duration boundary\u8221". It helps improve readability of music with lots of short notes and rests. It creates two menu items, {\f1 Note Ends Eighths} and {\f1 Note Ends Quarters}.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_ends.hash"
     return "Note Ends Quarters", "Note Ends Quarters", "Change smaller notes followed by rests into quarter notes"
 end

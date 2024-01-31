@@ -18,6 +18,7 @@ A library of general Lua utility functions.
 - [trim(str)](#trim)
 - [call_and_rethrow(levels, tryfunczzz)](#call_and_rethrow)
 - [rethrow_placeholder()](#rethrow_placeholder)
+- [show_notes_dialog(caption, width, height)](#show_notes_dialog)
 
 ### copy_table
 
@@ -277,3 +278,19 @@ Use this in error messages where the function name is variable or unknown (eg be
 | Return type | Description |
 | ----------- | ----------- |
 | `string` |  |
+
+### show_notes_dialog
+
+```lua
+utility_functions.show_notes_dialog(caption, width, height)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L304)
+
+Displays a modal dialog with the contents of finaleplugin.RFTNotes (if present) or finaleplugin.Notes. If neither one is present, no dialog is shown.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `caption` | `string` | The caption for the dialog. Defaults to plugin name and version. |
+| `width` | `number` | The width in pixels of the edit control. Defaults to 500. |
+| `height` | `number` | The height inpixels of the edit control. Defaults to 350. |

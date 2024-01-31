@@ -267,7 +267,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -370,7 +370,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -379,11 +379,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -542,7 +542,7 @@ function measure_numbers_adjust_for_leadin()
                     local meas_num_region = meas_num_regions:FindMeasure(meas_num)
                     if nil ~= meas_num_region then
                         local parts_val = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
-                        multimeasure_rest = finale.FCMultiMeasureRest()
+                        local multimeasure_rest = finale.FCMultiMeasureRest()
                         local is_for_multimeasure_rest = multimeasure_rest:Load(meas_num)
                         if is_for_multimeasure_rest then
                             skip_past_meas_num = multimeasure_rest.EndMeasure

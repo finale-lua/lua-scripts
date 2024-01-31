@@ -19,7 +19,7 @@ local function replicate_music()
     local end_measure = finenv.Region().EndMeasure
     local end_measure_pos = finenv.Region().EndMeasurePos
     local sum_measures = end_measure - start_measure
-    local start_paste_region_measure = 0
+    local start_paste_region_measure
     local start_paste_region_measure_pos = 0
     local partial_measure_duration = 0
     if sum_measures == 0 then

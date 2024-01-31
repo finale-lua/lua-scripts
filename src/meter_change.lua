@@ -95,7 +95,7 @@ if denominator == 8 and not composite then
 end
 num_composite = 0
 if composite then
-    for k, v in pairs(composite) do
+    for _ in pairs(composite) do
         num_composite = num_composite + 1
     end
 end

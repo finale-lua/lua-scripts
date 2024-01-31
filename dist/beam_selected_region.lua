@@ -35,7 +35,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -59,7 +59,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -108,11 +108,11 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead(entry)
+    function note_entry.calc_left_of_primary_notehead()
         return 0
     end
 
@@ -137,7 +137,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if not entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return left
     end
 
@@ -304,8 +304,8 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
     return note_entry
 end
 function plugindef()
-
-
+    
+    
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -320,11 +320,14 @@ function plugindef()
         Document Settings determine whether rests can be included at the start or end of a beam.
         If you select multiple staves vertically, you can create the same beaming pattern
         across all the staves with a single invocation of the script.
+
         It does *not* create beams over barlines.
+
         By default, the plugin installs two menu options, one to beam the selected region and
         the other to unbeam the selected region. You can instead unbeam all notes in the selected region
         by invoking the "Beam Selected Region" menu option with the Option key pressed (macOS) or
         the Shift key pressed. This is identical to invoking the "Unbeam Selected Region" menu option.
+
         This script could be particularly useful if you assign it a keystroke using a keyboard macro utility.
     ]]
     finaleplugin.AdditionalMenuOptions = [[
@@ -335,6 +338,30 @@ function plugindef()
     ]]
     finaleplugin.AdditionalPrefixes = [[
         do_unbeam = true
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 This script beams together any notes or rests in the selected region that can\line
+        be beamed together and breaks beams that cross into or out of the selected\line
+        region at the boundaries of the selected region. The beam options in Finale\u8217's\line
+        Document Settings determine whether rests can be included at the start or end of a beam.\line
+        If you select multiple staves vertically, you can create the same beaming pattern\line
+        across all the staves with a single invocation of the script.\line
+        \line
+        It does *not* create beams over barlines.\line
+        \line
+        By default, the plugin installs two menu options, one to beam the selected region and\line
+        the other to unbeam the selected region. You can instead unbeam all notes in the selected region\line
+        by invoking the "Beam Selected Region" menu option with the Option key pressed (macOS) or\line
+        the Shift key pressed. This is identical to invoking the "Unbeam Selected Region" menu option.\line
+        \line
+        This script could be particularly useful if you assign it a keystroke using a keyboard macro utility.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 ]] finaleplugin.AdditionalMenuOptions = [[ Unbeam Selected Region]] finaleplugin.AdditionalDescriptions = [[ Unbeam Selected Region]] finaleplugin.AdditionalPrefixes = [[ do_unbeam = true\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/beam_selected_region.hash"
     return "Beam Selected Region", "Beam Selected Region", "Beam Selected Region"

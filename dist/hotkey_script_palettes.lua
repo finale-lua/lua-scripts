@@ -64,7 +64,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -464,7 +464,6 @@ package.preload["mixin.FCMCtrlListBox"] = package.preload["mixin.FCMCtrlListBox"
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local utils = require("library.utils")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -757,7 +756,6 @@ package.preload["mixin.FCMCtrlPopup"] = package.preload["mixin.FCMCtrlPopup"] or
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local utils = require("library.utils")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -1040,7 +1038,6 @@ package.preload["mixin.FCMCtrlSlider"] = package.preload["mixin.FCMCtrlSlider"] 
     local windows = setmetatable({}, {__mode = "k"})
     local trigger_thumb_position_change
     local each_last_thumb_position_change
-    local using_timer_fix = false
     local function bootstrap_command()
 
         trigger_thumb_position_change(true)
@@ -1106,7 +1103,6 @@ package.preload["mixin.FCMCtrlStatic"] = package.preload["mixin.FCMCtrlStatic"] 
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local utils = require("library.utils")
     local measurement = require("library.measurement")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -2213,7 +2209,6 @@ package.preload["mixin.FCMStrings"] = package.preload["mixin.FCMStrings"] or fun
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local class = {Methods = {}}
     local methods = class.Methods
     local temp_str = finale.FCString()
@@ -2629,6 +2624,86 @@ package.preload["mixin.FCXCtrlMeasurementUnitPopup"] = package.preload["mixin.FC
         mixin.FCMCtrlPopup.SetSelectedItem(self, flipped_unit_order[unit] - 1)
     end
     return class
+end
+package.preload["library.measurement"] = package.preload["library.measurement"] or function()
+
+    local measurement = {}
+    local unit_names = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "EVPUs",
+        [finale.MEASUREMENTUNIT_INCHES] = "Inches",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "Centimeters",
+        [finale.MEASUREMENTUNIT_POINTS] = "Points",
+        [finale.MEASUREMENTUNIT_PICAS] = "Picas",
+        [finale.MEASUREMENTUNIT_SPACES] = "Spaces",
+    }
+    local unit_suffixes = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "e",
+        [finale.MEASUREMENTUNIT_INCHES] = "i",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "c",
+        [finale.MEASUREMENTUNIT_POINTS] = "pt",
+        [finale.MEASUREMENTUNIT_PICAS] = "p",
+        [finale.MEASUREMENTUNIT_SPACES] = "s",
+    }
+    local unit_abbreviations = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "ev",
+        [finale.MEASUREMENTUNIT_INCHES] = "in",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "cm",
+        [finale.MEASUREMENTUNIT_POINTS] = "pt",
+        [finale.MEASUREMENTUNIT_PICAS] = "pc",
+        [finale.MEASUREMENTUNIT_SPACES] = "sp",
+    }
+
+    function measurement.convert_to_EVPUs(text)
+        local str = finale.FCString()
+        str.LuaString = text
+        return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
+    end
+
+    function measurement.get_unit_name(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_names[unit]
+    end
+
+    function measurement.get_unit_suffix(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_suffixes[unit]
+    end
+
+    function measurement.get_unit_abbreviation(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_abbreviations[unit]
+    end
+
+    function measurement.is_valid_unit(unit)
+        return unit_names[unit] and true or false
+    end
+
+    function measurement.get_real_default_unit()
+        local str = finale.FCString()
+        finenv.UI():GetDecimalSeparator(str)
+        local separator = str.LuaString
+        str:SetMeasurement(72, finale.MEASUREMENTUNIT_DEFAULT)
+        if str.LuaString == "72" then
+            return finale.MEASUREMENTUNIT_EVPUS
+        elseif str.LuaString == "0" .. separator .. "25" then
+            return finale.MEASUREMENTUNIT_INCHES
+        elseif str.LuaString == "0" .. separator .. "635" then
+            return finale.MEASUREMENTUNIT_CENTIMETERS
+        elseif str.LuaString == "18" then
+            return finale.MEASUREMENTUNIT_POINTS
+        elseif str.LuaString == "1p6" then
+            return finale.MEASUREMENTUNIT_PICAS
+        elseif str.LuaString == "3" then
+            return finale.MEASUREMENTUNIT_SPACES
+        end
+    end
+    return measurement
 end
 package.preload["library.page_size"] = package.preload["library.page_size"] or function()
 
@@ -3055,98 +3130,14 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
     end
     return class
 end
-package.preload["library.measurement"] = package.preload["library.measurement"] or function()
-
-    local measurement = {}
-    local unit_names = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "EVPUs",
-        [finale.MEASUREMENTUNIT_INCHES] = "Inches",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "Centimeters",
-        [finale.MEASUREMENTUNIT_POINTS] = "Points",
-        [finale.MEASUREMENTUNIT_PICAS] = "Picas",
-        [finale.MEASUREMENTUNIT_SPACES] = "Spaces",
-    }
-    local unit_suffixes = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "e",
-        [finale.MEASUREMENTUNIT_INCHES] = "i",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "c",
-        [finale.MEASUREMENTUNIT_POINTS] = "pt",
-        [finale.MEASUREMENTUNIT_PICAS] = "p",
-        [finale.MEASUREMENTUNIT_SPACES] = "s",
-    }
-    local unit_abbreviations = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "ev",
-        [finale.MEASUREMENTUNIT_INCHES] = "in",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "cm",
-        [finale.MEASUREMENTUNIT_POINTS] = "pt",
-        [finale.MEASUREMENTUNIT_PICAS] = "pc",
-        [finale.MEASUREMENTUNIT_SPACES] = "sp",
-    }
-
-    function measurement.convert_to_EVPUs(text)
-        local str = finale.FCString()
-        str.LuaString = text
-        return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
-    end
-
-    function measurement.get_unit_name(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_names[unit]
-    end
-
-    function measurement.get_unit_suffix(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_suffixes[unit]
-    end
-
-    function measurement.get_unit_abbreviation(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_abbreviations[unit]
-    end
-
-    function measurement.is_valid_unit(unit)
-        return unit_names[unit] and true or false
-    end
-
-    function measurement.get_real_default_unit()
-        local str = finale.FCString()
-        finenv.UI():GetDecimalSeparator(str)
-        local separator = str.LuaString
-        str:SetMeasurement(72, finale.MEASUREMENTUNIT_DEFAULT)
-        if str.LuaString == "72" then
-            return finale.MEASUREMENTUNIT_EVPUS
-        elseif str.LuaString == "0" .. separator .. "25" then
-            return finale.MEASUREMENTUNIT_INCHES
-        elseif str.LuaString == "0" .. separator .. "635" then
-            return finale.MEASUREMENTUNIT_CENTIMETERS
-        elseif str.LuaString == "18" then
-            return finale.MEASUREMENTUNIT_POINTS
-        elseif str.LuaString == "1p6" then
-            return finale.MEASUREMENTUNIT_PICAS
-        elseif str.LuaString == "3" then
-            return finale.MEASUREMENTUNIT_SPACES
-        end
-    end
-    return measurement
-end
 package.preload["mixin.FCXCustomLuaWindow"] = package.preload["mixin.FCXCustomLuaWindow"] or function()
 
 
 
     local mixin = require("library.mixin")
-    local utils = require("library.utils")
     local mixin_helper = require("library.mixin_helper")
-    local measurement = require("library.measurement")
     local class = {Parent = "FCMCustomLuaWindow", Methods = {}}
     local methods = class.Methods
-    local trigger_measurement_unit_change
-    local each_last_measurement_unit_change
 
     function class:Init()
         self:SetEnableDebugClose(true)
@@ -3177,7 +3168,6 @@ package.preload["mixin.__FCMBase"] = package.preload["mixin.__FCMBase"] or funct
             end
             return self
         end
-
         return self[method_name](self, ...)
     end
     return class
@@ -3354,6 +3344,59 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
 
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
+    end
+
+    function utils.show_notes_dialog(caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+
+        width = width or 500
+        height = height or 350
+
+        if not caption then
+            caption = plugindef()
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        local dlg = finale.FCCustomLuaWindow()
+        dlg:SetTitle(finale.FCString(caption))
+        local edit_text = dlg:CreateTextEditor(10, 10)
+        edit_text:SetWidth(width)
+        edit_text:SetHeight(height)
+        edit_text:SetUseRichText(finaleplugin.RTFNotes)
+        edit_text:SetReadOnly(true)
+        edit_text:SetWordWrap(true)
+        local ok = dlg:CreateOkButton()
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        dlg:RegisterInitWindow(
+            function()
+                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
+                local notes_str = finale.FCString(notes)
+                if edit_text:GetUseRichText() then
+                    edit_text:SetRTFString(notes_str)
+                else
+                    local edit_font = finale.FCFontInfo()
+                    edit_font.Name = "Arial"
+                    edit_font.Size = 10
+                    edit_text:SetFont(edit_font)
+                    edit_text:SetText(notes_str)
+                end
+                edit_text:ResetColors()
+                ok:SetKeyboardFocus()
+            end)
+        dlg:ExecuteModal(nil)
     end
     return utils
 end
@@ -3626,7 +3669,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -3729,7 +3772,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -3738,11 +3781,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -3910,9 +3953,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         end
 
         repeat
-            if (object_type < 2 and class_names[0][parent])
-                or (object_type > 0 and class_names[1][parent])
-            then
+            if (object_type < 2 and class_names[0][parent]) or (object_type > 0 and class_names[1][parent]) then
                 return true
             end
             parent = library.get_parent_class(parent)
@@ -3939,7 +3980,9 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         if library.is_finale_object(value) then
             secondary_type = value.MixinClass or value.ClassName
         end
-        error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) .. ")", levels)
+        error(
+            "bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) ..
+                ")", levels)
     end
 
     function mixin_helper.assert_argument_type(argument_number, value, ...)
@@ -3952,7 +3995,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         assert_argument_type(4, argument_number, value, ...)
     end
     local function assert_func(condition, message, level)
-        if type(condition) == 'function' then
+        if type(condition) == "function" then
             condition = condition()
         end
         if not condition then
@@ -3992,9 +4035,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             mixin_helper.assert_argument_type(3, callback, "function")
             local window = control:GetParent()
             mixin_helper.assert(window, "Cannot add handler to control with no parent window.")
-            mixin_helper.assert(
-                (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
-                "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
+            mixin_helper.assert((window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow", "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
             init_window(window)
             callbacks[control] = callbacks[control] or {}
             table.insert(callbacks[control], callback)
@@ -4036,7 +4077,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             for _, cb in ipairs(callbacks[target].order) do
 
                 local called = false
-                for k, v in pairs(current) do
+                for k, _ in pairs(current) do
                     if current[k] ~= callbacks[target].history[cb][k] then
                         cb(target, unpack_arguments(callbacks[target].history[cb], table.unpack(params)))
                         called = true
@@ -4130,11 +4171,8 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             mixin_helper.assert_argument_type(2, callback, "function")
             local window = self:GetParent()
             mixin_helper.assert(window, "Cannot add handler to self with no parent window.")
-            mixin_helper.assert(
-                (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
-                "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
-            mixin_helper.force_assert(
-                not event.callback_exists(self, callback), "The callback has already been added as a handler.")
+            mixin_helper.assert((window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow", "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
+            mixin_helper.force_assert(not event.callback_exists(self, callback), "The callback has already been added as a handler.")
             init_window(window)
             event.add(self, callback, not window:WindowExists__())
         end
@@ -4185,8 +4223,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         local function add_func(self, callback)
             mixin_helper.assert_argument_type(1, self, "FCMCustomLuaWindow")
             mixin_helper.assert_argument_type(2, callback, "function")
-            mixin_helper.force_assert(
-                not event.callback_exists(self, callback), "The callback has already been added as a handler.")
+            mixin_helper.force_assert(not event.callback_exists(self, callback), "The callback has already been added as a handler.")
             event.add(self, callback)
         end
         local function remove_func(self, callback)
@@ -4208,9 +4245,9 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             if type(window) == "boolean" and window then
                 for win in event.target_iterator() do
                     if immediate then
-                        event.dispatcher(window)
+                        event.dispatcher(win)
                     else
-                        trigger_helper(window)
+                        trigger_helper(win)
                     end
                 end
             else
@@ -4270,6 +4307,7 @@ package.preload["mixin.__FCMUserWindow"] = package.preload["mixin.__FCMUserWindo
     return class
 end
 package.preload["library.mixin"] = package.preload["library.mixin"] or function()
+
 
 
 
@@ -4863,33 +4901,50 @@ function plugindef()
     finaleplugin.Date = "2024/01/15"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.70
-    finaleplugin.Notes = [[
-        This is designed to help navigate the many scripts crowding your RGP Lua menu.
-        It provides access to Lua scripts and Finale menu items through a set of
-        easily configurable palettes (dialog windows) organised by type of activity
+    finaleplugin.Notes = [[ 
+        This is designed to help navigate the many scripts crowding your RGP Lua menu. 
+        It provides access to Lua scripts and Finale menu items through a set of 
+        easily configurable palettes (dialog windows) organised by type of activity 
         and triggered by simple "hotkey" keystrokes.
-        The "Hotkey Palette" principle is demonstrated expertly by Nick Mazuk at
-        [https://www.youtube.com/@nickmazuk].
-        Scripts are grouped into primary categories like "Intervals", "Layers",
-        "Notes & Chords", "Measure Items" and so on as a set of palettes triggered by keystroke.
-        Each primary palette calls up a second palette containg scripts in related areas,
-        also triggered by keystroke. Reach hundreds of scripts in your collection using
-        just two keystrokes with the actual hotkeys presented as a visual reminder.
+
+        The "Hotkey Palette" principle is demonstrated expertly by Nick Mazuk at 
+        [https://www.youtube.com/@nickmazuk]. 
+        Scripts are grouped into primary categories like "Intervals", "Layers", 
+        "Notes & Chords", "Measure Items" and so on as a set of palettes triggered by keystroke. 
+        Each primary palette calls up a second palette containg scripts in related areas, 
+        also triggered by keystroke. Reach hundreds of scripts in your collection using 
+        just two keystrokes with the actual hotkeys presented as a visual reminder. 
         Actions you repeat often will link to muscle memory and become easier to recall.
-        Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac for this,
-        but the principle is available free (cross-platform) within Finale
-        using RGP Lua without other software or configuration.
-        Scripts that use modifier keys (shift, alt/option etc) for "alternative" behaviours
+
+        Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac for this, 
+        but the principle is available free (cross-platform) within Finale 
+        using RGP Lua without other software or configuration. 
+        Scripts that use modifier keys (shift, alt/option etc) for "alternative" behaviours 
         respond to those keys when called from these palettes.
-        This script is loaded with a set of "demo" palettes containing many of the
-        Lua scripts available at https://FinaleLua.com.
-        If a script isn't installed on your system you will get an "unidentified" warning
-        on execution. Delete those scripts and add new ones in their place.
-        Reconfigure each of the "Main" palettes, change their name or hotkey,
+
+        This script is loaded with a set of "demo" palettes containing many of the 
+        Lua scripts available at https://FinaleLua.com. 
+        If a script isn't installed on your system you will get an "unidentified" warning 
+        on execution. Delete those scripts and add new ones in their place. 
+        Reconfigure each of the "Main" palettes, change their name or hotkey, 
         delete them or add new ones.
-        You can also add Finale menus to your palettes.
-        Not every menu item is available, including Plug-ins that are NOT added by "RGP Lua",
+
+        You can also add Finale menus to your palettes. 
+        Not every menu item is available, including Plug-ins that are NOT added by "RGP Lua", 
         and when using "Add Menu Item" you can try it out before saving it to a palette.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This is designed to help navigate the many scripts crowding your RGP Lua menu. It provides access to Lua scripts and Finale menu items through a set of easily configurable palettes (dialog windows) organised by type of activity and triggered by simple \u8220"hotkey\u8221" keystrokes.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The \u8220"Hotkey Palette\u8221" principle is demonstrated expertly by Nick Mazuk at [https://www.youtube.com/@nickmazuk]. Scripts are grouped into primary categories like \u8220"Intervals\u8221", \u8220"Layers\u8221", \u8220"Notes & Chords\u8221", \u8220"Measure Items\u8221" and so on as a set of palettes triggered by keystroke. Each primary palette calls up a second palette containg scripts in related areas, also triggered by keystroke. Reach hundreds of scripts in your collection using just two keystrokes with the actual hotkeys presented as a visual reminder. Actions you repeat often will link to muscle memory and become easier to recall.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac for this, but the principle is available free (cross-platform) within Finale using RGP Lua without other software or configuration. Scripts that use modifier keys (shift, alt/option etc) for \u8220"alternative\u8221" behaviours respond to those keys when called from these palettes.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script is loaded with a set of \u8220"demo\u8221" palettes containing many of the Lua scripts available at https://FinaleLua.com. If a script isn\u8217't installed on your system you will get an \u8220"unidentified\u8221" warning on execution. Delete those scripts and add new ones in their place. Reconfigure each of the \u8220"Main\u8221" palettes, change their name or hotkey, delete them or add new ones.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 You can also add Finale menus to your palettes. Not every menu item is available, including Plug-ins that are NOT added by \u8220"RGP Lua\u8221", and when using \u8220"Add Menu Item\u8221" you can try it out before saving it to a palette.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/hotkey_script_palettes.hash"
     return "Hotkey Script Palettes...",
@@ -5218,7 +5273,7 @@ Note that many Finale menus do nothing unless part of the score is already selec
                 local old_name = menu_levels[level].pos
                 menu_tree[level] = chosen_now.text
                 level = level + 1
-                menu_levels[level], _ = load_menu_level(chosen_now.sub, old_name, level, "")
+                menu_levels[level] = load_menu_level(chosen_now.sub, old_name, level, "")
                 menu_levels[level].last_selected = old_index
                 selected = 1
                 fill_menu_list(1)
@@ -5253,7 +5308,7 @@ Note that many Finale menus do nothing unless part of the score is already selec
                 level_name = menu_levels[i].pos
             end
         else
-            menu_levels[1], _ = load_menu_level(menu_bar, "", 1, "")
+            menu_levels[1] = load_menu_level(menu_bar, "", 1, "")
         end
         fill_menu_list(selected)
         menu_list_box:SetKeyboardFocus()
@@ -5328,7 +5383,7 @@ function configure_palette(palette_number, index_num)
     end)
     add_item:AddHandleCommand(function()
         local new_name, new_script, hotkey
-        local new_element, ok = {}, false
+        local new_element, ok = {}
         if is_macro then
             new_element = { name = "", key = "?" }
             ok, new_name, hotkey = user_enters_text(new_element, "Create New Palette")
@@ -5351,10 +5406,9 @@ function configure_palette(palette_number, index_num)
     end)
     if not is_macro then
         add_menu:AddHandleCommand(function()
-            local new_element = {}
             local ok, new_name, menu_id, trigger = user_chooses_menu_item()
             if ok then
-                new_element = { name = new_name, key = trigger, menu = menu_id }
+                local new_element = { name = new_name, key = trigger, menu = menu_id }
                 table.insert(array, new_element)
                 local index = sort_table(array, new_name, "name")
                 fill_list_box(list_box, array, index)
@@ -5433,8 +5487,8 @@ function main()
     end
     configuration.get_user_settings(script_name, config, true)
     palettes = cjson.decode(config.palettes)
-    local ok, finished = false, false
-    local palette_number, item_number = 1, 1
+    local finished, ok = false
+    local palette_number, item_number
     while not finished do
         ok, palette_number = choose_palette(0)
         if ok then

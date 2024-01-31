@@ -13,7 +13,7 @@ Summary of modifications:
 fcmnoteentrycell.GetItemAt(self, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMNoteEntryCell.lua#L29)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMNoteEntryCell.lua#L28)
 
 **[Override]**
 

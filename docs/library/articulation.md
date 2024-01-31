@@ -46,7 +46,7 @@ Uses `FCArticulation.CalcMetricPos` to determine if the input articulation is on
 articulation.calc_main_character_dimensions(artic_def)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/articulation.lua#L67)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/articulation.lua#L66)
 
 Uses `FCTextMetrics:LoadArticulation` to determine the dimensions of the main character
 

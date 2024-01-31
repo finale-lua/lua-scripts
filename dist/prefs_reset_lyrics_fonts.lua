@@ -3,7 +3,7 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
     local enigma_string = {}
     local starts_with_font_command = function(string)
         local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
-        for i, text_cmd in ipairs(text_cmds) do
+        for _, text_cmd in ipairs(text_cmds) do
             if string:StartsWith(text_cmd) then
                 return true
             end
@@ -77,7 +77,7 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
             "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages", "^value", "^control", "^pass"
         }
         local lua_string = fcstring.LuaString
-        for i, text_cmd in ipairs(text_cmds) do
+        for _, text_cmd in ipairs(text_cmds) do
             local starts_at = string.find(lua_string, text_cmd, 1, true)
             while starts_at ~= nil do
                 local replace_with = ""
@@ -126,8 +126,8 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
     return enigma_string
 end
 function plugindef()
-
-
+    
+    
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0.1"

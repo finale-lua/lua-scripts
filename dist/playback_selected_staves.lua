@@ -151,6 +151,59 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.show_notes_dialog(caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+
+        width = width or 500
+        height = height or 350
+
+        if not caption then
+            caption = plugindef()
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        local dlg = finale.FCCustomLuaWindow()
+        dlg:SetTitle(finale.FCString(caption))
+        local edit_text = dlg:CreateTextEditor(10, 10)
+        edit_text:SetWidth(width)
+        edit_text:SetHeight(height)
+        edit_text:SetUseRichText(finaleplugin.RTFNotes)
+        edit_text:SetReadOnly(true)
+        edit_text:SetWordWrap(true)
+        local ok = dlg:CreateOkButton()
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        dlg:RegisterInitWindow(
+            function()
+                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
+                local notes_str = finale.FCString(notes)
+                if edit_text:GetUseRichText() then
+                    edit_text:SetRTFString(notes_str)
+                else
+                    local edit_font = finale.FCFontInfo()
+                    edit_font.Name = "Arial"
+                    edit_font.Size = 10
+                    edit_text:SetFont(edit_font)
+                    edit_text:SetText(notes_str)
+                end
+                edit_text:ResetColors()
+                ok:SetKeyboardFocus()
+            end)
+        dlg:ExecuteModal(nil)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -219,7 +272,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -302,7 +355,7 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         source_layer = source_layer - 1
         destination_layer = destination_layer - 1
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
+            local staffNum = sysstaff.Staff
             local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
             noteentry_source_layer:SetUseVisibleLayer(false)
             noteentry_source_layer:Load()
@@ -333,8 +386,8 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         local sysstaves = finale.FCSystemStaves()
         sysstaves:LoadAllForRegion(region)
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            local staffNum = sysstaff.Staff
+            local noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
             noteentry_layer:SetUseVisibleLayer(false)
             noteentry_layer:Load()
             noteentry_layer:ClearAllEntries()
@@ -388,7 +441,7 @@ function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0"
+    finaleplugin.Version = "2.0.1"
     finaleplugin.Date = "August 23, 2023"
     finaleplugin.CategoryTags = "Playback"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
@@ -409,19 +462,36 @@ function plugindef()
     finaleplugin.Notes = [[
         Select the staves you want soloed or muted, then run this script. If nothing is selected, all solos and mutes
         are cleared.
+
         You can optionally use a configuration to start playback at the beginning of the selected region.
         (If nothing is selected, it reverts playback to a selected default start option.)
         To set the options, create a plain text file called
         playback_selected_region.config.txt in a folder called `script_settings` within the same
         folder as the script. It can contain any or all of the following configuration parameters.
         (The default values are shown.)
+
         ```
-        set_playback_start = false
-        revert_playback_start = 0
-        include_chord_playback = true
-        include_expression_playback = true
-        include_end_measure = true
+        set_playback_start = false                  
+        revert_playback_start = 0                   
+        include_chord_playback = true               
+        include_expression_playback = true          
+        include_end_measure = true                  
         ```
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Select the staves you want soloed or muted, then run this script. If nothing is selected, all solos and mutes are cleared.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 You can optionally use a configuration to start playback at the beginning of the selected region. (If nothing is selected, it reverts playback to a selected default start option.) To set the options, create a plain text file called playback_selected_region.config.txt in a folder called {\f1 script_settings} within the same folder as the script. It can contain any or all of the following configuration parameters. (The default values are shown.)\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 set_playback_start = false                  
+        revert_playback_start = 0                   
+        include_chord_playback = true               
+        include_expression_playback = true          
+        include_end_measure = true                  
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_selected_staves.hash"
     return "Solo selected staves", "Solo selected staves", "Sets up playback to the selected region."
@@ -450,8 +520,8 @@ function playback_selected_staves()
         local staff = finale.FCStaff()
         staff:Load(staff_number)
         local playback_data = staff:CreateInstrumentPlaybackData()
-        for layer = 1, layer.max_layers() do
-            set_layer_playback_data(playback_data:GetNoteLayerData(layer), region, staff_number)
+        for this_layer = 1, layer.max_layers() do
+            set_layer_playback_data(playback_data:GetNoteLayerData(this_layer), region, staff_number)
         end
         if config.include_chord_playback then
             set_layer_playback_data(playback_data:GetChordLayerData(), region, staff_number)

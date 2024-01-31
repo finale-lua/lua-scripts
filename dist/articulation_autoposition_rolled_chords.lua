@@ -35,7 +35,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -59,7 +59,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -108,11 +108,11 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead(entry)
+    function note_entry.calc_left_of_primary_notehead()
         return 0
     end
 
@@ -137,7 +137,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if not entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return left
     end
 
@@ -339,7 +339,6 @@ package.preload["library.articulation"] = package.preload["library.articulation"
             top_pos = math.floor(((10000 * top_pos) / cell_metrics.StaffScaling) + 0.5)
             return curr_pos.Y >= top_pos
         end
-        return false
     end
 
     function articulation.calc_main_character_dimensions(artic_def)
@@ -361,19 +360,38 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.59
     finaleplugin.Notes = [[
         How to use this script:
+
         1. Manually apply rolled-chord articulations to the chords that need them (without worrying about how they look).
         2. Select the region you want to change.
         3. Run the script.
+
         The script searches for any articulations with the "Copy Main Symbol Vertically" option checked.
         It automatically positions them to the left of any accidentals and changes their length so that they align
         with the top and bottom of the chord with a slight extension. (Approximately 1/4 space on either end.
         It may be longer depending on the length of the character defined for the articulation.)
+
         If you are working with a keyboard or other multi-staff instrument, the script automatically extends the top
         articulation across any staff or staves below, provided the lower staves also have the same articulation mark.
         It then hides the lower mark(s). This behavior is limited to staves that are selected. To suppress this behavior
         and restrict positioning to single staves, hold down Shift, Option (macOS), or Alt (Windows) key when invoking
         the script.
+
         This script requires RGP Lua 0.59 or later.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 How to use this script:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Manually apply rolled-chord articulations to the chords that need them (without worrying about how they look).\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Select the region you want to change.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Run the script.\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The script searches for any articulations with the \u8220"Copy Main Symbol Vertically\u8221" option checked. It automatically positions them to the left of any accidentals and changes their length so that they align with the top and bottom of the chord with a slight extension. (Approximately 1/4 space on either end. It may be longer depending on the length of the character defined for the articulation.)\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 If you are working with a keyboard or other multi-staff instrument, the script automatically extends the top articulation across any staff or staves below, provided the lower staves also have the same articulation mark. It then hides the lower mark(s). This behavior is limited to staves that are selected. To suppress this behavior and restrict positioning to single staves, hold down Shift, Option (macOS), or Alt (Windows) key when invoking the script.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script requires RGP Lua 0.59 or later.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/articulation_autoposition_rolled_chords.hash"
     return "Autoposition Rolled Chord Articulations", "Autoposition Rolled Chord Articulations",
@@ -456,7 +474,7 @@ function articulation_autoposition_rolled_chords()
                                 artic.Visible = false
                             else
                                 local this_bottom = note_entry.get_bottom_note_position(entry)
-                                staff_scale = mm.StaffScaling / 10000
+                                local staff_scale = mm.StaffScaling / 10000
                                 top_page_pos = top_page_pos / staff_scale
                                 bottom_page_pos = bottom_page_pos / staff_scale
                                 left_page_pos = left_page_pos / staff_scale

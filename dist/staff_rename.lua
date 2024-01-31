@@ -151,6 +151,59 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.show_notes_dialog(caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+
+        width = width or 500
+        height = height or 350
+
+        if not caption then
+            caption = plugindef()
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        local dlg = finale.FCCustomLuaWindow()
+        dlg:SetTitle(finale.FCString(caption))
+        local edit_text = dlg:CreateTextEditor(10, 10)
+        edit_text:SetWidth(width)
+        edit_text:SetHeight(height)
+        edit_text:SetUseRichText(finaleplugin.RTFNotes)
+        edit_text:SetReadOnly(true)
+        edit_text:SetWordWrap(true)
+        local ok = dlg:CreateOkButton()
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        dlg:RegisterInitWindow(
+            function()
+                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
+                local notes_str = finale.FCString(notes)
+                if edit_text:GetUseRichText() then
+                    edit_text:SetRTFString(notes_str)
+                else
+                    local edit_font = finale.FCFontInfo()
+                    edit_font.Name = "Arial"
+                    edit_font.Size = 10
+                    edit_text:SetFont(edit_font)
+                    edit_text:SetText(notes_str)
+                end
+                edit_text:ResetColors()
+                ok:SetKeyboardFocus()
+            end)
+        dlg:ExecuteModal(nil)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -219,7 +272,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -291,21 +344,40 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     return configuration
 end
 function plugindef()
-
-
+  
+  
   finaleplugin.Author = "Jacob Winkler"
   finaleplugin.Copyright = "2022"
   finaleplugin.Version = "3.0"
   finaleplugin.Date = "2024/01/26"
-  finaleplugin.MinJWLuaVersion = 0.63
+  finaleplugin.MinJWLuaVersion = 0.63 
   finaleplugin.Notes = [[
 USING THE 'STAFF RENAME' SCRIPT
+
 This script creates a dialog containing the full and abbreviated names of all selected instruments, including multi-staff instruments such as organ or piano. This allows for quick renaming of staves, with far less mouse clicking than trying to rename them from the Score Manager.
+
 If there is no selection, all staves will be loaded.
+
 There are buttons for each instrument that will copy the full name into the abbreviated name field.
+
 There is a popup at the bottom of the list that will automatically set all transposing instruments to show either the instrument and then the transposition (e.g. "Clarinet in Bb"), or the transposition and then the instrument (e.g. "Bb Clarinet").
+
 Speaking of the Bb Clarinet... Accidentals are displayed with square brackets, so the dialog will show "B[b] Clarinet". This is then converted into symbols using the appropriate Enigma tags. All other font info is retained.
 ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 USING THE \u8216'STAFF RENAME\u8217' SCRIPT\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script creates a dialog containing the full and abbreviated names of all selected instruments, including multi-staff instruments such as organ or piano. This allows for quick renaming of staves, with far less mouse clicking than trying to rename them from the Score Manager.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 If there is no selection, all staves will be loaded.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 There are buttons for each instrument that will copy the full name into the abbreviated name field.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 There is a popup at the bottom of the list that will automatically set all transposing instruments to show either the instrument and then the transposition (e.g.\u160?\u8220"Clarinet in Bb\u8221"), or the transposition and then the instrument (e.g.\u160?\u8220"Bb Clarinet\u8221").\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Speaking of the Bb Clarinet\u8230? Accidentals are displayed with square brackets, so the dialog will show \u8220"B[b] Clarinet\u8221". This is then converted into symbols using the appropriate Enigma tags. All other font info is retained.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_rename.hash"
   return "Rename Staves", "Rename Staves", "Renames selected staves"
 end

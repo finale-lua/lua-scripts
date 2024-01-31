@@ -10,7 +10,6 @@ $module FCMCtrlStatic
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
-local utils = require("library.utils")
 local measurement = require("library.measurement")
 
 local class = {Methods = {}}

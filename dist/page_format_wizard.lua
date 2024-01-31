@@ -151,6 +151,59 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.show_notes_dialog(caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+
+        width = width or 500
+        height = height or 350
+
+        if not caption then
+            caption = plugindef()
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        local dlg = finale.FCCustomLuaWindow()
+        dlg:SetTitle(finale.FCString(caption))
+        local edit_text = dlg:CreateTextEditor(10, 10)
+        edit_text:SetWidth(width)
+        edit_text:SetHeight(height)
+        edit_text:SetUseRichText(finaleplugin.RTFNotes)
+        edit_text:SetReadOnly(true)
+        edit_text:SetWordWrap(true)
+        local ok = dlg:CreateOkButton()
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        dlg:RegisterInitWindow(
+            function()
+                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
+                local notes_str = finale.FCString(notes)
+                if edit_text:GetUseRichText() then
+                    edit_text:SetRTFString(notes_str)
+                else
+                    local edit_font = finale.FCFontInfo()
+                    edit_font.Name = "Arial"
+                    edit_font.Size = 10
+                    edit_text:SetFont(edit_font)
+                    edit_text:SetText(notes_str)
+                end
+                edit_text:ResetColors()
+                ok:SetKeyboardFocus()
+            end)
+        dlg:ExecuteModal(nil)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -219,7 +272,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -292,26 +345,40 @@ package.preload["library.configuration"] = package.preload["library.configuratio
 end
 function plugindef()
   finaleplugin.RequireSelection = false
-  finaleplugin.Author = "Jacob Winkler"
+  finaleplugin.Author = "Jacob Winkler" 
   finaleplugin.Copyright = "©2024 Jacob Winkler"
   finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
   finaleplugin.Date = "2024/1/25"
-  finaleplugin.Version = "1.2"
+  finaleplugin.Version = "1.2.1"
   finaleplugin.HandlesUndo = true
   finaleplugin.NoStore = false
-  finaleplugin.MinJWLuaVersion = 0.70
+  finaleplugin.MinJWLuaVersion = 0.70 
   finaleplugin.Notes = [[
         USING THE 'PAGE FORMAT WIZARD'
-
+        
         The Page Format Wizard duplicates and extends the functionality of both the 'Page Format for Score' and 'Page Format for Parts' dialogs, and works instantly without needing to call 'Redefine Pages' from the Page Layout Tool menu.
-
+        
         Staff height is entered using millimeters, rather than Finale's method of using "Resulting System Scaling" (a fixed value multiplied by a scaling factor). Presets for various raster sizes can be selected from the popup menu. A brief description of each raster size pops up when it is selected, paraphrased from the MOLA guidelines on parts and scores, Elaine Gould's "Behind Bars", and Steven Powell's "Music Engraving Today: The Art and Practice of Digital Notesetting."
-
+        
         System margins can use different units than page units. The default unit for system related measurements are spaces, but the plug-in will remember what was last used.
-
+        
         You can set or scale the staff spacing as you reformat, without the need to 'Respace Staves' using the Staff Tool. This can be useful for doing things like reformatting a tabloid sized score to A3 where slight adjustments to staff spacing might need to be made. Note that if you scale the staff spacing by a percentage, the dialog will be reset to 100% so that you don't keep applying the same transformation over and over. Systems can be locked or unlocked through the plug-in as needed before reformatting.
-
+        
         In addition to formatting the score and parts, you can set up "special parts" to have alternate formatting. This makes it easy to do something like create something like a Piano/Vocal score that may have different requirements than both the full score and the regular instrumental parts. The "special parts" feature could also be used to reformat a subset of parts without touching the others simply by diabling the 'Score' and 'Default Parts' sections of the plug-in.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 USING THE \u8216'PAGE FORMAT WIZARD\u8217'\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The Page Format Wizard duplicates and extends the functionality of both the \u8216'Page Format for Score\u8217' and \u8216'Page Format for Parts\u8217' dialogs, and works instantly without needing to call \u8216'Redefine Pages\u8217' from the Page Layout Tool menu.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Staff height is entered using millimeters, rather than Finale\u8217's method of using \u8220"Resulting System Scaling\u8221" (a fixed value multiplied by a scaling factor). Presets for various raster sizes can be selected from the popup menu. A brief description of each raster size pops up when it is selected, paraphrased from the MOLA guidelines on parts and scores, Elaine Gould\u8217's \u8220"Behind Bars\u8221", and Steven Powell\u8217's \u8220"Music Engraving Today: The Art and Practice of Digital Notesetting.\u8221"\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 System margins can use different units than page units. The default unit for system related measurements are spaces, but the plug-in will remember what was last used.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 You can set or scale the staff spacing as you reformat, without the need to \u8216'Respace Staves\u8217' using the Staff Tool. This can be useful for doing things like reformatting a tabloid sized score to A3 where slight adjustments to staff spacing might need to be made. Note that if you scale the staff spacing by a percentage, the dialog will be reset to 100% so that you don\u8217't keep applying the same transformation over and over. Systems can be locked or unlocked through the plug-in as needed before reformatting.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 In addition to formatting the score and parts, you can set up \u8220"special parts\u8221" to have alternate formatting. This makes it easy to do something like create something like a Piano/Vocal score that may have different requirements than both the full score and the regular instrumental parts. The \u8220"special parts\u8221" feature could also be used to reformat a subset of parts without touching the others simply by diabling the \u8216'Score\u8217' and \u8216'Default Parts\u8217' sections of the plug-in.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/page_format_wizard.hash"
   return "Page Format Wizard", "Page Format Wizard", "Page Format Wizard"
@@ -471,7 +538,7 @@ local function match_page(w, h)
   end
   if matched < 0 then
     local count = 0
-    for i,k in pairs(page_sizes) do
+    for _ in pairs(page_sizes) do
       count = count + 1
     end
     matched = count
@@ -615,7 +682,6 @@ local function config_save()
 
   configuration.save_user_settings(special_config, special_settings)
 end
-local parts_list = {}
 local function format_wizard()
   local dialog = finale.FCCustomLuaWindow()
   str.LuaString = "Page Format Wizard - v"..finaleplugin.Version
@@ -630,7 +696,7 @@ local function format_wizard()
   end
   local section_w = col[8]
   local section_n = 0
-  local x = 0
+  local x
   local y = 0
 
   local function match_preset(controls, page_settings)
@@ -658,6 +724,7 @@ local function format_wizard()
     controls.page_width_edit:SetMeasurement(page_settings.page_w, page_sizes[selected_size][4])
     controls.page_height_edit:SetMeasurement(page_settings.page_h, page_sizes[selected_size][4])
   end
+  local staff_space_first_page_enable
   local function page_size_update(controls, page_settings, ctrls_collection)
     page_settings.page_units = units[controls.page_units_popup:GetSelectedItem()+1][3]
     str.LuaString = units[controls.page_units_popup:GetSelectedItem()+1][2]
@@ -679,11 +746,11 @@ local function format_wizard()
       page_settings.right_page_left_margin = page_settings.left_page_right_margin
       page_settings.right_page_right_margin = page_settings.left_page_left_margin
       page_settings.right_page_bottom_margin = page_settings.left_page_bottom_margin
-      for k,v in ipairs(ctrls_collection.right_page_ctrls_2) do
+      for _,v in ipairs(ctrls_collection.right_page_ctrls_2) do
         v:SetEnable(false)
       end
     else
-      for k,v in ipairs(ctrls_collection.right_page_ctrls_2) do
+      for _,v in ipairs(ctrls_collection.right_page_ctrls_2) do
         v:SetEnable(true)
       end
     end
@@ -706,42 +773,42 @@ local function format_wizard()
     controls.first_page_top_edit:SetMeasurement(page_settings.first_page_top_margin, page_settings.page_units)
     if page_settings.facing_pages_bool then
       controls.facing_pages_checkbox:SetCheck(1)
-      for k,v in ipairs(ctrls_collection.right_page_ctrls_1) do
+      for _, v in ipairs(ctrls_collection.right_page_ctrls_1) do
         v:SetVisible(true)
       end
-      for k,v in ipairs(ctrls_collection.right_page_ctrls_2) do
+      for _, v in ipairs(ctrls_collection.right_page_ctrls_2) do
         v:SetVisible(true)
       end
     else
       controls.facing_pages_checkbox:SetCheck(0)
-      for k,v in ipairs(ctrls_collection.right_page_ctrls_1) do
+      for _, v in ipairs(ctrls_collection.right_page_ctrls_1) do
         v:SetVisible(false)
       end
-      for k,v in ipairs(ctrls_collection.right_page_ctrls_2) do
+      for _, v in ipairs(ctrls_collection.right_page_ctrls_2) do
         v:SetVisible(false)
       end
     end
 
     if page_settings.first_system_bool then
       controls.first_system_checkbox:SetCheck(1)
-      for k,v in ipairs(ctrls_collection.first_sys_ctrls) do
+      for _, v in ipairs(ctrls_collection.first_sys_ctrls) do
         v:SetVisible(true)
       end
     else
       controls.first_system_checkbox:SetCheck(0)
-      for k,v in ipairs(ctrls_collection.first_sys_ctrls) do
+      for _, v in ipairs(ctrls_collection.first_sys_ctrls) do
         v:SetVisible(false)
       end
     end
 
     if page_settings.bypass_systems_bool > 0 then
       controls.system_margins_check:SetCheck(1)
-      for k,v in ipairs(ctrls_collection.system_margin_ctrls) do
+      for _, v in ipairs(ctrls_collection.system_margin_ctrls) do
         v:SetEnable(true)
       end
     else
       controls.system_margins_check:SetCheck(0)
-      for k,v in ipairs(ctrls_collection.system_margin_ctrls) do
+      for _, v in ipairs(ctrls_collection.system_margin_ctrls) do
         v:SetEnable(false)
       end
     end
@@ -771,7 +838,7 @@ local function format_wizard()
     controls.staff_h_edit:SetText(efix_to_mm_string(page_settings.staff_h))
     local raster_match_bool = false
     local count = 0
-    for k, v in ipairs(raster_sizes) do
+    for k in ipairs(raster_sizes) do
       if temp == raster_sizes[k][3] then
         controls.staff_size_popup:SetSelectedItem(k-1)
         str.LuaString = raster_sizes[k][2]
@@ -789,11 +856,11 @@ local function format_wizard()
     controls.staff_spacing_popup:SetSelectedItem(page_settings.staff_spacing)
     controls.staff_spacing_first_page_checkbox:SetCheck(page_settings.staff_spacing_first_page_bool)
     if page_settings.staff_spacing == 0 then
-      for k, v in pairs(ctrls_collection.staff_spacing_ctrls) do
+      for _, v in pairs(ctrls_collection.staff_spacing_ctrls) do
         v:SetVisible(false)
       end
     elseif page_settings.staff_spacing == 1 then
-      for k, v in pairs(ctrls_collection.staff_spacing_ctrls) do
+      for _, v in pairs(ctrls_collection.staff_spacing_ctrls) do
         v:SetVisible(true)
       end
       str.LuaString = units[controls.system_units_popup:GetSelectedItem()+1][2]
@@ -802,7 +869,7 @@ local function format_wizard()
       controls.staff_spacing_first_page_edit:SetMeasurement(page_settings.staff_spacing_set_first_page, page_settings.system_units)
       controls.staff_spacing_other_pages_edit:SetMeasurement(page_settings.staff_spacing_set_other_pages, page_settings.system_units)
     elseif page_settings.staff_spacing == 2 then
-      for k, v in pairs(ctrls_collection.staff_spacing_ctrls) do
+      for _, v in pairs(ctrls_collection.staff_spacing_ctrls) do
         v:SetVisible(true)
       end
       str.LuaString = "%"
@@ -835,11 +902,11 @@ local function format_wizard()
   local function section_enable(check, controls, page_settings, ctrls_collection)
     page_size_update(controls, page_settings, ctrls_collection)
     if check:GetCheck() == 1 then
-      for k,v in pairs(controls) do
+      for _, v in pairs(controls) do
         v:SetEnable(true)
       end
     else
-      for k,v in pairs(controls) do
+      for _, v in pairs(controls) do
         v:SetEnable(false)
       end
     end
@@ -849,7 +916,7 @@ local function format_wizard()
       controls.first_page_top_edit:SetEnable(false)
     end
     controls.auto_reflect_check:SetCheck(page_settings.reflect_bool)
-    for k,v in pairs(ctrls_collection.right_page_ctrls_2) do
+    for _, v in pairs(ctrls_collection.right_page_ctrls_2) do
       if page_settings.reflect_bool == 1 then
         v:SetEnable(false)
       else
@@ -859,13 +926,14 @@ local function format_wizard()
       end
     end
     if page_settings.bypass_systems_bool < 1 then
-      for k,v in pairs(ctrls_collection.system_margin_ctrls) do
+      for _, v in pairs(ctrls_collection.system_margin_ctrls) do
         v:SetEnable(false)
       end
     end
   end
   local function format_pages_and_save()
     local controls = {}
+    local page_settings
     local score_format_prefs = finale.FCPageFormatPrefs()
     local parts_format_prefs = finale.FCPageFormatPrefs()
     parts_format_prefs:LoadParts()
@@ -1094,7 +1162,7 @@ local function format_wizard()
   end
   local function initialize_page_settings()
     for i = 1, 2 do
-      local page_settings = {}
+      local page_settings
       local page_format_prefs = finale.FCPageFormatPrefs()
       if i == 1 then
         page_format_prefs:LoadScore()
@@ -1165,7 +1233,7 @@ local function format_wizard()
     x = section_n*section_w
     controls.page_units_static = add_ctrl(dialog, "static", "Page Units:", x, y, col_w, row_h)
     controls.page_units_popup = add_ctrl(dialog, "popup", "", x+col_w*2, y-1, col_w*3, row_h)
-    for i,k in ipairs(units) do
+    for i in ipairs(units) do
       str.LuaString = units[i][1]
       controls.page_units_popup:AddString(str)
     end
@@ -1174,7 +1242,7 @@ local function format_wizard()
     y = row*row_h
     controls.page_size_static = add_ctrl(dialog, "static", "Page Size:", x, y, col_w, row_h)
     controls.page_size_popup = add_ctrl(dialog, "popup", "", x+col_w*2, y-1, col_w*3, row_h)
-    for i,k in ipairs(page_sizes) do
+    for i in ipairs(page_sizes) do
       str.LuaString = page_sizes[i][1]
       controls.page_size_popup:AddString(str)
     end
@@ -1294,7 +1362,7 @@ local function format_wizard()
     y = row*row_h
     controls.system_units = add_ctrl(dialog, "static", "System Units:", x, y, col_w, row_h)
     controls.system_units_popup = add_ctrl(dialog, "popup", "", x+col_w*2, y, col_w*3, row_h)
-    for i,k in ipairs(units) do
+    for i in ipairs(units) do
       str.LuaString = units[i][1]
       controls.system_units_popup:AddString(str)
     end
@@ -1375,7 +1443,7 @@ local function format_wizard()
     controls.staff_size = add_ctrl(dialog, "static", "Rastral Size:", x, y, col_w, row_h)
     x = x + col[3]
     controls.staff_size_popup = add_ctrl(dialog, "popup", "", x, y, col_w*3, row_h)
-    for k,v in ipairs(raster_sizes) do
+    for k in ipairs(raster_sizes) do
       str.LuaString = raster_sizes[k][1]
       controls.staff_size_popup:AddString(str)
     end
@@ -1555,27 +1623,27 @@ local function format_wizard()
   section_enable(score_enable_checkbox, score_ctrls, score_settings, score_ctrls_collection)
   section_enable(parts_enable_checkbox, parts_ctrls, parts_settings, parts_ctrls_collection)
   section_enable(special_enable_checkbox, special_ctrls, special_settings, special_ctrls_collection)
-  dialog:RegisterHandleControlEvent (score_enable_checkbox, function(control)
+  dialog:RegisterHandleControlEvent (score_enable_checkbox, function()
       section_enable(score_enable_checkbox, score_ctrls, score_settings, score_ctrls_collection)
       config.score_enable = score_enable_checkbox:GetCheck()
     end)
-  dialog:RegisterHandleControlEvent (parts_enable_checkbox, function(control)
+  dialog:RegisterHandleControlEvent (parts_enable_checkbox, function()
       section_enable(parts_enable_checkbox, parts_ctrls, parts_settings, parts_ctrls_collection)
       config.parts_enable = parts_enable_checkbox:GetCheck()
     end)
-  dialog:RegisterHandleControlEvent (special_enable_checkbox, function(control)
+  dialog:RegisterHandleControlEvent (special_enable_checkbox, function()
       section_enable(special_enable_checkbox, special_ctrls, special_settings, special_ctrls_collection)
       config.special_enable = special_enable_checkbox:GetCheck()
     end)
   local function register_controls(controls, page_settings, ctrls_collection)
-    dialog:RegisterHandleControlEvent (controls.page_size_popup, function(control)
+    dialog:RegisterHandleControlEvent (controls.page_size_popup, function()
         if not hold then
           hold = true
           page_size_preset(controls, page_settings)
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.page_units_popup, function(control)
+    dialog:RegisterHandleControlEvent (controls.page_units_popup, function()
         if not hold then
           hold = true
           local temp_units = controls.page_units_popup:GetSelectedItem()
@@ -1584,7 +1652,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.page_width_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.page_width_edit, function()
         if not hold then
           hold = true
           page_settings.page_units = units[controls.page_units_popup:GetSelectedItem()+1][3]
@@ -1594,7 +1662,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.page_height_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.page_height_edit, function()
         if not hold then
           hold = true
           page_settings.page_units = units[controls.page_units_popup:GetSelectedItem()+1][3]
@@ -1615,10 +1683,10 @@ local function format_wizard()
           end
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.page_scale_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.page_scale_edit, function()
         page_settings.page_scale = controls.page_scale_edit:GetFloat(1, 500)
       end)
-    dialog:RegisterHandleControlEvent (controls.first_page_top_checkbox, function(control)
+    dialog:RegisterHandleControlEvent (controls.first_page_top_checkbox, function()
         if not hold then
           hold = true
           if controls.first_page_top_checkbox:GetCheck() == 1 then
@@ -1630,7 +1698,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.facing_pages_checkbox, function(control)
+    dialog:RegisterHandleControlEvent (controls.facing_pages_checkbox, function()
         if not hold then
           hold = true
           if controls.facing_pages_checkbox:GetCheck() == 1 then
@@ -1642,14 +1710,14 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.first_page_top_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.first_page_top_edit, function()
         if not hold then
           hold = true
           page_settings.first_page_top_margin = controls.first_page_top_edit:GetMeasurement(page_settings.page_units)
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.left_page_top_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.left_page_top_edit, function()
         if not hold then
           hold = true
           page_settings.left_page_top_margin = controls.left_page_top_edit:GetMeasurement(page_settings.page_units)
@@ -1660,7 +1728,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.left_page_left_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.left_page_left_edit, function()
         if not hold then
           hold = true
           page_settings.left_page_left_margin = controls.left_page_left_edit:GetMeasurement(page_settings.page_units)
@@ -1671,7 +1739,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.left_page_right_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.left_page_right_edit, function()
         if not hold then
           hold = true
           page_settings.left_page_right_margin = controls.left_page_right_edit:GetMeasurement(page_settings.page_units)
@@ -1682,7 +1750,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.left_page_bottom_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.left_page_bottom_edit, function()
         if not hold then
           hold = true
           page_settings.left_page_bottom_margin = controls.left_page_bottom_edit:GetMeasurement(page_settings.page_units)
@@ -1693,35 +1761,35 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.right_page_top_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.right_page_top_edit, function()
         if not hold then
           hold = true
           page_settings.right_page_top_margin = controls.right_page_top_edit:GetMeasurement(page_settings.page_units)
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.right_page_left_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.right_page_left_edit, function()
         if not hold then
           hold = true
           page_settings.right_page_left_margin = controls.right_page_left_edit:GetMeasurement(page_settings.page_units)
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.right_page_right_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.right_page_right_edit, function()
         if not hold then
           hold = true
           page_settings.right_page_right_margin = controls.right_page_right_edit:GetMeasurement(page_settings.page_units)
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.right_page_bottom_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.right_page_bottom_edit, function()
         if not hold then
           hold = true
           page_settings.right_page_bottom_margin = controls.right_page_bottom_edit:GetMeasurement(page_settings.page_units)
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.auto_reflect_check, function(control)
+    dialog:RegisterHandleControlEvent (controls.auto_reflect_check, function()
         if not hold then
           hold = true
           page_settings.reflect_bool = controls.auto_reflect_check:GetCheck()
@@ -1729,7 +1797,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.system_margins_check, function(control)
+    dialog:RegisterHandleControlEvent (controls.system_margins_check, function()
         if not hold then
           hold = true
           page_settings.bypass_systems_bool = controls.system_margins_check:GetCheck()
@@ -1737,7 +1805,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.system_units_popup, function(control)
+    dialog:RegisterHandleControlEvent (controls.system_units_popup, function()
         if not hold then
           hold = true
           page_settings.system_units = controls.system_units_popup:GetSelectedItem()
@@ -1746,7 +1814,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.first_system_checkbox, function(control)
+    dialog:RegisterHandleControlEvent (controls.first_system_checkbox, function()
         if not hold then
           hold = true
           if controls.first_system_checkbox:GetCheck() == 1 then
@@ -1758,35 +1826,35 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.between_systems_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.between_systems_edit, function()
         page_settings.system_distance_between = controls.between_systems_edit:GetMeasurement(page_settings.system_units) * -1
       end)
-    dialog:RegisterHandleControlEvent (controls.first_system_from_top_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.first_system_from_top_edit, function()
         page_settings.first_system_distance = controls.first_system_from_top_edit:GetMeasurement(page_settings.system_units)
       end)
-    dialog:RegisterHandleControlEvent (controls.system_top_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.system_top_edit, function()
         page_settings.system_top_margin = controls.system_top_edit:GetMeasurement(page_settings.system_units)
       end)
-    dialog:RegisterHandleControlEvent (controls.first_system_top_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.first_system_top_edit, function()
         page_settings.first_system_top_margin = controls.first_system_top_edit:GetMeasurement(page_settings.system_units)
       end)
-    dialog:RegisterHandleControlEvent (controls.system_left_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.system_left_edit, function()
         page_settings.system_left_margin = controls.system_left_edit:GetMeasurement(page_settings.system_units)
       end)
-    dialog:RegisterHandleControlEvent (controls.system_right_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.system_right_edit, function()
         page_settings.system_right_margin = controls.system_right_edit:GetMeasurement(page_settings.system_units) * -1
       end)
-    dialog:RegisterHandleControlEvent (controls.first_system_left_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.first_system_left_edit, function()
         if not hold then
           hold = true
           page_settings.first_system_left_margin = controls.first_system_left_edit:GetMeasurement(page_settings.system_units)
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.system_bottom_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.system_bottom_edit, function()
         page_settings.system_bottom_margin = controls.system_bottom_edit:GetMeasurement(page_settings.system_units)+96
       end)
-    dialog:RegisterHandleControlEvent (controls.staff_h_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.staff_h_edit, function()
         if not hold then
           hold = true
           page_settings.staff_h = mm_to_efix(controls.staff_h_edit:GetMeasurement(finale.MEASUREMENTUNIT_MILLIMETERS))
@@ -1796,7 +1864,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.staff_size_popup, function(control)
+    dialog:RegisterHandleControlEvent (controls.staff_size_popup, function()
         if not hold then
           hold = true
           temp = raster_sizes[controls.staff_size_popup:GetSelectedItem()+1][3]/100
@@ -1806,7 +1874,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.staff_spacing_popup, function(control)
+    dialog:RegisterHandleControlEvent (controls.staff_spacing_popup, function()
         if not hold then
           hold = true
           page_settings.staff_spacing = controls.staff_spacing_popup:GetSelectedItem()
@@ -1814,7 +1882,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.staff_spacing_first_page_checkbox, function(control)
+    dialog:RegisterHandleControlEvent (controls.staff_spacing_first_page_checkbox, function()
         if not hold then
           hold = true
           page_settings.staff_spacing_first_page_bool = controls.staff_spacing_first_page_checkbox:GetCheck()
@@ -1822,7 +1890,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.staff_spacing_first_page_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.staff_spacing_first_page_edit, function()
         if not hold then
           hold = true
           if controls.staff_spacing_popup:GetSelectedItem() == 1 then
@@ -1833,7 +1901,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.staff_spacing_other_pages_edit, function(control)
+    dialog:RegisterHandleControlEvent (controls.staff_spacing_other_pages_edit, function()
         if not hold then
           hold = true
           if controls.staff_spacing_popup:GetSelectedItem() == 1 then
@@ -1844,7 +1912,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.lock_popup, function(control)
+    dialog:RegisterHandleControlEvent (controls.lock_popup, function()
         if not hold then
           hold = true
           page_settings.lock = controls.lock_popup:GetSelectedItem()
@@ -1852,7 +1920,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.copy_parts_button, function(control)
+    dialog:RegisterHandleControlEvent (controls.copy_parts_button, function()
         if not hold then
           hold = true
           copy_settings_to_special(parts_settings)
@@ -1860,7 +1928,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.copy_score_button, function(control)
+    dialog:RegisterHandleControlEvent (controls.copy_score_button, function()
         if not hold then
           hold = true
           copy_settings_to_special(score_settings)
@@ -1868,7 +1936,7 @@ local function format_wizard()
           hold = false
         end
       end)
-    dialog:RegisterHandleControlEvent (controls.clear_datalist_button, function(control)
+    dialog:RegisterHandleControlEvent (controls.clear_datalist_button, function()
         for i = 0, controls.parts_datalist:GetCount()-1 do
           row = controls.parts_datalist:GetItemAt(i)
           row:SetCheck(false)
@@ -1878,7 +1946,7 @@ local function format_wizard()
   register_controls(score_ctrls, score_settings, score_ctrls_collection)
   register_controls(parts_ctrls, parts_settings, parts_ctrls_collection)
   register_controls(special_ctrls, special_settings, special_ctrls_collection)
-  function updown_callback(ctrl, delta)
+  local function updown_callback(ctrl)
     if not hold then
       hold = true
       if ctrl:GetControlID() == score_ctrls.staff_h_updown:GetControlID() then
@@ -1901,7 +1969,7 @@ local function format_wizard()
     end
   end
   dialog:RegisterHandleUpDownPressed(updown_callback)
-  function execute_all()
+  local function execute_all()
     local orig_part = finale.FCPart(finale.PARTID_CURRENT)
 
     str.LuaString = "Format:"
@@ -1933,7 +2001,7 @@ local function format_wizard()
   local button_cancel = dialog:CreateCancelButton()
   str.LuaString = "Close"
   button_cancel:SetText(str)
-  dialog:RegisterHandleOkButtonPressed (function(control)
+  dialog:RegisterHandleOkButtonPressed (function()
       execute_all()
     end)
   dialog:SetOkButtonCanClose(false)

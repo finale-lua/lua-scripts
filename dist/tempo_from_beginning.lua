@@ -8,6 +8,15 @@ function plugindef()
     finaleplugin.Notes = [[
     The default setting for new TEMPO expressions is that their playback effect starts at their alignment point in the measure. This can create erratic 'elapsed time' results (metatool '3' with the Selection Tool) if the expression isn't positioned at the exact start of the measure. To avoid this select the Tempo expression, control-click to EDIT EXPRESSION ASSIGNMENT then set playback to start from BEGINNING OF MEASURE. Which is six precise mouse clicks. Or else just run this script over the measures concerned.
 ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 The default setting for new TEMPO expressions is that their playback effect starts at their alignment point in the measure. This can create erratic \u8216'elapsed time\u8217' results (metatool \u8216'3\u8217' with the Selection Tool) if the expression isn\u8217't positioned at the exact start of the measure. To avoid this select the Tempo expression, control-click to EDIT EXPRESSION ASSIGNMENT then set playback to start from BEGINNING OF MEASURE. Which is six precise mouse clicks. Or else just run this script over the measures concerned.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/tempo_from_beginning.hash"
     return "Tempo From Beginning", "Tempo From Beginning", "Set tempo markings to start playback at the BEGINNING of each measure"
 end

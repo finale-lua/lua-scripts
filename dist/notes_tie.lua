@@ -35,7 +35,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -59,7 +59,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -108,11 +108,11 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead(entry)
+    function note_entry.calc_left_of_primary_notehead()
         return 0
     end
 
@@ -137,7 +137,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if not entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return left
     end
 
@@ -363,9 +363,8 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
             if not entry then
                 break
             end
-            tied_from_note = equal_note(entry, note, false, tie_must_exist)
-            if tied_from_note then
-                return tied_from_note
+            if equal_note(entry, note, false, tie_must_exist) then
+                return true
             end
         end
     end
@@ -448,7 +447,7 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
             end
         else
             local adjacent_stemdir = 0
-            local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, for_tieend, true)
+            local _, start_note, end_note = tie.calc_tie_span(note, for_tieend, true)
             if for_tieend then
 
 
@@ -482,12 +481,12 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
                         end
                     end
                 end
-                if adjacent_stemdir ~= 0 and adjacent_stemdir ~= stemdir then
-                    if tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_OVER then
-                        return finale.TIEMODDIR_OVER
-                    elseif tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_UNDER then
-                        return finale.TIEMODDIR_UNDER
-                    end
+            end
+            if adjacent_stemdir ~= 0 and adjacent_stemdir ~= stemdir then
+                if tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_OVER then
+                    return finale.TIEMODDIR_OVER
+                elseif tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_UNDER then
+                    return finale.TIEMODDIR_UNDER
                 end
             end
         end
@@ -585,7 +584,7 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
             end
         end
         if for_pageview then
-            local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, false, true)
+            local _, start_note, end_note = tie.calc_tie_span(note, false, true)
             if start_note and end_note then
                 local systems = finale.FCStaffSystems()
                 systems:LoadAll()
@@ -713,7 +712,7 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         else
             start_placement = calc_placement_for_endpoint(note, tie_mod, tie_prefs, direction, stemdir, false)
             end_placement = start_placement
-            local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, false, true)
+            local _, start_note, end_note = tie.calc_tie_span(note, false, true)
             if end_note then
                 local next_stemdir = end_note.Entry:CalcStemUp() and 1 or -1
                 end_placement = calc_placement_for_endpoint(end_note, tie_mod, tie_prefs, direction, next_stemdir, true)
@@ -782,7 +781,6 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         return start_placement, end_placement
     end
     local calc_prefs_offset_for_endpoint = function(note, tie_prefs, tie_placement_prefs, placement, for_endpoint, for_tieend, for_pageview)
-        local tie_
         if for_endpoint then
             if calc_is_end_of_system(note, for_pageview) then
                 return tie_prefs.SystemRightHorizontalOffset, tie_placement_prefs:GetVerticalEnd(placement)
@@ -829,7 +827,7 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         entry_metrics_start:Load(note.Entry)
         local cell_metrics_end = finale.FCCellMetrics()
         local entry_metrics_end = finale.FCEntryMetrics()
-        local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, false, true)
+        local _, start_note, end_note = tie.calc_tie_span(note, false, true)
         if tie_mod:IsStartTie() then
             if end_note then
                 cell_metrics_end:LoadAtEntry(end_note.Entry)
@@ -837,8 +835,7 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
             end
         end
         local lplacement, rplacement = tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
-        local horz_start = 0
-        local horz_end = 0
+        local horz_start, horz_end
         local incr_start = 0
         local incr_end = 0
 
@@ -993,9 +990,18 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.ScriptGroupName = "Tie/untie notes"
     finaleplugin.ScriptGroupDescription = "Tie or untie suitable notes in the current selection"
-    finaleplugin.Notes = [[
-    Ties notes in adjacent entries if matching pitches are available.
+    finaleplugin.Notes = [[ 
+    Ties notes in adjacent entries if matching pitches are available. 
     A companion menu item is also created to `Untie` all notes in the selection.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Ties notes in adjacent entries if matching pitches are available. A companion menu item is also created to {\f1 Untie} all notes in the selection.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/notes_tie.hash"
     return "Tie Notes", "Tie Notes", "Tie suitable notes in the selected region"
@@ -1014,14 +1020,14 @@ local function tie_notes_in_selection()
                     for note in each(entry) do
                         if untie_notes then
                             if note.TieBackwards then
-                                local tie_span_from, start_note = tie.calc_tie_span(note, true)
+                                local _, start_note = tie.calc_tie_span(note, true)
                                 if not start_note or region:IsEntryPosWithin(start_note.Entry) or not start_note.Tie then
                                     note.TieBackwards = false
                                     finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
                                 end
                             end
                             if note.Tie then
-                                local tie_span_to, _, end_note = tie.calc_tie_span(note, false)
+                                local _, _, end_note = tie.calc_tie_span(note, false)
                                 if not end_note or region:IsEntryPosWithin(end_note.Entry) or not end_note.TieBackwards then
                                     note.Tie = false
                                     finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)

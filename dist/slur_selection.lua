@@ -136,7 +136,7 @@ package.preload["library.smartshape"] = package.preload["library.smartshape"] or
             "dashedcurvedown",
             "dashedcurveup"
         }
-        for key, val in pairs(slurs) do
+        for _, val in pairs(slurs) do
             smartshape.delete_entry_based_smartshape(music_region, val)
         end
     end
@@ -154,7 +154,7 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         source_layer = source_layer - 1
         destination_layer = destination_layer - 1
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
+            local staffNum = sysstaff.Staff
             local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
             noteentry_source_layer:SetUseVisibleLayer(false)
             noteentry_source_layer:Load()
@@ -185,8 +185,8 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         local sysstaves = finale.FCSystemStaves()
         sysstaves:LoadAllForRegion(region)
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            local staffNum = sysstaff.Staff
+            local noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
             noteentry_layer:SetUseVisibleLayer(false)
             noteentry_layer:Load()
             noteentry_layer:ClearAllEntries()
@@ -245,12 +245,21 @@ function plugindef()
     finaleplugin.Date = "2023/09/16"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
-        A good trick in Sibelius is hitting the 'S' key to create a slur across currently selected notes.
-        Activate this script in Finale with a macro hotkey utility to do the same thing.
-        Each layer will be slurred independently, and if there are
-        several runs of notes separated by rests, each run will be slurred separately.
-        If you want to automate slurs on specific rhythmic patterns then try
+        A good trick in Sibelius is hitting the 'S' key to create a slur across currently selected notes. 
+        Activate this script in Finale with a macro hotkey utility to do the same thing. 
+        Each layer will be slurred independently, and if there are 
+        several runs of notes separated by rests, each run will be slurred separately. 
+        If you want to automate slurs on specific rhythmic patterns then try 
         JW Pattern (→ Performance Notation → Slurs) or TGTools (→ Music → Create Slurs...).
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 A good trick in Sibelius is hitting the \u8216'S\u8217' key to create a slur across currently selected notes. Activate this script in Finale with a macro hotkey utility to do the same thing. Each layer will be slurred independently, and if there are several runs of notes separated by rests, each run will be slurred separately. If you want to automate slurs on specific rhythmic patterns then try JW Pattern (\u8594? Performance Notation \u8594? Slurs) or TGTools (\u8594? Music \u8594? Create Slurs\u8230?).\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/slur_selection.hash"
     return "Slur Selection", "Slur Selection", "Create slurs across the current selection"

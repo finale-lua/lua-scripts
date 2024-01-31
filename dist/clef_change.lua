@@ -187,7 +187,7 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
             table.insert(clefs, mid_clef)
         end
         table.sort(clefs, function (k1, k2) return k1.MeasurePos < k2.MeasurePos end)
-        for k, mid_clef in ipairs(clefs) do
+        for _, mid_clef in ipairs(clefs) do
             new_mid_clefs:InsertCellClefChange(mid_clef)
             new_mid_clefs:SaveAllAsNew()
         end
@@ -222,8 +222,7 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
             end
             cell = finale.FCCell(cell_measure, cell_staff)
             cell_frame_hold:ConnectCell(cell)
-            if cell_frame_hold:Load() then
-            end
+            cell_frame_hold:Load()
             if  region:IsFullMeasureIncluded(cell_measure) then
                 clef.set_measure_clef(cell_measure, cell_measure, cell_staff, clef_index)
                 if not region:IsLastEndMeasure() then
@@ -329,13 +328,14 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
     return clef
 end
 function plugindef()
-
-
+    
+    
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "2022-08-30"
     finaleplugin.RequireSelection = true
+
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.AdditionalMenuOptions = [[
     Clef 2: Bass

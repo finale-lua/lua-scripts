@@ -267,7 +267,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -370,7 +370,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -379,11 +379,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -835,13 +835,13 @@ package.preload["library.score"] = package.preload["library.score"] or function(
 
     function score.create_group(start_staff, end_staff, brace_name, has_barline, level, full_name, short_name)
         local sg_cmper = {}
-        local sg = finale.FCGroup()
         local staff_groups = finale.FCGroups()
         staff_groups:LoadAll()
         for sg in each(staff_groups) do
             table.insert(sg_cmper, sg:GetItemID())
         end
         table.sort(sg_cmper)
+        local sg = finale.FCGroup()
         sg:SetStartStaff(start_staff)
         sg:SetEndStaff(end_staff)
         sg:SetStartMeasure(1)
@@ -1087,8 +1087,7 @@ package.preload["library.score"] = package.preload["library.score"] or function(
         local staff = finale.FCStaff()
         if staff:Load(staff_num) then
             local staff_instrument = staff:GetInstrumentUUID()
-            local test = finale.FFUID_YODEL
-            for k, v in pairs(VOICE_INSTRUMENTS) do
+            for _, v in pairs(VOICE_INSTRUMENTS) do
                 if staff_instrument == v then
                     is_voice_staff = true
                 end
@@ -1251,6 +1250,59 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.show_notes_dialog(caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+
+        width = width or 500
+        height = height or 350
+
+        if not caption then
+            caption = plugindef()
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        local dlg = finale.FCCustomLuaWindow()
+        dlg:SetTitle(finale.FCString(caption))
+        local edit_text = dlg:CreateTextEditor(10, 10)
+        edit_text:SetWidth(width)
+        edit_text:SetHeight(height)
+        edit_text:SetUseRichText(finaleplugin.RTFNotes)
+        edit_text:SetReadOnly(true)
+        edit_text:SetWordWrap(true)
+        local ok = dlg:CreateOkButton()
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        dlg:RegisterInitWindow(
+            function()
+                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
+                local notes_str = finale.FCString(notes)
+                if edit_text:GetUseRichText() then
+                    edit_text:SetRTFString(notes_str)
+                else
+                    local edit_font = finale.FCFontInfo()
+                    edit_font.Name = "Arial"
+                    edit_font.Size = 10
+                    edit_text:SetFont(edit_font)
+                    edit_text:SetText(notes_str)
+                end
+                edit_text:ResetColors()
+                ok:SetKeyboardFocus()
+            end)
+        dlg:ExecuteModal(nil)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -1319,7 +1371,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -1399,9 +1451,22 @@ function plugindef()
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.Notes = [[
         This script sets up a score for trombone octet - 6 tenors, 2 basses.
+
         To use it, first open your default document or document styles. Then, run the script.
         All existing staffs will be deleted. And in their place, the trombone octet will be created.
+
         This script uses the standard ensemble creation configuration options.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script sets up a score for trombone octet - 6 tenors, 2 basses.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To use it, first open your default document or document styles. Then, run the script. All existing staffs will be deleted. And in their place, the trombone octet will be created.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script uses the standard ensemble creation configuration options.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/score_create_trombone_choir_score.hash"
     return "Create trombone choir score", "Create trombone choir score",

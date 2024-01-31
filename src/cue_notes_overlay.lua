@@ -172,10 +172,9 @@ local function make_info_button(dialog, x, y)
 end
 
 local function get_staff_name(staff_num)
-    local str = finale.FCString()
     local staff = finale.FCStaff() -- copy the source Staff Name
     staff:Load(staff_num)
-    str = staff:CreateDisplayFullNameString()
+    local str = staff:CreateDisplayFullNameString()
     local name = { full = str.LuaString }
     str = staff:CreateDisplayAbbreviatedNameString()
     name.abbrev = str.LuaString
@@ -649,7 +648,7 @@ local function new_expression_category(new_name)
     local tfi = new_category:CreateTextFontInfo()
     tfi.Size = tfi.Size - config.cue_font_smaller
     new_category:SetTextFontInfo(tfi)
-    ok = new_category:SaveNewWithType(finale.DEFAULTCATID_TECHNIQUETEXT)
+    local ok = new_category:SaveNewWithType(finale.DEFAULTCATID_TECHNIQUETEXT)
     if ok then
         category_id = new_category:GetID()
     end

@@ -249,6 +249,59 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.show_notes_dialog(caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+
+        width = width or 500
+        height = height or 350
+
+        if not caption then
+            caption = plugindef()
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        local dlg = finale.FCCustomLuaWindow()
+        dlg:SetTitle(finale.FCString(caption))
+        local edit_text = dlg:CreateTextEditor(10, 10)
+        edit_text:SetWidth(width)
+        edit_text:SetHeight(height)
+        edit_text:SetUseRichText(finaleplugin.RTFNotes)
+        edit_text:SetReadOnly(true)
+        edit_text:SetWordWrap(true)
+        local ok = dlg:CreateOkButton()
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        dlg:RegisterInitWindow(
+            function()
+                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
+                local notes_str = finale.FCString(notes)
+                if edit_text:GetUseRichText() then
+                    edit_text:SetRTFString(notes_str)
+                else
+                    local edit_font = finale.FCFontInfo()
+                    edit_font.Name = "Arial"
+                    edit_font.Size = 10
+                    edit_text:SetFont(edit_font)
+                    edit_text:SetText(notes_str)
+                end
+                edit_text:ResetColors()
+                ok:SetKeyboardFocus()
+            end)
+        dlg:ExecuteModal(nil)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -317,7 +370,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -425,7 +478,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -449,7 +502,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -498,11 +551,11 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead(entry)
+    function note_entry.calc_left_of_primary_notehead()
         return 0
     end
 
@@ -527,7 +580,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if not entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return left
     end
 
@@ -898,7 +951,7 @@ package.preload["library.transposition"] = package.preload["library.transpositio
         local curr_disp = note.Displacement
         local curr_alt = note.RaiseLower
         local key = get_key(note)
-        local number_of_steps, diatonic_steps, fifth_steps = get_key_info(key)
+        local _, diatonic_steps, _ = get_key_info(key)
         local interval_normalized = signed_modulus(interval, #diatonic_steps)
         local steps_in_alteration = calc_steps_in_alteration(key, interval, alteration)
         local steps_in_interval = calc_steps_in_normalized_interval(key, interval_normalized)
@@ -1038,12 +1091,29 @@ function plugindef()
         additional instances of the script file and setting Optional Menu Text and Optional Prefix.
         To avoid confusion, you should also set the Optional Description. If you omit Optional Undo Text,
         the undo text will be the same as the menu option.
+
         Here is an example that creates a "Double Fifth Up" menu option.
+
         - Optional Menu Text: `Double Fifth Up`
         - Optional Description: `Doubles the current note a diatonic fifth higher`
         - Optional Prefix: `input_interval = 4`
+
         Intervals are defined as 0=unison, 1=second, 2=third, etc. Positive values transpose up and
         negative values transpose down. See the "AdditionalPrefixes" above for examples.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script doubles selected entries at a specified diatonic interval above or below. By default, it creates menu options to double an octave up and down as well as options to double a third up and down. RGP Lua allows you to add further menu options by creating additional instances of the script file and setting Optional Menu Text and Optional Prefix. To avoid confusion, you should also set the Optional Description. If you omit Optional Undo Text, the undo text will be the same as the menu option.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Here is an example that creates a \u8220"Double Fifth Up\u8221" menu option.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Menu Text: {\f1 Double Fifth Up}\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Description: {\f1 Doubles the current note a diatonic fifth higher}\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Prefix: {\f1 input_interval = 4}\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Intervals are defined as 0=unison, 1=second, 2=third, etc. Positive values transpose up and negative values transpose down. See the \u8220"AdditionalPrefixes\u8221" above for examples.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_entry_double_at_interval.hash"
     return "Octave Doubling Up", "Octave Doubling Up", "Doubles the current note an octave higher"

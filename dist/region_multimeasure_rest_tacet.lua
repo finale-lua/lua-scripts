@@ -1,6 +1,6 @@
 function plugindef()
-
-
+    
+    
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "The JWs: Jacob Winkler & Jari Williamsson"
     finaleplugin.Version = "3.0"
@@ -11,14 +11,28 @@ function plugindef()
    above as an expression. The font settings for the expression are taken from the 'Tempo' category.
    If the region includes the last measure of the file but NOT the first measure, it will instead
    create an expression that says 'tacet al fine'.
+
    If you are using RGP Lua 0.6 or above, you can override the default text settings by including
    appropriate values for `tacet_text` and/or `al_fine_text` in the optional field in the RGP Lua
    configuration dialog. The default values are:
+
    ```
    tacet_text = "TACET"
    al_fine_text = "tacet al fine"
    ```
    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script takes a region and creates a multimeasure rest with the text \u8216'TACET\u8217' above as an expression. The font settings for the expression are taken from the \u8216'Tempo\u8217' category. If the region includes the last measure of the file but NOT the first measure, it will instead create an expression that says \u8216'tacet al fine\u8217'.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 If you are using RGP Lua 0.6 or above, you can override the default text settings by including appropriate values for {\f1 tacet_text} and/or {\f1 al_fine_text} in the optional field in the RGP Lua configuration dialog. The default values are:\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 tacet_text = "TACET"\line
+        al_fine_text = "tacet al fine"\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/region_multimeasure_rest_tacet.hash"
     return "TACET", "Create Tacet", "Creates a mm-rest and TACET expression"
 end
@@ -27,7 +41,6 @@ local tacet_description = "TACET for Multimeasure Rests"
 al_fine_text = al_fine_text or "tacet al fine"
 local al_fine_description = "'tacet al fine' for Multimeasure Rests"
 local nudge_horizontal = -24
-local str = finale.FCString()
 local ui = finenv.UI()
 function tacet_mm(region)
     local al_fine_check = false
@@ -37,10 +50,9 @@ function tacet_mm(region)
 
     local mm_rest_prefs = finale.FCMultiMeasureRestPrefs()
     mm_rest_prefs:Load(1)
-    local mm_update = false
 
     if mm_rest_prefs.AutoUpdate then
-        mm_update = ui:AlertYesNo("Automatic Update is ON in the multimeasure preferences. Would you like to turn it OFF and proceed?", "Unable to create tacet:")
+        local mm_update = ui:AlertYesNo("Automatic Update is ON in the multimeasure preferences. Would you like to turn it OFF and proceed?", "Unable to create tacet:")
         if mm_update == 3 then
             return
         elseif mm_update == 2 then
@@ -84,7 +96,7 @@ function tacet_expr(al_fine_check)
     local tacet_cat = finale.FCCategoryDef()
     local category_definition = finale.FCCategoryDef()
     local category_definitions = finale.FCCategoryDefs()
-    local font = finale.FCFontInfo()
+
     category_definitions:LoadAll()
     local tacet_cat_num = 0
     local cat_name_string = finale.FCString()
@@ -115,7 +127,7 @@ function tacet_expr(al_fine_check)
 
     if tacet_ted == 0 then
         local ex_ted = finale.FCTextExpressionDef()
-        local text_font = ""
+        local font, text_font
         if tacet_cat_num == 0 then
             ex_ted:AssignToCategory(misc_cat)
             category_definition:Load(tempo_cat)
@@ -159,13 +171,11 @@ function tacet_expr(al_fine_check)
         system_staves:LoadScrollView()
         local first_staff = 1
         for sys in each(system_staves) do
-            local staff_num = sys.Staff
             if first_staff == 1 then
                 region:SetStartStaff(sys.Staff)
                 first_staff = 0
             end
         end
-        local system_staff = finale.FCSystemStaff()
         local measure_num = region.StartMeasure
         local measure_pos = region.StartMeasurePos
         local add_expression = finale.FCExpression()
@@ -182,10 +192,9 @@ local function process_tacets()
     local parts = finale.FCParts()
     parts:LoadAll()
     local current_part = parts:GetCurrent()
-    local process_all = 0
 
     if region.StartMeasure == 0 and current_part:IsPart() then
-        process_all = ui:AlertYesNo("There is no active selection. Would you like to process the current part?", "No Selection:")
+        local process_all = ui:AlertYesNo("There is no active selection. Would you like to process the current part?", "No Selection:")
         if process_all == 3 then
             goto bypass
         elseif process_all == 2 then
@@ -194,9 +203,8 @@ local function process_tacets()
             goto bypass
         end
     end
-    local process_score = 0
     if current_part:IsScore() then
-        process_score = ui:AlertYesNo("Would you like to process the whole score?", "Score:")
+        local process_score = ui:AlertYesNo("Would you like to process the whole score?", "Score:")
         if process_score == 3 then
             goto bypass
         elseif process_score == 2 then
@@ -217,7 +225,7 @@ local function process_tacets()
             part_region.EndMeasurePos = region.EndMeasurePos
             part_region.StartStaff = staves:GetStartStaff()
             part_region.EndStaff = staves:GetEndStaff()
-            for entry in eachentry(part_region) do
+            for _ in eachentry(part_region) do
                 count = count + 1
                 if count > 0 then
                     goto skip_part

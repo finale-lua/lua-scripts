@@ -6,7 +6,7 @@ $module FCMNoteEntry
 ## Summary of Modifications
 - Added methods to keep parent collection in scope.
 ]] --
-local mixin = require("library.mixin")
+local mixin = require("library.mixin") -- luacheck: ignore
 local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}

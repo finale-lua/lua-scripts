@@ -198,7 +198,7 @@ with any that are found in the config file.
 : (boolean) true if the file exists
 ]]
 function configuration.get_parameters(file_name, parameter_list)
-    local path = ""
+    local path
     if finenv.IsRGPLua then
         path = finenv.RunningLuaFolderPath()
     else

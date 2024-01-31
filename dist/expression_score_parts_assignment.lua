@@ -267,7 +267,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -370,7 +370,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -379,11 +379,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -541,7 +541,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -565,7 +565,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -614,11 +614,11 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead(entry)
+    function note_entry.calc_left_of_primary_notehead()
         return 0
     end
 
@@ -643,7 +643,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if not entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return left
     end
 
@@ -814,7 +814,7 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
     local enigma_string = {}
     local starts_with_font_command = function(string)
         local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
-        for i, text_cmd in ipairs(text_cmds) do
+        for _, text_cmd in ipairs(text_cmds) do
             if string:StartsWith(text_cmd) then
                 return true
             end
@@ -888,7 +888,7 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
             "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages", "^value", "^control", "^pass"
         }
         local lua_string = fcstring.LuaString
-        for i, text_cmd in ipairs(text_cmds) do
+        for _, text_cmd in ipairs(text_cmds) do
             local starts_at = string.find(lua_string, text_cmd, 1, true)
             while starts_at ~= nil do
                 local replace_with = ""
@@ -1079,8 +1079,8 @@ package.preload["library.expression"] = package.preload["library.expression"] or
     return expression
 end
 function plugindef()
-
-
+   
+   
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -1090,9 +1090,11 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         This script implements three menu options to modify expressions.
+
         - Expression Set To Score And Parts
         - Expression Set To Score Only
         - Expression Set To Parts Only
+
         It changes any selected single-staff expressions that is visible in the current score or part view.
     ]]
     finaleplugin.AdditionalMenuOptions = [[
@@ -1106,6 +1108,22 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
         set_for_score = true set_for_parts = false
         set_for_score = false set_for_parts = true
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 This script implements three menu options to modify expressions.\line
+        \line
+        - Expression Set To Score And Parts\line
+        - Expression Set To Score Only\line
+        - Expression Set To Parts Only\line
+        \line
+        It changes any selected single-staff expressions that is visible in the current score or part view.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 ]] finaleplugin.AdditionalMenuOptions = [[ Expression Set To Score Only Expression Set To Parts Only]] finaleplugin.AdditionalDescriptions = [[ Set any single-staff text expression in the currenly selected region to Score Only assignment. Set any single-staff text expression in the currenly selected region to Parts Only assignment.]] finaleplugin.AdditionalPrefixes = [[ set_for_score = true set_for_parts = false set_for_score = false set_for_parts = true\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_score_parts_assignment.hash"
     return "Expression Set To Score And Parts", "Expression Set To Score And Parts", "Set any single-staff text expression in the currenly selected region to both Score and Parts assignment."

@@ -151,6 +151,59 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.show_notes_dialog(caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+
+        width = width or 500
+        height = height or 350
+
+        if not caption then
+            caption = plugindef()
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        local dlg = finale.FCCustomLuaWindow()
+        dlg:SetTitle(finale.FCString(caption))
+        local edit_text = dlg:CreateTextEditor(10, 10)
+        edit_text:SetWidth(width)
+        edit_text:SetHeight(height)
+        edit_text:SetUseRichText(finaleplugin.RTFNotes)
+        edit_text:SetReadOnly(true)
+        edit_text:SetWordWrap(true)
+        local ok = dlg:CreateOkButton()
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        dlg:RegisterInitWindow(
+            function()
+                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
+                local notes_str = finale.FCString(notes)
+                if edit_text:GetUseRichText() then
+                    edit_text:SetRTFString(notes_str)
+                else
+                    local edit_font = finale.FCFontInfo()
+                    edit_font.Name = "Arial"
+                    edit_font.Size = 10
+                    edit_text:SetFont(edit_font)
+                    edit_text:SetText(notes_str)
+                end
+                edit_text:ResetColors()
+                ok:SetKeyboardFocus()
+            end)
+        dlg:ExecuteModal(nil)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -219,7 +272,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -301,7 +354,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Notes = [[
         Changes the meter in a selected range.
-
+        
         If a single measure is selected,
         the meter will be set for all measures until the next
         meter change, or until the next measure with Time Signature
@@ -309,14 +362,17 @@ function plugindef()
         You can override stopping at "Always Show" measures with a configuration
         file script_settings/meter_change.config.txt that contains the following
         line:
+
         ```
         stop_at_always_show = false
         ```
+
         You can limit the meter change to one bar by holding down Shift or Option
         keys when invoking the script. Then the meter is changed only
         for the single measure you selected.
+
         If multiple measures are selected, the meter will be set
-        exactly for the selected measures.
+        exactly for the selected measures. 
     ]]
     finaleplugin.AdditionalMenuOptions = [[
         Meter - 1/2
@@ -364,6 +420,35 @@ function plugindef()
         numerator = 12 denominator = 8
         numerator = 15 denominator = 8
     ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 Changes the meter in a selected range.\line
+        \line
+        If a single measure is selected,\line
+        the meter will be set for all measures until the next\line
+        meter change, or until the next measure with Time Signature\line
+        set to "Always Show", or for the remaining measures in the score.\line
+        You can override stopping at "Always Show" measures with a configuration\line
+        file script_settings/meter_change.config.txt that contains the following\line
+        line:\line
+        \line
+        ```\line
+        stop_at_always_show = false\line
+        ```\line
+        \line
+        You can limit the meter change to one bar by holding down Shift or Option\line
+        keys when invoking the script. Then the meter is changed only\line
+        for the single measure you selected.\line
+        \line
+        If multiple measures are selected, the meter will be set\line
+        exactly for the selected measures. \par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 ]] finaleplugin.AdditionalMenuOptions = [[ Meter - 1/2 Meter - 2/2 Meter - 3/2 Meter - 4/2 Meter - 5/2 Meter - 6/2 Meter - 1/4 Meter - 2/4 Meter - 3/4 Meter - 5/4 Meter - 6/4 Meter - 7/4 Meter - 3/8 Meter - 5/8 (2+3) Meter - 5/8 (3+2) Meter - 6/8 Meter - 7/8 (2+2+3) Meter - 7/8 (3+2+2) Meter - 9/8 Meter - 12/8 Meter - 15/8]] finaleplugin.AdditionalPrefixes = [[ numerator = 1 denominator = 2 numerator = 2 denominator = 2 numerator = 3 denominator = 2 numerator = 4 denominator = 2 numerator = 5 denominator = 2 numerator = 6 denominator = 2 numerator = 1 denominator = 4 numerator = 2 denominator = 4 numerator = 3 denominator = 4 numerator = 5 denominator = 4 numerator = 6 denominator = 4 numerator = 7 denominator = 4 numerator = 3 denominator = 8 numerator = 5 denominator = 8 composite = \{2, 3\} numerator = 5 denominator = 8 composite = \{3, 2\} numerator = 6 denominator = 8 numerator = 7 denominator = 8 composite = \{2, 2, 3\} numerator = 7 denominator = 8 composite = \{3, 2, 2\} numerator = 9 denominator = 8 numerator = 12 denominator = 8 numerator = 15 denominator = 8\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/meter_change.hash"
     return "Meter - 4/4", "Meter - 4/4", "Sets the meter as indicated in a selected range."
 end
@@ -381,7 +466,7 @@ if denominator == 8 and not composite then
 end
 num_composite = 0
 if composite then
-    for k, v in pairs(composite) do
+    for _ in pairs(composite) do
         num_composite = num_composite + 1
     end
 end

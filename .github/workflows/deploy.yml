@@ -1,76 +1,81 @@
-name: Build and deploy scripts/docs
+name: Build and optionally deploy scripts/docs
 
 on:
-    push:
-        branches:
-            - 'master'
-    pull_request:
-        branches:
-            - 'master'
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "master"
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout this repository
-              uses: actions/checkout@v4
-              with:
-                  persist-credentials: false
-                  fetch-depth: 0
-                  path: './lua'
-            - run: 'rm -f ./lua/dist/*'
-            - name: Checkout docs website repository
-              if: github.event_name == 'push'
-              uses: actions/checkout@v4
-              with:
-                  persist-credentials: false
-                  fetch-depth: 0
-                  repository: finale-lua/jw-lua-scripts-docs
-                  path: './website'
-                  token: ${{ secrets.NICK_PERSONAL_TOKEN }}
-            - name: build scripts
-              uses: ./lua/.github/actions/bundle
-              with:
-                  source: ./lua/src
-                  output: ./lua/dist
-            - name: build hashes
-              run: |
-                  rm -rf ./lua/hash
-                  mkdir ./lua/hash
-                  cd ./lua/dist
-                  for file in *; do sha512sum "$file" > "../hash/$(basename "$file" .lua).hash"; done
-                  cd ../../
-            - name: parse scripts
-              uses: ./lua/.github/actions/get-metadata
-              with:
-                  source: ./lua/src
-                  output: ./website/src/lib/lib/script-data.json
-            - name: Generate the docs
-              uses: finale-lua/lua-docs-generator@1.3.2
-              with:
-                  input: './lua/src/library'
-                  repositoryUrl: 'https://github.com/finale-lua/lua-scripts/tree/${{ github.ref }}/src/library'
-                  output: './lua/docs/library'
-            - name: Generate the docs
-              uses: finale-lua/lua-docs-generator@1.3.2
-              with:
-                  input: './lua/src/mixin'
-                  repositoryUrl: 'https://github.com/finale-lua/lua-scripts/tree/${{ github.ref }}/src/mixin'
-                  output: './lua/docs/mixin'
-            - run: 'rm -rf website/docs'
-            - run: 'cp -R lua/docs website/docs'
-            - name: Commit & Push docs to website
-              if: github.event_name == 'push'
-              uses: actions-js/push@v1.4
-              with:
-                  github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
-                  directory: website
-                  branch: main
-                  repository: finale-lua/jw-lua-scripts-docs
-            - name: Commit & Push docs to this repo
-              if: github.event_name == 'push'
-              uses: actions-js/push@v1.4
-              with:
-                  github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
-                  directory: lua
-                  branch: ${{ github.ref }}
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          path: "./lua"
+      - run: "rm -f ./lua/dist/*"
+      - name: Checkout docs website repository
+        if: github.event_name == 'push'
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          repository: finale-lua/jw-lua-scripts-docs
+          path: "./website"
+          token: ${{ secrets.NICK_PERSONAL_TOKEN }}
+      - name: Install Pandoc
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install -y pandoc
+      - name: build scripts
+        uses: ./lua/.github/actions/bundle
+        with:
+          source: ./lua/src
+          output: ./lua/dist
+      - name: build hashes
+        run: |
+          rm -rf ./lua/hash
+          mkdir ./lua/hash
+          cd ./lua/dist
+          for file in *; do sha512sum "$file" > "../hash/$(basename "$file" .lua).hash"; done
+          cd ../../
+      - name: parse scripts
+        uses: ./lua/.github/actions/get-metadata
+        with:
+          source: ./lua/src
+          output: ./website/src/lib/lib/script-data.json
+      - name: Generate the docs
+        uses: finale-lua/lua-docs-generator@1.3.3
+        with:
+          input: "./lua/src/library"
+          repositoryUrl: "https://github.com/finale-lua/lua-scripts/tree/${{ github.ref }}/src/library"
+          output: "./lua/docs/library"
+      - name: Generate the docs
+        uses: finale-lua/lua-docs-generator@1.3.3
+        with:
+          input: "./lua/src/mixin"
+          repositoryUrl: "https://github.com/finale-lua/lua-scripts/tree/${{ github.ref }}/src/mixin"
+          output: "./lua/docs/mixin"
+      - run: "rm -rf website/docs"
+      - run: "cp -R lua/docs website/docs"
+      - name: Commit & Push docs to website
+        if: github.event_name == 'push'
+        uses: actions-js/push@v1.4
+        with:
+          github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
+          directory: website
+          branch: main
+          repository: finale-lua/jw-lua-scripts-docs
+      - name: Commit & Push docs to this repo
+        if: github.event_name == 'push'
+        uses: actions-js/push@v1.4
+        with:
+          github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
+          directory: lua
+          branch: ${{ github.ref }}

@@ -1,4 +1,5 @@
 import { resolveRequiredFile } from './lua-require'
+import path from 'path'
 
 describe('resolveRequiredFile', () => {
     const tests: [string, string][] = [
@@ -12,6 +13,7 @@ describe('resolveRequiredFile', () => {
         ['hello.', 'hello.lua'],
     ]
     it.each(tests)('%p resolves to %p', (name, file) => {
+        file = file.replace(/\//g, path.sep)
         expect(resolveRequiredFile(name)).toBe(file)
     })
 })

@@ -1,6 +1,6 @@
 function plugindef()
-
-
+   
+   
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0"
@@ -11,6 +11,15 @@ function plugindef()
         once the next value is not found. However, Finale can leave orphaned expression definitions with higher values. These
         are inaccessible unless you add in dummy expressions to fill in the gaps. This script builds a report of any such
         expression definitions.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 The Expression Selection Dialog expects expression definitions to be stored sequentially and stops looking for definitions once the next value is not found. However, Finale can leave orphaned expression definitions with higher values. These are inaccessible unless you add in dummy expressions to fill in the gaps. This script builds a report of any such expression definitions.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_find_orphaned_definitions.hash"
     return "Expression Find Orphans", "Expression Find Orphans",
@@ -25,8 +34,8 @@ local get_report_string_for_orphans = function(orphaned_exps, is_for_shape)
     end
     local report_string = ""
     local is_first = true
-    for k, v in pairs(orphaned_exps) do
-        local exp_def = nil
+    for _, v in pairs(orphaned_exps) do
+        local exp_def
         if is_for_shape then
             exp_def = finale.FCShapeExpressionDef()
         else
@@ -53,7 +62,7 @@ local get_report_string_for_orphans = function(orphaned_exps, is_for_shape)
     return report_string
 end
 local expression_find_orphans_for_type = function(is_for_shape)
-    local exp_def = nil
+    local exp_def
     if is_for_shape then
         exp_def = finale.FCShapeExpressionDef()
     else
@@ -77,8 +86,8 @@ local expression_find_orphans_for_type = function(is_for_shape)
     return orphaned_exps, max_valid, max_found
 end
 function expression_find_orphaned_definitions()
-    local orphaned_text_exps, text_max_valid, text_max_found = expression_find_orphans_for_type(false)
-    local orphaned_shape_exps, shape_max_valid, shape_max_found = expression_find_orphans_for_type(true)
+    local orphaned_text_exps, text_max_valid, _ = expression_find_orphans_for_type(false)
+    local orphaned_shape_exps, shape_max_valid, _ = expression_find_orphans_for_type(true)
     local got_orphan = false
     local report_string = ""
     if #orphaned_text_exps > 0 then

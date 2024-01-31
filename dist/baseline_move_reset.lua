@@ -151,6 +151,59 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.show_notes_dialog(caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+
+        width = width or 500
+        height = height or 350
+
+        if not caption then
+            caption = plugindef()
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        local dlg = finale.FCCustomLuaWindow()
+        dlg:SetTitle(finale.FCString(caption))
+        local edit_text = dlg:CreateTextEditor(10, 10)
+        edit_text:SetWidth(width)
+        edit_text:SetHeight(height)
+        edit_text:SetUseRichText(finaleplugin.RTFNotes)
+        edit_text:SetReadOnly(true)
+        edit_text:SetWordWrap(true)
+        local ok = dlg:CreateOkButton()
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        dlg:RegisterInitWindow(
+            function()
+                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
+                local notes_str = finale.FCString(notes)
+                if edit_text:GetUseRichText() then
+                    edit_text:SetRTFString(notes_str)
+                else
+                    local edit_font = finale.FCFontInfo()
+                    edit_font.Name = "Arial"
+                    edit_font.Size = 10
+                    edit_text:SetFont(edit_font)
+                    edit_text:SetText(notes_str)
+                end
+                edit_text:ResetColors()
+                ok:SetKeyboardFocus()
+            end)
+        dlg:ExecuteModal(nil)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -219,7 +272,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -303,17 +356,22 @@ function plugindef()
         This script nudges system baselines up or down by a single staff-space (24 evpus). It introduces 10
         menu options to nudge each baseline type up or down. It also introduces 5 menu options to reset
         the baselines to their staff-level values.
+
         The possible prefix inputs to the script are
+
         ```
-        direction
-        baseline_types
-        nudge_evpus
+        direction 
+        baseline_types 
+        nudge_evpus 
         ```
+
         You can also change the size of the nudge by creating a configuration file called `baseline_move.config.txt` and
         adding a single line with the size of the nudge in evpus.
+
         ```
-        nudge_evpus = 36
+        nudge_evpus = 36 
         ```
+
         A value in a prefix overrides any setting in a configuration file.
     ]]
     finaleplugin.AdditionalMenuOptions = [[
@@ -349,8 +407,8 @@ function plugindef()
         Resets the selected fretboard baselines
     ]]
     finaleplugin.AdditionalPrefixes = [[
-        direction = 1
-        direction = 0
+        direction = 1 
+        direction = 0 
         direction = -1 baseline_types = {finale.BASELINEMODE_EXPRESSIONABOVE}
         direction = 1 baseline_types = {finale.BASELINEMODE_EXPRESSIONABOVE}
         direction = 0 baseline_types = {finale.BASELINEMODE_EXPRESSIONABOVE}
@@ -363,6 +421,35 @@ function plugindef()
         direction = -1 baseline_types = {finale.BASELINEMODE_FRETBOARD}
         direction = 1 baseline_types = {finale.BASELINEMODE_FRETBOARD}
         direction = 0 baseline_types = {finale.BASELINEMODE_FRETBOARD}
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 This script nudges system baselines up or down by a single staff-space (24 evpus). It introduces 10\line
+        menu options to nudge each baseline type up or down. It also introduces 5 menu options to reset\line
+        the baselines to their staff-level values.\line
+        \line
+        The possible prefix inputs to the script are\line
+        \line
+        ```\line
+        direction 
+        baseline_types 
+        nudge_evpus 
+        ```\line
+        \line
+        You can also change the size of the nudge by creating a configuration file called `baseline_move.config.txt` and\line
+        adding a single line with the size of the nudge in evpus.\line
+        \line
+        ```\line
+        nudge_evpus = 36 
+        ```\line
+        \line
+        A value in a prefix overrides any setting in a configuration file.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 ]] finaleplugin.AdditionalMenuOptions = [[ Move Lyric Baselines Up Reset Lyric Baselines Move Expression Baseline Above Down Move Expression Baseline Above Up Reset Expression Baseline Above Move Expression Baseline Below Down Move Expression Baseline Below Up Reset Expression Baseline Below Move Chord Baseline Down Move Chord Baseline Up Reset Chord Baseline Move Fretboard Baseline Down Move Fretboard Baseline Up Reset Fretboard Baseline]] finaleplugin.AdditionalDescriptions = [[ Moves all lyrics baselines up one space in the selected systems Resets all selected lyrics baselines to default Moves the selected expression above baseline down one space Moves the selected expression above baseline up one space Resets the selected expression above baselines Moves the selected expression below baseline down one space Moves the selected expression below baseline up one space Resets the selected expression below baselines Moves the selected chord baseline down one space Moves the selected chord baseline up one space Resets the selected chord baselines Moves the selected fretboard baseline down one space Moves the selected fretboard baseline up one space Resets the selected fretboard baselines]] finaleplugin.AdditionalPrefixes = [[ direction = 1 \u8211- no baseline_types table, which picks up the default (lyrics) direction = 0 \u8211- no baseline_types table, which picks up the default (lyrics) direction = -1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = 1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = 0 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = -1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = 1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = 0 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = -1 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = 1 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = 0 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = -1 baseline_types = \{finale.BASELINEMODE_FRETBOARD\} direction = 1 baseline_types = \{finale.BASELINEMODE_FRETBOARD\} direction = 0 baseline_types = \{finale.BASELINEMODE_FRETBOARD\}\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/baseline_move_reset.hash"
     return "Move Lyric Baselines Down", "Move Lyrics Baselines Down", "Moves all lyrics baselines down one space in the selected systems"
@@ -420,6 +507,7 @@ function baseline_move()
             if direction ~= 0 then
                 baselines:LoadAllForSystem(baseline_type, i)
                 for j = start_slot, end_slot do
+                    local bl
                     if valid_lyric_nums then
                         for lyric_info, _ in pairs(valid_lyric_nums) do
                             local _, lyric_number = table.unpack(lyric_info)

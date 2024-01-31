@@ -267,7 +267,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -370,7 +370,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -379,11 +379,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -509,7 +509,7 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
     local enigma_string = {}
     local starts_with_font_command = function(string)
         local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
-        for i, text_cmd in ipairs(text_cmds) do
+        for _, text_cmd in ipairs(text_cmds) do
             if string:StartsWith(text_cmd) then
                 return true
             end
@@ -583,7 +583,7 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
             "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages", "^value", "^control", "^pass"
         }
         local lua_string = fcstring.LuaString
-        for i, text_cmd in ipairs(text_cmds) do
+        for _, text_cmd in ipairs(text_cmds) do
             local starts_at = string.find(lua_string, text_cmd, 1, true)
             while starts_at ~= nil do
                 local replace_with = ""
@@ -632,8 +632,8 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
     return enigma_string
 end
 function plugindef()
-
-
+    
+    
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0.2"
@@ -643,6 +643,15 @@ function plugindef()
         This script only affects selected staves.
         If you select the entire document before running this script, it modifies any
         full staff names found in staff styles as well.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script only affects selected staves. If you select the entire document before running this script, it modifies any full staff names found in staff styles as well.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/prefs_reset_staff_full_name_fonts.hash"
     return "Reset Full Staff Name Fonts", "Reset Full Staff Name Fonts",
@@ -661,7 +670,7 @@ function prefs_reset_staff_full_name_fonts()
         staff:Load(sys_staff:GetStaff())
         local staff_name_id = staff:GetFullNameID()
         if 0 ~= staff_name_id then
-            text_block = finale.FCTextBlock()
+            local text_block = finale.FCTextBlock()
             if text_block:Load(staff_name_id) then
                 if enigma_string.change_first_text_block_font(text_block, font_info) then
                     text_block:Save()
@@ -675,7 +684,7 @@ function prefs_reset_staff_full_name_fonts()
         staff_styles:LoadAll()
         for staff_style in each(staff_styles) do
             if staff_style.UseFullName then
-                text_block = finale.FCTextBlock()
+                local text_block = finale.FCTextBlock()
                 if text_block:Load(staff_style:GetFullNameID()) then
                     if enigma_string.change_first_text_block_font(text_block, font_info) then
                         text_block:Save()

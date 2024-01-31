@@ -406,7 +406,7 @@ Note that many Finale menus do nothing unless part of the score is already selec
                 local old_name = menu_levels[level].pos
                 menu_tree[level] = chosen_now.text
                 level = level + 1
-                menu_levels[level], _ = load_menu_level(chosen_now.sub, old_name, level, "")
+                menu_levels[level] = load_menu_level(chosen_now.sub, old_name, level, "")
                 menu_levels[level].last_selected = old_index
                 selected = 1
                 fill_menu_list(1)
@@ -441,7 +441,7 @@ Note that many Finale menus do nothing unless part of the score is already selec
                 level_name = menu_levels[i].pos
             end
         else
-            menu_levels[1], _ = load_menu_level(menu_bar, "", 1, "")
+            menu_levels[1] = load_menu_level(menu_bar, "", 1, "")
         end
         fill_menu_list(selected)
         menu_list_box:SetKeyboardFocus()
@@ -519,7 +519,7 @@ function configure_palette(palette_number, index_num)
     end)
     add_item:AddHandleCommand(function() -- ADD PALETTE or SCRIPT
         local new_name, new_script, hotkey
-        local new_element, ok = {}, false
+        local new_element, ok = {}
         if is_macro then
             new_element = { name = "", key = "?" }
             ok, new_name, hotkey = user_enters_text(new_element, "Create New Palette")
@@ -542,10 +542,9 @@ function configure_palette(palette_number, index_num)
     end)
     if not is_macro then
         add_menu:AddHandleCommand(function() -- ADD NEW MENU ITEM
-            local new_element = {}
             local ok, new_name, menu_id, trigger = user_chooses_menu_item()
             if ok then
-                new_element = { name = new_name, key = trigger, menu = menu_id }
+                local new_element = { name = new_name, key = trigger, menu = menu_id }
                 table.insert(array, new_element)
                 local index = sort_table(array, new_name, "name")
                 fill_list_box(list_box, array, index)
@@ -628,8 +627,8 @@ function main()
     end
     configuration.get_user_settings(script_name, config, true)
     palettes = cjson.decode(config.palettes)
-    local ok, finished = false, false
-    local palette_number, item_number = 1, 1
+    local finished, ok = false
+    local palette_number, item_number
 
     while not finished do -- keep circling until user makes a choice or cancels
         ok, palette_number = choose_palette(0) -- main palette

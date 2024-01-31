@@ -33,6 +33,8 @@ function plugindef()
     return "Transpose By Steps...", "Transpose By Steps", "Transpose by the number of steps given, simplifying spelling as needed."
 end
 
+-- luacheck: ignore 11./global_dialog
+
 if not finenv.IsRGPLua then
     local path = finale.FCString()
     path:SetRunningLuaFolderPath()

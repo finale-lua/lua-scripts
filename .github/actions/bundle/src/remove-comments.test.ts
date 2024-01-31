@@ -145,5 +145,18 @@ Uses \`FCArticulation.CalcMetricPos\` to determine if the input articulation is 
 ]
 
 it.each(tests)(`removeComments(%p)`, (input, expected) => {
-    expect(removeComments(input)).toBe(expected)
+    expect(removeComments(input, true)).toBe(expected)
+})
+
+const dontTrimWhitespaceTests: [string, string][] = [
+    [`\n\n`, `\n\n`],
+    [`\n\n\n`, `\n\n\n`],
+    [`\n\n\n\n`, `\n\n\n\n`],
+    [`\n\n\n\n\n`, `\n\n\n\n\n`],
+    [`--[[\nhello\nworld\n]]`, ``],
+    [`--[[\n--hello\nworld\n]]`, ``],
+]
+
+it.each(dontTrimWhitespaceTests)(`removeComments(%p)`, (input, expected) => {
+    expect(removeComments(input, false)).toBe(expected)
 })

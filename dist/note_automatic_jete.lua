@@ -35,7 +35,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -59,7 +59,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -108,11 +108,11 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead(entry)
+    function note_entry.calc_left_of_primary_notehead()
         return 0
     end
 
@@ -137,7 +137,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if not entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return left
     end
 
@@ -339,7 +339,6 @@ package.preload["library.articulation"] = package.preload["library.articulation"
             top_pos = math.floor(((10000 * top_pos) / cell_metrics.StaffScaling) + 0.5)
             return curr_pos.Y >= top_pos
         end
-        return false
     end
 
     function articulation.calc_main_character_dimensions(artic_def)
@@ -504,6 +503,59 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     function utils.rethrow_placeholder()
         return "'" .. rethrow_placeholder .. "'"
     end
+
+    function utils.show_notes_dialog(caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+
+        width = width or 500
+        height = height or 350
+
+        if not caption then
+            caption = plugindef()
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        local dlg = finale.FCCustomLuaWindow()
+        dlg:SetTitle(finale.FCString(caption))
+        local edit_text = dlg:CreateTextEditor(10, 10)
+        edit_text:SetWidth(width)
+        edit_text:SetHeight(height)
+        edit_text:SetUseRichText(finaleplugin.RTFNotes)
+        edit_text:SetReadOnly(true)
+        edit_text:SetWordWrap(true)
+        local ok = dlg:CreateOkButton()
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        dlg:RegisterInitWindow(
+            function()
+                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
+                local notes_str = finale.FCString(notes)
+                if edit_text:GetUseRichText() then
+                    edit_text:SetRTFString(notes_str)
+                else
+                    local edit_font = finale.FCFontInfo()
+                    edit_font.Name = "Arial"
+                    edit_font.Size = 10
+                    edit_text:SetFont(edit_font)
+                    edit_text:SetText(notes_str)
+                end
+                edit_text:ResetColors()
+                ok:SetKeyboardFocus()
+            end)
+        dlg:ExecuteModal(nil)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -572,7 +624,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -912,7 +964,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -1015,7 +1067,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -1024,11 +1076,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -1159,20 +1211,26 @@ function plugindef()
     finaleplugin.Notes = [[
         This script automatically creates a “jeté”-style bowing effect. These mimic examples shown on p. 404 of “Behind Bars"
         by Elaine Gould. For the best results with staccato dots, use an articulation with “Avoid Staff Lines” unchecked.
+
         By default, the script searches for articulations using the '.' character (ASCII code 46) for non-SMuFL fonts and
         the SMuFL dot character (UTF code 0xe4a2) for SMuFL fonts. This character must be the Main Character in Finale's
         articulation definition dialog. You can override this to search for a different character code using a
         configuration file. (See below.)
+
         To use the script, you enter the notes you want to display, and it removes the noteheads in between the first
         and last notehead, adjusts any staccato dots, and adds a gliss mark (tab slide) between the first and last notes,
         unless there is one already there. If you want a slur as well, add it manually before or after running the script.
+
         The steps to use this script are:
+
         1. Add the notes you want to display, with or without accidentals. Normally you choose notes with noteheads
         that follow a straight-line path as closely as possible. They can be reduced size or grace notes.
         2. Add staccato dots if you want them.
         3. Add a slur if you want it.
         4. Run the script on the pattern you just entered.
+
         The script takes the following actions:
+
         1. Searches for a selected pattern, skipping rests at the beginning and stopping at the first rest it encounters.
         2. Hides the noteheads on all but the first and (optionally) last entry.
         3. Hides accidentals on any noteheads that were hidden.
@@ -1180,20 +1238,53 @@ function plugindef()
             if the articulation is set to avoid staff lines.)
         5. Adds a gliss mark (tab slide) between the first and last notes, if one does not already exist.
             If you have entered parallel chords, it adds a gliss mark for each note in the chord.
+
         By default, the script does not hide the last selected note (or any accidentals it may have). You can override
         this behavior with a configuration file or if you are using RGP Lua 0.59 or higher, you can cause the script
         to hide the last note by holding down Shift, Option (Mac), or Alt (Win) when you invoke it.
+
         To use a configuration file:
+
         1. If it does not exist, create a subfolder called `script_settings` in the folder where this script resides.
         2. Create a text file in the `script_settings` folder called `note_automatic_jete.config.txt`.
         3. Add either or both of the following lines to it.
+
         ```
-        dot_character = 46
-        hide_last_note = true
+        dot_character = 46           
+        hide_last_note = true        
         ```
     ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script automatically creates a \u8220"jet\u233?\u8221"-style bowing effect. These mimic examples shown on p.\u160?404 of \u8220"Behind Bars\u8221" by Elaine Gould. For the best results with staccato dots, use an articulation with \u8220"Avoid Staff Lines\u8221" unchecked.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 By default, the script searches for articulations using the \u8216'.\u8217' character (ASCII code 46) for non-SMuFL fonts and the SMuFL dot character (UTF code 0xe4a2) for SMuFL fonts. This character must be the Main Character in Finale\u8217's articulation definition dialog. You can override this to search for a different character code using a configuration file. (See below.)\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To use the script, you enter the notes you want to display, and it removes the noteheads in between the first and last notehead, adjusts any staccato dots, and adds a gliss mark (tab slide) between the first and last notes, unless there is one already there. If you want a slur as well, add it manually before or after running the script.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The steps to use this script are:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Add the notes you want to display, with or without accidentals. Normally you choose notes with noteheads that follow a straight-line path as closely as possible. They can be reduced size or grace notes.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Add staccato dots if you want them.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Add a slur if you want it.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Run the script on the pattern you just entered.\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The script takes the following actions:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Searches for a selected pattern, skipping rests at the beginning and stopping at the first rest it encounters.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Hides the noteheads on all but the first and (optionally) last entry.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Hides accidentals on any noteheads that were hidden.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Aligns the staccato dots in a straight line path. (The path may not be exactly straight if the articulation is set to avoid staff lines.)\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Adds a gliss mark (tab slide) between the first and last notes, if one does not already exist. If you have entered parallel chords, it adds a gliss mark for each note in the chord.\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 By default, the script does not hide the last selected note (or any accidentals it may have). You can override this behavior with a configuration file or if you are using RGP Lua 0.59 or higher, you can cause the script to hide the last note by holding down Shift, Option (Mac), or Alt (Win) when you invoke it.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To use a configuration file:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab If it does not exist, create a subfolder called {\f1 script_settings} in the folder where this script resides.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Create a text file in the {\f1 script_settings} folder called {\f1 note_automatic_jete.config.txt}.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Add either or both of the following lines to it.\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 dot_character = 46           
+        hide_last_note = true        
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_automatic_jete.hash"
-    return "Automatic Jeté", "Automatic Jete",
+    return "Automatic Jeté", "Automatic Jete", 
            "Add gliss. marks, hide noteheads, and adjust staccato marks as needed for jeté bowing."
 end
 local note_entry = require("library.note_entry")
@@ -1331,7 +1422,7 @@ function note_automatic_jete()
                                     x = x + 1
                                 end
 
-                                local lartic = nil
+                                local lartic
                                 lartic, lpoint = find_staccato_articulation(entry)
                                 if nil ~= lartic then
                                     dot_artic_def = lartic.ID
@@ -1358,12 +1449,11 @@ function note_automatic_jete()
                     local linear_multplier = (rpoint.Y - lpoint.Y) / (rpoint.X - lpoint.X)
                     local linear_constant = (rpoint.X * lpoint.Y - lpoint.X * rpoint.Y) / (rpoint.X - lpoint.X)
                     finale.FCNoteEntry.MarkEntryMetricsForUpdate()
-                    for key, entry in pairs(entries) do
+                    for _, entry in pairs(entries) do
                         if (entry.EntryNumber ~= first_entry_num) and (entry.EntryNumber ~= last_entry_num) then
                             local artic, arg_point = find_staccato_articulation(entry, dot_artic_def)
                             if artic and arg_point then
                                 local new_y = linear_multplier * arg_point.X + linear_constant
-                                local old_vpos = artic.VerticalPos
                                 artic.VerticalPos = artic.VerticalPos -
                                                         (note_entry.stem_sign(entry) *
                                                             (math.floor(new_y + 0.5) - arg_point.Y))

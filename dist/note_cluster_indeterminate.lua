@@ -1,6 +1,6 @@
 function plugindef()
     finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Jacob Winkler"
+    finaleplugin.Author = "Jacob Winkler" 
     finaleplugin.Copyright = "©2019 Jacob Winkler"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Version = "1.0"
@@ -12,8 +12,6 @@ local distance_preferences = finale.FCDistancePrefs()
 distance_preferences:Load(1)
 local size_preferences = finale.FCSizePrefs()
 size_preferences:Load(1)
-local stem_thickness = size_preferences.StemLineThickness
-stem_thickness = stem_thickness / 64
 function cluster_indeterminate()
     for note_entry in eachentrysaved(finenv.Region()) do
         if note_entry:IsNote() and note_entry.Count > 1 then

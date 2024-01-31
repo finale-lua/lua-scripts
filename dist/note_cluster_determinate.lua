@@ -35,7 +35,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -59,7 +59,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -108,11 +108,11 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead(entry)
+    function note_entry.calc_left_of_primary_notehead()
         return 0
     end
 
@@ -137,7 +137,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if not entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return left
     end
 
@@ -305,10 +305,10 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 end
 function plugindef()
     finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Jacob Winkler"
+    finaleplugin.Author = "Jacob Winkler" 
     finaleplugin.Copyright = "©2019 Jacob Winkler"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "11/02/2019"
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_cluster_determinate.hash"
     return "Cluster - Determinate", "Cluster - Determinate", "Creates a determinate cluster."
@@ -331,58 +331,58 @@ local function process_notes(music_region)
     layer.copy(1, 3)
     local i = 1
     local j = 1
-    for note_entry in eachentrysaved(music_region) do
-        local span = note_entry:CalcDisplacementRange(nil)
-        local stem_direction = stem_dir[i]
-        if note_entry.LayerNumber == 1 then
+    for entry in eachentrysaved(music_region) do
+        local span = entry:CalcDisplacementRange(nil)
+        local stem_direction
+        if entry.LayerNumber == 1 then
             stem_direction = stem_dir[i]
-            if note_entry:IsNote() then
+            if entry:IsNote() then
                 if span > 2 then
-                    delete_bottom_notes(note_entry)
+                    delete_bottom_notes(entry)
                 else
-                    delete_middle_notes(note_entry)
-                    note_entry.FreezeStem = true
-                    note_entry.StemUp = stem_direction
+                    delete_middle_notes(entry)
+                    entry.FreezeStem = true
+                    entry.StemUp = stem_direction
                 end
-            elseif note_entry:IsRest() then
-                note_entry:SetRestDisplacement(6)
+            elseif entry:IsRest() then
+                entry:SetRestDisplacement(6)
             end
             if stem_direction == false and span > 2 then
-                hide_stems(note_entry, stem_direction)
+                hide_stems(entry, stem_direction)
             end
             i = i + 1
-        elseif note_entry.LayerNumber == 2 then
+        elseif entry.LayerNumber == 2 then
             stem_direction = stem_dir[j]
-            if note_entry:IsNote() and span > 2 then
-                delete_top_notes(note_entry)
+            if entry:IsNote() and span > 2 then
+                delete_top_notes(entry)
             else
-                note_entry:MakeRest()
-                note_entry.Visible = false
-                note_entry:SetRestDisplacement(4)
+                entry:MakeRest()
+                entry.Visible = false
+                entry:SetRestDisplacement(4)
             end
             if stem_direction == true then
-                hide_stems(note_entry, stem_direction)
+                hide_stems(entry, stem_direction)
             end
             j = j + 1
-        elseif note_entry.LayerNumber == 3 then
-            if note_entry:IsNote() then
-                for note in each(note_entry) do
+        elseif entry.LayerNumber == 3 then
+            if entry:IsNote() then
+                for note in each(entry) do
                     note.AccidentalFreeze = true
                     note.Accidental = false
                 end
-                note_entry.FreezeStem = true
-                note_entry.StemUp = true
-                hide_stems(note_entry, true)
-                delete_top_bottom_notes(note_entry)
-            elseif note_entry:IsRest() then
-                note_entry:SetRestDisplacement(2)
+                entry.FreezeStem = true
+                entry.StemUp = true
+                hide_stems(entry, true)
+                delete_top_bottom_notes(entry)
+            elseif entry:IsRest() then
+                entry:SetRestDisplacement(2)
             end
-            note_entry.Visible = false
+            entry.Visible = false
         end
-        note_entry.CheckAccidentals = true
-        if note_entry:IsNote() then
-            n = 1
-            for note in each(note_entry) do
+        entry.CheckAccidentals = true
+        if entry:IsNote() then
+            local n = 1
+            for note in each(entry) do
                 note.NoteID = n
                 n = n + 1
             end
@@ -620,12 +620,12 @@ for add_staff = region:GetStartStaff(), region:GetEndStaff() do
         add_cluster_line(layer_one_note[i], layer_two_note[i], line_id)
     end
 end
-for note_entry in eachentrysaved(finenv.Region()) do
-    if note_entry:IsNote() and note_entry.Count > 1 then
-        for note in each(note_entry) do
+for entry in eachentrysaved(finenv.Region()) do
+    if entry:IsNote() and entry.Count > 1 then
+        for note in each(entry) do
             if note.Accidental == true then
                 local accidental_mod = finale.FCAccidentalMod()
-                accidental_mod:SetNoteEntry(note_entry)
+                accidental_mod:SetNoteEntry(entry)
                 accidental_mod:SetUseCustomVerticalPos(true)
                 accidental_mod:SetHorizontalPos(horizontal_offset * 1.5)
                 accidental_mod:SaveAt(note)
