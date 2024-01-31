@@ -3,7 +3,7 @@ function plugindef()
 
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "1.0.1"
+    finaleplugin.Version = "1.0.2"
     finaleplugin.Date = "2022-09-25"
     finaleplugin.RequireSelection = true
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
@@ -23,7 +23,6 @@ function plugindef()
     return "Layers: Create Whole Rests (1, 2)", "Layers: Create Whole Rests (1, 2)", "Creates whole rest tuplets in layers 1 and 2 if it finds music in any other layers."
 end
 local region = finenv.Region()
-local layer = 2
 function layer_add_whole_rest_tuplet(region, layer)
     for cell_measure, cell_staff in eachcell(region) do
         local cell = finale.FCCell(cell_measure, cell_staff)

@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "CJ Garcia"
     finaleplugin.Copyright = "© 2022 CJ Garcia Music"
-    finaleplugin.Version = "1.3"
+    finaleplugin.Version = "1.3.1"
     finaleplugin.Date = "February 14, 2022"
     finaleplugin.CategoryTags = "UI"
     return "Switch To Selected Part", "Switch To Selected Part",
@@ -29,8 +29,8 @@ function ui_switch_to_selected_part()
                 part_ID = part:GetID()
                 -- stop searching if the top selected staff is visible on the system of the first selected measure
                 local found_staff = false
-                local part = finale.FCPart(part_ID)
-                part:SwitchTo()
+                local this_part = finale.FCPart(part_ID)
+                this_part:SwitchTo()
                 local systems = finale.FCStaffSystems()
                 systems:LoadAll()
                 local system = systems:FindMeasureNumber(top_cell.Measure)
@@ -39,7 +39,7 @@ function ui_switch_to_selected_part()
                     staves:LoadAllForItem(system.ItemNo)
                     found_staff = staves:FindStaff(top_cell.Staff) ~= nil
                 end
-                part:SwitchBack()
+                this_part:SwitchBack()
                 if found_staff then break end
             end
         end

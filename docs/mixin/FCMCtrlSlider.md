@@ -24,7 +24,7 @@ Command events do not fire for `FCCtrlSlider` controls before RGPLua 0.64, so a 
 fcmctrlslider.RegisterParent(self, window)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L58)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L56)
 
 **[Internal] [Override]**
 
@@ -42,7 +42,7 @@ Override Changes:
 fcmctrlslider.SetThumbPosition(self, position)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L85)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L83)
 
 **[Fluid] [Override]**
 
@@ -60,7 +60,7 @@ Override Changes:
 fcmctrlslider.SetMinValue(self, minvalue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L104)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L102)
 
 **[Fluid] [Override]**
 
@@ -78,7 +78,7 @@ Override Changes:
 fcmctrlslider.SetMaxValue(self, maxvalue)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L123)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L121)
 
 **[Fluid] [Override]**
 
@@ -96,7 +96,7 @@ Override Changes:
 fcmctrlslider.HandleThumbPositionChange(control, last_position)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L141)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L139)
 
 **[Callback Template]**
 
@@ -111,7 +111,7 @@ fcmctrlslider.HandleThumbPositionChange(control, last_position)
 fcmctrlslider.AddHandleThumbPositionChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L160)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L158)
 
 **[Fluid]**
 
@@ -132,7 +132,7 @@ The even will fire when:
 fcmctrlslider.RemoveHandleThumbPositionChange(self, callback)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L165)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlSlider.lua#L163)
 
 **[Fluid]**
 

@@ -17,7 +17,6 @@ function roll_fix()
   artics:LoadAll()
 
   for ad in each(artics) do
-    local char = ad:GetMainSymbolChar()
     local Maestro_roll = 103
     local SMuFL_roll = 63232
     local font = "Finale Maestro"

@@ -88,9 +88,8 @@ function tie.calc_tied_from(note, tie_must_exist)
         if not entry then
             break
         end
-        tied_from_note = equal_note(entry, note, false, tie_must_exist)
-        if tied_from_note then
-            return tied_from_note
+        if equal_note(entry, note, false, tie_must_exist) then
+            return true
         end
     end
 end
@@ -213,7 +212,7 @@ function tie.calc_default_direction(note, for_tieend, tie_prefs)
         end
     else
         local adjacent_stemdir = 0
-        local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, for_tieend, true)
+        local _, start_note, end_note = tie.calc_tie_span(note, for_tieend, true)
         if for_tieend then
             -- There seems to be a "bug" in how Finale determines mixed-stem values for Tie-Ends.
             -- It looks at the stem direction of the immediately preceding entry, even if that entry
@@ -247,12 +246,12 @@ function tie.calc_default_direction(note, for_tieend, tie_prefs)
                     end
                 end
             end
-            if adjacent_stemdir ~= 0 and adjacent_stemdir ~= stemdir then
-                if tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_OVER then
-                    return finale.TIEMODDIR_OVER
-                elseif tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_UNDER then
-                    return finale.TIEMODDIR_UNDER
-                end
+        end
+        if adjacent_stemdir ~= 0 and adjacent_stemdir ~= stemdir then
+            if tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_OVER then
+                return finale.TIEMODDIR_OVER
+            elseif tie_prefs.MixedStemDirectionType == finale.TIEMIXEDSTEM_UNDER then
+                return finale.TIEMODDIR_UNDER
             end
         end
     end
@@ -372,7 +371,7 @@ local calc_is_end_of_system = function(note, for_pageview)
         end
     end
     if for_pageview then
-        local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, false, true)
+        local _, start_note, end_note = tie.calc_tie_span(note, false, true)
         if start_note and end_note then
             local systems = finale.FCStaffSystems()
             systems:LoadAll()
@@ -530,7 +529,7 @@ function tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
     else
         start_placement = calc_placement_for_endpoint(note, tie_mod, tie_prefs, direction, stemdir, false)
         end_placement = start_placement -- initialize it with something
-        local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, false, true)
+        local _, start_note, end_note = tie.calc_tie_span(note, false, true)
         if end_note then
             local next_stemdir = end_note.Entry:CalcStemUp() and 1 or -1
             end_placement = calc_placement_for_endpoint(end_note, tie_mod, tie_prefs, direction, next_stemdir, true)
@@ -602,7 +601,6 @@ function tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
 end
 
 local calc_prefs_offset_for_endpoint = function(note, tie_prefs, tie_placement_prefs, placement, for_endpoint, for_tieend, for_pageview)
-    local tie_
     if for_endpoint then
         if calc_is_end_of_system(note, for_pageview) then
             return tie_prefs.SystemRightHorizontalOffset, tie_placement_prefs:GetVerticalEnd(placement)
@@ -664,7 +662,7 @@ local calc_tie_length = function(note, tie_mod, for_pageview, direction, tie_pre
 
     local cell_metrics_end = finale.FCCellMetrics()
     local entry_metrics_end = finale.FCEntryMetrics()
-    local note_entry_layer, start_note, end_note = tie.calc_tie_span(note, false, true)
+    local _, start_note, end_note = tie.calc_tie_span(note, false, true)
     if tie_mod:IsStartTie() then
         if end_note then
             cell_metrics_end:LoadAtEntry(end_note.Entry)
@@ -673,8 +671,7 @@ local calc_tie_length = function(note, tie_mod, for_pageview, direction, tie_pre
     end
 
     local lplacement, rplacement = tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
-    local horz_start = 0
-    local horz_end = 0
+    local horz_start, horz_end
     local incr_start = 0
     local incr_end = 0
 

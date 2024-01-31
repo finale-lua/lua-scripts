@@ -29,7 +29,7 @@ function prefs_reset_staff_full_name_fonts()
         staff:Load(sys_staff:GetStaff())
         local staff_name_id = staff:GetFullNameID()
         if 0 ~= staff_name_id then
-            text_block = finale.FCTextBlock()
+            local text_block = finale.FCTextBlock()
             if text_block:Load(staff_name_id) then
                 if enigma_string.change_first_text_block_font(text_block, font_info) then
                     text_block:Save()
@@ -43,7 +43,7 @@ function prefs_reset_staff_full_name_fonts()
         staff_styles:LoadAll()
         for staff_style in each(staff_styles) do
             if staff_style.UseFullName then
-                text_block = finale.FCTextBlock()
+                local text_block = finale.FCTextBlock()
                 if text_block:Load(staff_style:GetFullNameID()) then
                     if enigma_string.change_first_text_block_font(text_block, font_info) then
                         text_block:Save()

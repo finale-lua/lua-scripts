@@ -22,7 +22,7 @@ function prefs_reset_group_full_name_fonts()
     for group in each(groups) do
         if library.group_overlaps_region(group, sel_region) then
             if group:HasFullName() then
-                text_block = finale.FCTextBlock()
+                local text_block = finale.FCTextBlock()
                 if text_block:Load(group:GetFullNameID()) then
                     if enigma_string.change_first_text_block_font(text_block, font_info) then
                         text_block:Save()

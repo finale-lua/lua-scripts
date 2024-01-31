@@ -9,16 +9,14 @@ $module FCMTextExpressionDef
 - `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
 - Methods that returned a boolean to indicate success/failure now throw an error instead.
 ]] --
-
-local mixin = require("library.mixin")
+local mixin = require("library.mixin") -- luacheck: ignore
 local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}
 local methods = class.Methods
-local private = setmetatable({}, {__mode = "k"})
+local private = setmetatable({}, {__mode = "k"}) -- luacheck: ignore
 
 local temp_str = finale.FCString()
-
 
 --[[
 % SaveNewTextBlock
@@ -150,7 +148,6 @@ function methods:SaveTextString(str)
     mixin_helper.boolean_to_error(self, "SaveTextString", str)
 end
 
-
 --[[
 % DeleteTextBlock
 
@@ -165,7 +162,6 @@ Override Changes:
 function methods:DeleteTextBlock()
     mixin_helper.boolean_to_error(self, "DeleteTextBlock")
 end
-
 
 --[[
 % SetDescription
@@ -243,6 +239,5 @@ Override Changes:
 function methods:DeepDeleteData()
     mixin_helper.boolean_to_error(self, "DeepDeleteData")
 end
-
 
 return class

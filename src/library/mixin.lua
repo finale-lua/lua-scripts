@@ -285,6 +285,8 @@ If you've written mixins for your personal use and don't want to submit them to 
 Personal mixins take precedence over public mixins, so if a mixin with the same name exists in both  folders, the one in the `personal_mixin` folder will be used.
 ]]
 
+-- luacheck: ignore 212
+
 local utils = require("library.utils")
 local library = require("library.general_library")
 

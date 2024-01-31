@@ -600,7 +600,7 @@ function new_expression_category(new_name)
     local tfi = new_category:CreateTextFontInfo()
     tfi.Size = tfi.Size - config.cue_font_smaller
     new_category:SetTextFontInfo(tfi)
-    ok = new_category:SaveNewWithType(finale.DEFAULTCATID_TECHNIQUETEXT)
+    local ok = new_category:SaveNewWithType(finale.DEFAULTCATID_TECHNIQUETEXT)
     if ok then
         category_id = new_category:GetID()
     end

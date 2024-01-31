@@ -3,7 +3,7 @@ function plugindef()
     -- are both reserved for the plug-in definition.
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "1.0.1"
+    finaleplugin.Version = "1.0.2"
     finaleplugin.Date = "2022-09-25"
     finaleplugin.RequireSelection = true
 --    finaleplugin.MinJWLuaVersion = 0.64 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
@@ -25,9 +25,7 @@ end
 
 local region = finenv.Region()
 
-local layer = 2
-
-function layer_add_whole_rest_tuplet(region, layer)
+function layer_add_whole_rest_tuplet(region, layer)    -- luacheck: ignore region layer
     for cell_measure, cell_staff in eachcell(region) do
         local cell = finale.FCCell(cell_measure, cell_staff)
         local note_entry_layer = finale.FCNoteEntryLayer(layer - 1, cell_staff, cell_measure, cell_measure)

@@ -187,7 +187,7 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
             table.insert(clefs, mid_clef)
         end
         table.sort(clefs, function (k1, k2) return k1.MeasurePos < k2.MeasurePos end)
-        for k, mid_clef in ipairs(clefs) do
+        for _, mid_clef in ipairs(clefs) do
             new_mid_clefs:InsertCellClefChange(mid_clef)
             new_mid_clefs:SaveAllAsNew()
         end
@@ -222,8 +222,7 @@ package.preload["library.clef"] = package.preload["library.clef"] or function()
             end
             cell = finale.FCCell(cell_measure, cell_staff)
             cell_frame_hold:ConnectCell(cell)
-            if cell_frame_hold:Load() then
-            end
+            cell_frame_hold:Load()
             if  region:IsFullMeasureIncluded(cell_measure) then
                 clef.set_measure_clef(cell_measure, cell_measure, cell_staff, clef_index)
                 if not region:IsLastEndMeasure() then

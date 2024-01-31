@@ -4,12 +4,15 @@ function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "2.0.1"
+    finaleplugin.Version = "2.0.2"
     finaleplugin.Date = "2024-01-15"
     finaleplugin.HandlesUndo = true
     finaleplugin.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     return "Harp Pedal Wizard...", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
 end
+
+-- just for now
+-- luacheck: ignore
 
 local library = require("library.general_library")
 local configuration = require("library.configuration")
@@ -94,11 +97,9 @@ function harp_pedal_wizard()
             local first_upper = string.upper(first)
             harp_tbl[i] = first_upper .. second
             if string.len(harp_tbl[i]) == 2 then
-                if string.sub(harp_tbl[i], -1) == "b" 
-                or string.sub(harp_tbl[i], -1) == "#" 
-                or string.sub(harp_tbl[i], -1) == "n" then
-                    -- then nothing!!!
-                else
+                if string.sub(harp_tbl[i], -1) ~= "b" 
+                and string.sub(harp_tbl[i], -1) ~= "#" 
+                and string.sub(harp_tbl[i], -1) ~= "n" then
                     is_error = true
                     --goto on_error     
                 end
@@ -125,9 +126,6 @@ function harp_pedal_wizard()
             elseif harp_tbl[i]:sub(1,1) == "G" then
                 harpstrings[6] = harp_tbl[i]
                 direct_notes[6] = harp_tbl[i]
-            else
---                is_error = true
---                goto on_error           
             end -- End string assignments
             count = i        
         end -- for i,j
@@ -165,7 +163,7 @@ function harp_pedal_wizard()
         changes_static:SetText(changes_str)
     end
 
-    function harp_diagram(harpnotes, use_diagram, scale_info, partial)
+    function harp_diagram(harpnotes, use_diagram, scale_info, partial)  -- luacheck: ignore partial
         if use_diagram then
             desc_prefix.LuaString = "Hp. Diagram: "
         else
@@ -225,11 +223,9 @@ function harp_pedal_wizard()
             local first_upper = string.upper(first)
             harp_tbl[i] = first_upper .. second
             if string.len(harp_tbl[i]) == 2 then
-                if string.sub(harp_tbl[i], -1) == "b" 
-                or string.sub(harp_tbl[i], -1) == "#" 
-                or string.sub(harp_tbl[i], -1) == "n" then
-                    -- then nothing!!!
-                else
+                if string.sub(harp_tbl[i], -1) ~= "b" 
+                and string.sub(harp_tbl[i], -1) ~= "#" 
+                and string.sub(harp_tbl[i], -1) ~= "n" then
                     harp_error = true
                     goto on_error    
                 end
@@ -384,7 +380,7 @@ function harp_pedal_wizard()
         end
     end
 
-    function pedals_add(use_diagram, partial)
+    function pedals_add(use_diagram, partial)   -- luacheck: ignore partial
         local undo_str = ""
         if use_diagram then
             undo_str = "Create harp diagram"
@@ -503,7 +499,7 @@ function harp_pedal_wizard()
         end -- function add_pedals
 
         -------
-        function harp_scale(root, scale, use_diagram, use_chord, partial)
+        function harp_scale(root, scale, use_diagram, use_chord, partial)  -- luacheck: ignore partial
             local scale_error = false
             local enharmonic = finale.FCString()
             local scale_info = root .. " " .. scale
@@ -1489,7 +1485,7 @@ or a chord from the drop down lists.]])
                 end
 
                 function scale_update()
-                    local use_chord = false
+                    local use_chord = false   -- luacheck: ignore use_chord
                     if chord_check:GetCheck() == 1 then use_chord = true end
                     local return_string = finale.FCString()
                     local root = root_calc()
@@ -1535,7 +1531,7 @@ or a chord from the drop down lists.]])
                     if diagram_checkbox:GetCheck() == 1 then use_diagram = true
                     else use_diagram = false end
                     local root = root_calc()
-                    local scale_info = ""
+                    local scale_info = ""   -- luacheck: ignore scale_info
                     if return_string.LuaString ~= "" then
                         direct = true
                         process_return(return_string.LuaString)

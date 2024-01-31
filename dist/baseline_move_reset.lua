@@ -219,7 +219,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -420,6 +420,7 @@ function baseline_move()
             if direction ~= 0 then
                 baselines:LoadAllForSystem(baseline_type, i)
                 for j = start_slot, end_slot do
+                    local bl
                     if valid_lyric_nums then
                         for lyric_info, _ in pairs(valid_lyric_nums) do
                             local _, lyric_number = table.unpack(lyric_info)

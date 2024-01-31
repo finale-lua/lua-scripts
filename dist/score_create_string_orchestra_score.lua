@@ -267,7 +267,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -370,7 +370,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -379,11 +379,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -835,13 +835,13 @@ package.preload["library.score"] = package.preload["library.score"] or function(
 
     function score.create_group(start_staff, end_staff, brace_name, has_barline, level, full_name, short_name)
         local sg_cmper = {}
-        local sg = finale.FCGroup()
         local staff_groups = finale.FCGroups()
         staff_groups:LoadAll()
         for sg in each(staff_groups) do
             table.insert(sg_cmper, sg:GetItemID())
         end
         table.sort(sg_cmper)
+        local sg = finale.FCGroup()
         sg:SetStartStaff(start_staff)
         sg:SetEndStaff(end_staff)
         sg:SetStartMeasure(1)
@@ -1087,8 +1087,7 @@ package.preload["library.score"] = package.preload["library.score"] or function(
         local staff = finale.FCStaff()
         if staff:Load(staff_num) then
             local staff_instrument = staff:GetInstrumentUUID()
-            local test = finale.FFUID_YODEL
-            for k, v in pairs(VOICE_INSTRUMENTS) do
+            for _, v in pairs(VOICE_INSTRUMENTS) do
                 if staff_instrument == v then
                     is_voice_staff = true
                 end
@@ -1319,7 +1318,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else

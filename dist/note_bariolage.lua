@@ -10,7 +10,7 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         source_layer = source_layer - 1
         destination_layer = destination_layer - 1
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
+            local staffNum = sysstaff.Staff
             local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
             noteentry_source_layer:SetUseVisibleLayer(false)
             noteentry_source_layer:Load()
@@ -41,8 +41,8 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         local sysstaves = finale.FCSystemStaves()
         sysstaves:LoadAllForRegion(region)
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            local staffNum = sysstaff.Staff
+            local noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
             noteentry_layer:SetUseVisibleLayer(false)
             noteentry_layer:Load()
             noteentry_layer:ClearAllEntries()
@@ -129,7 +129,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -153,7 +153,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -202,11 +202,11 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead(entry)
+    function note_entry.calc_left_of_primary_notehead()
         return 0
     end
 
@@ -231,7 +231,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if not entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return left
     end
 

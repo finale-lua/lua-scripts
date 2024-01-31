@@ -157,7 +157,7 @@ For example usage, refer to the source for the `FCMControl` mixin.
 mixin_helper.create_custom_control_change_event()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L406)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L404)
 
 Helper function for creating a custom event for a control.
 Custom events are bootstrapped to InitWindow and HandleCommand, in addition be being able to be triggered manually.
@@ -183,7 +183,7 @@ This function returns 4 values which are all functions:
 mixin_helper.create_custom_window_change_event()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L496)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L491)
 
 Creates a custom change event for a window class. For details, see the documentation for `create_custom_control_change_event`, which works in exactly the same way as this function except for controls.
 
@@ -195,7 +195,7 @@ Creates a custom change event for a window class. For details, see the documenta
 mixin_helper.to_fcstring(value, fcstr)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L560)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L554)
 
 Casts a value to an `FCString` object. If the value is already an `FCString`, it will be returned.
 
@@ -214,7 +214,7 @@ Casts a value to an `FCString` object. If the value is already an `FCString`, it
 mixin_helper.boolean_to_error(object, method)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L581)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L575)
 
 There are many PDK methods that return a boolean value to indicate success / failure instead of throwing an error.
 This function captures that result and throws an error in case of failure.

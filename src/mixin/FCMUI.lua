@@ -6,7 +6,7 @@ $module FCMUI
 ## Summary of Modifications
 - `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
 ]] --
-local mixin = require("library.mixin")
+local mixin = require("library.mixin") -- luacheck: ignore
 local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}

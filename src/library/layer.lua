@@ -21,7 +21,7 @@ function layer.copy(region, source_layer, destination_layer, clone_articulations
     source_layer = source_layer - 1
     destination_layer = destination_layer - 1
     for sysstaff in each(sysstaves) do
-        staffNum = sysstaff.Staff
+        local staffNum = sysstaff.Staff
         local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
         noteentry_source_layer:SetUseVisibleLayer(false)
         noteentry_source_layer:Load()
@@ -60,8 +60,8 @@ function layer.clear(region, layer_to_clear)
     local sysstaves = finale.FCSystemStaves()
     sysstaves:LoadAllForRegion(region)
     for sysstaff in each(sysstaves) do
-        staffNum = sysstaff.Staff
-        local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+        local staffNum = sysstaff.Staff
+        local noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
         noteentry_layer:SetUseVisibleLayer(false)
         noteentry_layer:Load()
         noteentry_layer:ClearAllEntries()
