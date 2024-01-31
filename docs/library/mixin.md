@@ -291,7 +291,7 @@ Personal mixins take precedence over public mixins, so if a mixin with the same 
 mixin.is_fc_class_name(class_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L940)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L942)
 
 Checks if a class name is an `FC` class name.
 
@@ -309,7 +309,7 @@ Checks if a class name is an `FC` class name.
 mixin.is_fcm_class_name(class_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L950)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L952)
 
 Checks if a class name is an `FCM` class name.
 
@@ -327,7 +327,7 @@ Checks if a class name is an `FCM` class name.
 mixin.is_fcx_class_name(class_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L960)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L962)
 
 Checks if a class name is an `FCX` class name.
 
@@ -345,7 +345,7 @@ Checks if a class name is an `FCX` class name.
 mixin.fc_to_fcm_class_name(class_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L970)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L972)
 
 Converts an `FC` class name to an `FCM` class name.
 
@@ -363,7 +363,7 @@ Converts an `FC` class name to an `FCM` class name.
 mixin.fcm_to_fc_class_name(class_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L980)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L982)
 
 Converts an `FCM` class name to an `FC` class name.
 
@@ -381,7 +381,7 @@ Converts an `FCM` class name to an `FC` class name.
 mixin.subclass(object, class_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L994)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L996)
 
 Takes a mixin-enabled finale object and migrates it to an `FCX` subclass. Any conflicting property or method names will be overwritten.
 
@@ -403,7 +403,7 @@ If the current `MixinClass` is the same as `class_name`, this function will do n
 mixin.UI()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L1003)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L1005)
 
 Returns a mixin enabled UI object from `finenv.UI`
 
@@ -417,7 +417,7 @@ Returns a mixin enabled UI object from `finenv.UI`
 mixin.eachentry(region, layer)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L1016)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin.lua#L1018)
 
 A modified version of the JW/RGPLua `eachentry` function that allows items to be stored and used outside of a loop.
 

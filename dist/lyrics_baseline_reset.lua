@@ -32,15 +32,15 @@ function lyrics_baseline_reset()
         baselines_section:LoadAllForSystem(finale.BASELINEMODE_LYRICSSECTION, i)
         for j = start_staff, end_staff, 1 do
             for k = lyric_number, 100, 1 do
-                baseline_verse = baselines_verse:AssureSavedLyricNumber(finale.BASELINEMODE_LYRICSVERSE, i, j, k)
+                local baseline_verse = baselines_verse:AssureSavedLyricNumber(finale.BASELINEMODE_LYRICSVERSE, i, j, k)
                 baseline_verse.VerticalOffset = 0
                 baseline_verse:Save()
 
-                baseline_chorus = baselines_chorus:AssureSavedLyricNumber(finale.BASELINEMODE_LYRICSCHORUS, i, j, k)
+                local baseline_chorus = baselines_chorus:AssureSavedLyricNumber(finale.BASELINEMODE_LYRICSCHORUS, i, j, k)
                 baseline_chorus.VerticalOffset = 0
                 baseline_chorus:Save()
 
-                baseline_section = baselines_section:AssureSavedLyricNumber(finale.BASELINEMODE_LYRICSSECTION, i, j, k)
+                local baseline_section = baselines_section:AssureSavedLyricNumber(finale.BASELINEMODE_LYRICSSECTION, i, j, k)
                 baseline_section.VerticalOffset = 0
                 baseline_section:Save()
             end

@@ -13,7 +13,7 @@
 __fcmbase._FallbackCall(self, method_name, fallback_value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/__FCMBase.lua#L29)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/__FCMBase.lua#L28)
 
 Checks the existence of a class method before calling it. If the method exists, it returns
 as expected. If the method does not exist, it returns the fallback_value. This function allows

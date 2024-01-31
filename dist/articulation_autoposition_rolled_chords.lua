@@ -35,7 +35,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -59,7 +59,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -108,11 +108,11 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead(entry)
+    function note_entry.calc_left_of_primary_notehead()
         return 0
     end
 
@@ -137,7 +137,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if not entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return left
     end
 
@@ -339,7 +339,6 @@ package.preload["library.articulation"] = package.preload["library.articulation"
             top_pos = math.floor(((10000 * top_pos) / cell_metrics.StaffScaling) + 0.5)
             return curr_pos.Y >= top_pos
         end
-        return false
     end
 
     function articulation.calc_main_character_dimensions(artic_def)
@@ -456,7 +455,7 @@ function articulation_autoposition_rolled_chords()
                                 artic.Visible = false
                             else
                                 local this_bottom = note_entry.get_bottom_note_position(entry)
-                                staff_scale = mm.StaffScaling / 10000
+                                local staff_scale = mm.StaffScaling / 10000
                                 top_page_pos = top_page_pos / staff_scale
                                 bottom_page_pos = bottom_page_pos / staff_scale
                                 left_page_pos = left_page_pos / staff_scale

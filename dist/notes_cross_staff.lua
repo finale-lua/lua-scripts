@@ -64,7 +64,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -464,7 +464,6 @@ package.preload["mixin.FCMCtrlListBox"] = package.preload["mixin.FCMCtrlListBox"
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local utils = require("library.utils")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -757,7 +756,6 @@ package.preload["mixin.FCMCtrlPopup"] = package.preload["mixin.FCMCtrlPopup"] or
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local utils = require("library.utils")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -1040,7 +1038,6 @@ package.preload["mixin.FCMCtrlSlider"] = package.preload["mixin.FCMCtrlSlider"] 
     local windows = setmetatable({}, {__mode = "k"})
     local trigger_thumb_position_change
     local each_last_thumb_position_change
-    local using_timer_fix = false
     local function bootstrap_command()
 
         trigger_thumb_position_change(true)
@@ -1106,7 +1103,6 @@ package.preload["mixin.FCMCtrlStatic"] = package.preload["mixin.FCMCtrlStatic"] 
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local utils = require("library.utils")
     local measurement = require("library.measurement")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -2213,7 +2209,6 @@ package.preload["mixin.FCMStrings"] = package.preload["mixin.FCMStrings"] or fun
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local class = {Methods = {}}
     local methods = class.Methods
     local temp_str = finale.FCString()
@@ -3060,13 +3055,9 @@ package.preload["mixin.FCXCustomLuaWindow"] = package.preload["mixin.FCXCustomLu
 
 
     local mixin = require("library.mixin")
-    local utils = require("library.utils")
     local mixin_helper = require("library.mixin_helper")
-    local measurement = require("library.measurement")
     local class = {Parent = "FCMCustomLuaWindow", Methods = {}}
     local methods = class.Methods
-    local trigger_measurement_unit_change
-    local each_last_measurement_unit_change
 
     function class:Init()
         self:SetEnableDebugClose(true)
@@ -3097,7 +3088,6 @@ package.preload["mixin.__FCMBase"] = package.preload["mixin.__FCMBase"] or funct
             end
             return self
         end
-
         return self[method_name](self, ...)
     end
     return class
@@ -3546,7 +3536,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -3649,7 +3639,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -3658,11 +3648,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -3830,9 +3820,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         end
 
         repeat
-            if (object_type < 2 and class_names[0][parent])
-                or (object_type > 0 and class_names[1][parent])
-            then
+            if (object_type < 2 and class_names[0][parent]) or (object_type > 0 and class_names[1][parent]) then
                 return true
             end
             parent = library.get_parent_class(parent)
@@ -3859,7 +3847,9 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         if library.is_finale_object(value) then
             secondary_type = value.MixinClass or value.ClassName
         end
-        error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) .. ")", levels)
+        error(
+            "bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) ..
+                ")", levels)
     end
 
     function mixin_helper.assert_argument_type(argument_number, value, ...)
@@ -3872,7 +3862,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         assert_argument_type(4, argument_number, value, ...)
     end
     local function assert_func(condition, message, level)
-        if type(condition) == 'function' then
+        if type(condition) == "function" then
             condition = condition()
         end
         if not condition then
@@ -3912,9 +3902,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             mixin_helper.assert_argument_type(3, callback, "function")
             local window = control:GetParent()
             mixin_helper.assert(window, "Cannot add handler to control with no parent window.")
-            mixin_helper.assert(
-                (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
-                "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
+            mixin_helper.assert((window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow", "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
             init_window(window)
             callbacks[control] = callbacks[control] or {}
             table.insert(callbacks[control], callback)
@@ -3956,7 +3944,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             for _, cb in ipairs(callbacks[target].order) do
 
                 local called = false
-                for k, v in pairs(current) do
+                for k, _ in pairs(current) do
                     if current[k] ~= callbacks[target].history[cb][k] then
                         cb(target, unpack_arguments(callbacks[target].history[cb], table.unpack(params)))
                         called = true
@@ -4050,11 +4038,8 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             mixin_helper.assert_argument_type(2, callback, "function")
             local window = self:GetParent()
             mixin_helper.assert(window, "Cannot add handler to self with no parent window.")
-            mixin_helper.assert(
-                (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
-                "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
-            mixin_helper.force_assert(
-                not event.callback_exists(self, callback), "The callback has already been added as a handler.")
+            mixin_helper.assert((window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow", "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
+            mixin_helper.force_assert(not event.callback_exists(self, callback), "The callback has already been added as a handler.")
             init_window(window)
             event.add(self, callback, not window:WindowExists__())
         end
@@ -4105,8 +4090,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         local function add_func(self, callback)
             mixin_helper.assert_argument_type(1, self, "FCMCustomLuaWindow")
             mixin_helper.assert_argument_type(2, callback, "function")
-            mixin_helper.force_assert(
-                not event.callback_exists(self, callback), "The callback has already been added as a handler.")
+            mixin_helper.force_assert(not event.callback_exists(self, callback), "The callback has already been added as a handler.")
             event.add(self, callback)
         end
         local function remove_func(self, callback)
@@ -4128,9 +4112,9 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             if type(window) == "boolean" and window then
                 for win in event.target_iterator() do
                     if immediate then
-                        event.dispatcher(window)
+                        event.dispatcher(win)
                     else
-                        trigger_helper(window)
+                        trigger_helper(win)
                     end
                 end
             else
@@ -4190,6 +4174,7 @@ package.preload["mixin.__FCMUserWindow"] = package.preload["mixin.__FCMUserWindo
     return class
 end
 package.preload["library.mixin"] = package.preload["library.mixin"] or function()
+
 
 
 
@@ -4785,7 +4770,7 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         source_layer = source_layer - 1
         destination_layer = destination_layer - 1
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
+            local staffNum = sysstaff.Staff
             local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
             noteentry_source_layer:SetUseVisibleLayer(false)
             noteentry_source_layer:Load()
@@ -4816,8 +4801,8 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         local sysstaves = finale.FCSystemStaves()
         sysstaves:LoadAllForRegion(region)
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            local staffNum = sysstaff.Staff
+            local noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
             noteentry_layer:SetUseVisibleLayer(false)
             noteentry_layer:Load()
             noteentry_layer:ClearAllEntries()
@@ -5375,7 +5360,6 @@ local function input_error()
                     .. us(max_evpu) .. " to " .. us(max_evpu) .. u_name .. ", not:\n"
                     .. usi(1) .. " ... " .. usi(2) .. u_name .. " (upwards)\n"
                     .. usi(3) .. " ... " .. usi(4) .. u_name .. " (downwards)"
-                error = true
                 break
             end
         end
