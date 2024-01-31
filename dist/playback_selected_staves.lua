@@ -462,19 +462,36 @@ function plugindef()
     finaleplugin.Notes = [[
         Select the staves you want soloed or muted, then run this script. If nothing is selected, all solos and mutes
         are cleared.
+
         You can optionally use a configuration to start playback at the beginning of the selected region.
         (If nothing is selected, it reverts playback to a selected default start option.)
         To set the options, create a plain text file called
         playback_selected_region.config.txt in a folder called `script_settings` within the same
         folder as the script. It can contain any or all of the following configuration parameters.
         (The default values are shown.)
+
         ```
-        set_playback_start = false
-        revert_playback_start = 0
-        include_chord_playback = true
-        include_expression_playback = true
-        include_end_measure = true
+        set_playback_start = false                  
+        revert_playback_start = 0                   
+        include_chord_playback = true               
+        include_expression_playback = true          
+        include_end_measure = true                  
         ```
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Select the staves you want soloed or muted, then run this script. If nothing is selected, all solos and mutes are cleared.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 You can optionally use a configuration to start playback at the beginning of the selected region. (If nothing is selected, it reverts playback to a selected default start option.) To set the options, create a plain text file called playback_selected_region.config.txt in a folder called {\f1 script_settings} within the same folder as the script. It can contain any or all of the following configuration parameters. (The default values are shown.)\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 set_playback_start = false                  
+        revert_playback_start = 0                   
+        include_chord_playback = true               
+        include_expression_playback = true          
+        include_end_measure = true                  
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_selected_staves.hash"
     return "Solo selected staves", "Solo selected staves", "Sets up playback to the selected region."

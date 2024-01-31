@@ -352,6 +352,15 @@ function plugindef()
         This script will only process 7-tuplets that appears on staves that has been defined as "Harp" in the Score Manager.
     ]]
     finaleplugin.CategoryTags = "Idiomatic, Note, Plucked Strings, Region, Tuplet, Woodwinds"
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script will only process 7-tuplets that appears on staves that has been defined as \u8220"Harp\u8221" in the Score Manager.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_harp_gliss.hash"
     return "Harp gliss", "Harp gliss", "Transforms 7-tuplets to harp gliss notation."
 end

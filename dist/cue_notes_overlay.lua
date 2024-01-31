@@ -5299,29 +5299,44 @@ function plugindef()
     finaleplugin.Date = "2023/12/29"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
-        This script takes music from a nominated layer in the selected staff
-        and creates a "Cue" version on one or more other staves.
-        It is intended to create cue notes above or below
-        existing "played" material in the destination.
-        If the destination measure is empty a whole-measure
+        This script takes music from a nominated layer in the selected staff 
+        and creates a "Cue" version on one or more other staves. 
+        It is intended to create cue notes above or below 
+        existing "played" material in the destination. 
+        If the destination measure is empty a whole-measure 
         rest will be created as a reminder that the cue isn't played.
-        Cue notes are often shown in a different octave to
-        accommodate the clef and transposition of the destination.
-        Use "cue octave offset" setting for this.
-        Cues can interact visually with "played" material in countless ways
+
+        Cue notes are often shown in a different octave to 
+        accommodate the clef and transposition of the destination. 
+        Use "cue octave offset" setting for this. 
+        Cues can interact visually with "played" material in countless ways 
         so settings probably need to change between scenarios.
-        The cue copy is reduced in size and muted, and can optionally duplicate
-        articulations, expressions, lyrics and smart shapes.
-        "Note-based" smart shapes are copied, typically slurs and
-        glissandos, because they actually "attach" to the cued notes.
-        This script stores cue names in a text expression category called
-        "Cue Names" which will be created automatically if needed.
-        Once created you can adjust its text and position parameters
-        like any other expression category.
-        Rests in the cue will be offset by the value you have set
-        for layer 1 at Document → Document Options → Layers.
-        They will automatically offset in the same direction as the
+
+        The cue copy is reduced in size and muted, and can optionally duplicate 
+        articulations, expressions, lyrics and smart shapes. 
+        "Note-based" smart shapes are copied, typically slurs and 
+        glissandos, because they actually "attach" to the cued notes. 
+        This script stores cue names in a text expression category called 
+        "Cue Names" which will be created automatically if needed. 
+        Once created you can adjust its text and position parameters 
+        like any other expression category.  
+
+        Rests in the cue will be offset by the value you have set 
+        for layer 1 at Document → Document Options → Layers. 
+        They will automatically offset in the same direction as the 
         nominated cue stem direction.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script takes music from a nominated layer in the selected staff and creates a \u8220"Cue\u8221" version on one or more other staves. It is intended to create cue notes above or below existing \u8220"played\u8221" material in the destination. If the destination measure is empty a whole-measure rest will be created as a reminder that the cue isn\u8217't played.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Cue notes are often shown in a different octave to accommodate the clef and transposition of the destination. Use \u8220"cue octave offset\u8221" setting for this. Cues can interact visually with \u8220"played\u8221" material in countless ways so settings probably need to change between scenarios.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The cue copy is reduced in size and muted, and can optionally duplicate articulations, expressions, lyrics and smart shapes. \u8220"Note-based\u8221" smart shapes are copied, typically slurs and glissandos, because they actually \u8220"attach\u8221" to the cued notes. This script stores cue names in a text expression category called \u8220"Cue Names\u8221" which will be created automatically if needed. Once created you can adjust its text and position parameters like any other expression category.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Rests in the cue will be offset by the value you have set for layer 1 at Document \u8594? Document Options \u8594? Layers. They will automatically offset in the same direction as the nominated cue stem direction.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/cue_notes_overlay.hash"
     return "Cue Notes Overlay...", "Cue Notes Overlay", "Copy as cue notes to another staff"

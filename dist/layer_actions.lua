@@ -4994,11 +4994,12 @@ function plugindef()
     finaleplugin.Date = "2023/10/15"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
-        Perform specific actions on individual note layers in the current selection.
-        Each action in the list begins with a configurable hotkey.
-        Open the script, type the hotkey and hit RETURN or ENTER.
-        To repeat the same action as last time without a confirmation dialog
+        Perform specific actions on individual note layers in the current selection. 
+        Each action in the list begins with a configurable hotkey. 
+        Open the script, type the hotkey and hit RETURN or ENTER. 
+        To repeat the same action as last time without a confirmation dialog 
         hold down the SHIFT key when starting the script.
+
         Actions:
         - Erase Layer
         - Playback Enable
@@ -5008,12 +5009,24 @@ function plugindef()
         - Stems Up
         - Stems Down
         - Stems Default
-        Note that "Erase Layer" will delete a whole measure even if only part of
-        it is selected. All other actions respect selection boundaries.
-        This script replaces four old (deprecated) ones in the repo:
-        "layer_hide.lua", "layer_mute.lua",
+
+        Note that "Erase Layer" will delete a whole measure even if only part of 
+        it is selected. All other actions respect selection boundaries. 
+        This script replaces four old (deprecated) ones in the repo: 
+        "layer_hide.lua", "layer_mute.lua", 
         "stem_direction_by_layer.lua" and "layer_clear_selective.lua".
 	]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Perform specific actions on individual note layers in the current selection. Each action in the list begins with a configurable hotkey. Open the script, type the hotkey and hit RETURN or ENTER. To repeat the same action as last time without a confirmation dialog hold down the SHIFT key when starting the script.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Actions: - Erase Layer - Playback Enable - Playback Mute - Visible - Invisible - Stems Up - Stems Down - Stems Default\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Note that \u8220"Erase Layer\u8221" will delete a whole measure even if only part of it is selected. All other actions respect selection boundaries. This script replaces four old (deprecated) ones in the repo: \u8220"layer_hide.lua\u8221", \u8220"layer_mute.lua\u8221", \u8220"stem_direction_by_layer.lua\u8221" and \u8220"layer_clear_selective.lua\u8221".\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/layer_actions.hash"
     return "Layer Actions...", "Layer Actions", "Perform specific actions on individual layers in the current selection"
 end

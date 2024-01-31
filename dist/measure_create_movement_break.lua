@@ -516,6 +516,15 @@ function plugindef()
         This script replaces the JW New Piece plugin, which is no longer available on Macs running M1 code.
         It creates a movement break starting with the first selected measure.
     ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script replaces the JW New Piece plugin, which is no longer available on Macs running M1 code. It creates a movement break starting with the first selected measure.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_create_movement_break.hash"
     return "Create Movement Break", "Create Movement Break", "Creates a movement break at the first selected measure."
 end

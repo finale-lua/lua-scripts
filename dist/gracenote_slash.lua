@@ -4912,10 +4912,21 @@ function plugindef()
     ]]
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.Notes = [[
-        This script duplicates Jari Williamsson's original 2017 JWGraceNoteSlash plug-in so it can be
-        incorporated into modern operating systems through RGPLua.
-        A `Configuration` menu item is provided to change the script's parameters.
+        This script duplicates Jari Williamsson's original 2017 JWGraceNoteSlash plug-in so it can be 
+        incorporated into modern operating systems through RGPLua. 
+
+        A `Configuration` menu item is provided to change the script's parameters. 
         They can also be changed by holding down either the SHIFT or ALT (option) key when calling the script.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script duplicates Jari Williamsson\u8217's original 2017 JWGraceNoteSlash plug-in so it can be incorporated into modern operating systems through RGPLua.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 A {\f1 Configuration} menu item is provided to change the script\u8217's parameters. They can also be changed by holding down either the SHIFT or ALT (option) key when calling the script.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/gracenote_slash.hash"
     return "Gracenote Slash", "Gracenote Slash", "Add a slash to beamed gracenote groups in the current selection"

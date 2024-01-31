@@ -4901,36 +4901,51 @@ function plugindef()
     finaleplugin.CategoryTags = "Measures, Region, Selection"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = [[
-        The selected score area can be refined in Finale by measure and
-        either beat or EDU at "Edit" → "Select Region...".
-        This script offers a more organic option for precise positioning with
-        slider controls to change the beat and EDU position in each measure,
+        The selected score area can be refined in Finale by measure and 
+        either beat or EDU at "Edit" → "Select Region...". 
+        This script offers a more organic option for precise positioning with 
+        slider controls to change the beat and EDU position in each measure, 
         continuously updating the score highlighting as the selection changes.
-        Note that when one slider overlaps the other in the same
-        measure, it will push the other out of the way creating a "null"
-        selection (start = end). This doesn't break anything
+
+        Note that when one slider overlaps the other in the same 
+        measure, it will push the other out of the way creating a "null" 
+        selection (start = end). This doesn't break anything 
         but the selection contains no notes.
-        == Beat Boundaries ==
-        The duration of a Finale quarter note is 1024 EDUs,
-        but to select all of of the first beat in a 4/4 measure the
-        selection must be from 0 to 1023 EDU, otherwise it will
-        include notes starting ON the second beat.
-        This "minus one" adjustment is applied to all END positions
-        relative to the beat, as happens when entering beat numbers
+
+        == Beat Boundaries ==  
+        The duration of a Finale quarter note is 1024 EDUs, 
+        but to select all of of the first beat in a 4/4 measure the 
+        selection must be from 0 to 1023 EDU, otherwise it will 
+        include notes starting ON the second beat. 
+        This "minus one" adjustment is applied to all END positions 
+        relative to the beat, as happens when entering beat numbers 
         on the inbuilt "Select Region" option.
-        == Key Commands ==
-        - (w)(s) @tStart Staff up/down
-        - (d)(f) @tStart Measure left/right
-        - (g)(h) @tStart increments -/+
-        - (j)(k) / (-)(+) @tStart -/+ one EDU
+
+        == Key Commands == 
+        - (w)(s) @tStart Staff up/down 
+        - (d)(f) @tStart Measure left/right 
+        - (g)(h) @tStart increments -/+ 
+        - (j)(k) / (-)(+) @tStart -/+ one EDU 
+        - • • 
+        - (a)(z) @tEnd Staff up/down 
+        - (x)(c) @tEnd Measure left/right 
+        - (v)(b) @tEnd increments -/+ 
+        - (n)(m) / ([)(]) @tEnd -/+ one EDU 
         - • •
-        - (a)(z) @tEnd Staff up/down
-        - (x)(c) @tEnd Measure left/right
-        - (v)(b) @tEnd increments -/+
-        - (n)(m) / ([)(]) @tEnd -/+ one EDU
-        - • •
-        - (e) toggle the "follow selection" checkbox
-        - (q) show these script notes
+        - (e) toggle the "follow selection" checkbox 
+        - (q) show these script notes 
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 The selected score area can be refined in Finale by measure and either beat or EDU at \u8220"Edit\u8221" \u8594? \u8220"Select Region\u8230?\u8221". This script offers a more organic option for precise positioning with slider controls to change the beat and EDU position in each measure, continuously updating the score highlighting as the selection changes.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Note that when one slider overlaps the other in the same measure, it will push the other out of the way creating a \u8220"null\u8221" selection (start = end). This doesn\u8217't break anything but the selection contains no notes.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 == Beat Boundaries ==\line The duration of a Finale quarter note is 1024 EDUs, but to select all of of the first beat in a 4/4 measure the selection must be from 0 to 1023 EDU, otherwise it will include notes starting ON the second beat. This \u8220"minus one\u8221" adjustment is applied to all END positions relative to the beat, as happens when entering beat numbers on the inbuilt \u8220"Select Region\u8221" option.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 == Key Commands == - (w)(s) @tStart Staff up/down - (d)(f) @tStart Measure left/right - (g)(h) @tStart increments -/+ - (j)(k) / (-)(+) @tStart -/+ one EDU - \u8226? \u8226? - (a)(z) @tEnd Staff up/down - (x)(c) @tEnd Measure left/right - (v)(b) @tEnd increments -/+ - (n)(m) / ([)(]) @tEnd -/+ one EDU - \u8226? \u8226? - (e) toggle the \u8220"follow selection\u8221" checkbox - (q) show these script notes\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/selection_refiner.hash"
     return "Selection Refiner...", "Selection Refiner", "Refine the selected music area with visual feedback"

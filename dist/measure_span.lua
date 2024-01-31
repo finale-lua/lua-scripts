@@ -5012,35 +5012,60 @@ function plugindef()
     ]]
     finaleplugin.ScriptGroupName = "Measure Span"
     finaleplugin.ScriptGroupDescription = "Divide single measures or join measure pairs by changing time signatures"
-    finaleplugin.Notes = [[
-        This script changes the "span" of every measure in the currently selected music by
-        manipulating its time signature, either dividing it into two or combining it with the
+    finaleplugin.Notes = [[ 
+        This script changes the "span" of every measure in the currently selected music by 
+        manipulating its time signature, either dividing it into two or combining it with the 
         following measure. Many measures with different time signatures can be modified at once.
+
         == JOIN ==
-        Combine each pair of measures in the selection into one by combining their time signatures.
-        If they have the same time signature either double the numerator ([3/4][3/4] -> [6/4]) or
-        halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures are different, choose to either
-        COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]).
-        (Consolidation loses current beam groupings). You can choose that a consolidated "display"
+
+        Combine each pair of measures in the selection into one by combining their time signatures. 
+        If they have the same time signature either double the numerator ([3/4][3/4] -> [6/4]) or 
+        halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures are different, choose to either 
+        COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]). 
+        (Consolidation loses current beam groupings). You can choose that a consolidated "display" 
         time signature is created automatically when compositing meters. "JOIN" only works on an even number of measures.
+
         == DIVIDE ==
-        Divide every selected measure into two, changing the time signature by either halving the
-        numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]).
-        If the measure has an odd number of beats, choose whether to put more beats in the first
-        measure (5->3+2) or the second (5->2+3). Measures containing composite meters will be divided
+
+        Divide every selected measure into two, changing the time signature by either halving the 
+        numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]). 
+        If the measure has an odd number of beats, choose whether to put more beats in the first 
+        measure (5->3+2) or the second (5->2+3). Measures containing composite meters will be divided 
         after the first composite group, or if there is only one group, after its first element.
+
         == IN ALL CASES ==
-        Incomplete measures will be filled with rests before Join/Divide. Measures containing too many
-        notes will be trimmed to the "real" duration of the time signature.
-        Time signatures "for display only" will be removed.
-        Measures are either deleted or shifted in every operation so smart shapes on
-        either side of the area need to be "restored".
-        Selecting a SPAN of "5" will look for smart shapes to restore from 5
-        measures before until 5 after the selected region.
+
+        Incomplete measures will be filled with rests before Join/Divide. Measures containing too many 
+        notes will be trimmed to the "real" duration of the time signature. 
+        Time signatures "for display only" will be removed. 
+        Measures are either deleted or shifted in every operation so smart shapes on 
+        either side of the area need to be "restored". 
+        Selecting a SPAN of "5" will look for smart shapes to restore from 5 
+        measures before until 5 after the selected region. 
         (This takes noticeably longer than a SPAN of "2").
+
         == OPTIONS ==
-        To configure script settings select the "Measure Span Options..." menu item, or else hold down
+
+        To configure script settings select the "Measure Span Options..." menu item, or else hold down 
         the SHIFT or ALT (option) key when invoking "Join" or "Divide".
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script changes the \u8220"span\u8221" of every measure in the currently selected music by manipulating its time signature, either dividing it into two or combining it with the following measure. Many measures with different time signatures can be modified at once.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 == JOIN ==\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Combine each pair of measures in the selection into one by combining their time signatures. If they have the same time signature either double the numerator ([3/4][3/4] -> [6/4]) or halve the denominator ([3/4][3/4] -> [3/2]). If the time signatures are different, choose to either COMPOSITE them ([2/4][3/8] -> [2/4 + 3/8]) or CONSOLIDATE them ([2/4][3/8] -> [7/8]). (Consolidation loses current beam groupings). You can choose that a consolidated \u8220"display\u8221" time signature is created automatically when compositing meters. \u8220"JOIN\u8221" only works on an even number of measures.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 == DIVIDE ==\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Divide every selected measure into two, changing the time signature by either halving the numerator ([6/4] -> [3/4][3/4]) or doubling the denominator ([6/4] -> [6/8][6/8]). If the measure has an odd number of beats, choose whether to put more beats in the first measure (5->3+2) or the second (5->2+3). Measures containing composite meters will be divided after the first composite group, or if there is only one group, after its first element.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 == IN ALL CASES ==\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Incomplete measures will be filled with rests before Join/Divide. Measures containing too many notes will be trimmed to the \u8220"real\u8221" duration of the time signature. Time signatures \u8220"for display only\u8221" will be removed. Measures are either deleted or shifted in every operation so smart shapes on either side of the area need to be \u8220"restored\u8221". Selecting a SPAN of \u8220"5\u8221" will look for smart shapes to restore from 5 measures before until 5 after the selected region. (This takes noticeably longer than a SPAN of \u8220"2\u8221").\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 == OPTIONS ==\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To configure script settings select the \u8220"Measure Span Options\u8230?\u8221" menu item, or else hold down the SHIFT or ALT (option) key when invoking \u8220"Join\u8221" or \u8220"Divide\u8221".\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_span.hash"
     return "Measure Span Options...", "Measure Span Options", "Change the default behaviour of the Measure Span script"

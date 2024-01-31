@@ -4882,8 +4882,8 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
     return enigma_string
 end
 function plugindef()
-
-
+    
+    
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0"
@@ -4892,10 +4892,21 @@ function plugindef()
     finaleplugin.Notes = [[
         Finale makes it surprisingly difficult to remove text inserts from an existing Page Text.
         It requires extremely precise positioning of the cursor, and even then it frequently modifies
-        the insert instead of the Page Text. This is especially true if the Page Text contains *only*
+        the insert instead of the Page Text. This is especially true if the Page Text contains *only* 
         one or more inserts. This script allows you to select a Page Text and remove
         the inserts with no fuss.
+
         For version 0.68 and higher of RGP Lua, you can edit the text inserts directly.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Finale makes it surprisingly difficult to remove text inserts from an existing Page Text. It requires extremely precise positioning of the cursor, and even then it frequently modifies the insert instead of the Page Text. This is especially true if the Page Text contains {\i only} one or more inserts. This script allows you to select a Page Text and remove the inserts with no fuss.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 For version 0.68 and higher of RGP Lua, you can edit the text inserts directly.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/page_title_remove_inserts.hash"
     return "Remove Inserts From Page Text...", "Remove Inserts From Page Text",

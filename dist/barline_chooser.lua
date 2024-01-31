@@ -4914,10 +4914,19 @@ function plugindef()
     finaleplugin.ScriptGroupName = "Barline Chooser"
     finaleplugin.ScriptGroupDescription = "Change barlines in the selection by hotkey"
 	finaleplugin.Notes = [[
-        Change all barlines in the selection to one of seven styles by hotkey.
-        To repeat the same barline change as last time without a confirmation dialog,
-        select the "Barline Chooser Repeat" menu or hold down the SHIFT key when
+        Change all barlines in the selection to one of seven styles by hotkey. 
+        To repeat the same barline change as last time without a confirmation dialog, 
+        select the "Barline Chooser Repeat" menu or hold down the SHIFT key when 
         starting the script.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Change all barlines in the selection to one of seven styles by hotkey. To repeat the same barline change as last time without a confirmation dialog, select the \u8220"Barline Chooser Repeat\u8221" menu or hold down the SHIFT key when starting the script.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/barline_chooser.hash"
     return "Barline Chooser...", "Barline Chooser", "Change barlines in the selection by keystroke"

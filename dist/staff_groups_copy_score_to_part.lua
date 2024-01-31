@@ -505,8 +505,8 @@ package.preload["library.general_library"] = package.preload["library.general_li
     return library
 end
 function plugindef()
-
-
+    
+    
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0"

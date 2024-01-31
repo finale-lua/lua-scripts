@@ -4995,30 +4995,45 @@ function plugindef()
     finaleplugin.CategoryTags = "Rests, Selection"
     finaleplugin.MinJWLuaVersion = 0.68
     finaleplugin.Notes = [[
-        Slide rests up and down on the nominated layer with continuous visual feedback.
-        This was designed especially to help align rests midway
-        between staves with cross-staff notes.
-        The "mid-staff above" and "mid-staff below" buttons achieve this with one click.
+        Slide rests up and down on the nominated layer with continuous visual feedback. 
+        This was designed especially to help align rests midway 
+        between staves with cross-staff notes. 
+        The "mid-staff above" and "mid-staff below" buttons achieve this with one click. 
         Cancel the script to leave rests unchanged.
-        "Reset Zero" sets nil offset.
-        Note that with transposing instruments this is NOT the middle
-        of the staff if "Display in Concert Pitch" is selected.
-        In those instances use "Floating Rests" to return them to
-        their virgin state where the only offset is that set at
+
+        "Reset Zero" sets nil offset. 
+        Note that with transposing instruments this is NOT the middle 
+        of the staff if "Display in Concert Pitch" is selected. 
+        In those instances use "Floating Rests" to return them to 
+        their virgin state where the only offset is that set at 
         Document → Document Options → Layers → Adjust Floating Rests by...
-        At startup all rests in the chosen layer are moved to the
-        same offset as the first rest in the selection.
-        Layer numbers can be changed "on the fly" to help
+
+        At startup all rests in the chosen layer are moved to the 
+        same offset as the first rest in the selection. 
+        Layer numbers can be changed "on the fly" to help 
         balance rests in multiple layers.
-        KEY COMMANDS:
-        - [a] [+] move rests up by single steps
-        - [s] [-] move rests down by single steps
+
+        KEY COMMANDS:  
+        - [a] [+] move rests up by single steps  
+        - [s] [-] move rests down by single steps  
         - [d] move to mid-staff above (if one staff selected)
         - [f] move to mid-staff below (if one staff selected)
-        - [z] reset to "zero" shift (not floating)
-        - [x] floating rests
-        - [q] show these script notes
+        - [z] reset to "zero" shift (not floating)  
+        - [x] floating rests  
+        - [q] show these script notes  
         - [0]-[4] layer number (delete key not needed)
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Slide rests up and down on the nominated layer with continuous visual feedback. This was designed especially to help align rests midway between staves with cross-staff notes. The \u8220"mid-staff above\u8221" and \u8220"mid-staff below\u8221" buttons achieve this with one click. Cancel the script to leave rests unchanged.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \u8220"Reset Zero\u8221" sets nil offset. Note that with transposing instruments this is NOT the middle of the staff if \u8220"Display in Concert Pitch\u8221" is selected. In those instances use \u8220"Floating Rests\u8221" to return them to their virgin state where the only offset is that set at Document \u8594? Document Options \u8594? Layers \u8594? Adjust Floating Rests by\u8230?\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 At startup all rests in the chosen layer are moved to the same offset as the first rest in the selection. Layer numbers can be changed \u8220"on the fly\u8221" to help balance rests in multiple layers.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 KEY COMMANDS:\line - [a] [+] move rests up by single steps\line - [s] [-] move rests down by single steps\line - [d] move to mid-staff above (if one staff selected) - [f] move to mid-staff below (if one staff selected) - [z] reset to \u8220"zero\u8221" shift (not floating)\line - [x] floating rests\line - [q] show these script notes\line - [0]-[4] layer number (delete key not needed)\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/rest_slider.hash"
     return "Rest Slider...", "Rest Slider", "Slide rests up and down with continuous visual feedback"

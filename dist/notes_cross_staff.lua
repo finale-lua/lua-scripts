@@ -5004,41 +5004,56 @@ function plugindef()
         direction = "Up"
         direction = "Configuration"
     ]]
-    finaleplugin.AdditionalDescriptions = [[
+    finaleplugin.AdditionalDescriptions = [[ 
         Selected notes are cross-staffed to the next higher staff
         Set the horizontal offsets and active layer that will be applied to cross-staffed notes
     ]]
     finaleplugin.MinJWLuaVersion = 0.68
     finaleplugin.ScriptGroupName = "Notes Cross-Staff"
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below the selection"
-	finaleplugin.Notes = [[
-        Selected notes are "crossed" to the next staff above or below the selection.
-        This duplicates Finale's inbuilt ALT (option) up/down arrow
-        shortcuts for cross-staff entries, but in my
-        experience these malfunction at random.
-        This script doesn't, but also offers filtering by layer, optional
-        stem reversal and horizontal note shift to counteract stem reversal.
-        Tobias Giesen's TGTools -> Cross Staff is great for
-        more complex tasks, but this is slicker for simple ones
-        than the inbuilt shortcuts (and has more options).
-        To change options use the "Notes Cross-Staff Configuration..."
-        menu or hold down the SHIFT key when starting the script.
-        When crossing with stem reversal to the staff ABOVE try
-        EVPU offsets of 12 (crossed) and -12 (not crossed), or 24/0.
-        Crossing to the staff BELOW try offsets of -12/12 or -24/0 EVPUs.
-        By default only notes within the selection or part of the
-        beam groups it contains will be shifted horizontally.
-        Select "whole measure" (g) to shift every note in the selected measure.
-        Key Commands (in the Configuration window):
-        [d] [f] [g] [h] toggle the checkboxes
-        [z] reset to default values
-        [q] display these notes
-        To change measurement units type:
-        [e] EVPUs  [i] Inches [c] Centimeters
-        [o] Points [a] Picas  [s] Spaces
-        Layer number:
+	finaleplugin.Notes = [[ 
+        Selected notes are "crossed" to the next staff above or below the selection. 
+        This duplicates Finale's inbuilt ALT (option) up/down arrow 
+        shortcuts for cross-staff entries, but in my 
+        experience these malfunction at random. 
+        This script doesn't, but also offers filtering by layer, optional 
+        stem reversal and horizontal note shift to counteract stem reversal. 
+        Tobias Giesen's TGTools -> Cross Staff is great for 
+        more complex tasks, but this is slicker for simple ones 
+        than the inbuilt shortcuts (and has more options).  
+
+        To change options use the "Notes Cross-Staff Configuration..." 
+        menu or hold down the SHIFT key when starting the script. 
+        When crossing with stem reversal to the staff ABOVE try 
+        EVPU offsets of 12 (crossed) and -12 (not crossed), or 24/0. 
+        Crossing to the staff BELOW try offsets of -12/12 or -24/0 EVPUs. 
+
+        By default only notes within the selection or part of the 
+        beam groups it contains will be shifted horizontally. 
+        Select "whole measure" (g) to shift every note in the selected measure.  
+
+        Key Commands (in the Configuration window):  
+        [d] [f] [g] [h] toggle the checkboxes  
+        [z] reset to default values  
+        [q] display these notes  
+        To change measurement units type:  
+        [e] EVPUs  [i] Inches [c] Centimeters  
+        [o] Points [a] Picas  [s] Spaces  
+        Layer number:  
         [0]-[4] (delete key not needed)
 	]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Selected notes are \u8220"crossed\u8221" to the next staff above or below the selection. This duplicates Finale\u8217's inbuilt ALT (option) up/down arrow shortcuts for cross-staff entries, but in my experience these malfunction at random. This script doesn\u8217't, but also offers filtering by layer, optional stem reversal and horizontal note shift to counteract stem reversal. Tobias Giesen\u8217's TGTools -> Cross Staff is great for more complex tasks, but this is slicker for simple ones than the inbuilt shortcuts (and has more options).\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To change options use the \u8220"Notes Cross-Staff Configuration\u8230?\u8221" menu or hold down the SHIFT key when starting the script. When crossing with stem reversal to the staff ABOVE try EVPU offsets of 12 (crossed) and -12 (not crossed), or 24/0. Crossing to the staff BELOW try offsets of -12/12 or -24/0 EVPUs.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 By default only notes within the selection or part of the beam groups it contains will be shifted horizontally. Select \u8220"whole measure\u8221" (g) to shift every note in the selected measure.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Key Commands (in the Configuration window):\line [d] [f] [g] [h] toggle the checkboxes\line [z] reset to default values\line [q] display these notes\line To change measurement units type:\line [e] EVPUs [i] Inches [c] Centimeters\line [o] Points [a] Picas [s] Spaces\line Layer number:\line [0]-[4] (delete key not needed)\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/notes_cross_staff.hash"
     return "Notes Cross-Staff Down", "Notes Cross-Staff Down", "Selected notes are cross-staffed to the next lower staff"
 end

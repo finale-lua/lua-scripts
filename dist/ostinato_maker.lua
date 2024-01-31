@@ -4901,18 +4901,31 @@ function plugindef()
     finaleplugin.Date = "2024/01/31"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
-        Copy the current selection and paste it consecutively
-        to the right a nominated number of times.
-        The replicas can span barlines ignoring time signatures.
-        The same effect can be achieved with Edit → Paste Multiple
-        but this script is simpler to use and works intuitively
-        on the current music selection in a single step.
-        To repeat the last action without confirmation
-        dialog hold down [shift] when starting the script.
-        Choose to independently include or remove articulations,
-        expressions, smartshapes, lyrics or chords from the repeats.
-        This script grew from the "region_replicate_music.lua" script in
+        Copy the current selection and paste it consecutively 
+        to the right a nominated number of times. 
+        The replicas can span barlines ignoring time signatures. 
+        The same effect can be achieved with Edit → Paste Multiple 
+        but this script is simpler to use and works intuitively 
+        on the current music selection in a single step. 
+
+        To repeat the last action without confirmation 
+        dialog hold down [shift] when starting the script. 
+        Choose to independently include or remove articulations, 
+        expressions, smartshapes, lyrics or chords from the repeats. 
+
+        This script grew from the "region_replicate_music.lua" script in 
         the FinaleLua.com repository by Michael McClennan and Jacob Winkler.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Copy the current selection and paste it consecutively to the right a nominated number of times. The replicas can span barlines ignoring time signatures. The same effect can be achieved with Edit \u8594? Paste Multiple but this script is simpler to use and works intuitively on the current music selection in a single step.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To repeat the last action without confirmation dialog hold down [shift] when starting the script. Choose to independently include or remove articulations, expressions, smartshapes, lyrics or chords from the repeats.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script grew from the \u8220"region_replicate_music.lua\u8221" script in the FinaleLua.com repository by Michael McClennan and Jacob Winkler.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/ostinato_maker.hash"
     return "Ostinato Maker...", "Ostinato Maker",

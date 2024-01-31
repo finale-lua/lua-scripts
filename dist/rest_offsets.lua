@@ -5297,27 +5297,44 @@ function plugindef()
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
     finaleplugin.Version = "v1.57"
     finaleplugin.Date = "2023/10/30"
-    finaleplugin.Notes = [[
-        This script alters the vertical position of rests.
-        It duplicates Finale's inbuilt "Move Rests..." plug-in but with less mouse activity.
+    finaleplugin.Notes = [[ 
+        This script alters the vertical position of rests. 
+        It duplicates Finale's inbuilt "Move Rests..." plug-in but with less mouse activity. 
         It is also a quick way to reset rest positions in every layer, the default setting.
-        New rests are "floating" and will avoid entries in other layers (if present)
-        using the setting for "Adjust Floating Rests by..." at
-        Finale → Document → Document Options → Layers.
-        This script can stop them "floating", instead "fixing" them
-        to a specific offset from the default position.
-        On transposing staves these "fixed" rests will behave like notes
+
+        New rests are "floating" and will avoid entries in other layers (if present) 
+        using the setting for "Adjust Floating Rests by..." at 
+        Finale → Document → Document Options → Layers.  
+        This script can stop them "floating", instead "fixing" them 
+        to a specific offset from the default position. 
+        On transposing staves these "fixed" rests will behave like notes 
         and change position if "Display in Concert Pitch" is selected.
-        Hit the "f" key or select the "Floating Rests" checkbox to return all rests on
-        the chosen layer to "floating".
-        Hit the "q" key to view these notes.
-        To repeat the same action as before without a confirmation dialog,
+
+        Hit the "f" key or select the "Floating Rests" checkbox to return all rests on 
+        the chosen layer to "floating". 
+        Hit the "q" key to view these notes. 
+        To repeat the same action as before without a confirmation dialog, 
         hold down the SHIFT key when starting the script.
+
         == INFO ==
-        A Space is the vertical distance between staff lines, and a Step is half a Space.
-        The distance between the top and bottom lines of a 5-line staff is 4 Spaces or 8 Steps.
-        Rests usually "centre" on the middle staff line, 4 Steps below the top line of a 5-line staff.
+
+        A Space is the vertical distance between staff lines, and a Step is half a Space. 
+        The distance between the top and bottom lines of a 5-line staff is 4 Spaces or 8 Steps. 
+        Rests usually "centre" on the middle staff line, 4 Steps below the top line of a 5-line staff. 
         This script, like Finale, shifts rests by Steps relative to the default position.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script alters the vertical position of rests. It duplicates Finale\u8217's inbuilt \u8220"Move Rests\u8230?\u8221" plug-in but with less mouse activity. It is also a quick way to reset rest positions in every layer, the default setting.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 New rests are \u8220"floating\u8221" and will avoid entries in other layers (if present) using the setting for \u8220"Adjust Floating Rests by\u8230?\u8221" at Finale \u8594? Document \u8594? Document Options \u8594? Layers.\line This script can stop them \u8220"floating\u8221", instead \u8220"fixing\u8221" them to a specific offset from the default position. On transposing staves these \u8220"fixed\u8221" rests will behave like notes and change position if \u8220"Display in Concert Pitch\u8221" is selected.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Hit the \u8220"f\u8221" key or select the \u8220"Floating Rests\u8221" checkbox to return all rests on the chosen layer to \u8220"floating\u8221". Hit the \u8220"q\u8221" key to view these notes. To repeat the same action as before without a confirmation dialog, hold down the SHIFT key when starting the script.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 == INFO ==\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 A Space is the vertical distance between staff lines, and a Step is half a Space. The distance between the top and bottom lines of a 5-line staff is 4 Spaces or 8 Steps. Rests usually \u8220"centre\u8221" on the middle staff line, 4 Steps below the top line of a 5-line staff. This script, like Finale, shifts rests by Steps relative to the default position.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/rest_offsets.hash"
     return "Rest Offsets...", "Rest Offsets", "Change the vertical offset of rests by layer"

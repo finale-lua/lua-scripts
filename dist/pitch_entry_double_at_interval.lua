@@ -1091,12 +1091,29 @@ function plugindef()
         additional instances of the script file and setting Optional Menu Text and Optional Prefix.
         To avoid confusion, you should also set the Optional Description. If you omit Optional Undo Text,
         the undo text will be the same as the menu option.
+
         Here is an example that creates a "Double Fifth Up" menu option.
+
         - Optional Menu Text: `Double Fifth Up`
         - Optional Description: `Doubles the current note a diatonic fifth higher`
         - Optional Prefix: `input_interval = 4`
+
         Intervals are defined as 0=unison, 1=second, 2=third, etc. Positive values transpose up and
         negative values transpose down. See the "AdditionalPrefixes" above for examples.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script doubles selected entries at a specified diatonic interval above or below. By default, it creates menu options to double an octave up and down as well as options to double a third up and down. RGP Lua allows you to add further menu options by creating additional instances of the script file and setting Optional Menu Text and Optional Prefix. To avoid confusion, you should also set the Optional Description. If you omit Optional Undo Text, the undo text will be the same as the menu option.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Here is an example that creates a \u8220"Double Fifth Up\u8221" menu option.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Menu Text: {\f1 Double Fifth Up}\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Description: {\f1 Doubles the current note a diatonic fifth higher}\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Prefix: {\f1 input_interval = 4}\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Intervals are defined as 0=unison, 1=second, 2=third, etc. Positive values transpose up and negative values transpose down. See the \u8220"AdditionalPrefixes\u8221" above for examples.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_entry_double_at_interval.hash"
     return "Octave Doubling Up", "Octave Doubling Up", "Doubles the current note an octave higher"

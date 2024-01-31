@@ -518,6 +518,15 @@ function plugindef()
         non-first systems. This script gets those values out of Page Format For Score or Page Format For Parts,
         depending on whether we are currently viewing score or part.
     ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script replaces the Fix Indent function of the JW New Piece plugin. It behaves slightly differently, however. The JW New Piece plugin uses the indentation of System 1 for the other first systems, and it assumes 0 for non-first systems. This script gets those values out of Page Format For Score or Page Format For Parts, depending on whether we are currently viewing score or part.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/system_fix_indent.hash"
     return "Fix Indent From Doc. Settings", "Fix Indent From Doc. Settings", "Resets the left-side indentation of selected systems using the Page Format For options."
 end

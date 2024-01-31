@@ -103,6 +103,15 @@ function plugindef()
     finaleplugin.Notes = [[
         Run this script and all staves will be unmuted.
     ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Run this script and all staves will be unmuted.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_unmute_all_staves.hash"
     return "Unmute all staves", "Unmute all staves", "Unmutes all staves"
 end

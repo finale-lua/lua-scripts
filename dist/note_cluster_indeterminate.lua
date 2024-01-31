@@ -1,6 +1,6 @@
 function plugindef()
     finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Jacob Winkler"
+    finaleplugin.Author = "Jacob Winkler" 
     finaleplugin.Copyright = "©2019 Jacob Winkler"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Version = "1.0"

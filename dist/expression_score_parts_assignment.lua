@@ -1079,8 +1079,8 @@ package.preload["library.expression"] = package.preload["library.expression"] or
     return expression
 end
 function plugindef()
-
-
+   
+   
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -1090,9 +1090,11 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         This script implements three menu options to modify expressions.
+
         - Expression Set To Score And Parts
         - Expression Set To Score Only
         - Expression Set To Parts Only
+
         It changes any selected single-staff expressions that is visible in the current score or part view.
     ]]
     finaleplugin.AdditionalMenuOptions = [[
@@ -1106,6 +1108,22 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
         set_for_score = true set_for_parts = false
         set_for_score = false set_for_parts = true
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 This script implements three menu options to modify expressions.\line
+        \line
+        - Expression Set To Score And Parts\line
+        - Expression Set To Score Only\line
+        - Expression Set To Parts Only\line
+        \line
+        It changes any selected single-staff expressions that is visible in the current score or part view.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 ]] finaleplugin.AdditionalMenuOptions = [[ Expression Set To Score Only Expression Set To Parts Only]] finaleplugin.AdditionalDescriptions = [[ Set any single-staff text expression in the currenly selected region to Score Only assignment. Set any single-staff text expression in the currenly selected region to Parts Only assignment.]] finaleplugin.AdditionalPrefixes = [[ set_for_score = true set_for_parts = false set_for_score = false set_for_parts = true\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_score_parts_assignment.hash"
     return "Expression Set To Score And Parts", "Expression Set To Score And Parts", "Set any single-staff text expression in the currenly selected region to both Score and Parts assignment."

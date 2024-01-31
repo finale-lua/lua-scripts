@@ -5567,24 +5567,37 @@ function plugindef()
     finaleplugin.Version = "0.89"
     finaleplugin.Date = "2023/12/29"
     finaleplugin.MinJWLuaVersion = 0.68
-	finaleplugin.Notes = [[
-        This script presents an alphabetical list of 24 individual types
-        of data to delete, each line beginning with a configurable "hotkey".
-        Call the script, type the hotkey and hit [Enter] or [Return].
+	finaleplugin.Notes = [[ 
+        This script presents an alphabetical list of 24 individual types 
+        of data to delete, each line beginning with a configurable "hotkey". 
+        Call the script, type the hotkey and hit [Enter] or [Return]. 
         Half of the datatypes can be filtered by layer.
-        DELETE INDEPENDENTLY:
-        Articulations• | Articulations on Rests• | Chords | Cross Staff Entries•
-        Custom Lines | Dynamics• | Expressions (Not Dynamics)•
-        Expressions (All)• | Expressions (Measure-Attached) | Glissandos
-        Hairpins | Lyrics• | MIDI Continuous Data | MIDI Note Data•
-        Note Position Offsets• | Notehead Modifications• | Secondary Beam Breaks•
-        Slurs | Smart Shapes (Note Attached) • | Smart Shapes (Beat Attached)
-        Smart Shapes (All) | Staff Styles | Tuplets• | User Selected...
+
+        DELETE INDEPENDENTLY:  
+        Articulations• | Articulations on Rests• | Chords | Cross Staff Entries•  
+        Custom Lines | Dynamics• | Expressions (Not Dynamics)•  
+        Expressions (All)• | Expressions (Measure-Attached) | Glissandos  
+        Hairpins | Lyrics• | MIDI Continuous Data | MIDI Note Data•  
+        Note Position Offsets• | Notehead Modifications• | Secondary Beam Breaks•  
+        Slurs | Smart Shapes (Note Attached) • | Smart Shapes (Beat Attached)  
+        Smart Shapes (All) | Staff Styles | Tuplets• | User Selected...  
         (• = filter by layer)
-        To delete the same data as last time without a confirmation dialog
-        hold down [shift] when starting the script.
-        The layer number is "clamped" to a single character so to change
+
+        To delete the same data as last time without a confirmation dialog 
+        hold down [shift] when starting the script. 
+        The layer number is "clamped" to a single character so to change 
         layer just type a new number - 'delete' key not needed.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script presents an alphabetical list of 24 individual types of data to delete, each line beginning with a configurable \u8220"hotkey\u8221". Call the script, type the hotkey and hit [Enter] or [Return]. Half of the datatypes can be filtered by layer.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 DELETE INDEPENDENTLY:\line Articulations\u8226? | Articulations on Rests\u8226? | Chords | Cross Staff Entries\u8226?\line Custom Lines | Dynamics\u8226? | Expressions (Not Dynamics)\u8226?\line Expressions (All)\u8226? | Expressions (Measure-Attached) | Glissandos\line Hairpins | Lyrics\u8226? | MIDI Continuous Data | MIDI Note Data\u8226?\line Note Position Offsets\u8226? | Notehead Modifications\u8226? | Secondary Beam Breaks\u8226?\line Slurs | Smart Shapes (Note Attached) \u8226? | Smart Shapes (Beat Attached)\line Smart Shapes (All) | Staff Styles | Tuplets\u8226? | User Selected\u8230?\line (\u8226? = filter by layer)\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To delete the same data as last time without a confirmation dialog hold down [shift] when starting the script. The layer number is \u8220"clamped\u8221" to a single character so to change layer just type a new number - \u8216'delete\u8217' key not needed.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/deletion_chooser.hash"
     return "Deletion Chooser...", "Deletion Chooser", "Choose specific items to delete by keystroke"

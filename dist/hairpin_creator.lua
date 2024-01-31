@@ -5492,38 +5492,54 @@ function plugindef()
     ]]
     finaleplugin.AdditionalPrefixes = [[
         hairpin_type = finale.SMARTSHAPE_DIMINUENDO
-        hairpin_type = -1
-        hairpin_type = -2
-        hairpin_type = -3
+        hairpin_type = -1 
+        hairpin_type = -2 
+        hairpin_type = -3 
     ]]
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.ScriptGroupName = "Hairpin Creator"
     finaleplugin.ScriptGroupDescription = "Create four different types of hairpin spanning the currently selected music region"
     finaleplugin.Notes = [[
-        This script creates hairpins spanning the currently selected music region.
-        It provides four menu items to create: `Crescendo`, `Diminuendo`, `Swell` (messa di voce)
-        and `Unswell` (inverse messa di voce) hairpin types.
-        A `Configuration` menu item is also provided to change the script's default settings.
-        Hairpins are positioned vertically to avoid colliding with the lowest notes, down-stem tails,
-        articulations and dynamics on each staff in the selection.
-        Dynamics are shifted vertically to match the calculated hairpin positions.
-        Dynamics in the middle of a hairpin will also be levelled, so
-        give them an opaque background to sit "above" the hairpin.
-        The script also considers `trailing` notes and dynamics, just beyond the end of the selected music,
-        since a hairpin is normally expected to end just before the note with the destination dynamic.
-        Hairpin positions in Finale are more accurate when attached to these "trailing" notes and dynamics,
-        but this can be a problem if trailing items fall across a barline and especially if they are
-        on a different system from the end of the hairpin.
-        (Elaine Gould, "Behind Bars" pp.103-106, outlines multiple scenarios in which hairpins either
-        should or shouldn't "attach" across barlines. Individual preferences may differ.)
-        This script normally works better if dynamic markings are added first.
-        The script will find the lowest matching vertical offset for the hairpin, but if you want the hairpin
-        lower than that then first move a dynamic to the lowest point you want.
+        This script creates hairpins spanning the currently selected music region. 
+        It provides four menu items to create: `Crescendo`, `Diminuendo`, `Swell` (messa di voce) 
+        and `Unswell` (inverse messa di voce) hairpin types. 
+        A `Configuration` menu item is also provided to change the script's default settings. 
 
-        Configuring script defaults can also be accessed by holding down the `shift` or `alt` (option) key
-        when selecting any `hairpin_creator` menu item.
-        For simple hairpins that don't mess around with trailing barlines and dynamics try selecting
+        Hairpins are positioned vertically to avoid colliding with the lowest notes, down-stem tails, 
+        articulations and dynamics on each staff in the selection. 
+        Dynamics are shifted vertically to match the calculated hairpin positions. 
+        Dynamics in the middle of a hairpin will also be levelled, so 
+        give them an opaque background to sit "above" the hairpin. 
+        The script also considers `trailing` notes and dynamics, just beyond the end of the selected music, 
+        since a hairpin is normally expected to end just before the note with the destination dynamic. 
+
+        Hairpin positions in Finale are more accurate when attached to these "trailing" notes and dynamics, 
+        but this can be a problem if trailing items fall across a barline and especially if they are 
+        on a different system from the end of the hairpin. 
+        (Elaine Gould, "Behind Bars" pp.103-106, outlines multiple scenarios in which hairpins either 
+        should or shouldn't "attach" across barlines. Individual preferences may differ.)
+
+        This script normally works better if dynamic markings are added first. 
+        The script will find the lowest matching vertical offset for the hairpin, but if you want the hairpin 
+        lower than that then first move a dynamic to the lowest point you want. 
+        
+        Configuring script defaults can also be accessed by holding down the `shift` or `alt` (option) key 
+        when selecting any `hairpin_creator` menu item. 
+        For simple hairpins that don't mess around with trailing barlines and dynamics try selecting 
         `dynamics match hairpin` and de-selecting the other options.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script creates hairpins spanning the currently selected music region. It provides four menu items to create: {\f1 Crescendo}, {\f1 Diminuendo}, {\f1 Swell} (messa di voce) and {\f1 Unswell} (inverse messa di voce) hairpin types. A {\f1 Configuration} menu item is also provided to change the script\u8217's default settings.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Hairpins are positioned vertically to avoid colliding with the lowest notes, down-stem tails, articulations and dynamics on each staff in the selection. Dynamics are shifted vertically to match the calculated hairpin positions. Dynamics in the middle of a hairpin will also be levelled, so give them an opaque background to sit \u8220"above\u8221" the hairpin. The script also considers {\f1 trailing} notes and dynamics, just beyond the end of the selected music, since a hairpin is normally expected to end just before the note with the destination dynamic.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Hairpin positions in Finale are more accurate when attached to these \u8220"trailing\u8221" notes and dynamics, but this can be a problem if trailing items fall across a barline and especially if they are on a different system from the end of the hairpin. (Elaine Gould, \u8220"Behind Bars\u8221" pp.103-106, outlines multiple scenarios in which hairpins either should or shouldn\u8217't \u8220"attach\u8221" across barlines. Individual preferences may differ.)\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script normally works better if dynamic markings are added first. The script will find the lowest matching vertical offset for the hairpin, but if you want the hairpin lower than that then first move a dynamic to the lowest point you want.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Configuring script defaults can also be accessed by holding down the {\f1 shift} or {\f1 alt} (option) key when selecting any {\f1 hairpin_creator} menu item. For simple hairpins that don\u8217't mess around with trailing barlines and dynamics try selecting {\f1 dynamics match hairpin} and de-selecting the other options.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/hairpin_creator.hash"
     return "Hairpin Create Crescendo", "Hairpin Create Crescendo", "Create crescendo hairpin spanning the selected region"

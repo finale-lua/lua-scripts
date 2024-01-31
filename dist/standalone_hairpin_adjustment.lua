@@ -1434,18 +1434,38 @@ function plugindef()
         standalone_hairpin_adjustment.config.txt in a folder called `script_settings` within the same
         folder as the script. It can contain any or all of the following configuration parameters.
         (The default values are shown.)
+
         ```
-        left_dynamic_cushion = 9
-        right_dynamic_cushion = -9
-        left_selection_cushion = 0
-        right_selection_cushion = 0
-        extend_to_end_of_right_entry = true
-        limit_to_hairpins_on_notes = true
-        vertical_adjustment_type = "far"
-        horizontal_adjustment_type = "both"
-        vertical_displacement_for_hairpins = 12
-        extend_to_expression_in_next_bar = false
+        left_dynamic_cushion = 9                    
+        right_dynamic_cushion = -9                  
+        left_selection_cushion = 0                  
+        right_selection_cushion = 0                 
+        extend_to_end_of_right_entry = true         
+        limit_to_hairpins_on_notes = true           
+        vertical_adjustment_type = "far"            
+        horizontal_adjustment_type = "both"         
+        vertical_displacement_for_hairpins = 12     
+        extend_to_expression_in_next_bar = false    
         ```
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This plugin has several configuration options. To set the options, create a plain text file called standalone_hairpin_adjustment.config.txt in a folder called {\f1 script_settings} within the same folder as the script. It can contain any or all of the following configuration parameters. (The default values are shown.)\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 left_dynamic_cushion = 9                    
+        right_dynamic_cushion = -9                  
+        left_selection_cushion = 0                  
+        right_selection_cushion = 0                 
+        extend_to_end_of_right_entry = true         
+        limit_to_hairpins_on_notes = true           
+        vertical_adjustment_type = "far"            
+        horizontal_adjustment_type = "both"         
+        vertical_displacement_for_hairpins = 12     
+        extend_to_expression_in_next_bar = false    
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/standalone_hairpin_adjustment.hash"
     return "Hairpin and Dynamic Adjustments", "Hairpin and Dynamic Adjustments", "Adjusts hairpins to remove collisions with dynamics and aligns hairpins with dynamics."

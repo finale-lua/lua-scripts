@@ -4994,22 +4994,35 @@ function plugindef()
     finaleplugin.Version = "v1.57"
     finaleplugin.Date = "2023/11/01"
     finaleplugin.MinJWLuaVersion = 0.62
-    finaleplugin.Notes = [[
-        When crossing notes to adjacent staves the stems of 'crossed' notes can be reversed
-        (on the "wrong"" side of the notehead) and look too far
-        to the right (if shifting downwards) by the width of a notehead, around 24 EVPUs.
-        This script shifts cross-staffed notes horizontally,
-        with a different offset for non-crossed notes, acting on one or all layers.
-        It is also a quick way to reset the horizontal position of all notes to zero.
-        To repeat your last settings without a confirmation dialog
+    finaleplugin.Notes = [[ 
+        When crossing notes to adjacent staves the stems of 'crossed' notes can be reversed 
+        (on the "wrong"" side of the notehead) and look too far 
+        to the right (if shifting downwards) by the width of a notehead, around 24 EVPUs. 
+        This script shifts cross-staffed notes horizontally, 
+        with a different offset for non-crossed notes, acting on one or all layers. 
+        It is also a quick way to reset the horizontal position of all notes to zero. 
+        To repeat your last settings without a confirmation dialog 
         hold down the SHIFT key when starting the script.
-        When crossing UP try EVPU offsets of 12 (crossed) and -12 (not crossed), or 24/0.
+
+        When crossing UP try EVPU offsets of 12 (crossed) and -12 (not crossed), or 24/0. 
         When crossing DOWN try crossed/uncrossed offsets of -12/12 EVPUs or -24/0.
-        To change measurement units without using the mouse, type one of these keys:
-        "e" (EVPUs), "i" (Inches), "c" (Centimeters),
-        "o" (Points), "a" (Picas), or "s" (Spaces).
-        Use "u" and "d" to set the default values for crossing staves Up/Down.
-        To view these notes type "q".
+
+        To change measurement units without using the mouse, type one of these keys: 
+        "e" (EVPUs), "i" (Inches), "c" (Centimeters), 
+        "o" (Points), "a" (Picas), or "s" (Spaces).         
+        Use "u" and "d" to set the default values for crossing staves Up/Down. 
+        To view these notes type "q". 
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 When crossing notes to adjacent staves the stems of \u8216'crossed\u8217' notes can be reversed (on the \u8220"wrong\u8221"" side of the notehead) and look too far to the right (if shifting downwards) by the width of a notehead, around 24 EVPUs. This script shifts cross-staffed notes horizontally, with a different offset for non-crossed notes, acting on one or all layers. It is also a quick way to reset the horizontal position of all notes to zero. To repeat your last settings without a confirmation dialog hold down the SHIFT key when starting the script.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 When crossing UP try EVPU offsets of 12 (crossed) and -12 (not crossed), or 24/0. When crossing DOWN try crossed/uncrossed offsets of -12/12 EVPUs or -24/0.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To change measurement units without using the mouse, type one of these keys: \u8220"e\u8221" (EVPUs), \u8220"i\u8221" (Inches), \u8220"c\u8221" (Centimeters), \u8220"o\u8221" (Points), \u8220"a\u8221" (Picas), or \u8220"s\u8221" (Spaces).\line Use \u8220"u\u8221" and \u8220"d\u8221" to set the default values for crossing staves Up/Down. To view these notes type \u8220"q\u8221".\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/cross_staff_offset.hash"
     return "CrossStaff Offset...", "CrossStaff Offset",

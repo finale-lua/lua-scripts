@@ -1451,14 +1451,33 @@ function plugindef()
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.Notes = [[
         This script sets up a score for string orchestra:
+
         - Violin 1
         - Violin 2
         - Viola
         - Cello
         - Bass
+
         To use it, first open your default document or document styles. Then, run the script.
         All existing staffs will be deleted. And in their place, the string orchestra will be created.
+
         This script uses the standard ensemble creation configuration options.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script sets up a score for string orchestra:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Violin 1\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Violin 2\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Viola\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Cello\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Bass\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To use it, first open your default document or document styles. Then, run the script. All existing staffs will be deleted. And in their place, the string orchestra will be created.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script uses the standard ensemble creation configuration options.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/score_create_string_orchestra_score.hash"
     return "Create string orchestra score", "Create string orchestra score",

@@ -5008,20 +5008,35 @@ function plugindef()
     finaleplugin.ScriptGroupName = "Pitch Changer"
     finaleplugin.ScriptGroupDescription = "Change all notes of one pitch in the region to another pitch"
     finaleplugin.Notes = [[
-        This script was inspired by Jari Williamsson's "JW Change Pitches"
+        This script was inspired by Jari Williamsson's "JW Change Pitches" 
         plug-in (2017) revived to work on Macs with non-Intel processors.
-        Identify "from" and "to" pitches by note name (a-g or A-G)
-        followed by accidental (#-###, b-bbb) as required.
-        Matching pitches will be changed in every octave.
-        To repeat the last pitch change without a confirmation dialog use
+
+        Identify "from" and "to" pitches by note name (a-g or A-G) 
+        followed by accidental (#-###, b-bbb) as required. 
+        Matching pitches will be changed in every octave. 
+        To repeat the last pitch change without a confirmation dialog use 
         the "Pitch Changer Repeat" menu or hold down the SHIFT key at startup.
+
         KEY REPLACEMENTS:
-        Type "z", "x" or "v" to change the DIRECTION to "Closest",
-        "Up" or "Down" respectively.
-        Type "s" as an alternative to "#".
-        Type "w" to swap the values in the "From:" and "To:" fields.
-        Type "q" to display this "Information" window.
+
+        Type "z", "x" or "v" to change the DIRECTION to "Closest", 
+        "Up" or "Down" respectively. 
+        Type "s" as an alternative to "#". 
+        Type "w" to swap the values in the "From:" and "To:" fields. 
+        Type "q" to display this "Information" window. 
 	]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script was inspired by Jari Williamsson\u8217's \u8220"JW Change Pitches\u8221" plug-in (2017) revived to work on Macs with non-Intel processors.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Identify \u8220"from\u8221" and \u8220"to\u8221" pitches by note name (a-g or A-G) followed by accidental (#-###, b-bbb) as required. Matching pitches will be changed in every octave. To repeat the last pitch change without a confirmation dialog use the \u8220"Pitch Changer Repeat\u8221" menu or hold down the SHIFT key at startup.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 KEY REPLACEMENTS:\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Type \u8220"z\u8221", \u8220"x\u8221" or \u8220"v\u8221" to change the DIRECTION to \u8220"Closest\u8221", \u8220"Up\u8221" or \u8220"Down\u8221" respectively. Type \u8220"s\u8221" as an alternative to \u8220"#\u8221". Type \u8220"w\u8221" to swap the values in the \u8220"From:\u8221" and \u8220"To:\u8221" fields. Type \u8220"q\u8221" to display this \u8220"Information\u8221" window.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_changer.hash"
     return "Pitch Changer...", "Pitch Changer", "Change all notes of one pitch in the region to another pitch"
 end

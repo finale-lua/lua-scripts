@@ -5155,24 +5155,38 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
 end
 function plugindef()
     finaleplugin.RequireSelection = false
-    finaleplugin.HandlesUndo = true
+    finaleplugin.HandlesUndo = true 
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.AuthorURL = "https://www.robertgpatterson.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "v1.0.1"
     finaleplugin.Date = "2023/1/11"
     finaleplugin.Notes = [[
-        Chords from the source layers in the selected region are split into another layer on the same staff based on a split point.
-        Multiple measures and staves can be selected at once.
+        Chords from the source layers in the selected region are split into another layer on the same staff based on a split point. 
+        Multiple measures and staves can be selected at once. 
         Articulations on the original are optionally copied to the other layer.
-
+        
         The dialog box has the following options:
-
+        
         - From Layer (1-4): the source layer to split from (defaults to 1)
         - To Layer (1-4): the target layer to split to (defaults to 2)
         - Split At [ ] Notes From Top: the number of chord tones to preserve in the source layer, counting from the top of each chord. All other notes are split to the target layer.
         - Copy Articulations: if checked, copies articulations from the source to the target.
-
+        
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Chords from the source layers in the selected region are split into another layer on the same staff based on a split point. Multiple measures and staves can be selected at once. Articulations on the original are optionally copied to the other layer.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The dialog box has the following options:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab From Layer (1-4): the source layer to split from (defaults to 1)\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To Layer (1-4): the target layer to split to (defaults to 2)\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Split At [ ] Notes From Top: the number of chord tones to preserve in the source layer, counting from the top of each chord. All other notes are split to the target layer.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Copy Articulations: if checked, copies articulations from the source to the target.\sa180\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_split_layers.hash"
     return "Staff Split Layers...", "Staff Split Layers", "Split chords from one layer 1 into two independent layers, based on a split point."

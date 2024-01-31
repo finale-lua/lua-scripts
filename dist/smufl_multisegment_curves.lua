@@ -4767,6 +4767,15 @@ function plugindef()
             Allows you to construct a string from SMuFL multi-segment curved-line characters
             that can be used, e.g., for expressions or custom lines to indicate random/uneven motion.
         ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Allows you to construct a string from SMuFL multi-segment curved-line characters that can be used, e.g., for expressions or custom lines to indicate random/uneven motion.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/smufl_multisegment_curves.hash"
     return "SMuFL Multi-Segment Curves...", "SMuFL Multi-Segment Curves", "Allows you to construct a string from SMuFL multi-segment curved-line characters"
 end

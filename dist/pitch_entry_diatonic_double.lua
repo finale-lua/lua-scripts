@@ -5534,12 +5534,21 @@ function plugindef()
     finaleplugin.ScriptGroupName = "Double Diatonic"
     finaleplugin.ScriptGroupDescription = "Double notes and chords up or down by a chosen diatonic interval"
     finaleplugin.Notes = [[
-        Notes and chords in the current music selection are doubled
-        either up or down by the chosen diatonic interval.
-        Act on one layer or all four.
-        To repeat the last action without a confirmation dialog use
+        Notes and chords in the current music selection are doubled 
+        either up or down by the chosen diatonic interval. 
+        Act on one layer or all four. 
+        To repeat the last action without a confirmation dialog use 
         the "Repeat" menu or hold down [shift] when starting the script.
 	]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Notes and chords in the current music selection are doubled either up or down by the chosen diatonic interval. Act on one layer or all four. To repeat the last action without a confirmation dialog use the \u8220"Repeat\u8221" menu or hold down [shift] when starting the script.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_entry_diatonic_double.hash"
    return "Double Diatonic...", "Double Diatonic",
         "Double notes and chords up or down by a chosen diatonic interval"

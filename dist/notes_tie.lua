@@ -990,9 +990,18 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.ScriptGroupName = "Tie/untie notes"
     finaleplugin.ScriptGroupDescription = "Tie or untie suitable notes in the current selection"
-    finaleplugin.Notes = [[
-    Ties notes in adjacent entries if matching pitches are available.
+    finaleplugin.Notes = [[ 
+    Ties notes in adjacent entries if matching pitches are available. 
     A companion menu item is also created to `Untie` all notes in the selection.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Ties notes in adjacent entries if matching pitches are available. A companion menu item is also created to {\f1 Untie} all notes in the selection.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/notes_tie.hash"
     return "Tie Notes", "Tie Notes", "Tie suitable notes in the selected region"

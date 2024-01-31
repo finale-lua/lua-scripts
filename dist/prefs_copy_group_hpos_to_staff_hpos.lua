@@ -9,6 +9,15 @@ function plugindef()
         with a plugin frequently caused the horizontal position of staves to be randomly modified in the score. This
         script restores the staff horizontal position by setting it to match the default horizontal group name position.
     ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script mitigates a bug that existed in Finale 2012 but was fixed as of Finale 2014.5. Editing a linked part with a plugin frequently caused the horizontal position of staves to be randomly modified in the score. This script restores the staff horizontal position by setting it to match the default horizontal group name position.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/prefs_copy_group_hpos_to_staff_hpos.hash"
     return "Copy Default Group Name Horizontal Position To Staff", "Copy Default Group Name Horizontal Position To Staff", "Copies default horizontal group name positions to default staff name positions. (Reverses Finale bug that was fixed as of Finale 2014.5.)"
 end

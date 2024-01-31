@@ -327,6 +327,15 @@ function plugindef()
         down the Shift or Option keys, the script removes all augmentation dots in a single invocation.
         (This requires a version of RGP Lua that supports it, which includes the current version.)
     ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This plugin adds two menu items, \u8220"Add Augmentation Dots\u8221" and \u8220"Remove Augmentation Dots\u8221". The \u8220"Remove\u8221" function reverses the result of the \u8220"Add\u8221" function, which means it removes only the right-most dot each time you invoke it. However, if you invoke the \u8220"Remove\u8221" function while holding down the Shift or Option keys, the script removes all augmentation dots in a single invocation. (This requires a version of RGP Lua that supports it, which includes the current version.)\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_add_augmentation_dots.hash"
     return "Add Augmentation Dots", "Add Augmentation Dots",
            "Add an augmentation dot to all notes and rests in selected region."

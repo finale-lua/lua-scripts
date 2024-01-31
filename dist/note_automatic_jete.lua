@@ -1211,20 +1211,26 @@ function plugindef()
     finaleplugin.Notes = [[
         This script automatically creates a “jeté”-style bowing effect. These mimic examples shown on p. 404 of “Behind Bars"
         by Elaine Gould. For the best results with staccato dots, use an articulation with “Avoid Staff Lines” unchecked.
+
         By default, the script searches for articulations using the '.' character (ASCII code 46) for non-SMuFL fonts and
         the SMuFL dot character (UTF code 0xe4a2) for SMuFL fonts. This character must be the Main Character in Finale's
         articulation definition dialog. You can override this to search for a different character code using a
         configuration file. (See below.)
+
         To use the script, you enter the notes you want to display, and it removes the noteheads in between the first
         and last notehead, adjusts any staccato dots, and adds a gliss mark (tab slide) between the first and last notes,
         unless there is one already there. If you want a slur as well, add it manually before or after running the script.
+
         The steps to use this script are:
+
         1. Add the notes you want to display, with or without accidentals. Normally you choose notes with noteheads
         that follow a straight-line path as closely as possible. They can be reduced size or grace notes.
         2. Add staccato dots if you want them.
         3. Add a slur if you want it.
         4. Run the script on the pattern you just entered.
+
         The script takes the following actions:
+
         1. Searches for a selected pattern, skipping rests at the beginning and stopping at the first rest it encounters.
         2. Hides the noteheads on all but the first and (optionally) last entry.
         3. Hides accidentals on any noteheads that were hidden.
@@ -1232,20 +1238,53 @@ function plugindef()
             if the articulation is set to avoid staff lines.)
         5. Adds a gliss mark (tab slide) between the first and last notes, if one does not already exist.
             If you have entered parallel chords, it adds a gliss mark for each note in the chord.
+
         By default, the script does not hide the last selected note (or any accidentals it may have). You can override
         this behavior with a configuration file or if you are using RGP Lua 0.59 or higher, you can cause the script
         to hide the last note by holding down Shift, Option (Mac), or Alt (Win) when you invoke it.
+
         To use a configuration file:
+
         1. If it does not exist, create a subfolder called `script_settings` in the folder where this script resides.
         2. Create a text file in the `script_settings` folder called `note_automatic_jete.config.txt`.
         3. Add either or both of the following lines to it.
+
         ```
-        dot_character = 46
-        hide_last_note = true
+        dot_character = 46           
+        hide_last_note = true        
         ```
     ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script automatically creates a \u8220"jet\u233?\u8221"-style bowing effect. These mimic examples shown on p.\u160?404 of \u8220"Behind Bars\u8221" by Elaine Gould. For the best results with staccato dots, use an articulation with \u8220"Avoid Staff Lines\u8221" unchecked.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 By default, the script searches for articulations using the \u8216'.\u8217' character (ASCII code 46) for non-SMuFL fonts and the SMuFL dot character (UTF code 0xe4a2) for SMuFL fonts. This character must be the Main Character in Finale\u8217's articulation definition dialog. You can override this to search for a different character code using a configuration file. (See below.)\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To use the script, you enter the notes you want to display, and it removes the noteheads in between the first and last notehead, adjusts any staccato dots, and adds a gliss mark (tab slide) between the first and last notes, unless there is one already there. If you want a slur as well, add it manually before or after running the script.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The steps to use this script are:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Add the notes you want to display, with or without accidentals. Normally you choose notes with noteheads that follow a straight-line path as closely as possible. They can be reduced size or grace notes.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Add staccato dots if you want them.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Add a slur if you want it.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Run the script on the pattern you just entered.\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The script takes the following actions:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Searches for a selected pattern, skipping rests at the beginning and stopping at the first rest it encounters.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Hides the noteheads on all but the first and (optionally) last entry.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Hides accidentals on any noteheads that were hidden.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Aligns the staccato dots in a straight line path. (The path may not be exactly straight if the articulation is set to avoid staff lines.)\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Adds a gliss mark (tab slide) between the first and last notes, if one does not already exist. If you have entered parallel chords, it adds a gliss mark for each note in the chord.\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 By default, the script does not hide the last selected note (or any accidentals it may have). You can override this behavior with a configuration file or if you are using RGP Lua 0.59 or higher, you can cause the script to hide the last note by holding down Shift, Option (Mac), or Alt (Win) when you invoke it.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To use a configuration file:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab If it does not exist, create a subfolder called {\f1 script_settings} in the folder where this script resides.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Create a text file in the {\f1 script_settings} folder called {\f1 note_automatic_jete.config.txt}.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Add either or both of the following lines to it.\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 dot_character = 46           
+        hide_last_note = true        
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_automatic_jete.hash"
-    return "Automatic Jeté", "Automatic Jete",
+    return "Automatic Jeté", "Automatic Jete", 
            "Add gliss. marks, hide noteheads, and adjust staccato marks as needed for jeté bowing."
 end
 local note_entry = require("library.note_entry")

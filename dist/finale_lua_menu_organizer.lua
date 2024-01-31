@@ -207,8 +207,8 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     return utils
 end
 function plugindef()
-
-
+    
+    
     finaleplugin.RequireDocument = false
     finaleplugin.RequireSelection = false
     finaleplugin.NoStore = true
@@ -220,31 +220,46 @@ function plugindef()
     finaleplugin.Copyright = "2023"
     finaleplugin.Version = "1.0.2"
     finaleplugin.Date = "2023-02-24"
-    finaleplugin.MinJWLuaVersion = 0.66
-
+    finaleplugin.MinJWLuaVersion = 0.66 
+        
     finaleplugin.Notes = [[
     This plug-in runs when Finale starts up and organizes the menus according to a configuration file called `finale_lua_menus.txt`.
     The plugin searches for the file in two locations:
+
     1. The running folder where this script resides.
     2. The Finale Plug-Ins main folder.
+
     If the file is not found, the script exits without doing anything. However, you can have it create a template with all the Lua menu items
     by changing the `create_template_if_not_found` variable to `true`. You may then edit the template to taste. It creates it in the script's running folder.
+
     The format of `finale_lua_menus.txt` is fully compatible with the format of the JWLuaMenu plugin, which this script is intended to replace.
     It supports the following keywords and tokens. Empty lines are skipped.
+
     **MENUNAME [text]**
+
     Identifies the source menu from which to take menu items. The plugin searches Finale's Plug-Ins menu and submenus for a menu item that starts with this text.
     The menu containing that item becomes the menu from which items are taken. If this value is omitted, it defaults to JW Lua.
+
     **USEMAINMENU [text]**
+
     Specifies a new menu item to be created in Finale's main menu bar. If omitted, the menu items will be copied to the same menu as specified by MENUNAME.
     You can include an ampersand (&) for a Windows menu hotkey. This will be stripped out and ignored if the file is used with Mac Finale.
+
     **>[text]** Starts a submenu with name [text].
+
     **<** Ends the current submenu.
+
     **=>** Changes the menu item text from the original text to new text.
+
     **-** A single hyphen by itself inserts a divider into the menu.
+
     **//** Delimits a comment. Everything after the comment delimiter is ignored.
+
     Tabs and other whitespace are ignored, but it may be useful to use tabs to show submenus.
     If any of the source menus are empty after the menu layout is complete, the script removes that submenu from Finale's plugin menu.
+
     Here is an example of a configuration file.
+
     ```
     MENUNAME    RGP Lua        // selects the subfolder containing the RGP Lua plugin.
     USEMAINMENU    &Lua        // creates a new menu called 'Lua' in Finale's main menu bar (optional)
@@ -265,6 +280,48 @@ function plugindef()
         Barline Set Normal        => Normal
     <
     ```
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This plug-in runs when Finale starts up and organizes the menus according to a configuration file called {\f1 finale_lua_menus.txt}. The plugin searches for the file in two locations:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab The running folder where this script resides.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab The Finale Plug-Ins main folder.\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 If the file is not found, the script exits without doing anything. However, you can have it create a template with all the Lua menu items by changing the {\f1 create_template_if_not_found} variable to {\f1 true}. You may then edit the template to taste. It creates it in the script\u8217's running folder.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The format of {\f1 finale_lua_menus.txt} is fully compatible with the format of the JWLuaMenu plugin, which this script is intended to replace. It supports the following keywords and tokens. Empty lines are skipped.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 {\b MENUNAME [text]}\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Identifies the source menu from which to take menu items. The plugin searches Finale\u8217's Plug-Ins menu and submenus for a menu item that starts with this text. The menu containing that item becomes the menu from which items are taken. If this value is omitted, it defaults to JW Lua.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 {\b USEMAINMENU [text]}\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Specifies a new menu item to be created in Finale\u8217's main menu bar. If omitted, the menu items will be copied to the same menu as specified by MENUNAME. You can include an ampersand (&) for a Windows menu hotkey. This will be stripped out and ignored if the file is used with Mac Finale.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 {\b >[text]} Starts a submenu with name [text].\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 {\b <} Ends the current submenu.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 {\b =>} Changes the menu item text from the original text to new text.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 {\b -} A single hyphen by itself inserts a divider into the menu.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 {\b //} Delimits a comment. Everything after the comment delimiter is ignored.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Tabs and other whitespace are ignored, but it may be useful to use tabs to show submenus. If any of the source menus are empty after the menu layout is complete, the script removes that submenu from Finale\u8217's plugin menu.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Here is an example of a configuration file.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 MENUNAME    RGP Lua        // selects the subfolder containing the RGP Lua plugin.\line
+        USEMAINMENU    &Lua        // creates a new menu called 'Lua' in Finale's main menu bar (optional)\line
+        >Articulations\line
+            Autoposition Rolled Chord Articulations\line
+            Remove Duplicate Articulations\line
+            Remove Articulations from Rests\line
+            Reset Automatic Articulation Positions\line
+            Reset Articulation Positions\line
+            -\line
+            Delete Articulations            => Delete All\line
+        <\line
+        >Barline\line
+            Barline Set Dashed        => Dashed\line
+            Barline Set Double        => Double\line
+            Barline Set Final        => Final\line
+            Barline Set None        => None\line
+            Barline Set Normal        => Normal\line
+        <\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/finale_lua_menu_organizer.hash"
     return "Finale Lua Menu Organizer", "Finale Lua Menu Organizer",

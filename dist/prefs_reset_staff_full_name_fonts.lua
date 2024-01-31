@@ -632,8 +632,8 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
     return enigma_string
 end
 function plugindef()
-
-
+    
+    
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0.2"
@@ -643,6 +643,15 @@ function plugindef()
         This script only affects selected staves.
         If you select the entire document before running this script, it modifies any
         full staff names found in staff styles as well.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script only affects selected staves. If you select the entire document before running this script, it modifies any full staff names found in staff styles as well.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/prefs_reset_staff_full_name_fonts.hash"
     return "Reset Full Staff Name Fonts", "Reset Full Staff Name Fonts",

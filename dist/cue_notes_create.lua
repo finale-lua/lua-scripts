@@ -5234,16 +5234,29 @@ function plugindef()
     ]]
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
-        This script is designed to take music from one staff and create
-        "cue note" copies in the same measure on one or more empty staves.
-        The copy is smaller and muted, and can include chosen markings from the original.
+        This script is designed to take music from one staff and create 
+        "cue note" copies in the same measure on one or more empty staves. 
+        The copy is smaller and muted, and can include chosen markings from the original. 
         It is copied to the chosen layer with a whole-note rest placed in the original layer.
-        Preferences are preserved between each run.
-        This script uses an expression category called "Cue Names" which
-        will be created if needed.
-        An extra menu, "Cue Notes Flip Frozen", will look for notes in the
-        previously selected "cue note" layer and flip the direction of their
+
+        Preferences are preserved between each run. 
+        This script uses an expression category called "Cue Names" which 
+        will be created if needed. 
+
+        An extra menu, "Cue Notes Flip Frozen", will look for notes in the 
+        previously selected "cue note" layer and flip the direction of their 
         stems if they have been "frozen" up or down.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script is designed to take music from one staff and create \u8220"cue note\u8221" copies in the same measure on one or more empty staves. The copy is smaller and muted, and can include chosen markings from the original. It is copied to the chosen layer with a whole-note rest placed in the original layer.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Preferences are preserved between each run. This script uses an expression category called \u8220"Cue Names\u8221" which will be created if needed.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 An extra menu, \u8220"Cue Notes Flip Frozen\u8221", will look for notes in the previously selected \u8220"cue note\u8221" layer and flip the direction of their stems if they have been \u8220"frozen\u8221" up or down.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/cue_notes_create.hash"
     return "Cue Notes Create...", "Cue Notes Create", "Copy as cue notes to another staff"

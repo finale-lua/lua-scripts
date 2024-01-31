@@ -632,8 +632,8 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
     return enigma_string
 end
 function plugindef()
-
-
+    
+    
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0.2"
@@ -643,12 +643,23 @@ function plugindef()
         This script only affects selected staves.
         If you select the entire document before running this script, it modifies any
         abbreviated staff names found in staff styles as well.
+
         This script may be especially useful with the New Document Setup Wizard. The Wizard
         sets up all the staves in the new document with font settings for abbreviations that
         match the font settings for full staff names. It apparently ignores the default font setttings
         for abbreviated names specified in the Document Style. The result is that none these font
         settings in the new document match the Document Options. This script allows you quickly
         to rectify this unfortunate behavior.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script only affects selected staves. If you select the entire document before running this script, it modifies any abbreviated staff names found in staff styles as well.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script may be especially useful with the New Document Setup Wizard. The Wizard sets up all the staves in the new document with font settings for abbreviations that match the font settings for full staff names. It apparently ignores the default font setttings for abbreviated names specified in the Document Style. The result is that none these font settings in the new document match the Document Options. This script allows you quickly to rectify this unfortunate behavior.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/prefs_reset_staff_abbreviated_name_fonts.hash"
     return "Reset Abbreviated Staff Name Fonts", "Reset Abbreviated Staff Name Fonts",

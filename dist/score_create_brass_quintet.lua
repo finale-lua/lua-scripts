@@ -1451,14 +1451,33 @@ function plugindef()
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.Notes = [[
         This script sets up a score for brass quintet:
+
         - Trumpet in C 1
         - Trumpet in C 2
         - Horn in F
         - Trombone
         - Tuba
+
         To use it, first open your default document or document styles. Then, run the script.
         All existing staffs will be deleted. And in their place, the brass quintet will be created.
+
         This script uses the standard ensemble creation configuration options.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script sets up a score for brass quintet:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Trumpet in C 1\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Trumpet in C 2\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Horn in F\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Trombone\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Tuba\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To use it, first open your default document or document styles. Then, run the script. All existing staffs will be deleted. And in their place, the brass quintet will be created.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script uses the standard ensemble creation configuration options.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/score_create_brass_quintet.hash"
     return "Create brass quintet score", "Create brass quintet score", "Creates the score setup correctly for brass quintet"

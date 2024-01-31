@@ -505,14 +505,23 @@ package.preload["library.general_library"] = package.preload["library.general_li
     return library
 end
 function plugindef()
-
-
+    
+    
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "7/24/2022"
     finaleplugin.Notes = [[
 Replaces the noteheads in a 'Finale Maestro' document with the 'Maestro Wide' glyphs included in the Alternates & Extras category.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Replaces the noteheads in a \u8216'Finale Maestro\u8217' document with the \u8216'Maestro Wide\u8217' glyphs included in the Alternates & Extras category.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/smufl_maestro_wide_noteheads.hash"
     return "Finale Maestro: Wide Notes", "Finale Maestro: Wide Notes", "Replaces noteheads in Finale Maestro with the wide variation."

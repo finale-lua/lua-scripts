@@ -6603,8 +6603,8 @@ function plugindef()
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "2.1.3"
     finaleplugin.Date = "2023-03-25"
-    finaleplugin.CategoryTags = "Report"
-    finaleplugin.Id = "9c05a4c4-9508-4608-bb1b-2819cba96101"
+    finaleplugin.CategoryTags = "Report"   
+    finaleplugin.Id = "9c05a4c4-9508-4608-bb1b-2819cba96101" 
     finaleplugin.AdditionalMenuOptions = [[
         Import Document Options from JSON...
     ]]
@@ -6620,22 +6620,35 @@ function plugindef()
         v1.1.2      First public release
     ]]
     finaleplugin.Notes = [[
-        While other plugins exist that let you copy document options directly from one document to another,
-        this script saves the options from the current document in an organized human-readable form, as a
-        JSON file. You can then use a diff program to compare the JSON files generated from
-        two Finale documents, or you can keep track of how the settings in a document have changed
+        While other plugins exist that let you copy document options directly from one document to another, 
+        this script saves the options from the current document in an organized human-readable form, as a 
+        JSON file. You can then use a diff program to compare the JSON files generated from 
+        two Finale documents, or you can keep track of how the settings in a document have changed 
         over time. The script will also let you import settings from a full or partial JSON file.
         Please see https://url.sherber.com/finalelua/options-as-json for more information.
-
-        The focus is on document-specific settings, rather than program-wide ones, and in particular on
-        the ones that affect the look of a document. Most of these come from the Document Options dialog
-        in Finale, although some come from the Category Designer, the Page Format dialog, and the
+        
+        The focus is on document-specific settings, rather than program-wide ones, and in particular on 
+        the ones that affect the look of a document. Most of these come from the Document Options dialog 
+        in Finale, although some come from the Category Designer, the Page Format dialog, and the 
         SmartShape menu.
-        All physical measurements are given in EVPUs, except for a couple of values that Finale always
-        displays as spaces. (1 EVPU is 1/288 of an inch, 1/24 of a space, or 1/4 of a point.) So if your
+
+        All physical measurements are given in EVPUs, except for a couple of values that Finale always 
+        displays as spaces. (1 EVPU is 1/288 of an inch, 1/24 of a space, or 1/4 of a point.) So if your 
         measurement units are set to EVPUs, the values given here should match what you see in Finale.
     ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 While other plugins exist that let you copy document options directly from one document to another, this script saves the options from the current document in an organized human-readable form, as a JSON file. You can then use a diff program to compare the JSON files generated from two Finale documents, or you can keep track of how the settings in a document have changed over time. The script will also let you import settings from a full or partial JSON file. Please see https://url.sherber.com/finalelua/options-as-json for more information.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The focus is on document-specific settings, rather than program-wide ones, and in particular on the ones that affect the look of a document. Most of these come from the Document Options dialog in Finale, although some come from the Category Designer, the Page Format dialog, and the SmartShape menu.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 All physical measurements are given in EVPUs, except for a couple of values that Finale always displays as spaces. (1 EVPU is 1/288 of an inch, 1/24 of a space, or 1/4 of a point.) So if your measurement units are set to EVPUs, the values given here should match what you see in Finale.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/document_options_as_json.hash"
+
     return "Save Document Options as JSON...", "", "Saves all current document options to a JSON file"
 end
 action = action or "export"

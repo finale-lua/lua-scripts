@@ -4901,17 +4901,34 @@ function plugindef()
     finaleplugin.CategoryTags = "Entries, Pitch, Transposition"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = [[
-        Change up to four specific pitches to other specific pitches.
+        Change up to four specific pitches to other specific pitches. 
         Pitch specification is exact and immutable:
-        First character: pitch name A-G.
+
+        First character: pitch name A-G. 
         (Lower case will be replaced automatically with upper case)
+
         Last character: octave number 0-9.
-        In between: accidentals if needed.
-        b / bb / bbb / # / ## / ###
+
+        In between: accidentals if needed. 
+        b / bb / bbb / # / ## / ### 
         (you can use "s" instead of "#" - automatic replacement)
-        If you make a mistake with the pitch format you will be asked to
-        "FIX" the mistake before the pitch change can take place.
+
+        If you make a mistake with the pitch format you will be asked to 
+        "FIX" the mistake before the pitch change can take place. 
         "C4" is middle C. "B4" is a major seventh above that.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Change up to four specific pitches to other specific pitches. Pitch specification is exact and immutable:\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 First character: pitch name A-G. (Lower case will be replaced automatically with upper case)\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Last character: octave number 0-9.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 In between: accidentals if needed. b / bb / bbb / # / ## / ### (you can use \u8220"s\u8221" instead of \u8220"#\u8221" - automatic replacement)\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 If you make a mistake with the pitch format you will be asked to \u8220"FIX\u8221" the mistake before the pitch change can take place. \u8220"C4\u8221" is middle C. \u8220"B4\u8221" is a major seventh above that.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_singles_changer.hash"
     return "Pitch Singles Changer...", "Pitch Singles Changer", "Change up to four specific pitches to other specific pitches"

@@ -5339,23 +5339,47 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.Notes = [[
         This script encodes the current document to a utf-8 text file. The primary purpose is to find changes
-        between one version of a document and another. One could then write each version out to a text file and
+        between one version of a document and another. One could then write each version out to a text file and 
         use a comparison tool like kdiff3 to find differences. The text files could also be used to track changes with a tool like Git.
+
         The specifics of the shorthand for how the music is represented may not be that important.
         The idea is to identify the measures and staves that are different and then look at the score to see the differences.
+
         The following are encoded in such a way that if they are different, a comparison tool will flag them.
+
         - notes and rhythms
         - articulations
         - expressions (both text and shape)
         - ties
         - smart shapes
         - lyric assignments
+
         Chord symbols are currently not encoded, due to the lack of a simple way to generate a string for them. This is a needed
         future enhancement.
+
         The goal of this script is to assist in finding *substantive* differences that would affect how a player would play the piece.
         The script encodes the items above but not small engraving differences such as placement coordinates. One hopes, for example,
         that if there were a printed score that were out of date, this tool would flag the minimum number of changes that needed to
         be hand-corrected in the older score.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script encodes the current document to a utf-8 text file. The primary purpose is to find changes between one version of a document and another. One could then write each version out to a text file and use a comparison tool like kdiff3 to find differences. The text files could also be used to track changes with a tool like Git.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The specifics of the shorthand for how the music is represented may not be that important. The idea is to identify the measures and staves that are different and then look at the score to see the differences.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The following are encoded in such a way that if they are different, a comparison tool will flag them.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab notes and rhythms\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab articulations\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab expressions (both text and shape)\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab ties\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab smart shapes\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab lyric assignments\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Chord symbols are currently not encoded, due to the lack of a simple way to generate a string for them. This is a needed future enhancement.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The goal of this script is to assist in finding {\i substantive} differences that would affect how a player would play the piece. The script encodes the items above but not small engraving differences such as placement coordinates. One hopes, for example, that if there were a printed score that were out of date, this tool would flag the minimum number of changes that needed to be hand-corrected in the older score.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/document_save_as_text.hash"
     return "Save Document As Text File...", "", "Write current document to text file."

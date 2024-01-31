@@ -819,14 +819,31 @@ function plugindef()
   finaleplugin.CategoryTags = "Pitch"
   finaleplugin.Notes = [[
 USING THE 'DELETE Nth NOTE' SCRIPT
+
 This script allows the user to select a note within a chord to delete, as numbered form the top. Entering "1" will delete the top note, "2" will delete the 2nd note from the top, entering "3" the third, and so on.
+
 This script also replicates Nick Mazuk's functions for deleting or keeping the top or bottom note in a chord.
+
 To access these functions, enter the following commands:
+
 "top" - Deletes the top note in the chord
 "bottom" or "btm" - Deletes the bottom note in the chord
 "keeptop" - Keeps the top note in the chord, deleting all others
 "keepbottom" or "keepbtm" - Keeps the bottom note in the chord, deleting all others.
 ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 USING THE \u8216'DELETE Nth NOTE\u8217' SCRIPT\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script allows the user to select a note within a chord to delete, as numbered form the top. Entering \u8220"1\u8221" will delete the top note, \u8220"2\u8221" will delete the 2nd note from the top, entering \u8220"3\u8221" the third, and so on.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script also replicates Nick Mazuk\u8217's functions for deleting or keeping the top or bottom note in a chord.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To access these functions, enter the following commands:\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \u8220"top\u8221" - Deletes the top note in the chord \u8220"bottom\u8221" or \u8220"btm\u8221" - Deletes the bottom note in the chord \u8220"keeptop\u8221" - Keeps the top note in the chord, deleting all others \u8220"keepbottom\u8221" or \u8220"keepbtm\u8221" - Keeps the bottom note in the chord, deleting all others.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_entry_delete_nth_note.hash"
   return "Chord: Delete nth note", "Chord: Delete nth note", "Deletes a user selected note"
 end

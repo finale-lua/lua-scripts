@@ -5013,18 +5013,31 @@ function plugindef()
     finaleplugin.ScriptGroupName = "MIDI Note Values"
     finaleplugin.ScriptGroupDescription = "Change the MIDI velocity and duration values of notes by layer"
     finaleplugin.Notes = [[
-        Change the playback MIDI Velocity and Duration (Start/Stop times)
-        of every note in the currently selected music on one or all layers.
-        Choose the "MIDI Note Values" menu item to change both at once or set them independently with the
+        Change the playback MIDI Velocity and Duration (Start/Stop times) 
+        of every note in the currently selected music on one or all layers. 
+        Choose the "MIDI Note Values" menu item to change both at once or set them independently with the  
         "MIDI Note Duration" and "MIDI Note Velocity" menu items.
-        If Human Playback is active, "Velocity" and "Start/Stop Time" must be set to "HP Incorporate Data" at
-        [Finale -> Settings -> Human Playback -> MIDI Data] to affect playback.
-        Otherwise set "Key Velocities" and "Note Durations" to "Play Recorded"
-        under "Playback/Record Options" in the "Playback Controls" window.
-        Note that some playback samples don't respond to velocity settings.
-        Holding down the SHIFT or ALT (option) keys when invoking a menu item
-        will make the changes using your most recent values without showing any
+
+        If Human Playback is active, "Velocity" and "Start/Stop Time" must be set to "HP Incorporate Data" at 
+        [Finale -> Settings -> Human Playback -> MIDI Data] to affect playback. 
+        Otherwise set "Key Velocities" and "Note Durations" to "Play Recorded" 
+        under "Playback/Record Options" in the "Playback Controls" window. 
+        Note that some playback samples don't respond to velocity settings. 
+
+        Holding down the SHIFT or ALT (option) keys when invoking a menu item 
+        will make the changes using your most recent values without showing any 
         confirmation dialog window (or any other visual confirmation!)
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 Change the playback MIDI Velocity and Duration (Start/Stop times) of every note in the currently selected music on one or all layers. Choose the \u8220"MIDI Note Values\u8221" menu item to change both at once or set them independently with the\line \u8220"MIDI Note Duration\u8221" and \u8220"MIDI Note Velocity\u8221" menu items.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 If Human Playback is active, \u8220"Velocity\u8221" and \u8220"Start/Stop Time\u8221" must be set to \u8220"HP Incorporate Data\u8221" at [Finale -> Settings -> Human Playback -> MIDI Data] to affect playback. Otherwise set \u8220"Key Velocities\u8221" and \u8220"Note Durations\u8221" to \u8220"Play Recorded\u8221" under \u8220"Playback/Record Options\u8221" in the \u8220"Playback Controls\u8221" window. Note that some playback samples don\u8217't respond to velocity settings.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Holding down the SHIFT or ALT (option) keys when invoking a menu item will make the changes using your most recent values without showing any confirmation dialog window (or any other visual confirmation!)\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/midi_note_values.hash"
     return "MIDI Note Values...", "MIDI Note Values", "Change the MIDI velocity and duration values of notes by layer"

@@ -1,6 +1,6 @@
 function plugindef()
-
-
+    
+    
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "The JWs: Jacob Winkler & Jari Williamsson"
     finaleplugin.Version = "3.0"
@@ -11,14 +11,28 @@ function plugindef()
    above as an expression. The font settings for the expression are taken from the 'Tempo' category.
    If the region includes the last measure of the file but NOT the first measure, it will instead
    create an expression that says 'tacet al fine'.
+
    If you are using RGP Lua 0.6 or above, you can override the default text settings by including
    appropriate values for `tacet_text` and/or `al_fine_text` in the optional field in the RGP Lua
    configuration dialog. The default values are:
+
    ```
    tacet_text = "TACET"
    al_fine_text = "tacet al fine"
    ```
    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script takes a region and creates a multimeasure rest with the text \u8216'TACET\u8217' above as an expression. The font settings for the expression are taken from the \u8216'Tempo\u8217' category. If the region includes the last measure of the file but NOT the first measure, it will instead create an expression that says \u8216'tacet al fine\u8217'.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 If you are using RGP Lua 0.6 or above, you can override the default text settings by including appropriate values for {\f1 tacet_text} and/or {\f1 al_fine_text} in the optional field in the RGP Lua configuration dialog. The default values are:\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 tacet_text = "TACET"\line
+        al_fine_text = "tacet al fine"\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/region_multimeasure_rest_tacet.hash"
     return "TACET", "Create Tacet", "Creates a mm-rest and TACET expression"
 end

@@ -5008,17 +5008,30 @@ function plugindef()
     finaleplugin.ScriptGroupName = "Tuplet Chooser"
     finaleplugin.ScriptGroupDescription = "Change the condition of tuplets in the current selection by layer"
     finaleplugin.Notes = [[
-        This script changes the tuplets in the current selection in 18 ways.
-        It shows an ordered list of options,
-        each line starting with a configurable "hotkey".
-        Activate the script, type the hotkey and hit [Enter] or [Return].
+        This script changes the tuplets in the current selection in 18 ways. 
+        It shows an ordered list of options, 
+        each line starting with a configurable "hotkey". 
+        Activate the script, type the hotkey and hit [Enter] or [Return]. 
         The action may also be limited by layer.
-        To repeat the same tuplet change as last time without a confirmation dialog,
-        hold down the SHIFT key when starting the script
+
+        To repeat the same tuplet change as last time without a confirmation dialog, 
+        hold down the SHIFT key when starting the script 
         or select the "Tuplet Chooser Repeat" menu.
-        The layer number is "clamped" to a single character so to change
+
+        The layer number is "clamped" to a single character so to change 
         layer just type a new number - 'delete' key not needed.
 	]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script changes the tuplets in the current selection in 18 ways. It shows an ordered list of options, each line starting with a configurable \u8220"hotkey\u8221". Activate the script, type the hotkey and hit [Enter] or [Return]. The action may also be limited by layer.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To repeat the same tuplet change as last time without a confirmation dialog, hold down the SHIFT key when starting the script or select the \u8220"Tuplet Chooser Repeat\u8221" menu.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The layer number is \u8220"clamped\u8221" to a single character so to change layer just type a new number - \u8216'delete\u8217' key not needed.\par}
+        }
+    ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/tuplet_chooser.hash"
     return  "Tuplet Chooser...", "Tuplet Chooser",
             "Change the condition of tuplets in the current selection by layer"

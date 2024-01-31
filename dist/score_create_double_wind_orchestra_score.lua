@@ -1451,6 +1451,7 @@ function plugindef()
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.Notes = [[
         This script sets up a score for double wind orchestra:
+
         - Flute 1, 2
         - Oboe 1, 2
         - Clarinet 1, 2
@@ -1466,9 +1467,37 @@ function plugindef()
         - Viola
         - Cello
         - Double bass
+
         To use it, first open your default document or document styles. Then, run the script.
         All existing staffs will be deleted. And in their place, the orchestra will be created.
+
         This script uses the standard ensemble creation configuration options.
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \f0\fs20
+        \f1\fs20
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script sets up a score for double wind orchestra:\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Flute 1, 2\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Oboe 1, 2\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Clarinet 1, 2\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Bassoon 1, 2\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Horn in F 1, 2, 3, 4\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Trumpet 1, 2, 3\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Trombone 1, 2, bass\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Tuba\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Timpani\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Percussion 1, 2, 3\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Violin 1\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Violin 2\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Viola\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Cello\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Double bass\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 To use it, first open your default document or document styles. Then, run the script. All existing staffs will be deleted. And in their place, the orchestra will be created.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script uses the standard ensemble creation configuration options.\par}
+        }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/score_create_double_wind_orchestra_score.hash"
     return "Create double wind orchestra score", "Create double wind orchestra score",
