@@ -86,7 +86,7 @@ end
 
 local function user_chooses()
     local offset = finenv.UI():IsOnMac() and 3 or 0
-    local y = 0
+    local y
     local box_wide = 60
     local box_high = (15 * 17) + 4 -- 15-row list
     local function show_info()

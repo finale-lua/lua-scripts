@@ -28,7 +28,6 @@ function systems_lock()
     local systems = finale.FCStaffSystems()
     systems:LoadAll()
     for sys in each(systems) do
-        local start = sys:GetFirstMeasure()
         local next_sys = sys:GetNextSysMeasure()
         local freeze = sys:CreateFreezeSystem(true)
         if freeze then

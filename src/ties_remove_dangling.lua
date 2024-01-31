@@ -17,7 +17,6 @@ music_region:SetCurrentSelection()
 
 for working_staff = music_region:GetStartStaff(), music_region:GetEndStaff() do
   for layer_num = 0, 3, 1 do
-    local current_note
     local note_entry_layer = finale.FCNoteEntryLayer(layer_num, working_staff, music_region.StartMeasure, music_region.EndMeasure)
     note_entry_layer:Load()
     for index = 0, note_entry_layer.Count-1, 1 do

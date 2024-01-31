@@ -232,7 +232,7 @@ function staff_explode()
             end
 
             chord = 1  -- start over (for Split Pairs)
-            local from_top, from_bottom = slot - 1, 0 -- (for Singles)
+            local from_top = slot - 1 -- (for Singles)
 
             for entry in eachentrysaved(region[slot]) do    -- check each chord in the source
                 if entry:IsNote() then
@@ -255,6 +255,7 @@ function staff_explode()
                         chord = chord + 1 -- next chord
                     -- -----------
                     else
+                        local from_bottom
                         if action == "singles" then
                             from_bottom = entry.Count - slot -- how many from the bottom?
                         elseif action == "pairs_up" then -- strip missing notes from top staff, not bottom

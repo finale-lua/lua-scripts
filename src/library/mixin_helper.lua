@@ -5,7 +5,7 @@
 $module Mixin Helper
 
 A library of helper functions to improve code reuse in mixins.
-]]--
+]] --
 require("library.lua_compatibility")
 local utils = require("library.utils")
 local mixin = require("library.mixin")
@@ -83,9 +83,7 @@ function mixin_helper.is_instance_of(object, ...)
 
     -- Traverse FC hierarchy
     repeat
-        if (object_type < 2 and class_names[0][parent])
-            or (object_type > 0 and class_names[1][parent])
-        then
+        if (object_type < 2 and class_names[0][parent]) or (object_type > 0 and class_names[1][parent]) then
             return true
         end
 
@@ -119,7 +117,9 @@ local function assert_argument_type(levels, argument_number, value, ...)
         secondary_type = value.MixinClass or value.ClassName
     end
 
-    error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) .. ")", levels)
+    error(
+        "bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) ..
+            ")", levels)
 end
 
 --[[
@@ -162,7 +162,7 @@ function mixin_helper.force_assert_argument_type(argument_number, value, ...)
 end
 
 local function assert_func(condition, message, level)
-    if type(condition) == 'function' then
+    if type(condition) == "function" then
         condition = condition()
     end
 
@@ -238,9 +238,7 @@ function mixin_helper.create_standard_control_event(name)
         mixin_helper.assert_argument_type(3, callback, "function")
         local window = control:GetParent()
         mixin_helper.assert(window, "Cannot add handler to control with no parent window.")
-        mixin_helper.assert(
-            (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
-            "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
+        mixin_helper.assert((window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow", "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
 
         init_window(window)
         callbacks[control] = callbacks[control] or {}
@@ -293,7 +291,7 @@ local function create_change_event(...)
         for _, cb in ipairs(callbacks[target].order) do
             -- If any of the last values are not equal to the current ones, call the handler
             local called = false
-            for k, v in pairs(current) do
+            for k, _ in pairs(current) do
                 if current[k] ~= callbacks[target].history[cb][k] then
                     cb(target, unpack_arguments(callbacks[target].history[cb], table.unpack(params)))
                     called = true
@@ -428,11 +426,8 @@ function mixin_helper.create_custom_control_change_event(...)
         mixin_helper.assert_argument_type(2, callback, "function")
         local window = self:GetParent()
         mixin_helper.assert(window, "Cannot add handler to self with no parent window.")
-        mixin_helper.assert(
-            (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
-            "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
-        mixin_helper.force_assert(
-            not event.callback_exists(self, callback), "The callback has already been added as a handler.")
+        mixin_helper.assert((window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow", "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
+        mixin_helper.force_assert(not event.callback_exists(self, callback), "The callback has already been added as a handler.")
 
         init_window(window)
         event.add(self, callback, not window:WindowExists__())
@@ -500,8 +495,7 @@ function mixin_helper.create_custom_window_change_event(...)
     local function add_func(self, callback)
         mixin_helper.assert_argument_type(1, self, "FCMCustomLuaWindow")
         mixin_helper.assert_argument_type(2, callback, "function")
-        mixin_helper.force_assert(
-            not event.callback_exists(self, callback), "The callback has already been added as a handler.")
+        mixin_helper.force_assert(not event.callback_exists(self, callback), "The callback has already been added as a handler.")
 
         event.add(self, callback)
     end
@@ -530,9 +524,9 @@ function mixin_helper.create_custom_window_change_event(...)
         if type(window) == "boolean" and window then
             for win in event.target_iterator() do
                 if immediate then
-                    event.dispatcher(window)
+                    event.dispatcher(win)
                 else
-                    trigger_helper(window)
+                    trigger_helper(win)
                 end
             end
         else

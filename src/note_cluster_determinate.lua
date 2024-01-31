@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Jacob Winkler" -- With help & advice from CJ Garcia, Nick Mazuk, and Jan Angermüller. Thanks guys!
     finaleplugin.Copyright = "©2019 Jacob Winkler"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "11/02/2019"
     return "Cluster - Determinate", "Cluster - Determinate", "Creates a determinate cluster."
 end
@@ -35,58 +35,58 @@ local function process_notes(music_region)
     local i = 1 -- To iterate stem direction table for Layer 1
     local j = 1 -- To iterate stem direction table for Layer 2
 
-    for note_entry in eachentrysaved(music_region) do
-        local span = note_entry:CalcDisplacementRange(nil)
-        local stem_direction = stem_dir[i]
-        if note_entry.LayerNumber == 1 then
+    for entry in eachentrysaved(music_region) do
+        local span = entry:CalcDisplacementRange(nil)
+        local stem_direction
+        if entry.LayerNumber == 1 then
             stem_direction = stem_dir[i]
-            if note_entry:IsNote() then
+            if entry:IsNote() then
                 if span > 2 then
-                    delete_bottom_notes(note_entry)
+                    delete_bottom_notes(entry)
                 else
-                    delete_middle_notes(note_entry)
-                    note_entry.FreezeStem = true
-                    note_entry.StemUp = stem_direction
+                    delete_middle_notes(entry)
+                    entry.FreezeStem = true
+                    entry.StemUp = stem_direction
                 end
-            elseif note_entry:IsRest() then
-                note_entry:SetRestDisplacement(6)
+            elseif entry:IsRest() then
+                entry:SetRestDisplacement(6)
             end
             if stem_direction == false and span > 2 then
-                hide_stems(note_entry, stem_direction)
+                hide_stems(entry, stem_direction)
             end
             i = i + 1
-        elseif note_entry.LayerNumber == 2 then
+        elseif entry.LayerNumber == 2 then
             stem_direction = stem_dir[j]
-            if note_entry:IsNote() and span > 2 then
-                delete_top_notes(note_entry)
+            if entry:IsNote() and span > 2 then
+                delete_top_notes(entry)
             else
-                note_entry:MakeRest()
-                note_entry.Visible = false
-                note_entry:SetRestDisplacement(4)
+                entry:MakeRest()
+                entry.Visible = false
+                entry:SetRestDisplacement(4)
             end
             if stem_direction == true then
-                hide_stems(note_entry, stem_direction)
+                hide_stems(entry, stem_direction)
             end
             j = j + 1
-        elseif note_entry.LayerNumber == 3 then
-            if note_entry:IsNote() then
-                for note in each(note_entry) do
+        elseif entry.LayerNumber == 3 then
+            if entry:IsNote() then
+                for note in each(entry) do
                     note.AccidentalFreeze = true
                     note.Accidental = false
                 end
-                note_entry.FreezeStem = true
-                note_entry.StemUp = true
-                hide_stems(note_entry, true)
-                delete_top_bottom_notes(note_entry)
-            elseif note_entry:IsRest() then
-                note_entry:SetRestDisplacement(2)
+                entry.FreezeStem = true
+                entry.StemUp = true
+                hide_stems(entry, true)
+                delete_top_bottom_notes(entry)
+            elseif entry:IsRest() then
+                entry:SetRestDisplacement(2)
             end
-            note_entry.Visible = false
+            entry.Visible = false
         end
-        note_entry.CheckAccidentals = true
-        if note_entry:IsNote() then
-            n = 1
-            for note in each(note_entry) do
+        entry.CheckAccidentals = true
+        if entry:IsNote() then
+            local n = 1
+            for note in each(entry) do
                 note.NoteID = n
                 n = n + 1
             end
@@ -116,7 +116,7 @@ end
 
 -- Function 3 - Copy Layer "src" to Layer "dest"
 function layer.copy(source, destination) -- source and destination layer numbers, 1 based
-    local region = finenv.Region()
+    local region = finenv.Region()   -- luacheck: ignore region
     local start = region.StartMeasure
     local stop = region.EndMeasure
     local system_staves = finale.FCSystemStaves()
@@ -366,12 +366,12 @@ for add_staff = region:GetStartStaff(), region:GetEndStaff() do
 end
 
 -- separate move accidentals function for short clusters that encompass a 3rd
-for note_entry in eachentrysaved(finenv.Region()) do
-    if note_entry:IsNote() and note_entry.Count > 1 then
-        for note in each(note_entry) do
+for entry in eachentrysaved(finenv.Region()) do
+    if entry:IsNote() and entry.Count > 1 then
+        for note in each(entry) do
             if note.Accidental == true then
                 local accidental_mod = finale.FCAccidentalMod()
-                accidental_mod:SetNoteEntry(note_entry)
+                accidental_mod:SetNoteEntry(entry)
                 accidental_mod:SetUseCustomVerticalPos(true)
                 accidental_mod:SetHorizontalPos(horizontal_offset * 1.5)
                 accidental_mod:SaveAt(note)

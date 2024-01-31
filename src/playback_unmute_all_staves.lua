@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.2"
+    finaleplugin.Version = "1.0.3"
     finaleplugin.Date = "March 16, 2023"
     finaleplugin.CategoryTags = "Playback"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
@@ -23,8 +23,8 @@ function playback_unmute_all_staves()
         local staff = finale.FCStaff()
         staff:Load(staff_number)
         local playback_data = staff:CreateInstrumentPlaybackData()
-        for layer = 1, layer.max_layers() do
-            playback_data:GetNoteLayerData(layer).Play = true
+        for this_layer = 1, layer.max_layers() do
+            playback_data:GetNoteLayerData(this_layer).Play = true
         end
         playback_data:GetChordLayerData().Play = true
         playback_data:GetMidiExpressionLayerData().Play = true

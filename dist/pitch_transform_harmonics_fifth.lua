@@ -34,7 +34,6 @@ package.preload["library.articulation"] = package.preload["library.articulation"
             top_pos = math.floor(((10000 * top_pos) / cell_metrics.StaffScaling) + 0.5)
             return curr_pos.Y >= top_pos
         end
-        return false
     end
 
     function articulation.calc_main_character_dimensions(artic_def)
@@ -251,7 +250,7 @@ package.preload["library.transposition"] = package.preload["library.transpositio
         local curr_disp = note.Displacement
         local curr_alt = note.RaiseLower
         local key = get_key(note)
-        local number_of_steps, diatonic_steps, fifth_steps = get_key_info(key)
+        local _, diatonic_steps, _ = get_key_info(key)
         local interval_normalized = signed_modulus(interval, #diatonic_steps)
         local steps_in_alteration = calc_steps_in_alteration(key, interval, alteration)
         local steps_in_interval = calc_steps_in_normalized_interval(key, interval_normalized)
@@ -581,7 +580,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -921,7 +920,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -1024,7 +1023,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -1033,11 +1032,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -1434,7 +1433,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -1458,7 +1457,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -1507,11 +1506,11 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead(entry)
+    function note_entry.calc_left_of_primary_notehead()
         return 0
     end
 
@@ -1536,7 +1535,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if not entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return left
     end
 

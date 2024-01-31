@@ -77,7 +77,7 @@ function class:Init()
         AlignWhenMoving = true,
     }
 
-    self:AddHandlePress(function(self, delta)
+    self:AddHandlePress(function(self, delta)   -- luacheck: ignore self
         if not private[self].ConnectedEdit then
             return
         end

@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0"
+    finaleplugin.Version = "2.0.1"
     finaleplugin.Date = "July 10, 2022"
     finaleplugin.CategoryTags = "System"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
@@ -33,7 +33,7 @@ function system_move(direction)
     local system_number = system:GetItemNo()
     local last_system_number = last_system:GetItemNo()
     for i = system_number, last_system_number, 1 do
-        local system = systems:GetItemAt(i - 1)
+        system = systems:GetItemAt(i - 1)
         system.SpaceAbove = system.SpaceAbove + (direction * config.move_amount)
         system:Save()
     end

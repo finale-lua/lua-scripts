@@ -28,6 +28,7 @@
         "sax.lua": true
     },
     "editor.formatOnSave": true,
+    "Lua.diagnostics.enable": false,
     "Lua.diagnostics.disable": [
         "lowercase-global",
         "luadoc-miss-cate-name"

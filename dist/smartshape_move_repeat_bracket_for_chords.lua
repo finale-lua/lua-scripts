@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Michael McClennan"
     finaleplugin.Copyright = "©2021 Michael McClennan"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "May 22, 2021"
     finaleplugin.AuthorEmail = "info@michaelmcclennan.com"
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/smartshape_move_repeat_bracket_for_chords.hash"

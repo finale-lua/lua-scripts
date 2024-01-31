@@ -19,16 +19,14 @@ local methods = class.Methods
 local windows = setmetatable({}, {__mode = "k"})
 
 local trigger_thumb_position_change
-local each_last_thumb_position_change
-
-local using_timer_fix = false
+local each_last_thumb_position_change  -- luacheck: ignore
 
 local function bootstrap_command()
     -- Since we're piggybacking off a handler, we don't need to trigger immediately
     trigger_thumb_position_change(true)
 end
 
-local function bootstrap_timer(timerid, window)
+local function bootstrap_timer(timerid, window)   -- luacheck: ignore
     -- We're in the root of an event handler, so it is safe to trigger immediately
     trigger_thumb_position_change(true, true)
 end

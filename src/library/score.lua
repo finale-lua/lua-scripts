@@ -430,13 +430,13 @@ Creates a percussion staff at the end of the score.
 ]]
 function score.create_group(start_staff, end_staff, brace_name, has_barline, level, full_name, short_name)
     local sg_cmper = {}
-    local sg = finale.FCGroup()
     local staff_groups = finale.FCGroups()
     staff_groups:LoadAll()
     for sg in each(staff_groups) do
         table.insert(sg_cmper, sg:GetItemID())
     end
     table.sort(sg_cmper)
+    local sg = finale.FCGroup()
     sg:SetStartStaff(start_staff)
     sg:SetEndStaff(end_staff)
     sg:SetStartMeasure(1)
@@ -782,7 +782,7 @@ used if `uses_large_time_signatures` is true
 @ config (table) the config file
 @ options (table) ensemble-specific options
 ]]
-function score.apply_config(config, options)
+function score.apply_config(config, options)  -- luacheck: ignore config
     score.set_score_page_size(config.score_page_width, config.score_page_height)
     score.set_all_parts_page_size(config.part_page_width, config.part_page_height)
     library.update_layout()
@@ -816,8 +816,7 @@ function score.calc_voice_staff(staff_num)
     local staff = finale.FCStaff()
     if staff:Load(staff_num) then
         local staff_instrument = staff:GetInstrumentUUID()
-        local test = finale.FFUID_YODEL
-        for k, v in pairs(VOICE_INSTRUMENTS) do
+        for _, v in pairs(VOICE_INSTRUMENTS) do
             if staff_instrument == v then
                 is_voice_staff = true
             end

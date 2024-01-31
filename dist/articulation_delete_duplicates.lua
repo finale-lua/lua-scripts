@@ -17,18 +17,18 @@ function articulation_delete_duplicates()
         end
         local sort_list = {}
         local unique_list = {}
-        for k,v in ipairs(art_list) do
+        for _, v in ipairs(art_list) do
             if (not sort_list[v]) then
                 unique_list[#unique_list + 1] = v
                 sort_list[v] = true
             end
         end
-        for key, value in pairs(art_list) do
+        for _, _ in pairs(art_list) do
             for a in each(arts) do
                 a:DeleteData()
             end
         end
-        for key, value in pairs(unique_list) do
+        for _, value in pairs(unique_list) do
             local art = finale.FCArticulation()
             art:SetNoteEntry(note_entry)
             art:SetID(value) art:SaveNew()

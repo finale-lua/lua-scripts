@@ -322,7 +322,7 @@ Checks if this control should use its stored state instead of the live state fro
 : (boolean)
 ]]
 function methods:UseStoredState()
-    local parent = self:GetParent()
+    local parent = self:GetParent()   -- luacheck: ignore parent
     return mixin_helper.is_instance_of(parent, "FCMCustomLuaWindow") and parent:GetRestoreControlState() and not parent:WindowExists() and parent:HasBeenShown()
 end
 
