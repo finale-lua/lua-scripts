@@ -253,7 +253,7 @@ local function user_chooses(rgn)
             finenv.UI():AlertInfo(info_notes, "About " .. name)
         end
     -- indicator and control arrays for "start" [1] and "end" [2]:
-    local measure, sliders, offset, save_off, header = {}, {}, {}, {}, {}
+    local measure, sliders, offset, save_off = {}, {}, {}, {}
     local rest, buttons, index, staff_sel, actions = {}, {}, {}, {}, {}
     local follow
     local max_measure, max_slot, staff_list = score_limits(rgn)
