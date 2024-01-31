@@ -36,7 +36,6 @@ function localization_developer.create_localized_base_table()
     file_path = client.encode_with_client_codepage(file_path)
     local file = io.open(file_path, "r")
     if file then
-        local file_content = file:read("all")
         local function extract_strings(file_content)
             local i = 1
             local length = #file_content
@@ -75,6 +74,7 @@ function localization_developer.create_localized_base_table()
                 return nil
             end
         end
+        local file_content = file:read("all")
         for found_string in extract_strings(file_content) do
             retval[found_string] = found_string
         end
