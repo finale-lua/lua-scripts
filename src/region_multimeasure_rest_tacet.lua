@@ -29,7 +29,6 @@ local tacet_description = "TACET for Multimeasure Rests"
 al_fine_text = al_fine_text or "tacet al fine"
 local al_fine_description = "'tacet al fine' for Multimeasure Rests"
 local nudge_horizontal = -24 -- The amount to nudge_horizontal the expression, in EVPUs. -24 EVPUs = left 1 space
-local str = finale.FCString()
 local ui = finenv.UI()
 -------------------------------
 function tacet_mm(region)
@@ -42,12 +41,9 @@ function tacet_mm(region)
     local mm_rest_prefs = finale.FCMultiMeasureRestPrefs()
     mm_rest_prefs:Load(1)
 
-    local mm_update = false
-
-
     -- Will not continue if auto-update of mm rests is ON
     if mm_rest_prefs.AutoUpdate then
-        mm_update = ui:AlertYesNo("Automatic Update is ON in the multimeasure preferences. Would you like to turn it OFF and proceed?", "Unable to create tacet:")
+        local mm_update = ui:AlertYesNo("Automatic Update is ON in the multimeasure preferences. Would you like to turn it OFF and proceed?", "Unable to create tacet:")
         if mm_update == 3 then
             return
         elseif mm_update == 2 then
@@ -96,8 +92,7 @@ function tacet_expr(al_fine_check)
     local tacet_cat = finale.FCCategoryDef()
     local category_definition = finale.FCCategoryDef()
     local category_definitions = finale.FCCategoryDefs()
-    local font = finale.FCFontInfo()
-
+    
     category_definitions:LoadAll()
     local tacet_cat_num = 0
     local cat_name_string = finale.FCString()
@@ -132,7 +127,7 @@ function tacet_expr(al_fine_check)
     -- if there is no existing TACET, create one
     if tacet_ted == 0 then
         local ex_ted = finale.FCTextExpressionDef()
-        local text_font = ""
+        local font, text_font
         if tacet_cat_num == 0 then -- If there is no 'tacet' category
             ex_ted:AssignToCategory(misc_cat)
             category_definition:Load(tempo_cat)
@@ -181,14 +176,12 @@ function tacet_expr(al_fine_check)
         system_staves:LoadScrollView()
         local first_staff = 1
         for sys in each(system_staves) do
-            local staff_num = sys.Staff
             if first_staff == 1 then
                 region:SetStartStaff(sys.Staff)
                 first_staff = 0
             end -- end "if first_staff == 1"
         end -- end "for sys..."
 --
-        local system_staff = finale.FCSystemStaff()
         local measure_num = region.StartMeasure
         local measure_pos = region.StartMeasurePos
         local add_expression = finale.FCExpression()
@@ -209,11 +202,9 @@ local function process_tacets()
     parts:LoadAll()
     local current_part = parts:GetCurrent()
 
-    local process_all = 0
-
     -- Check for selection...
     if region.StartMeasure == 0 and current_part:IsPart() then
-        process_all = ui:AlertYesNo("There is no active selection. Would you like to process the current part?", "No Selection:")
+        local process_all = ui:AlertYesNo("There is no active selection. Would you like to process the current part?", "No Selection:")
         if process_all == 3 then
             goto bypass
         elseif process_all == 2 then
@@ -223,9 +214,8 @@ local function process_tacets()
         end -- if...
     end -- if StartMeasure == 0
 
-    local process_score = 0
     if current_part:IsScore() then
-        process_score = ui:AlertYesNo("Would you like to process the whole score?", "Score:")
+        local process_score = ui:AlertYesNo("Would you like to process the whole score?", "Score:")
         if process_score == 3 then
             goto bypass
         elseif process_score == 2 then
@@ -248,7 +238,7 @@ local function process_tacets()
             part_region.StartStaff = staves:GetStartStaff()
             part_region.EndStaff = staves:GetEndStaff()
 
-            for entry in eachentry(part_region) do
+            for _ in eachentry(part_region) do
                 count = count + 1
                 if count > 0 then 
                     goto skip_part

@@ -136,7 +136,7 @@ package.preload["library.smartshape"] = package.preload["library.smartshape"] or
             "dashedcurvedown",
             "dashedcurveup"
         }
-        for key, val in pairs(slurs) do
+        for _, val in pairs(slurs) do
             smartshape.delete_entry_based_smartshape(music_region, val)
         end
     end
@@ -154,7 +154,7 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         source_layer = source_layer - 1
         destination_layer = destination_layer - 1
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
+            local staffNum = sysstaff.Staff
             local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
             noteentry_source_layer:SetUseVisibleLayer(false)
             noteentry_source_layer:Load()
@@ -185,8 +185,8 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         local sysstaves = finale.FCSystemStaves()
         sysstaves:LoadAllForRegion(region)
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            local staffNum = sysstaff.Staff
+            local noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
             noteentry_layer:SetUseVisibleLayer(false)
             noteentry_layer:Load()
             noteentry_layer:ClearAllEntries()

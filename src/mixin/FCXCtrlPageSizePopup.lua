@@ -38,7 +38,7 @@ local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local trigger_page_size_change
-local each_last_page_size_change
+local each_last_page_size_change   -- luacheck: ignore
 
 local temp_str = finale.FCString()
 

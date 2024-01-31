@@ -4,7 +4,7 @@ $module Enigma String
 local enigma_string = {}
 local starts_with_font_command = function(string)
     local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
-    for i, text_cmd in ipairs(text_cmds) do
+    for _, text_cmd in ipairs(text_cmds) do
         if string:StartsWith(text_cmd) then
             return true
         end
@@ -138,7 +138,7 @@ function enigma_string.remove_inserts(fcstring, replace_with_generic, convert_ta
         "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages", "^value", "^control", "^pass"
     }
     local lua_string = fcstring.LuaString
-    for i, text_cmd in ipairs(text_cmds) do
+    for _, text_cmd in ipairs(text_cmds) do
         local starts_at = string.find(lua_string, text_cmd, 1, true) -- true: do a plain search
         while starts_at ~= nil do
             local replace_with = ""

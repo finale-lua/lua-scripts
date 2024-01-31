@@ -25,8 +25,8 @@ local get_report_string_for_orphans = function(orphaned_exps, is_for_shape)
     end
     local report_string = ""
     local is_first = true
-    for k, v in pairs(orphaned_exps) do
-        local exp_def = nil
+    for _, v in pairs(orphaned_exps) do
+        local exp_def
         if is_for_shape then
             exp_def = finale.FCShapeExpressionDef()
         else
@@ -53,7 +53,7 @@ local get_report_string_for_orphans = function(orphaned_exps, is_for_shape)
     return report_string
 end
 local expression_find_orphans_for_type = function(is_for_shape)
-    local exp_def = nil
+    local exp_def
     if is_for_shape then
         exp_def = finale.FCShapeExpressionDef()
     else
@@ -77,8 +77,8 @@ local expression_find_orphans_for_type = function(is_for_shape)
     return orphaned_exps, max_valid, max_found
 end
 function expression_find_orphaned_definitions()
-    local orphaned_text_exps, text_max_valid, text_max_found = expression_find_orphans_for_type(false)
-    local orphaned_shape_exps, shape_max_valid, shape_max_found = expression_find_orphans_for_type(true)
+    local orphaned_text_exps, text_max_valid, _ = expression_find_orphans_for_type(false)
+    local orphaned_shape_exps, shape_max_valid, _ = expression_find_orphans_for_type(true)
     local got_orphan = false
     local report_string = ""
     if #orphaned_text_exps > 0 then

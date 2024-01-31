@@ -12,8 +12,6 @@ local distance_preferences = finale.FCDistancePrefs()
 distance_preferences:Load(1)
 local size_preferences = finale.FCSizePrefs()
 size_preferences:Load(1)
-local stem_thickness = size_preferences.StemLineThickness
-stem_thickness = stem_thickness / 64
 function cluster_indeterminate()
     for note_entry in eachentrysaved(finenv.Region()) do
         if note_entry:IsNote() and note_entry.Count > 1 then

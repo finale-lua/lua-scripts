@@ -219,7 +219,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else

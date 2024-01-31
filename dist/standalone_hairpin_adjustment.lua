@@ -267,7 +267,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -370,7 +370,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -379,11 +379,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -509,7 +509,7 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
     local enigma_string = {}
     local starts_with_font_command = function(string)
         local text_cmds = {"^font", "^Font", "^fontMus", "^fontTxt", "^fontNum", "^size", "^nfx"}
-        for i, text_cmd in ipairs(text_cmds) do
+        for _, text_cmd in ipairs(text_cmds) do
             if string:StartsWith(text_cmd) then
                 return true
             end
@@ -583,7 +583,7 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
             "^partname", "^perftime", "^subtitle", "^time", "^title", "^totpages", "^value", "^control", "^pass"
         }
         local lua_string = fcstring.LuaString
-        for i, text_cmd in ipairs(text_cmds) do
+        for _, text_cmd in ipairs(text_cmds) do
             local starts_at = string.find(lua_string, text_cmd, 1, true)
             while starts_at ~= nil do
                 local replace_with = ""
@@ -810,7 +810,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_top_note_position(entry, entry_metrics)
         local retval = -math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -834,7 +834,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 
     function note_entry.get_bottom_note_position(entry, entry_metrics)
         local retval = math.huge
-        local loaded_here = false
+        local loaded_here
         entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
         if nil == entry_metrics then
             return retval
@@ -883,11 +883,11 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead(entry)
+    function note_entry.calc_left_of_primary_notehead()
         return 0
     end
 
@@ -912,7 +912,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         if not entry:CalcStemUp() then
             return 0
         end
-        local left, right = note_entry.calc_widths(entry)
+        local left, _ = note_entry.calc_widths(entry)
         return left
     end
 
@@ -1299,7 +1299,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -1374,7 +1374,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "CJ Garcia"
     finaleplugin.Copyright = "© 2021 CJ Garcia Music"
-    finaleplugin.Version = "1.3"
+    finaleplugin.Version = "1.3.1"
     finaleplugin.Date = "8/4/2022"
     finaleplugin.Notes = [[
         This plugin has several configuration options. To set the options, create a plain text file called
@@ -1483,7 +1483,6 @@ function vertical_dynamic_adjustment(region, direction)
     end
     table.sort(lowest_item)
     if has_dynamics then
-        local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(region)
         for e in each(expressions) do
             if e.Visible and expression.is_dynamic(e) then
@@ -1513,7 +1512,7 @@ function vertical_dynamic_adjustment(region, direction)
         end
         table.sort(staff_pos)
         if (nil ~= staff_pos[1]) and ("far" == direction) and (#lowest_item > 0) then
-            local min_lowest_position = lowest_item[1]
+            local min_lowest_position
             if staff_pos[1] > -7 then
                 min_lowest_position = -160
             else
@@ -1526,7 +1525,6 @@ function vertical_dynamic_adjustment(region, direction)
         end
     end
     if has_hairpins then
-        local ssmm = finale.FCSmartShapeMeasureMarks()
         ssmm:LoadAllForRegion(region, true)
         for mark in each(ssmm) do
             local smart_shape = mark:CreateSmartShape()
@@ -1673,7 +1671,7 @@ function hairpin_adjustments(range_settings)
             table.insert(hairpin_list, smartshape)
         end
     end
-    function has_dynamic(region)
+    local function has_dynamic(region)
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(region)
         local expression_list = {}
@@ -1720,7 +1718,7 @@ function hairpin_adjustments(range_settings)
     music_reg:SetEndMeasurePos(end_pos)
     if "none" ~= config.horizontal_adjustment_type then
         local multiple_hairpins = (#hairpin_list > 1)
-        for key, value in pairs(hairpin_list) do
+        for _, value in pairs(hairpin_list) do
             if ("both" == config.horizontal_adjustment_type) or ("left" == config.horizontal_adjustment_type) then
                 horizontal_hairpin_adjustment("left", value, {range_settings[1], range_settings[2], range_settings[4]}, end_cushion, multiple_hairpins)
             end
@@ -1740,7 +1738,6 @@ function hairpin_adjustments(range_settings)
 end
 function set_first_last_note_in_range(staff)
     local music_region = finale.FCMusicRegion()
-    local range_settings = {}
     music_region:SetCurrentSelection()
     music_region:SetStartStaff(staff)
     music_region:SetEndStaff(staff)

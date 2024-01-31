@@ -6,12 +6,11 @@ $module __FCMBase
 ## Summary of Modifications
 - Add method _FallbackCall to gracefully allow skipping missing methods in earlier Lua versions
 ]] --
-local mixin = require("library.mixin")
-local mixin_helper = require("library.mixin_helper")
+local mixin = require("library.mixin") -- luacheck: ignore
+local mixin_helper = require("library.mixin_helper") -- luacheck: ignore
 
 local class = {Methods = {}}
 local methods = class.Methods
-
 
 --[[
 % _FallbackCall
@@ -33,7 +32,7 @@ function methods:_FallbackCall(method_name, fallback_value, ...)
         end
         return self
     end
-    
+
     return self[method_name](self, ...)
 end
 

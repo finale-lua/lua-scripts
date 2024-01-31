@@ -219,7 +219,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -302,7 +302,7 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         source_layer = source_layer - 1
         destination_layer = destination_layer - 1
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
+            local staffNum = sysstaff.Staff
             local noteentry_source_layer = finale.FCNoteEntryLayer(source_layer, staffNum, start, stop)
             noteentry_source_layer:SetUseVisibleLayer(false)
             noteentry_source_layer:Load()
@@ -333,8 +333,8 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
         local sysstaves = finale.FCSystemStaves()
         sysstaves:LoadAllForRegion(region)
         for sysstaff in each(sysstaves) do
-            staffNum = sysstaff.Staff
-            local  noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
+            local staffNum = sysstaff.Staff
+            local noteentry_layer = finale.FCNoteEntryLayer(layer_to_clear, staffNum, start, stop)
             noteentry_layer:SetUseVisibleLayer(false)
             noteentry_layer:Load()
             noteentry_layer:ClearAllEntries()
@@ -388,7 +388,7 @@ function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0"
+    finaleplugin.Version = "2.0.1"
     finaleplugin.Date = "August 23, 2023"
     finaleplugin.CategoryTags = "Playback"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
@@ -450,8 +450,8 @@ function playback_selected_staves()
         local staff = finale.FCStaff()
         staff:Load(staff_number)
         local playback_data = staff:CreateInstrumentPlaybackData()
-        for layer = 1, layer.max_layers() do
-            set_layer_playback_data(playback_data:GetNoteLayerData(layer), region, staff_number)
+        for this_layer = 1, layer.max_layers() do
+            set_layer_playback_data(playback_data:GetNoteLayerData(this_layer), region, staff_number)
         end
         if config.include_chord_playback then
             set_layer_playback_data(playback_data:GetChordLayerData(), region, staff_number)

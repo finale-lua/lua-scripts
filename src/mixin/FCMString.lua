@@ -131,7 +131,7 @@ Override Changes:
 @ maximum (number)
 : (number)
 ]]
-function methods:GetRangeMeasurement(measurementunit, minimum, maximum)
+function methods:GetRangeMeasurement(measurementunit, minimum, maximum)  -- luacheck: ignore
     mixin_helper.assert_argument_type(2, measurementunit, "number")
     mixin_helper.assert_argument_type(3, minimum, "number")
     mixin_helper.assert_argument_type(4, maximum, "number")
@@ -207,7 +207,7 @@ Also ensures that any decimal places in `minimum` are correctly taken into accou
 @ maximum (number)
 : (number)
 ]]
-function methods:GetRangeMeasurementInteger(measurementunit, minimum, maximum)
+function methods:GetRangeMeasurementInteger(measurementunit, minimum, maximum)  -- luacheck: ignore
     mixin_helper.assert_argument_type(2, measurementunit, "number")
     mixin_helper.assert_argument_type(3, minimum, "number")
     mixin_helper.assert_argument_type(4, maximum, "number")
@@ -259,7 +259,7 @@ Returns the measurement in whole EFIXes (1/64th of an EVPU), clamped between two
 @ maximum (number)
 : (number)
 ]]
-function methods:GetRangeMeasurementEfix(measurementunit, minimum, maximum)
+function methods:GetRangeMeasurementEfix(measurementunit, minimum, maximum)   -- luacheck: ignore
     mixin_helper.assert_argument_type(2, measurementunit, "number")
     mixin_helper.assert_argument_type(3, minimum, "number")
     mixin_helper.assert_argument_type(4, maximum, "number")

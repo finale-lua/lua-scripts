@@ -327,7 +327,6 @@ package.preload["mixin.FCMCtrlListBox"] = package.preload["mixin.FCMCtrlListBox"
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local utils = require("library.utils")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -620,7 +619,6 @@ package.preload["mixin.FCMCtrlPopup"] = package.preload["mixin.FCMCtrlPopup"] or
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local utils = require("library.utils")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -903,7 +901,6 @@ package.preload["mixin.FCMCtrlSlider"] = package.preload["mixin.FCMCtrlSlider"] 
     local windows = setmetatable({}, {__mode = "k"})
     local trigger_thumb_position_change
     local each_last_thumb_position_change
-    local using_timer_fix = false
     local function bootstrap_command()
 
         trigger_thumb_position_change(true)
@@ -969,7 +966,6 @@ package.preload["mixin.FCMCtrlStatic"] = package.preload["mixin.FCMCtrlStatic"] 
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local utils = require("library.utils")
     local measurement = require("library.measurement")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -2076,7 +2072,6 @@ package.preload["mixin.FCMStrings"] = package.preload["mixin.FCMStrings"] or fun
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local class = {Methods = {}}
     local methods = class.Methods
     local temp_str = finale.FCString()
@@ -2492,6 +2487,86 @@ package.preload["mixin.FCXCtrlMeasurementUnitPopup"] = package.preload["mixin.FC
         mixin.FCMCtrlPopup.SetSelectedItem(self, flipped_unit_order[unit] - 1)
     end
     return class
+end
+package.preload["library.measurement"] = package.preload["library.measurement"] or function()
+
+    local measurement = {}
+    local unit_names = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "EVPUs",
+        [finale.MEASUREMENTUNIT_INCHES] = "Inches",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "Centimeters",
+        [finale.MEASUREMENTUNIT_POINTS] = "Points",
+        [finale.MEASUREMENTUNIT_PICAS] = "Picas",
+        [finale.MEASUREMENTUNIT_SPACES] = "Spaces",
+    }
+    local unit_suffixes = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "e",
+        [finale.MEASUREMENTUNIT_INCHES] = "i",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "c",
+        [finale.MEASUREMENTUNIT_POINTS] = "pt",
+        [finale.MEASUREMENTUNIT_PICAS] = "p",
+        [finale.MEASUREMENTUNIT_SPACES] = "s",
+    }
+    local unit_abbreviations = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "ev",
+        [finale.MEASUREMENTUNIT_INCHES] = "in",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "cm",
+        [finale.MEASUREMENTUNIT_POINTS] = "pt",
+        [finale.MEASUREMENTUNIT_PICAS] = "pc",
+        [finale.MEASUREMENTUNIT_SPACES] = "sp",
+    }
+
+    function measurement.convert_to_EVPUs(text)
+        local str = finale.FCString()
+        str.LuaString = text
+        return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
+    end
+
+    function measurement.get_unit_name(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_names[unit]
+    end
+
+    function measurement.get_unit_suffix(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_suffixes[unit]
+    end
+
+    function measurement.get_unit_abbreviation(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_abbreviations[unit]
+    end
+
+    function measurement.is_valid_unit(unit)
+        return unit_names[unit] and true or false
+    end
+
+    function measurement.get_real_default_unit()
+        local str = finale.FCString()
+        finenv.UI():GetDecimalSeparator(str)
+        local separator = str.LuaString
+        str:SetMeasurement(72, finale.MEASUREMENTUNIT_DEFAULT)
+        if str.LuaString == "72" then
+            return finale.MEASUREMENTUNIT_EVPUS
+        elseif str.LuaString == "0" .. separator .. "25" then
+            return finale.MEASUREMENTUNIT_INCHES
+        elseif str.LuaString == "0" .. separator .. "635" then
+            return finale.MEASUREMENTUNIT_CENTIMETERS
+        elseif str.LuaString == "18" then
+            return finale.MEASUREMENTUNIT_POINTS
+        elseif str.LuaString == "1p6" then
+            return finale.MEASUREMENTUNIT_PICAS
+        elseif str.LuaString == "3" then
+            return finale.MEASUREMENTUNIT_SPACES
+        end
+    end
+    return measurement
 end
 package.preload["library.page_size"] = package.preload["library.page_size"] or function()
 
@@ -2918,98 +2993,14 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
     end
     return class
 end
-package.preload["library.measurement"] = package.preload["library.measurement"] or function()
-
-    local measurement = {}
-    local unit_names = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "EVPUs",
-        [finale.MEASUREMENTUNIT_INCHES] = "Inches",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "Centimeters",
-        [finale.MEASUREMENTUNIT_POINTS] = "Points",
-        [finale.MEASUREMENTUNIT_PICAS] = "Picas",
-        [finale.MEASUREMENTUNIT_SPACES] = "Spaces",
-    }
-    local unit_suffixes = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "e",
-        [finale.MEASUREMENTUNIT_INCHES] = "i",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "c",
-        [finale.MEASUREMENTUNIT_POINTS] = "pt",
-        [finale.MEASUREMENTUNIT_PICAS] = "p",
-        [finale.MEASUREMENTUNIT_SPACES] = "s",
-    }
-    local unit_abbreviations = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "ev",
-        [finale.MEASUREMENTUNIT_INCHES] = "in",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "cm",
-        [finale.MEASUREMENTUNIT_POINTS] = "pt",
-        [finale.MEASUREMENTUNIT_PICAS] = "pc",
-        [finale.MEASUREMENTUNIT_SPACES] = "sp",
-    }
-
-    function measurement.convert_to_EVPUs(text)
-        local str = finale.FCString()
-        str.LuaString = text
-        return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
-    end
-
-    function measurement.get_unit_name(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_names[unit]
-    end
-
-    function measurement.get_unit_suffix(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_suffixes[unit]
-    end
-
-    function measurement.get_unit_abbreviation(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_abbreviations[unit]
-    end
-
-    function measurement.is_valid_unit(unit)
-        return unit_names[unit] and true or false
-    end
-
-    function measurement.get_real_default_unit()
-        local str = finale.FCString()
-        finenv.UI():GetDecimalSeparator(str)
-        local separator = str.LuaString
-        str:SetMeasurement(72, finale.MEASUREMENTUNIT_DEFAULT)
-        if str.LuaString == "72" then
-            return finale.MEASUREMENTUNIT_EVPUS
-        elseif str.LuaString == "0" .. separator .. "25" then
-            return finale.MEASUREMENTUNIT_INCHES
-        elseif str.LuaString == "0" .. separator .. "635" then
-            return finale.MEASUREMENTUNIT_CENTIMETERS
-        elseif str.LuaString == "18" then
-            return finale.MEASUREMENTUNIT_POINTS
-        elseif str.LuaString == "1p6" then
-            return finale.MEASUREMENTUNIT_PICAS
-        elseif str.LuaString == "3" then
-            return finale.MEASUREMENTUNIT_SPACES
-        end
-    end
-    return measurement
-end
 package.preload["mixin.FCXCustomLuaWindow"] = package.preload["mixin.FCXCustomLuaWindow"] or function()
 
 
 
     local mixin = require("library.mixin")
-    local utils = require("library.utils")
     local mixin_helper = require("library.mixin_helper")
-    local measurement = require("library.measurement")
     local class = {Parent = "FCMCustomLuaWindow", Methods = {}}
     local methods = class.Methods
-    local trigger_measurement_unit_change
-    local each_last_measurement_unit_change
 
     function class:Init()
         self:SetEnableDebugClose(true)
@@ -3040,7 +3031,6 @@ package.preload["mixin.__FCMBase"] = package.preload["mixin.__FCMBase"] or funct
             end
             return self
         end
-
         return self[method_name](self, ...)
     end
     return class
@@ -3064,512 +3054,6 @@ package.preload["library.lua_compatibility"] = package.preload["library.lua_comp
         end
     end
     return true
-end
-package.preload["library.client"] = package.preload["library.client"] or function()
-
-    local client = {}
-    local function to_human_string(feature)
-        return string.gsub(feature, "_", " ")
-    end
-    local function requires_later_plugin_version(feature)
-        if feature then
-            return "This script uses " .. to_human_string(feature) .. "which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
-        end
-        return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
-    end
-    local function requires_rgp_lua(feature)
-        if feature then
-            return "This script uses " .. to_human_string(feature) .. " which is not available on JW Lua. Please use RGP Lua instead to use this script."
-        end
-        return "This script requires RGP Lua, the successor of JW Lua. Please use RGP Lua instead to use this script."
-    end
-    local function requires_plugin_version(version, feature)
-        if tonumber(version) <= 0.54 then
-            if feature then
-                return "This script uses " .. to_human_string(feature) .. " which requires RGP Lua or JW Lua version " .. version ..
-                           " or later. Please update your plugin to use this script."
-            end
-            return "This script requires RGP Lua or JW Lua version " .. version .. " or later. Please update your plugin to use this script."
-        end
-        if feature then
-            return "This script uses " .. to_human_string(feature) .. " which requires RGP Lua version " .. version .. " or later. Please update your plugin to use this script."
-        end
-        return "This script requires RGP Lua version " .. version .. " or later. Please update your plugin to use this script."
-    end
-    local function requires_finale_version(version, feature)
-        return "This script uses " .. to_human_string(feature) .. ", which is only available on Finale " .. version .. " or later"
-    end
-
-    function client.get_raw_finale_version(major, minor, build)
-        local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
-        if build then
-            retval = bit32.bor(retval, math.floor(build))
-        end
-        return retval
-    end
-
-    function client.get_lua_plugin_version()
-        local num_string = tostring(finenv.MajorVersion) .. "." .. tostring(finenv.MinorVersion)
-        return tonumber(num_string)
-    end
-    local features = {
-        clef_change = {
-            test = client.get_lua_plugin_version() >= 0.60,
-            error = requires_plugin_version("0.58", "a clef change"),
-        },
-        ["FCKeySignature::CalcTotalChromaticSteps"] = {
-            test = finenv.IsRGPLua and finale.FCKeySignature.__class.CalcTotalChromaticSteps,
-            error = requires_later_plugin_version("a custom key signature"),
-        },
-        ["FCCategory::SaveWithNewType"] = {
-            test = client.get_lua_plugin_version() >= 0.58,
-            error = requires_plugin_version("0.58"),
-        },
-        ["finenv.QueryInvokedModifierKeys"] = {
-            test = finenv.IsRGPLua and finenv.QueryInvokedModifierKeys,
-            error = requires_later_plugin_version(),
-        },
-        ["FCCustomLuaWindow::ShowModeless"] = {
-            test = finenv.IsRGPLua,
-            error = requires_rgp_lua("a modeless dialog")
-        },
-        ["finenv.RetainLuaState"] = {
-            test = finenv.IsRGPLua and finenv.RetainLuaState ~= nil,
-            error = requires_later_plugin_version(),
-        },
-        smufl = {
-            test = finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1),
-            error = requires_finale_version("27.1", "a SMUFL font"),
-        },
-    }
-
-    function client.supports(feature)
-        if features[feature] == nil then
-            error("a test does not exist for feature " .. feature, 2)
-        end
-        return features[feature].test
-    end
-
-    function client.assert_supports(feature)
-        local error_level = finenv.DebugEnabled and 2 or 0
-        if not client.supports(feature) then
-            if features[feature].error then
-                error(features[feature].error, error_level)
-            end
-
-            error("Your Finale version does not support " .. to_human_string(feature), error_level)
-        end
-        return true
-    end
-    return client
-end
-package.preload["library.general_library"] = package.preload["library.general_library"] or function()
-
-    local library = {}
-    local client = require("library.client")
-
-    function library.group_overlaps_region(staff_group, region)
-        if region:IsFullDocumentSpan() then
-            return true
-        end
-        local staff_exists = false
-        local sys_staves = finale.FCSystemStaves()
-        sys_staves:LoadAllForRegion(region)
-        for sys_staff in each(sys_staves) do
-            if staff_group:ContainsStaff(sys_staff:GetStaff()) then
-                staff_exists = true
-                break
-            end
-        end
-        if not staff_exists then
-            return false
-        end
-        if (staff_group.StartMeasure > region.EndMeasure) or (staff_group.EndMeasure < region.StartMeasure) then
-            return false
-        end
-        return true
-    end
-
-    function library.group_is_contained_in_region(staff_group, region)
-        if not region:IsStaffIncluded(staff_group.StartStaff) then
-            return false
-        end
-        if not region:IsStaffIncluded(staff_group.EndStaff) then
-            return false
-        end
-        return true
-    end
-
-    function library.staff_group_is_multistaff_instrument(staff_group)
-        local multistaff_instruments = finale.FCMultiStaffInstruments()
-        multistaff_instruments:LoadAll()
-        for inst in each(multistaff_instruments) do
-            if inst:ContainsStaff(staff_group.StartStaff) and (inst.GroupID == staff_group:GetItemID()) then
-                return true
-            end
-        end
-        return false
-    end
-
-    function library.get_selected_region_or_whole_doc()
-        local sel_region = finenv.Region()
-        if sel_region:IsEmpty() then
-            sel_region:SetFullDocument()
-        end
-        return sel_region
-    end
-
-    function library.get_first_cell_on_or_after_page(page_num)
-        local curr_page_num = page_num
-        local curr_page = finale.FCPage()
-        local got1 = false
-
-        while curr_page:Load(curr_page_num) do
-            if curr_page:GetFirstSystem() > 0 then
-                got1 = true
-                break
-            end
-            curr_page_num = curr_page_num + 1
-        end
-        if got1 then
-            local staff_sys = finale.FCStaffSystem()
-            staff_sys:Load(curr_page:GetFirstSystem())
-            return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
-        end
-
-        local end_region = finale.FCMusicRegion()
-        end_region:SetFullDocument()
-        return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
-    end
-
-    function library.get_top_left_visible_cell()
-        if not finenv.UI():IsPageView() then
-            local all_region = finale.FCMusicRegion()
-            all_region:SetFullDocument()
-            return finale.FCCell(finenv.UI():GetCurrentMeasure(), all_region.StartStaff)
-        end
-        return library.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())
-    end
-
-    function library.get_top_left_selected_or_visible_cell()
-        local sel_region = finenv.Region()
-        if not sel_region:IsEmpty() then
-            return finale.FCCell(sel_region.StartMeasure, sel_region.StartStaff)
-        end
-        return library.get_top_left_visible_cell()
-    end
-
-    function library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
-        local staff = finale.FCCurrentStaffSpec()
-        if not staff:LoadForCell(cell, 0) then
-            return false
-        end
-        if meas_num_region:GetShowOnTopStaff() and (cell.Staff == staff_system.TopStaff) then
-            return true
-        end
-        if meas_num_region:GetShowOnBottomStaff() and (cell.Staff == staff_system:CalcBottomStaff()) then
-            return true
-        end
-        if staff.ShowMeasureNumbers then
-            return not meas_num_region:GetExcludeOtherStaves(current_is_part)
-        end
-        return false
-    end
-
-    function library.calc_parts_boolean_for_measure_number_region(meas_num_region, for_part)
-        if meas_num_region.UseScoreInfoForParts then
-            return false
-        end
-        if nil == for_part then
-            return finenv.UI():IsPartView()
-        end
-        return for_part
-    end
-
-    function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
-        current_is_part = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
-        if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
-            if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultiMeasureAlignment(current_is_part)) then
-                return false
-            end
-        elseif (cell.Measure == system.FirstMeasure) then
-            if not meas_num_region:GetShowOnSystemStart() then
-                return false
-            end
-            if (finale.MNALIGN_LEFT ~= meas_num_region:GetStartAlignment(current_is_part)) then
-                return false
-            end
-        else
-            if not meas_num_region:GetShowMultiples(current_is_part) then
-                return false
-            end
-            if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultipleAlignment(current_is_part)) then
-                return false
-            end
-        end
-        return library.is_default_measure_number_visible_on_cell(meas_num_region, cell, system, current_is_part)
-    end
-
-    function library.update_layout(from_page, unfreeze_measures)
-        from_page = from_page or 1
-        unfreeze_measures = unfreeze_measures or false
-        local page = finale.FCPage()
-        if page:Load(from_page) then
-            page:UpdateLayout(unfreeze_measures)
-        end
-    end
-
-    function library.get_current_part()
-        local part = finale.FCPart(finale.PARTID_CURRENT)
-        part:Load(part.ID)
-        return part
-    end
-
-    function library.get_score()
-        local part = finale.FCPart(finale.PARTID_SCORE)
-        part:Load(part.ID)
-        return part
-    end
-
-    function library.get_page_format_prefs()
-        local current_part = library.get_current_part()
-        local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
-        if current_part:IsScore() then
-            success = page_format_prefs:LoadScore()
-        else
-            success = page_format_prefs:LoadParts()
-        end
-        return page_format_prefs, success
-    end
-    local calc_smufl_directory = function(for_user)
-        local is_on_windows = finenv.UI():IsOnWindows()
-        local do_getenv = function(win_var, mac_var)
-            if finenv.UI():IsOnWindows() then
-                return win_var and os.getenv(win_var) or ""
-            else
-                return mac_var and os.getenv(mac_var) or ""
-            end
-        end
-        local smufl_directory = for_user and do_getenv("LOCALAPPDATA", "HOME") or do_getenv("COMMONPROGRAMFILES")
-        if not is_on_windows then
-            smufl_directory = smufl_directory .. "/Library/Application Support"
-        end
-        smufl_directory = smufl_directory .. "/SMuFL/Fonts/"
-        return smufl_directory
-    end
-
-    function library.get_smufl_font_list()
-        local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
-        local font_names = {}
-        local add_to_table = function(for_user)
-            local smufl_directory = calc_smufl_directory(for_user)
-            local get_dirs = function()
-                local options = finenv.UI():IsOnWindows() and "/b /ad" or "-1"
-                if osutils then
-                    return osutils.process.list_dir(smufl_directory, options)
-                end
-
-                local cmd = finenv.UI():IsOnWindows() and "dir " or "ls "
-                local handle = io.popen(cmd .. options .. " \"" .. smufl_directory .. "\"")
-                local retval = handle:read("*a")
-                handle:close()
-                return retval
-            end
-            local is_font_available = function(dir)
-                local fc_dir = finale.FCString()
-                fc_dir.LuaString = dir
-                return finenv.UI():IsFontAvailable(fc_dir)
-            end
-            local dirs = get_dirs() or ""
-            for dir in dirs:gmatch("([^\r\n]*)[\r\n]?") do
-                if not dir:find("%.") then
-                    dir = dir:gsub(" Bold", "")
-                    dir = dir:gsub(" Italic", "")
-                    local fc_dir = finale.FCString()
-                    fc_dir.LuaString = dir
-                    if font_names[dir] or is_font_available(dir) then
-                        font_names[dir] = for_user and "user" or "system"
-                    end
-                end
-            end
-        end
-        add_to_table(false)
-        add_to_table(true)
-        return font_names
-    end
-
-    function library.get_smufl_metadata_file(font_info)
-        if not font_info then
-            font_info = finale.FCFontInfo()
-            font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
-        end
-        local try_prefix = function(prefix, font_info)
-            local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
-            return io.open(file_path, "r")
-        end
-        local user_file = try_prefix(calc_smufl_directory(true), font_info)
-        if user_file then
-            return user_file
-        end
-        return try_prefix(calc_smufl_directory(false), font_info)
-    end
-
-    function library.is_font_smufl_font(font_info)
-        if not font_info then
-            font_info = finale.FCFontInfo()
-            font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
-        end
-        if client.supports("smufl") then
-            if nil ~= font_info.IsSMuFLFont then
-                return font_info.IsSMuFLFont
-            end
-        end
-        local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
-        if nil ~= smufl_metadata_file then
-            io.close(smufl_metadata_file)
-            return true
-        end
-        return false
-    end
-
-    function library.simple_input(title, text, default)
-        local str = finale.FCString()
-        local min_width = 160
-
-        function format_ctrl(ctrl, h, w, st)
-            ctrl:SetHeight(h)
-            ctrl:SetWidth(w)
-            if st then
-                str.LuaString = st
-                ctrl:SetText(str)
-            end
-        end
-
-        title_width = string.len(title) * 6 + 54
-        if title_width > min_width then
-            min_width = title_width
-        end
-        text_width = string.len(text) * 6
-        if text_width > min_width then
-            min_width = text_width
-        end
-
-        str.LuaString = title
-        local dialog = finale.FCCustomLuaWindow()
-        dialog:SetTitle(str)
-        local descr = dialog:CreateStatic(0, 0)
-        format_ctrl(descr, 16, min_width, text)
-        local input = dialog:CreateEdit(0, 20)
-        format_ctrl(input, 20, min_width, default)
-        dialog:CreateOkButton()
-        dialog:CreateCancelButton()
-        if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
-            input:GetText(str)
-            return str.LuaString
-        end
-    end
-
-    function library.is_finale_object(object)
-
-        return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
-    end
-
-    function library.get_parent_class(classname)
-        local class = finale[classname]
-        if type(class) ~= "table" then return nil end
-        if not finenv.IsRGPLua then
-            local classt = class.__class
-            if classt and classname ~= "__FCBase" then
-                local classtp = classt.__parent
-                if classtp and type(classtp) == "table" then
-                    for k, v in pairs(finale) do
-                        if type(v) == "table" then
-                            if v.__class and v.__class == classtp then
-                                return tostring(k)
-                            end
-                        end
-                    end
-                end
-            end
-        else
-            if class.__parent then
-                for k, _ in pairs(class.__parent) do
-                    return tostring(k)
-                end
-            end
-        end
-        return nil
-    end
-
-    function library.get_class_name(object)
-        local class_name = object:ClassName(object)
-        if class_name == "__FCCollection" and object.ExecuteModal then
-            return object.RegisterHandleCommand and "FCCustomLuaWindow" or "FCCustomWindow"
-        elseif class_name == "FCControl" then
-            if object.GetCheck then
-                return "FCCtrlCheckbox"
-            elseif object.GetThumbPosition then
-                return "FCCtrlSlider"
-            elseif object.AddPage then
-                return "FCCtrlSwitcher"
-            else
-                return "FCCtrlButton"
-            end
-        elseif class_name == "FCCtrlButton" and object.GetThumbPosition then
-            return "FCCtrlSlider"
-        end
-        return class_name
-    end
-
-    function library.system_indent_set_to_prefs(system, page_format_prefs)
-        page_format_prefs = page_format_prefs or library.get_page_format_prefs()
-        local first_meas = finale.FCMeasure()
-        local is_first_system = (system.FirstMeasure == 1)
-        if (not is_first_system) and first_meas:Load(system.FirstMeasure) then
-            if first_meas.ShowFullNames then
-                is_first_system = true
-            end
-        end
-        if is_first_system and page_format_prefs.UseFirstSystemMargins then
-            system.LeftMargin = page_format_prefs.FirstSystemLeft
-        else
-            system.LeftMargin = page_format_prefs.SystemLeft
-        end
-        return system:Save()
-    end
-
-    function library.calc_script_name(include_extension)
-        local fc_string = finale.FCString()
-        if finenv.RunningLuaFilePath then
-
-            fc_string.LuaString = finenv.RunningLuaFilePath()
-        else
-
-
-            fc_string:SetRunningLuaFilePath()
-        end
-        local filename_string = finale.FCString()
-        fc_string:SplitToPathAndFile(nil, filename_string)
-        local retval = filename_string.LuaString
-        if not include_extension then
-            retval = retval:match("(.+)%..+")
-            if not retval or retval == "" then
-                retval = filename_string.LuaString
-            end
-        end
-        return retval
-    end
-
-    function library.get_default_music_font_name()
-        local fontinfo = finale.FCFontInfo()
-        local default_music_font_name = finale.FCString()
-        if fontinfo:LoadFontPrefs(finale.FONTPREF_MUSIC) then
-            fontinfo:GetNameString(default_music_font_name)
-            return default_music_font_name.LuaString
-        end
-    end
-    return library
 end
 package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"] or function()
 
@@ -3618,9 +3102,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         end
 
         repeat
-            if (object_type < 2 and class_names[0][parent])
-                or (object_type > 0 and class_names[1][parent])
-            then
+            if (object_type < 2 and class_names[0][parent]) or (object_type > 0 and class_names[1][parent]) then
                 return true
             end
             parent = library.get_parent_class(parent)
@@ -3647,7 +3129,9 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         if library.is_finale_object(value) then
             secondary_type = value.MixinClass or value.ClassName
         end
-        error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) .. ")", levels)
+        error(
+            "bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) ..
+                ")", levels)
     end
 
     function mixin_helper.assert_argument_type(argument_number, value, ...)
@@ -3660,7 +3144,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         assert_argument_type(4, argument_number, value, ...)
     end
     local function assert_func(condition, message, level)
-        if type(condition) == 'function' then
+        if type(condition) == "function" then
             condition = condition()
         end
         if not condition then
@@ -3700,9 +3184,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             mixin_helper.assert_argument_type(3, callback, "function")
             local window = control:GetParent()
             mixin_helper.assert(window, "Cannot add handler to control with no parent window.")
-            mixin_helper.assert(
-                (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
-                "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
+            mixin_helper.assert((window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow", "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
             init_window(window)
             callbacks[control] = callbacks[control] or {}
             table.insert(callbacks[control], callback)
@@ -3744,7 +3226,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             for _, cb in ipairs(callbacks[target].order) do
 
                 local called = false
-                for k, v in pairs(current) do
+                for k, _ in pairs(current) do
                     if current[k] ~= callbacks[target].history[cb][k] then
                         cb(target, unpack_arguments(callbacks[target].history[cb], table.unpack(params)))
                         called = true
@@ -3838,11 +3320,8 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             mixin_helper.assert_argument_type(2, callback, "function")
             local window = self:GetParent()
             mixin_helper.assert(window, "Cannot add handler to self with no parent window.")
-            mixin_helper.assert(
-                (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
-                "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
-            mixin_helper.force_assert(
-                not event.callback_exists(self, callback), "The callback has already been added as a handler.")
+            mixin_helper.assert((window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow", "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
+            mixin_helper.force_assert(not event.callback_exists(self, callback), "The callback has already been added as a handler.")
             init_window(window)
             event.add(self, callback, not window:WindowExists__())
         end
@@ -3893,8 +3372,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         local function add_func(self, callback)
             mixin_helper.assert_argument_type(1, self, "FCMCustomLuaWindow")
             mixin_helper.assert_argument_type(2, callback, "function")
-            mixin_helper.force_assert(
-                not event.callback_exists(self, callback), "The callback has already been added as a handler.")
+            mixin_helper.force_assert(not event.callback_exists(self, callback), "The callback has already been added as a handler.")
             event.add(self, callback)
         end
         local function remove_func(self, callback)
@@ -3916,9 +3394,9 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             if type(window) == "boolean" and window then
                 for win in event.target_iterator() do
                     if immediate then
-                        event.dispatcher(window)
+                        event.dispatcher(win)
                     else
-                        trigger_helper(window)
+                        trigger_helper(win)
                     end
                 end
             else
@@ -3978,6 +3456,7 @@ package.preload["mixin.__FCMUserWindow"] = package.preload["mixin.__FCMUserWindo
     return class
 end
 package.preload["library.mixin"] = package.preload["library.mixin"] or function()
+
 
 
 
@@ -4782,7 +4261,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -4853,155 +4332,725 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
     return configuration
 end
+package.preload["library.client"] = package.preload["library.client"] or function()
+
+    local client = {}
+    local function to_human_string(feature)
+        return string.gsub(feature, "_", " ")
+    end
+    local function requires_later_plugin_version(feature)
+        if feature then
+            return "This script uses " .. to_human_string(feature) .. "which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
+        end
+        return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
+    end
+    local function requires_rgp_lua(feature)
+        if feature then
+            return "This script uses " .. to_human_string(feature) .. " which is not available on JW Lua. Please use RGP Lua instead to use this script."
+        end
+        return "This script requires RGP Lua, the successor of JW Lua. Please use RGP Lua instead to use this script."
+    end
+    local function requires_plugin_version(version, feature)
+        if tonumber(version) <= 0.54 then
+            if feature then
+                return "This script uses " .. to_human_string(feature) .. " which requires RGP Lua or JW Lua version " .. version ..
+                           " or later. Please update your plugin to use this script."
+            end
+            return "This script requires RGP Lua or JW Lua version " .. version .. " or later. Please update your plugin to use this script."
+        end
+        if feature then
+            return "This script uses " .. to_human_string(feature) .. " which requires RGP Lua version " .. version .. " or later. Please update your plugin to use this script."
+        end
+        return "This script requires RGP Lua version " .. version .. " or later. Please update your plugin to use this script."
+    end
+    local function requires_finale_version(version, feature)
+        return "This script uses " .. to_human_string(feature) .. ", which is only available on Finale " .. version .. " or later"
+    end
+
+    function client.get_raw_finale_version(major, minor, build)
+        local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
+        if build then
+            retval = bit32.bor(retval, math.floor(build))
+        end
+        return retval
+    end
+
+    function client.get_lua_plugin_version()
+        local num_string = tostring(finenv.MajorVersion) .. "." .. tostring(finenv.MinorVersion)
+        return tonumber(num_string)
+    end
+    local features = {
+        clef_change = {
+            test = client.get_lua_plugin_version() >= 0.60,
+            error = requires_plugin_version("0.58", "a clef change"),
+        },
+        ["FCKeySignature::CalcTotalChromaticSteps"] = {
+            test = finenv.IsRGPLua and finale.FCKeySignature.__class.CalcTotalChromaticSteps,
+            error = requires_later_plugin_version("a custom key signature"),
+        },
+        ["FCCategory::SaveWithNewType"] = {
+            test = client.get_lua_plugin_version() >= 0.58,
+            error = requires_plugin_version("0.58"),
+        },
+        ["finenv.QueryInvokedModifierKeys"] = {
+            test = finenv.IsRGPLua and finenv.QueryInvokedModifierKeys,
+            error = requires_later_plugin_version(),
+        },
+        ["FCCustomLuaWindow::ShowModeless"] = {
+            test = finenv.IsRGPLua,
+            error = requires_rgp_lua("a modeless dialog")
+        },
+        ["finenv.RetainLuaState"] = {
+            test = finenv.IsRGPLua and finenv.RetainLuaState ~= nil,
+            error = requires_later_plugin_version(),
+        },
+        smufl = {
+            test = finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1),
+            error = requires_finale_version("27.1", "a SMUFL font"),
+        },
+    }
+
+    function client.supports(feature)
+        if features[feature] == nil then
+            error("a test does not exist for feature " .. feature, 2)
+        end
+        return features[feature].test
+    end
+
+    function client.assert_supports(feature)
+        local error_level = finenv.DebugEnabled and 2 or 0
+        if not client.supports(feature) then
+            if features[feature].error then
+                error(features[feature].error, error_level)
+            end
+
+            error("Your Finale version does not support " .. to_human_string(feature), error_level)
+        end
+        return true
+    end
+    return client
+end
+package.preload["library.general_library"] = package.preload["library.general_library"] or function()
+
+    local library = {}
+    local client = require("library.client")
+
+    function library.group_overlaps_region(staff_group, region)
+        if region:IsFullDocumentSpan() then
+            return true
+        end
+        local staff_exists = false
+        local sys_staves = finale.FCSystemStaves()
+        sys_staves:LoadAllForRegion(region)
+        for sys_staff in each(sys_staves) do
+            if staff_group:ContainsStaff(sys_staff:GetStaff()) then
+                staff_exists = true
+                break
+            end
+        end
+        if not staff_exists then
+            return false
+        end
+        if (staff_group.StartMeasure > region.EndMeasure) or (staff_group.EndMeasure < region.StartMeasure) then
+            return false
+        end
+        return true
+    end
+
+    function library.group_is_contained_in_region(staff_group, region)
+        if not region:IsStaffIncluded(staff_group.StartStaff) then
+            return false
+        end
+        if not region:IsStaffIncluded(staff_group.EndStaff) then
+            return false
+        end
+        return true
+    end
+
+    function library.staff_group_is_multistaff_instrument(staff_group)
+        local multistaff_instruments = finale.FCMultiStaffInstruments()
+        multistaff_instruments:LoadAll()
+        for inst in each(multistaff_instruments) do
+            if inst:ContainsStaff(staff_group.StartStaff) and (inst.GroupID == staff_group:GetItemID()) then
+                return true
+            end
+        end
+        return false
+    end
+
+    function library.get_selected_region_or_whole_doc()
+        local sel_region = finenv.Region()
+        if sel_region:IsEmpty() then
+            sel_region:SetFullDocument()
+        end
+        return sel_region
+    end
+
+    function library.get_first_cell_on_or_after_page(page_num)
+        local curr_page_num = page_num
+        local curr_page = finale.FCPage()
+        local got1 = false
+
+        while curr_page:Load(curr_page_num) do
+            if curr_page:GetFirstSystem() > 0 then
+                got1 = true
+                break
+            end
+            curr_page_num = curr_page_num + 1
+        end
+        if got1 then
+            local staff_sys = finale.FCStaffSystem()
+            staff_sys:Load(curr_page:GetFirstSystem())
+            return finale.FCCell(staff_sys.FirstMeasure, staff_sys.TopStaff)
+        end
+
+        local end_region = finale.FCMusicRegion()
+        end_region:SetFullDocument()
+        return finale.FCCell(end_region.EndMeasure, end_region.EndStaff)
+    end
+
+    function library.get_top_left_visible_cell()
+        if not finenv.UI():IsPageView() then
+            local all_region = finale.FCMusicRegion()
+            all_region:SetFullDocument()
+            return finale.FCCell(finenv.UI():GetCurrentMeasure(), all_region.StartStaff)
+        end
+        return library.get_first_cell_on_or_after_page(finenv.UI():GetCurrentPage())
+    end
+
+    function library.get_top_left_selected_or_visible_cell()
+        local sel_region = finenv.Region()
+        if not sel_region:IsEmpty() then
+            return finale.FCCell(sel_region.StartMeasure, sel_region.StartStaff)
+        end
+        return library.get_top_left_visible_cell()
+    end
+
+    function library.is_default_measure_number_visible_on_cell(meas_num_region, cell, staff_system, current_is_part)
+        local staff = finale.FCCurrentStaffSpec()
+        if not staff:LoadForCell(cell, 0) then
+            return false
+        end
+        if meas_num_region:GetShowOnTopStaff() and (cell.Staff == staff_system.TopStaff) then
+            return true
+        end
+        if meas_num_region:GetShowOnBottomStaff() and (cell.Staff == staff_system:CalcBottomStaff()) then
+            return true
+        end
+        if staff.ShowMeasureNumbers then
+            return not meas_num_region:GetExcludeOtherStaves(current_is_part)
+        end
+        return false
+    end
+
+    function library.calc_parts_boolean_for_measure_number_region(meas_num_region, for_part)
+        if meas_num_region.UseScoreInfoForParts then
+            return false
+        end
+        if nil == for_part then
+            return finenv.UI():IsPartView()
+        end
+        return for_part
+    end
+
+    function library.is_default_number_visible_and_left_aligned(meas_num_region, cell, system, current_is_part, is_for_multimeasure_rest)
+        current_is_part = library.calc_parts_boolean_for_measure_number_region(meas_num_region, current_is_part)
+        if is_for_multimeasure_rest and meas_num_region:GetShowOnMultiMeasureRests(current_is_part) then
+            if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultiMeasureAlignment(current_is_part)) then
+                return false
+            end
+        elseif (cell.Measure == system.FirstMeasure) then
+            if not meas_num_region:GetShowOnSystemStart() then
+                return false
+            end
+            if (finale.MNALIGN_LEFT ~= meas_num_region:GetStartAlignment(current_is_part)) then
+                return false
+            end
+        else
+            if not meas_num_region:GetShowMultiples(current_is_part) then
+                return false
+            end
+            if (finale.MNALIGN_LEFT ~= meas_num_region:GetMultipleAlignment(current_is_part)) then
+                return false
+            end
+        end
+        return library.is_default_measure_number_visible_on_cell(meas_num_region, cell, system, current_is_part)
+    end
+
+    function library.update_layout(from_page, unfreeze_measures)
+        from_page = from_page or 1
+        unfreeze_measures = unfreeze_measures or false
+        local page = finale.FCPage()
+        if page:Load(from_page) then
+            page:UpdateLayout(unfreeze_measures)
+        end
+    end
+
+    function library.get_current_part()
+        local part = finale.FCPart(finale.PARTID_CURRENT)
+        part:Load(part.ID)
+        return part
+    end
+
+    function library.get_score()
+        local part = finale.FCPart(finale.PARTID_SCORE)
+        part:Load(part.ID)
+        return part
+    end
+
+    function library.get_page_format_prefs()
+        local current_part = library.get_current_part()
+        local page_format_prefs = finale.FCPageFormatPrefs()
+        local success
+        if current_part:IsScore() then
+            success = page_format_prefs:LoadScore()
+        else
+            success = page_format_prefs:LoadParts()
+        end
+        return page_format_prefs, success
+    end
+    local calc_smufl_directory = function(for_user)
+        local is_on_windows = finenv.UI():IsOnWindows()
+        local do_getenv = function(win_var, mac_var)
+            if finenv.UI():IsOnWindows() then
+                return win_var and os.getenv(win_var) or ""
+            else
+                return mac_var and os.getenv(mac_var) or ""
+            end
+        end
+        local smufl_directory = for_user and do_getenv("LOCALAPPDATA", "HOME") or do_getenv("COMMONPROGRAMFILES")
+        if not is_on_windows then
+            smufl_directory = smufl_directory .. "/Library/Application Support"
+        end
+        smufl_directory = smufl_directory .. "/SMuFL/Fonts/"
+        return smufl_directory
+    end
+
+    function library.get_smufl_font_list()
+        local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
+        local font_names = {}
+        local add_to_table = function(for_user)
+            local smufl_directory = calc_smufl_directory(for_user)
+            local get_dirs = function()
+                local options = finenv.UI():IsOnWindows() and "/b /ad" or "-1"
+                if osutils then
+                    return osutils.process.list_dir(smufl_directory, options)
+                end
+
+                local cmd = finenv.UI():IsOnWindows() and "dir " or "ls "
+                local handle = io.popen(cmd .. options .. " \"" .. smufl_directory .. "\"")
+                local retval = handle:read("*a")
+                handle:close()
+                return retval
+            end
+            local is_font_available = function(dir)
+                local fc_dir = finale.FCString()
+                fc_dir.LuaString = dir
+                return finenv.UI():IsFontAvailable(fc_dir)
+            end
+            local dirs = get_dirs() or ""
+            for dir in dirs:gmatch("([^\r\n]*)[\r\n]?") do
+                if not dir:find("%.") then
+                    dir = dir:gsub(" Bold", "")
+                    dir = dir:gsub(" Italic", "")
+                    local fc_dir = finale.FCString()
+                    fc_dir.LuaString = dir
+                    if font_names[dir] or is_font_available(dir) then
+                        font_names[dir] = for_user and "user" or "system"
+                    end
+                end
+            end
+        end
+        add_to_table(false)
+        add_to_table(true)
+        return font_names
+    end
+
+    function library.get_smufl_metadata_file(font_info)
+        if not font_info then
+            font_info = finale.FCFontInfo()
+            font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
+        end
+        local try_prefix = function(prefix, font_info)
+            local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
+            return io.open(file_path, "r")
+        end
+        local user_file = try_prefix(calc_smufl_directory(true), font_info)
+        if user_file then
+            return user_file
+        end
+        return try_prefix(calc_smufl_directory(false), font_info)
+    end
+
+    function library.is_font_smufl_font(font_info)
+        if not font_info then
+            font_info = finale.FCFontInfo()
+            font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
+        end
+        if client.supports("smufl") then
+            if nil ~= font_info.IsSMuFLFont then
+                return font_info.IsSMuFLFont
+            end
+        end
+        local smufl_metadata_file = library.get_smufl_metadata_file(font_info)
+        if nil ~= smufl_metadata_file then
+            io.close(smufl_metadata_file)
+            return true
+        end
+        return false
+    end
+
+    function library.simple_input(title, text, default)
+        local str = finale.FCString()
+        local min_width = 160
+
+        local function format_ctrl(ctrl, h, w, st)
+            ctrl:SetHeight(h)
+            ctrl:SetWidth(w)
+            if st then
+                str.LuaString = st
+                ctrl:SetText(str)
+            end
+        end
+
+        local title_width = string.len(title) * 6 + 54
+        if title_width > min_width then
+            min_width = title_width
+        end
+        local text_width = string.len(text) * 6
+        if text_width > min_width then
+            min_width = text_width
+        end
+
+        str.LuaString = title
+        local dialog = finale.FCCustomLuaWindow()
+        dialog:SetTitle(str)
+        local descr = dialog:CreateStatic(0, 0)
+        format_ctrl(descr, 16, min_width, text)
+        local input = dialog:CreateEdit(0, 20)
+        format_ctrl(input, 20, min_width, default)
+        dialog:CreateOkButton()
+        dialog:CreateCancelButton()
+        if dialog:ExecuteModal(nil) == finale.EXECMODAL_OK then
+            input:GetText(str)
+            return str.LuaString
+        end
+    end
+
+    function library.is_finale_object(object)
+
+        return object and type(object) == "userdata" and object.ClassName and object.GetClassID and true or false
+    end
+
+    function library.get_parent_class(classname)
+        local class = finale[classname]
+        if type(class) ~= "table" then return nil end
+        if not finenv.IsRGPLua then
+            local classt = class.__class
+            if classt and classname ~= "__FCBase" then
+                local classtp = classt.__parent
+                if classtp and type(classtp) == "table" then
+                    for k, v in pairs(finale) do
+                        if type(v) == "table" then
+                            if v.__class and v.__class == classtp then
+                                return tostring(k)
+                            end
+                        end
+                    end
+                end
+            end
+        else
+            if class.__parent then
+                for k, _ in pairs(class.__parent) do
+                    return tostring(k)
+                end
+            end
+        end
+        return nil
+    end
+
+    function library.get_class_name(object)
+        local class_name = object:ClassName(object)
+        if class_name == "__FCCollection" and object.ExecuteModal then
+            return object.RegisterHandleCommand and "FCCustomLuaWindow" or "FCCustomWindow"
+        elseif class_name == "FCControl" then
+            if object.GetCheck then
+                return "FCCtrlCheckbox"
+            elseif object.GetThumbPosition then
+                return "FCCtrlSlider"
+            elseif object.AddPage then
+                return "FCCtrlSwitcher"
+            else
+                return "FCCtrlButton"
+            end
+        elseif class_name == "FCCtrlButton" and object.GetThumbPosition then
+            return "FCCtrlSlider"
+        end
+        return class_name
+    end
+
+    function library.system_indent_set_to_prefs(system, page_format_prefs)
+        page_format_prefs = page_format_prefs or library.get_page_format_prefs()
+        local first_meas = finale.FCMeasure()
+        local is_first_system = (system.FirstMeasure == 1)
+        if (not is_first_system) and first_meas:Load(system.FirstMeasure) then
+            if first_meas.ShowFullNames then
+                is_first_system = true
+            end
+        end
+        if is_first_system and page_format_prefs.UseFirstSystemMargins then
+            system.LeftMargin = page_format_prefs.FirstSystemLeft
+        else
+            system.LeftMargin = page_format_prefs.SystemLeft
+        end
+        return system:Save()
+    end
+
+    function library.calc_script_name(include_extension)
+        local fc_string = finale.FCString()
+        if finenv.RunningLuaFilePath then
+
+            fc_string.LuaString = finenv.RunningLuaFilePath()
+        else
+
+
+            fc_string:SetRunningLuaFilePath()
+        end
+        local filename_string = finale.FCString()
+        fc_string:SplitToPathAndFile(nil, filename_string)
+        local retval = filename_string.LuaString
+        if not include_extension then
+            retval = retval:match("(.+)%..+")
+            if not retval or retval == "" then
+                retval = filename_string.LuaString
+            end
+        end
+        return retval
+    end
+
+    function library.get_default_music_font_name()
+        local fontinfo = finale.FCFontInfo()
+        local default_music_font_name = finale.FCString()
+        if fontinfo:LoadFontPrefs(finale.FONTPREF_MUSIC) then
+            fontinfo:GetNameString(default_music_font_name)
+            return default_music_font_name.LuaString
+        end
+    end
+    return library
+end
 function plugindef()
 	finaleplugin.RequireSelection = true
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.70"
-    finaleplugin.Date = "2023/07/25"
+    finaleplugin.Version = "0.83"
+    finaleplugin.Date = "2024/01/27"
     finaleplugin.MinJWLuaVersion = 0.60
     finaleplugin.Notes = [[
-        This script provides rapid entry of simple or complex
+        This script allows rapid creation of simple or complex
         time signatures with a few keystrokes.
         It supports composite numerators like [3+2+3/16] and can join
-        with further composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]).
+        easily with extra composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]).
         "Display only" time signatures can be equally complex and set without using a mouse.
         At startup the time signature of the first selected measure is shown.
-        Click the "Clear All" button to revert to a simple 4/4 with no other options.
+        To revert to a simple 4/4 with no other options click the "Clear All" button or type [x].
+        To read these script notes click the [?] button or type [q].
+        To respace notes on completion click the "Respace" button or type [r].
         All measures in the current selection will be assigned the new time signature.
+        Use this feature to quickly copy the initial meter throughout the selection.
         If just one measure is selected only it will be changed.
-        "Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, 64.
+        "Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, or 64.
         "Top" numbers (numerators) are integers, optionally joined by '+' signs for composite meters.
-        Multiples of 3 automatically convert to compound signatures so [9/16] will
-        convert to three groups of dotted 8ths.
-        To prevent automatic compounding, instead of the bottom 'note' number enter its EDU value
-        (quarter note = 1024; eighth note = 512 etc).
+        Numerators that are multiples of 3 automatically convert to compound signatures
+        so [9/16] will convert to three groups of dotted 8ths.
+        To prevent automatic compounding, instead of the bottom 'note' number enter its
+        EDU value (quarter note = 1024; eighth note = 512; sixteenth = 256 etc).
         Empty and zero "Top" numbers will be ignored.
-        If "Secondary" numbers are zero then "Tertiary" values are ignored.
+        "Tertiary" values will be ignored if "Secondary" numbers are blank or zero.
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/meter_set_numeric.hash"
-	return "Meter Set Numeric", "Meter Set Numeric", "Set the Meter Numerically"
+	return "Meter Set Numeric...", "Meter Set Numeric", "Set the Meter Numerically"
 end
+local info_notes = [[
+This script allows rapid creation of simple or complex
+time signatures with a few keystrokes.
+It supports composite numerators like [3+2+3/16] and can join
+easily with extra composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]).
+"Display only" time signatures can be equally complex and set without using a mouse.
+**
+At startup the time signature of the first selected measure is shown.
+To revert to a simple 4/4 with no other options click the "Clear All" button or type [x].
+To read these script notes click the [?] button or type [q].
+To respace notes on completion click the "Respace" button or type [r].
+**
+All measures in the current selection will be assigned the new time signature.
+Use this feature to quickly copy the initial meter throughout the selection.
+If just one measure is selected only it will be changed.
+**
+"Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, or 64.
+"Top" numbers (numerators) are integers, optionally joined by '+' signs for composite meters.
+Numerators that are multiples of 3 automatically convert to compound signatures
+so [9/16] will convert to three groups of dotted 8ths.
+To prevent automatic compounding, instead of the bottom 'note' number enter its
+EDU value (quarter note = 1024; eighth note = 512; sixteenth = 256 etc).
+**
+Empty and zero "Top" numbers will be ignored.
+"Tertiary" values will be ignored if "Secondary" numbers are blank or zero.
+]]
+info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n")
+    .. "\n(v" .. finaleplugin.Version .. ")"
 local mixin = require("library.mixin")
 local configuration = require("library.configuration")
+local library = require("library.general_library")
+local script_name = library.calc_script_name()
 local config = {
     note_spacing = true,
     window_pos_x = false,
     window_pos_y = false,
 }
-local script_name = "meter_set_numeric"
 configuration.get_user_settings(script_name, config, true)
-function blank_meter()
+local function blank_meter()
     return {
-        main = { top = {}, bottom = {} },
-        display =  { top = {}, bottom = {} }
+        main    = { top = {}, bottom = {} },
+        display = { top = {}, bottom = {} }
     }
 end
-function dialog_set_position(dialog)
+local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
         dialog:RestorePosition()
     end
 end
-function dialog_save_position(dialog)
+local function dialog_save_position(dialog)
     dialog:StorePosition()
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
 end
-function user_chooses_meter(meter, rgn)
+local function user_chooses_meter(meter, rgn)
     local x = { 0, 70, 130, 210, 280, 290 }
-    local label = {"PRIMARY", "(+ SECONDARY)", "(+ TERTIARY)"}
-    local label_off = { 0, -37, -21 }
+    local label = {
+        { "PRIMARY", 0},
+        { "(+ SECONDARY)", -37 },
+        { "(+ TERTIARY)", -21 }
+    }
     local y_middle = 118
     local offset = finenv.UI():IsOnMac() and 3 or 0
+    local name = plugindef():gsub("%.%.%.", "")
+    local function show_info() finenv.UI():AlertInfo(info_notes, "About " .. name) end
+    local box, save_text = {}, {}
     local message = "m. " .. rgn.StartMeasure
     if rgn.StartMeasure ~= rgn.EndMeasure then
         message = "m" .. message .. "-" .. rgn.EndMeasure
     end
+    local respace_check
     local y = 0
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-
-    local function cstat(nx, ny, nwide, ntext)
-        local dx = (type(nx) == "number") and x[nx] or tonumber(nx)
-        return dialog:CreateStatic(dx, ny):SetWidth(nwide):SetText(ntext)
-    end
-    local function join(values)
-        if not values or #values == 0 then return "0" end
-        return table.concat(values, "+")
-    end
-    local shadow = cstat("1", y + 1, x[3], "TIME SIGNATURE")
-    if shadow.SetTextColor then shadow:SetTextColor(153, 153, 153) end
-    cstat(1, y, x[3], "TIME SIGNATURE")
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
+        local function cstat(nx, ny, nwide, ntext, id)
+            local dx = (type(nx) == "number") and x[nx] or tonumber(nx)
+            return dialog:CreateStatic(dx, ny, id):SetWidth(nwide):SetText(ntext)
+        end
+        local function join(values)
+            if not values or #values == 0 then return "0" end
+            return table.concat(values, "+")
+        end
+        local function clear_entries()
+            for j = 0, 6, 6 do
+                for i = 1, 3 do
+                    local n = (j == 0 and i == 1) and 4 or 0
+                    box[j + i]:SetText(n)
+                    box[j + i + 3]:SetInteger(n)
+                    save_text[j + i] = n
+                    save_text[j + i + 3] = n
+                end
+            end
+            box[1]:SetKeyboardFocus()
+        end
+        local function key_check(id)
+            local s = box[id]:GetText():lower()
+            if s:find("[^0-9+]") then
+                if s:find("x") then
+                    clear_entries()
+                else
+                    if s:find("[?q]") then
+                        show_info()
+                    elseif s:find("r") then
+                        local n = respace_check:GetCheck()
+                        respace_check:SetCheck((n + 1) % 2)
+                    end
+                    box[id]:SetText(save_text[id])
+                end
+            elseif s ~= "" then
+                save_text[id] = s
+            end
+        end
+    cstat(1, y + 1, x[3], "TIME SIGNATURE", "main")
     cstat(3, y, x[3], "TOP")
     cstat(4, y, x[3], "BOTTOM")
     cstat(6, 25, 80, "Selection:")
     cstat(6, 40, 80, message)
+    dialog:CreateButton(x[5], y):SetWidth(80):SetText("Clear All (x)")
+        :AddHandleCommand(function() clear_entries() end)
     y = y_middle
     cstat(x[2] - 30, y - 30, 330, "'TOP' entries can include integers joined by '+' signs")
     dialog:CreateHorizontalLine(x[1], y - 9, x[5] + 50)
     dialog:CreateHorizontalLine(x[1], y - 8, x[5] + 50)
-    shadow = cstat("1", y + 1, x[3], "DISPLAY SIGNATURE")
-    if shadow.SetTextColor then shadow:SetTextColor(153, 153, 153) end
-    cstat(1, y, x[3], "DISPLAY SIGNATURE")
+    cstat(1, y + 1, x[3], "DISPLAY SIGNATURE", "second")
     cstat(3, y, 150, "(set to '0' for none)")
-    dialog:CreateButton(x[5] + 60, y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function()
-            finenv.UI():AlertInfo(finaleplugin.Notes:gsub(" %s+", " "), "About " .. plugindef())
-        end)
 
     y = 0
-    local box = {}
     for jump = 0, 6, 6 do
         local t_sig = (jump == 0) and meter.main or meter.display
         for group = 1, 3 do
             y = y + 20
             local id = group + jump
-            box[id] = dialog:CreateEdit(x[3], y - offset, tostring(id))
+            box[id] = dialog:CreateEdit(x[3], y - offset)
                 :SetText(join(t_sig.top[group])):SetWidth(65)
-            box[id + 3] = dialog:CreateEdit(x[4], y - offset, tostring(id + 3))
+                :AddHandleCommand(function() key_check(id) end)
+            box[id + 3] = dialog:CreateEdit(x[4], y - offset)
                 :SetInteger(t_sig.bottom[group] or 0):SetWidth(65)
-            cstat(x[2] + label_off[group], y, 56 - label_off[group], label[group])
+                :AddHandleCommand(function() key_check(id + 3) end)
+            cstat(x[2] + label[group][2], y, 56 - label[group][2], label[group][1])
+            save_text[id] = box[id]:GetText()
+            save_text[id + 3] = box[id + 3]:GetText()
         end
         y = y_middle
     end
-    dialog:CreateCheckbox(x[3], y_middle + 85, "spacing"):SetText("Respace notes on completion")
-        :SetCheck(config.note_spacing and 1 or 0):SetWidth(170)
-    local clear_button = dialog:CreateButton(x[5], 0):SetWidth(80):SetText("Clear All")
-    clear_button:AddHandleCommand(function()
-            box[1]:SetText("4")
-            box[4]:SetInteger(4)
-            for _, i in ipairs({2, 3, 7, 8, 9}) do
-                box[i]:SetText("0")
-                box[i + 3]:SetInteger(0)
-            end
-            box[1]:SetKeyboardFocus()
-        end
-    )
+    y = y + 60
+    dialog:CreateButton(x[5] + 60, y, "q"):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() show_info() end)
+    y = y + 25
+    respace_check = dialog:CreateCheckbox(x[3], y):SetText("Respace notes on completion (r)")
+        :SetCheck(config.note_spacing and 1 or 0):SetWidth(185)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     local choices = {}
-    dialog:RegisterInitWindow(function() box[1]:SetKeyboardFocus() end)
-
-    dialog:RegisterHandleOkButtonPressed(function(self)
+    dialog:RegisterInitWindow(function(self)
+        box[1]:SetKeyboardFocus()
+        local q = self:GetControl("q")
+        local bold = q:CreateFontInfo():SetBold(true)
+        q:SetFont(bold)
+        self:GetControl("main"):SetFont(bold)
+        self:GetControl("second"):SetFont(bold)
+    end)
+    dialog:RegisterHandleOkButtonPressed(function()
         for count = 0, 6, 6 do
             for group = 1, 3 do
                 local id = count + group
-                choices[id] = self:GetControl(tostring(id)):GetText() or "0"
+                choices[id] = box[id]:GetText() or "0"
                 if choices[id] == "" then choices[id] = "0" end
-                choices[id + 3] = math.abs(self:GetControl(tostring(id + 3)):GetInteger()) or 0
+                choices[id + 3] = box[id + 3]:GetInteger() or 0
             end
         end
-        config.note_spacing = (self:GetControl("spacing"):GetCheck() == 1)
-        dialog_save_position(self)
+        config.note_spacing = (respace_check:GetCheck() == 1)
     end)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     dialog_set_position(dialog)
     local ok = dialog:ExecuteModal(nil)
     return ok, choices
 end
-function encode_current_meter(time_sig, sub_meter)
+local function encode_current_meter(time_sig, sub_meter)
     local function numerators_treble(top_table)
         for j = 1, #top_table do
             top_table[j] = top_table[j] * 3
@@ -5041,7 +5090,7 @@ function encode_current_meter(time_sig, sub_meter)
         sub_meter.bottom[1] = math.floor(4096 / beat_duration)
     end
 end
-function copy_meter_from_score(measure_number)
+local function copy_meter_from_score(measure_number)
     local measure = finale.FCMeasure()
     measure:Load(measure_number)
     local meter = blank_meter()
@@ -5051,15 +5100,15 @@ function copy_meter_from_score(measure_number)
     end
     return meter
 end
-function is_power_of_two(num)
+local function is_power_of_two(num)
     local current = 1
     while current < num do
         current = current * 2
     end
     return current == num
 end
-function convert_choices_to_meter(choices, meter)
-    if choices[1] == "0" or choices[4] == 0 then
+local function convert_choices_to_meter(choices, meter)
+    if choices[1] == "0" or choices[1] == "" or choices[4] == 0 then
         return "Primary time signature cannot be zero"
     end
     for jump = 0, 6, 6 do
@@ -5099,7 +5148,7 @@ function convert_choices_to_meter(choices, meter)
     end
     return ""
 end
-function new_composite_top(sub_meter)
+local function new_composite_top(sub_meter)
     local composite_top = finale.FCCompositeTimeSigTop()
     for count = 1, 3 do
         if not sub_meter[count] or sub_meter[count][1] == 0 then break end
@@ -5111,7 +5160,7 @@ function new_composite_top(sub_meter)
     composite_top:SaveAll()
     return composite_top
 end
-function new_composite_bottom(sub_meter)
+local function new_composite_bottom(sub_meter)
     local composite_bottom = finale.FCCompositeTimeSigBottom()
     for count = 1, 3 do
         if not sub_meter[count] or sub_meter[count] == 0 then break end
@@ -5121,7 +5170,7 @@ function new_composite_bottom(sub_meter)
     composite_bottom:SaveAll()
     return composite_bottom
 end
-function fix_new_top(composite_top, time_sig, numerator)
+local function fix_new_top(composite_top, time_sig, numerator)
     if composite_top ~= nil then
         time_sig:SaveNewCompositeTop(composite_top)
     else
@@ -5132,7 +5181,7 @@ function fix_new_top(composite_top, time_sig, numerator)
         end
     end
 end
-function fix_new_bottom(composite_bottom, time_sig, denominator)
+local function fix_new_bottom(composite_bottom, time_sig, denominator)
     if composite_bottom ~= nil then
         time_sig:SaveNewCompositeBottom(composite_bottom)
     else
@@ -5143,7 +5192,7 @@ function fix_new_bottom(composite_bottom, time_sig, denominator)
         end
     end
 end
-function create_new_meter()
+local function create_new_meter()
     local region = mixin.FCMMusicRegion()
     region:SetRegion(finenv.Region()):SetStartMeasurePosLeft():SetEndMeasurePosRight()
     local meter = copy_meter_from_score(region.StartMeasure)
@@ -5156,7 +5205,7 @@ function create_new_meter()
         main = { top = nil, bottom = nil},
         display = { top = nil, bottom = nil}
     }
-    for _, kind in ipairs({"main", "display"}) do
+    for _, kind in ipairs{"main", "display"} do
         if meter[kind].top[1] and (#meter[kind].top > 1 or #meter[kind].top[1] > 1) then
             composites[kind].top = new_composite_top(meter[kind].top)
             if #meter[kind].bottom > 1 then

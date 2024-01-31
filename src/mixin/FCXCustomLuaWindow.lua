@@ -9,15 +9,10 @@ $module FCXCustomLuaWindow
 - DebugClose is enabled by default
 ]] --
 local mixin = require("library.mixin")
-local utils = require("library.utils")
 local mixin_helper = require("library.mixin_helper")
-local measurement = require("library.measurement")
 
 local class = {Parent = "FCMCustomLuaWindow", Methods = {}}
 local methods = class.Methods
-
-local trigger_measurement_unit_change
-local each_last_measurement_unit_change
 
 --[[
 % Init

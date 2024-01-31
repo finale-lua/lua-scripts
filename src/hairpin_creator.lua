@@ -132,7 +132,7 @@ local function extend_region_by_EDU(region, add_duration)
 end
 
 local function duration_gap(measureA, positionA, measureB, positionB)
-    local diff, duration = 0, 0
+    local diff, duration = 0
     if measureA == measureB then -- simple EDU offset
         diff = positionB - positionA
     elseif measureB < measureA then
@@ -245,7 +245,7 @@ end
 
 local function lowest_note_element(rgn)
     local lowest_vert = -13 * 12 -- at least to bottom of staff
-    local current_measure, top_of_staff, bottom_pos = 0, 0, 0
+    local current_measure, top_of_staff, bottom_pos = 0, 0
 
     for entry in eachentry(rgn) do
         if entry:IsNote() then
@@ -329,7 +329,7 @@ local function simple_dynamic_scan(rgn)
 end
 
 local function dynamic_horiz_offset(dyn_exp, left_or_right)
-    local total_offset = 0
+    local total_offset
     local dyn_def = dyn_exp:CreateTextExpressionDef()
     local dyn_width = expression.calc_text_width(dyn_def)
     local horiz_just = dyn_def.HorizontalJustification
@@ -416,7 +416,7 @@ local function design_staff_hairpin(rgn, hairpin_shape)
     local new_end_measure, new_end_postion = nil, nil -- assume they're nil for now
     if #dynamics_list > 0 then
         if config.dynamics_match_hairpin then -- move all dynamics to equal lowest vertical
-            for i, v in ipairs(dynamics_list) do
+            for _, v in ipairs(dynamics_list) do
                 local vert_difference = v[2] - lowest_vert
                 v[1].VerticalPos = v[1].VerticalPos - vert_difference
                 v[1]:Save()
@@ -479,7 +479,7 @@ local function create_swell(swell_type)
             end
             -- any dynamics in selection?
             if #dynamics_list > 0 and config.dynamics_match_hairpin then
-                for i, v in ipairs(dynamics_list) do
+                for _, v in ipairs(dynamics_list) do
                     local vert_difference = v[2] - lowest_vertical
                     v[1].VerticalPos = v[1].VerticalPos - vert_difference
                     v[1]:Save()
@@ -548,7 +548,7 @@ function create_dialog_box()
     }
 
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Hairpin Creator Configuration")
-    local y_step, y_current = 20, 0
+    local y_step, y_current = 20
     local max_text_width = 385
     local x_offset = {0, 130, 155, 190}
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- horizontal offset for Mac Edit boxes

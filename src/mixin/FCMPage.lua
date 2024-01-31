@@ -7,7 +7,7 @@ $module FCMPage
 - Added methods for getting and setting the page size by its name according to the `page_size` library.
 - Added `IsBlank` method.
 ]] --
-local mixin = require("library.mixin")
+local mixin = require("library.mixin") -- luacheck: ignore
 local mixin_helper = require("library.mixin_helper")
 local page_size = require("library.page_size")
 

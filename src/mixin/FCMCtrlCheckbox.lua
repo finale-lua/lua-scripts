@@ -14,7 +14,7 @@ local methods = class.Methods
 local private = setmetatable({}, {__mode = "k"})
 
 local trigger_check_change
-local each_last_check_change
+local each_last_check_change   --luacheck: ignore
 
 --[[
 % Init

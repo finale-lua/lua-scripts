@@ -63,7 +63,7 @@ Returns the vertical page coordinate of the top of the notehead rectangle, not i
 ]]
 function note_entry.get_top_note_position(entry, entry_metrics)
     local retval = -math.huge
-    local loaded_here = false
+    local loaded_here
     entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
     if nil == entry_metrics then
         return retval
@@ -96,7 +96,7 @@ Returns the vertical page coordinate of the bottom of the notehead rectangle, no
 ]]
 function note_entry.get_bottom_note_position(entry, entry_metrics)
     local retval = math.huge
-    local loaded_here = false
+    local loaded_here
     entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
     if nil == entry_metrics then
         return retval
@@ -162,7 +162,7 @@ function note_entry.calc_left_of_all_noteheads(entry)
     if entry:CalcStemUp() then
         return 0
     end
-    local left, right = note_entry.calc_widths(entry)
+    local left, _ = note_entry.calc_widths(entry)
     return -left
 end
 
@@ -174,7 +174,7 @@ Calculates the handle offset for an expression with "Left of Primary Notehead" h
 @ entry (FCNoteEntry) the entry to calculate from
 : (number) offset from left side of primary notehead rectangle
 ]]
-function note_entry.calc_left_of_primary_notehead(entry)
+function note_entry.calc_left_of_primary_notehead()
     return 0
 end
 
@@ -223,7 +223,7 @@ function note_entry.calc_stem_offset(entry)
     if not entry:CalcStemUp() then
         return 0
     end
-    local left, right = note_entry.calc_widths(entry)
+    local left, _ = note_entry.calc_widths(entry)
     return left
 end
 

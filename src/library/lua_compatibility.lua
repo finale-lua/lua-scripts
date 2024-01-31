@@ -15,7 +15,7 @@ math.type        | < 5 3
 ]] --
 
 if not math.type then
-    math.type = function(value)
+    math.type = function(value)   -- luacheck: ignore
         if type(value) == "number" then
             local _, fractional = math.modf(value)
             return fractional == 0 and "integer" or "float"
@@ -26,7 +26,7 @@ if not math.type then
 end
 
 if not math.tointeger then
-    math.tointeger = function(value)
+    math.tointeger = function(value)    -- luacheck: ignore
         return type(value) == "number" and math.floor(value) or nil
     end
 end

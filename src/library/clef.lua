@@ -164,7 +164,7 @@ function clef.process_clefs(mid_clefs)
     end
     table.sort(clefs, function (k1, k2) return k1.MeasurePos < k2.MeasurePos end)
 
-    for k, mid_clef in ipairs(clefs) do
+    for _, mid_clef in ipairs(clefs) do
         new_mid_clefs:InsertCellClefChange(mid_clef)
         new_mid_clefs:SaveAllAsNew()
     end
@@ -210,8 +210,7 @@ function clef.clef_change(clef_type, region)
         end
         cell = finale.FCCell(cell_measure, cell_staff)
         cell_frame_hold:ConnectCell(cell)
-        if cell_frame_hold:Load() then -- Loads... but only if it can, preventing crashes.
-        end
+        cell_frame_hold:Load()
 
         if  region:IsFullMeasureIncluded(cell_measure) then
             clef.set_measure_clef(cell_measure, cell_measure, cell_staff, clef_index)
@@ -282,7 +281,7 @@ function clef.clef_change(clef_type, region)
             end
 
             if cell_frame_hold.Measure == region.StartMeasure and region.StartMeasure == region.EndMeasure then
-                local last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)
+                local last_clef = cell:CalcClefIndexAt(region.EndMeasurePos)   -- luacheck: ignore last_clef
 
                 for mid_clef in each(mid_measure_clefs) do
                     if mid_clef.MeasurePos == 0 then

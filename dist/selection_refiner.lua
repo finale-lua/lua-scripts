@@ -327,7 +327,6 @@ package.preload["mixin.FCMCtrlListBox"] = package.preload["mixin.FCMCtrlListBox"
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local utils = require("library.utils")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -620,7 +619,6 @@ package.preload["mixin.FCMCtrlPopup"] = package.preload["mixin.FCMCtrlPopup"] or
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local utils = require("library.utils")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -903,7 +901,6 @@ package.preload["mixin.FCMCtrlSlider"] = package.preload["mixin.FCMCtrlSlider"] 
     local windows = setmetatable({}, {__mode = "k"})
     local trigger_thumb_position_change
     local each_last_thumb_position_change
-    local using_timer_fix = false
     local function bootstrap_command()
 
         trigger_thumb_position_change(true)
@@ -969,7 +966,6 @@ package.preload["mixin.FCMCtrlStatic"] = package.preload["mixin.FCMCtrlStatic"] 
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local utils = require("library.utils")
     local measurement = require("library.measurement")
     local class = {Methods = {}}
     local methods = class.Methods
@@ -2076,7 +2072,6 @@ package.preload["mixin.FCMStrings"] = package.preload["mixin.FCMStrings"] or fun
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
-    local library = require("library.general_library")
     local class = {Methods = {}}
     local methods = class.Methods
     local temp_str = finale.FCString()
@@ -2492,6 +2487,86 @@ package.preload["mixin.FCXCtrlMeasurementUnitPopup"] = package.preload["mixin.FC
         mixin.FCMCtrlPopup.SetSelectedItem(self, flipped_unit_order[unit] - 1)
     end
     return class
+end
+package.preload["library.measurement"] = package.preload["library.measurement"] or function()
+
+    local measurement = {}
+    local unit_names = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "EVPUs",
+        [finale.MEASUREMENTUNIT_INCHES] = "Inches",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "Centimeters",
+        [finale.MEASUREMENTUNIT_POINTS] = "Points",
+        [finale.MEASUREMENTUNIT_PICAS] = "Picas",
+        [finale.MEASUREMENTUNIT_SPACES] = "Spaces",
+    }
+    local unit_suffixes = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "e",
+        [finale.MEASUREMENTUNIT_INCHES] = "i",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "c",
+        [finale.MEASUREMENTUNIT_POINTS] = "pt",
+        [finale.MEASUREMENTUNIT_PICAS] = "p",
+        [finale.MEASUREMENTUNIT_SPACES] = "s",
+    }
+    local unit_abbreviations = {
+        [finale.MEASUREMENTUNIT_EVPUS] = "ev",
+        [finale.MEASUREMENTUNIT_INCHES] = "in",
+        [finale.MEASUREMENTUNIT_CENTIMETERS] = "cm",
+        [finale.MEASUREMENTUNIT_POINTS] = "pt",
+        [finale.MEASUREMENTUNIT_PICAS] = "pc",
+        [finale.MEASUREMENTUNIT_SPACES] = "sp",
+    }
+
+    function measurement.convert_to_EVPUs(text)
+        local str = finale.FCString()
+        str.LuaString = text
+        return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
+    end
+
+    function measurement.get_unit_name(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_names[unit]
+    end
+
+    function measurement.get_unit_suffix(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_suffixes[unit]
+    end
+
+    function measurement.get_unit_abbreviation(unit)
+        if unit == finale.MEASUREMENTUNIT_DEFAULT then
+            unit = measurement.get_real_default_unit()
+        end
+        return unit_abbreviations[unit]
+    end
+
+    function measurement.is_valid_unit(unit)
+        return unit_names[unit] and true or false
+    end
+
+    function measurement.get_real_default_unit()
+        local str = finale.FCString()
+        finenv.UI():GetDecimalSeparator(str)
+        local separator = str.LuaString
+        str:SetMeasurement(72, finale.MEASUREMENTUNIT_DEFAULT)
+        if str.LuaString == "72" then
+            return finale.MEASUREMENTUNIT_EVPUS
+        elseif str.LuaString == "0" .. separator .. "25" then
+            return finale.MEASUREMENTUNIT_INCHES
+        elseif str.LuaString == "0" .. separator .. "635" then
+            return finale.MEASUREMENTUNIT_CENTIMETERS
+        elseif str.LuaString == "18" then
+            return finale.MEASUREMENTUNIT_POINTS
+        elseif str.LuaString == "1p6" then
+            return finale.MEASUREMENTUNIT_PICAS
+        elseif str.LuaString == "3" then
+            return finale.MEASUREMENTUNIT_SPACES
+        end
+    end
+    return measurement
 end
 package.preload["library.page_size"] = package.preload["library.page_size"] or function()
 
@@ -2918,98 +2993,14 @@ package.preload["mixin.FCXCtrlUpDown"] = package.preload["mixin.FCXCtrlUpDown"] 
     end
     return class
 end
-package.preload["library.measurement"] = package.preload["library.measurement"] or function()
-
-    local measurement = {}
-    local unit_names = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "EVPUs",
-        [finale.MEASUREMENTUNIT_INCHES] = "Inches",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "Centimeters",
-        [finale.MEASUREMENTUNIT_POINTS] = "Points",
-        [finale.MEASUREMENTUNIT_PICAS] = "Picas",
-        [finale.MEASUREMENTUNIT_SPACES] = "Spaces",
-    }
-    local unit_suffixes = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "e",
-        [finale.MEASUREMENTUNIT_INCHES] = "i",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "c",
-        [finale.MEASUREMENTUNIT_POINTS] = "pt",
-        [finale.MEASUREMENTUNIT_PICAS] = "p",
-        [finale.MEASUREMENTUNIT_SPACES] = "s",
-    }
-    local unit_abbreviations = {
-        [finale.MEASUREMENTUNIT_EVPUS] = "ev",
-        [finale.MEASUREMENTUNIT_INCHES] = "in",
-        [finale.MEASUREMENTUNIT_CENTIMETERS] = "cm",
-        [finale.MEASUREMENTUNIT_POINTS] = "pt",
-        [finale.MEASUREMENTUNIT_PICAS] = "pc",
-        [finale.MEASUREMENTUNIT_SPACES] = "sp",
-    }
-
-    function measurement.convert_to_EVPUs(text)
-        local str = finale.FCString()
-        str.LuaString = text
-        return str:GetMeasurement(finale.MEASUREMENTUNIT_DEFAULT)
-    end
-
-    function measurement.get_unit_name(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_names[unit]
-    end
-
-    function measurement.get_unit_suffix(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_suffixes[unit]
-    end
-
-    function measurement.get_unit_abbreviation(unit)
-        if unit == finale.MEASUREMENTUNIT_DEFAULT then
-            unit = measurement.get_real_default_unit()
-        end
-        return unit_abbreviations[unit]
-    end
-
-    function measurement.is_valid_unit(unit)
-        return unit_names[unit] and true or false
-    end
-
-    function measurement.get_real_default_unit()
-        local str = finale.FCString()
-        finenv.UI():GetDecimalSeparator(str)
-        local separator = str.LuaString
-        str:SetMeasurement(72, finale.MEASUREMENTUNIT_DEFAULT)
-        if str.LuaString == "72" then
-            return finale.MEASUREMENTUNIT_EVPUS
-        elseif str.LuaString == "0" .. separator .. "25" then
-            return finale.MEASUREMENTUNIT_INCHES
-        elseif str.LuaString == "0" .. separator .. "635" then
-            return finale.MEASUREMENTUNIT_CENTIMETERS
-        elseif str.LuaString == "18" then
-            return finale.MEASUREMENTUNIT_POINTS
-        elseif str.LuaString == "1p6" then
-            return finale.MEASUREMENTUNIT_PICAS
-        elseif str.LuaString == "3" then
-            return finale.MEASUREMENTUNIT_SPACES
-        end
-    end
-    return measurement
-end
 package.preload["mixin.FCXCustomLuaWindow"] = package.preload["mixin.FCXCustomLuaWindow"] or function()
 
 
 
     local mixin = require("library.mixin")
-    local utils = require("library.utils")
     local mixin_helper = require("library.mixin_helper")
-    local measurement = require("library.measurement")
     local class = {Parent = "FCMCustomLuaWindow", Methods = {}}
     local methods = class.Methods
-    local trigger_measurement_unit_change
-    local each_last_measurement_unit_change
 
     function class:Init()
         self:SetEnableDebugClose(true)
@@ -3040,7 +3031,6 @@ package.preload["mixin.__FCMBase"] = package.preload["mixin.__FCMBase"] or funct
             end
             return self
         end
-
         return self[method_name](self, ...)
     end
     return class
@@ -3112,9 +3102,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         end
 
         repeat
-            if (object_type < 2 and class_names[0][parent])
-                or (object_type > 0 and class_names[1][parent])
-            then
+            if (object_type < 2 and class_names[0][parent]) or (object_type > 0 and class_names[1][parent]) then
                 return true
             end
             parent = library.get_parent_class(parent)
@@ -3141,7 +3129,9 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         if library.is_finale_object(value) then
             secondary_type = value.MixinClass or value.ClassName
         end
-        error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) .. ")", levels)
+        error(
+            "bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) ..
+                ")", levels)
     end
 
     function mixin_helper.assert_argument_type(argument_number, value, ...)
@@ -3154,7 +3144,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         assert_argument_type(4, argument_number, value, ...)
     end
     local function assert_func(condition, message, level)
-        if type(condition) == 'function' then
+        if type(condition) == "function" then
             condition = condition()
         end
         if not condition then
@@ -3194,9 +3184,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             mixin_helper.assert_argument_type(3, callback, "function")
             local window = control:GetParent()
             mixin_helper.assert(window, "Cannot add handler to control with no parent window.")
-            mixin_helper.assert(
-                (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
-                "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
+            mixin_helper.assert((window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow", "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
             init_window(window)
             callbacks[control] = callbacks[control] or {}
             table.insert(callbacks[control], callback)
@@ -3238,7 +3226,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             for _, cb in ipairs(callbacks[target].order) do
 
                 local called = false
-                for k, v in pairs(current) do
+                for k, _ in pairs(current) do
                     if current[k] ~= callbacks[target].history[cb][k] then
                         cb(target, unpack_arguments(callbacks[target].history[cb], table.unpack(params)))
                         called = true
@@ -3332,11 +3320,8 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             mixin_helper.assert_argument_type(2, callback, "function")
             local window = self:GetParent()
             mixin_helper.assert(window, "Cannot add handler to self with no parent window.")
-            mixin_helper.assert(
-                (window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow",
-                "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
-            mixin_helper.force_assert(
-                not event.callback_exists(self, callback), "The callback has already been added as a handler.")
+            mixin_helper.assert((window.MixinBase or window.MixinClass) == "FCMCustomLuaWindow", "Handlers can only be added if parent window is an instance of FCMCustomLuaWindow")
+            mixin_helper.force_assert(not event.callback_exists(self, callback), "The callback has already been added as a handler.")
             init_window(window)
             event.add(self, callback, not window:WindowExists__())
         end
@@ -3387,8 +3372,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         local function add_func(self, callback)
             mixin_helper.assert_argument_type(1, self, "FCMCustomLuaWindow")
             mixin_helper.assert_argument_type(2, callback, "function")
-            mixin_helper.force_assert(
-                not event.callback_exists(self, callback), "The callback has already been added as a handler.")
+            mixin_helper.force_assert(not event.callback_exists(self, callback), "The callback has already been added as a handler.")
             event.add(self, callback)
         end
         local function remove_func(self, callback)
@@ -3410,9 +3394,9 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             if type(window) == "boolean" and window then
                 for win in event.target_iterator() do
                     if immediate then
-                        event.dispatcher(window)
+                        event.dispatcher(win)
                     else
-                        trigger_helper(window)
+                        trigger_helper(win)
                     end
                 end
             else
@@ -3472,6 +3456,7 @@ package.preload["mixin.__FCMUserWindow"] = package.preload["mixin.__FCMUserWindo
     return class
 end
 package.preload["library.mixin"] = package.preload["library.mixin"] or function()
+
 
 
 
@@ -4324,7 +4309,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -4427,7 +4412,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -4436,11 +4421,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -4782,7 +4767,7 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
 
     function configuration.get_parameters(file_name, parameter_list)
-        local path = ""
+        local path
         if finenv.IsRGPLua then
             path = finenv.RunningLuaFolderPath()
         else
@@ -4858,8 +4843,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.53"
-    finaleplugin.Date = "2023/12/11"
+    finaleplugin.Version = "0.57"
+    finaleplugin.Date = "2024/01/25"
     finaleplugin.CategoryTags = "Measures, Region, Selection"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = [[
@@ -4869,7 +4854,7 @@ function plugindef()
         slider controls to change the beat and EDU position in each measure,
         continuously updating the score highlighting as the selection changes.
         Note that when one slider overlaps the other in the same
-        measure, it will be pushed out of the way to create a "null"
+        measure, it will push the other out of the way creating a "null"
         selection (start = end). This doesn't break anything
         but the selection contains no notes.
         == Beat Boundaries ==
@@ -4881,10 +4866,18 @@ function plugindef()
         relative to the beat, as happens when entering beat numbers
         on the inbuilt "Select Region" option.
         == Key Commands ==
-        - START point: [w][s][a][d] (up-down-left-right) increments [e][r]
-        - END point:  [f][v][c][b] (up-down-left-right) increments [g][h]
-        - [z] toggle the "follow selection" checkbox.
-        - [q] show these script notes
+        - (w)(s) @tStart Staff up/down
+        - (d)(f) @tStart Measure left/right
+        - (g)(h) @tStart increments -/+
+        - (j)(k) / (-)(+) @tStart -/+ one EDU
+        - • •
+        - (a)(z) @tEnd Staff up/down
+        - (x)(c) @tEnd Measure left/right
+        - (v)(b) @tEnd increments -/+
+        - (n)(m) / ([)(]) @tEnd -/+ one EDU
+        - • •
+        - (e) toggle the "follow selection" checkbox
+        - (q) show these script notes
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/selection_refiner.hash"
     return "Selection Refiner...", "Selection Refiner", "Refine the selected music area with visual feedback"
@@ -4897,7 +4890,7 @@ slider controls to change the beat and EDU position in each measure,
 continuously updating the score highlighting as the selection changes.
 **
 Note that when one slider overlaps the other in the same
-measure, it will be pushed out of the way to create a "null"
+measure, it will push the other out of the way creating a "null"
 selection (start = end). This doesn't break anything
 but the selection contains no notes.
 **
@@ -4912,21 +4905,30 @@ relative to the beat, as happens when entering beat numbers
 on the inbuilt "Select Region" option.
 **
 == Key Commands ==
-*• (w)(s)(a)(d) @tSTART (up-down-left-right)
-*• (e/r) @t@tSTART increments
-*• (+/-) (t/y) @tSTART +/- one EDU
-*• (f)(v)(c)(b) @tEND (up-down-left-right)
-*• (g/h) @t@tEND increments
-*• ( [/] ) (j/k) @tEND +/- one EDU
-*• (z) toggle the "follow selection" checkbox
+*• (w)(s) @tStart Staff up/down
+*• (d)(f) @tStart Measure left/right
+*• (g)(h) @tStart increments -/+
+*• (j)(k) / (-)(+) @tStart -/+ one EDU
+*• • •
+*• (a)(z) @tEnd Staff up/down
+*• (x)(c) @tEnd Measure left/right
+*• (v)(b) @tEnd increments -/+
+*• (m)(n) / ([)(]) @tEnd -/+ one EDU
+*• • •
+*• (e) toggle the "follow selection" checkbox
 *• (q) show these script notes
 ]]
 info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
-local config = { window_pos_x = false, window_pos_y = false, follow_measure = 1 }
+    .. "\n(v" .. finaleplugin.Version .. ")"
+local config = {
+    follow_measure = 0,
+    window_pos_x = false,
+    window_pos_y = false
+}
 local mixin = require("library.mixin")
 local library = require("library.general_library")
 local configuration = require("library.configuration")
-local script_name = "selection_refiner"
+local script_name = library.calc_script_name()
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
@@ -4940,21 +4942,27 @@ local function dialog_save_position(dialog)
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
 end
-local function power_of_2(duration)
-    local test_rest = finale.NOTE_128TH / 2
+local function power_of_two(duration)
+    local smallest = finale.NOTE_128TH / 2
     local power = 1
-    while test_rest < duration and power < 10 do
-        test_rest = test_rest * 2
+    while smallest < duration and power < 10 do
+        smallest = smallest * 2
         power = power + 1
     end
     return power
 end
 local function score_limits(rgn)
+    local staff = finale.FCStaff()
+    local staff_list = {}
     local stack = mixin.FCMMusicRegion()
-    stack:SetRegion(rgn):SetFullMeasureStack()
+    stack:SetRegion(rgn):SetFullDocument()
+    for staff_number in eachstaff(stack) do
+        staff:Load(staff_number)
+
+        table.insert(staff_list, staff:CreateDisplayFullNameString())
+    end
     local max_slot = stack.EndSlot
-    stack:SetFullDocument()
-    return stack.EndMeasure, max_slot
+    return stack.EndMeasure, max_slot, staff_list
 end
 local function compile_rest_strings(power)
     power = math.min(math.max(power, 1), 10)
@@ -5015,7 +5023,7 @@ local function get_measure_details(region, is_start_sector)
         md.mark = md.beatdur / 2
         md.steps = 8
     end
-    local power = power_of_2(md.mark * 2)
+    local power = power_of_two(md.mark * 2)
     md.div_dur = md.beatdur / md.steps
     md.divisions = md.beats * md.steps
     if md.composite then
@@ -5031,12 +5039,6 @@ local function get_measure_details(region, is_start_sector)
     end
     md.rests = compile_rest_strings(power)
     return md
-end
-local function get_staff_name(region, slot)
-    local staff_number = region:CalcStaffNumber(slot)
-    local staff = finale.FCStaff()
-    staff:Load(staff_number)
-    return staff:CreateDisplayFullNameString()
 end
 local function convert_edu_to_rest_string(index, md, backwards)
     if backwards then index = md.divisions - index end
@@ -5069,17 +5071,18 @@ end
 local function user_chooses(rgn)
     local y, rest_wide, x_wide =  40, 130, 236
     local x_offset = finenv.UI():IsOnMac() and 0 or 3
+    local name = plugindef():gsub("%.%.%.", "")
         local function yd(diff)
             y = diff and y + diff or y + 16
         end
         local function show_info()
-            finenv.UI():AlertInfo(info_notes, "About " .. plugindef())
+            finenv.UI():AlertInfo(info_notes, "About " .. name)
         end
 
     local measure, sliders, offset, save_off = {}, {}, {}, {}
-    local rest, buttons, index, staff, actions = {}, {}, {}, {}, {}
+    local rest, buttons, index, staff_sel, actions = {}, {}, {}, {}, {}
     local follow
-    local max_measure, max_slot = score_limits(rgn)
+    local max_measure, max_slot, staff_list = score_limits(rgn)
 
     local md = { get_measure_details(rgn, true), get_measure_details(rgn, false) }
     local function pos_to_index(side)
@@ -5088,7 +5091,7 @@ local function user_chooses(rgn)
     index[1] = pos_to_index(1)
     index[2] = pos_to_index(2)
 
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
 
         local function set_measure_pos(side)
             if side == 1 then rgn.StartMeasurePos = md[side].pos
@@ -5141,15 +5144,6 @@ local function user_chooses(rgn)
             rgn:SetInDocument()
             rgn:Redraw()
         end
-        local function staff_button_visibility()
-            for side = 1, 2 do
-                buttons[side].up:SetEnable(md[side].slot > 1)
-                buttons[side].down:SetEnable(md[side].slot < max_slot)
-                staff[side]:SetText(get_staff_name(rgn, md[side].slot))
-            end
-            rgn:SetInDocument()
-            rgn:Redraw()
-        end
         local function position_increment(side, add)
             if (add > 0 and md[side].pos < md[side].dur)
                 or (add < 0 and md[side].pos > 0) then
@@ -5162,36 +5156,36 @@ local function user_chooses(rgn)
         end
 
     actions = {
-        up = function(a_side)
-            if md[a_side].slot > 1 then
-                md[a_side].slot = md[a_side].slot - 1
-                if a_side == 1 then
-                    rgn.StartSlot = md[1].slot
-                else
-                    rgn.EndSlot = md[2].slot
-                    if md[1].slot > md[2].slot  then
-                        md[1].slot = md[2].slot
-                        rgn.StartSlot = md[2].slot
-                    end
+        staff = function(a_side)
+            local new_slot = staff_sel[a_side]:GetSelectedItem() + 1
+            if new_slot == md[a_side].slot then return end
+            if a_side == 1 then
+                rgn.StartSlot = new_slot
+                if new_slot > (staff_sel[2]:GetSelectedItem() + 1) then
+                    staff_sel[2]:SetSelectedItem(new_slot - 1)
+                    md[2].slot = new_slot
+                    rgn.EndSlot = new_slot
                 end
-                staff_button_visibility()
+            else
+                rgn.EndSlot = new_slot
+                if new_slot < (staff_sel[1]:GetSelectedItem() + 1) then
+                    staff_sel[1]:SetSelectedItem(new_slot - 1)
+                    md[1].slot = new_slot
+                    rgn.StartSlot = new_slot
+                end
             end
+            staff_sel[a_side]:SetSelectedItem(new_slot - 1)
+            md[a_side].slot = new_slot
+            rgn:SetInDocument()
+            rgn:Redraw()
         end,
 
-        down = function(a_side)
-            if md[a_side].slot < max_slot then
-                md[a_side].slot = md[a_side].slot + 1
-                if a_side == 1 then
-                    rgn.StartSlot = md[1].slot
-                    if md[2].slot < md[1].slot  then
-                        md[2].slot = md[1].slot
-                        rgn.EndSlot = md[1].slot
-                    end
-                else
-                    rgn.EndSlot = md[2].slot
-                end
-                staff_button_visibility()
+        change_staff = function(a_side, diff)
+            local slot = staff_sel[a_side]:GetSelectedItem() + 1
+            if (slot > 1 and diff < 0) or (slot < max_slot and diff > 0) then
+                staff_sel[a_side]:SetSelectedItem(slot + diff - 1)
             end
+            actions.staff(a_side)
         end,
 
         left = function(a_side)
@@ -5276,23 +5270,23 @@ local function user_chooses(rgn)
             local s = offset[i]:GetText():lower()
             if s:find("[^0-9]") then
                 if s:find("[?q]") then show_info()
-                elseif s:find("w") then actions.up(1)
-                elseif s:find("s") then actions.down(1)
-                elseif s:find("a") then actions.left(1)
-                elseif s:find("d") then actions.right(1)
-                elseif s:find("e") then actions.thumb(1, -1)
-                elseif s:find("r") then actions.thumb(1, 1)
-                elseif s:find("f") then actions.up(2)
-                elseif s:find("v") then actions.down(2)
-                elseif s:find("c") then actions.left(2)
-                elseif s:find("b") then actions.right(2)
-                elseif s:find("g") then actions.thumb(2, -1)
-                elseif s:find("h") then actions.thumb(2, 1)
-                elseif s:find("[-_t]") then position_increment(1, -1)
-                elseif s:find("[+=y]") then position_increment(1, 1)
-                elseif s:find("[%[j]") then position_increment(2, -1)
-                elseif s:find("[%]k]") then position_increment(2, 1)
-                elseif s:find("z") then
+                elseif s:find("w") then actions.change_staff(1, -1)
+                elseif s:find("s") then actions.change_staff(1, 1)
+                elseif s:find("d") then actions.left(1)
+                elseif s:find("f") then actions.right(1)
+                elseif s:find("g") then actions.thumb(1, -1)
+                elseif s:find("h") then actions.thumb(1, 1)
+                elseif s:find("a") then actions.change_staff(2, -1)
+                elseif s:find("z") then actions.change_staff(2, 1)
+                elseif s:find("x") then actions.left(2)
+                elseif s:find("c") then actions.right(2)
+                elseif s:find("b") then actions.thumb(2, 1)
+                elseif s:find("v") then actions.thumb(2, -1)
+                elseif s:find("[-_j]") then position_increment(1, -1)
+                elseif s:find("[+=k]") then position_increment(1, 1)
+                elseif s:find("[%[n]") then position_increment(2, -1)
+                elseif s:find("[%]m]") then position_increment(2, 1)
+                elseif s:find("e") then
                     follow:SetCheck((follow:GetCheck() + 1) % 2)
                 end
                 offset[i]:SetText(save_off[i])
@@ -5312,16 +5306,11 @@ local function user_chooses(rgn)
     }
     local default_font = finale.FCFontInfo()
     default_font:LoadFontPrefs(finale.FONTPREF_MUSIC)
-    local button_x = (x_wide + rest_wide + 14) / 4
-    local bx12 = button_x + 12
+    local button_x = (x_wide + rest_wide + 14) / 5
         local function make_rest_text(i, y_off)
             rest[i] = dialog:CreateStatic(x_wide + 65, y_off + md[i].rests.vert)
                 :SetWidth(rest_wide):SetHeight(80):SetFont(default_font)
                 :SetText(convert_edu_to_rest_string(index[i], md[i], false))
-        end
-        local function make_staff_name(i)
-            staff[i] = dialog:CreateStatic(bx12 + 25, y):SetWidth(rest_wide)
-                :SetText(get_staff_name(rgn, md[i].slot))
         end
         local function make_slider_and_offset(i)
             sliders[i] = dialog:CreateSlider(0, y):SetMinValue(0)
@@ -5332,45 +5321,56 @@ local function user_chooses(rgn)
                 :AddHandleCommand(function() actions.offset(i) end):SetWidth(50)
         end
         local function make_buttons(i)
+
+            staff_sel[i] = dialog:CreatePopup(0, y)
+                :AddStrings(table.unpack(staff_list)):SetWidth(button_x * 2)
+                :SetSelectedItem(md[i].slot - 1)
+                :AddHandleCommand(function() actions.staff(i) end)
+
             buttons[i] = {}
-            for k, v in pairs({
-                up = { bx12, y, "Staff ↑" },       down = { bx12, y + 20, "Staff ↓" },
-                left = { 0, y + 10, "← Measure" }, right = { bx12 * 2, y + 10, "Measure →" }
-            }) do
-                buttons[i][k] = dialog:CreateButton(v[1], v[2]):SetWidth(button_x)
-                    :AddHandleCommand(function() actions[k](i) end):SetText(v[3])
+            for k, v in pairs{
+                left = { button_x * 2 + 5, "← Measure" }, right = { button_x * 3 + 5, "Measure →" }
+            } do
+                buttons[i][k] = dialog:CreateButton(v[1], y):SetWidth(button_x - 5)
+                    :AddHandleCommand(function() actions[k](i) end):SetText(v[2])
             end
-            measure[i] = dialog:CreateStatic(bx12 * 3, y + 10):SetWidth(60)
+            measure[i] = dialog:CreateStatic(button_x * 4 + 5, y):SetWidth(button_x - 5)
                 :SetText("m. " .. md[2].measure)
         end
 
     make_rest_text(1, 0)
-    make_rest_text(2, 83)
-    dialog:CreateStatic(0, y):SetText("START of Selection:"):SetWidth(x_wide)
-    make_staff_name(1)
-    dialog:CreateButton(x_wide + rest_wide + 30, y):SetText("?"):SetWidth(20)
+    make_rest_text(2, 78)
+
+    dialog:CreateStatic(0, y, "head_1"):SetText("START of Selection:"):SetWidth(x_wide)
+    dialog:CreateButton(x_wide + rest_wide + 30, y, "q"):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
     yd(14)
     make_slider_and_offset(1)
-    yd(22)
+    yd(30)
     make_buttons(1)
-    yd(42)
-    dialog:CreateHorizontalLine(0, y, button_x * 4)
+    yd(30)
+    dialog:CreateHorizontalLine(0, y, button_x * 5)
     yd(5)
 
-    dialog:CreateStatic(0, y):SetText("END of Selection:"):SetWidth(x_wide)
-    make_staff_name(2)
+    dialog:CreateStatic(0, y, "head_2"):SetText("END of Selection:"):SetWidth(x_wide)
     yd(14)
     make_slider_and_offset(2)
-    yd(22)
+    yd(30)
     make_buttons(2)
-    yd(42)
+    yd(30)
     follow = dialog:CreateCheckbox(0, y, "follow_measure"):SetWidth(x_wide)
         :SetText("Follow selection to off-screen measures"):SetCheck(config.follow_measure)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function() config.follow_measure = follow:GetCheck() end)
+    dialog:RegisterInitWindow(function(self)
+        local h = self:GetControl("head_1")
+        local bold = h:CreateFontInfo():SetBold(true)
+        h:SetFont(bold)
+        self:GetControl("head_2"):SetFont(bold)
+        self:GetControl("q"):SetFont(bold)
+    end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end

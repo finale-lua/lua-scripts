@@ -267,7 +267,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     function library.get_page_format_prefs()
         local current_part = library.get_current_part()
         local page_format_prefs = finale.FCPageFormatPrefs()
-        local success = false
+        local success
         if current_part:IsScore() then
             success = page_format_prefs:LoadScore()
         else
@@ -370,7 +370,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         local str = finale.FCString()
         local min_width = 160
 
-        function format_ctrl(ctrl, h, w, st)
+        local function format_ctrl(ctrl, h, w, st)
             ctrl:SetHeight(h)
             ctrl:SetWidth(w)
             if st then
@@ -379,11 +379,11 @@ package.preload["library.general_library"] = package.preload["library.general_li
             end
         end
 
-        title_width = string.len(title) * 6 + 54
+        local title_width = string.len(title) * 6 + 54
         if title_width > min_width then
             min_width = title_width
         end
-        text_width = string.len(text) * 6
+        local text_width = string.len(text) * 6
         if text_width > min_width then
             min_width = text_width
         end
@@ -508,7 +508,7 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "CJ Garcia"
     finaleplugin.Copyright = "© 2022 CJ Garcia Music"
-    finaleplugin.Version = "1.3"
+    finaleplugin.Version = "1.3.1"
     finaleplugin.Date = "February 14, 2022"
     finaleplugin.CategoryTags = "UI"
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/UI_switch_to_selected_part.hash"
@@ -532,8 +532,8 @@ function ui_switch_to_selected_part()
                 part_ID = part:GetID()
 
                 local found_staff = false
-                local part = finale.FCPart(part_ID)
-                part:SwitchTo()
+                local this_part = finale.FCPart(part_ID)
+                this_part:SwitchTo()
                 local systems = finale.FCStaffSystems()
                 systems:LoadAll()
                 local system = systems:FindMeasureNumber(top_cell.Measure)
@@ -542,7 +542,7 @@ function ui_switch_to_selected_part()
                     staves:LoadAllForItem(system.ItemNo)
                     found_staff = staves:FindStaff(top_cell.Staff) ~= nil
                 end
-                part:SwitchBack()
+                this_part:SwitchBack()
                 if found_staff then break end
             end
         end

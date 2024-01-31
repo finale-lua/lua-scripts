@@ -2,7 +2,7 @@ function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Michael McClennan"
     finaleplugin.Copyright = "©2021 Michael McClennan"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "May 22, 2021"
     finaleplugin.AuthorEmail = "info@michaelmcclennan.com"
     return "Move Repeat Brackets for Chords", "Move Repeat Brackets for Chords", ""
@@ -23,7 +23,7 @@ for measure = region.StartMeasure, region.EndMeasure do
         repeat_ending:Save()
     end
 
-    for measure = region.StartMeasure, region.EndMeasure do
+    for measure = region.StartMeasure, region.EndMeasure do   -- luacheck: ignore measure
         local backwards_repeat = finale.FCBackwardRepeat()
         if backwards_repeat:Load(measure) then
             backwards_repeat.TopBracketPosition = bracket_position + offset -- adjusts backwards repeat bracket height
