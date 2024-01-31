@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.18"
-    finaleplugin.Date = "2024/01/28"
+    finaleplugin.Version = "v0.19"
+    finaleplugin.Date = "2024/01/31"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         Copy the current selection and paste it consecutively 
@@ -326,17 +326,17 @@ end
 local function create_dialog()
     local edit_x, e_wide, y_step = 110, 40, 18
     local y_offset = finenv.UI():IsOnMac() and 3 or 0
-    local save_rpt, answer = config.num_repeats, {}
+    local save_rpt = config.num_repeats
     local name = plugindef():gsub("%.%.%.", "")
     dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
     local y = 0
     local function flip_check(id)
-        local ctl = answer[dialog_options[id]]
+        local ctl = dialog:GetControl(dialog_options[id])
         ctl:SetCheck((ctl:GetCheck() + 1) % 2)
     end
     local function check_all_state(state)
         for _, v in ipairs(dialog_options) do
-            answer[v]:SetCheck(state)
+            dialog:GetControl(v):SetCheck(state)
         end
     end
     local function info_dialog()
@@ -373,7 +373,7 @@ local function create_dialog()
         :AddHandleCommand(function(self) key_check(self) end)
     dialog:CreateStatic(e_wide, y + 2):SetText("times"):SetWidth(edit_x)
     for _, v in ipairs(dialog_options) do
-        answer[v] = dialog:CreateCheckbox(edit_x, y):SetCheck(config[v])
+        dialog:CreateCheckbox(edit_x, y, v):SetCheck(config[v])
            :SetText(v:sub(6, -1):gsub("^%l", string.upper)):SetWidth(90)
         y = y + y_step
     end
@@ -395,7 +395,7 @@ local function create_dialog()
     dialog:RegisterHandleOkButtonPressed(function()
         config.num_repeats = num_repeats:GetInteger()
         for _, v in ipairs(dialog_options) do
-            config[v] = answer[v]:GetCheck()
+            config[v] = dialog:GetControl(v):GetCheck()
         end
         paste_many_copies()
     end)
