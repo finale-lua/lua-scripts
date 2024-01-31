@@ -7,5 +7,5 @@ inputs:
     description: 'The location for the json file'
     required: true
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'

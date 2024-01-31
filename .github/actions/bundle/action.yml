@@ -8,5 +8,5 @@ inputs:
     description: 'The directory of the outputted bundled files'
     required: true
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
