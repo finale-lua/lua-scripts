@@ -1,4 +1,4 @@
-import { getAllImports, getImport } from './helpers'
+import { getAllImports, getFileParts, getImport } from './helpers'
 
 describe('detects valid imports', () => {
     const lines: [string, string][] = [
@@ -44,3 +44,115 @@ describe('checks if file imports anything', () => {
         expect(getAllImports(file)).toEqual(imports)
     })
 })
+
+describe('splits file into parts', () => {
+    it('should split a file with all three parts', () => {
+        const contents = `-- some comment at the top of the file
+function random_function()
+end
+
+function plugindef()
+    finaleplugin.RequireSelection = true
+end
+
+function another_function()
+end
+
+another_function()`;
+
+        const expected = {
+            prolog: `-- some comment at the top of the file
+function random_function()
+end
+
+`,
+            plugindef: `function plugindef()
+    finaleplugin.RequireSelection = true
+end`,
+            epilog: `
+
+function another_function()
+end
+
+another_function()`
+        };
+
+        expect(getFileParts(contents)).toEqual(expected);
+    });
+
+    it('should split a file with no prolog', () => {
+        const contents = `function plugindef()
+    finaleplugin.RequireSelection = true
+end
+
+function another_function()
+end
+
+another_function()`;
+
+        const expected = {
+            prolog: '',
+            plugindef: `function plugindef()
+    finaleplugin.RequireSelection = true
+end`,
+            epilog: `
+
+function another_function()
+end
+
+another_function()`
+        };
+
+        expect(getFileParts(contents)).toEqual(expected);
+    });
+
+    it('should split a file with no plugindef', () => {
+        const contents = `-- some comment at the top of the file
+function random_function()
+end
+
+function another_function()
+end
+
+another_function()`;
+
+        const expected = {
+            prolog: '',
+            plugindef: '',
+            epilog: `-- some comment at the top of the file
+function random_function()
+end
+
+function another_function()
+end
+
+another_function()`
+        };
+
+        expect(getFileParts(contents)).toEqual(expected);
+    });
+
+    it('should split a file with no epilog', () => {
+        const contents = `-- some comment at the top of the file
+function random_function()
+end
+
+function plugindef()
+    finaleplugin.RequireSelection = true
+end`;
+
+        const expected = {
+            prolog: `-- some comment at the top of the file
+function random_function()
+end
+
+`,
+            plugindef: `function plugindef()
+    finaleplugin.RequireSelection = true
+end`,
+            epilog: ''
+        };
+
+        expect(getFileParts(contents)).toEqual(expected);
+    });
+});

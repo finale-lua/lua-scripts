@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { getAllImports } from './helpers'
+import { getAllImports, getFileParts } from './helpers'
 import { resolveRequiredFile } from './lua-require'
 import { removeComments } from './remove-comments'
 import { wrapImport } from './wrap-import'
@@ -63,9 +63,12 @@ export const bundleFileBase = (
 }
 
 export const bundleFile = (name: string, sourcePath: string, mixins: string[]): string => {
-    return removeComments(
-        bundleFileBase(name, files, mixins, (fileName: string) =>
+    const bundled: string = bundleFileBase(name, files, mixins, (fileName: string) =>
             fs.readFileSync(path.join(sourcePath, fileName)).toString()
-        )
-    )
+        );
+    const parts = getFileParts(bundled);
+
+    return removeComments(parts.prolog, true) 
+        + removeComments(parts.plugindef, false) 
+        + removeComments(parts.epilog, true);
 }

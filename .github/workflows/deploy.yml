@@ -28,6 +28,11 @@ jobs:
           repository: finale-lua/jw-lua-scripts-docs
           path: "./website"
           token: ${{ secrets.NICK_PERSONAL_TOKEN }}
+      - name: Install Pandoc
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install -y pandoc
       - name: build scripts
         uses: ./lua/.github/actions/bundle
         with:

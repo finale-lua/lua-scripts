@@ -1781,6 +1781,46 @@ function isLoopbackAddress(host) {
 
 /***/ }),
 
+/***/ 3166:
+/***/ ((module) => {
+
+module.exports = function dedent(templateStrings) {
+    var values = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        values[_i - 1] = arguments[_i];
+    }
+    var matches = [];
+    var strings = typeof templateStrings === 'string' ? [templateStrings] : templateStrings.slice();
+    // 1. Remove trailing whitespace.
+    strings[strings.length - 1] = strings[strings.length - 1].replace(/\r?\n([\t ]*)$/, '');
+    // 2. Find all line breaks to determine the highest common indentation level.
+    for (var i = 0; i < strings.length; i++) {
+        var match = void 0;
+        if (match = strings[i].match(/\n[\t ]+/g)) {
+            matches.push.apply(matches, match);
+        }
+    }
+    // 3. Remove the common indentation from all strings.
+    if (matches.length) {
+        var size = Math.min.apply(Math, matches.map(function (value) { return value.length - 1; }));
+        var pattern = new RegExp("\n[\t ]{" + size + "}", 'g');
+        for (var i = 0; i < strings.length; i++) {
+            strings[i] = strings[i].replace(pattern, '\n');
+        }
+    }
+    // 4. Remove leading whitespace.
+    strings[0] = strings[0].replace(/^\r?\n/, '');
+    // 5. Perform interpolation.
+    var string = strings[0];
+    for (var i = 0; i < values.length; i++) {
+        string += values[i] + strings[i + 1];
+    }
+    return string;
+};
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
 /***/ 9479:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -6781,7 +6821,11 @@ const bundleFileBase = (name, importedFiles, mixins, fetcher) => {
 };
 exports.bundleFileBase = bundleFileBase;
 const bundleFile = (name, sourcePath, mixins) => {
-    return (0, remove_comments_1.removeComments)((0, exports.bundleFileBase)(name, exports.files, mixins, (fileName) => fs_1.default.readFileSync(path_1.default.join(sourcePath, fileName)).toString()));
+    const bundled = (0, exports.bundleFileBase)(name, exports.files, mixins, (fileName) => fs_1.default.readFileSync(path_1.default.join(sourcePath, fileName)).toString());
+    const parts = (0, helpers_1.getFileParts)(bundled);
+    return (0, remove_comments_1.removeComments)(parts.prolog, true)
+        + (0, remove_comments_1.removeComments)(parts.plugindef, false)
+        + (0, remove_comments_1.removeComments)(parts.epilog, true);
 };
 exports.bundleFile = bundleFile;
 
@@ -6794,7 +6838,7 @@ exports.bundleFile = bundleFile;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getAllImports = exports.getImport = exports.requireRegex = void 0;
+exports.getFileParts = exports.getAllImports = exports.getImport = exports.requireRegex = void 0;
 exports.requireRegex = new RegExp([
     /(?:^|[\W])/,
     /(?:__original_)?require/,
@@ -6833,6 +6877,19 @@ const getAllImports = (file) => {
     return [...imports];
 };
 exports.getAllImports = getAllImports;
+const plugindefRegex = /(?<plugindef>^function\s+plugindef.*?^end)/ms;
+const getFileParts = (contents) => {
+    const plugindefMatch = contents.match(plugindefRegex);
+    if ((plugindefMatch === null || plugindefMatch === void 0 ? void 0 : plugindefMatch.index) !== undefined) {
+        const prolog = contents.slice(0, plugindefMatch.index);
+        const epilog = contents.slice(plugindefMatch.index + plugindefMatch[0].length);
+        return { prolog, plugindef: plugindefMatch[0], epilog };
+    }
+    else {
+        return { prolog: '', plugindef: '', epilog: contents };
+    }
+};
+exports.getFileParts = getFileParts;
 
 
 /***/ }),
@@ -6885,30 +6942,64 @@ sourceFiles.forEach(file => {
 /***/ }),
 
 /***/ 9879:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.injectExtras = void 0;
+const helpers_1 = __nccwpck_require__(8092);
+const child_process_1 = __nccwpck_require__(2081);
+const dedent_js_1 = __importDefault(__nccwpck_require__(3166));
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const injectExtras = (name, contents) => {
-    const functionRegex = /^(\s*)function\s+plugindef/gm;
-    const returnRegex = /^(\s*)return/gm;
-    const endRegex = /^(\s*)*end/gm;
-    const functionMatch = functionRegex.exec(contents);
-    if (functionMatch) {
-        const functionIndex = functionMatch.index;
-        const returnMatch = returnRegex.exec(contents.substring(functionIndex));
-        const endMatch = endRegex.exec(contents.substring(functionIndex));
-        const index = Math.min(returnMatch ? returnMatch.index : Infinity, endMatch ? endMatch.index : Infinity);
-        const strippedName = name.split('.').slice(0, -1).join('');
-        const injection = `    finaleplugin.HashURL = \"https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/${strippedName}.hash\"`;
-        const injectedContents = contents.slice(0, functionIndex + index) + injection + '\n' + contents.slice(functionIndex + index);
-        return injectedContents;
+    const parts = (0, helpers_1.getFileParts)(contents);
+    if (parts.plugindef) {
+        if (!parts.plugindef.includes('finaleplugin.RTFNotes'))
+            parts.plugindef = inject(parts.plugindef, getRTFNotes(parts.plugindef));
+        parts.plugindef = inject(parts.plugindef, getHashURL(name));
     }
-    return contents;
+    return parts.prolog + parts.plugindef + parts.epilog;
 };
 exports.injectExtras = injectExtras;
+const inject = (contents, injection) => {
+    if (injection) {
+        const returnRegex = /^(\s*)return/gm;
+        const endRegex = /^(\s*)*end/gm;
+        const returnMatch = returnRegex.exec(contents);
+        const endMatch = endRegex.exec(contents);
+        const index = Math.min(returnMatch ? returnMatch.index : Infinity, endMatch ? endMatch.index : Infinity);
+        return contents.slice(0, index) + injection + '\n' + contents.slice(index);
+    }
+    else {
+        return contents;
+    }
+};
+const getHashURL = (name) => {
+    const strippedName = name.split('.').slice(0, -1).join('');
+    return `    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/${strippedName}.hash"`;
+};
+const getRTFNotes = (input) => {
+    let result = '';
+    const notesRegex = /(?<=finaleplugin.Notes = \[\[).*(?=\]\])/ius;
+    const match = input.match(notesRegex);
+    if (match) {
+        const notes = (0, dedent_js_1.default)(match[0]);
+        const templateFile = path_1.default.join(__dirname, "custom_template.rtf");
+        const args = ['-f', 'markdown', '-t', 'rtf', '-s', `--template=${templateFile}`];
+        const pandocResult = (0, child_process_1.spawnSync)('pandoc', args, { input: notes, encoding: 'utf-8' });
+        if (!pandocResult.error) {
+            result = pandocResult.stdout.replace(/fs28/g, 'fs24')
+                .replace(/fs32/g, 'fs28')
+                .replace(/fs36/g, 'fs32');
+            result = `    finaleplugin.RTFNotes = [[${result}]]`;
+        }
+    }
+    return result;
+};
 
 
 /***/ }),
@@ -6942,12 +7033,16 @@ exports.resolveRequiredFile = resolveRequiredFile;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.removeComments = void 0;
-const removeComments = (contents) => {
-    return contents
+const removeComments = (contents, trimWhitespace) => {
+    let result = contents
         .replace(/--\[\[[\s\S]*?\]\]/giu, '')
-        .replace(/(?<!")--.*$/gimu, '')
-        .replace(/\n\n+/gimu, '\n')
-        .replace(/ *$/gimu, '');
+        .replace(/(?<!")--.*$/gimu, '');
+    if (trimWhitespace) {
+        result = result
+            .replace(/\n\n+/gimu, '\n')
+            .replace(/ *$/gimu, '');
+    }
+    return result;
 };
 exports.removeComments = removeComments;
 
@@ -6982,6 +7077,14 @@ exports.wrapImport = wrapImport;
 
 "use strict";
 module.exports = require("assert");
+
+/***/ }),
+
+/***/ 2081:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
 
 /***/ }),
 
