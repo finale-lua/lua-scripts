@@ -1,4 +1,4 @@
-name: Build and deploy scripts/docs
+name: Build and optionally deploy scripts/docs
 
 on:
     push:
