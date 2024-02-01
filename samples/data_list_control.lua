@@ -176,7 +176,7 @@ for rowx = 0, data_list:GetCount() - 1 do
         if #selected_str > 0 then
             selected_str = selected_str .. ", "
         end
-        selected_str = selected_str .. x
+        selected_str = selected_str .. rowx
     end
     local row = data_list:GetItemAt(rowx)
     if row.Check then
