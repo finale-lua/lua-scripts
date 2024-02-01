@@ -60,35 +60,6 @@ local mixin = require("library.mixin")
 local loc = require("library.localization")
 local utils = require("library.utils")
 
-if finenv.IsRGPLua then
-    loc.en = loc.en or {
-        ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
-            "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",
-        ["Number Of Steps"] = "Number Of Steps",
-        ["Transposition Error"] = "Transposition Error",
-        ["OK"] = "OK",
-        ["Cancel"] = "Cancel",
-    }
-
-    loc.es = loc.es or {
-        ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
-            "Finale no puede representar algunas de las notas traspuestas. Estas notas no se han cambiado.",
-        ["Number Of Steps"] = "Número De Pasos",
-        ["Transposition Error"] = "Error de trasposición",
-        ["OK"] = "Aceptar",
-        ["Cancel"] = "Cancelar",
-    }
-
-    loc.de = loc.de or {
-        ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
-            "Finale kann einige der transponierten Tönhöhen nicht darstellen. Diese Tönhöhen wurden unverändert gelassen.",
-        ["Number Of Steps"] = "Anzahl der Schritte",
-        ["Transposition Error"] = "Transpositionsfehler",
-        ["OK"] = "OK",
-        ["Cancel"] = "Abbrechen",
-    }
-end
-
 function do_transpose_by_step(global_number_of_steps_edit)
     if finenv.Region():IsEmpty() then
         return
@@ -111,11 +82,10 @@ function do_transpose_by_step(global_number_of_steps_edit)
         finenv.StartNewUndoBlock(undostr, true) -- JW Lua automatically terminates the final undo block we start here
     end
     if not success then
-        global_dialog:CreateChildUI():AlertError(
-            loc.localize(
-                "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."),
-            loc.localize("Transposition Error")
-        )
+        global_dialog:CreateChildUI():AlertLocalizedError(
+            "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",
+            "Transposition Error"
+        )            
     end
     return success
 end
@@ -127,7 +97,7 @@ function create_dialog_box()
     local x_increment = 105
     -- number of steps
     dialog:CreateStatic(0, current_y + 2, "steps_label")
-        :SetText(loc.localize("Number Of Steps"))
+        :SetLocalizedText("Number Of Steps")
         :SetWidth(x_increment - 5)
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     local edit_x = x_increment + utils.win_mac(0, 4)
@@ -136,10 +106,10 @@ function create_dialog_box()
         :_FallbackCall("AssureNoHorizontalOverlap", nil, dialog:GetControl("steps_label"), 5)
     -- ok/cancel
     dialog:CreateOkButton()
-        :SetText(loc.localize("OK"))
+        :SetLocalizedText("OK")
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     dialog:CreateCancelButton()
-        :SetText(loc.localize("Cancel"))
+        :SetLocalizedText("Cancel")
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     -- registrations
     dialog:RegisterHandleOkButtonPressed(function(self)

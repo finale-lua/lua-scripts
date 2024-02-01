@@ -57,6 +57,8 @@ copy into scripts. You can then edit them to suit your needs.
 
 local localization = {}
 
+local library = require("library.general_library")
+
 local locale = (function()
         if finenv.UI().GetUserLocaleName then
             local fcstr = finale.FCString()
@@ -65,6 +67,8 @@ local locale = (function()
         end
         return "en_US"
     end)()
+
+local script_name = library.calc_script_name()
 
 --[[
 % set_locale
@@ -93,6 +97,23 @@ function localization.get_locale()
     return locale
 end
 
+-- This function finds a localization string table if it exists or requires it if it doesn't.
+local function get_localized_table(try_locale)
+    if type(localization[try_locale]) == "table" then
+        return localization[try_locale]
+    end
+    local require_library = "localization" .. "." .. script_name .. "_" .. try_locale
+    local success, result = pcall(function() return require(require_library) end)
+    if success and type(result) == "table" then
+        localization[try_locale] = result
+    else
+        print("unable to require " .. require_library)
+        print(result)
+        -- doing this allows us to only try to require it once
+        localization[try_locale] = {}
+    end
+    return localization[try_locale]
+end
 
 --[[
 % localize
@@ -110,13 +131,13 @@ function localization.localize(input_string)
     end
     assert(type(locale) == "string", "invalid locale setting " .. tostring(locale))
     
-    local t = localization[locale]
+    local t = get_localized_table(locale)
     if t and t[input_string] then
         return t[input_string]
     end
 
     if #locale > 2 then
-        t = localization[locale:sub(1, 2)]
+        t = get_localized_table(locale:sub(1, 2))
     end
     
     return t and t[input_string] or input_string

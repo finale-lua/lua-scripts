@@ -9,6 +9,8 @@ $module FCMUI
 local mixin = require("library.mixin") -- luacheck: ignore
 local mixin_helper = require("library.mixin_helper")
 
+local localization = require("library.localization")
+
 local class = {Methods = {}}
 local methods = class.Methods
 
@@ -40,6 +42,24 @@ function methods:GetDecimalSeparator(str)
     if do_return then
         return str.LuaString
     end
+end
+
+--[[
+% AlertLocalizedError
+
+**[Fluid]**
+
+Displays a localized error message. 
+
+@ self (FCMControl)
+@ message_key (string) The key into the localization table. If there is no entry in the appropriate localization table, the key is the message.
+@ title_key (string) The key into the localization table. If there is no entry in the appropriate localization table, the key is the title.
+]]
+function methods:AlertLocalizedError(message_key, title_key)
+    mixin_helper.assert_argument_type(2, message_key, "string", "FCString")
+    mixin_helper.assert_argument_type(3, title_key, "string", "FCString")
+
+    self:AlertError(localization.localize(message_key), localization.localize(title_key))
 end
 
 return class
