@@ -300,14 +300,16 @@ Displays a modal dialog with the contents of finaleplugin.RFTNotes (if present) 
 @ caption (string) The caption for the dialog. Defaults to plugin name and version.
 @ width (number) The width in pixels of the edit control. Defaults to 500.
 @ height (number) The height inpixels of the edit control. Defaults to 350.
+@ fontsize (number) Font size in points. Defaults to 10.
 ]]
-function utils.show_notes_dialog(caption, width, height)
+function utils.show_notes_dialog(caption, width, height, fontsize)
     if not finaleplugin.RTFNotes and not finaleplugin.Notes then
         return
     end
     
     width = width or 500
     height = height or 350
+    fontsize = fontsize or 10
     
     if not caption then
         caption = plugindef()
@@ -350,7 +352,7 @@ function utils.show_notes_dialog(caption, width, height)
             else
                 local edit_font = finale.FCFontInfo()
                 edit_font.Name = "Arial"
-                edit_font.Size = 10
+                edit_font.Size = fontsize
                 edit_text:SetFont(edit_font)
                 edit_text:SetText(notes_str)
             end
