@@ -187,7 +187,6 @@ function create_dialog()
     local dlg = mixin.FCXCustomLuaWindow()
     dlg:SetTitle(localization.localize("Test Autolayout With Localisation"))
 
-    local y = 0
     local line_no = 0
     local y_increment = 22
     local label_edit_separ = 3
@@ -314,7 +313,7 @@ function create_dialog()
         end
     end
     ctrl_cbobox:SetSelectedItem(0)
-    line_no = line_no + 1
+    line_no = line_no + 1 -- luacheck: ignore
 
     line_no = start_line_no
     local ctrl_radiobuttons = dlg:CreateRadioButtonGroup(0, line_no * y_increment, 3)
