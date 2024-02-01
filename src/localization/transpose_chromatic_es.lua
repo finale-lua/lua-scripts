@@ -1,0 +1,46 @@
+--[[
+    Spanish localization for transpose_by_step.lua
+]]
+local loc = {
+    ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
+       "Finale no puede representar algunas de las notas traspuestas. Estas notas no se han cambiado.",
+    ["Augmented Fifth"] = "Quinta aumentada",
+    ["Augmented Fourth"] = "Cuarta aumentada",
+    ["Augmented Second"] = "Segunda aumentada",
+    ["Augmented Seventh"] = "Séptima aumentada",
+    ["Augmented Sixth"] = "Sexta aumentada",
+    ["Augmented Third"] = "Tercera aumentada",
+    ["Augmented Unison"] = "Unísono aumentado",
+    ["Diminished Fifth"] = "Quinta disminuida",
+    ["Diminished Fourth"] = "Cuarta disminuida",
+    ["Diminished Octave"] = "Octava disminuida",
+    ["Diminished Second"] = "Segunda disminuida",
+    ["Diminished Seventh"] = "Séptima disminuida",
+    ["Diminished Sixth"] = "Sexta disminuida",
+    ["Diminished Third"] = "Tercera disminuida",
+    ["Direction"] = "Dirección",
+    ["Down"] = "Abajo",
+    ["Interval"] = "Intervalo",
+    ["Major Second"] = "Segunda mayor",
+    ["Major Seventh"] = "Séptima mayor",
+    ["Major Sixth"] = "Sexta mayor",
+    ["Major Third"] = "Tercera mayor",
+    ["Minor Second"] = "Segunda menor",
+    ["Minor Seventh"] = "Séptima menor",
+    ["Minor Sixth"] = "Sexta menor",
+    ["Minor Third"] = "Tercera menor",
+    ["Perfect Fifth"] = "Quinta justa",
+    ["Perfect Fourth"] = "Cuarta justa",
+    ["Perfect Octave"] = "Octava justa",
+    ["Perfect Unison"] = "Unísono justo",
+    ["Pitch"] = "Tono",
+    ["Plus Octaves"] = "Más Octavas",
+    ["Preserve Existing Notes"] = "Preservar notas existentes",
+    ["Simplify Spelling"] = "Simplificar enarmonización",
+    ["Transposition Error"] = "Error de trasposición",
+    ["Up"] = "Arriba",
+    ["OK"] = "Aceptar",
+    ["Cancel"] = "Cancelar",
+}
+
+return loc
