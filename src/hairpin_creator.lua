@@ -132,18 +132,18 @@ local function extend_region_by_EDU(region, add_duration)
 end
 
 local function duration_gap(measureA, positionA, measureB, positionB)
-    local diff, duration = 0
+    local diff = 0
     if measureA == measureB then -- simple EDU offset
         diff = positionB - positionA
     elseif measureB < measureA then
-        duration = - positionB
+        local duration = - positionB
         while measureB < measureA do -- add up measures until they meet
             duration = duration + measure_width(measureB)
             measureB = measureB + 1
         end
         diff = - duration - positionA
     elseif measureA < measureB then
-        duration = - positionA
+        local duration = - positionA
         while measureA < measureB do
             duration = duration + measure_width(measureA)
             measureA = measureA + 1
@@ -245,7 +245,7 @@ end
 
 local function lowest_note_element(rgn)
     local lowest_vert = -13 * 12 -- at least to bottom of staff
-    local current_measure, top_of_staff, bottom_pos = 0, 0
+    local current_measure, top_of_staff = 0, 0
 
     for entry in eachentry(rgn) do
         if entry:IsNote() then
@@ -253,7 +253,7 @@ local function lowest_note_element(rgn)
                 current_measure = entry.Measure
                 top_of_staff = calc_top_of_staff(current_measure, entry.Staff)
             end
-            bottom_pos = (entry:CalcLowestStaffPosition() * 12) - config.below_note_cushion
+            local bottom_pos = (entry:CalcLowestStaffPosition() * 12) - config.below_note_cushion
             if entry:CalcStemUp() then -- stem up
                 if lowest_vert > bottom_pos then
                     lowest_vert = bottom_pos
@@ -548,13 +548,13 @@ function create_dialog_box()
     }
 
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Hairpin Creator Configuration")
-    local y_step, y_current = 20
+    local y_step = 20
     local max_text_width = 385
     local x_offset = {0, 130, 155, 190}
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- horizontal offset for Mac Edit boxes
 
     for i, v in ipairs(dialog_options) do -- run through config parameters
-        y_current = y_step * i
+        local y_current = y_step * i
         local msg = string.gsub(v[1], "_", " ")
         if boolean_options[v[1]] then -- checkboxes
             dialog:CreateCheckbox(x_offset[1], y_current, v[1]):SetText(msg):SetWidth(x_offset[3]):SetCheck(config[v[1]] and 1 or 0)
@@ -573,7 +573,7 @@ function create_dialog_box()
     end
 
     -- measurement unit options
-    y_current = (#dialog_options + 1.6) * y_step
+    local y_current = (#dialog_options + 1.6) * y_step
     dialog:CreateStatic(x_offset[2] - 40, y_current):SetText("Units:")
     dialog:SetMeasurementUnit(config.measurement_unit)
     dialog:CreateMeasurementUnitPopup(x_offset[2], y_current)

@@ -174,7 +174,7 @@ Calculates the handle offset for an expression with "Left of Primary Notehead" h
 @ entry (FCNoteEntry) the entry to calculate from
 : (number) offset from left side of primary notehead rectangle
 ]]
-function note_entry.calc_left_of_primary_notehead()
+function note_entry.calc_left_of_primary_notehead(_entry)
     return 0
 end
 
