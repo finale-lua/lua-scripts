@@ -12,7 +12,6 @@ $module FCMControl
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
-
 local localization = require("library.localization")
 
 local class = {Methods = {}}
@@ -408,7 +407,7 @@ Removes a handler added with `AddHandleCommand`.
 @ key (string) The key into the localization table. If there is no entry in the appropriate localization table, the key is the text.
 ]]
 function methods:SetLocalizedText(key)
-    mixin_helper.assert_argument_type(2, key, "string", "FCString")
+    mixin_helper.assert_argument_type(2, key, "string")
 
     self:SetText(localization.localize(key))
 end

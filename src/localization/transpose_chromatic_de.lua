@@ -1,0 +1,46 @@
+--[[
+    German localization for transpose_by_step.lua
+]]
+local loc = {
+    ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
+        "Finale kann einige der transponierten Tönhöhen nicht darstellen. Diese Tönhöhen wurden unverändert gelassen.",
+    ["Augmented Fifth"] = "Übermäßige Quinte",
+    ["Augmented Fourth"] = "Übermäßige Quarte",
+    ["Augmented Second"] = "Übermäßige Sekunde",
+    ["Augmented Seventh"] = "Übermäßige Septime",
+    ["Augmented Sixth"] = "Übermäßige Sexte",
+    ["Augmented Third"] = "Übermäßige Terz",
+    ["Augmented Unison"] = "Übermäßige Prime",
+    ["Diminished Fifth"] = "Verminderte Quinte",
+    ["Diminished Fourth"] = "Verminderte Quarte",
+    ["Diminished Octave"] = "Verminderte Oktave",
+    ["Diminished Second"] = "Verminderte Sekunde",
+    ["Diminished Seventh"] = "Verminderte Septime",
+    ["Diminished Sixth"] = "Verminderte Sexte",
+    ["Diminished Third"] = "Verminderte Terz",
+    ["Direction"] = "Richtung",
+    ["Down"] = "Runter",
+    ["Interval"] = "Intervall",
+    ["Major Second"] = "Große Sekunde",
+    ["Major Seventh"] = "Große Septime",
+    ["Major Sixth"] = "Große Sexte",
+    ["Major Third"] = "Große Terz",
+    ["Minor Second"] = "Kleine Sekunde",
+    ["Minor Seventh"] = "Kleine Septime",
+    ["Minor Sixth"] = "Kleine Sexte",
+    ["Minor Third"] = "Kleine Terz",
+    ["Perfect Fifth"] = "Reine Quinte",
+    ["Perfect Fourth"] = "Reine Quarte",
+    ["Perfect Octave"] = "Reine Oktave",
+    ["Perfect Unison"] = "Reine Prime",
+    ["Pitch"] = "Tonhöhe",
+    ["Plus Octaves"] = "Plus Oktaven",
+    ["Preserve Existing Notes"] = "Bestehende Noten beibehalten",
+    ["Simplify Spelling"] = "Notation vereinfachen",
+    ["Transposition Error"] = "Transpositionsfehler",
+    ["Up"] = "Hoch",
+    ["OK"] = "OK",
+    ["Cancel"] = "Abbrechen",
+}
+
+return loc
