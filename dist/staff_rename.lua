@@ -546,7 +546,7 @@ function staff_rename()
 
     local function add_ctrl(dialog, ctrl_type, text, x, y, h, w)
       str.LuaString = tostring(text)
-      local ctrl = ""
+      local ctrl
       if ctrl_type == "button" then
         ctrl = dialog:CreateButton(x, y + 2)
       elseif ctrl_type == "popup" then
@@ -619,17 +619,17 @@ function staff_rename()
       row_count = row_count + 1
     end
 
-    add_ctrl(dialog, "horizontalline", "", 0, row[row_count + 2] + 8, 0, col_w * 3.5 + 20, 0, 0)
+    add_ctrl(dialog, "horizontalline", "", 0, row[row_count + 2] + 8, 0, col_w * 3.5 + 20)
 
-    local form_select = add_ctrl(dialog, "popup", "", col[1], row[row_count + 3], row_h, col_w - col_gap, 0, 0)
+    local form_select = add_ctrl(dialog, "popup", "", col[1], row[row_count + 3], row_h, col_w - col_gap)
     local forms = {"Instrument in Trn.","Trn. Instrument"}
     for i in pairs(forms) do
       str.LuaString = forms[i]
       form_select:AddString(str)
     end
-    local doc_fonts_check = add_ctrl(dialog, "checkbox", "Use Document Fonts", col[2], row[row_count + 3], row_h, col_w, 0, 0)
+    local doc_fonts_check = add_ctrl(dialog, "checkbox", "Use Document Fonts", col[2], row[row_count + 3], row_h, col_w)
     doc_fonts_check:SetCheck(config.use_doc_fonts)
-    local hardcode_autonumber_btn = add_ctrl(dialog, "button", "Hardcode Autonumbers", col[3] + auto_x_width, row[row_count + 3], row_h, col_w, 0, 0)
+    local hardcode_autonumber_btn = add_ctrl(dialog, "button", "Hardcode Autonumbers", col[3] + auto_x_width, row[row_count + 3], row_h, col_w)
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()

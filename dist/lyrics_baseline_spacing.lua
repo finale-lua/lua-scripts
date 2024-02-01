@@ -394,7 +394,7 @@ function lyrics_spacing(title)
     end
     local function add_ctrl(dialog, ctrl_type, text, x, y, h, w)
         str.LuaString = tostring(text)
-        local ctrl = ""
+        local ctrl
         if ctrl_type == "checkbox" then
             ctrl = dialog:CreateCheckbox(x, y)
         elseif ctrl_type == "edit" then
@@ -403,7 +403,7 @@ function lyrics_spacing(title)
             ctrl = dialog:CreateStatic(x, y)
         end
         if ctrl_type == "edit" then
-            ctrl:SetHeight(h-2)
+            ctrl:SetHeight(h - 2)
             ctrl:SetWidth(w - col_gap)
         else
             ctrl:SetHeight(h)
@@ -412,22 +412,23 @@ function lyrics_spacing(title)
         ctrl:SetText(str)
         return ctrl
     end
-    local verse_static = add_ctrl(dialog, "static", "All Lyrics", col[3], row[1], row_h, col_w, 0, 0)
-    local chorus_static = add_ctrl(dialog, "static", "", col[4], row[1], row_h, col_w, 0, 0)
-    local section_static = add_ctrl(dialog, "static", "", col[5], row[1], row_h, col_w, 0, 0)
 
-    add_ctrl(dialog, "static", "Lyric 1 baseline:", col[1] + 31, row[2], row_h, col_w * 2, 0, 0)
-    local verse1_edit = add_ctrl(dialog, "edit", verse1_start, col[3], row[2], row_h, col_w, 0, 0)
-    local chorus1_edit = add_ctrl(dialog, "edit", chorus1_start, col[4], row[2], row_h, col_w, 0, 0)
-    local section1_edit = add_ctrl(dialog, "edit", section1_start, col[5], row[2], row_h, col_w, 0, 0)
+    local verse_static = add_ctrl(dialog, "static", "All Lyrics", col[3], row[1], row_h, col_w)
+    local chorus_static = add_ctrl(dialog, "static", "", col[4], row[1], row_h, col_w)
+    local section_static = add_ctrl(dialog, "static", "", col[5], row[1], row_h, col_w)
 
-    add_ctrl(dialog, "static", "Gap:", col[2] + 29, row[3], row_h, col_w, 0, 0)
-    local verse_gap_edit = add_ctrl(dialog, "edit", verse_gap, col[3], row[3], row_h, col_w, 0, 0)
-    local chorus_gap_edit = add_ctrl(dialog, "edit", chorus_gap, col[4], row[3], row_h, col_w, 0, 0)
-    local section_gap_edit = add_ctrl(dialog, "edit", section_gap, col[5], row[3], row_h, col_w, 0, 0)
+    add_ctrl(dialog, "static", "Lyric 1 baseline:", col[1] + 31, row[2], row_h, col_w * 2)
+    local verse1_edit = add_ctrl(dialog, "edit", verse1_start, col[3], row[2], row_h, col_w)
+    local chorus1_edit = add_ctrl(dialog, "edit", chorus1_start, col[4], row[2], row_h, col_w)
+    local section1_edit = add_ctrl(dialog, "edit", section1_start, col[5], row[2], row_h, col_w)
 
-    add_ctrl(dialog, "static", "Edit all:", col[2] + 14, row[4], row_h, col_w, 0, 0)
-    local all_lyrics_check = add_ctrl(dialog, "checkbox", "", col[3], row[4], row_h, col_w * 2, 0, 0)
+    add_ctrl(dialog, "static", "Gap:", col[2] + 29, row[3], row_h, col_w)
+    local verse_gap_edit = add_ctrl(dialog, "edit", verse_gap, col[3], row[3], row_h, col_w)
+    local chorus_gap_edit = add_ctrl(dialog, "edit", chorus_gap, col[4], row[3], row_h, col_w)
+    local section_gap_edit = add_ctrl(dialog, "edit", section_gap, col[5], row[3], row_h, col_w)
+
+    add_ctrl(dialog, "static", "Edit all:", col[2] + 14, row[4], row_h, col_w)
+    local all_lyrics_check = add_ctrl(dialog, "checkbox", "", col[3], row[4], row_h, col_w * 2)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
 
@@ -442,17 +443,17 @@ function lyrics_spacing(title)
             section_gap_edit:SetText(str)
         end
         verse1_edit:GetText(str)
-        verse1_start = tonumber(str.LuaString)
+        verse1_start = tonumber(str.LuaString) or 0
         chorus1_edit:GetText(str)
-        chorus1_start = tonumber(str.LuaString)
+        chorus1_start = tonumber(str.LuaString) or 0
         section1_edit:GetText(str)
-        section1_start = tonumber(str.LuaString)
+        section1_start = tonumber(str.LuaString) or 0
         verse_gap_edit:GetText(str)
-        verse_gap = tonumber(str.LuaString)
+        verse_gap = tonumber(str.LuaString) or 0
         chorus_gap_edit:GetText(str)
-        chorus_gap = tonumber(str.LuaString)
+        chorus_gap = tonumber(str.LuaString) or 0
         section_gap_edit:GetText(str)
-        section_gap = tonumber(str.LuaString)
+        section_gap = tonumber(str.LuaString) or 0
 
         for i = 1, 100, 1 do
             baseline_verse:LoadDefaultForLyricNumber(finale.BASELINEMODE_LYRICSVERSE,i)

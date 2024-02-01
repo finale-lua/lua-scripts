@@ -869,7 +869,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
         return -left
     end
 
-    function note_entry.calc_left_of_primary_notehead()
+    function note_entry.calc_left_of_primary_notehead(_entry)
         return 0
     end
 

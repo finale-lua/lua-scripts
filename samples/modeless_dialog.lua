@@ -65,7 +65,7 @@ local function create_dialog()
         end)
 
     dlg:RegisterHandleControlEvent(do_something,
-        function(control)
+        function(_control)
             local grp1 = global_dialog:GetControl("radio1")
             print("radio group 1 selected item: " .. grp1:GetSelectedItem())
             local grp2 = global_dialog:GetControl("radio2")
@@ -128,7 +128,7 @@ local function create_dialog()
     )
 
     dlg:RegisterOSMenuCommandExecuted(function(menucmd, cmdtype)
-            local cmdstr = ""
+            local cmdstr
             if finenv.UI():IsOnMac() then
                 cmdstr = string.char(
                             bit32.extract(menucmd, 24, 8),
