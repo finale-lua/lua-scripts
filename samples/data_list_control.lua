@@ -90,7 +90,7 @@ x_inc = 70
 local toggle_row_colors = dlg:CreateButton(x, y)
 toggle_row_colors:SetText(finale.FCString("row colors"))
 toggle_row_colors:SetWidth(x_inc - x_sep)
-dlg:RegisterHandleControlEvent(toggle_row_colors, function(control)
+dlg:RegisterHandleControlEvent(toggle_row_colors, function(_control)
     data_list.AlternatingBackgroundRowColors = not data_list.AlternatingBackgroundRowColors
     data_list:SetKeyboardFocus()
 end)
@@ -98,7 +98,7 @@ x = x + x_inc
 local select_row_random = dlg:CreateButton(x, y)
 select_row_random:SetText(finale.FCString("random row"))
 select_row_random:SetWidth(x_inc - x_sep)
-dlg:RegisterHandleControlEvent(select_row_random, function(control)
+dlg:RegisterHandleControlEvent(select_row_random, function(_control)
     local random_row_index = math.floor(math.random() * numrows)
     data_list:SelectLine(random_row_index)
     data_list:SetKeyboardFocus()
@@ -107,10 +107,10 @@ x = x + x_inc
 local unsel_first = dlg:CreateButton(x, y)
 unsel_first:SetText(finale.FCString("unsel 1st"))
 unsel_first:SetWidth(x_inc - x_sep)
-dlg:RegisterHandleControlEvent(unsel_first, function(control)
-    for x = 0, data_list:GetCount() - 1 do
-        if data_list:IsLineSelected(x) then
-            data_list:UnselectLine(x)
+dlg:RegisterHandleControlEvent(unsel_first, function(_control)
+    for rowx = 0, data_list:GetCount() - 1 do
+        if data_list:IsLineSelected(rowx) then
+            data_list:UnselectLine(rowx)
             break
         end
     end
@@ -120,12 +120,12 @@ x = x + x_inc
 local unsel_all = dlg:CreateButton(x, y)
 unsel_all:SetText(finale.FCString("unsel all"))
 unsel_all:SetWidth(x_inc - x_sep)
-dlg:RegisterHandleControlEvent(unsel_all, function(control)
+dlg:RegisterHandleControlEvent(unsel_all, function(_control)
     data_list:UnselectAll()
     data_list:SetKeyboardFocus()
 end)
-x = x + x_inc
-y = y + y_inc
+x = x + x_inc -- luacheck: ignore
+y = y + y_inc -- luacheck: ignore
 -- registrations
 local function on_item_selected()
     local index = data_list:GetSelectedLine()
@@ -139,23 +139,23 @@ local function on_item_selected()
         end
     end
 end
-dlg:RegisterHandleListDoubleClick(function(control)
+dlg:RegisterHandleListDoubleClick(function(_control)
     on_item_selected()
 end)
-dlg:RegisterHandleListEnterKey(function(control)
+dlg:RegisterHandleListEnterKey(function(_control)
     on_item_selected()
     return true
 end)
-dlg:RegisterHandleKeyboardCommand(function(control, character)
+dlg:RegisterHandleKeyboardCommand(function(_control, character)
     local charstr = utf8.char(character)
     show_kbd_command:SetText(finale.FCString(charstr))
     return charstr == "N" or charstr == "W" -- eat "N" and "W"
 end)
-dlg:RegisterHandleDataListSelect(function(control, line_index)
+dlg:RegisterHandleDataListSelect(function(_control, line_index)
     show_selection:SetText(finale.FCString("selected " .. line_index .. "(" .. data_list:GetSelectedLine() .. ")"))
 end)
 if usecheckboxes then
-    dlg:RegisterHandleDataListCheck(function(control, line_index, state)
+    dlg:RegisterHandleDataListCheck(function(_control, line_index, state)
         local state_str = state and "checked " or "unchecked "
         show_checkbox:SetText(finale.FCString(state_str .. line_index))
     end)
@@ -171,19 +171,19 @@ dlg:ExecuteModal(nil)
 
 local checked_str = ""
 local selected_str = ""
-for x = 0, data_list:GetCount() - 1 do
-    if data_list:IsLineSelected(x) then
+for rowx = 0, data_list:GetCount() - 1 do
+    if data_list:IsLineSelected(rowx) then
         if #selected_str > 0 then
             selected_str = selected_str .. ", "
         end
         selected_str = selected_str .. x
     end
-    local row = data_list:GetItemAt(x)
+    local row = data_list:GetItemAt(rowx)
     if row.Check then
         if #checked_str > 0 then
             checked_str = checked_str .. ", "
         end
-        checked_str = checked_str .. x
+        checked_str = checked_str .. rowx
     end
 end
 if finenv.ConsoleIsAvailable then
