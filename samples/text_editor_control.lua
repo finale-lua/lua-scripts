@@ -1,6 +1,6 @@
 function plugindef()
     finaleplugin.RequireDocument = true -- Load Text Metrics crashes Finale (and doesn't work) if no document is open
-    finaleplugin.MinJWLuaVersion = 0.68
+    finaleplugin.MinJWLuaVersion = 0.71
     return "0--text_editor_control.lua"
 end
 
@@ -41,7 +41,7 @@ print(edit_text:GetControlID())
 local tabstop_width = calc_tab_width(edit_font, 4)
 edit_text:SetTabstopWidth(tabstop_width)
 edit_text:SetAutomaticEditing(true)
-dlg:RegisterHandleControlEvent(edit_text, function(control)
+dlg:RegisterHandleControlEvent(edit_text, function(_control)
 --        local finale.FCString = control:CreateEnigmaString()
 --        print("Got Enigma String: "..finale.FCString.LuaString)
     end)
@@ -53,7 +53,7 @@ local non_bmp_text = [[𝒜𝓈 𝒸𝒽
 𝓊𝓃𝓈𝑒
 𝓉𝓈 𝒾𝓃 𝓉𝒽𝑒 𝓋𝒶𝓈𝓉 𝒾𝓃𝓉𝓸 𝓉𝒽𝑒 𝓊𝓃𝓀𝓃𝑜𝓌𝓃
 𝒾𝓈 𝒶 𝒷𝑒𝒶𝓊𝓉𝒾𝒻𝓊𝓁 𝓂𝒶𝑔𝒾𝒸 𝑜𝒻 𝒸𝒽𝒶𝓇𝒶𝒸𝓉𝑒𝓇𝓈.]]
-local long_line_text = "This is a test. Now is the time for a very long string to come to the aid and comfort of their friends and enemies to create a very, very long string."
+local long_line_text = "This is a test. Now is the time for a very long string to come to the aid and comfort of their friends and enemies to create a very, very long string." -- luacheck: ignore
 local rtf_text = [[{\rtf1\ansi
 This is some {\b bold} text.
 This is some {\i italic} text.
@@ -80,32 +80,33 @@ dlg:RegisterHandleControlEvent(enabler, function(control)
     end)
 local visifier = dlg:CreateButton(90, 200)
 visifier:SetText(finale.FCString("Visible"))
-dlg:RegisterHandleControlEvent(visifier, function(control)
+dlg:RegisterHandleControlEvent(visifier, function(_control)
         edit_text:SetVisible(not edit_text:GetVisible())
         enabler:SetVisible(not enabler:GetVisible())
         edit_text:SetKeyboardFocus()
     end)
 local readonly = dlg:CreateButton(170, 200)
 readonly:SetText(finale.FCString("Readonly"))
-dlg:RegisterHandleControlEvent(readonly, function(control)
+dlg:RegisterHandleControlEvent(readonly, function(_control)
         edit_text:SetReadOnly(not edit_text:GetReadOnly())
         edit_text:SetKeyboardFocus()
     end)
 local sizer = dlg:CreateButton(250, 200)
 sizer:SetText(finale.FCString("Size"))
-dlg:RegisterHandleControlEvent(sizer, function(control)
-        if not glob_size then glob_size = 10 end
-        glob_size = glob_size * 1.25
-        edit_text:SetFontSizeForSelection(glob_size)
+local size_incrementer
+dlg:RegisterHandleControlEvent(sizer, function(_control)
+        if not size_incrementer then size_incrementer = 10 end
+        size_incrementer = size_incrementer * 1.25
+        edit_text:SetFontSizeForSelection(size_incrementer)
     end)
 local copier = dlg:CreateButton(330, 200)
 copier:SetText(finale.FCString("Copy"))
-dlg:RegisterHandleControlEvent(copier, function(control)
+dlg:RegisterHandleControlEvent(copier, function(_control)
         edit_text:TextToClipboard()
     end)
 local replacer = dlg:CreateButton(10, 225)
 replacer:SetText(finale.FCString("Replace"))
-dlg:RegisterHandleControlEvent(replacer, function(control)
+dlg:RegisterHandleControlEvent(replacer, function(_control)
         if not edit_text:ReplaceSelectedText(finale.FCString("*** replaced\ntext ***")) then
             print("ReplaceSelectedText failed because no selected text.")
         end
@@ -113,7 +114,7 @@ dlg:RegisterHandleControlEvent(replacer, function(control)
     end)
 local restorer = dlg:CreateButton(90, 225)
 restorer:SetText(finale.FCString("Restore"))
-dlg:RegisterHandleControlEvent(restorer, function(control)
+dlg:RegisterHandleControlEvent(restorer, function(_control)
 --        local vers1 = finale.FCVerseLyricsText()
 --        if not vers1:Load(1) then print("lyrics load failed") end
 --        local versstr = vers1:CreateString()
@@ -125,13 +126,13 @@ dlg:RegisterHandleControlEvent(restorer, function(control)
     end)
 local inserter = dlg:CreateButton(170, 225)
 inserter:SetText(finale.FCString("Insert"))
-dlg:RegisterHandleControlEvent(inserter, function(control)
+dlg:RegisterHandleControlEvent(inserter, function(_control)
         edit_text:InsertTextAtCursor(finale.FCString("*** inserted text ***"))
         edit_text:SetKeyboardFocus()
     end)
 local selectall = dlg:CreateButton(250, 225)
 selectall:SetText(finale.FCString("SelAll"))
-dlg:RegisterHandleControlEvent(selectall, function(control)
+dlg:RegisterHandleControlEvent(selectall, function(_control)
         local range = finale.FCRange()
         edit_text:GetTotalTextRange(range)
         edit_text:SetSelection(range)
@@ -139,7 +140,7 @@ dlg:RegisterHandleControlEvent(selectall, function(control)
     end)
 local tabber = dlg:CreateButton(10, 250)
 tabber:SetText(finale.FCString("Tabs"))
-dlg:RegisterHandleControlEvent(tabber, function(control)
+dlg:RegisterHandleControlEvent(tabber, function(_control)
         tabstop_width = tabstop_width - 12
         if tabstop_width < 12 then
             tabstop_width = 12
@@ -171,7 +172,7 @@ dlg:RegisterHandleControlEvent(italicer, function(control)
 local locinfo = dlg:CreateButton(330, 250)
 locinfo:SetText(finale.FCString("Loc."))
 locinfo:SetWidth(70)
-dlg:RegisterHandleControlEvent(locinfo, function(control)
+dlg:RegisterHandleControlEvent(locinfo, function(_control)
         local selrange = finale.FCRange()
         edit_text:GetSelection(selrange)
         local posrange = finale.FCRange()
@@ -195,7 +196,7 @@ wordonly:SetWidth(70)
 local igncase = dlg:CreateCheckbox(250, 275)
 igncase:SetText(finale.FCString("Ign Case"))
 igncase:SetWidth(70)
-dlg:RegisterHandleControlEvent(finder, function(control)
+dlg:RegisterHandleControlEvent(finder, function(_control)
         local str = finale.FCString()
         findtext:GetText(str)
         local options = 0
@@ -223,10 +224,28 @@ dlg:RegisterHandleControlEvent(finder, function(control)
 local dumper = dlg:CreateButton(330, 275)
 dumper:SetText(finale.FCString("DumpText"))
 dumper:SetWidth(70)
-dlg:RegisterHandleControlEvent(dumper, function(control)
+dlg:RegisterHandleControlEvent(dumper, function(_control)
         local range = finale.FCRange()
-        if not edit_text:GetSelection(range) then
+        edit_text:GetSelection(range)
+        if range.Length == 0 then
             edit_text:GetTotalTextRange(range)
+        end
+        local raw_string = finale.FCString()
+        edit_text:GetTextInRange(raw_string, range)
+        print("Got Raw String: " .. raw_string.LuaString)
+        local utf16_string = finale.FCString()
+        local i = range.Start
+        while (i < range.End) do
+            local next_char = edit_text:CreateCharacterAtIndex(i)
+            if not next_char then
+                print("GetCharacterAtIndex failed")
+                break
+            end
+            utf16_string:AppendString(next_char)
+            i = i + next_char.Length
+        end
+        if utf16_string.Length > 0 then
+            print("Got Utf16 String: " .. utf16_string.LuaString)
         end
         local fcstr = edit_text:CreateEnigmaString(range)
         print("Got Enigma String: "..fcstr.LuaString)
@@ -234,7 +253,7 @@ dlg:RegisterHandleControlEvent(dumper, function(control)
 local colorizer = dlg:CreateButton(10, 300)
 colorizer:SetText(finale.FCString("Sel2Red"))
 colorizer:SetWidth(90)
-dlg:RegisterHandleControlEvent(colorizer, function(control)
+dlg:RegisterHandleControlEvent(colorizer, function(_control)
         local range = finale.FCRange()
         edit_text:GetSelection(range)
         edit_text:SetTextColorInRange(247, 0, 0, range)
@@ -242,7 +261,7 @@ dlg:RegisterHandleControlEvent(colorizer, function(control)
 local find2color = dlg:CreateButton(110, 300)
 find2color:SetText(finale.FCString("Find2Green"))
 find2color:SetWidth(90)
-dlg:RegisterHandleControlEvent(find2color, function(control)
+dlg:RegisterHandleControlEvent(find2color, function(_control)
         local str = finale.FCString()
         findtext:GetText(str)
         local options = 0
@@ -264,7 +283,7 @@ dlg:RegisterHandleControlEvent(find2color, function(control)
 local colorreporter = dlg:CreateButton(210, 300)
 colorreporter:SetText(finale.FCString("Color Starts"))
 colorreporter:SetWidth(90)
-dlg:RegisterHandleControlEvent(colorreporter, function(control)
+dlg:RegisterHandleControlEvent(colorreporter, function(_control)
         local ranges = edit_text:CreateTextColorChanges()
         if not ranges then
             print("No colors returned.")
@@ -281,7 +300,7 @@ dlg:RegisterHandleControlEvent(colorreporter, function(control)
     end)
 local colorreverter = dlg:CreateButton(310, 300)
 colorreverter:SetText(finale.FCString("Default"))
-dlg:RegisterHandleControlEvent(colorreverter, function(control)
+dlg:RegisterHandleControlEvent(colorreverter, function(_control)
         edit_text:SetFont(finale.FCFontInfo("Arial", 12))
         --local range = finale.FCRange()
         --edit_text:GetTotalTextRange(range)
@@ -296,11 +315,10 @@ curr_sel:SetWidth(200)
 dlg:RegisterTextSelectionChanged(function(control)
         local fstr = finale.FCString()
         control:GetSelectedText(fstr) -- if no selection, fstr is unchanged and empty
-        local seltext = fstr.LuaString
-        --print("Selected Text: "..seltext)
+        --print("Selected Text: "..fstr.LuaString)
         curr_sel:SetText(fstr)
     end)
-local ok = dlg:CreateOkButton()
+dlg:CreateOkButton()
 dlg:RegisterInitWindow(function()
         if init_with_rtf then
             edit_text:SetFont(finale.FCFontInfo("Arial", 12))

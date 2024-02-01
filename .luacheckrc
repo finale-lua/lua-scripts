@@ -1,5 +1,5 @@
 -- luacheck: ignore 131
-include_files = { "src/**/*.lua"}
+include_files = { "src/**/*.lua", "samples/**/*.lua"}
 exclude_files = {
     "mobdebug.lua",
     "src/lunajson/**/*.lua",

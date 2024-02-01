@@ -518,8 +518,8 @@ function configure_palette(palette_number, index_num)
         end
     end)
     add_item:AddHandleCommand(function() -- ADD PALETTE or SCRIPT
-        local new_name, new_script, hotkey
-        local new_element, ok = {}
+        local new_name, new_script, hotkey, ok
+        local new_element = {}
         if is_macro then
             new_element = { name = "", key = "?" }
             ok, new_name, hotkey = user_enters_text(new_element, "Create New Palette")
@@ -627,8 +627,8 @@ function main()
     end
     configuration.get_user_settings(script_name, config, true)
     palettes = cjson.decode(config.palettes)
-    local finished, ok = false
-    local palette_number, item_number
+    local finished = false
+    local palette_number, item_number, ok
 
     while not finished do -- keep circling until user makes a choice or cancels
         ok, palette_number = choose_palette(0) -- main palette
