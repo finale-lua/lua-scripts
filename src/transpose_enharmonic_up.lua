@@ -46,24 +46,6 @@ end
 local transposition = require("library.transposition")
 local loc = require('library.localization')
 
-loc.en = loc.en or {
-    ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
-        "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",
-    ["Transposition Error"] = "Transposition Error",
-}
-
-loc.es = loc.es or {
-    ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
-        "Finale no puede representar algunas de las notas traspuestas. Estas notas no se han cambiado.",
-    ["Transposition Error"] = "Error de trasposición",
-}
-
-loc.de = loc.de or {
-    ["Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."] =
-        "Finale kann einige der transponierten Tönhöhen nicht darstellen. Diese Tönhöhen wurden unverändert gelassen.",
-    ["Transposition Error"] = "Transpositionsfehler",
-}
-
 function transpose_enharmonic_up()
     local success = true
     for entry in eachentrysaved(finenv.Region()) do
