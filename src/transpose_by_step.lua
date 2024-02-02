@@ -82,7 +82,7 @@ function do_transpose_by_step(global_number_of_steps_edit)
         finenv.StartNewUndoBlock(undostr, true) -- JW Lua automatically terminates the final undo block we start here
     end
     if not success then
-        global_dialog:CreateChildUI():AlertLocalizedError(
+        global_dialog:CreateChildUI():AlertErrorLocalized(
             "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",
             "Transposition Error"
         )            
@@ -97,7 +97,7 @@ function create_dialog_box()
     local x_increment = 105
     -- number of steps
     dialog:CreateStatic(0, current_y + 2, "steps_label")
-        :SetLocalizedText("Number Of Steps")
+        :SetTextLocalized("Number Of Steps")
         :SetWidth(x_increment - 5)
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     local edit_x = x_increment + utils.win_mac(0, 4)
@@ -106,10 +106,10 @@ function create_dialog_box()
         :_FallbackCall("AssureNoHorizontalOverlap", nil, dialog:GetControl("steps_label"), 5)
     -- ok/cancel
     dialog:CreateOkButton()
-        :SetLocalizedText("OK")
+        :SetTextLocalized("OK")
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     dialog:CreateCancelButton()
-        :SetLocalizedText("Cancel")
+        :SetTextLocalized("Cancel")
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     -- registrations
     dialog:RegisterHandleOkButtonPressed(function(self)

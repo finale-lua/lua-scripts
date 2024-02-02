@@ -124,7 +124,7 @@ function do_transpose_chromatic(direction, interval_index, simplify, plus_octave
         finenv.StartNewUndoBlock(undostr, true) -- JW Lua automatically terminates the final undo block we start here
     end
     if not success then
-        global_dialog:CreateUI():AlertLocalizedError(
+        global_dialog:CreateUI():AlertErrorLocalized(
             "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",
             "Transposition Error"
         )
@@ -140,22 +140,22 @@ function create_dialog_box()
     local x_increment = 85
     -- direction
     dialog:CreateStatic(0, current_y + 2, "direction_label")
-        :SetLocalizedText("Direction")
+        :SetTextLocalized("Direction")
         :SetWidth(x_increment - 5)
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     dialog:CreatePopup(x_increment, current_y, "direction_choice")
-        :AddLocalizedStrings("Up", "Down"):SetWidth(x_increment)
+        :AddStringsLocalized("Up", "Down"):SetWidth(x_increment)
         :SetSelectedItem(0)
         :_FallbackCall("DoAutoResizeWidth", nil, true)
         :_FallbackCall("AssureNoHorizontalOverlap", nil, dialog:GetControl("direction_label"), 5)
     current_y = current_y + y_increment
     -- interval
     dialog:CreateStatic(0, current_y + 2, "interval_label")
-        :SetLocalizedText("Interval")
+        :SetTextLocalized("Interval")
         :SetWidth(x_increment - 5)
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     dialog:CreatePopup(x_increment, current_y, "interval_choice")
-        :AddLocalizedStrings(table.unpack(interval_names))
+        :AddStringsLocalized(table.unpack(interval_names))
         :SetWidth(140)
         :SetSelectedItem(0)
         :_FallbackCall("DoAutoResizeWidth", nil, true)
@@ -164,14 +164,14 @@ function create_dialog_box()
     current_y = current_y + y_increment
     -- simplify checkbox
     dialog:CreateCheckbox(0, current_y + 2, "do_simplify")
-        :SetLocalizedText("Simplify Spelling")
+        :SetTextLocalized("Simplify Spelling")
         :SetWidth(140)
         :SetCheck(0)
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     current_y = current_y + y_increment
     -- plus octaves
     dialog:CreateStatic(0, current_y + 2, "plus_octaves_label")
-        :SetLocalizedText("Plus Octaves")
+        :SetTextLocalized("Plus Octaves")
         :SetWidth(x_increment - 5)
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     local edit_offset_x = utils.win_mac(0, 4)
@@ -182,17 +182,17 @@ function create_dialog_box()
     current_y = current_y + y_increment
     -- preserve existing notes
     dialog:CreateCheckbox(0, current_y + 2, "do_preserve")
-        :SetLocalizedText("Preserve Existing Notes")
+        :SetTextLocalized("Preserve Existing Notes")
         :SetWidth(140)
         :SetCheck(0)
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     current_y = current_y + y_increment -- luacheck: ignore
     -- OK/Cxl
     dialog:CreateOkButton()
-        :SetLocalizedText("OK")
+        :SetTextLocalized("OK")
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     dialog:CreateCancelButton()
-        :SetLocalizedText("Cancel")
+        :SetTextLocalized("Cancel")
         :_FallbackCall("DoAutoResizeWidth", nil, true)
     -- registrations
     dialog:RegisterHandleOkButtonPressed(function(self)

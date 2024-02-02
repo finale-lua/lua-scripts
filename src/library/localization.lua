@@ -4,6 +4,15 @@ $module Localization
 This library provides localization services to scripts. Note that this library cannot be used inside
 a `plugindef` function, because the Lua plugin does not load any dependencies when it calls `plugindef`.
 
+**Executive Summary**
+
+- Create language tables containing each user-facing string as key with a translation as the value.
+- Save them in the `localization` subdirectory as shown below.
+- Use the `...Localized` methods with `mixin` or if not using `mixin`, require the `localization`
+library directly and wrap any user-facing string in a call to `localization.localize`.
+
+**Details**
+
 To use the library, scripts must define each localization
 as a table appended to this library table. If you provide region-specific localizations, you should also
 provide a generic localization for the 2-character language code as a fallback.
@@ -13,12 +22,6 @@ local localization = require("library.localization")
 --
 -- append localizations to the table returned by `require`:
 --
-localization.en = localization.en or {
-    ["Hello"] = "Hello",
-    ["Goodbye"] = "Goodbye",
-    ["Computer"] = "Computer"
-}
-
 localization.es = localization.es or {
     ["Hello"] = "Hola",
     ["Goodbye"] = "Adiós",
@@ -38,21 +41,40 @@ localization.jp = localization.jp or {
 }
 ```
 
-The keys do not have to be in English, but they should be the same in all tables. You can embed the localizations
-in your script or include them with `require`. Example:
+The keys do not have to be in English, but they should be the same in all tables. For scripts in the `src` directory of
+the FinalaLua GitHub repository, it is recommended to place localization tables in the `localization` subdirectory as
+follows.
 
 ```
-local region_code = "de_CH" -- get this from `finenv.UI():GetUserLocaleName(): you could also strip out just the language code "de"
-local localization_table_name = "localization_" region_code
-localization[region_code] = require(localization_table_name)
+src/
+    my_highly_useful_script.lua
+    localization/
+        my_highly_useful_script/
+            de.lua
+            es.lua
+            es_ES.lua
+            jp.lua
+            ...
+
 ```
 
-In this case, `localization_de_CH.lua` could be installed in the folder alongside the localized script. This is just
-one possible approach. You can manage the dependencies in the manner that is best for your script. The easiest
-deployment will always be to avoid dependencies and embed the localizations in your script.
+Note that it is not necessary to provide a table for the language the keys are in. That is,
+if the keys are in English, it is not necessary to provide `en.lua`. Each of the localization `lua` files should return
+a table as described above.
 
-The `library.localization_developer` library provides tools for automatically generating localization tables to
-copy into scripts. You can then edit them to suit your needs.
+If you wish to add another language, you simply add it to the subfolder for the script, and no further action is
+required.
+
+The `mixin` library provides automatic localization with the `...Localized` methods. Localized versions of text-based
+`mixin` methods should be added as needed, if they do not already exist. If your script does not require the
+`mixin` library, then you can require the `localization` library in your script and call `localization.localize`
+directly.
+
+Due to the architecture of the Lua environment on Finale, it is not possible to use this library to localize strings
+in the `plugindef` function. Those must be handled directly inside the script. However, if you call the `plugindef`
+function inside your script, it is recommended to pass `localization.get_locale()` to the `plugindef` function. This
+guarantees that the plugindef function will return strings that are the closest match to the locale the library
+is running with.
 ]]
 
 local localization = {}
@@ -102,13 +124,11 @@ local function get_localized_table(try_locale)
     if type(localization[try_locale]) == "table" then
         return localization[try_locale]
     end
-    local require_library = "localization" .. "." .. script_name .. "_" .. try_locale
+    local require_library = "localization" .. "." .. script_name .. "." .. try_locale
     local success, result = pcall(function() return require(require_library) end)
     if success and type(result) == "table" then
         localization[try_locale] = result
     else
-        print("unable to require " .. require_library)
-        print(result)
         -- doing this allows us to only try to require it once
         localization[try_locale] = {}
     end

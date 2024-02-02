@@ -44,7 +44,7 @@ function methods:GetDecimalSeparator(str)
 end
 
 --[[
-% AlertLocalizedError
+% AlertErrorLocalized
 
 **[Fluid]**
 
@@ -54,7 +54,7 @@ Displays a localized error message.
 @ message_key (string) The key into the localization table. If there is no entry in the appropriate localization table, the key is the message.
 @ title_key (string) The key into the localization table. If there is no entry in the appropriate localization table, the key is the title.
 ]]
-function methods:AlertLocalizedError(message_key, title_key)
+function methods:AlertErrorLocalized(message_key, title_key)
     mixin_helper.assert_argument_type(2, message_key, "string")
     mixin_helper.assert_argument_type(3, title_key, "string")
 

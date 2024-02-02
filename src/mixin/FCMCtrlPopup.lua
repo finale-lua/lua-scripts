@@ -266,7 +266,7 @@ end
 
 
 --[[
-% AddLocalizedStrings
+% AddStringsLocalized
 
 **[Fluid]**
 
@@ -275,7 +275,7 @@ Adds multiple localized strings to the popup.
 @ self (FCMCtrlPopup)
 @ ... (string) keys of strings to be added. If no localization is found, the key is added.
 ]]
-function methods:AddLocalizedStrings(...)
+function methods:AddStringsLocalized(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
         mixin_helper.assert_argument_type(i + 1, v, "string")
