@@ -13,37 +13,10 @@ library directly and wrap any user-facing string in a call to `localization.loca
 
 **Details**
 
-To use the library, scripts must define each localization
-as a table appended to this library table. If you provide region-specific localizations, you should also
-provide a generic localization for the 2-character language code as a fallback.
-
-```
-local localization = require("library.localization")
---
--- append localizations to the table returned by `require`:
---
-localization.es = localization.es or {
-    ["Hello"] = "Hola",
-    ["Goodbye"] = "Adiós",
-    ["Computer"] = "Computadora"
-}
-
--- specific localization for Spain
--- it is only necessary to specify items that are different than the fallback language table.
-localization.es_ES = localization.es_ES or {
-    ["Computer"] = "Ordenador"
-}
-
-localization.jp = localization.jp or {
-    ["Hello"] = "今日は",
-    ["Goodbye"] = "さようなら",
-    ["Computer"] =  "コンピュータ" 
-}
-```
-
-The keys do not have to be in English, but they should be the same in all tables. For scripts in the `src` directory of
-the FinalaLua GitHub repository, it is recommended to place localization tables in the `localization` subdirectory as
-follows.
+To use the library, scripts must define each localization in a specified subfolder of the `localization` folder.
+If you provide region-specific localizations, you should also provide a generic localization for the 2-character
+language code as a fallback. The directory structure is as follows (where `my_highly_useful_script.lua` is your
+script file).
 
 ```
 src/
@@ -58,22 +31,66 @@ src/
 
 ```
 
-Note that it is not necessary to provide a table for the language the keys are in. That is,
-if the keys are in English, it is not necessary to provide `en.lua`. Each of the localization `lua` files should return
-a table as described above.
+Each localization lua should return a table of keys and translations.
 
+Japanase:
+
+```
+--
+-- jp.lua:
+--
+local t = {
+    ["Hello"] = "今日は",
+    ["Goodbye"] = "さようなら",
+    ["Computer"] =  "コンピュータ" 
+}
+
+return t
+```
+
+Spanish:
+
+```
+--
+-- es.lua:
+--
+local t = {
+    ["Hello"] = "Hola",
+    ["Goodbye"] = "Adiós",
+    ["Computer"] = "Computadora"
+}
+
+return t
+```
+
+You can specify vocabulary for a specific locale. It is only necessary to specify items that
+differ from the the fallback language table.
+
+```
+--
+-- es_ES.lua:
+--
+local t = {
+    ["Computer"] = "Ordenador"
+}
+
+return t
+```
+
+The keys do not have to be in English, but they should be the same in all tables. It is not necessary to provide
+a table for the language the keys are in. That is, if the keys are in English, it is not necessary to provide `en.lua`.
 If you wish to add another language, you simply add it to the subfolder for the script, and no further action is
 required.
 
-The `mixin` library provides automatic localization with the `...Localized` methods. Localized versions of text-based
-`mixin` methods should be added as needed, if they do not already exist. If your script does not require the
+The `mixin` library provides automatic localization with the `...Localized` methods. Localized versions of user-facing
+text-based `mixin` methods should be added as needed, if they do not already exist. If your script does not require the
 `mixin` library, then you can require the `localization` library in your script and call `localization.localize`
 directly.
 
 Due to the architecture of the Lua environment on Finale, it is not possible to use this library to localize strings
 in the `plugindef` function. Those must be handled directly inside the script. However, if you call the `plugindef`
 function inside your script, it is recommended to pass `localization.get_locale()` to the `plugindef` function. This
-guarantees that the plugindef function will return strings that are the closest match to the locale the library
+guarantees that the `plugindef` function returns strings that are the closest match to the locale the library
 is running with.
 ]]
 
@@ -138,7 +155,7 @@ end
 --[[
 % localize
 
-Localizes a string based on the localization language
+Localizes a string based on the localization language.
 
 @ input_string (string) the string to be localized
 : (string) the localized version of the string or input_string if not found
