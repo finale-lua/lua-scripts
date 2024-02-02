@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.ExecuteHttpsCalls = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "3.0.2"
+    finaleplugin.Version = "3.0.3"
     finaleplugin.Date = "October 29, 2023"
     finaleplugin.CategoryTags = "Lyrics"
     finaleplugin.Notes = [[
@@ -366,7 +366,7 @@ local function on_selection_changed(text_ctrl)
 end
 
 -- FCXCustomLuaWindow (mixin version) passes the dialog as the first parameter to HandleTimer
-local function on_timer(_, timer_id)
+local function on_timer(_dialog, timer_id)
     if timer_id ~= context.global_timer_id then return end
     local curr_doc_id = finale.FCDocument().ID 
     if curr_doc_id ~= context.current_document_id then
@@ -522,7 +522,7 @@ local function create_dialog_box()
     dlg:CreateButton(xoff, yoff, "update")
             :SetText("Update")
             :SetWidth(110)
-            :AddHandleCommand(function(_) update_document() end)
+            :AddHandleCommand(function(_control) update_document() end)
     xoff = xoff + 120
     dlg:CreateCheckbox(xoff, yoff, "auto_update")
             :SetText("Update Automatically")
@@ -534,7 +534,7 @@ local function create_dialog_box()
     dlg:CreateButton(xoff, yoff, "refresh")
             :SetText("Get from Document")
             :SetWidth(150)
-            :AddHandleCommand(function(_)
+            :AddHandleCommand(function(_control)
                 update_dlg_text({reset_undo = false})
             end)
     dlg:CreateCloseButton(xoff + text_width - 80, yoff)

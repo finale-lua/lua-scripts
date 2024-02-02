@@ -855,7 +855,7 @@ function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "2.0.2"
+    finaleplugin.Version = "2.0.3"
     finaleplugin.Date = "2024-01-15"
     finaleplugin.HandlesUndo = true
     finaleplugin.MinJWLuaVersion = 0.63 

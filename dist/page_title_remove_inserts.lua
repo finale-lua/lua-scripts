@@ -4886,7 +4886,7 @@ function plugindef()
     
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "February 21, 2021"
     finaleplugin.CategoryTags = "Page"
     finaleplugin.Notes = [[
@@ -4967,7 +4967,7 @@ function create_dialog()
         dialog:CreateButton(current_x, current_y, "fontsel")
         :SetWidth(60)
         :SetText("Font...")
-        :AddHandleCommand(function()
+        :AddHandleCommand(function(_control)
             local ui = dialog:CreateChildUI()
             local editor = dialog:GetControl("editor")
             local font = get_current_font(editor)
@@ -4997,7 +4997,7 @@ function create_dialog()
         :SetText("Replace Inserts With Generic Text")
         :SetWidth(250)
         :SetCheck(initial_replace_option and 1 or 0)
-        :AddHandleCommand(function(_)
+        :AddHandleCommand(function(_control)
             on_update_editor(dialog)
         end)
 

@@ -3,7 +3,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.70"
+    finaleplugin.Version = "v0.70.1"
     finaleplugin.Date = "2023/11/15"
     finaleplugin.AdditionalMenuOptions = [[
         Tuplet Chooser Repeat
@@ -289,7 +289,7 @@ local function user_chooses()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     dialog:RegisterInitWindow(function() key_list:SetKeyboardFocus() end)
-    dialog:RegisterHandleOkButtonPressed(function(_)
+    dialog:RegisterHandleOkButtonPressed(function(_self)
         config.last_selected = key_list:GetSelectedItem() -- save list choice (0-based)
         config.layer_num = layer_num:GetInteger()
     end)

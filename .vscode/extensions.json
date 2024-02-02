@@ -1,3 +1,3 @@
 {
-    "recommendations": ["Koihik.vscode-lua-format", "sumneko.lua", "rog2.luacheck"]
+    "recommendations": ["Koihik.vscode-lua-format", "sumneko.lua", "dwenegar.vscode-luacheck"]
 }

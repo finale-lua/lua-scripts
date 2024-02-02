@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
-    finaleplugin.Version = "2.0.2"
+    finaleplugin.Version = "2.0.3"
     finaleplugin.Date = "2024-01-15"
     finaleplugin.HandlesUndo = true
     finaleplugin.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
@@ -12,7 +12,7 @@ function plugindef()
 end
 
 -- just for now
--- luacheck: ignore
+-- luacheck: no global, no unused
 
 local library = require("library.general_library")
 local configuration = require("library.configuration")
