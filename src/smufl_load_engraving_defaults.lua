@@ -1,7 +1,7 @@
 function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0.1"
+    finaleplugin.Version = "2.0.2"
     finaleplugin.Date = "March 24, 2023"
     finaleplugin.CategoryTags = "Layout"
     finaleplugin.MinJWLuaVersion = 0.67 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
@@ -102,15 +102,14 @@ function smufl_load_engraving_defaults()
                 repeat_prefs:SetForwardSpace(math.floor(newVal + 0.5))
                 repeat_prefs:SetBackwardSpace(math.floor(newVal + 0.5))
             end,
-        -- luacheck: push ignore
-        bracketThickness = function(v) end, -- Not supported. (Finale doesn't seem to have this pref setting.)
-        subBracketThickness = function(v) end, -- Not supported. (Finale doesn't seem to have this pref setting.)
+       
+        bracketThickness = function(_v) end, -- Not supported. (Finale doesn't seem to have this pref setting.)
+        subBracketThickness = function(_v) end, -- Not supported. (Finale doesn't seem to have this pref setting.)
         hairpinThickness = function(v) smart_shape_prefs.HairpinLineWidth = math.floor(efixPerSpace*v + 0.5) end,
         octaveLineThickness = function(v) smart_shape_prefs.LineWidth = math.floor(efixPerSpace*v + 0.5) end,
-        pedalLineThickness = function(v) end, -- To Do: requires finding and editing Custom Lines
+        pedalLineThickness = function(_v) end, -- To Do: requires finding and editing Custom Lines
         repeatEndingLineThickness = function(v) repeat_prefs.EndingLineThickness = math.floor(efixPerSpace*v + 0.5) end,
-        arrowShaftThickness = function(v) end, -- To Do: requires finding and editing Custom Lines
-        -- luacheck: pop
+        arrowShaftThickness = function(_v) end, -- To Do: requires finding and editing Custom Lines     
         lyricLineThickness = function(v) lyrics_prefs.WordExtLineThickness = math.floor(efixPerSpace*v + 0.5) end,
         textEnclosureThickness = function(v)
                 size_prefs.EnclosureThickness = math.floor(efixPerSpace*v + 0.5)
