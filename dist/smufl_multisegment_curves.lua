@@ -4760,7 +4760,7 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.68
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.0.1"
     finaleplugin.Date = "November 15, 2023"
     finaleplugin.CategoryTags = "Expressions"
     finaleplugin.Notes = [[
@@ -4788,7 +4788,7 @@ local function win_mac(win_val, mac_val)
     end
     return mac_val
 end
-local function on_font_changed(_)
+local function on_font_changed(_control)
     local fontlist = global_dialog:GetControl("fontlist")
     local selected_item = fontlist:GetSelectedItem()
     local fontsize = global_dialog:GetControl("editsize"):GetInteger()
@@ -4904,7 +4904,7 @@ local function create_dialog_box()
     dlg:CreateButton(x_off, y_off, "copy2clip")
         :SetWidth(150)
         :SetText("Copy to Clipboard")
-        :AddHandleCommand(function(_)
+        :AddHandleCommand(function(_control)
             dlg:GetControl("editor"):TextToClipboard()
             dlg:CreateChildUI():AlertInfo("Text copied to clipboard.", "Text Copied")
         end)
