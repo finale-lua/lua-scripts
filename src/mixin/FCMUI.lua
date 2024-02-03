@@ -44,6 +44,34 @@ function methods:GetDecimalSeparator(str)
 end
 
 --[[
+% GetUserLocaleName
+
+**[?Fluid] [Override]**
+
+Override Changes:
+- Passing an `FCString` is optional. If omitted, the result is returned as a Lua `string`. If passed, nothing is returned and the method is fluid.
+
+@ self (FCMUI)
+@ [str] (FCString)
+: (string)
+]]
+function methods:GetUserLocaleName(str)
+    mixin_helper.assert_argument_type(2, str, "nil", "FCString")
+
+    local do_return = false
+    if not str then
+        str = temp_str
+        do_return = true
+    end
+
+    self:GetUserLocaleName__(str)
+
+    if do_return then
+        return str.LuaString
+    end
+end
+
+--[[
 % AlertErrorLocalized
 
 **[Fluid]**

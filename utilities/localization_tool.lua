@@ -40,6 +40,12 @@ local mixin = require("library.mixin")
 local utils = require("library.utils")
 
 local tab_str = "    "
+local src_directory = (function()
+    local curr_path = library.calc_script_filepath()
+    local path_name = finale.FCString()
+    finale.FCString(curr_path):SplitToPathAndFile(path_name, nil)
+    return path_name.LuaString .. "../src/"
+end)()
 
 --[[
 % create_localized_base_table
@@ -60,9 +66,8 @@ Only the top-level script is searched. This is the script at the path specified 
 
 : (table) a table containing the found strings
 ]]
-local function create_localized_base_table()
+local function create_localized_base_table(file_path)
     local retval = {}
-    local file_path = library.calc_script_filepath()
     file_path = client.encode_with_client_codepage(file_path)
     local file = io.open(file_path, "r")
     if file then
@@ -104,42 +109,55 @@ local function create_localized_base_table()
                 return nil
             end
         end
-        local file_content = file:read("all")
-        for found_string in extract_strings(file_content) do
-            retval[found_string] = found_string
+        for line in file:lines() do
+            if not string.match(line, "^%s*%-%-") then
+                for found_string in extract_strings(line) do
+                    retval[found_string] = found_string
+                end
+            end
         end
         file:close()
     end
     return retval
 end
 
-local function make_flat_table_string(lang, t)
+local function make_flat_table_string(file_path, lang, t)
+    local file_name = finale.FCString()
+    finale.FCString(file_path):SplitToPathAndFile(nil, file_name)
     local concat = {}
-    table.insert(concat, "localization." .. lang .. " = localization." .. lang .. " or {\n")
+    table.insert(concat, "--\n")
+    table.insert(concat, "-- Localization " .. lang .. ".lua for " .. file_name.LuaString .. "\n")
+    table.insert(concat, "--\n")
+    table.insert(concat, "loc = {\n")
     for k, v in pairsbykeys(t) do
         table.insert(concat, "    [\"" .. tostring(k) .. "\"] = \"" .. tostring(v) .. "\",\n")
     end
-    table.insert(concat, "}\n")
+    table.insert(concat, "}\n\nreturn loc\n")
     return table.concat(concat)
+end
+
+local function set_edit_text(edit_text)
+    global_dialog:GetControl("editor"):SetText(edit_text)
 end
 
 --[[
 % create_localized_base_table_string
 
-Creates and returns a string representing a lua table of localizable strings by searching the top-level script for
-quoted strings. It then copies this string to the clipboard. The primary use case is to be
-a developer tool to aid in the creation of a table to be embedded in the script.
+Creates and displays a string representing a lua table of localizable strings by searching the specified script for
+quoted strings. It then copies this string to the editor. The user can then edit it to include only user-facing
+string and then create translations from that.
 
 The base table is the table that defines the keys for all other languages. For each item in the base table, the
-key is always equal to the value. The base table can be in any language.
+key is always equal to the value. The base table can be in any language. The base table does not need to be saved
+as a localization.
 
-@ lang (string) the two-letter language code of the strings in the base table. This is used only to name the table.
-: (string) A string containing a Lua-formatted table of all quoted strings in the script
+@ file_path (string) the file_path to search for strings.
 ]]
-local function create_localized_base_table_string(lang) -- luacheck: ignore
-    local t = create_localized_base_table()
-    finenv.UI():TextToClipboard(make_flat_table_string(lang, t))
-    finenv.UI():AlertInfo("localization_base table copied to clipboard", "")
+local function create_localized_base_table_string(file_path)
+    local t = create_localized_base_table(file_path)
+    local locale = mixin.UI():GetUserLocaleName()
+    set_edit_text(make_flat_table_string(file_path, locale:sub(1, 2), t))
+    -- finenv.UI():AlertInfo("localization_base table copied to clipboard", "")
 end
 
 local function translate_localized_table_string(source_table, source_lang, target_lang) -- luacheck: ignore
@@ -167,7 +185,32 @@ local function translate_localized_table_string(source_table, source_lang, targe
     end
 end
 
-local function on_generate(_control)
+local on_open -- luacheck: ignore
+local function on_generate(control)
+    local popup = global_dialog:GetControl("file_list")
+    if popup:GetCount() <= 0 then
+        on_open(control)
+    end
+    if popup:GetCount() > 0 then
+        local sel_item = popup:GetSelectedItem()
+        create_localized_base_table_string(popup:GetItemText(sel_item))
+    end
+end
+
+local function on_open(control) -- luacheck: ignore
+    local file_open_dlg = finale.FCFileOpenDialog(global_dialog:CreateChildUI())
+    file_open_dlg:AddFilter(finale.FCString("*.lua"), finale.FCString("Lua source files"))
+    file_open_dlg:SetInitFolder(finale.FCString(src_directory))
+    file_open_dlg:SetWindowTitle(finale.FCString("Open Lua Source File"))
+    if file_open_dlg:Execute() then
+        local fc_name = finale.FCString()
+        file_open_dlg:GetFileName(fc_name)
+        local popup = global_dialog:GetControl("file_list")
+        -- ToDo: search for and select if it already exists 
+        popup:AddString(fc_name.LuaString)
+        popup:SetSelectedItem(popup:GetCount() - 1)
+        on_generate(control)
+    end
 end
 
 local function on_translate(_control)
@@ -203,9 +246,14 @@ local function create_dialog()
     curr_y = curr_y + editor_height
     -- command buttons
     curr_y = curr_y + y_separator
+    dlg:CreateButton(0, curr_y, "open")
+        :SetText("Open Script")
+        :DoAutoResizeWidth()
+        :AddHandleCommand(on_open)
     dlg:CreateButton(0, curr_y, "generate")
         :SetText("Generate Table")
         :DoAutoResizeWidth()
+        :AssureNoHorizontalOverlap(dlg:GetControl("open"), x_separator)
         :AddHandleCommand(on_generate)
     dlg:CreateButton(0, curr_y, "translate")
         :SetText("Translate Table")
