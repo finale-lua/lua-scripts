@@ -321,7 +321,7 @@ end
 
 local function on_plugindef(_control)
     global_dialog:GetControl("editor"):SetKeyboardFocus()
-end
+end 
 
 local function on_close()
     https_session = https.cancel_session(https_session)
