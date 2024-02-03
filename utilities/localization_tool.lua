@@ -20,7 +20,8 @@ function plugindef()
         - Create a localized `plugindef` function for a script.
         
         Users of this script will get the best results if they use it in tandem with an indegrated development
-        environment such as Visual Studio Code or with a text editor.
+        environment (IDE) such as Visual Studio Code or with a text editor. The script copies text to the clipboard
+        which you can then paste into the IDE or editor.
     ]]
     return "Localization Tool...", "Localization Tool", "Automates the process of localizing scripts in the Finale Lua repository."
 end
@@ -32,6 +33,9 @@ local library = require("library.general_library")
 local openai = require("library.openai")
 local mixin = require("library.mixin")
 local utils = require("library.utils")
+
+local osutils = require("luaosutils")
+local https = osutils.internet
 
 local tab_str = "    "
 local src_directory = (function()
@@ -45,6 +49,7 @@ global_contents = global_contents or {}
 local in_popup_handler = false
 local popup_cur_sel = -1
 local in_text_change_event = false
+local https_session
 
 local finale_supported_languages = {
     ["Dutch"] = "nl",
@@ -182,16 +187,32 @@ local function create_localized_base_table_string(file_path)
     -- finenv.UI():AlertInfo("localization_base table copied to clipboard", "")
 end
 
-local function set_enable_all(state)
+local function set_enable_all()
+    local state = (https_session == nil) -- disable (send false) if https_session is not nil
     global_dialog:GetControl("file_list"):SetEnable(state)    
+    global_dialog:GetControl("lang_list"):SetEnable(state)    
     global_dialog:GetControl("editor"):SetEnable(state)    
     global_dialog:GetControl("open"):SetEnable(state)    
     global_dialog:GetControl("generate"):SetEnable(state)    
     global_dialog:GetControl("translate"):SetEnable(state)    
-    global_dialog:GetControl("plugindef"):SetEnable(state)    
+    global_dialog:GetControl("plugindef"):SetEnable(state)
+    -- The Close button is deliberately left enabled at all times
 end
 
 local function translate_localized_table_string(table_string, target_lang)
+    local function callback(success, result)
+        https_session = nil
+        set_enable_all()
+        if success then
+            local retval = string.gsub(result.choices[1].message.content, "```", "")
+            retval = retval:gsub("^%s+", "")            -- remove leading whitespace
+            retval = retval:gsub("%s+$", "") .. "\n"    -- remove trailing whitespace and add line ending
+            mixin.UI():TextToClipboard(retval)
+            mixin.UI():AlertInfo("localization for " .. target_lang .. " table copied to clipboard", "")
+        else
+            mixin.UI():AlertError(result, "OpenAI Error")
+        end
+    end
     local prompt = [[
         I am working on localizing text for a program that prints and plays music. There may be musical
         terminology among the words and phrases that I would like you to translate, as follows.\n
@@ -207,17 +228,8 @@ local function translate_localized_table_string(table_string, target_lang)
                         This information is provided for context if needed.
                     ]]
     print(prompt)
-    set_enable_all(false)
-    -- ToDo: async call here
-    local success, result = openai.create_completion("gpt-4", prompt, 0.2, 30)
-    set_enable_all(true)
-    if success then
-        local retval = string.gsub(result.choices[1].message.content, "```", "")
-        finenv.UI():TextToClipboard(retval)
-        finenv.UI():AlertInfo("localization for " .. target_lang .. " table copied to clipboard", "")
-    else
-        finenv.UI():AlertError(result, "OpenAI Error")
-    end
+    https_session = openai.create_completion("gpt-4", prompt, 0.2, callback)
+    set_enable_all()
 end
 
 local function on_text_change(control)
@@ -255,11 +267,11 @@ local function on_popup(control)
     -- do not put edit_text in focus here, because it messes up Windows
 end
 
-local on_open
+local on_script_open
 local function on_generate(control)
     local popup = global_dialog:GetControl("file_list")
     if popup:GetCount() <= 0 then
-        on_open(control)
+        on_script_open(control)
     end
     if popup:GetCount() > 0 then
         local sel_item = popup:GetSelectedItem()
@@ -268,7 +280,7 @@ local function on_generate(control)
     global_dialog:GetControl("editor"):SetKeyboardFocus()
 end
 
-on_open = function(control)
+on_script_open = function(control)
     local file_open_dlg = finale.FCFileOpenDialog(global_dialog:CreateChildUI())
     file_open_dlg:AddFilter(finale.FCString("*.lua"), finale.FCString("Lua source files"))
     file_open_dlg:SetInitFolder(finale.FCString(src_directory))
@@ -299,12 +311,21 @@ local function on_translate(_control)
     local content = global_contents[sel_text] or ""
     local lang_text = global_dialog:GetControl("lang_list"):GetText()
     lang_text = finale_supported_languages[lang_text] or lang_text
+    if not lang_text:match("^[a-z][a-z]$") and not lang_text:match("^[a-z][a-z]_[A-Z][A-Z]$") then
+        mixin.UI():AlertError(lang_text .. " is not a valid language or locale code.", "Invalid Entry")
+        return
+    end
     translate_localized_table_string(content, lang_text) -- ToDo: ask for language code somehow
     global_dialog:GetControl("editor"):SetKeyboardFocus()
 end
 
 local function on_plugindef(_control)
     global_dialog:GetControl("editor"):SetKeyboardFocus()
+end
+
+local function on_close()
+    https_session = https.cancel_session(https_session)
+    set_enable_all()
 end
 
 local function create_dialog()
@@ -347,7 +368,7 @@ local function create_dialog()
     dlg:CreateButton(0, curr_y, "open")
         :SetText("Open Script")
         :DoAutoResizeWidth()
-        :AddHandleCommand(on_open)
+        :AddHandleCommand(on_script_open)
     dlg:CreateButton(0, curr_y, "generate")
         :SetText("Generate Table")
         :DoAutoResizeWidth()
@@ -366,6 +387,7 @@ local function create_dialog()
     dlg:CreateCloseButton(0, curr_y)
         :HorizontallyAlignRightWith(editor)
     -- registrations
+    dlg:RegisterCloseWindow(on_close)
     -- return
     return dlg
 end
