@@ -24,12 +24,6 @@ function plugindef()
     ]]
     return "Localization Tool...", "Localization Tool", "Automates the process of localizing scripts in the Finale Lua repository."
 end
---[[
-$module Localization for Developers
-
-This library provides a set of localization services for developers of scripts to make localization
-as simple as possible. It uses calls to OpenAI to automatically translate words and phrases.
-]]
 
 -- luacheck: ignore 11./global_dialog
 
@@ -46,6 +40,23 @@ local src_directory = (function()
     finale.FCString(curr_path):SplitToPathAndFile(path_name, nil)
     return path_name.LuaString .. "../src/"
 end)()
+
+global_contents = global_contents or {}
+local in_popup_handler = false
+local popup_cur_sel = -1
+local in_text_change_event = false
+
+local finale_supported_languages = {
+    ["Dutch"] = "nl",
+    ["English"] = "en",
+    ["German"] = "de",
+    ["French"] = "fr",
+    ["Italian"] = "it",
+    ["Japanese"] = "ja",
+    ["Polish"] = "pl",
+    ["Spanish"] = "es",
+    ["Swedish"] = "sv"
+}
 
 --[[
 % create_localized_base_table
@@ -140,6 +151,15 @@ local function set_edit_text(edit_text)
     global_dialog:GetControl("editor"):SetText(edit_text)
 end
 
+local function get_sel_text()
+    local popup = global_dialog:GetControl("file_list")
+    local sel_item = popup:GetSelectedItem()
+    if sel_item >= 0 and sel_item < popup:GetCount() then
+        return popup:GetItemText(popup:GetSelectedItem())
+    end
+    return nil
+end
+
 --[[
 % create_localized_base_table_string
 
@@ -156,36 +176,86 @@ as a localization.
 local function create_localized_base_table_string(file_path)
     local t = create_localized_base_table(file_path)
     local locale = mixin.UI():GetUserLocaleName()
-    set_edit_text(make_flat_table_string(file_path, locale:sub(1, 2), t))
+    local table_text = make_flat_table_string(file_path, locale:sub(1, 2), t)
+    global_contents[file_path] = table_text
+    set_edit_text(table_text)
     -- finenv.UI():AlertInfo("localization_base table copied to clipboard", "")
 end
 
-local function translate_localized_table_string(source_table, source_lang, target_lang) -- luacheck: ignore
-    local table_string = make_flat_table_string(source_lang, source_table)
+local function set_enable_all(state)
+    global_dialog:GetControl("file_list"):SetEnable(state)    
+    global_dialog:GetControl("editor"):SetEnable(state)    
+    global_dialog:GetControl("open"):SetEnable(state)    
+    global_dialog:GetControl("generate"):SetEnable(state)    
+    global_dialog:GetControl("translate"):SetEnable(state)    
+    global_dialog:GetControl("plugindef"):SetEnable(state)    
+end
+
+local function translate_localized_table_string(table_string, target_lang)
     local prompt = [[
         I am working on localizing text for a program that prints and plays music. There may be musical
         terminology among the words and phrases that I would like you to translate, as follows.\n
-    ]] .. "Here is a lua table of keys and values:\n\n```\n" .. table_string .. "\n```\n" ..
+    ]] .. "Here is Lua source code for a table of keys and values:\n\n```\n" .. table_string .. "\n```\n" ..
         [[
-                    Provide a string that is Lua source code of a table definition of a table that has the same keys
-                    but with the values translated to locale specified by the code
-                ]] .. target_lang .. ". The table name should be `localization." .. target_lang .. "`.\n" ..
-        [[
-                    Return only the Lua code without any commentary. There may or may not be musical terms
-                    in the provided text. This information is provided for context if needed.
-                ]]
-
+                    Provide a string that is Lua source code of a similar table definition that has the same keys
+                    but with values that are translations of the keys for the locale specified by the code
+                ]] .. target_lang .. [[. Return only the Lua code without any commentary. The output source code should
+                    be identical to the input (including comments) except the values should be translated and any
+                    locale code in the comment should be changed to match ]] .. target_lang .. "." ..
+                    [[
+                        There may or may not be musical terms in the provided text.
+                        This information is provided for context if needed.
+                    ]]
+    print(prompt)
+    set_enable_all(false)
+    -- ToDo: async call here
     local success, result = openai.create_completion("gpt-4", prompt, 0.2, 30)
+    set_enable_all(true)
     if success then
         local retval = string.gsub(result.choices[1].message.content, "```", "")
         finenv.UI():TextToClipboard(retval)
-        finenv.UI():AlertInfo("localization." .. target_lang .. " table copied to clipboard", "")
+        finenv.UI():AlertInfo("localization for " .. target_lang .. " table copied to clipboard", "")
     else
         finenv.UI():AlertError(result, "OpenAI Error")
     end
 end
 
-local on_open -- luacheck: ignore
+local function on_text_change(control)
+    assert(type(control) == "userdata" and control.ClassName, "argument 1 expected FCCtrlPopup, got " .. type(control))
+    assert(control:ClassName() == "FCCtrlTextEditor", "argument 1 expected FCCtrlTextEditor, got " .. control:ClassName())
+    if in_text_change_event then
+        return
+    end
+    in_text_change_event = true
+    local sel_text = get_sel_text()
+    if sel_text then
+        global_contents[sel_text] = control:GetText()
+    end
+    in_text_change_event = false
+end
+
+local function on_popup(control)
+    assert(type(control) == "userdata" and control.ClassName, "argument 1 expected FCCtrlPopup, got " .. type(control))
+    assert(control:ClassName() == "FCCtrlPopup", "argument 1 expected FCCtrlPopup, got " .. control:ClassName())
+    if in_popup_handler then
+        return
+    end
+    in_popup_handler = true
+    local selected_item = control:GetSelectedItem()
+    if popup_cur_sel ~= selected_item then -- avoid Windows churn
+        popup_cur_sel = selected_item
+        control:SetEnable(false)
+        local sel_text = control:GetItemText(selected_item)
+        local sel_content = global_contents[sel_text] or ""
+        set_edit_text(sel_content)
+        control:SetEnable(true)
+        popup_cur_sel = control:GetSelectedItem()
+    end
+    in_popup_handler = false
+    -- do not put edit_text in focus here, because it messes up Windows
+end
+
+local on_open
 local function on_generate(control)
     local popup = global_dialog:GetControl("file_list")
     if popup:GetCount() <= 0 then
@@ -195,9 +265,10 @@ local function on_generate(control)
         local sel_item = popup:GetSelectedItem()
         create_localized_base_table_string(popup:GetItemText(sel_item))
     end
+    global_dialog:GetControl("editor"):SetKeyboardFocus()
 end
 
-local function on_open(control) -- luacheck: ignore
+on_open = function(control)
     local file_open_dlg = finale.FCFileOpenDialog(global_dialog:CreateChildUI())
     file_open_dlg:AddFilter(finale.FCString("*.lua"), finale.FCString("Lua source files"))
     file_open_dlg:SetInitFolder(finale.FCString(src_directory))
@@ -206,17 +277,34 @@ local function on_open(control) -- luacheck: ignore
         local fc_name = finale.FCString()
         file_open_dlg:GetFileName(fc_name)
         local popup = global_dialog:GetControl("file_list")
-        -- ToDo: search for and select if it already exists 
+        if global_contents[fc_name.LuaString] then
+            for x = 0, popup:GetCount() - 1 do
+                local x_text = popup:GetItemText(x)
+                if x_text == fc_name.LuaString then
+                    popup:SetSelectedItem(x)
+                    on_popup(popup)
+                    return
+                end
+            end
+        end
         popup:AddString(fc_name.LuaString)
         popup:SetSelectedItem(popup:GetCount() - 1)
         on_generate(control)
     end
+    global_dialog:GetControl("editor"):SetKeyboardFocus()
 end
 
 local function on_translate(_control)
+    local sel_text = get_sel_text() or ""
+    local content = global_contents[sel_text] or ""
+    local lang_text = global_dialog:GetControl("lang_list"):GetText()
+    lang_text = finale_supported_languages[lang_text] or lang_text
+    translate_localized_table_string(content, lang_text) -- ToDo: ask for language code somehow
+    global_dialog:GetControl("editor"):SetKeyboardFocus()
 end
 
 local function on_plugindef(_control)
+    global_dialog:GetControl("editor"):SetKeyboardFocus()
 end
 
 local function create_dialog()
@@ -231,18 +319,28 @@ local function create_dialog()
     local curr_y = 0
     dlg:CreatePopup(0, curr_y, "file_list")
         :SetWidth((2 * editor_width) / 3)
+        :AddHandleCommand(on_popup)
+    local lang_list = dlg:CreateComboBox(0, curr_y, "lang_list")
+        :DoAutoResizeWidth()
+    for lang, _ in pairsbykeys(finale_supported_languages) do
+        lang_list:AddString(finale.FCString(lang))
+    end
+    lang_list:SetText("Spanish")
     curr_y = curr_y + button_height
     --editor
     curr_y = curr_y + y_separator
     local font = finale.FCFontInfo(utils.win_mac("Consolas", "Menlo"), utils.win_mac(9, 11))
-    dlg:CreateTextEditor(0, curr_y, "editor")
+    local editor = dlg:CreateTextEditor(0, curr_y, "editor")
         :SetWidth(editor_width)
         :SetHeight(editor_height)
         :SetUseRichText(false)
         :SetAutomaticEditing(false)
+        :SetWordWrap(false)
         :SetFont(font)
         :SetConvertTabsToSpaces(#tab_str)
         :SetAutomaticallyIndent(true)
+        :AddHandleCommand(on_text_change)
+    lang_list:HorizontallyAlignRightWith(editor, utils.win_mac(0, -3))
     curr_y = curr_y + editor_height
     -- command buttons
     curr_y = curr_y + y_separator
@@ -266,7 +364,7 @@ local function create_dialog()
         :AssureNoHorizontalOverlap(dlg:GetControl("translate"), x_separator)
         :AddHandleCommand(on_plugindef)
     dlg:CreateCloseButton(0, curr_y)
-        :HorizontallyAlignRightWith(dlg:GetControl("editor"))
+        :HorizontallyAlignRightWith(editor)
     -- registrations
     -- return
     return dlg
