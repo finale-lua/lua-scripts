@@ -305,6 +305,9 @@ function utils.show_notes_dialog(caption, width, height)
     if not finaleplugin.RTFNotes and not finaleplugin.Notes then
         return
     end
+    if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 then
+        return
+    end
     
     width = width or 500
     height = height or 350
@@ -341,9 +344,29 @@ function utils.show_notes_dialog(caption, width, height)
         return result
     end
 
+    local function replace_font_sizes(rtf)
+        local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
+        if font_sizes_json then
+            local cjson = require("cjson.safe")
+            local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
+            if font_sizes and font_sizes.os then
+                local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
+                if (font_sizes.os == this_os) then
+                    font_sizes.os = nil
+                    rtf = rtf:gsub("fs%d%d", font_sizes)
+                end
+            end
+        end
+        return rtf
+    end
+
+    local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
+    if finaleplugin.RTFNotes then
+        notes = replace_font_sizes(notes)
+    end
+
     dlg:RegisterInitWindow(
-        function()
-            local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
+        function()            
             local notes_str = finale.FCString(notes)
             if edit_text:GetUseRichText() then
                 edit_text:SetRTFString(notes_str)
