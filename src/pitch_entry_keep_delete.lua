@@ -15,14 +15,15 @@ numbered from either the top or bottom of each chord.
 "2" deletes (or keeps) the 2nd note from top (or from bottom),  
 etc.  
 
-== Key Commands ==  
-• [a] keep  
-• [z] delete  
-• [s] from the top  
-• [x] from the bottom  
-• [q] toggle keep/delete  
-• [w] toggle top/bottom  
-• [1-9] enter note count (delete key not needed)
+__Key Commands:__ 
+
+- __a__ - keep 
+- __z__ - delete 
+- __s__ - from the top 
+- __x__ - from the bottom 
+- __q__ - toggle keep/delete 
+- __w__ - toggle top/bottom 
+- __1-9__ - enter note count (delete key not needed) 
 ]]
   return "Pitch: Chord Notes Keep-Delete...", "Pitch: Chord Notes Keep-Delete",
     "Keep or Delete selected notes from chords"
