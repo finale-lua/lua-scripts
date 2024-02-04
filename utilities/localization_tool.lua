@@ -85,7 +85,7 @@ Only the top-level script is searched. This is the script at the path specified 
 local function create_localized_base_table(file_path)
     local retval = {}
     file_path = client.encode_with_client_codepage(file_path)
-    local file = io.open(file_path, "r")
+    local file <close> = io.open(file_path, "r")
     if file then
         local function extract_strings(file_content)
             local i = 1
@@ -132,7 +132,6 @@ local function create_localized_base_table(file_path)
                 end
             end
         end
-        file:close()
     end
     return retval
 end
@@ -146,7 +145,7 @@ local function make_flat_table_string(file_path, lang, t)
     table.insert(concat, "--\n")
     table.insert(concat, "loc = {\n")
     for k, v in pairsbykeys(t) do
-        table.insert(concat, "    [\"" .. tostring(k) .. "\"] = \"" .. tostring(v) .. "\",\n")
+        table.insert(concat, tab_str .. "[\"" .. tostring(k) .. "\"] = \"" .. tostring(v) .. "\",\n")
     end
     table.insert(concat, "}\n\nreturn loc\n")
     return table.concat(concat)
@@ -185,6 +184,129 @@ local function create_localized_base_table_string(file_path)
     global_contents[file_path] = table_text
     set_edit_text(table_text)
     -- finenv.UI():AlertInfo("localization_base table copied to clipboard", "")
+end
+
+--[[
+% extract_plugindef
+
+Extracts the plugindef function from the input script file_path.
+@ file_path (string) the file_path of the script to search for a plugindef function
+: (table) the lines of the plugindef function in a table of strings
+: (boolean) locale already exists
+]]
+local function extract_plugindef(file_path)
+    local retval = {}
+    local locale_exists = false
+    file_path = client.encode_with_client_codepage(file_path)
+    local file <close> = io.open(file_path, "r")
+    if file then
+        local found_first = false
+        for line in file:lines() do
+            if line:find("function plugindef") == 1 then
+                found_first = true
+                locale_exists = line:match("plugindef%s*%(%s*locale%s*%)")
+            end
+            if found_first then
+                table.insert(retval, line)
+            end
+            if line:find("end") == 1 then
+                break
+            end
+        end
+    end
+    return retval, locale_exists
+end
+
+--[[
+% extract_plugindef_locale_table
+
+Extracts the existing user-facing strings from a plugindef function into a string that contains
+Lua code for a locale table. This can be inserted into a new plugindef function or sent to OpenAI
+to be translated. It also modifies the plugindef lines to pull from the table.
+
+For best results, certain conventions must be followed:
+
+- The `plugindef` function and its `end` statment should have no whitespace at the beginning of the line.
+- Additional menu options, undo strings, and descriptions should be entirely on separate lines from their
+double-bracket delimiters.
+- The return strings should be on a single line and use double-quotes.
+
+If if you follow these conventions, you will likely have to edit the result somewhat.
+
+@ table A table consisting of strings that are the lines of the plugindef function. This value is also modified
+to pull the strings from a locale table `t`
+: string A string containing Lua code that defines a table of keys and values
+]]
+local function extract_plugindef_locale_table(plugindef_function)
+    local concat = {}
+    table.insert(concat, "{\n")
+    local index = 1
+    while (plugindef_function[index]) do
+        local line = plugindef_function[index]
+        local function check_additional_strings(property, key)
+            local pattern = "%s*finaleplugin%." .. property .. "%s*="
+            if line:match("^" .. pattern .. "%s*%[%[") then
+                plugindef_function[index] = line:gsub("^(" .. pattern .. ").-$", "%1" .. " t." .. key .. "\n")
+                table.insert(concat, tab_str)
+                table.insert(concat, tab_str)
+                table.insert(concat, key)
+                table.insert(concat, " = [[\n")
+                while (plugindef_function[index + 1]) do
+                    local next_line = plugindef_function[index + 1]
+                    table.insert(concat, tab_str)
+                    table.insert(concat, next_line)
+                    table.insert(concat, "\n")
+                    table.remove(plugindef_function, index + 1)
+                    if next_line:find("]]") then
+                        table.insert(concat, ",\n")
+                        break
+                    else
+                        table.insert(concat, "\n")
+                    end
+                end
+                return true
+            end
+            return false
+        end
+        if check_additional_strings("AdditionalMenuOptions", "addl_menus") then         -- luacheck: ignore
+        elseif check_additional_strings("AdditionalUndoText", "addl_undos") then        -- luacheck: ignore
+        elseif check_additional_strings("AdditionalDescriptions", "addl_descs") then    -- luacheck: ignore
+        elseif line:match("^%s*return") then
+            local new_return = line:gsub("^(%s*return).-$", "%1" .. " ")
+            local got_menu, got_undo, got_desc
+            for match, _ in line:gmatch('("([^"]*)")') do
+                local function insert_retval(key, value)
+                    table.insert(concat, tab_str)
+                    table.insert(concat, tab_str)
+                    table.insert(concat, key)
+                    table.insert(concat, " = ")
+                    table.insert(concat, value)
+                    table.insert(concat, ",\n")
+                end
+                if not got_menu then
+                    insert_retval("menu", match)
+                    new_return = new_return .. " t.menu"
+                    got_menu = true
+                elseif not got_undo then
+                    insert_retval("undo", match)
+                    new_return = new_return .. ", t.undo"
+                    got_undo = true
+                elseif not got_desc then
+                    insert_retval("desc", match)
+                    new_return = new_return .. ", t.desc"
+                    got_desc = true
+                else
+                    break
+                end
+            end
+            plugindef_function[index] = new_return .. "\n"
+        else
+            plugindef_function[index] = plugindef_function[index] .. "\n"
+        end
+        index = index + 1
+    end
+    table.insert(concat, tab_str .. "}\n")
+    return table.concat(concat)
 end
 
 local function set_enable_all()
@@ -227,7 +349,6 @@ local function translate_localized_table_string(table_string, target_lang)
                         There may or may not be musical terms in the provided text.
                         This information is provided for context if needed.
                     ]]
-    print(prompt)
     https_session = openai.create_completion("gpt-4", prompt, 0.2, callback)
     set_enable_all()
 end
@@ -320,6 +441,30 @@ local function on_translate(_control)
 end
 
 local function on_plugindef(_control)
+    local sel_text = get_sel_text()
+    local text_copied = false
+    if sel_text then
+        local plugindef_function, locale_exists = extract_plugindef(sel_text)
+        if #plugindef_function > 0 then
+            local base_strings = extract_plugindef_locale_table(plugindef_function)
+            if #base_strings > 0 then
+                if not locale_exists then
+                    plugindef_function[1] = "function plugindef(locale)\n"
+                end
+                local locale = mixin.UI():GetUserLocaleName()
+                table.insert(plugindef_function, 2, tab_str .. "local loc = {}\n")
+                table.insert(plugindef_function, 3, tab_str .. "loc." .. locale:sub(1, 2) .. " = " .. base_strings)
+                table.insert(plugindef_function, 4,
+                    tab_str .. "local t = locale and loc[locale:sub(1, 2)] or loc." .. locale:sub(1, 2) .. "\n")
+            end
+            mixin.UI():TextToClipboard(table.concat(plugindef_function))
+            mixin.UI():AlertInfo("Localized plugindef function copied to clipboard.", "")
+            text_copied = true
+        end
+    end
+    if not text_copied then
+        mixin.UI():AlertError("No plugindef function found.", "")
+    end
     global_dialog:GetControl("editor"):SetKeyboardFocus()
 end 
 
@@ -338,15 +483,25 @@ local function create_dialog()
     local button_height = 20
     --script selection
     local curr_y = 0
+    dlg:CreateButton(0, curr_y, "open")
+        :SetText("Open...")
+        :DoAutoResizeWidth()
+        :AddHandleCommand(on_script_open)
     dlg:CreatePopup(0, curr_y, "file_list")
         :SetWidth((2 * editor_width) / 3)
+        :AssureNoHorizontalOverlap(dlg:GetControl("open"), x_separator)
         :AddHandleCommand(on_popup)
     local lang_list = dlg:CreateComboBox(0, curr_y, "lang_list")
+        :SetWidth(0)
         :DoAutoResizeWidth()
+    local lang_index = 0
     for lang, _ in pairsbykeys(finale_supported_languages) do
         lang_list:AddString(finale.FCString(lang))
+        if lang == "Spanish" then
+            lang_list:SetSelectedItem(lang_index)
+        end
+        lang_index = lang_index + 1
     end
-    lang_list:SetText("Spanish")
     curr_y = curr_y + button_height
     --editor
     curr_y = curr_y + y_separator
@@ -365,14 +520,9 @@ local function create_dialog()
     curr_y = curr_y + editor_height
     -- command buttons
     curr_y = curr_y + y_separator
-    dlg:CreateButton(0, curr_y, "open")
-        :SetText("Open Script")
-        :DoAutoResizeWidth()
-        :AddHandleCommand(on_script_open)
     dlg:CreateButton(0, curr_y, "generate")
         :SetText("Generate Table")
         :DoAutoResizeWidth()
-        :AssureNoHorizontalOverlap(dlg:GetControl("open"), x_separator)
         :AddHandleCommand(on_generate)
     dlg:CreateButton(0, curr_y, "translate")
         :SetText("Translate Table")
