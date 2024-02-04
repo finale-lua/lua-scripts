@@ -246,7 +246,7 @@ local function extract_plugindef_locale_table(plugindef_function)
         local function check_additional_strings(property, key)
             local pattern = "%s*finaleplugin%." .. property .. "%s*="
             if line:match("^" .. pattern .. "%s*%[%[") then
-                plugindef_function[index] = line:gsub("^(" .. pattern .. ").-$", "%1" .. " t." .. key .. "\n")
+                plugindef_function[index] = line:gsub("^(" .. pattern .. ").-$", "%1" .. " t." .. key)
                 table.insert(concat, tab_str)
                 table.insert(concat, tab_str)
                 table.insert(concat, key)
@@ -255,7 +255,6 @@ local function extract_plugindef_locale_table(plugindef_function)
                     local next_line = plugindef_function[index + 1]
                     table.insert(concat, tab_str)
                     table.insert(concat, next_line)
-                    table.insert(concat, "\n")
                     table.remove(plugindef_function, index + 1)
                     if next_line:find("]]") then
                         table.insert(concat, ",\n")
@@ -299,13 +298,11 @@ local function extract_plugindef_locale_table(plugindef_function)
                     break
                 end
             end
-            plugindef_function[index] = new_return .. "\n"
-        else
-            plugindef_function[index] = plugindef_function[index] .. "\n"
+            plugindef_function[index] = new_return 
         end
         index = index + 1
     end
-    table.insert(concat, tab_str .. "}\n")
+    table.insert(concat, tab_str .. "}")
     return table.concat(concat)
 end
 
@@ -449,15 +446,15 @@ local function on_plugindef(_control)
             local base_strings = extract_plugindef_locale_table(plugindef_function)
             if #base_strings > 0 then
                 if not locale_exists then
-                    plugindef_function[1] = "function plugindef(locale)\n"
+                    plugindef_function[1] = "function plugindef(locale)"
                 end
                 local locale = mixin.UI():GetUserLocaleName()
-                table.insert(plugindef_function, 2, tab_str .. "local loc = {}\n")
+                table.insert(plugindef_function, 2, tab_str .. "local loc = {}")
                 table.insert(plugindef_function, 3, tab_str .. "loc." .. locale:sub(1, 2) .. " = " .. base_strings)
                 table.insert(plugindef_function, 4,
-                    tab_str .. "local t = locale and loc[locale:sub(1, 2)] or loc." .. locale:sub(1, 2) .. "\n")
+                    tab_str .. "local t = locale and loc[locale:sub(1, 2)] or loc." .. locale:sub(1, 2))
             end
-            mixin.UI():TextToClipboard(table.concat(plugindef_function))
+            mixin.UI():TextToClipboard(table.concat(plugindef_function, "\n") .. "\n")
             mixin.UI():AlertInfo("Localized plugindef function copied to clipboard.", "")
             text_copied = true
         end
