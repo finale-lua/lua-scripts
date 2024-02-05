@@ -5,8 +5,9 @@ function plugindef()
     finaleplugin.Author = "Aaron Sherber"
     finaleplugin.AuthorURL = "https://aaron.sherber.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.1.3"
-    finaleplugin.Date = "2023-03-25"
+    finaleplugin.Version = "2.1.4"
+    finaleplugin.MinJWLuaVersion = 0.67
+    finaleplugin.Date = "2024-02-05"
     finaleplugin.CategoryTags = "Report"   
     finaleplugin.Id = "9c05a4c4-9508-4608-bb1b-2819cba96101" 
     finaleplugin.AdditionalMenuOptions = [[
@@ -16,6 +17,7 @@ function plugindef()
         action = "import"
     ]]
     finaleplugin.RevisionNotes = [[
+        v2.1.4      Switch to cjson
         v2.1.3      Luacheck hinting
         v2.1.2      Resync expression definitions
         v2.1.1      Add music spacing allotments (requires RGPLua v0.66)
@@ -62,7 +64,7 @@ local debug = {
 }
 
 local mixin = require('library.mixin')
-local json = require("lunajson.lunajson")
+local json = require("cjson.safe")
 local expr = require("library.expression")
 
 -- region DIALOGS
@@ -1203,12 +1205,10 @@ function options_import_from_json()
             local prefs_json = file:read("*a")
             file:close()
             
-            local prefs_to_import
-            local ok, err_msg = pcall(function() prefs_to_import = json.decode(prefs_json) end)
-            if not ok then
-                err_msg = err_msg or "Unknown error"
-                err_msg = err_msg:gsub("^.-%d:", "")
-                finenv.UI():AlertError(err_msg, "JSON Error")
+            local prefs_to_import, error = json.decode(prefs_json)
+            if not prefs_to_import then
+                error = error or "Unknown error"
+                finenv.UI():AlertError(error, "JSON Error")
                 return
             end
             
