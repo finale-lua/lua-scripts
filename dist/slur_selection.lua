@@ -256,8 +256,8 @@ function plugindef()
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 A good trick in Sibelius is hitting the \u8216'S\u8217' key to create a slur across currently selected notes. Activate this script in Finale with a macro hotkey utility to do the same thing. Each layer will be slurred independently, and if there are several runs of notes separated by rests, each run will be slurred separately. If you want to automate slurs on specific rhythmic patterns then try JW Pattern (\u8594? Performance Notation \u8594? Slurs) or TGTools (\u8594? Music \u8594? Create Slurs\u8230?).\par}
         }
     ]]

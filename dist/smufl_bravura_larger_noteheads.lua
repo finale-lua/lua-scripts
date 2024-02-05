@@ -518,8 +518,8 @@ Replaces the noteheads in a 'Bravura' document with the larger glyphs included i
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 Replaces the noteheads in a \u8216'Bravura\u8217' document with the larger glyphs included in the Stylistic Alternates category. These alternate glyphs (which are about 8% larger than the ones loaded by default) are the ones that the font is actually designed to use, and are the ones used by Dorico. For a discussion about these larger noteheads and why they are not used by default, see this thread in the MuseScore forum: https://musescore.org/en/node/68461\par}
         }
     ]]

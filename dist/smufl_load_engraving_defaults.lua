@@ -507,7 +507,7 @@ end
 function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0.1"
+    finaleplugin.Version = "2.0.2"
     finaleplugin.Date = "March 24, 2023"
     finaleplugin.CategoryTags = "Layout"
     finaleplugin.MinJWLuaVersion = 0.67 
@@ -604,14 +604,13 @@ function smufl_load_engraving_defaults()
                 repeat_prefs:SetBackwardSpace(math.floor(newVal + 0.5))
             end,
 
-        bracketThickness = function(v) end,
-        subBracketThickness = function(v) end,
+        bracketThickness = function(_v) end,
+        subBracketThickness = function(_v) end,
         hairpinThickness = function(v) smart_shape_prefs.HairpinLineWidth = math.floor(efixPerSpace*v + 0.5) end,
         octaveLineThickness = function(v) smart_shape_prefs.LineWidth = math.floor(efixPerSpace*v + 0.5) end,
-        pedalLineThickness = function(v) end,
+        pedalLineThickness = function(_v) end,
         repeatEndingLineThickness = function(v) repeat_prefs.EndingLineThickness = math.floor(efixPerSpace*v + 0.5) end,
-        arrowShaftThickness = function(v) end,
-
+        arrowShaftThickness = function(_v) end,
         lyricLineThickness = function(v) lyrics_prefs.WordExtLineThickness = math.floor(efixPerSpace*v + 0.5) end,
         textEnclosureThickness = function(v)
                 size_prefs.EnclosureThickness = math.floor(efixPerSpace*v + 0.5)

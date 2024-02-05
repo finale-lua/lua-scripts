@@ -31,8 +31,8 @@ function plugindef()
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 This script will apply a \u8220"Hide Staff\u8221" staff style to any full measures in the selected region of the active score/part that do not have any entries. If you have more than one \u8220"Hide Staff\u8221" staff style defined, you can pick the one you want to use.\par}
         }
     ]]

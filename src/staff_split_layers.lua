@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.AuthorURL = "https://www.robertgpatterson.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v1.0.1"
+    finaleplugin.Version = "v1.0.2"
     finaleplugin.Date = "2023/1/11"
     finaleplugin.Notes = [[
         Chords from the source layers in the selected region are split into another layer on the same staff based on a split point. 
@@ -147,7 +147,7 @@ function create_dialog_box()
     -- ok/cancel
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    dialog:RegisterHandleOkButtonPressed(function(_)
+    dialog:RegisterHandleOkButtonPressed(function(_self)
             do_staff_split_layers()
         end
     )

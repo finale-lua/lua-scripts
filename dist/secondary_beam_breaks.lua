@@ -33,8 +33,8 @@ function plugindef()
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 A stream of many short beamed notes (say 32nd notes) are easier to read if the secondary beam is broken in the middle of a beat. This script breaks secondary beams in simple meters (2/4, 3/4, 4/4 etc) in the middle of each beat. If the meter is compound (6/8, 9/8 etc) then the beat is divided into three sections. Two menus are created, {\f1 Break secondary beams} and {\f1 Clear secondary beam breaks}.\par}
         }
     ]]

@@ -4704,10 +4704,27 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         if not finaleplugin.RTFNotes and not finaleplugin.Notes then
             return
         end
-
-        width = width or 500
-        height = height or 350
-
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        local function replace_font_sizes(rtf)
+            local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
+            if font_sizes_json then
+                local cjson = require("cjson.safe")
+                local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
+                if font_sizes and font_sizes.os then
+                    local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
+                    if (font_sizes.os == this_os) then
+                        rtf = rtf:gsub("fs%d%d", font_sizes)
+                    end
+                end
+            end
+            return rtf
+        end
         if not caption then
             caption = plugindef()
             if finaleplugin.Version then
@@ -4718,39 +4735,42 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
                 caption = string.format("%s %s", caption, version)
             end
         end
-        local dlg = finale.FCCustomLuaWindow()
-        dlg:SetTitle(finale.FCString(caption))
-        local edit_text = dlg:CreateTextEditor(10, 10)
-        edit_text:SetWidth(width)
-        edit_text:SetHeight(height)
-        edit_text:SetUseRichText(finaleplugin.RTFNotes)
-        edit_text:SetReadOnly(true)
-        edit_text:SetWordWrap(true)
-        local ok = dlg:CreateOkButton()
-        local function dedent(input)
-            local first_line_indent = input:match("^(%s*)")
-            local pattern = "\n" .. string.rep(" ", #first_line_indent)
-            local result = input:gsub(pattern, "\n")
-            result = result:gsub("^%s+", "")
-            return result
+        if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
+            finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)
+        else
+            local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
+            if finaleplugin.RTFNotes then
+                notes = replace_font_sizes(notes)
+            end
+            width = width or 500
+            height = height or 350
+
+            local dlg = finale.FCCustomLuaWindow()
+            dlg:SetTitle(finale.FCString(caption))
+            local edit_text = dlg:CreateTextEditor(10, 10)
+            edit_text:SetWidth(width)
+            edit_text:SetHeight(height)
+            edit_text:SetUseRichText(finaleplugin.RTFNotes)
+            edit_text:SetReadOnly(true)
+            edit_text:SetWordWrap(true)
+            local ok = dlg:CreateOkButton()
+            dlg:RegisterInitWindow(
+                function()
+                    local notes_str = finale.FCString(notes)
+                    if edit_text:GetUseRichText() then
+                        edit_text:SetRTFString(notes_str)
+                    else
+                        local edit_font = finale.FCFontInfo()
+                        edit_font.Name = "Arial"
+                        edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
+                        edit_text:SetFont(edit_font)
+                        edit_text:SetText(notes_str)
+                    end
+                    edit_text:ResetColors()
+                    ok:SetKeyboardFocus()
+                end)
+            dlg:ExecuteModal(nil)
         end
-        dlg:RegisterInitWindow(
-            function()
-                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
-                local notes_str = finale.FCString(notes)
-                if edit_text:GetUseRichText() then
-                    edit_text:SetRTFString(notes_str)
-                else
-                    local edit_font = finale.FCFontInfo()
-                    edit_font.Name = "Arial"
-                    edit_font.Size = 10
-                    edit_text:SetFont(edit_font)
-                    edit_text:SetText(notes_str)
-                end
-                edit_text:ResetColors()
-                ok:SetKeyboardFocus()
-            end)
-        dlg:ExecuteModal(nil)
     end
     return utils
 end
@@ -4939,8 +4959,8 @@ function plugindef()
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 The selected score area can be refined in Finale by measure and either beat or EDU at \u8220"Edit\u8221" \u8594? \u8220"Select Region\u8230?\u8221". This script offers a more organic option for precise positioning with slider controls to change the beat and EDU position in each measure, continuously updating the score highlighting as the selection changes.\par}
         {\pard \ql \f0 \sa180 \li0 \fi0 Note that when one slider overlaps the other in the same measure, it will push the other out of the way creating a \u8220"null\u8221" selection (start = end). This doesn\u8217't break anything but the selection contains no notes.\par}
         {\pard \ql \f0 \sa180 \li0 \fi0 == Beat Boundaries ==\line The duration of a Finale quarter note is 1024 EDUs, but to select all of of the first beat in a 4/4 measure the selection must be from 0 to 1023 EDU, otherwise it will include notes starting ON the second beat. This \u8220"minus one\u8221" adjustment is applied to all END positions relative to the beat, as happens when entering beat numbers on the inbuilt \u8220"Select Region\u8221" option.\par}

@@ -24,8 +24,8 @@ function plugindef()
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 This plug-in is intended to aid in producing scores with multi-instrument staves.\par}
         {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab In any given selected measure, if the plugin finds no entries in layer 1 but entries in other layers, it will add a whole rest in layer 1.\par}
         {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The same for layer 2.\par}

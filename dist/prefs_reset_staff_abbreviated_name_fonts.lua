@@ -655,8 +655,8 @@ function plugindef()
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 This script only affects selected staves. If you select the entire document before running this script, it modifies any abbreviated staff names found in staff styles as well.\par}
         {\pard \ql \f0 \sa180 \li0 \fi0 This script may be especially useful with the New Document Setup Wizard. The Wizard sets up all the staves in the new document with font settings for abbreviations that match the font settings for full staff names. It apparently ignores the default font setttings for abbreviated names specified in the Document Style. The result is that none these font settings in the new document match the Document Options. This script allows you quickly to rectify this unfortunate behavior.\par}
         }

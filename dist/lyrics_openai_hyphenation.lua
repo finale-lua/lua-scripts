@@ -4769,10 +4769,27 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         if not finaleplugin.RTFNotes and not finaleplugin.Notes then
             return
         end
-
-        width = width or 500
-        height = height or 350
-
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        local function replace_font_sizes(rtf)
+            local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
+            if font_sizes_json then
+                local cjson = require("cjson.safe")
+                local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
+                if font_sizes and font_sizes.os then
+                    local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
+                    if (font_sizes.os == this_os) then
+                        rtf = rtf:gsub("fs%d%d", font_sizes)
+                    end
+                end
+            end
+            return rtf
+        end
         if not caption then
             caption = plugindef()
             if finaleplugin.Version then
@@ -4783,39 +4800,42 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
                 caption = string.format("%s %s", caption, version)
             end
         end
-        local dlg = finale.FCCustomLuaWindow()
-        dlg:SetTitle(finale.FCString(caption))
-        local edit_text = dlg:CreateTextEditor(10, 10)
-        edit_text:SetWidth(width)
-        edit_text:SetHeight(height)
-        edit_text:SetUseRichText(finaleplugin.RTFNotes)
-        edit_text:SetReadOnly(true)
-        edit_text:SetWordWrap(true)
-        local ok = dlg:CreateOkButton()
-        local function dedent(input)
-            local first_line_indent = input:match("^(%s*)")
-            local pattern = "\n" .. string.rep(" ", #first_line_indent)
-            local result = input:gsub(pattern, "\n")
-            result = result:gsub("^%s+", "")
-            return result
+        if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
+            finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)
+        else
+            local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
+            if finaleplugin.RTFNotes then
+                notes = replace_font_sizes(notes)
+            end
+            width = width or 500
+            height = height or 350
+
+            local dlg = finale.FCCustomLuaWindow()
+            dlg:SetTitle(finale.FCString(caption))
+            local edit_text = dlg:CreateTextEditor(10, 10)
+            edit_text:SetWidth(width)
+            edit_text:SetHeight(height)
+            edit_text:SetUseRichText(finaleplugin.RTFNotes)
+            edit_text:SetReadOnly(true)
+            edit_text:SetWordWrap(true)
+            local ok = dlg:CreateOkButton()
+            dlg:RegisterInitWindow(
+                function()
+                    local notes_str = finale.FCString(notes)
+                    if edit_text:GetUseRichText() then
+                        edit_text:SetRTFString(notes_str)
+                    else
+                        local edit_font = finale.FCFontInfo()
+                        edit_font.Name = "Arial"
+                        edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
+                        edit_text:SetFont(edit_font)
+                        edit_text:SetText(notes_str)
+                    end
+                    edit_text:ResetColors()
+                    ok:SetKeyboardFocus()
+                end)
+            dlg:ExecuteModal(nil)
         end
-        dlg:RegisterInitWindow(
-            function()
-                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
-                local notes_str = finale.FCString(notes)
-                if edit_text:GetUseRichText() then
-                    edit_text:SetRTFString(notes_str)
-                else
-                    local edit_font = finale.FCFontInfo()
-                    edit_font.Name = "Arial"
-                    edit_font.Size = 10
-                    edit_text:SetFont(edit_font)
-                    edit_text:SetText(notes_str)
-                end
-                edit_text:ResetColors()
-                ok:SetKeyboardFocus()
-            end)
-        dlg:ExecuteModal(nil)
     end
     return utils
 end
@@ -4962,7 +4982,7 @@ function plugindef()
     finaleplugin.ExecuteHttpsCalls = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "3.0.2"
+    finaleplugin.Version = "3.0.3"
     finaleplugin.Date = "October 29, 2023"
     finaleplugin.CategoryTags = "Lyrics"
     finaleplugin.Notes = [[
@@ -5000,8 +5020,8 @@ function plugindef()
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 Uses the OpenAI online api to add or correct lyrics hyphenation. You must have a OpenAI account and internet connection. You will need your API Key, which can be obtained as follows:\par}
         {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Login to your OpenAI account at openai.com.\par}
         {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select API and then click on Personal\par}
@@ -5309,7 +5329,7 @@ local function on_selection_changed(text_ctrl)
         global_dialog:GetControl("showfont"):SetText(fontInfo:CreateDescription())
     end
 end
-local function on_timer(_, timer_id)
+local function on_timer(_dialog, timer_id)
     if timer_id ~= context.global_timer_id then return end
     local curr_doc_id = finale.FCDocument().ID
     if curr_doc_id ~= context.current_document_id then
@@ -5462,7 +5482,7 @@ local function create_dialog_box()
     dlg:CreateButton(xoff, yoff, "update")
             :SetText("Update")
             :SetWidth(110)
-            :AddHandleCommand(function(_) update_document() end)
+            :AddHandleCommand(function(_control) update_document() end)
     xoff = xoff + 120
     dlg:CreateCheckbox(xoff, yoff, "auto_update")
             :SetText("Update Automatically")
@@ -5474,7 +5494,7 @@ local function create_dialog_box()
     dlg:CreateButton(xoff, yoff, "refresh")
             :SetText("Get from Document")
             :SetWidth(150)
-            :AddHandleCommand(function(_)
+            :AddHandleCommand(function(_control)
                 update_dlg_text({reset_undo = false})
             end)
     dlg:CreateCloseButton(xoff + text_width - 80, yoff)
