@@ -247,17 +247,19 @@ end
 Adds multiple strings to the popup.
 
 @ self (FCMCtrlPopup)
-@ ... (FCStrings | FCString | string | number)
+@ ... (table, FCStrings | FCString | string | number)
 ]]
 function methods:AddStrings(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
-        mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings")
+        mixin_helper.assert_argument_type(i + 1, v, "table", "string", "number", "FCString", "FCStrings")
 
         if type(v) == "userdata" and v:ClassName() == "FCStrings" then
             for str in each(v) do
                 mixin.FCMCtrlPopup.AddString(self, str)
             end
+        elseif type(v) == "table" then
+            self:AddStrings(table.unpack(v))
         else
             mixin.FCMCtrlPopup.AddString(self, v)
         end

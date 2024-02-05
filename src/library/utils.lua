@@ -64,6 +64,23 @@ function utils.iterate_keys(t)
 end
 
 --[[
+% get_keys
+
+Returns an ordered array table of all the keys in a table.
+
+@ t (table)
+: (table) array table of the keys
+]]
+function utils.get_keys(t)
+    local retval = {}
+
+    for k, _ in pairsbykeys(t) do
+        table.insert(retval, k)
+    end
+    return retval
+end
+
+--[[
 % round
 
 Rounds a number to the nearest integer or the specified number of decimal places.

@@ -488,13 +488,11 @@ local function create_dialog()
         :SetWidth((2 * editor_width) / 3)
         :AssureNoHorizontalOverlap(dlg:GetControl("open"), x_separator)
         :AddHandleCommand(on_popup)
-    local lang_list = dlg:CreateComboBox(0, curr_y, "lang_list")
+    dlg:CreateComboBox(0, curr_y, "lang_list")
         :SetWidth(0)
         :DoAutoResizeWidth()
+        :AddStrings(utils.get_keys(finale_supported_languages))
         :SetText("Spanish")
-    for lang, _ in pairsbykeys(finale_supported_languages) do
-        lang_list:AddString(finale.FCString(lang))
-    end
     curr_y = curr_y + button_height
     --editor
     curr_y = curr_y + y_separator
@@ -509,7 +507,7 @@ local function create_dialog()
         :SetConvertTabsToSpaces(#tab_str)
         :SetAutomaticallyIndent(true)
         :AddHandleCommand(on_text_change)
-    lang_list:HorizontallyAlignRightWith(editor, utils.win_mac(0, -3))
+        :HorizontallyAlignRightWith(dlg:GetControl("lang_list"), utils.win_mac(0, -3))
     curr_y = curr_y + editor_height
     -- command buttons
     curr_y = curr_y + y_separator
