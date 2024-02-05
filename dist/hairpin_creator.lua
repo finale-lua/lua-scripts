@@ -3924,10 +3924,27 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         if not finaleplugin.RTFNotes and not finaleplugin.Notes then
             return
         end
-
-        width = width or 500
-        height = height or 350
-
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        local function replace_font_sizes(rtf)
+            local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
+            if font_sizes_json then
+                local cjson = require("cjson.safe")
+                local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
+                if font_sizes and font_sizes.os then
+                    local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
+                    if (font_sizes.os == this_os) then
+                        rtf = rtf:gsub("fs%d%d", font_sizes)
+                    end
+                end
+            end
+            return rtf
+        end
         if not caption then
             caption = plugindef()
             if finaleplugin.Version then
@@ -3938,39 +3955,42 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
                 caption = string.format("%s %s", caption, version)
             end
         end
-        local dlg = finale.FCCustomLuaWindow()
-        dlg:SetTitle(finale.FCString(caption))
-        local edit_text = dlg:CreateTextEditor(10, 10)
-        edit_text:SetWidth(width)
-        edit_text:SetHeight(height)
-        edit_text:SetUseRichText(finaleplugin.RTFNotes)
-        edit_text:SetReadOnly(true)
-        edit_text:SetWordWrap(true)
-        local ok = dlg:CreateOkButton()
-        local function dedent(input)
-            local first_line_indent = input:match("^(%s*)")
-            local pattern = "\n" .. string.rep(" ", #first_line_indent)
-            local result = input:gsub(pattern, "\n")
-            result = result:gsub("^%s+", "")
-            return result
+        if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
+            finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)
+        else
+            local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
+            if finaleplugin.RTFNotes then
+                notes = replace_font_sizes(notes)
+            end
+            width = width or 500
+            height = height or 350
+
+            local dlg = finale.FCCustomLuaWindow()
+            dlg:SetTitle(finale.FCString(caption))
+            local edit_text = dlg:CreateTextEditor(10, 10)
+            edit_text:SetWidth(width)
+            edit_text:SetHeight(height)
+            edit_text:SetUseRichText(finaleplugin.RTFNotes)
+            edit_text:SetReadOnly(true)
+            edit_text:SetWordWrap(true)
+            local ok = dlg:CreateOkButton()
+            dlg:RegisterInitWindow(
+                function()
+                    local notes_str = finale.FCString(notes)
+                    if edit_text:GetUseRichText() then
+                        edit_text:SetRTFString(notes_str)
+                    else
+                        local edit_font = finale.FCFontInfo()
+                        edit_font.Name = "Arial"
+                        edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
+                        edit_text:SetFont(edit_font)
+                        edit_text:SetText(notes_str)
+                    end
+                    edit_text:ResetColors()
+                    ok:SetKeyboardFocus()
+                end)
+            dlg:ExecuteModal(nil)
         end
-        dlg:RegisterInitWindow(
-            function()
-                local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
-                local notes_str = finale.FCString(notes)
-                if edit_text:GetUseRichText() then
-                    edit_text:SetRTFString(notes_str)
-                else
-                    local edit_font = finale.FCFontInfo()
-                    edit_font.Name = "Arial"
-                    edit_font.Size = 10
-                    edit_text:SetFont(edit_font)
-                    edit_text:SetText(notes_str)
-                end
-                edit_text:ResetColors()
-                ok:SetKeyboardFocus()
-            end)
-        dlg:ExecuteModal(nil)
     end
     return utils
 end
@@ -5532,8 +5552,8 @@ function plugindef()
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 This script creates hairpins spanning the currently selected music region. It provides four menu items to create: {\f1 Crescendo}, {\f1 Diminuendo}, {\f1 Swell} (messa di voce) and {\f1 Unswell} (inverse messa di voce) hairpin types. A {\f1 Configuration} menu item is also provided to change the script\u8217's default settings.\par}
         {\pard \ql \f0 \sa180 \li0 \fi0 Hairpins are positioned vertically to avoid colliding with the lowest notes, down-stem tails, articulations and dynamics on each staff in the selection. Dynamics are shifted vertically to match the calculated hairpin positions. Dynamics in the middle of a hairpin will also be levelled, so give them an opaque background to sit \u8220"above\u8221" the hairpin. The script also considers {\f1 trailing} notes and dynamics, just beyond the end of the selected music, since a hairpin is normally expected to end just before the note with the destination dynamic.\par}
         {\pard \ql \f0 \sa180 \li0 \fi0 Hairpin positions in Finale are more accurate when attached to these \u8220"trailing\u8221" notes and dynamics, but this can be a problem if trailing items fall across a barline and especially if they are on a different system from the end of the hairpin. (Elaine Gould, \u8220"Behind Bars\u8221" pp.103-106, outlines multiple scenarios in which hairpins either should or shouldn\u8217't \u8220"attach\u8221" across barlines. Individual preferences may differ.)\par}

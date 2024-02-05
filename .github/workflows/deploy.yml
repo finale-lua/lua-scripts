@@ -20,7 +20,7 @@ jobs:
           path: "./lua"
       - run: "rm -f ./lua/dist/*"
       - name: Checkout docs website repository
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.repository_owner == 'finale-lua'
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -65,7 +65,7 @@ jobs:
       - run: "rm -rf website/docs"
       - run: "cp -R lua/docs website/docs"
       - name: Commit & Push docs to website
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.repository_owner == 'finale-lua'
         uses: finale-lua/commit-and-push@1.4.1
         with:
           github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}
@@ -73,7 +73,7 @@ jobs:
           branch: main
           repository: finale-lua/jw-lua-scripts-docs
       - name: Commit & Push docs to this repo
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.repository_owner == 'finale-lua'
         uses: finale-lua/commit-and-push@1.4.1
         with:
           github_token: ${{ secrets.NICK_PERSONAL_TOKEN }}

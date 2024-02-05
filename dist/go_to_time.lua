@@ -19,8 +19,8 @@ function plugindef()
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 To navigate to a specific time in the current file, enter the minutes and seconds in duration. Either value can include decimal points. Accelerandos and Rallentandos are not considered and only the first tempo mark in each measure is evaluated. These are assumed to take effect at the start of that measure.\par}
         }
     ]]
