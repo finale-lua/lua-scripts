@@ -382,8 +382,8 @@ function plugindef()
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 How to use this script:\par}
         {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Manually apply rolled-chord articulations to the chords that need them (without worrying about how they look).\par}
         {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Select the region you want to change.\par}

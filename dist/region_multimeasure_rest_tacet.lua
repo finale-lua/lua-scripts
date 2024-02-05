@@ -25,8 +25,8 @@ function plugindef()
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 This script takes a region and creates a multimeasure rest with the text \u8216'TACET\u8217' above as an expression. The font settings for the expression are taken from the \u8216'Tempo\u8217' category. If the region includes the last measure of the file but NOT the first measure, it will instead create an expression that says \u8216'tacet al fine\u8217'.\par}
         {\pard \ql \f0 \sa180 \li0 \fi0 If you are using RGP Lua 0.6 or above, you can override the default text settings by including appropriate values for {\f1 tacet_text} and/or {\f1 al_fine_text} in the optional field in the RGP Lua configuration dialog. The default values are:\par}
         {\pard \ql \f0 \sa180 \li0 \fi0 \f1 tacet_text = "TACET"\line

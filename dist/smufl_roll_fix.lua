@@ -13,8 +13,8 @@ This script will replace the font and character used by the rolled arpeggio arti
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
-        \f0\fs20
-        \f1\fs20
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 The \u8216'roll\u8217' articulation in Finale uses a glyph that is NOT part of the SMuFL standard (SMuFL uses rotated horizontal glyphs for arpeggios rather than MakeMusic\u8217's vertical glyph). Therefore, when using SMuFL fonts other than MakeMusic\u8217's (e.g.\u160?Bravura or Leland), \u8216'roll\u8217' articulations get mapped to an incorrect glyph.\par}
         {\pard \ql \f0 \sa180 \li0 \fi0 This script will replace the font and character used by the rolled arpeggio articulation to use Finale Maestro, regardless of the default music font.\par}
         }
