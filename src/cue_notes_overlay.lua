@@ -3,92 +3,60 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.17"
-    finaleplugin.Date = "2023/12/29"
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.Version = "0.27"
+    finaleplugin.Date = "2024/02/03"
+    finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         This script takes music from a nominated layer in the selected staff 
-        and creates a "Cue" version on one or more other staves. 
-        It is intended to create cue notes above or below 
-        existing "played" material in the destination. 
-        If the destination measure is empty a whole-measure 
-        rest will be created as a reminder that the cue isn't played.
+        and creates a __Cue__ version on one or more other staves. 
+        It is intended to create cue notes above or below existing 
+        "played" material in the destination. 
+        If the destination measure is empty a whole-measure rest 
+        will be created as a reminder that the cue isn't played. 
 
-        Cue notes are often shown in a different octave to 
-        accommodate the clef and transposition of the destination. 
-        Use "cue octave offset" setting for this. 
+        Cue notes are often shown in a different octave to accommodate 
+        the clef and transposition of the destination. 
+        Use _Cue Octave Offset_ setting for this. 
         Cues can interact visually with "played" material in countless ways 
-        so settings probably need to change between scenarios.
+        so settings probably need to change between scenarios. 
 
         The cue copy is reduced in size and muted, and can optionally duplicate 
         articulations, expressions, lyrics and smart shapes. 
-        "Note-based" smart shapes are copied, typically slurs and 
-        glissandos, because they actually "attach" to the cued notes. 
-        This script stores cue names in a text expression category called 
-        "Cue Names" which will be created automatically if needed. 
+        "Note-based" smart shapes are copied, typically slurs and glissandos, 
+        because they actually "attach" to the cued notes. 
+
+        This script stores cue names in a text expression category called _Cue Names_ 
+        which will be created automatically if needed. 
         Once created you can adjust its text and position parameters 
-        like any other expression category.  
+        like any other expression category. 
 
         Rests in the cue will be offset by the value you have set 
-        for layer 1 at Document → Document Options → Layers. 
-        They will automatically offset in the same direction as the 
-        nominated cue stem direction.
+        for layer 1 at _Document_ → _Document Options_ → _Layers_. 
+        They will automatically offset in the same direction as 
+        the nominated cue stem direction.
+
+        > __Command Keys__  
+        > In the _Destination Staff_ window, hit the tab key to move the cursor into a numeric 
+        > field and these key commands become available: 
+
+        > - __q__ - show these script notes 
+        > - __w__ - flip [copy articulations] 
+        > - __e__ - flip [copy expressions] 
+        > - __r__ - flip [copy smartshapes] 
+        > - __t__ - flip [copy lyrics] 
+        > - __y__ - flip [mute cuenotes]  
+        > - __a__ - check all options 
+        > - __s__ - check no options 
+        > - __d__ - select all staves 
+        > - __f__ - select no staves 
+        > - __g__ - select empty staves  
+        > - __z (-)__ - octave -1 
+        > - __x (+)__ - octave +1 
+        > - __c__ - flip stem direction 
+        > - __v__ - flip [destination stems opposite] 
     ]]
     return "Cue Notes Overlay...", "Cue Notes Overlay", "Copy as cue notes to another staff"
 end
-
-local info_notes = [[
-This script takes music from a nominated layer in the selected staff
-and creates a "Cue" version on one or more other staves.
-It is intended to create cue notes above or below
-existing "played" material in the destination.
-If the destination measure is completely empty a whole-measure
-rest will be created as a reminder that the cue isn't played.
-**
-Cue notes are often shown in a different octave to
-accommodate the clef and transposition of the destination.
-Use "cue octave offset" setting for this.
-Cues can interact visually with "played" material in countless ways
-so settings probably need to change between scenarios.
-**
-The cue copy is reduced in size and muted, and can optionally duplicate
-articulations, expressions, lyrics and smart shapes.
-"Note-based" smart shapes are copied, typically slurs and
-glissandos, because they actually "attach" to the cued notes.
-This script stores cue names in a text expression category called
-"Cue Names" which will be created automatically if needed.
-Once created you can adjust its text and position parameters
-like any other expression category.
-**
-Rests in the cue will be offset by the value you have set
-for layer 1 at Document → Document Options → Layers.
-They will automatically offset in the same direction as the
-nominated cue stem direction.
-**
-== Command Keys ==
-*In the "Destination Staff" window,
-hit the tab key to move the cursor into a numeric
-field and these key commands are available:
-*• q @t show these script notes
-*• w @t flip [copy articulations]
-*• e @t flip [copy expressions]
-*• r @t flip [copy smartshapes]
-*• t @t flip [copy lyrics]
-*• y @t flip [mute cuenotes]
-*– – –
-*• a @t check all options
-*• s @t check no options
-*• d @t select all staves
-*• f @t select no staves
-*• g @t select empty staves
-*– – –
-*• z (-) octave -1
-*• x (+) octave +1
-*• c @t flip stem direction
-*• v @t flip [destination stems opposite]
-]]
-
-info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
 
 local config = { -- retained and over-written by the user's "settings" file
     copy_articulations  =   false,
@@ -115,16 +83,23 @@ local config = { -- retained and over-written by the user's "settings" file
     window_pos_y        =   false,
 }
 local options = {
-    check = { -- ordered user input checkboxes
-        "copy_articulations", "copy_expressions", "copy_smartshapes", "copy_lyrics", "mute_cuenotes" },
+    check =   { "copy_articulations", "copy_expressions", "copy_smartshapes", "copy_lyrics", "mute_cuenotes" },
     integer = { "cuenote_percent", "source_layer", "cuenote_layer" }, -- integer edit boxes
-    button = { "Set All", "Clear All", "All Staves", "No Staves", "Empty Staves" }
+    button =  { "Set All", "Clear All", "All Staves", "No Staves", "Empty Staves" }
 }
 local configuration = require("library.configuration")
 local layer = require("library.layer")
 local mixin = require("library.mixin")
 local note_entry = require("library.note_entry")
-local script_name = "cue_notes_overlay"
+local utils = require("library.utils")
+local library = require("library.general_library")
+local script_name = library.calc_script_name()
+local title = plugindef():gsub("%.%.%.", "")
+local refocus_document = false -- set to true if utils.show_notes_dialog is used
+
+local function refocus()
+    if refocus_document then finenv.UI():ActivateDocumentWindow() end
+end
 
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -151,7 +126,7 @@ local function show_error(error_code)
             .. config.cue_category_name .. "\" containing at least one entry",
     }
     local msg = errors[error_code] or "Unknown error condition"
-    finenv.UI():AlertInfo(msg, plugindef() .. " Error")
+    finenv.UI():AlertInfo(msg, title .. " Error")
     return -1
 end
 
@@ -163,11 +138,12 @@ local function region_is_empty(region, layer_number)
 end
 
 local function info_dialog()
-    finenv.UI():AlertInfo(info_notes, "About " .. plugindef())
+    utils.show_notes_dialog("About " .. title)
+    refocus_document = true
 end
 
 local function make_info_button(dialog, x, y)
-    dialog:CreateButton(x, y):SetText("?"):SetWidth(20)
+    dialog:CreateButton(x, y, "q"):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() info_dialog() end)
 end
 
@@ -183,36 +159,36 @@ end
 
 local function new_cue_name(source_staff)
     local name = get_staff_name(source_staff)
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(title)
     dialog:CreateStatic(0, 0):SetText("Cue Staff: " .. name.full):SetWidth(200)
     dialog:CreateStatic(0, 17):SetText("New cue name:"):SetWidth(100)
     make_info_button(dialog, 180, 17)
-    local the_name = dialog:CreateEdit(0, 36):SetWidth(200)
+    local name_edit = dialog:CreateEdit(0, 40):SetWidth(200)
         :SetText(config.abbreviate and name.abbrev or name.full)
-    local abbrev_checkbox = dialog:CreateCheckbox(0, 62):SetText("Abbreviate staff name")
+    dialog:CreateCheckbox(0, 62, "abbrev_check"):SetText("Abbreviate staff name")
         :SetWidth(150):SetCheck(config.abbreviate and 1 or 0)
         :AddHandleCommand(function(self)
-            the_name:SetText(self:GetCheck() == 1 and name.abbrev or name.full)
+            name_edit:SetText(self:GetCheck() == 1 and name.abbrev or name.full)
         end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function()
-        config.abbreviate = (abbrev_checkbox:GetCheck() == 1)
+        config.abbreviate = (dialog:GetControl("abbrev_check"):GetCheck() == 1)
     end)
-    dialog:RegisterInitWindow(function() the_name:SetFocus() end)
+    dialog:RegisterInitWindow(function() name_edit:SetFocus() end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), the_name:GetText()
+    return (dialog:ExecuteModal() == finale.EXECMODAL_OK), name_edit:GetText()
 end
 
 local function choose_name_index(name_list, source_staff)
     local name = get_staff_name(source_staff)
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(title)
     dialog:CreateStatic(0, 0):SetText("Cue Staff: " .. name.full):SetWidth(200)
     dialog:CreateStatic(0, 17):SetText("Select cue name:"):SetWidth(100)
     make_info_button(dialog, 180, 17)
-    -- menu item [0] is "*** new name ***"
-    local staff_list = dialog:CreateListBox(0, 37):SetWidth(200):AddString("*** new name ***")
+    local staff_list = dialog:CreateListBox(0, 40):SetWidth(200)
+        :AddString("*** new name ***") -- menu item [0] is "*** new name ***"
     for i, v in ipairs(name_list) do -- add all names in the extant list
         staff_list:AddString(v[1])
         if v[2] == config.cuename_item then staff_list:SetSelectedItem(i) end
@@ -228,7 +204,7 @@ local function choose_name_index(name_list, source_staff)
     end)
     dialog:RegisterInitWindow(function() staff_list:SetKeyboardFocus() end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), staff_list:GetSelectedItem()
+    return (dialog:ExecuteModal() == finale.EXECMODAL_OK), staff_list:GetSelectedItem()
 end
 
 local function create_new_expression(exp_name, category_number)
@@ -265,44 +241,47 @@ local function choose_destination_staff(source_staff)
         end
     end
     local max = layer.max_layers()
-    local answer, save_layer = {}, {}
+    local answer, saved = {}, {}
 
     -- make the dialog
     local x_grid = { 210, 310, 370 }
     local y_step = 19
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    dialog:CreateStatic(0, 0):SetText("Cue Staff: " .. source_name):SetWidth(200)
-    local max_rows = #options.check + #options.integer + 2
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(title)
+    dialog:CreateStatic(0, 0):SetText("Cue Staff:"):SetWidth(57)
+    answer.staff_name = dialog:CreateStatic(55, 0):SetText(source_name):SetWidth(200)
+    local y = y_step
+    dialog:CreateStatic(0, y):SetText("Select Destination Staff(s):"):SetWidth(150)
+    local max_rows = #options.check + #options.integer + 1
     local num_rows = (#staff_list > (max_rows + 2)) and max_rows or (#staff_list + 2)
-    local data_list = dialog:CreateDataList(0, y_step):SetUseCheckboxes(true)
-        :SetHeight(num_rows * y_step):AddColumn("Destination Staff(s):", 120)
-    if finenv.UI():IsOnMac() then
-        data_list:UseAlternatingBackgroundRowColors()
+    y = y + y_step
+    local data_list = dialog:CreateDataList(0, y)
+        :SetWidth(x_grid[1] - 10)
+        :SetUseCheckboxes(true)
+        :SetHeight(num_rows * y_step)
+        :AddColumn("", x_grid[1] - 10)
+        :SetShowHeader(false)
+        :SetExpandLastColumn(true)
+        :SetAllowsMultipleSelection(true)
+        :UseAlternatingBackgroundRowColors(true)
+    for _, v in ipairs(staff_list) do -- add all staff names to list
+        data_list:CreateRow():GetItemAt(0).LuaString = v[2]
     end
-    for _, v in ipairs(staff_list) do -- list all staff names
-        local row = data_list:CreateRow()
-        row:GetItemAt(0).LuaString = v[2]
-    end
-
+        -- local functions
         local function set_check_state(state)
             for _, v in ipairs(options.check) do
                 answer[v]:SetCheck(state)
             end
-            data_list:SetKeyboardFocus()
         end
         local function set_list_state(state)
+            data_list:UnselectAll() -- start blank
             for i, v in ipairs(staff_list) do
                 local list_row = data_list:GetItemAt(i - 1)
-                if state > -1 then -- "No Staves" = 0 / "All Staves" = 1
-                    list_row.Check = (state == 1)
-                else
-                    rgn.StartStaff = v[1] -- is this staff number empty?
+                if state == -1 then -- is this staff empty?
+                    rgn.StartStaff = v[1]
                     rgn.EndStaff = v[1]
-                    local check_state = region_is_empty(rgn, 0)
-                    list_row.Check = check_state
-                    if check_state then
-                        data_list:SelectLine(i - 1) -- update menu list visually
-                    end
+                    list_row.Check = region_is_empty(rgn, 0)
+                else -- "No Staves" = 0 / "All Staves" = 1
+                    list_row.Check = (state == 1)
                 end
             end
         end
@@ -344,16 +323,16 @@ local function choose_destination_staff(source_staff)
                 elseif s:find("c") then flip_direction() -- up/down stem
                 elseif s:find("v") then flip_check("stems_oppose")
                 end
-                ctl:SetText(save_layer[name]):SetKeyboardFocus()
+                ctl:SetText(saved[name]):SetKeyboardFocus()
             elseif s ~= "" then
                 if name:find("layer") then s = s:sub(-1) -- 1-digit layer numbers
                 else s = s:sub(1, 3) -- 3-digit percentage
                 end
                 ctl:SetText(s)
-                save_layer[name] = s
+                saved[name] = s
             end
         end
-    local y = y_step
+    y = y_step
     dialog:CreateStatic(x_grid[1], 0):SetText("Cue Options:"):SetWidth(150)
     for _, v in ipairs(options.check) do -- run through check options
         answer[v] = dialog:CreateCheckbox(x_grid[1], y):SetText(v:gsub("_", " "))
@@ -367,13 +346,11 @@ local function choose_destination_staff(source_staff)
         answer[v] = dialog:CreateEdit(x_grid[2], y - y_offset):SetInteger(config[v])
             :SetWidth(i == 1 and 40 or 20) -- layer numbers thinner
             :AddHandleCommand(function() key_check(v) end)
-        save_layer[v] = tostring(config[v])
+        saved[v] = tostring(config[v])
         y = y + y_step
     end
-
     answer.stem_direction = dialog:CreatePopup(x_grid[1], y + 2):SetWidth(150)
-        :AddString("Cue Stems Up")  -- == 0
-        :AddString("Cue Stems Down")  -- == 1
+        :AddStrings("Cue Stems Up", "Cue Stems Down")  -- == 0 ... 1
         :SetSelectedItem(config.stem_direction)
     y = y + y_step + 5
     answer.stems_oppose = dialog:CreateCheckbox(x_grid[1], y)
@@ -394,7 +371,7 @@ local function choose_destination_staff(source_staff)
         end
     end
     dialog:CreateStatic(x_grid[3] + 15, y_step * 3 + 3):SetText("SELECT:"):SetWidth(80)
-    dialog:CreateStatic(x_grid[3], (y_step * 7) + 9):SetText("cue octave offset:"):SetWidth(100)
+    dialog:CreateStatic(x_grid[3], y_step * 7 + 9):SetText("cue octave offset:"):SetWidth(100)
     answer.octave_offset = dialog:CreatePopup(x_grid[3] + 25, (y_step * 8) + 6):SetWidth(40)
     for i = 5, -5, -1 do
         local pole = (i > 0) and "+" or ""
@@ -402,26 +379,23 @@ local function choose_destination_staff(source_staff)
     end
     answer.octave_offset:SetSelectedItem(5 - config.octave_offset)
     make_info_button(dialog, x_grid[3] + 60, y_step * 10 + 3)
-
+    -- flip select state on double-click!
+    dialog:RegisterHandleListDoubleClick(function()
+        set_list_state(data_list:GetItemAt(0).Check and 0 or 1)
+    end)
     -- run the dialog
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     local chosen_staves = {} -- return the user's chosen destination staves
-
     dialog:RegisterHandleOkButtonPressed(function()
-        local selection = data_list:GetSelectedLine() + 1
-        if selection > 0 then -- user selected a line (not necessarily the line's checkbox)
-            table.insert(chosen_staves, staff_list[selection][1])
-        end
-        for i, v in ipairs(staff_list) do -- check every staff for ticked boxes
+        for i, v in ipairs(staff_list) do -- check every staff for selection
             local list_row = data_list:GetItemAt(i - 1)
-            if list_row.Check and i ~= selection then
+            if data_list:IsLineSelected(i - 1) or list_row.Check then
                 table.insert(chosen_staves, v[1])
             end
         end
-        -- save config values
-        for _, v in ipairs(options.check) do
+        for _, v in ipairs(options.check) do -- save config values
             config[v] = (answer[v]:GetCheck() == 1)
         end
         for _, v in ipairs(options.integer) do
@@ -431,9 +405,14 @@ local function choose_destination_staff(source_staff)
         config.octave_offset  = 5 - answer.octave_offset:GetSelectedItem() -- octave offset value
         config.stems_oppose = (answer.stems_oppose:GetCheck() == 1)
     end)
-    dialog:RegisterInitWindow(function() data_list:SetKeyboardFocus() end)
+    dialog:RegisterInitWindow(function(self)
+            data_list:SetKeyboardFocus()
+            local bold = answer.staff_name:CreateFontInfo():SetBold(true)
+            answer.staff_name:SetFont(bold)
+            self:GetControl("q"):SetFont(bold)
+        end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK), chosen_staves
+    return (dialog:ExecuteModal() == finale.EXECMODAL_OK), chosen_staves
 end
 
 local function choose_overwrite_layer(staff_name, empty_layers)
@@ -441,7 +420,7 @@ local function choose_overwrite_layer(staff_name, empty_layers)
         .. ") on staff \"" .. staff_name .. "\" already contains music."
     local wide = 200
 
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(title)
     dialog:CreateStatic(0, 0):SetText(msg):SetWidth(wide):SetHeight(52)
     make_info_button(dialog, wide - 20, 52)
     dialog:CreateStatic(0, 55):SetText("Please confirm:"):SetWidth(100)
@@ -449,7 +428,7 @@ local function choose_overwrite_layer(staff_name, empty_layers)
     for i = 1, layer.max_layers() do
         local si = tostring(i)
         if i == config.cuenote_layer then
-            list:AddString("overwrite CUENOTE LAYER " .. si)
+            list:AddString("overwrite CUENOTE layer " .. si)
         else
             msg = empty_layers[i] and "use empty layer " or "overwrite layer "
             list:AddString(msg .. si)
@@ -465,7 +444,7 @@ local function choose_overwrite_layer(staff_name, empty_layers)
     dialog:RegisterInitWindow(function() list:SetKeyboardFocus() end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     local answer = -1 -- assume cancellation
-    if (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK) then -- reasoned choice
+    if (dialog:ExecuteModal() == finale.EXECMODAL_OK) then -- reasoned choice
         answer = list:GetSelectedItem() + 1
     end
     return answer
@@ -521,8 +500,8 @@ local function notelayer_copy(rgn, dest_staff)
     local rest_offset = get_layer_rest_offset(1) -- User's rest offset (layer 1)
     local dest_region = mixin.FCMMusicRegion()
     dest_region:SetRegion(rgn):SetStartStaff(dest_staff):SetEndStaff(dest_staff)
-
-    local cue_layer = check_empty_cue_layer(dest_region) -- may or may not be config.cuenote_layer
+    -- cue_layer may or may not be config.cuenote_layer
+    local cue_layer = check_empty_cue_layer(dest_region)
     if cue_layer < 0 then return false end -- couldn't find one
     add_measure_rests(dest_region, cue_layer) -- if needed
 
@@ -572,7 +551,7 @@ local function notelayer_copy(rgn, dest_staff)
         else -- is REST CHANGES -> offset
             note_entry.rest_offset(dest_entry, rest_offset)
         end
-        
+
         dest_entry:SetNoteDetailFlag(true) -- CUENOTE SIZE
         mixin.FCMEntryAlterMod()
             :SetNoteEntry(dest_entry)
@@ -580,7 +559,7 @@ local function notelayer_copy(rgn, dest_staff)
             :Save()
 
         if src_entry.LyricFlag and config.copy_lyrics then -- LYRICS
-            for _, v in ipairs({ "FCMChorusSyllable", "FCMSectionSyllable", "FCMVerseSyllable" }) do
+            for _, v in ipairs{"FCMChorusSyllable", "FCMSectionSyllable", "FCMVerseSyllable"} do
                 local lyric = mixin[v]()
                 lyric:SetNoteEntry(src_entry):LoadFirst()
                 lyric:SetNoteEntry(dest_entry):SaveNew()
@@ -630,11 +609,6 @@ local function notelayer_copy(rgn, dest_staff)
 end
 
 local function new_expression_category(new_name)
-    local category_id = 0
-    if not finenv.IsRGPLua then  -- SaveNewWithType only works on RGPLua 0.58+
-        return false, category_id   -- and crashes on JWLua
-    end
-
     local new_category = mixin.FCMCategoryDef()
     new_category:Load(finale.DEFAULTCATID_TECHNIQUETEXT)
     local str = finale.FCString()
@@ -649,10 +623,7 @@ local function new_expression_category(new_name)
     tfi.Size = tfi.Size - config.cue_font_smaller
     new_category:SetTextFontInfo(tfi)
     local ok = new_category:SaveNewWithType(finale.DEFAULTCATID_TECHNIQUETEXT)
-    if ok then
-        category_id = new_category:GetID()
-    end
-    return ok, category_id
+    return ok, (ok and new_category:GetID() or 0)
 end
 
 local function create_cue_notes()
@@ -665,8 +636,10 @@ local function create_cue_notes()
     -- declare other local variables
     local ok, name_index, new_expression, destination_staves
     if source_region:CalcStaffSpan() > 1 then
+        refocus()
         return show_error("only_one_staff")
     elseif region_is_empty(source_region, 0) then
+        refocus()
         return show_error("empty_region")
     end
 
@@ -687,7 +660,7 @@ local function create_cue_notes()
             if text_def.CategoryID == cat_ID then
                 local str = text_def:CreateTextString()
                 str:TrimEnigmaTags()
-                table.insert(cue_names, { str.LuaString, text_def.ItemNo } ) -- save expresion NAME and ItemNo
+                table.insert(cue_names, {str.LuaString, text_def.ItemNo} ) -- save expresion NAME and ItemNo
             end
         end
         table.sort(cue_names, function(a, b) return string.lower(a[1]) < string.lower(b[1]) end)
@@ -697,21 +670,23 @@ local function create_cue_notes()
     if cat_ID < 0 then -- create a new Text Expression Category
         ok, cat_ID = new_expression_category(config.cue_category_name)
         if not ok then -- creation failed
+            refocus()
             return show_error("make_expression_category")
         end
     end
     -- choose cue name
     ok, name_index = choose_name_index(cue_names, start_staff) -- saved in config.cuename_item
-    if not ok then return end
+    if not ok then refocus() return end
     if name_index == 0 then	-- USER wants to provide a new cue name
         ok, new_expression = new_cue_name(start_staff)
-        if not ok or new_expression == "" then return end
+        if not ok or new_expression == "" then refocus() return end
         create_new_expression(new_expression, cat_ID) -- ID saved in config.cuename_item
     end
     -- choose destination staff
     ok, destination_staves = choose_destination_staff(start_staff)
-    if not ok then return end
+    if not ok then refocus() return end
     if region_is_empty(source_region, config.source_layer) then
+        refocus()
         return show_error("no_notes_in_source_layer")
     end
     -- make the cue copy
@@ -733,6 +708,7 @@ local function create_cue_notes()
             end
         end
     end
+    refocus()
     source_region:SetInDocument()
 end
 
