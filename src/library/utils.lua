@@ -305,31 +305,6 @@ function utils.show_notes_dialog(caption, width, height)
     if not finaleplugin.RTFNotes and not finaleplugin.Notes then
         return
     end
-    
-    width = width or 500
-    height = height or 350
-    
-    if not caption then
-        caption = plugindef()
-        if finaleplugin.Version then
-            local version = finaleplugin.Version
-            if string.sub(version, 1, 1) ~= "v" then
-                version = "v" .. version
-            end
-            caption = string.format("%s %s", caption, version)
-        end
-    end
-
-    local dlg = finale.FCCustomLuaWindow()
-    dlg:SetTitle(finale.FCString(caption))
-    local edit_text = dlg:CreateTextEditor(10, 10)
-    edit_text:SetWidth(width)
-    edit_text:SetHeight(height)
-    edit_text:SetUseRichText(finaleplugin.RTFNotes)
-    edit_text:SetReadOnly(true)
-    edit_text:SetWordWrap(true)
-
-    local ok = dlg:CreateOkButton()
 
     local function dedent(input)
         local first_line_indent = input:match("^(%s*)")
@@ -341,23 +316,71 @@ function utils.show_notes_dialog(caption, width, height)
         return result
     end
 
-    dlg:RegisterInitWindow(
-        function()
-            local notes = dedent(finaleplugin.RTFNotes or dedent(finaleplugin.Notes))
-            local notes_str = finale.FCString(notes)
-            if edit_text:GetUseRichText() then
-                edit_text:SetRTFString(notes_str)
-            else
-                local edit_font = finale.FCFontInfo()
-                edit_font.Name = "Arial"
-                edit_font.Size = 10
-                edit_text:SetFont(edit_font)
-                edit_text:SetText(notes_str)
+    local function replace_font_sizes(rtf)
+        local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
+        if font_sizes_json then
+            local cjson = require("cjson.safe")
+            local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
+            if font_sizes and font_sizes.os then
+                local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
+                if (font_sizes.os == this_os) then
+                    rtf = rtf:gsub("fs%d%d", font_sizes)
+                end
             end
-            edit_text:ResetColors()
-            ok:SetKeyboardFocus()
-        end)
-    dlg:ExecuteModal(nil)
+        end
+        return rtf
+    end
+
+    if not caption then
+        caption = plugindef()
+        if finaleplugin.Version then
+            local version = finaleplugin.Version
+            if string.sub(version, 1, 1) ~= "v" then
+                version = "v" .. version
+            end
+            caption = string.format("%s %s", caption, version)
+        end
+    end
+
+    if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
+        finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)        
+    else    
+        local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
+        if finaleplugin.RTFNotes then
+            notes = replace_font_sizes(notes)
+        end
+
+        width = width or 500
+        height = height or 350
+        
+        local dlg = finale.FCCustomLuaWindow()
+        dlg:SetTitle(finale.FCString(caption))
+        local edit_text = dlg:CreateTextEditor(10, 10)
+        edit_text:SetWidth(width)
+        edit_text:SetHeight(height)
+        edit_text:SetUseRichText(finaleplugin.RTFNotes)
+        edit_text:SetReadOnly(true)
+        edit_text:SetWordWrap(true)
+
+        local ok = dlg:CreateOkButton()
+
+        dlg:RegisterInitWindow(
+            function()            
+                local notes_str = finale.FCString(notes)
+                if edit_text:GetUseRichText() then
+                    edit_text:SetRTFString(notes_str)
+                else
+                    local edit_font = finale.FCFontInfo()
+                    edit_font.Name = "Arial"
+                    edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
+                    edit_text:SetFont(edit_font)
+                    edit_text:SetText(notes_str)
+                end
+                edit_text:ResetColors()
+                ok:SetKeyboardFocus()
+            end)
+        dlg:ExecuteModal(nil)
+    end
 end
 
 return utils

@@ -6987,14 +6987,39 @@ const getRTFNotes = (input) => {
     const notesRegex = /(?<=finaleplugin.Notes = \[\[).*(?=\]\])/ius;
     const match = input.match(notesRegex);
     if (match) {
-        const notes = (0, dedent_js_1.default)(match[0]);
+        let notes = (0, dedent_js_1.default)(match[0]);
+        notes = notes.replace(/^#{4,}/gm, '###');
         const templateFile = path_1.default.join(__dirname, "custom_template.rtf");
-        const args = ['-f', 'markdown', '-t', 'rtf', '-s', `--template=${templateFile}`];
+        /**
+         * Default font sizes are:
+         *         p   h1  h2  h3
+         * pandoc  24  36  32  28
+         * win     18  26  23  20
+         * mac     24  32  29  26
+         *
+         * The win p size is injected as a variable into the call to pandoc, and the
+         * other win sizes are replaced below. The mac sizes are injected, as a JSON
+         * fragment, into the RTF comment field; utils.show_notes_dialog() can use
+         * this to perform replacements.
+         */
+        const args = `
+            -f markdown 
+            -t rtf 
+            --standalone 
+            --template=${templateFile}
+            -V basefont=fs18
+            -V fontsizes="os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"
+        `.trim().split(/\s+/);
         const pandocResult = (0, child_process_1.spawnSync)('pandoc', args, { input: notes, encoding: 'utf-8' });
         if (!pandocResult.error) {
-            result = pandocResult.stdout.replace(/fs28/g, 'fs24')
-                .replace(/fs32/g, 'fs28')
-                .replace(/fs36/g, 'fs32');
+            result = pandocResult.stdout.replace(/(?<=\\)fs\d\d/g, function (match) {
+                switch (match) {
+                    case 'fs36': return 'fs26';
+                    case 'fs32': return 'fs23';
+                    case 'fs28': return 'fs20';
+                    default: return match;
+                }
+            });
             result = `    finaleplugin.RTFNotes = [[${result}]]`;
         }
     }
