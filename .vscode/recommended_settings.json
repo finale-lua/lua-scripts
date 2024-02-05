@@ -23,9 +23,7 @@
         "prettyformatjson"
     ],
     "files.exclude": {
-        "decoder.lua": true,
         "mobdebug.lua": true,
-        "sax.lua": true
     },
     "editor.formatOnSave": true,
     "Lua.diagnostics.enable": false,
