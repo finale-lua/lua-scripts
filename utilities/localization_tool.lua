@@ -491,13 +491,9 @@ local function create_dialog()
     local lang_list = dlg:CreateComboBox(0, curr_y, "lang_list")
         :SetWidth(0)
         :DoAutoResizeWidth()
-    local lang_index = 0
+        :SetText("Spanish")
     for lang, _ in pairsbykeys(finale_supported_languages) do
         lang_list:AddString(finale.FCString(lang))
-        if lang == "Spanish" then
-            lang_list:SetSelectedItem(lang_index)
-        end
-        lang_index = lang_index + 1
     end
     curr_y = curr_y + button_height
     --editor

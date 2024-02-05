@@ -103,7 +103,7 @@ function plugindef(locale)
 
         A value in a prefix overrides any setting in a configuration file.
     ]]
-    finaleplugin.ScriptGroupName = "Move or Reset Baselines"
+    finaleplugin.ScriptGroupName = "Move or Reset System Baselines"
     finaleplugin.ScriptGroupDescription = "Move or reset baselines for systems in the selected region"
     finaleplugin.AdditionalMenuOptions = t.addl_menus
     finaleplugin.AdditionalDescriptions = t.addl_descs
