@@ -14,7 +14,7 @@ function plugindef()
 
         Functions include:
 
-        - Automatically create a table of all quoted strings in the library. The user can then edit this
+        - Automatically create a table of all quoted strings in the script. The user can then edit this
             down to the user-facing strings that need to be localized.
         - Given a table of strings, creates a localization file for a specified language.
         - Create a localized `plugindef` function for a script.
