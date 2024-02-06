@@ -66,18 +66,36 @@ end
 --[[
 % get_keys
 
-Returns an ordered array table of all the keys in a table.
+Returns a sorted array table of all the keys in a table.
 
 @ t (table)
 : (table) array table of the keys
 ]]
-function utils.get_keys(t)
+function utils.create_keys_table(t)
     local retval = {}
 
     for k, _ in pairsbykeys(t) do
         table.insert(retval, k)
     end
     return retval
+end
+
+--[[
+% create_lookup_table
+
+Creates a value lookup table from an existing table.
+
+@ t (table)
+: (table)
+]]
+function utils.create_lookup_table(t)
+    local lookup = {}
+
+    for _, v in pairs(t) do
+        lookup[v] = true
+    end
+
+    return lookup
 end
 
 --[[

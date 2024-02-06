@@ -10,16 +10,17 @@ features:
 - The text contents of the control does not have to match any of the pulldown values.
 
 The PDK manages the pulldown values and selectied item well enough for our purposes. Furthermore, the order in
-which you set text or set selected item matters as to which one you'll end up with when the window
+which you set text or set the selected item matters as to which one you'll end up with when the window
 opens. The PDK takes the approach that setting text takes precedence over setting the selected item.
 For that reason, this module (at least for now) does not manage those properties separately.
 
 ## Summary of Modifications
 - Overrode `AddString` to allows Lua `string` or `number` in addition to `FCString`.
 - Added `AddStrings` that accepts multiple arguments of `table`, `FCString`, Lua `string`, or `number`.
+- Added localized versions `AddStringLocalized` and `AddStringsLocalized`.
 ]] --
-local mixin = require("library.mixin") -- luacheck: ignore
-local mixin_helper = require("library.mixin_helper") -- luacheck: ignore
+local mixin = require("library.mixin")
+local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}
 local methods = class.Methods
@@ -47,30 +48,43 @@ function methods:AddString(str)
 end
 
 --[[
+% AddStringLocalized
+
+**[Fluid]**
+
+Localized version of `AddString`.
+
+@ self (FCMControl)
+@ key (string | FCString) The key into the localization table. If there is no entry in the appropriate localization table, the key is the text.
+]]
+methods.AddStringLocalized = mixin_helper.create_localized_proxy("AddString")
+
+--[[
 % AddStrings
 
 **[Fluid]**
 
-Adds multiple strings to the popup.
+Adds multiple strings to the combobox.
 
-@ self (FCMCtrlComboBox)
-@ ... (table | FCStrings | FCString | string | number)
+@ self (FCMCtrlPopup)
+@ ... (table, FCStrings | FCString | string | number)
 ]]
 function methods:AddStrings(...)
-    for i = 1, select("#", ...) do
-        local v = select(i, ...)
-        mixin_helper.assert_argument_type(i + 1, v, "table", "string", "number", "FCString", "FCStrings")
+    mixin_helper.process_string_arguments(self, mixin.FCMCtrlComboBox.AddString, ...)
+end
 
-        if type(v) == "userdata" and v:ClassName() == "FCStrings" then
-            for str in each(v) do
-                mixin.FCMCtrlComboBox.AddString(self, str)
-            end
-        elseif type(v) == "table" then
-            self:AddStrings(table.unpack(v))
-        else
-            mixin.FCMCtrlComboBox.AddString(self, v)
-        end
-    end
+--[[
+% AddStrings
+
+**[Fluid]**
+
+Adds multiple localized strings to the combobox.
+
+@ self (FCMCtrlPopup)
+@ ... (table, FCStrings | FCString | string | number)
+]]
+function methods:AddStringsLocalized(...)
+    mixin_helper.process_string_arguments(self, mixin.FCMCtrlComboBox.AddStringLocalized, ...)
 end
 
 return class

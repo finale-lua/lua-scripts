@@ -491,7 +491,7 @@ local function create_dialog()
     dlg:CreateComboBox(0, curr_y, "lang_list")
         :SetWidth(0)
         :DoAutoResizeWidth()
-        :AddStrings(utils.get_keys(finale_supported_languages))
+        :AddStrings(utils.create_keys_table(finale_supported_languages))
         :SetText("Spanish")
     curr_y = curr_y + button_height
     --editor

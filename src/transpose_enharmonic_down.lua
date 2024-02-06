@@ -1,4 +1,18 @@
 function plugindef(locale)
+    local loc = {}
+    loc.en = {
+        menu = "Enharmonic Transpose Down",
+        desc = "Transpose down enharmonically all notes in the selected region."
+    }
+    loc.es = {
+        menu = "Trasposición enarmónica hacia abajo",
+        desc = "Trasponer hacia abajo enarmónicamente todas las notas en la región seleccionada.",
+    }
+    loc.de = {
+        menu = "Enharmonische Transposition nach unten",
+        desc = "Transponieren alle Noten im ausgewählten Abschnitt enharmonisch nach unten.",
+    }
+    local t = locale and loc[locale:sub(1,2)] or loc.en
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -26,20 +40,6 @@ function plugindef(locale)
         Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
-    local loc = {}
-    loc.en = {
-        menu = "Enharmonic Transpose Down",
-        desc = "Transpose down enharmonically all notes in the selected region."
-    }
-    loc.es = {
-        menu = "Trasposición enarmónica hacia abajo",
-        desc = "Trasponer hacia abajo enarmónicamente todas las notas en la región seleccionada.",
-    }
-    loc.de = {
-        menu = "Enharmonische Transposition nach unten",
-        desc = "Transponieren alle Noten im ausgewählten Abschnitt enharmonisch nach unten.",
-    }
-    local t = locale and loc[locale:sub(1,2)] or loc.en
     return t.menu, t.menu, t.desc
 end
 

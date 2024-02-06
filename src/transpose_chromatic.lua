@@ -1,4 +1,18 @@
 function plugindef(locale)
+    local loc = {}
+    loc.en = {
+        menu = "Transpose Chromatic",
+        desc = "Chromatic transposition of selected region (supports microtone systems)."
+    }
+    loc.es = {
+        menu = "Trasponer cromático",
+        desc = "Trasposición cromática de la región seleccionada (soporta sistemas de microtono)."
+    }
+    loc.de = {
+        menu = "Transponieren chromatisch",
+        desc = "Chromatische Transposition des ausgewählten Abschnittes (unterstützt Mikrotonsysteme)."
+    }
+    local t = locale and loc[locale:sub(1,2)] or loc.en
     finaleplugin.RequireSelection = false
     finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"
@@ -29,20 +43,6 @@ function plugindef(locale)
         Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
-    local loc = {}
-    loc.en = {
-        menu = "Transpose Chromatic",
-        desc = "Chromatic transposition of selected region (supports microtone systems)."
-    }
-    loc.es = {
-        menu = "Trasponer cromático",
-        desc = "Trasposición cromática de la región seleccionada (soporta sistemas de microtono)."
-    }
-    loc.de = {
-        menu = "Transponieren chromatisch",
-        desc = "Chromatische Transposition des ausgewählten Abschnittes (unterstützt Mikrotonsysteme)."
-    }
-    local t = locale and loc[locale:sub(1,2)] or loc.en
     return t.menu .. "...", t.menu, t.desc
 end
 
@@ -124,7 +124,7 @@ function do_transpose_chromatic(direction, interval_index, simplify, plus_octave
         finenv.StartNewUndoBlock(undostr, true) -- JW Lua automatically terminates the final undo block we start here
     end
     if not success then
-        global_dialog:CreateUI():AlertErrorLocalized(
+        global_dialog:CreateChildUI():AlertErrorLocalized(
             "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",
             "Transposition Error"
         )

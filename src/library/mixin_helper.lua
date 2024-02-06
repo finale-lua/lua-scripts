@@ -10,6 +10,7 @@ require("library.lua_compatibility")
 local utils = require("library.utils")
 local mixin = require("library.mixin")
 local library = require("library.general_library")
+local localization = require("library.localization")
 
 local mixin_helper = {}
 
@@ -562,6 +563,24 @@ function mixin_helper.to_fcstring(value, fcstr)
 end
 
 --[[
+% to_string
+
+Casts a value to a Lua string. If the value is an `FCString`, it returns `LuaString`, otherwise it calls `tostring`.
+
+@ value (any)
+@ [fcstr] (FCString) An optional `FCString` object to populate to skip creating a new object.
+: (FCString)
+]]
+
+function mixin_helper.to_string(value)
+    if mixin_helper.is_instance_of(value, "FCString") then
+        return value.LuaString
+    end
+
+    return tostring(value)
+end
+
+--[[
 % boolean_to_error
 
 There are many PDK methods that return a boolean value to indicate success / failure instead of throwing an error.
@@ -577,5 +596,65 @@ function mixin_helper.boolean_to_error(object, method, ...)
         error("'" .. object.MixinClass .. "." .. method .. "' has encountered an error.", 3)
     end
 end
+
+--[[
+% create_localized_proxy
+
+Creates a proxy method that takes localization keys instead of raw strings.
+
+@ method_name (string)
+@ class_name (string|nil) If `nil`, the resulting call will be on the `self` object. If a `string` is passed, it will be forwarded to a static call on that class in the `mixin` namespace.
+@ only_localize_args (table|nil) If `nil`, all values passed to the method will be localized. If only certain arguments need localizing, pass a `table` of argument `number`s (note that `self` is argument #1).
+: (function)
+]]
+function mixin_helper.create_localized_proxy(method_name, class_name, only_localize_args)
+    local args_to_localize
+    if only_localize_args == nil then
+        args_to_localize = setmetatable({}, { __index = function() return true end })
+    else
+        args_to_localize = utils.create_lookup_table(only_localize_args)
+    end
+
+    return function(self, ...)
+        local args = table.pack(...)
+
+        for arg_num = 1, args.n do
+            if args_to_localize[arg_num] then
+                mixin_helper.assert_argument_type(arg_num, args[arg_num], "string", "FCString")
+                args[arg_num] = localization.localize(mixin_helper.to_string(args[arg_num]))
+            end
+        end
+
+        --Tail call. Errors will pass through to the correct level
+        return (class_name and mixin[class_name] or self)[method_name](self, table.unpack(args, 1, args.n))
+    end
+end
+
+--[[
+% process_string_arguments
+
+Process multiple string arguments.
+
+@ self (class instance)
+@ method_func (function) A method on the class that accepts a single Lua `string` or `FCString` instance
+@ ... (table, FCStrings | FCString | string | number)
+]]
+function mixin_helper.process_string_arguments(self, method_func, ...)
+    for i = 1, select("#", ...) do
+        local v = select(i, ...)
+        mixin_helper.assert_argument_type(i + 1, v, "table", "string", "number", "FCString", "FCStrings")
+
+        if type(v) == "userdata" and v:ClassName() == "FCStrings" then
+            for str in each(v) do
+                method_func(self, str)
+            end
+        elseif type(v) == "table" then
+            mixin_helper.process_string_arguments(self, method_func, table.unpack(v))
+        else
+            method_func(self, v)
+        end
+    end
+end
+
 
 return mixin_helper

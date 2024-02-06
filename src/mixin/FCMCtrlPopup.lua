@@ -7,6 +7,7 @@ $module FCMCtrlPopup
 - Setters that accept `FCString` will also accept a Lua `string` or `number`.
 - `FCString` parameter in getters is optional and if omitted, the result will be returned as a Lua `string`.
 - Setters that accept `FCStrings` will also accept multiple arguments of `FCString`, Lua `string`, or `number`.
+- Added `AddStrings` that accepts multiple arguments of `table`, `FCString`, Lua `string`, or `number`.
 - Added numerous methods for accessing and modifying popup items.
 - Added `SelectionChange` custom control event.
 - Added hooks for preserving control state
@@ -14,7 +15,6 @@ $module FCMCtrlPopup
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
 local utils = require("library.utils")
-local localization = require("library.localization")
 
 local class = {Methods = {}}
 local methods = class.Methods
@@ -240,6 +240,18 @@ function methods:AddString(str)
 end
 
 --[[
+% AddStringLocalized
+
+**[Fluid]**
+
+Localized version of `AddString`.
+
+@ self (FCMControl)
+@ key (string | FCString) The key into the localization table. If there is no entry in the appropriate localization table, the key is the text.
+]]
+methods.AddStringLocalized = mixin_helper.create_localized_proxy("AddString")
+
+--[[
 % AddStrings
 
 **[Fluid]**
@@ -250,22 +262,8 @@ Adds multiple strings to the popup.
 @ ... (table, FCStrings | FCString | string | number)
 ]]
 function methods:AddStrings(...)
-    for i = 1, select("#", ...) do
-        local v = select(i, ...)
-        mixin_helper.assert_argument_type(i + 1, v, "table", "string", "number", "FCString", "FCStrings")
-
-        if type(v) == "userdata" and v:ClassName() == "FCStrings" then
-            for str in each(v) do
-                mixin.FCMCtrlPopup.AddString(self, str)
-            end
-        elseif type(v) == "table" then
-            self:AddStrings(table.unpack(v))
-        else
-            mixin.FCMCtrlPopup.AddString(self, v)
-        end
-    end
+    mixin_helper.process_string_arguments(self, mixin.FCMCtrlPopup.AddString, ...)
 end
-
 
 --[[
 % AddStringsLocalized
@@ -278,12 +276,7 @@ Adds multiple localized strings to the popup.
 @ ... (string) keys of strings to be added. If no localization is found, the key is added.
 ]]
 function methods:AddStringsLocalized(...)
-    for i = 1, select("#", ...) do
-        local v = select(i, ...)
-        mixin_helper.assert_argument_type(i + 1, v, "string")
-
-        mixin.FCMCtrlPopup.AddString(self, localization.localize(v))
-    end
+    mixin_helper.process_string_arguments(self, mixin.FCMCtrlPopup.AddStringLocalized, ...)
 end
 
 --[[
