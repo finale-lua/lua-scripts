@@ -33,12 +33,15 @@ export const bundleFileBase = (
     name: string,
     importedFiles: ImportedFiles,
     mixins: string[],
+    localizations: string[],
     fetcher: (name: string) => string
 ) => {
     const fileContents = injectExtras(name, fetcher(name))
     const fileStack: string[] = [fileContents]
     const importStack: string[] = getAllImports(fileContents)
     const importedFileNames = new Set<string>()
+
+    importStack.push(...localizations)
 
     while (importStack.length > 0) {
         const nextImport = importStack.pop() ?? ''
@@ -63,7 +66,18 @@ export const bundleFileBase = (
 }
 
 export const bundleFile = (name: string, sourcePath: string, mixins: string[]): string => {
-    const bundled: string = bundleFileBase(name, files, mixins, (fileName: string) =>
+    const localizations: string[] = []
+    const baseName = path.basename(name, '.lua')
+    const locPath = path.join(sourcePath, 'localization', baseName)
+    if (fs.existsSync(locPath)) {        
+        localizations.push(...fs
+            .readdirSync(locPath)
+            .filter(fileName => fileName.endsWith('.lua'))
+            .map(file => `localization.${baseName}.${path.basename(file, '.lua')}`)
+        )
+    }
+
+    const bundled: string = bundleFileBase(name, files, mixins, localizations, (fileName: string) =>
             fs.readFileSync(path.join(sourcePath, fileName)).toString()
         );
     const parts = getFileParts(bundled);
