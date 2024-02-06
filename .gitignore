@@ -30,3 +30,6 @@ dist/**/personal*
 # (finale_lua_menus.txt is the menu layout file used by finale_lua_menu_organizer.lua)
 finale_lua_menus.txt
 
+.github/**/dist/*.js
+!.github/**/dist/index.js
+.github/**/dist/*.map
