@@ -61,6 +61,18 @@ function methods:SetTitle(title)
 end
 
 --[[
+% SetTitleLocalized
+
+Localized version of `SetTitle`.
+
+**[Fluid] [Override]**
+
+@ self (__FCMUserWindow)
+@ title (FCString | string | number)
+]]
+methods.SetTitleLocalized = mixin_helper.create_localized_proxy("SetTitle")
+
+--[[
 % CreateChildUI
 
 **[Override]**

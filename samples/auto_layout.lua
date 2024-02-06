@@ -9,7 +9,13 @@ local mixin = require('library.mixin')
 local localization = require('library.localization')
 
 --
--- This table was auto-generated with localization_developer.create_localized_base_table_string(en)
+-- For scripts in the `src` directory, each localization should be separately stored in the
+-- `localization` subdirectory. See the comments in `library/localization.lua` for more details.
+-- The localization tables are included here in this sample to keep the sample self-contained.
+--
+
+--
+-- This table was auto-generated with `utilities/localization_tool.lua`
 -- Then it was edited to include only the strings that need to be localized.
 --
 localization.en = -- this is en_GB due to spelling of "Localisation"
@@ -38,9 +44,7 @@ localization.en_US =
 }
 
 --
--- The rest of the localization tables were created one-at-a-time with the auto_layout_localizing_script.lua
---
--- This table was auto-generated with localization_developer.translate_localized_table_string(localization.en, "en", "es")
+-- The rest of the localization tables were created one-at-a-time with the `utilities/localization_tool.lua` script.
 --
 localization.es = {
     ["Action Button"] = "Botón de Acción",
@@ -62,7 +66,7 @@ localization.es = {
 }
 
 --
--- This table was auto-generated with localization_developer.translate_localized_table_string(localization.en, "en", "es")
+-- This table was auto-generated with `utilities/localization_tool.lua`
 --
 localization.jp = {
     ["Action Button"] = "アクションボタン",
@@ -84,7 +88,7 @@ localization.jp = {
 }
 
 --
--- This table was auto-generated with localization_developer.translate_localized_table_string(localization.en, "en", "de")
+-- This table was auto-generated with `utilities/localization_tool.lua`
 --
 localization.de = {
     ["Action Button"] = "Aktionsknopf",
@@ -185,7 +189,7 @@ localization.set_locale("fa")
 
 function create_dialog()
     local dlg = mixin.FCXCustomLuaWindow()
-    dlg:SetTitle(localization.localize("Test Autolayout With Localisation"))
+    dlg:SetTitleLocalized("Test Autolayout With Localisation")
 
     local line_no = 0
     local y_increment = 22
@@ -196,7 +200,7 @@ function create_dialog()
     dlg:CreateStatic(0, line_no * y_increment, "option1-label")
         :DoAutoResizeWidth()
         :SetWidth(0)
-        :SetText(localization.localize("First Option"))
+        :SetTextLocalized("First Option")
     dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option1")
         :SetInteger(1)
         :AssureNoHorizontalOverlap(dlg:GetControl("option1-label"), label_edit_separ)
@@ -205,13 +209,13 @@ function create_dialog()
     dlg:CreateCheckbox(0, line_no * y_increment, "left-checkbox1")
         :DoAutoResizeWidth()
         :SetWidth(0)
-        :SetText(localization.localize("Left Checkbox Option 1"))
+        :SetTextLocalized("Left Checkbox Option 1")
     line_no = line_no + 1
 
     dlg:CreateStatic(0, line_no * y_increment, "option2-label")
         :DoAutoResizeWidth()
         :SetWidth(0)
-        :SetText(localization.localize("Second Option"))
+        :SetTextLocalized("Second Option")
     dlg:CreateEdit(10, line_no * y_increment - utils.win_mac(2, 3), "option2")
         :SetInteger(2)
         :AssureNoHorizontalOverlap(dlg:GetControl("option2-label"), label_edit_separ)
@@ -221,7 +225,7 @@ function create_dialog()
     dlg:CreateCheckbox(0, line_no * y_increment, "left-checkbox2")
         :DoAutoResizeWidth()
         :SetWidth(0)
-        :SetText(localization.localize("Left Checkbox Option 2"))
+        :SetTextLocalized("Left Checkbox Option 2")
     line_no = line_no + 1
 
     -- center vertical line
@@ -236,7 +240,7 @@ function create_dialog()
     dlg:CreateStatic(0, line_no * y_increment, "option3-label")
         :DoAutoResizeWidth()
         :SetWidth(0)
-        :SetText(localization.localize("Third Option"))
+        :SetTextLocalized("Third Option")
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
     dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option3")
         :SetInteger(3)
@@ -246,7 +250,7 @@ function create_dialog()
     dlg:CreateCheckbox(0, line_no * y_increment, "right-checkbox1")
         :DoAutoResizeWidth()
         :SetWidth(0)
-        :SetText(localization.localize("Right Three-State Option"))
+        :SetTextLocalized("Right Three-State Option")
         :SetThreeStatesMode(true)
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
     line_no = line_no + 1
@@ -254,7 +258,7 @@ function create_dialog()
     dlg:CreateStatic(0, line_no * y_increment, "option4-label")
         :DoAutoResizeWidth()
         :SetWidth(0)
-        :SetText(localization.localize("Fourth Option"))
+        :SetTextLocalized("Fourth Option")
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
     dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option4")
         :SetInteger(4)
@@ -265,7 +269,7 @@ function create_dialog()
     dlg:CreateButton(0, line_no * y_increment)
         :DoAutoResizeWidth()
         :SetWidth(0)
-        :SetText(localization.localize("Action Button"))
+        :SetTextLocalized("Action Button")
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
         :HorizontallyAlignRightWith(dlg:GetControl("option4"))
 --        :HorizontallyAlignRightWithFurthest()
@@ -281,16 +285,16 @@ function create_dialog()
     dlg:CreateStatic(0, line_no * y_increment, "popup_label")
         :DoAutoResizeWidth()
         :SetWidth(0)
-        :SetText(localization.localize("Menu"))
+        :SetTextLocalized("Menu")
     local ctrl_popup = dlg:CreatePopup(0, line_no * y_increment - utils.win_mac(2, 2), "popup")
         :DoAutoResizeWidth()
         :SetWidth(0)
         :AssureNoHorizontalOverlap(dlg:GetControl("popup_label"), label_edit_separ)
     for counter = 1, 3 do
         if counter == 3 then
-            ctrl_popup:AddString(finale.FCString(localization.localize("This is long menu text ") .. counter))
+            ctrl_popup:AddStringLocalized(localization.localize("This is long menu text ") .. counter)
         else
-            ctrl_popup:AddString(finale.FCString(localization.localize("Short ") .. counter))
+            ctrl_popup:AddStringLocalized(localization.localize("Short ") .. counter)
         end
     end
     ctrl_popup:SetSelectedItem(0)
@@ -299,7 +303,7 @@ function create_dialog()
     dlg:CreateStatic(0, line_no * y_increment, "cbobox_label")
         :DoAutoResizeWidth()
         :SetWidth(0)
-        :SetText(localization.localize("Choices"))
+        :SetTextLocalized("Choices")
     local ctrl_cbobox = dlg:CreateComboBox(0, line_no * y_increment - utils.win_mac(2, 3), "cbobox")
         :DoAutoResizeWidth()
         :SetWidth(40)
@@ -307,9 +311,9 @@ function create_dialog()
         :HorizontallyAlignLeftWith(ctrl_popup)
     for counter = 1, 3 do
         if counter == 3 then
-            ctrl_cbobox:AddString(finale.FCString(localization.localize("This is long text choice ") .. counter))
+            ctrl_cbobox:AddString(localization.localize("This is long text choice ") .. counter)
         else
-            ctrl_cbobox:AddString(finale.FCString(localization.localize("Short ") .. counter))
+            ctrl_cbobox:AddString(localization.localize("Short ") .. counter)
         end
     end
     ctrl_cbobox:SetSelectedItem(0)
@@ -324,16 +328,16 @@ function create_dialog()
             :AssureNoHorizontalOverlap(ctrl_popup, 10)
             :AssureNoHorizontalOverlap(ctrl_cbobox, 10)
         if counter == 2 then
-            rbtn:SetText(finale.FCString(localization.localize("This is longer option text ") .. counter))
+            rbtn:SetTextLocalized(localization.localize("This is longer option text ") .. counter)
         else
-            rbtn:SetText(finale.FCString(localization.localize("Short ") .. counter))
+            rbtn:SetTextLocalized(localization.localize("Short ") .. counter)
         end
         counter = counter + 1
     end
     line_no = line_no + 2
 
     dlg:CreateCloseButton(0, line_no * y_increment + 5)
-        :SetText(localization.localize("Close"))
+        :SetTextLocalized("Close")
         :DoAutoResizeWidth()
         :HorizontallyAlignRightWithFurthest()
 
