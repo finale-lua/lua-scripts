@@ -2,7 +2,6 @@
 include_files = { "src/**/*.lua", "samples/**/*.lua", "utilities/**/*.lua"}
 exclude_files = {
     "mobdebug.lua",
-    "src/lunajson/**/*.lua",
 }
 globals = {
     "finale",

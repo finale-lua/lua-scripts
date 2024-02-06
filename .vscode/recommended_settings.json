@@ -23,9 +23,7 @@
         "xmlattributes"
     ],
     "files.exclude": {
-        "decoder.lua": true,
         "mobdebug.lua": true,
-        "sax.lua": true,
         "dist/**": true
     },
     "editor.formatOnSave": true,
