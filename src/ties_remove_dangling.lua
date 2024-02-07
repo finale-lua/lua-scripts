@@ -62,5 +62,3 @@ for working_staff = music_region:GetStartStaff(), music_region:GetEndStaff() do
     note_entry_layer:Save()
   end
 end
-
-::bypass::
