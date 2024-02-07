@@ -3,7 +3,7 @@ function plugindef()
   -- are both reserved for the plug-in definition.
   finaleplugin.Author = "Jacob Winkler"
   finaleplugin.Copyright = "2024"
-  finaleplugin.Version = "1.2&"
+  finaleplugin.Version = "1.2"
   finaleplugin.Date = "2024-02-06"
   finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
   finaleplugin.AdditionalMenuOptions = [[
@@ -30,12 +30,8 @@ replace_with_slur = replace_with_slur or false
 
 local tie = require("library.tie")
 local smartshape = require("library.smartshape")
-
-local music_region = finale.FCMusicRegion()
-music_region:SetCurrentSelection()
-if music_region:IsEmpty() then
-  music_region:SetFullDocument()
-end
+local library = require("library.general_library")
+local music_region = library.get_selected_region_or_whole_doc()
 
 for working_staff = music_region:GetStartStaff(), music_region:GetEndStaff() do
   for layer_num = 0, 3, 1 do
