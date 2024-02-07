@@ -246,7 +246,7 @@ end
 
 Localized version of `AddString`.
 
-@ self (FCMControl)
+@ self (FCMCtrlPopup)
 @ key (string | FCString) The key into the localization table. If there is no entry in the appropriate localization table, the key is the text.
 ]]
 methods.AddStringLocalized = mixin_helper.create_localized_proxy("AddString")
@@ -259,7 +259,7 @@ methods.AddStringLocalized = mixin_helper.create_localized_proxy("AddString")
 Adds multiple strings to the popup.
 
 @ self (FCMCtrlPopup)
-@ ... (table, FCStrings | FCString | string | number)
+@ ... (FCStrings | FCString | string | number)
 ]]
 function methods:AddStrings(...)
     mixin_helper.process_string_arguments(self, mixin.FCMCtrlPopup.AddString, ...)
@@ -273,7 +273,7 @@ end
 Adds multiple localized strings to the popup.
 
 @ self (FCMCtrlPopup)
-@ ... (string) keys of strings to be added. If no localization is found, the key is added.
+@ ... (FCStrings | FCString | string | number) keys of strings to be added. If no localization is found, the key is added.
 ]]
 function methods:AddStringsLocalized(...)
     mixin_helper.process_string_arguments(self, mixin.FCMCtrlPopup.AddStringLocalized, ...)

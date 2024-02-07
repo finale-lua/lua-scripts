@@ -250,6 +250,18 @@ function methods:AddString(str)
 end
 
 --[[
+% AddStringLocalized
+
+**[Fluid]**
+
+Localized version of `AddString`.
+
+@ self (FCMCtrlListBox)
+@ key (string | FCString, number) The key into the localization table. If there is no entry in the appropriate localization table, the key is the text.
+]]
+methods.AddStringLocalized = mixin_helper.create_localized_proxy("AddString")
+
+--[[
 % AddStrings
 
 **[Fluid]**
@@ -260,18 +272,21 @@ Adds multiple strings to the list box.
 @ ... (FCStrings | FCString | string | number)
 ]]
 function methods:AddStrings(...)
-    for i = 1, select("#", ...) do
-        local v = select(i, ...)
-        mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings")
+    mixin_helper.process_string_arguments(self, mixin.FCMCtrlListBox.AddString, ...)
+end
 
-        if type(v) == "userdata" and v:ClassName() == "FCStrings" then
-            for str in each(v) do
-                mixin.FCMCtrlListBox.AddString(self, str)
-            end
-        else
-            mixin.FCMCtrlListBox.AddString(self, v)
-        end
-    end
+--[[
+% AddStringsLocalized
+
+**[Fluid]**
+
+Adds multiple localized strings to the combobox.
+
+@ self (FCMCtrlListBox)
+@ ... (FCStrings | FCString | string | number) keys of strings to be added. If no localization is found, the key is added.
+]]
+function methods:AddStringsLocalized(...)
+    mixin_helper.process_string_arguments(self, mixin.FCMCtrlComboBox.AddStringLocalized, ...)
 end
 
 --[[

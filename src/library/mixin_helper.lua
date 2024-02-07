@@ -558,7 +558,7 @@ function mixin_helper.to_fcstring(value, fcstr)
     end
 
     fcstr = fcstr or finale.FCString()
-    fcstr.LuaString = tostring(value)
+    fcstr.LuaString = value == nil and "" or tostring(value)
     return fcstr
 end
 
@@ -568,7 +568,6 @@ end
 Casts a value to a Lua string. If the value is an `FCString`, it returns `LuaString`, otherwise it calls `tostring`.
 
 @ value (any)
-@ [fcstr] (FCString) An optional `FCString` object to populate to skip creating a new object.
 : (FCString)
 ]]
 
@@ -577,7 +576,7 @@ function mixin_helper.to_string(value)
         return value.LuaString
     end
 
-    return tostring(value)
+    return value == nil and "" or tostring(value)
 end
 
 --[[
@@ -637,19 +636,17 @@ Process multiple string arguments.
 
 @ self (class instance)
 @ method_func (function) A method on the class that accepts a single Lua `string` or `FCString` instance
-@ ... (table, FCStrings | FCString | string | number)
+@ ... (FCStrings | FCString | string | number)
 ]]
 function mixin_helper.process_string_arguments(self, method_func, ...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
-        mixin_helper.assert_argument_type(i + 1, v, "table", "string", "number", "FCString", "FCStrings")
+        mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings")
 
         if type(v) == "userdata" and v:ClassName() == "FCStrings" then
             for str in each(v) do
                 method_func(self, str)
             end
-        elseif type(v) == "table" then
-            mixin_helper.process_string_arguments(self, method_func, table.unpack(v))
         else
             method_func(self, v)
         end
