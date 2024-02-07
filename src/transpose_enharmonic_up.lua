@@ -54,11 +54,7 @@ function transpose_enharmonic_up()
         end
     end
     if not success then
-        finenv.UI():AlertError(
-            loc.localize(
-                "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged."),
-            loc.localize("Transposition Error")
-        )
+        finenv.UI():AlertError(loc.localize("error_msg_transposition"), loc.localize("transposition_error"))
     end
 end
 
