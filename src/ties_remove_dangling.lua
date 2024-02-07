@@ -33,19 +33,8 @@ local smartshape = require("library.smartshape")
 
 local music_region = finale.FCMusicRegion()
 music_region:SetCurrentSelection()
-
 if music_region:IsEmpty() then
-  local str1 = finale.FCString()
-  local str2 = finale.FCString()
-  str1.LuaString = "Process whole document?"
-  str2.LuaString = "No Selection."
-  local ui = finenv.UI()
-  local result = ui:AlertYesNo(str1.LuaString, str2.LuaString)
-  if result == 2 then
-    music_region:SetFullDocument()
-  else
-    goto bypass
-  end
+  music_region:SetFullDocument()
 end
 
 for working_staff = music_region:GetStartStaff(), music_region:GetEndStaff() do
