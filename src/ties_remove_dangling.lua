@@ -28,8 +28,8 @@ end
 
 replace_with_slur = replace_with_slur or false
 
-local tie = require("tie")
-local smartshape = require("smartshape")
+local tie = require("library.tie")
+local smartshape = require("library.smartshape")
 
 local music_region = finale.FCMusicRegion()
 music_region:SetFullDocument()
