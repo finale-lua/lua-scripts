@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.27"
-    finaleplugin.Date = "2024/02/03"
+    finaleplugin.Version = "0.28"
+    finaleplugin.Date = "2024/02/07"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         This script takes music from a nominated layer in the selected staff 
@@ -635,13 +635,8 @@ local function create_cue_notes()
 
     -- declare other local variables
     local ok, name_index, new_expression, destination_staves
-    if source_region:CalcStaffSpan() > 1 then
-        refocus()
-        return show_error("only_one_staff")
-    elseif region_is_empty(source_region, 0) then
-        refocus()
-        return show_error("empty_region")
-    end
+    if source_region:CalcStaffSpan() > 1 then show_error("only_one_staff") return end
+    if region_is_empty(source_region, 0) then show_error("empty_region") return end
 
     local cat_ID = -1 -- assume the CUE_NAMES category doesn't exist
     local cat_defs = finale.FCCategoryDefs()
@@ -670,8 +665,9 @@ local function create_cue_notes()
     if cat_ID < 0 then -- create a new Text Expression Category
         ok, cat_ID = new_expression_category(config.cue_category_name)
         if not ok then -- creation failed
+            show_error("make_expression_category")
             refocus()
-            return show_error("make_expression_category")
+            return
         end
     end
     -- choose cue name
@@ -686,8 +682,9 @@ local function create_cue_notes()
     ok, destination_staves = choose_destination_staff(start_staff)
     if not ok then refocus() return end
     if region_is_empty(source_region, config.source_layer) then
+        show_error("no_notes_in_source_layer")
         refocus()
-        return show_error("no_notes_in_source_layer")
+        return
     end
     -- make the cue copy
     for _, one_staff in ipairs(destination_staves) do
