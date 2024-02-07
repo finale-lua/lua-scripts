@@ -6,8 +6,8 @@ a `plugindef` function, because the Lua plugin does not load any dependencies wh
 
 **Executive Summary**
 
-- Create language tables containing each user-facing string as key with a translation as the value.
-- Save them in the `localization` subdirectory as shown below.
+- Create language tables containing each user-facing string as a value with a key. The key can be any string value.
+- Save the language tables in the `localization` subdirectory as shown below.
 - Use the `...Localized` methods with `mixin` or if not using `mixin`, require the `localization`
 library directly and wrap any user-facing string in a call to `localization.localize`.
 
@@ -23,6 +23,7 @@ src/
     my_highly_useful_script.lua
     localization/
         my_highly_useful_script/
+            Base.lua
             de.lua
             es.lua
             es_ES.lua
@@ -33,16 +34,29 @@ src/
 
 Each localization lua should return a table of keys and translations.
 
-Japanase:
+Base:
+
+```
+--
+-- Base.lua:
+--
+local t = {
+    hello = "Hello",
+    goodbye = "Goodbye",
+    computer =  "Computer" 
+}
+
+
+Japanese:
 
 ```
 --
 -- jp.lua:
 --
 local t = {
-    ["Hello"] = "今日は",
-    ["Goodbye"] = "さようなら",
-    ["Computer"] =  "コンピュータ" 
+    hello = "今日は",
+    goodbye = "さようなら",
+    computer =  "コンピュータ" 
 }
 
 return t
@@ -55,9 +69,9 @@ Spanish:
 -- es.lua:
 --
 local t = {
-    ["Hello"] = "Hola",
-    ["Goodbye"] = "Adiós",
-    ["Computer"] = "Computadora"
+    hello = "Hola",
+    goodbye = "Adiós",
+    computer = "Computadora"
 }
 
 return t
@@ -71,16 +85,17 @@ differ from the the fallback language table.
 -- es_ES.lua:
 --
 local t = {
-    ["Computer"] = "Ordenador"
+    computer = "Ordenador"
 }
 
 return t
 ```
 
-The keys do not have to be in English, but they should be the same in all tables. It is not necessary to provide
-a table for the language the keys are in. That is, if the keys are in English, it is not necessary to provide `en.lua`.
-If you wish to add another language, you simply add it to the subfolder for the script, and no further action is
-required.
+The keys do not have to be user-friendly strings, but they should be the same in all tables. The recommended
+approach is to provide a `Base.lua` table that contains fallback translations if no others or available.
+For example, if you want your fallback language to be English, provide `Base.lua` with English translations rather
+than providing `en.lua`. Any time you wish to add another language, you simply add it to the subfolder for the script,
+and no further action is required.
 
 The `mixin` library provides automatic localization with the `...Localized` methods. Localized versions of user-facing
 text-based `mixin` methods should be added as needed, if they do not already exist. If your script does not require the
@@ -175,7 +190,12 @@ function localization.localize(input_string)
 
     if #locale > 2 then
         t = get_localized_table(locale:sub(1, 2))
+        if t and t[input_string] then
+            return t[input_string]
+        end
     end
+
+    t = get_localized_table("Base")
     
     return t and t[input_string] or input_string
 end

@@ -568,7 +568,7 @@ end
 Casts a value to a Lua string. If the value is an `FCString`, it returns `LuaString`, otherwise it calls `tostring`.
 
 @ value (any)
-: (FCString)
+: (string)
 ]]
 
 function mixin_helper.to_string(value)

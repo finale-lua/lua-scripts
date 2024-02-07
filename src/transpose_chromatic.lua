@@ -1,6 +1,6 @@
 function plugindef(locale)
     local loc = {}
-    loc.en = {
+    loc.Base = {
         menu = "Transpose Chromatic",
         desc = "Chromatic transposition of selected region (supports microtone systems)."
     }
@@ -12,7 +12,7 @@ function plugindef(locale)
         menu = "Transponieren chromatisch",
         desc = "Chromatische Transposition des ausgewählten Abschnittes (unterstützt Mikrotonsysteme)."
     }
-    local t = locale and loc[locale:sub(1,2)] or loc.en
+    local t = locale and loc[locale:sub(1,2)] or loc.Base
     finaleplugin.RequireSelection = false
     finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"
@@ -60,32 +60,32 @@ local loc = require("library.localization")
 local utils = require("library.utils")
 
 interval_names = interval_names or {
-    "Perfect Unison",
-    "Augmented Unison",
-    "Diminished Second",
-    "Minor Second",
-    "Major Second",
-    "Augmented Second",
-    "Diminished Third",
-    "Minor Third",
-    "Major Third",
-    "Augmented Third",
-    "Diminished Fourth",
-    "Perfect Fourth",
-    "Augmented Fourth",
-    "Diminished Fifth",
-    "Perfect Fifth",
-    "Augmented Fifth",
-    "Diminished Sixth",
-    "Minor Sixth",
-    "Major Sixth",
-    "Augmented Sixth",
-    "Diminished Seventh",
-    "Minor Seventh",
-    "Major Seventh",
-    "Augmented Seventh",
-    "Diminished Octave",
-    "Perfect Octave"
+    "perfect_unison",
+    "augmented_unison",
+    "diminished_second",
+    "minor_second",
+    "major_second",
+    "augmented_second",
+    "diminished_third",
+    "minor_third",
+    "major_third",
+    "augmented_third",
+    "diminished_fourth",
+    "perfect_fourth",
+    "augmented_fourth",
+    "diminished_fifth",
+    "perfect_fifth",
+    "augmented_fifth",
+    "diminished_sixth",
+    "minor_sixth",
+    "major_sixth",
+    "augmented_sixth",
+    "diminished_seventh",
+    "minor_seventh",
+    "major_seventh",
+    "augmented_seventh",
+    "diminished_octave",
+    "perfect_octave"
 }
 
 interval_disp_alts = interval_disp_alts or {
@@ -124,10 +124,7 @@ function do_transpose_chromatic(direction, interval_index, simplify, plus_octave
         finenv.StartNewUndoBlock(undostr, true) -- JW Lua automatically terminates the final undo block we start here
     end
     if not success then
-        global_dialog:CreateChildUI():AlertErrorLocalized(
-            "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",
-            "Transposition Error"
-        )
+        global_dialog:CreateChildUI():AlertErrorLocalized("error_msg_transposition", "transposition_error")
     end
     return success
 end
@@ -140,40 +137,40 @@ function create_dialog_box()
     local x_increment = 85
     -- direction
     dialog:CreateStatic(0, current_y + 2, "direction_label")
-        :SetTextLocalized("Direction")
+        :SetTextLocalized("direction")
         :SetWidth(x_increment - 5)
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil)
     dialog:CreatePopup(x_increment, current_y, "direction_choice")
-        :AddStringsLocalized("Up", "Down"):SetWidth(x_increment)
+        :AddStringsLocalized("up", "down"):SetWidth(x_increment)
         :SetSelectedItem(0)
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil)
         :_FallbackCall("AssureNoHorizontalOverlap", nil, dialog:GetControl("direction_label"), 5)
     current_y = current_y + y_increment
     -- interval
     dialog:CreateStatic(0, current_y + 2, "interval_label")
-        :SetTextLocalized("Interval")
+        :SetTextLocalized("interval")
         :SetWidth(x_increment - 5)
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil)
     dialog:CreatePopup(x_increment, current_y, "interval_choice")
         :AddStringsLocalized(table.unpack(interval_names))
         :SetWidth(140)
         :SetSelectedItem(0)
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil)
         :_FallbackCall("AssureNoHorizontalOverlap", nil, dialog:GetControl("interval_label"), 5)
         :_FallbackCall("HorizontallyAlignLeftWith", nil, dialog:GetControl("direction_choice"))
     current_y = current_y + y_increment
     -- simplify checkbox
     dialog:CreateCheckbox(0, current_y + 2, "do_simplify")
-        :SetTextLocalized("Simplify Spelling")
+        :SetTextLocalized("simplify_spelling")
         :SetWidth(140)
         :SetCheck(0)
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil)
     current_y = current_y + y_increment
     -- plus octaves
     dialog:CreateStatic(0, current_y + 2, "plus_octaves_label")
-        :SetTextLocalized("Plus Octaves")
+        :SetTextLocalized("plus_octaves")
         :SetWidth(x_increment - 5)
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil)
     local edit_offset_x = utils.win_mac(0, 4)
     dialog:CreateEdit(x_increment + edit_offset_x, current_y, "plus_octaves")
         :SetText("")
@@ -182,18 +179,18 @@ function create_dialog_box()
     current_y = current_y + y_increment
     -- preserve existing notes
     dialog:CreateCheckbox(0, current_y + 2, "do_preserve")
-        :SetTextLocalized("Preserve Existing Notes")
+        :SetTextLocalized("preserve_existing")
         :SetWidth(140)
         :SetCheck(0)
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil)
     current_y = current_y + y_increment -- luacheck: ignore
     -- OK/Cxl
     dialog:CreateOkButton()
-        :SetTextLocalized("OK")
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :SetTextLocalized("ok")
+        :_FallbackCall("DoAutoResizeWidth", nil)
     dialog:CreateCancelButton()
-        :SetTextLocalized("Cancel")
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :SetTextLocalized("cancel")
+        :_FallbackCall("DoAutoResizeWidth", nil)
     -- registrations
     dialog:RegisterHandleOkButtonPressed(function(self)
             local direction = 1 -- up

@@ -1,6 +1,6 @@
 function plugindef(locale)
     local loc = {}
-    loc.en = {
+    loc.Base = {
         menu = "Transpose By Steps",
         desc = "Transpose by the number of steps given, simplifying the note spelling as needed."
     }
@@ -12,7 +12,7 @@ function plugindef(locale)
         menu = "Transponieren nach Schritten",
         desc = "Transponieren nach der angegebenen Anzahl von Schritten und vereinfachen die Notation nach Bedarf.",
     }
-    local t = locale and loc[locale:sub(1,2)] or loc.en
+    local t = locale and loc[locale:sub(1,2)] or loc.Base
     finaleplugin.RequireSelection = false
     finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"
@@ -99,7 +99,7 @@ function create_dialog_box()
     dialog:CreateStatic(0, current_y + 2, "steps_label")
         :SetTextLocalized("Number Of Steps")
         :SetWidth(x_increment - 5)
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil)
     local edit_x = x_increment + utils.win_mac(0, 4)
     dialog:CreateEdit(edit_x, current_y, "num_steps")
         :SetText("")
@@ -107,10 +107,10 @@ function create_dialog_box()
     -- ok/cancel
     dialog:CreateOkButton()
         :SetTextLocalized("OK")
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil)
     dialog:CreateCancelButton()
         :SetTextLocalized("Cancel")
-        :_FallbackCall("DoAutoResizeWidth", nil, true)
+        :_FallbackCall("DoAutoResizeWidth", nil)
     -- registrations
     dialog:RegisterHandleOkButtonPressed(function(self)
         do_transpose_by_step(self:GetControl("num_steps"):GetInteger())

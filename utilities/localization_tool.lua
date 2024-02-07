@@ -179,8 +179,8 @@ as a localization.
 ]]
 local function create_localized_base_table_string(file_path)
     local t = create_localized_base_table(file_path)
-    local locale = mixin.UI():GetUserLocaleName()
-    local table_text = make_flat_table_string(file_path, locale:sub(1, 2), t)
+    local locale = "Base"
+    local table_text = make_flat_table_string(file_path, locale, t)
     global_contents[file_path] = table_text
     set_edit_text(table_text)
     -- finenv.UI():AlertInfo("localization_base table copied to clipboard", "")
@@ -448,11 +448,11 @@ local function on_plugindef(_control)
                 if not locale_exists then
                     plugindef_function[1] = "function plugindef(locale)"
                 end
-                local locale = mixin.UI():GetUserLocaleName()
+                local locale = "Base"
                 table.insert(plugindef_function, 2, tab_str .. "local loc = {}")
-                table.insert(plugindef_function, 3, tab_str .. "loc." .. locale:sub(1, 2) .. " = " .. base_strings)
+                table.insert(plugindef_function, 3, tab_str .. "loc." .. locale .. " = " .. base_strings)
                 table.insert(plugindef_function, 4,
-                    tab_str .. "local t = locale and loc[locale:sub(1, 2)] or loc." .. locale:sub(1, 2))
+                    tab_str .. "local t = locale and loc[locale:sub(1, 2)] or loc." .. locale)
             end
             mixin.UI():TextToClipboard(table.concat(plugindef_function, "\n") .. "\n")
             mixin.UI():AlertInfo("Localized plugindef function copied to clipboard.", "")
@@ -489,8 +489,7 @@ local function create_dialog()
         :AssureNoHorizontalOverlap(dlg:GetControl("open"), x_separator)
         :AddHandleCommand(on_popup)
     dlg:CreateComboBox(0, curr_y, "lang_list")
-        :SetWidth(0)
-        :DoAutoResizeWidth()
+        :DoAutoResizeWidth(0)
         :AddStrings(table.unpack(utils.create_keys_table(finale_supported_languages)))
         :SetText("Spanish")
     curr_y = curr_y + button_height

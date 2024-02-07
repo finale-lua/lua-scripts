@@ -198,8 +198,7 @@ function create_dialog()
 
     -- left side
     dlg:CreateStatic(0, line_no * y_increment, "option1-label")
-        :DoAutoResizeWidth()
-        :SetWidth(0)
+        :DoAutoResizeWidth(0)
         :SetTextLocalized("First Option")
     dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option1")
         :SetInteger(1)
@@ -207,14 +206,12 @@ function create_dialog()
     line_no = line_no + 1
 
     dlg:CreateCheckbox(0, line_no * y_increment, "left-checkbox1")
-        :DoAutoResizeWidth()
-        :SetWidth(0)
+        :DoAutoResizeWidth(0)
         :SetTextLocalized("Left Checkbox Option 1")
     line_no = line_no + 1
 
     dlg:CreateStatic(0, line_no * y_increment, "option2-label")
-        :DoAutoResizeWidth()
-        :SetWidth(0)
+        :DoAutoResizeWidth(0)
         :SetTextLocalized("Second Option")
     dlg:CreateEdit(10, line_no * y_increment - utils.win_mac(2, 3), "option2")
         :SetInteger(2)
@@ -223,8 +220,7 @@ function create_dialog()
     line_no = line_no + 1
 
     dlg:CreateCheckbox(0, line_no * y_increment, "left-checkbox2")
-        :DoAutoResizeWidth()
-        :SetWidth(0)
+        :DoAutoResizeWidth(0)
         :SetTextLocalized("Left Checkbox Option 2")
     line_no = line_no + 1
 
@@ -238,8 +234,7 @@ function create_dialog()
 
     -- right side
     dlg:CreateStatic(0, line_no * y_increment, "option3-label")
-        :DoAutoResizeWidth()
-        :SetWidth(0)
+        :DoAutoResizeWidth(0)
         :SetTextLocalized("Third Option")
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
     dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option3")
@@ -248,16 +243,14 @@ function create_dialog()
     line_no = line_no + 1
 
     dlg:CreateCheckbox(0, line_no * y_increment, "right-checkbox1")
-        :DoAutoResizeWidth()
-        :SetWidth(0)
+        :DoAutoResizeWidth(0)
         :SetTextLocalized("Right Three-State Option")
         :SetThreeStatesMode(true)
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
     line_no = line_no + 1
 
     dlg:CreateStatic(0, line_no * y_increment, "option4-label")
-        :DoAutoResizeWidth()
-        :SetWidth(0)
+        :DoAutoResizeWidth(0)
         :SetTextLocalized("Fourth Option")
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
     dlg:CreateEdit(0, line_no * y_increment - utils.win_mac(2, 3), "option4")
@@ -268,7 +261,6 @@ function create_dialog()
 
     dlg:CreateButton(0, line_no * y_increment)
         :DoAutoResizeWidth()
-        :SetWidth(0)
         :SetTextLocalized("Action Button")
         :AssureNoHorizontalOverlap(vertical_line, center_padding)
         :HorizontallyAlignRightWith(dlg:GetControl("option4"))
@@ -283,12 +275,10 @@ function create_dialog()
     -- bottom side
     local start_line_no = line_no
     dlg:CreateStatic(0, line_no * y_increment, "popup_label")
-        :DoAutoResizeWidth()
-        :SetWidth(0)
+        :DoAutoResizeWidth(0)
         :SetTextLocalized("Menu")
     local ctrl_popup = dlg:CreatePopup(0, line_no * y_increment - utils.win_mac(2, 2), "popup")
-        :DoAutoResizeWidth()
-        :SetWidth(0)
+        :DoAutoResizeWidth(0)
         :AssureNoHorizontalOverlap(dlg:GetControl("popup_label"), label_edit_separ)
     for counter = 1, 3 do
         if counter == 3 then
@@ -301,12 +291,10 @@ function create_dialog()
     line_no = line_no + 1
 
     dlg:CreateStatic(0, line_no * y_increment, "cbobox_label")
-        :DoAutoResizeWidth()
-        :SetWidth(0)
+        :DoAutoResizeWidth(0)
         :SetTextLocalized("Choices")
     local ctrl_cbobox = dlg:CreateComboBox(0, line_no * y_increment - utils.win_mac(2, 3), "cbobox")
-        :DoAutoResizeWidth()
-        :SetWidth(40)
+        :DoAutoResizeWidth(40)
         :AssureNoHorizontalOverlap(dlg:GetControl("cbobox_label"), label_edit_separ)
         :HorizontallyAlignLeftWith(ctrl_popup)
     for counter = 1, 3 do
@@ -323,8 +311,7 @@ function create_dialog()
     local ctrl_radiobuttons = dlg:CreateRadioButtonGroup(0, line_no * y_increment, 3)
     local counter = 1
     for rbtn in each(ctrl_radiobuttons) do
-        rbtn:SetWidth(0)
-            :DoAutoResizeWidth()
+        rbtn:DoAutoResizeWidth(0)
             :AssureNoHorizontalOverlap(ctrl_popup, 10)
             :AssureNoHorizontalOverlap(ctrl_cbobox, 10)
         if counter == 2 then
