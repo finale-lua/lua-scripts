@@ -220,7 +220,7 @@ If using the parent window's measurement unit, it will be automatically updated 
 @ value (number) Value in 10000ths of an EVPU
 @ [measurementunit] (number | nil) Forces the value to be displayed in this measurement unit. Can only be omitted if parent window is `FCMCustomLuaWindow`.
 ]]
-function methods:SetMeasurementEfix(value, measurementunit)
+function methods:SetMeasurement10000th(value, measurementunit)
     mixin_helper.assert_argument_type(2, value, "number")
     mixin_helper.assert_argument_type(3, measurementunit, "number", "nil")
 
