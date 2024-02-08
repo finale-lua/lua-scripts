@@ -1,6 +1,6 @@
 function plugindef(locale)
     local loc = {}
-    loc.Base = {
+    loc.en = {
         menu = "Transpose By Steps",
         desc = "Transpose by the number of steps given, simplifying the note spelling as needed."
     }
@@ -12,7 +12,7 @@ function plugindef(locale)
         menu = "Transponieren nach Schritten",
         desc = "Transponieren nach der angegebenen Anzahl von Schritten und vereinfachen die Notation nach Bedarf.",
     }
-    local t = locale and loc[locale:sub(1,2)] or loc.Base
+    local t = locale and loc[locale:sub(1,2)] or loc.en
     finaleplugin.RequireSelection = false
     finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"

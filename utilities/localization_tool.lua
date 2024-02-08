@@ -136,6 +136,22 @@ local function create_localized_base_table(file_path)
     return retval
 end
 
+local function generate_key_candidate(input_string)
+    local process_string = input_string:gsub("[%p%c%s]", " ")
+    local words = {}
+    for word in process_string:gmatch("%S+") do
+        table.insert(words, word)
+    end
+    if #words <= 0 then
+        return process_string:lower()
+    end
+    local first_three = {}
+    for i = 1, math.min(3, #words) do
+        table.insert(first_three, words[i])
+    end
+    return table.concat(first_three, "_"):lower()
+end
+
 local function make_flat_table_string(file_path, lang, t)
     local file_name = finale.FCString()
     finale.FCString(file_path):SplitToPathAndFile(nil, file_name)
@@ -145,7 +161,7 @@ local function make_flat_table_string(file_path, lang, t)
     table.insert(concat, "--\n")
     table.insert(concat, "loc = {\n")
     for k, v in pairsbykeys(t) do
-        table.insert(concat, tab_str .. "[\"" .. tostring(k) .. "\"] = \"" .. tostring(v) .. "\",\n")
+        table.insert(concat, tab_str .. generate_key_candidate(v) .. " = \"" .. tostring(v) .. "\",\n")
     end
     table.insert(concat, "}\n\nreturn loc\n")
     return table.concat(concat)
@@ -179,7 +195,7 @@ as a localization.
 ]]
 local function create_localized_base_table_string(file_path)
     local t = create_localized_base_table(file_path)
-    local locale = "Base"
+    local locale = "en"
     local table_text = make_flat_table_string(file_path, locale, t)
     global_contents[file_path] = table_text
     set_edit_text(table_text)
@@ -448,7 +464,7 @@ local function on_plugindef(_control)
                 if not locale_exists then
                     plugindef_function[1] = "function plugindef(locale)"
                 end
-                local locale = "Base"
+                local locale = "en"
                 table.insert(plugindef_function, 2, tab_str .. "local loc = {}")
                 table.insert(plugindef_function, 3, tab_str .. "loc." .. locale .. " = " .. base_strings)
                 table.insert(plugindef_function, 4,

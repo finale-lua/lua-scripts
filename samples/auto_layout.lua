@@ -18,7 +18,7 @@ local localization = require('library.localization')
 -- This table was auto-generated with `utilities/localization_tool.lua`
 -- Then it was edited to include only the strings that need to be localized.
 --
-localization.Base = -- this is en_GB due to spelling of "Localisation"
+localization.en = -- this is en_GB due to spelling of "Localisation"
 {
     action_button = "Action Button",
     choices = "Choices",

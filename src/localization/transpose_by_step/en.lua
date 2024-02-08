@@ -1,5 +1,5 @@
 --
--- Localization Base.lua for transpose_by_step.lua
+-- Localization en.lua for transpose_by_step.lua
 --
 local loc = {
     error_msg_transposition = "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",

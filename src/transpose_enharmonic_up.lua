@@ -1,6 +1,6 @@
 function plugindef(locale)
     local loc = {}
-    loc.Base = {
+    loc.en = {
         menu = "Enharmonic Transpose Up",
         desc = "Transpose up enharmonically all notes in the selected region."
     }
@@ -12,7 +12,7 @@ function plugindef(locale)
         menu = "Enharmonische Transposition nach oben",
         desc = "Transponieren alle Noten im ausgewählten Abschnitt enharmonisch nach oben.",
     }
-    local t = locale and loc[locale:sub(1,2)] or loc.Base
+    local t = locale and loc[locale:sub(1,2)] or loc.en
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"

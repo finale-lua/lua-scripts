@@ -1,6 +1,6 @@
 function plugindef(locale)
     local loc = {}
-    loc.Base = {
+    loc.en = {
         addl_menus = [[
             Move Lyric Baselines Up
             Reset Lyric Baselines
@@ -72,7 +72,7 @@ function plugindef(locale)
         menu = "Mover las líneas de referencia de las letras hacia abajo",
         desc = "Mueve todas las líneas de referencia de las letras un espacio hacia abajo en los sistemas de pentagramas seleccionadas",
     }
-    local t = locale and loc[locale:sub(1, 2)] or loc.Base
+    local t = locale and loc[locale:sub(1, 2)] or loc.en
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Version = "1.1"

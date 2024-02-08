@@ -2,13 +2,13 @@
 $module Localization
 
 This library provides localization services to scripts. Note that this library cannot be used inside
-a `plugindef` function, because the Lua plugin does not load any dependencies when it calls `plugindef`.
+a `plugindef` function, because the Lua plugin for Finale does not load any dependencies when it calls `plugindef`.
 
 **Executive Summary**
 
 - Create language tables containing each user-facing string as a value with a key. The key can be any string value.
 - Save the language tables in the `localization` subdirectory as shown below.
-- Use the `...Localized` methods with `mixin` or if not using `mixin`, require the `localization`
+- Use the `*Localized` methods with `mixin` or if not using `mixin`, require the `localization`
 library directly and wrap any user-facing string in a call to `localization.localize`.
 
 **Details**
@@ -23,8 +23,8 @@ src/
     my_highly_useful_script.lua
     localization/
         my_highly_useful_script/
-            Base.lua
             de.lua
+            en.lua
             es.lua
             es_ES.lua
             jp.lua
@@ -34,11 +34,11 @@ src/
 
 Each localization lua should return a table of keys and translations.
 
-Base:
+English:
 
 ```
 --
--- Base.lua:
+-- en.lua:
 --
 local t = {
     hello = "Hello",
@@ -91,10 +91,10 @@ local t = {
 return t
 ```
 
-The keys do not have to be user-friendly strings, but they should be the same in all tables. The recommended
-approach is to provide a `Base.lua` table that contains fallback translations if no others or available.
-For example, if you want your fallback language to be English, provide `Base.lua` with English translations rather
-than providing `en.lua`. Any time you wish to add another language, you simply add it to the subfolder for the script,
+The keys do not have to be user-friendly strings, but they should be the same in all tables. The default
+fallback language is `en.lua` (English). These will be used if no languges exists that matches the user's
+preferences. You can override this default with a different language by calling `set_fallback_locale`.
+Any time you wish to add another language, you simply add it to the subfolder for the script,
 and no further action is required.
 
 The `mixin` library provides automatic localization with the `...Localized` methods. Localized versions of user-facing
@@ -121,6 +121,8 @@ local locale = (function()
         end
         return "en_US"
     end)()
+
+local fallback_locale = "en"
 
 local script_name = library.calc_script_name()
 
@@ -151,6 +153,29 @@ function localization.get_locale()
     return locale
 end
 
+--[[
+% set_fallback_locale
+
+Sets the fallback locale to a specified value. This value is used when no locale exists that matches the user's
+set locale. The default is "en".
+
+@ input_locale (string) the 2-letter lowercase language code or 5-character regional locale code
+]]
+function localization.set_fallback_locale(input_locale)
+    fallback_locale = input_locale:gsub("-", "_")
+end
+
+--[[
+% get_fallback_locale
+
+Returns the fallback locale value that the localization library is using. See `set_fallback_locale` for more information.
+
+: (string) the current fallback locale string that the localization library is using
+]]
+function localization.get_fallback_locale()
+    return fallback_locale
+end
+
 -- This function finds a localization string table if it exists or requires it if it doesn't.
 local function get_localized_table(try_locale)
     if type(localization[try_locale]) == "table" then
@@ -165,6 +190,20 @@ local function get_localized_table(try_locale)
         localization[try_locale] = {}
     end
     return localization[try_locale]
+end
+
+local function try_locale_or_language(try_locale)
+    local t = get_localized_table(try_locale)
+    if t then
+        return t
+    end
+    if #try_locale > 2 then
+        t = get_localized_table(try_locale:sub(1, 2))
+        if t then
+            return t
+        end
+    end
+    return nil
 end
 
 --[[
@@ -183,19 +222,12 @@ function localization.localize(input_string)
     end
     assert(type(locale) == "string", "invalid locale setting " .. tostring(locale))
     
-    local t = get_localized_table(locale)
+    local t = try_locale_or_language(locale)
     if t and t[input_string] then
         return t[input_string]
     end
 
-    if #locale > 2 then
-        t = get_localized_table(locale:sub(1, 2))
-        if t and t[input_string] then
-            return t[input_string]
-        end
-    end
-
-    t = get_localized_table("Base")
+    t = get_localized_table(fallback_locale)
     
     return t and t[input_string] or input_string
 end

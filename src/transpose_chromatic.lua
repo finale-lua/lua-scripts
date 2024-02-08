@@ -1,6 +1,6 @@
 function plugindef(locale)
     local loc = {}
-    loc.Base = {
+    loc.en = {
         menu = "Transpose Chromatic",
         desc = "Chromatic transposition of selected region (supports microtone systems)."
     }
@@ -12,7 +12,7 @@ function plugindef(locale)
         menu = "Transponieren chromatisch",
         desc = "Chromatische Transposition des ausgewählten Abschnittes (unterstützt Mikrotonsysteme)."
     }
-    local t = locale and loc[locale:sub(1,2)] or loc.Base
+    local t = locale and loc[locale:sub(1,2)] or loc.en
     finaleplugin.RequireSelection = false
     finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"
