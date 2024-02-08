@@ -306,6 +306,9 @@ function utils.show_notes_dialog(caption, width, height, parent)
     if not finaleplugin.RTFNotes and not finaleplugin.Notes then
         return
     end
+    if parent then
+        assert(parent.ExecuteModal, "argument 4 must be nil or an instance of FCResourceWindow")
+    end
 
     local function dedent(input)
         local first_line_indent = input:match("^(%s*)")
@@ -353,9 +356,6 @@ function utils.show_notes_dialog(caption, width, height, parent)
 
         width = width or 500
         height = height or 350
-        if (parent and not parent.ExecuteModal) then
-            parent = nil -- probably not a valid window object
-        end
         
         local dlg = finale.FCCustomLuaWindow()
         dlg:SetTitle(finale.FCString(caption))
