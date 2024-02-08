@@ -1147,7 +1147,7 @@ package.preload["mixin.FCMCtrlStatic"] = package.preload["mixin.FCMCtrlStatic"] 
         set_measurement(self, "MeasurementEfix", measurementunit, value)
     end
 
-    function methods:SetMeasurementEfix(value, measurementunit)
+    function methods:SetMeasurement10000th(value, measurementunit)
         mixin_helper.assert_argument_type(2, value, "number")
         mixin_helper.assert_argument_type(3, measurementunit, "number", "nil")
         set_measurement(self, "Measurement10000th", measurementunit, value)
