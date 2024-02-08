@@ -300,8 +300,9 @@ Displays a modal dialog with the contents of finaleplugin.RFTNotes (if present) 
 @ caption (string) The caption for the dialog. Defaults to plugin name and version.
 @ width (number) The width in pixels of the edit control. Defaults to 500.
 @ height (number) The height inpixels of the edit control. Defaults to 350.
+@ parent (FCWindow) The parent window (if any) that is opening this dialog
 ]]
-function utils.show_notes_dialog(caption, width, height)
+function utils.show_notes_dialog(caption, width, height, parent)
     if not finaleplugin.RTFNotes and not finaleplugin.Notes then
         return
     end
@@ -352,6 +353,9 @@ function utils.show_notes_dialog(caption, width, height)
 
         width = width or 500
         height = height or 350
+        if (parent and not parent.ExecuteModal) then
+            parent = nil -- probably not a valid window object
+        end
         
         local dlg = finale.FCCustomLuaWindow()
         dlg:SetTitle(finale.FCString(caption))
@@ -379,7 +383,7 @@ function utils.show_notes_dialog(caption, width, height)
                 edit_text:ResetColors()
                 ok:SetKeyboardFocus()
             end)
-        dlg:ExecuteModal(nil)
+        dlg:ExecuteModal(parent)
     end
 end
 
