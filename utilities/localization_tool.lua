@@ -161,7 +161,7 @@ local function make_flat_table_string(file_path, lang, t)
     table.insert(concat, "--\n")
     table.insert(concat, "loc = {\n")
     for k, v in pairsbykeys(t) do
-        table.insert(concat, tab_str .. generate_key_candidate(v) .. " = \"" .. tostring(v) .. "\",\n")
+        table.insert(concat, tab_str .. generate_key_candidate(k) .. " = \"" .. tostring(v) .. "\",\n")
     end
     table.insert(concat, "}\n\nreturn loc\n")
     return table.concat(concat)
