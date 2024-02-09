@@ -37,8 +37,6 @@ local loc = {
     simplify_spelling = "Simplify Spelling",
     transposition_error = "Transposition Error",
     up = "Up",
-    ok = "OK",
-    cancel = "Cancel",
 }
 
 return loc

@@ -185,12 +185,8 @@ function create_dialog_box()
         :_FallbackCall("DoAutoResizeWidth", nil)
     current_y = current_y + y_increment -- luacheck: ignore
     -- OK/Cxl
-    dialog:CreateOkButton()
-        :SetTextLocalized("ok")
-        :_FallbackCall("DoAutoResizeWidth", nil)
-    dialog:CreateCancelButton()
-        :SetTextLocalized("cancel")
-        :_FallbackCall("DoAutoResizeWidth", nil)
+    dialog:CreateOkButtonAutoLocalized()
+    dialog:CreateCancelButtonAutoLocalized()
     -- registrations
     dialog:RegisterHandleOkButtonPressed(function(self)
             local direction = 1 -- up

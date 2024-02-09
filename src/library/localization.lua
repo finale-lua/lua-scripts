@@ -112,6 +112,7 @@ is running with.
 local localization = {}
 
 local library = require("library.general_library")
+local utils = require("library.utils")
 
 local locale = (function()
         if finenv.UI().GetUserLocaleName then
@@ -125,6 +126,8 @@ local locale = (function()
 local fallback_locale = "en"
 
 local script_name = library.calc_script_name()
+
+local tried_locales = {} -- track which locales we've tried to load
 
 --[[
 % set_locale
@@ -176,20 +179,52 @@ function localization.get_fallback_locale()
     return fallback_locale
 end
 
--- This function finds a localization string table if it exists or requires it if it doesn't.
-local function get_localized_table(try_locale)
-    if type(localization[try_locale]) == "table" then
-        return localization[try_locale]
-    end
+local function get_original_locale_table(try_locale)
     local require_library = "localization" .. "." .. script_name .. "." .. try_locale
     local success, result = pcall(function() return require(require_library) end)
     if success and type(result) == "table" then
-        localization[try_locale] = result
-    else
+        return result
+    end
+    return nil
+end
+
+-- This function finds a localization string table if it exists or requires it if it doesn't.
+-- AutoLocalize functions can add key/value pairs separately, so preserve them if they are there.
+local function get_localized_table(try_locale)
+    local table_exists = type(localization[try_locale]) == "table"
+    if not table_exists or not tried_locales[try_locale] then
+        assert(table_exists or type(localization[try_locale]) == "nil",
+                    "incorrect type for localization[" .. try_locale .. "]; got " .. type(localization[try_locale]))
+        local original_table = get_original_locale_table(try_locale)
+        if type(original_table) == "table" then
+            -- this overwrites previously added values if they exist in the newly required localization table,
+            -- but it preserves the previously added values if they don't exist in the newly required table.
+            localization[try_locale] = utils.copy_table(original_table, localization[try_locale])
+        end
         -- doing this allows us to only try to require it once
-        localization[try_locale] = {}
+        tried_locales[try_locale] = true
     end
     return localization[try_locale]
+end
+
+--[[
+% add_to_locale
+
+Adds values to to the locale table, but only if the locale table already exists. If a utility function needs
+to expand a locale table, it should use this function. This function does not replace keys that already exist.
+
+@ (try_locale) the locale to add to
+@ (table) the key/value pairs to add
+: (boolean) true if addded
+]]
+function localization.add_to_locale(try_locale, t)
+    if type(localization[try_locale]) ~= "table" then
+        if not get_original_locale_table(try_locale) then
+            return false
+        end
+    end
+    localization[try_locale] = utils.copy_table(t, localization[try_locale], false)
+    return true
 end
 
 local function try_locale_or_language(try_locale)

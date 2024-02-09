@@ -11,16 +11,25 @@ local utils = {}
 If a table is passed, returns a copy, otherwise returns the passed value.
 
 @ t (mixed)
+@ [to_table] (table) the existing top-level table to copy to if present. (Sub-tables are always copied to new tables.)
+@ [overwrite] (boolean) if true, overwrites existing values; if false, does not copy over existing values. Default is true.
 : (mixed)
 ]]
 ---@generic T
 ---@param t T
 ---@return T
-function utils.copy_table(t)
+function utils.copy_table(t, to_table, overwrite)
+    overwrite = (overwrite == nil) and true or false
     if type(t) == "table" then
-        local new = {}
+        local new = type(to_table) == "table" and to_table or {}
         for k, v in pairs(t) do
-            new[utils.copy_table(k)] = utils.copy_table(v)
+            local new_key = utils.copy_table(k)
+            local new_value = utils.copy_table(v)
+            if overwrite then
+                new[new_key] = new_value
+            else
+                new[new_key] = new[new_key] == nil and new_value or new[new_key]
+            end
         end
         setmetatable(new, utils.copy_table(getmetatable(t)))
         return new

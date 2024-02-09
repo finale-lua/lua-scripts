@@ -140,7 +140,7 @@ The followimg types can be specified:
 *NOTE: This function will only assert if in debug mode (ie `finenv.DebugEnabled == true`). If assertions are always required, use `force_assert_argument_type` instead.*
 
 @ argument_number (number | string) The REAL argument number for the error message (self counts as argument #1). If the argument is a string, it should
-start with a number.
+start with a number that is the real argument number.
 @ value (any) The value to test.
 @ ... (string) Valid types (as many as needed). Can be standard Lua types, Finale class names, or mixin class names.
 ]]

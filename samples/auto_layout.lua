@@ -5,7 +5,6 @@ function plugindef()
 end
 
 local utils = require('library.utils')
-local mixin = require('library.mixin')
 local localization = require('library.localization')
 
 --
@@ -22,7 +21,7 @@ localization.en = -- this is en_GB due to spelling of "Localisation"
 {
     action_button = "Action Button",
     choices = "Choices",
-    close = "Close",
+    --close = "Close", -- provide by mixin
     first_option = "First Option",
     fourth_option = "Fourth Option",
     left_checkbox1 = "Left Checkbox Option 1",
@@ -49,7 +48,7 @@ localization.en_US =
 localization.es = {
     action_button = "Botón de Acción",
     choices = "Opciones",
-    close = "Cerrar",
+    -- close = "Cerrar", -- provided by mixin
     first_option = "Primera Opción",
     fourth_option = "Cuarta Opción",
     left_checkbox1 = "Opción de Casilla de Verificación Izquierda 1",
@@ -93,7 +92,7 @@ localization.ja = {
 localization.de = {
     action_button = "Aktionsknopf",
     choices = "Auswahlmöglichkeiten",
-    close = "Schließen",
+    --close = "Schließen", -- provided by mixin
     first_option = "Erste Option",
     fourth_option = "Vierte Option",
     left_checkbox1 = "Linke Checkbox Option 1",
@@ -185,7 +184,12 @@ localization.fa = {
     longer_option_text = "این متن گزینه طولانی تر است %d",
 }
 
-localization.set_locale("es")
+-- mixin should be required after any embedded localizations, to allow the
+-- *AutoLocalized functions to work. This only matters when localizations are
+-- embedded in the main script.
+local mixin = require('library.mixin')
+
+localization.set_locale("fa")
 
 function create_dialog()
     local dlg = mixin.FCXCustomLuaWindow()
@@ -329,9 +333,7 @@ function create_dialog()
     end
     line_no = line_no + 2
 
-    dlg:CreateCloseButton(0, line_no * y_increment + 5)
-        :SetTextLocalized("close")
-        :DoAutoResizeWidth()
+    dlg:CreateCloseButtonAutoLocalized(0, line_no * y_increment + 5)
         :HorizontallyAlignRightWithFurthest()
 
     return dlg
