@@ -45,11 +45,11 @@ Override Changes:
 fcmstrings.AddCopies(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L46)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L56)
 
 Same as `AddCopy`, but accepts multiple arguments so that multiple values can be added at a time.
 
-@ ... (FCStrings | FCString | string | number) `number`s will be cast to `string`
+@ ... (FCStrings | FCString | string | number | table) `number`s will be cast to `string`
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -61,7 +61,7 @@ Same as `AddCopy`, but accepts multiple arguments so that multiple values can be
 fcmstrings.Find(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L72)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L70)
 
 **[Override]**
 
@@ -83,7 +83,7 @@ Override Changes:
 fcmstrings.FindNocase(self, str)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L90)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L88)
 
 **[Override]**
 
@@ -105,7 +105,7 @@ Override Changes:
 fcmstrings.LoadFolderFiles(self, folderstring)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L108)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L106)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -124,7 +124,7 @@ Override Changes:
 fcmstrings.LoadSubfolders(self, folderstring)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L126)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L124)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -143,7 +143,7 @@ Override Changes:
 fcmstrings.LoadSymbolFonts(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L142)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L140)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -160,7 +160,7 @@ Override Changes:
 fcmstrings.LoadSystemFontNames(self)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L156)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L154)
 
 **[Breaking Change] [Fluid] [Override]**
 
@@ -177,9 +177,9 @@ Override Changes:
 fcmstrings.InsertStringAt(self, str, index)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L173)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMStrings.lua#L171)
 
-**[>= v0.59] [Fluid] [Override]**
+**[>= v0.68] [Fluid] [Override]**
 
 Override Changes:
 - Accepts Lua `string` and `number` in addition to `FCString`.

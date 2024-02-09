@@ -6,7 +6,7 @@ package.preload["library.client"] = package.preload["library.client"] or functio
     end
     local function requires_later_plugin_version(feature)
         if feature then
-            return "This script uses " .. to_human_string(feature) .. "which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
+            return "This script uses " .. to_human_string(feature) .. " which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
         end
         return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
     end
@@ -74,6 +74,10 @@ package.preload["library.client"] = package.preload["library.client"] or functio
             test = finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1),
             error = requires_finale_version("27.1", "a SMUFL font"),
         },
+        luaosutils = {
+            test = finenv.EmbeddedLuaOSUtils,
+            error = requires_later_plugin_version("the embedded luaosutils library")
+        }
     }
 
     function client.supports(feature)
@@ -93,6 +97,16 @@ package.preload["library.client"] = package.preload["library.client"] or functio
             error("Your Finale version does not support " .. to_human_string(feature), error_level)
         end
         return true
+    end
+
+    function client.encode_with_client_codepage(input_string)
+        if client.supports("luaosutils") then
+            local text = require("luaosutils").text
+            if text and text.get_default_codepage() ~= text.get_utf8_codepage() then
+                return text.convert_encoding(input_string, text.get_utf8_codepage(), text.get_default_codepage())
+            end
+        end
+        return input_string
     end
     return client
 end

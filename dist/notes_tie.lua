@@ -716,7 +716,7 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
             if end_note then
                 local next_stemdir = end_note.Entry:CalcStemUp() and 1 or -1
                 end_placement = calc_placement_for_endpoint(end_note, tie_mod, tie_prefs, direction, next_stemdir, true)
-            else
+            elseif start_note then
 
 
 
@@ -867,7 +867,7 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
                 horz_end = next_cell_metrics.MusicStartPos * staff_scaling
             end
             horz_end = horz_end / horz_stretch
-        else
+        elseif start_note then
             local entry_metrics = tie_mod:IsStartTie() and entry_metrics_end or entry_metrics_start
             local note_index = start_note.NoteIndex
             if end_note then

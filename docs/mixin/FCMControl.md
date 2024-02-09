@@ -31,6 +31,7 @@
 - [RestoreState(self)](#restorestate)
 - [AddHandleCommand(self, callback)](#addhandlecommand)
 - [RemoveHandleCommand(self, callback)](#removehandlecommand)
+- [SetTextLocalized(self, key)](#settextlocalized)
 
 ### Init
 
@@ -454,3 +455,20 @@ Removes a handler added with `AddHandleCommand`.
 | ----- | ---- | ----------- |
 | `self` | `FCMControl` |  |
 | `callback` | `function` |  |
+
+### SetTextLocalized
+
+```lua
+fcmcontrol.SetTextLocalized(self, key)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMControl.lua#L408)
+
+**[Fluid]**
+
+Removes a handler added with `AddHandleCommand`.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `FCMControl` |  |
+| `key` | `string` | The key into the localization table. If there is no entry in the appropriate localization table, the key is the text. |

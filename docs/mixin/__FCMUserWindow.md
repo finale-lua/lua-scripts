@@ -8,6 +8,8 @@
 
 - [GetTitle(self, title)](#gettitle)
 - [SetTitle(self, title)](#settitle)
+- [SetTitleLocalized(self, title)](#settitlelocalized)
+- [CreateChildUI(self)](#createchildui)
 
 ### GetTitle
 
@@ -48,3 +50,41 @@ Override Changes:
 | ----- | ---- | ----------- |
 | `self` | `__FCMUserWindow` |  |
 | `title` | `FCString \| string \| number` |  |
+
+### SetTitleLocalized
+
+```lua
+__fcmuserwindow.SetTitleLocalized(self, title)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/__FCMUserWindow.lua#L73)
+
+Localized version of `SetTitle`.
+
+**[Fluid] [Override]**
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `__FCMUserWindow` |  |
+| `title` | `FCString \| string \| number` |  |
+
+### CreateChildUI
+
+```lua
+__fcmuserwindow.CreateChildUI(self)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/__FCMUserWindow.lua#L86)
+
+**[Override]**
+
+Override Changes:
+- Returns original `CreateChildUI` if the method exists, otherwise it returns `mixin.UI()`
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `self` | `__FCMUserWindow` |  |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `FCMUI` |  |

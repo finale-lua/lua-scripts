@@ -5,11 +5,18 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
 
 
 
-    function utils.copy_table(t)
+    function utils.copy_table(t, to_table, overwrite)
+        overwrite = (overwrite == nil) and true or false
         if type(t) == "table" then
-            local new = {}
+            local new = type(to_table) == "table" and to_table or {}
             for k, v in pairs(t) do
-                new[utils.copy_table(k)] = utils.copy_table(v)
+                local new_key = utils.copy_table(k)
+                local new_value = utils.copy_table(v)
+                if overwrite then
+                    new[new_key] = new_value
+                else
+                    new[new_key] = new[new_key] == nil and new_value or new[new_key]
+                end
             end
             setmetatable(new, utils.copy_table(getmetatable(t)))
             return new
@@ -33,6 +40,22 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
             c = a(b, c)
             return c
         end
+    end
+
+    function utils.create_keys_table(t)
+        local retval = {}
+        for k, _ in pairsbykeys(t) do
+            table.insert(retval, k)
+        end
+        return retval
+    end
+
+    function utils.create_lookup_table(t)
+        local lookup = {}
+        for _, v in pairs(t) do
+            lookup[v] = true
+        end
+        return lookup
     end
 
     function utils.round(value, places)
@@ -224,6 +247,13 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
             dlg:ExecuteModal(nil)
         end
     end
+
+    function utils.win_mac(windows_value, mac_value)
+        if finenv.UI():IsOnWindows() then
+            return windows_value
+        end
+        return mac_value
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -363,12 +393,86 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     end
     return configuration
 end
-function plugindef()
+function plugindef(locale)
+    local loc = {}
+    loc.en = {
+        addl_menus = [[
+            Move Lyric Baselines Up
+            Reset Lyric Baselines
+            Move Expression Baseline Above Down
+            Move Expression Baseline Above Up
+            Reset Expression Baseline Above
+            Move Expression Baseline Below Down
+            Move Expression Baseline Below Up
+            Reset Expression Baseline Below
+            Move Chord Baseline Down
+            Move Chord Baseline Up
+            Reset Chord Baseline
+            Move Fretboard Baseline Down
+            Move Fretboard Baseline Up
+            Reset Fretboard Baseline
+        ]],
+        addl_descs = [[
+            Moves all lyrics baselines up one space in the selected systems
+            Resets all lyrics baselines to their defaults in the selected systems
+            Moves the expression above baseline down one space in the selected systems
+            Moves the expression above baseline up one space in the selected systems
+            Resets the expression above baselines in the selected systems
+            Moves the expression below baseline down one space in the selected systems
+            Moves the expression below baseline up one space in the selected systems
+            Resets the expression below baselines in the selected systems
+            Moves the chord baseline down one space in the selected systems
+            Moves the chord baseline up one space in the selected systems
+            Resets the chord baselines in the selected systems
+            Moves the fretboard baseline down one space in the selected systems
+            Moves the fretboard baseline up one space in the selected systems
+            Resets the fretboard baselines in the selected systems
+        ]],
+        menu = "Move Lyric Baselines Down",
+        desc = "Moves all lyrics baselines down one space in the selected systems",
+    }
+    loc.es = {
+        addl_menus = [[
+            Mover las líneas de referencia de las letras hacia arriba
+            Restablecer las líneas de referencia de las letras
+            Mover la línea de referencia por encima de las expresiones hacia abajo
+            Mover la línea de referencia por encima de las expresiones hacia arriba
+            Restablecer la línea de referencia por encima de las expresiones
+            Mover la línea de referencia por abajo de las expresiones hacia abajo
+            Mover la línea de referencia por abajo de las expresiones hacia arriba
+            Restablecer la línea de referencia por abajo de las expresiones
+            Mover la línea de referencia de los acordes hacia abajo
+            Mover la línea de referencia de los acordes hacia arriba
+            Restablecer la línea de referencia de los acordes
+            Mover la línea de referencia de los trastes hacia abajo
+            Mover la línea de referencia de los trastes hacia arriba
+            Restablecer la línea de referencia de los trastes
+        ]],
+        addl_descs = [[
+            Mueve todas las líneas de referencia de las letras un espacio hacia arriba en los sistemas de pentagramas seleccionadas
+            Restablece todas las líneas de referencia de las letras a su valor predeterminado en los sistemas de pentagramas seleccionadas
+            Mueve la línea de referencia por encima de las expresiones hacia abajo un espacio en los sistemas de pentagramas seleccionadas
+            Mueve la línea de referencia por encima de las expresiones hacia arriba un espacio en los sistemas de pentagramas seleccionadas
+            Restablece la línea de referencia por encima de las expresiones superior en los sistemas de pentagramas seleccionadas
+            Mueve la línea de referencia por abajo de las expresiones hacia abajo un espacio en los sistemas de pentagramas seleccionadas
+            Mueve la línea de referencia por abajo de las expresiones hacia arriba un espacio en los sistemas de pentagramas seleccionadas
+            Restablece la línea de referencia por abajo de las expresiones inferior en los sistemas de pentagramas seleccionadas
+            Mueve la línea de referencia de los acordes hacia abajo un espacio en los sistemas de pentagramas seleccionadas
+            Mueve la línea de referencia de los acordes hacia arriba un espacio en los sistemas de pentagramas seleccionadas
+            Restablece las líneas de referencia de los acordes en los sistemas de pentagramas seleccionadas
+            Mueve la línea de referencia de los trastes hacia abajo un espacio en los sistemas de pentagramas seleccionadas
+            Mueve la línea de referencia de los trastes hacia arriba un espacio en los sistemas de pentagramas seleccionadas
+            Restablece las líneas de referencia de los trastes en los sistemas de pentagramas seleccionadas
+        ]],
+        menu = "Mover las líneas de referencia de las letras hacia abajo",
+        desc = "Mueve todas las líneas de referencia de las letras un espacio hacia abajo en los sistemas de pentagramas seleccionadas",
+    }
+    local t = locale and loc[locale:sub(1, 2)] or loc.en
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Robert Patterson"
-    finaleplugin.Version = "1.0"
+    finaleplugin.Version = "1.1"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Date = "May 15, 2022"
+    finaleplugin.Date = "February 4, 2024"
     finaleplugin.CategoryTags = "Baseline"
     finaleplugin.AuthorURL = "http://robertgpatterson.com"
     finaleplugin.MinJWLuaVersion = 0.62
@@ -394,38 +498,10 @@ function plugindef()
 
         A value in a prefix overrides any setting in a configuration file.
     ]]
-    finaleplugin.AdditionalMenuOptions = [[
-        Move Lyric Baselines Up
-        Reset Lyric Baselines
-        Move Expression Baseline Above Down
-        Move Expression Baseline Above Up
-        Reset Expression Baseline Above
-        Move Expression Baseline Below Down
-        Move Expression Baseline Below Up
-        Reset Expression Baseline Below
-        Move Chord Baseline Down
-        Move Chord Baseline Up
-        Reset Chord Baseline
-        Move Fretboard Baseline Down
-        Move Fretboard Baseline Up
-        Reset Fretboard Baseline
-    ]]
-    finaleplugin.AdditionalDescriptions = [[
-        Moves all lyrics baselines up one space in the selected systems
-        Resets all selected lyrics baselines to default
-        Moves the selected expression above baseline down one space
-        Moves the selected expression above baseline up one space
-        Resets the selected expression above baselines
-        Moves the selected expression below baseline down one space
-        Moves the selected expression below baseline up one space
-        Resets the selected expression below baselines
-        Moves the selected chord baseline down one space
-        Moves the selected chord baseline up one space
-        Resets the selected chord baselines
-        Moves the selected fretboard baseline down one space
-        Moves the selected fretboard baseline up one space
-        Resets the selected fretboard baselines
-    ]]
+    finaleplugin.ScriptGroupName = "Move or Reset System Baselines"
+    finaleplugin.ScriptGroupDescription = "Move or reset baselines for systems in the selected region"
+    finaleplugin.AdditionalMenuOptions = t.addl_menus
+    finaleplugin.AdditionalDescriptions = t.addl_descs
     finaleplugin.AdditionalPrefixes = [[
         direction = 1 
         direction = 0 
@@ -468,11 +544,11 @@ function plugindef()
         ```\line
         \line
         A value in a prefix overrides any setting in a configuration file.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 ]] finaleplugin.AdditionalMenuOptions = [[ Move Lyric Baselines Up Reset Lyric Baselines Move Expression Baseline Above Down Move Expression Baseline Above Up Reset Expression Baseline Above Move Expression Baseline Below Down Move Expression Baseline Below Up Reset Expression Baseline Below Move Chord Baseline Down Move Chord Baseline Up Reset Chord Baseline Move Fretboard Baseline Down Move Fretboard Baseline Up Reset Fretboard Baseline]] finaleplugin.AdditionalDescriptions = [[ Moves all lyrics baselines up one space in the selected systems Resets all selected lyrics baselines to default Moves the selected expression above baseline down one space Moves the selected expression above baseline up one space Resets the selected expression above baselines Moves the selected expression below baseline down one space Moves the selected expression below baseline up one space Resets the selected expression below baselines Moves the selected chord baseline down one space Moves the selected chord baseline up one space Resets the selected chord baselines Moves the selected fretboard baseline down one space Moves the selected fretboard baseline up one space Resets the selected fretboard baselines]] finaleplugin.AdditionalPrefixes = [[ direction = 1 \u8211- no baseline_types table, which picks up the default (lyrics) direction = 0 \u8211- no baseline_types table, which picks up the default (lyrics) direction = -1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = 1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = 0 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = -1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = 1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = 0 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = -1 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = 1 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = 0 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = -1 baseline_types = \{finale.BASELINEMODE_FRETBOARD\} direction = 1 baseline_types = \{finale.BASELINEMODE_FRETBOARD\} direction = 0 baseline_types = \{finale.BASELINEMODE_FRETBOARD\}\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 ]] finaleplugin.ScriptGroupName = \u8220"Move or Reset System Baselines\u8221" finaleplugin.ScriptGroupDescription = \u8220"Move or reset baselines for systems in the selected region\u8221" finaleplugin.AdditionalMenuOptions = t.addl_menus finaleplugin.AdditionalDescriptions = t.addl_descs finaleplugin.AdditionalPrefixes = [[ direction = 1 \u8211- no baseline_types table, which picks up the default (lyrics) direction = 0 \u8211- no baseline_types table, which picks up the default (lyrics) direction = -1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = 1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = 0 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = -1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = 1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = 0 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = -1 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = 1 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = 0 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = -1 baseline_types = \{finale.BASELINEMODE_FRETBOARD\} direction = 1 baseline_types = \{finale.BASELINEMODE_FRETBOARD\} direction = 0 baseline_types = \{finale.BASELINEMODE_FRETBOARD\}\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/baseline_move_reset.hash"
-    return "Move Lyric Baselines Down", "Move Lyrics Baselines Down", "Moves all lyrics baselines down one space in the selected systems"
+    return  t.menu, t.menu, t.desc
 end
 local configuration = require("library.configuration")
 local config = {nudge_evpus = 24}

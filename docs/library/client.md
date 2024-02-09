@@ -14,6 +14,7 @@ the bulk of this library is helper functions to determine what the client suppor
 - [get_lua_plugin_version()](#get_lua_plugin_version)
 - [supports(feature)](#supports)
 - [assert_supports(feature)](#assert_supports)
+- [encode_with_client_codepage(input_string)](#encode_with_client_codepage)
 
 ### get_raw_finale_version
 
@@ -58,7 +59,7 @@ version.
 client.supports(feature)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L126)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L130)
 
 Checks the client supports a given feature. Returns true if the client
 supports the feature, false otherwise.
@@ -81,7 +82,7 @@ For a list of valid features, see the [`features` table in the codebase](https:/
 client.assert_supports(feature)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L147)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L151)
 
 Asserts that the client supports a given feature. If the client doesn't
 support the feature, this function will throw an friendly error then
@@ -98,3 +99,29 @@ For a list of valid features, see the [`features` table in the codebase](https:/
 | Return type | Description |
 | ----------- | ----------- |
 | `boolean` |  |
+
+### encode_with_client_codepage
+
+```lua
+client.encode_with_client_codepage(input_string)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L181)
+
+If the client supports LuaOSUtils, the filepath is encoded from UTF-8 to the current client
+encoding. On macOS, this is always also UTF-8, so the situation where the string may be re-encoded
+is only on Windows. (Recent versions of Windows also allow UTF-8 as the client encoding, so it may
+not be re-encoded even on Windows.)
+
+If LuaOSUtils is not available, the string is returned unchanged.
+
+A primary use-case for this function is filepaths. Windows requires 8-bit filepaths to be encoded
+with the client codepage.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `input_string` | `string` | the UTF-encoded string to re-encode |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` | the string re-encoded with the clieng codepage |
