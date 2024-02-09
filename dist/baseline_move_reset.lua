@@ -524,27 +524,14 @@ function plugindef(locale)
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 This script nudges system baselines up or down by a single staff-space (24 evpus). It introduces 10\line
-        menu options to nudge each baseline type up or down. It also introduces 5 menu options to reset\line
-        the baselines to their staff-level values.\line
-        \line
-        The possible prefix inputs to the script are\line
-        \line
-        ```\line
-        direction 
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script nudges system baselines up or down by a single staff-space (24 evpus). It introduces 10 menu options to nudge each baseline type up or down. It also introduces 5 menu options to reset the baselines to their staff-level values.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 The possible prefix inputs to the script are\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 direction 
         baseline_types 
         nudge_evpus 
-        ```\line
-        \line
-        You can also change the size of the nudge by creating a configuration file called `baseline_move.config.txt` and\line
-        adding a single line with the size of the nudge in evpus.\line
-        \line
-        ```\line
-        nudge_evpus = 36 
-        ```\line
-        \line
-        A value in a prefix overrides any setting in a configuration file.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 ]] finaleplugin.ScriptGroupName = \u8220"Move or Reset System Baselines\u8221" finaleplugin.ScriptGroupDescription = \u8220"Move or reset baselines for systems in the selected region\u8221" finaleplugin.AdditionalMenuOptions = t.addl_menus finaleplugin.AdditionalDescriptions = t.addl_descs finaleplugin.AdditionalPrefixes = [[ direction = 1 \u8211- no baseline_types table, which picks up the default (lyrics) direction = 0 \u8211- no baseline_types table, which picks up the default (lyrics) direction = -1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = 1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = 0 baseline_types = \{finale.BASELINEMODE_EXPRESSIONABOVE\} direction = -1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = 1 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = 0 baseline_types = \{finale.BASELINEMODE_EXPRESSIONBELOW\} direction = -1 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = 1 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = 0 baseline_types = \{finale.BASELINEMODE_CHORD\} direction = -1 baseline_types = \{finale.BASELINEMODE_FRETBOARD\} direction = 1 baseline_types = \{finale.BASELINEMODE_FRETBOARD\} direction = 0 baseline_types = \{finale.BASELINEMODE_FRETBOARD\}\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 You can also change the size of the nudge by creating a configuration file called {\f1 baseline_move.config.txt} and adding a single line with the size of the nudge in evpus.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 nudge_evpus = 36 
+        {\pard \ql \f0 \sa180 \li0 \fi0 A value in a prefix overrides any setting in a configuration file.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/baseline_move_reset.hash"

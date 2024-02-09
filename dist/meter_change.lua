@@ -476,27 +476,11 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 Changes the meter in a selected range.\line
-        \line
-        If a single measure is selected,\line
-        the meter will be set for all measures until the next\line
-        meter change, or until the next measure with Time Signature\line
-        set to "Always Show", or for the remaining measures in the score.\line
-        You can override stopping at "Always Show" measures with a configuration\line
-        file script_settings/meter_change.config.txt that contains the following\line
-        line:\line
-        \line
-        ```\line
-        stop_at_always_show = false\line
-        ```\line
-        \line
-        You can limit the meter change to one bar by holding down Shift or Option\line
-        keys when invoking the script. Then the meter is changed only\line
-        for the single measure you selected.\line
-        \line
-        If multiple measures are selected, the meter will be set\line
-        exactly for the selected measures. \par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 ]] finaleplugin.AdditionalMenuOptions = [[ Meter - 1/2 Meter - 2/2 Meter - 3/2 Meter - 4/2 Meter - 5/2 Meter - 6/2 Meter - 1/4 Meter - 2/4 Meter - 3/4 Meter - 5/4 Meter - 6/4 Meter - 7/4 Meter - 3/8 Meter - 5/8 (2+3) Meter - 5/8 (3+2) Meter - 6/8 Meter - 7/8 (2+2+3) Meter - 7/8 (3+2+2) Meter - 9/8 Meter - 12/8 Meter - 15/8]] finaleplugin.AdditionalPrefixes = [[ numerator = 1 denominator = 2 numerator = 2 denominator = 2 numerator = 3 denominator = 2 numerator = 4 denominator = 2 numerator = 5 denominator = 2 numerator = 6 denominator = 2 numerator = 1 denominator = 4 numerator = 2 denominator = 4 numerator = 3 denominator = 4 numerator = 5 denominator = 4 numerator = 6 denominator = 4 numerator = 7 denominator = 4 numerator = 3 denominator = 8 numerator = 5 denominator = 8 composite = \{2, 3\} numerator = 5 denominator = 8 composite = \{3, 2\} numerator = 6 denominator = 8 numerator = 7 denominator = 8 composite = \{2, 2, 3\} numerator = 7 denominator = 8 composite = \{3, 2, 2\} numerator = 9 denominator = 8 numerator = 12 denominator = 8 numerator = 15 denominator = 8\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 Changes the meter in a selected range.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 If a single measure is selected, the meter will be set for all measures until the next meter change, or until the next measure with Time Signature set to \u8220"Always Show\u8221", or for the remaining measures in the score. You can override stopping at \u8220"Always Show\u8221" measures with a configuration file script_settings/meter_change.config.txt that contains the following line:\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 stop_at_always_show = false\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 You can limit the meter change to one bar by holding down Shift or Option keys when invoking the script. Then the meter is changed only for the single measure you selected.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 If multiple measures are selected, the meter will be set exactly for the selected measures.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/meter_change.hash"
