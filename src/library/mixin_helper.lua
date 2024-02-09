@@ -636,16 +636,29 @@ Process multiple string arguments.
 
 @ self (class instance)
 @ method_func (function) A method on the class that accepts a single Lua `string` or `FCString` instance
-@ ... (FCStrings | FCString | string | number)
+@ ... (FCStrings | FCString | string | number | table)
 ]]
 function mixin_helper.process_string_arguments(self, method_func, ...)
+    local function to_key_string(value)
+        if type(value) == "string" then
+            value = "\"" .. value .. "\""
+        end
+    
+        return "[" .. tostring(value) .. "]"
+    end
     for i = 1, select("#", ...) do
         local v = select(i, ...)
-        mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings")
+        mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings", "table")
 
         if type(v) == "userdata" and v:ClassName() == "FCStrings" then
             for str in each(v) do
                 method_func(self, str)
+            end
+        elseif type(v) == "table" then
+            for k2, v2 in pairsbykeys(v) do
+                require('mobdebug').start()
+                mixin_helper.assert_argument_type(tostring(i + 1) .. to_key_string(k2), v2, "string", "number", "FCString")
+                method_func(self, v2)
             end
         else
             method_func(self, v)
