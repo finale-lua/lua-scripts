@@ -36,8 +36,8 @@ function plugindef()
         the nominated cue stem direction.
 
         > __Command Keys__  
-        > In the _Destination Staff_ window, hit the tab key to move the cursor into a numeric 
-        > field and these key commands become available: 
+        > In the _Destination Staff_ window, hit the tab key to move the cursor  
+        > into a numeric field and these key commands become available: 
 
         > - __q__ - show these script notes 
         > - __w__ - flip [copy articulations] 
@@ -72,8 +72,8 @@ local config = { -- retained and over-written by the user's "settings" file
     octave_offset       =   0,     -- octave displacement (-5 to +5) of copied cue version
     abbreviate          =   true, -- abbreviate staff names when creating new titles
     cuename_item        =   0,    -- ItemNo of the last selected cue_name expression
-    -- not user accessible:
     overwrite_layer     =   4,    -- overriden by user
+    -- not user accessible:
     shift_expression_down = -24 * 9, -- when cue_name is below staff
     shift_expression_left = -24, -- EVPUs; cue names generally need to be LEFT of music start
     -- if creating a new "Cue Names" category ...
@@ -127,7 +127,6 @@ local function show_error(error_code)
     }
     local msg = errors[error_code] or "Unknown error condition"
     finenv.UI():AlertInfo(msg, title .. " Error")
-    return -1
 end
 
 local function region_is_empty(region, layer_number)
@@ -137,14 +136,14 @@ local function region_is_empty(region, layer_number)
     return true
 end
 
-local function info_dialog()
-    utils.show_notes_dialog("About " .. title)
+local function info_dialog(dialog)
+    utils.show_notes_dialog(dialog, "About " .. title)
     refocus_document = true
 end
 
 local function make_info_button(dialog, x, y)
     dialog:CreateButton(x, y, "q"):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() info_dialog() end)
+        :AddHandleCommand(function() info_dialog(dialog) end)
 end
 
 local function get_staff_name(staff_num)
@@ -165,7 +164,7 @@ local function new_cue_name(source_staff)
     make_info_button(dialog, 180, 17)
     local name_edit = dialog:CreateEdit(0, 40):SetWidth(200)
         :SetText(config.abbreviate and name.abbrev or name.full)
-    dialog:CreateCheckbox(0, 62, "abbrev_check"):SetText("Abbreviate staff name")
+    dialog:CreateCheckbox(0, 62, "abbreviate"):SetText("Abbreviate staff name")
         :SetWidth(150):SetCheck(config.abbreviate and 1 or 0)
         :AddHandleCommand(function(self)
             name_edit:SetText(self:GetCheck() == 1 and name.abbrev or name.full)
@@ -174,7 +173,7 @@ local function new_cue_name(source_staff)
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function()
-        config.abbreviate = (dialog:GetControl("abbrev_check"):GetCheck() == 1)
+        config.abbreviate = (dialog:GetControl("abbreviate"):GetCheck() == 1)
     end)
     dialog:RegisterInitWindow(function() name_edit:SetFocus() end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
