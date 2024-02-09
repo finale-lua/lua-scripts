@@ -139,7 +139,8 @@ The followimg types can be specified:
 
 *NOTE: This function will only assert if in debug mode (ie `finenv.DebugEnabled == true`). If assertions are always required, use `force_assert_argument_type` instead.*
 
-@ argument_number (number) The REAL argument number for the error message (self counts as argument #1).
+@ argument_number (number | string) The REAL argument number for the error message (self counts as argument #1). If the argument is a string, it should
+start with a number.
 @ value (any) The value to test.
 @ ... (string) Valid types (as many as needed). Can be standard Lua types, Finale class names, or mixin class names.
 ]]
@@ -646,6 +647,7 @@ function mixin_helper.create_multi_string_proxy(method_name)
         return "[" .. tostring(value) .. "]"
     end
     return function(self, ...)
+        mixin_helper.assert_argument_type(1, self, "userdata")
         for i = 1, select("#", ...) do
             local v = select(i, ...)
             mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings", "table")
