@@ -307,7 +307,7 @@ function utils.show_notes_dialog(parent, caption, width, height)
         return
     end
     if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
-        error("argument 4 must be nil or an instance of FCResourceWindow", 2)
+        error("argument 1 must be nil or an instance of FCResourceWindow", 2)
     end
 
     local function dedent(input)
