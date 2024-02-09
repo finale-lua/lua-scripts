@@ -269,11 +269,9 @@ methods.AddStringLocalized = mixin_helper.create_localized_proxy("AddString")
 Adds multiple strings to the list box.
 
 @ self (FCMCtrlListBox)
-@ ... (FCStrings | FCString | string | number)
+@ ... (FCStrings | FCString | string | number | table)
 ]]
-function methods:AddStrings(...)
-    mixin_helper.process_string_arguments(self, mixin.FCMCtrlListBox.AddString, ...)
-end
+methods.AddStrings = mixin_helper.create_multi_string_proxy("AddString")
 
 --[[
 % AddStringsLocalized
@@ -285,9 +283,7 @@ Adds multiple localized strings to the combobox.
 @ self (FCMCtrlListBox)
 @ ... (FCStrings | FCString | string | number) keys of strings to be added. If no localization is found, the key is added.
 ]]
-function methods:AddStringsLocalized(...)
-    mixin_helper.process_string_arguments(self, mixin.FCMCtrlComboBox.AddStringLocalized, ...)
-end
+methods.AddStringsLocalized = mixin_helper.create_multi_string_proxy("AddStringLocalized")
 
 --[[
 % GetStrings

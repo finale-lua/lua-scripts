@@ -19,7 +19,7 @@ For that reason, this module (at least for now) does not manage those properties
 - Added `AddStrings` that accepts multiple arguments of `table`, `FCString`, Lua `string`, or `number`.
 - Added localized versions `AddStringLocalized` and `AddStringsLocalized`.
 ]] --
-local mixin = require("library.mixin")
+local mixin = require("library.mixin") -- luacheck: ignore
 local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}
@@ -67,11 +67,9 @@ methods.AddStringLocalized = mixin_helper.create_localized_proxy("AddString")
 Adds multiple strings to the combobox.
 
 @ self (FCMCtrlComboBox)
-@ ... (FCStrings | FCString | string | number)
+@ ... (FCStrings | FCString | string | number | table)
 ]]
-function methods:AddStrings(...)
-    mixin_helper.process_string_arguments(self, mixin.FCMCtrlComboBox.AddString, ...)
-end
+methods.AddStrings = mixin_helper.create_multi_string_proxy("AddString")
 
 --[[
 % AddStringsLocalized
@@ -81,10 +79,8 @@ end
 Adds multiple localized strings to the combobox.
 
 @ self (FCMCtrlComboBox)
-@ ... (FCStrings | FCString | string | number) keys of strings to be added. If no localization is found, the key is added.
+@ ... (FCStrings | FCString | string | number | table) keys of strings to be added. If no localization is found, the key is added.
 ]]
-function methods:AddStringsLocalized(...)
-    mixin_helper.process_string_arguments(self, mixin.FCMCtrlComboBox.AddStringLocalized, ...)
-end
+methods.AddStringsLocalized = mixin_helper.create_multi_string_proxy("AddStringLocalized")
 
 return class

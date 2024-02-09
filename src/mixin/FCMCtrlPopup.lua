@@ -259,11 +259,9 @@ methods.AddStringLocalized = mixin_helper.create_localized_proxy("AddString")
 Adds multiple strings to the popup.
 
 @ self (FCMCtrlPopup)
-@ ... (FCStrings | FCString | string | number)
+@ ... (FCStrings | FCString | string | number | table)
 ]]
-function methods:AddStrings(...)
-    mixin_helper.process_string_arguments(self, mixin.FCMCtrlPopup.AddString, ...)
-end
+methods.AddStrings = mixin_helper.create_multi_string_proxy("AddString")
 
 --[[
 % AddStringsLocalized
@@ -273,11 +271,9 @@ end
 Adds multiple localized strings to the popup.
 
 @ self (FCMCtrlPopup)
-@ ... (FCStrings | FCString | string | number) keys of strings to be added. If no localization is found, the key is added.
+@ ... (FCStrings | FCString | string | number | table) keys of strings to be added. If no localization is found, the key is added.
 ]]
-function methods:AddStringsLocalized(...)
-    mixin_helper.process_string_arguments(self, mixin.FCMCtrlPopup.AddStringLocalized, ...)
-end
+methods.AddStringsLocalized = mixin_helper.create_multi_string_proxy("AddStringLocalized")
 
 --[[
 % GetStrings

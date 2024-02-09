@@ -630,38 +630,39 @@ function mixin_helper.create_localized_proxy(method_name, class_name, only_local
 end
 
 --[[
-% process_string_arguments
+% create_multi_string_proxy
 
-Process multiple string arguments.
+Creates a proxy method that takes multiple string arguments.
 
-@ self (class instance)
-@ method_func (function) A method on the class that accepts a single Lua `string` or `FCString` instance
-@ ... (FCStrings | FCString | string | number | table)
+@ method_name (string) An instance method on the class that accepts a single Lua `string`, `FCString`, or `number`
+: (function)
 ]]
-function mixin_helper.process_string_arguments(self, method_func, ...)
+function mixin_helper.create_multi_string_proxy(method_name)
     local function to_key_string(value)
         if type(value) == "string" then
             value = "\"" .. value .. "\""
         end
-    
+
         return "[" .. tostring(value) .. "]"
     end
-    for i = 1, select("#", ...) do
-        local v = select(i, ...)
-        mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings", "table")
+    return function(self, ...)
+        for i = 1, select("#", ...) do
+            local v = select(i, ...)
+            mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings", "table")
 
-        if type(v) == "userdata" and v:ClassName() == "FCStrings" then
-            for str in each(v) do
-                method_func(self, str)
+            if type(v) == "userdata" and v:ClassName() == "FCStrings" then
+                for str in each(v) do
+                    self[method_name](self, str)
+                end
+            elseif type(v) == "table" then
+                for k2, v2 in pairsbykeys(v) do
+                    require('mobdebug').start()
+                    mixin_helper.assert_argument_type(tostring(i + 1) .. to_key_string(k2), v2, "string", "number", "FCString")
+                    self[method_name](self, v2)
+                end
+            else
+                self[method_name](self, v)
             end
-        elseif type(v) == "table" then
-            for k2, v2 in pairsbykeys(v) do
-                require('mobdebug').start()
-                mixin_helper.assert_argument_type(tostring(i + 1) .. to_key_string(k2), v2, "string", "number", "FCString")
-                method_func(self, v2)
-            end
-        else
-            method_func(self, v)
         end
     end
 end
