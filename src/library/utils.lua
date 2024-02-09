@@ -297,12 +297,12 @@ end
 
 Displays a modal dialog with the contents of finaleplugin.RFTNotes (if present) or finaleplugin.Notes. If neither one is present, no dialog is shown.
 
+@ parent (FCResourceWindow) The parent window (if any) that is opening this dialog
 @ caption (string) The caption for the dialog. Defaults to plugin name and version.
 @ width (number) The width in pixels of the edit control. Defaults to 500.
 @ height (number) The height inpixels of the edit control. Defaults to 350.
-@ parent (FCWindow) The parent window (if any) that is opening this dialog
 ]]
-function utils.show_notes_dialog(caption, width, height, parent)
+function utils.show_notes_dialog(parent, caption, width, height)
     if not finaleplugin.RTFNotes and not finaleplugin.Notes then
         return
     end
@@ -336,7 +336,7 @@ function utils.show_notes_dialog(caption, width, height, parent)
     end
 
     if not caption then
-        caption = plugindef()
+        caption = plugindef():gsub("%.%.%.", "")
         if finaleplugin.Version then
             local version = finaleplugin.Version
             if string.sub(version, 1, 1) ~= "v" then
