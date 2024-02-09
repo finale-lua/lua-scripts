@@ -656,7 +656,6 @@ function mixin_helper.create_multi_string_proxy(method_name)
                 end
             elseif type(v) == "table" then
                 for k2, v2 in pairsbykeys(v) do
-                    require('mobdebug').start()
                     mixin_helper.assert_argument_type(tostring(i + 1) .. to_key_string(k2), v2, "string", "number", "FCString")
                     self[method_name](self, v2)
                 end
