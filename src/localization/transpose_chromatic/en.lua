@@ -1,0 +1,42 @@
+--
+-- Localization en.lua for transpose_chromatic.lua
+--
+local loc = {
+    error_msg_transposition = "Finale is unable to represent some of the transposed pitches. These pitches were left unchanged.",
+    augmented_fifth = "Augmented Fifth",
+    augmented_fourth = "Augmented Fourth",
+    augmented_second = "Augmented Second",
+    augmented_seventh = "Augmented Seventh",
+    augmented_sixth = "Augmented Sixth",
+    augmented_third = "Augmented Third",
+    augmented_unison = "Augmented Unison",
+    diminished_fifth = "Diminished Fifth",
+    diminished_fourth = "Diminished Fourth",
+    diminished_octave = "Diminished Octave",
+    diminished_second = "Diminished Second",
+    diminished_seventh = "Diminished Seventh",
+    diminished_sixth = "Diminished Sixth",
+    diminished_third = "Diminished Third",
+    direction = "Direction",
+    down = "Down",
+    interval = "Interval",
+    major_second = "Major Second",
+    major_seventh = "Major Seventh",
+    major_sixth = "Major Sixth",
+    major_third = "Major Third",
+    minor_second = "Minor Second",
+    minor_seventh = "Minor Seventh",
+    minor_sixth = "Minor Sixth",
+    minor_third = "Minor Third",
+    perfect_fifth = "Perfect Fifth",
+    perfect_fourth = "Perfect Fourth",
+    perfect_octave = "Perfect Octave",
+    perfect_unison = "Perfect Unison",
+    plus_octaves = "Plus Octaves",
+    preserve_existing = "Preserve Existing Notes",
+    simplify_spelling = "Simplify Spelling",
+    transposition_error = "Transposition Error",
+    up = "Up",
+}
+
+return loc

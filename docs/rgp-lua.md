@@ -17,7 +17,7 @@ print ("Hello, world!")
 If you want a “Hello, world!” example that shows up as a menu option in Finale's Plug-in menu, here is a slightly more complex version:
 
 ```lua
-function plugindef()
+function plugindef(locale)
     return "Hello World", "Hello World", 'Displays a message box saying, "Hello, world!"'
 end
 
@@ -285,7 +285,6 @@ The `plugindef()` function is an optional function that **only** should do a _ma
 * Return the _plug-in name_, _undo string_ and _brief description_ to be used in the _Finale_ plug-in menu and for automatic undo blocks.
 * Define the `finaleplugin` namespace environment to further describe the plug-in (see below).
 
-
 A simple `plugindef()` implementation might look like this:
 
 ```lua
@@ -296,7 +295,36 @@ function plugindef()
 end
 ```
 
-`plugindef()` is considered to be a reserved name in the global namespace. If the script has a function named `plugindef()`, the Lua plugin may call it at any time (not only during script execution) to gather information about the plug-in. The `plugindef()` function can **NOT** have dependencies outside the function itself.
+Starting with version 0.71, _RGP Lua_ passes the user's locale code as an argument to the `plugindef` function. You can use this to localize any strings returned by the function or assigned to variables. The user's locale code is a 2-character lowercase language code followed by "_" or "-" and then a 2-digit uppercase region code. This is the same value that is returned by `finenv.UI():GetUserLocaleName()`. (See the note below detailing why the `plugindef` function cannot call `GetUserLocaleName` directly.)
+
+A localized version of the same function might look like this:
+
+```lua
+function plugindef(locale)
+    finaleplugin.RequireSelection = true
+    finaleplugin.CategoryTags = "Rest, Region"
+    local localization = {}
+    localization.en = {
+        menu = "Hide Rests",
+        desc = "Hides all rests in the selected region."
+    }
+    localization.es = {
+        menu = "Ocultar Silencios",
+        desc = "Oculta todos los silencios en la región seleccionada."
+    }
+    localization.jp = {
+        menu = "休符を隠す",
+        desc = "選択した領域内のすべての休符を隠します。",
+    }
+    -- add more localizations as desired
+    local t = locale and localization[locale:sub(1,2)] or localization.en
+    return t.menu, t.menu, t.desc
+end
+```
+
+Note that the `plugindef()` function must be *entirely* self-contained. It may not have access to any of the global namespaces that the rest of the script uses, such as `finenv` or `finale`. It *does* have access to all the standard Lua libraries. If the script has a function named `plugindef()`, the Lua plugin may call it at any time (not only during script execution) to gather information about the plug-in.
+
+`plugindef` is a reserved name in the global namespace.
 
 All aspects of the `plugindef()` are optional, but for a plug-in script that is going to be used repeatedly, the minimum should be to return a plug-in name, undo string, and short description.
 

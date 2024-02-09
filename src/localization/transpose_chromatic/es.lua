@@ -1,0 +1,42 @@
+--
+-- Localization es.lua for transpose_chromatic.lua
+--
+local loc = {
+    error_msg_transposition = "Finale no puede representar algunas de las notas traspuestas. Estas notas no se han cambiado.",
+    augmented_fifth = "Quinta aumentada",
+    augmented_fourth = "Cuarta aumentada",
+    augmented_second = "Segunda aumentada",
+    augmented_seventh = "Séptima aumentada",
+    augmented_sixth = "Sexta aumentada",
+    augmented_third = "Tercera aumentada",
+    augmented_unison = "Unísono aumentado",
+    diminished_fifth = "Quinta disminuida",
+    diminished_fourth = "Cuarta disminuida",
+    diminished_octave = "Octava disminuida",
+    diminished_second = "Segunda disminuida",
+    diminished_seventh = "Séptima disminuida",
+    diminished_sixth = "Sexta disminuida",
+    diminished_third = "Tercera disminuida",
+    direction = "Dirección",
+    down = "Abajo",
+    interval = "Intervalo",
+    major_second = "Segunda mayor",
+    major_seventh = "Séptima mayor",
+    major_sixth = "Sexta mayor",
+    major_third = "Tercera mayor",
+    minor_second = "Segunda menor",
+    minor_seventh = "Séptima menor",
+    minor_sixth = "Sexta menor",
+    minor_third = "Tercera menor",
+    perfect_fifth = "Quinta justa",
+    perfect_fourth = "Cuarta justa",
+    perfect_octave = "Octava justa",
+    perfect_unison = "Unísono justo",
+    plus_octaves = "Más Octavas",
+    preserve_existing = "Preservar notas existentes",
+    simplify_spelling = "Simplificar enarmonización",
+    transposition_error = "Error de trasposición",
+    up = "Arriba",
+}
+
+return loc

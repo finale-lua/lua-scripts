@@ -10,6 +10,7 @@ $module FCMCustomWindow
 ]] --
 local mixin = require("library.mixin")
 local mixin_helper = require("library.mixin_helper")
+local loc = require("library.localization")
 
 local class = {Methods = {}}
 local methods = class.Methods
@@ -344,7 +345,7 @@ for num_args, ctrl_types in pairs({
     for _, control_type in pairs(ctrl_types) do
         local type_exists = false
         if finenv.IsRGPLua then
-            type_exists = finale.FCCustomWindow.__class["Create" .. control_type]      
+            type_exists = finale.FCCustomWindow.__class["Create" .. control_type]
         else
             -- JW Lua crashes if we index the __class table with an invalid key, so instead search it
             for k, _ in pairs(finale.FCCustomWindow.__class) do
@@ -368,6 +369,67 @@ for num_args, ctrl_types in pairs({
         end
 
         :: continue ::
+    end
+end
+
+--[[
+% CreateCancelButtonAutoLocalized
+
+Localizes the button using the key "cancel". Transalations for English, Spanish, and German are
+provided automatically. Other translations may be added here or in individual localization files
+for the script
+
+@ self (FCMCustomWindow)
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
+: (FCMCtrlButton)
+]]
+
+--[[
+% CreateOkButtonAutoLocalized
+
+Localizes the button using the key "ok". Transalations for English, Spanish, and German are
+provided automatically. Other translations may be added here or in individual localization files
+for the script
+
+@ self (FCMCustomWindow)
+@ [control_name] (FCString | string) Optional name to allow access from `GetControl` method.
+: (FCMCtrlButton)
+]]
+
+--[[
+% CreateCloseButtonAutoLocalized
+
+**[>= v0.56]**
+
+Localizes the button using the key "cancel". Transalations for English, Spanish, and German are
+provided automatically. Other translations may be added here or in individual localization files
+for the script
+
+@ self (FCMCustomWindow)
+@ x (number)
+@ y (number)
+@ [control_name] (FCString|string) Optional name to allow access from `GetControl` method.
+: (FCMCtrlButton)
+]]
+loc.add_to_locale("en", { ok = "OK", cancel = "Cancel", close = "Close" })
+loc.add_to_locale("es", { ok = "Aceptar", cancel = "Cancelar", close = "Cerrar" })
+loc.add_to_locale("de", { ok = "OK", cancel = "Abbrechen", close = "Schließen" })
+for num_args, method_info in pairs({
+    [0] = { CancelButton = "cancel", OkButton = "ok" },
+    [2] = { CloseButton = "close" },
+})
+do
+    for method_name, localization_key in pairs(method_info) do
+        methods["Create" .. method_name .. "AutoLocalized"] = function(self, ...)
+            for i = 1, num_args do
+                mixin_helper.assert_argument_type(i + 1, select(i, ...), "number")
+            end
+            mixin_helper.assert_argument_type(num_args + 2, select(num_args + 1, ...), "string", "nil", "FCString")
+
+            return self["Create" .. method_name](self, ...)
+                :SetTextLocalized(localization_key)
+                :_FallbackCall("DoAutoResizeWidth", nil)
+        end
     end
 end
 

@@ -14,16 +14,17 @@
         "loadall",
         "loadallforregion",
         "pairsbykeys",
+        "prettyformatjson",
         "bit32",
         "utf8",
         "socket",
         "tinyxml2",
         "xmlelements",
-        "xmlattributes",
-        "prettyformatjson"
+        "xmlattributes"
     ],
     "files.exclude": {
         "mobdebug.lua": true,
+        "dist/**": true
     },
     "editor.formatOnSave": true,
     "Lua.diagnostics.enable": false,

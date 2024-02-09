@@ -1,4 +1,18 @@
-function plugindef()
+function plugindef(locale)
+    local loc = {}
+    loc.en = {
+        menu = "Transpose By Steps",
+        desc = "Transpose by the number of steps given, simplifying the note spelling as needed."
+    }
+    loc.es = {
+        menu = "Trasponer por pasos",
+        desc = "Trasponer por el número de pasos dado, simplificando la enarmonización según sea necesario.",
+    }
+    loc.de = {
+        menu = "Transponieren nach Schritten",
+        desc = "Transponieren nach der angegebenen Anzahl von Schritten und vereinfachen die Notation nach Bedarf.",
+    }
+    local t = locale and loc[locale:sub(1,2)] or loc.en
     finaleplugin.RequireSelection = false
     finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"
@@ -14,23 +28,23 @@ function plugindef()
         Normally the script opens a modeless window. However, if you invoke the plugin with a shift, option, or
         alt key pressed, it skips opening a window and uses the last settings you entered into the window.
         (This works with RGP Lua version 0.60 and higher.)
-        
+
         If you are using custom key signatures with JW Lua or an early version of RGP Lua, you must create
         a custom_key_sig.config.txt file in a folder called `script_settings` within the same folder as the script.
-        It should contains the following two lines that define the custom key signature you are using. Unfortunately,
+        It should contain the following two lines that define the custom key signature you are using. Unfortunately,
         the JW Lua and early versions of RGP Lua do not allow scripts to read this information from the Finale document.
-        
+
         (This example is for 31-EDO.)
-        
+
         ```
         number_of_steps = 31
         diatonic_steps = {0, 5, 10, 13, 18, 23, 28}
         ```
-        
+
         Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct
         information from the Finale document.
     ]]
-    return "Transpose By Steps...", "Transpose By Steps", "Transpose by the number of steps given, simplifying spelling as needed."
+    return t.menu .. "...", t.menu, t.desc
 end
 
 -- luacheck: ignore 11./global_dialog
@@ -43,12 +57,14 @@ end
 
 local transposition = require("library.transposition")
 local mixin = require("library.mixin")
+local loc = require("library.localization")
+local utils = require("library.utils")
 
 function do_transpose_by_step(global_number_of_steps_edit)
     if finenv.Region():IsEmpty() then
         return
     end
-    local undostr = "Transpose By Steps " .. tostring(finenv.Region().StartMeasure)
+    local undostr = ({plugindef(loc.get_locale())})[2] .. " " .. tostring(finenv.Region().StartMeasure)
     if finenv.Region().StartMeasure ~= finenv.Region().EndMeasure then
         undostr = undostr .. " - " .. tostring(finenv.Region().EndMeasure)
     end
@@ -66,26 +82,32 @@ function do_transpose_by_step(global_number_of_steps_edit)
         finenv.StartNewUndoBlock(undostr, true) -- JW Lua automatically terminates the final undo block we start here
     end
     if not success then
-        finenv.UI():AlertError("Finale is unable to represent some of the transposed pitches. These pitches were left at their original value.", "Transposition Error")
+        global_dialog:CreateChildUI():AlertErrorLocalized("error_msg_transposition", "transposition_error")
     end
     return success
 end
 
 function create_dialog_box()
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Transpose By Steps")
+    local dialog = mixin.FCXCustomLuaWindow()
+        :SetTitle(plugindef(loc.get_locale()):gsub("%.%.%.", ""))
     local current_y = 0
     local x_increment = 105
     -- number of steps
-    dialog:CreateStatic(0, current_y + 2):SetText("Number Of Steps:")
-    local edit_x = x_increment + (finenv.UI():IsOnMac() and 4 or 0)
-    dialog:CreateEdit(edit_x, current_y, "num_steps"):SetText("")
+    dialog:CreateStatic(0, current_y + 2, "steps_label")
+        :SetTextLocalized("number_of_steps")
+        :SetWidth(x_increment - 5)
+        :_FallbackCall("DoAutoResizeWidth", nil)
+    local edit_x = x_increment + utils.win_mac(0, 4)
+    dialog:CreateEdit(edit_x, current_y, "num_steps")
+        :SetText("")
+        :_FallbackCall("AssureNoHorizontalOverlap", nil, dialog:GetControl("steps_label"), 5)
     -- ok/cancel
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
+    dialog:CreateOkButtonAutoLocalized()
+    dialog:CreateCancelButtonAutoLocalized()
+    -- registrations
     dialog:RegisterHandleOkButtonPressed(function(self)
-            do_transpose_by_step(self:GetControl("num_steps"):GetInteger())
-        end
-    )
+        do_transpose_by_step(self:GetControl("num_steps"):GetInteger())
+    end)
     return dialog
 end
 

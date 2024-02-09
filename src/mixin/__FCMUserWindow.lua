@@ -60,4 +60,35 @@ function methods:SetTitle(title)
     self:SetTitle__(mixin_helper.to_fcstring(title, temp_str))
 end
 
+--[[
+% SetTitleLocalized
+
+Localized version of `SetTitle`.
+
+**[Fluid] [Override]**
+
+@ self (__FCMUserWindow)
+@ title (FCString | string | number)
+]]
+methods.SetTitleLocalized = mixin_helper.create_localized_proxy("SetTitle")
+
+--[[
+% CreateChildUI
+
+**[Override]**
+
+Override Changes:
+- Returns original `CreateChildUI` if the method exists, otherwise it returns `mixin.UI()`
+
+@ self (__FCMUserWindow)
+: (FCMUI)
+]]
+function methods:CreateChildUI()
+    if self.CreateChildUI__ then
+        return self:CreateChildUI__()
+    end
+
+    return mixin.UI()
+end
+
 return class
