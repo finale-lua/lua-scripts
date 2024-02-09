@@ -306,8 +306,8 @@ function utils.show_notes_dialog(caption, width, height, parent)
     if not finaleplugin.RTFNotes and not finaleplugin.Notes then
         return
     end
-    if parent then
-        assert(parent.ExecuteModal, "argument 4 must be nil or an instance of FCResourceWindow")
+    if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
+        error("argument 4 must be nil or an instance of FCResourceWindow", 2)
     end
 
     local function dedent(input)
