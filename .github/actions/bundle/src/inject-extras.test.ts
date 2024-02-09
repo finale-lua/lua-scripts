@@ -57,6 +57,60 @@ return true
         expect(result).toEqual(expected);
     });
 
+    it('should inject HashURL and RTFNotes into the contents (with items after)', () => {
+        const name = 'test.lua';
+        const contents = `
+function plugindef()
+    -- plugin definition goes here
+    finaleplugin.Notes = [[
+        # Header 1
+    ]]
+    finaleplugin.AdditionalMenuOptions = [[
+        Unbeam Selected Region
+    ]]
+    return "1", "2", "3"
+end
+
+function testFunction()
+    -- function definition goes here
+end
+
+return true
+`;
+        const expected = `
+function plugindef()
+    -- plugin definition goes here
+    finaleplugin.Notes = [[
+        # Header 1
+    ]]
+    finaleplugin.AdditionalMenuOptions = [[
+        Unbeam Selected Region
+    ]]
+    finaleplugin.RTFNotes = [[
+        {\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 \\fswiss Helvetica;}{\\f1 \\fmodern Courier New;}}
+        {\\colortbl;\\red255\\green0\\blue0;\\red0\\green0\\blue255;}
+        \\widowctrl\\hyphauto
+        \\fs18
+        {\\info{\\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
+        {\\pard \\ql \\f0 \\sa180 \\li0 \\fi0 \\b \\fs26 Header 1\\par}
+        }
+    ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/test.hash"
+    return "1", "2", "3"
+end
+
+function testFunction()
+    -- function definition goes here
+end
+
+return true
+`;
+
+        const result = injectExtras(name, contents);
+
+        expect(result).toEqual(expected);
+    });
+
     it('should inject only HashURL into the contents (with return)', () => {
         const name = 'test.lua';
         const contents = `

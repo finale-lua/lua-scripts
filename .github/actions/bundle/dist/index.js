@@ -6984,7 +6984,7 @@ const getHashURL = (name) => {
 };
 const getRTFNotes = (input) => {
     let result = '';
-    const notesRegex = /(?<=finaleplugin.Notes = \[\[).*(?=\]\])/ius;
+    const notesRegex = /(?<=finaleplugin.Notes = \[\[).*?(?=\]\])/ius;
     const match = input.match(notesRegex);
     if (match) {
         let notes = (0, dedent_js_1.default)(match[0]);
