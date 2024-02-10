@@ -312,7 +312,7 @@ function plugindef(locale)
         menu = "Ocultar Silencios",
         desc = "Oculta todos los silencios en la región seleccionada."
     }
-    localization.jp = {
+    localization.ja = {
         menu = "休符を隠す",
         desc = "選択した領域内のすべての休符を隠します。",
     }
