@@ -20,7 +20,7 @@ A library of general Lua utility functions.
 - [trim(str)](#trim)
 - [call_and_rethrow(levels, tryfunczzz)](#call_and_rethrow)
 - [rethrow_placeholder()](#rethrow_placeholder)
-- [show_notes_dialog(caption, width, height)](#show_notes_dialog)
+- [show_notes_dialog(parent, caption, width, height)](#show_notes_dialog)
 - [win_mac(windows_value, mac_value)](#win_mac)
 
 ### copy_table
@@ -323,15 +323,16 @@ Use this in error messages where the function name is variable or unknown (eg be
 ### show_notes_dialog
 
 ```lua
-utility_functions.show_notes_dialog(caption, width, height)
+utility_functions.show_notes_dialog(parent, caption, width, height)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L348)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L349)
 
 Displays a modal dialog with the contents of finaleplugin.RFTNotes (if present) or finaleplugin.Notes. If neither one is present, no dialog is shown.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
+| `parent` | `FCResourceWindow` | The parent window (if any) that is opening this dialog |
 | `caption` | `string` | The caption for the dialog. Defaults to plugin name and version. |
 | `width` | `number` | The width in pixels of the edit control. Defaults to 500. |
 | `height` | `number` | The height inpixels of the edit control. Defaults to 350. |
@@ -342,7 +343,7 @@ Displays a modal dialog with the contents of finaleplugin.RFTNotes (if present) 
 utility_functions.win_mac(windows_value, mac_value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L440)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L444)
 
 Returns the winval or the macval depending on which operating system the script is running on.
 

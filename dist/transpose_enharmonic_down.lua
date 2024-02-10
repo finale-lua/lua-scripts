@@ -1458,9 +1458,12 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         return "'" .. rethrow_placeholder .. "'"
     end
 
-    function utils.show_notes_dialog(caption, width, height)
+    function utils.show_notes_dialog(parent, caption, width, height)
         if not finaleplugin.RTFNotes and not finaleplugin.Notes then
             return
+        end
+        if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
+            error("argument 1 must be nil or an instance of FCResourceWindow", 2)
         end
         local function dedent(input)
             local first_line_indent = input:match("^(%s*)")
@@ -1484,7 +1487,7 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
             return rtf
         end
         if not caption then
-            caption = plugindef()
+            caption = plugindef():gsub("%.%.%.", "")
             if finaleplugin.Version then
                 local version = finaleplugin.Version
                 if string.sub(version, 1, 1) ~= "v" then
@@ -1527,7 +1530,7 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
                     edit_text:ResetColors()
                     ok:SetKeyboardFocus()
                 end)
-            dlg:ExecuteModal(nil)
+            dlg:ExecuteModal(parent)
         end
     end
 
