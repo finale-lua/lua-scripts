@@ -524,11 +524,11 @@ function plugindef()
         (The default values are shown.)
 
         ```
-        set_playback_start = false                  
-        revert_playback_start = 0                   
-        include_chord_playback = true               
-        include_expression_playback = true          
-        include_end_measure = true                  
+        set_playback_start = false                  -- if true, modify the playback start measure to match the selection or first measure if none
+        revert_playback_start = 0                   -- revert to start measure playback when no selection exists (1 == leftmost, 2 == current counter)
+        include_chord_playback = true               -- if true, modify chord playback as well
+        include_expression_playback = true          -- if true, modify MIDI expression playback as well
+        include_end_measure = true                  -- if true, stop playback at the end measure of the region
         ```
     ]]
     finaleplugin.RTFNotes = [[
@@ -539,11 +539,11 @@ function plugindef()
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \ql \f0 \sa180 \li0 \fi0 Select the staves you want soloed or muted, then run this script. If nothing is selected, all solos and mutes are cleared.\par}
         {\pard \ql \f0 \sa180 \li0 \fi0 You can optionally use a configuration to start playback at the beginning of the selected region. (If nothing is selected, it reverts playback to a selected default start option.) To set the options, create a plain text file called playback_selected_region.config.txt in a folder called {\f1 script_settings} within the same folder as the script. It can contain any or all of the following configuration parameters. (The default values are shown.)\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 set_playback_start = false                  
-        revert_playback_start = 0                   
-        include_chord_playback = true               
-        include_expression_playback = true          
-        include_end_measure = true                  
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 set_playback_start = false                  -- if true, modify the playback start measure to match the selection or first measure if none\line
+        revert_playback_start = 0                   -- revert to start measure playback when no selection exists (1 == leftmost, 2 == current counter)\line
+        include_chord_playback = true               -- if true, modify chord playback as well\line
+        include_expression_playback = true          -- if true, modify MIDI expression playback as well\line
+        include_end_measure = true                  -- if true, stop playback at the end measure of the region\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_selected_staves.hash"

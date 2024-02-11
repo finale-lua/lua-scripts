@@ -5843,7 +5843,7 @@ function plugindef(locale)
     }
     local t = locale and loc[locale:sub(1,2)] or loc.en
     finaleplugin.RequireSelection = false
-    finaleplugin.HandlesUndo = true 
+    finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.2"

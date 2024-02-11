@@ -1,12 +1,10 @@
 function plugindef()
-    
-    
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "1.0.2"
     finaleplugin.Date = "2022-09-25"
     finaleplugin.RequireSelection = true
-
+--    finaleplugin.MinJWLuaVersion = 0.64 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Notes = [[
     This plug-in is intended to aid in producing scores with multi-instrument staves.
