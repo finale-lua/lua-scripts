@@ -5828,6 +5828,10 @@ package.preload["localization.transpose_by_step.es"] = package.preload["localiza
     return loc
 end
 function plugindef(locale)
+--[[
+-- This comment allows RGP Lua pre-0.71 to find the plugindef function
+function plugindef()
+--]]
     local loc = {}
     loc.en = {
         menu = "Transpose By Steps",

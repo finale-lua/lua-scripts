@@ -5924,6 +5924,10 @@ package.preload["localization.transpose_chromatic.es"] = package.preload["locali
     return loc
 end
 function plugindef(locale)
+--[[
+-- This comment allows RGP Lua pre-0.71 to find the plugindef function
+function plugindef()
+--]]
     local loc = {}
     loc.en = {
         menu = "Transpose Chromatic",

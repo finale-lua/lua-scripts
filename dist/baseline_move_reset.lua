@@ -397,6 +397,10 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     return configuration
 end
 function plugindef(locale)
+--[[
+-- This comment allows RGP Lua pre-0.71 to find the plugindef function
+function plugindef()
+--]]
     local loc = {}
     loc.en = {
         addl_menus = [[
