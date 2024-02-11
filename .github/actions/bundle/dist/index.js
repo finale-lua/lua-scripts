@@ -6834,7 +6834,7 @@ const bundleFile = (name, sourcePath, mixins) => {
     const bundled = (0, exports.bundleFileBase)(name, exports.files, mixins, localizations, (fileName) => fs_1.default.readFileSync(path_1.default.join(sourcePath, fileName)).toString());
     const parts = (0, helpers_1.getFileParts)(bundled);
     return (0, remove_comments_1.removeComments)(parts.prolog, true)
-        + (0, remove_comments_1.removeComments)(parts.plugindef, false)
+        + parts.plugindef
         + (0, remove_comments_1.removeComments)(parts.epilog, true);
 };
 exports.bundleFile = bundleFile;
