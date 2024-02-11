@@ -1,6 +1,4 @@
 function plugindef()
-    -- This function and the 'finaleplugin' namespace
-    -- are both reserved for the plug-in definition.
     finaleplugin.RequireDocument = false
     finaleplugin.RequireSelection = false
     finaleplugin.NoStore = true
