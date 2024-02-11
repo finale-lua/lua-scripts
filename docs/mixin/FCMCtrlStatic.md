@@ -177,7 +177,7 @@ If using the parent window's measurement unit, it will be automatically updated 
 fcmctrlstatic.SetMeasurement10000th(self, value, measurementunit)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlStatic.lua#L-1)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/mixin/FCMCtrlStatic.lua#L223)
 
 **[Fluid]**
 

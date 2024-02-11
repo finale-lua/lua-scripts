@@ -6791,12 +6791,13 @@ const importFileBase = (name, importedFiles, fetcher) => {
     }
 };
 exports.importFileBase = importFileBase;
-const bundleFileBase = (name, importedFiles, mixins, fetcher) => {
+const bundleFileBase = (name, importedFiles, mixins, localizations, fetcher) => {
     var _a;
     const fileContents = (0, inject_extras_1.injectExtras)(name, fetcher(name));
     const fileStack = [fileContents];
     const importStack = (0, helpers_1.getAllImports)(fileContents);
     const importedFileNames = new Set();
+    importStack.push(...localizations);
     while (importStack.length > 0) {
         const nextImport = (_a = importStack.pop()) !== null && _a !== void 0 ? _a : '';
         if (importedFileNames.has(nextImport))
@@ -6821,7 +6822,16 @@ const bundleFileBase = (name, importedFiles, mixins, fetcher) => {
 };
 exports.bundleFileBase = bundleFileBase;
 const bundleFile = (name, sourcePath, mixins) => {
-    const bundled = (0, exports.bundleFileBase)(name, exports.files, mixins, (fileName) => fs_1.default.readFileSync(path_1.default.join(sourcePath, fileName)).toString());
+    const localizations = [];
+    const baseName = path_1.default.basename(name, '.lua');
+    const locPath = path_1.default.join(sourcePath, 'localization', baseName);
+    if (fs_1.default.existsSync(locPath)) {
+        localizations.push(...fs_1.default
+            .readdirSync(locPath)
+            .filter(fileName => fileName.endsWith('.lua'))
+            .map(file => `localization.${baseName}.${path_1.default.basename(file, '.lua')}`));
+    }
+    const bundled = (0, exports.bundleFileBase)(name, exports.files, mixins, localizations, (fileName) => fs_1.default.readFileSync(path_1.default.join(sourcePath, fileName)).toString());
     const parts = (0, helpers_1.getFileParts)(bundled);
     return (0, remove_comments_1.removeComments)(parts.prolog, true)
         + (0, remove_comments_1.removeComments)(parts.plugindef, false)
@@ -6984,7 +6994,7 @@ const getHashURL = (name) => {
 };
 const getRTFNotes = (input) => {
     let result = '';
-    const notesRegex = /(?<=finaleplugin.Notes = \[\[).*(?=\]\])/ius;
+    const notesRegex = /(?<=finaleplugin.Notes = \[\[).*?(?=\]\])/ius;
     const match = input.match(notesRegex);
     if (match) {
         let notes = (0, dedent_js_1.default)(match[0]);

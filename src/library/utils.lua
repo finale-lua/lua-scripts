@@ -11,16 +11,25 @@ local utils = {}
 If a table is passed, returns a copy, otherwise returns the passed value.
 
 @ t (mixed)
+@ [to_table] (table) the existing top-level table to copy to if present. (Sub-tables are always copied to new tables.)
+@ [overwrite] (boolean) if true, overwrites existing values; if false, does not copy over existing values. Default is true.
 : (mixed)
 ]]
 ---@generic T
 ---@param t T
 ---@return T
-function utils.copy_table(t)
+function utils.copy_table(t, to_table, overwrite)
+    overwrite = (overwrite == nil) and true or false
     if type(t) == "table" then
-        local new = {}
+        local new = type(to_table) == "table" and to_table or {}
         for k, v in pairs(t) do
-            new[utils.copy_table(k)] = utils.copy_table(v)
+            local new_key = utils.copy_table(k)
+            local new_value = utils.copy_table(v)
+            if overwrite then
+                new[new_key] = new_value
+            else
+                new[new_key] = new[new_key] == nil and new_value or new[new_key]
+            end
         end
         setmetatable(new, utils.copy_table(getmetatable(t)))
         return new
@@ -61,6 +70,41 @@ function utils.iterate_keys(t)
         c = a(b, c)
         return c
     end
+end
+
+--[[
+% get_keys
+
+Returns a sorted array table of all the keys in a table.
+
+@ t (table)
+: (table) array table of the keys
+]]
+function utils.create_keys_table(t)
+    local retval = {}
+
+    for k, _ in pairsbykeys(t) do
+        table.insert(retval, k)
+    end
+    return retval
+end
+
+--[[
+% create_lookup_table
+
+Creates a value lookup table from an existing table.
+
+@ t (table)
+: (table)
+]]
+function utils.create_lookup_table(t)
+    local lookup = {}
+
+    for _, v in pairs(t) do
+        lookup[v] = true
+    end
+
+    return lookup
 end
 
 --[[
@@ -297,13 +341,17 @@ end
 
 Displays a modal dialog with the contents of finaleplugin.RFTNotes (if present) or finaleplugin.Notes. If neither one is present, no dialog is shown.
 
+@ parent (FCResourceWindow) The parent window (if any) that is opening this dialog
 @ caption (string) The caption for the dialog. Defaults to plugin name and version.
 @ width (number) The width in pixels of the edit control. Defaults to 500.
 @ height (number) The height inpixels of the edit control. Defaults to 350.
 ]]
-function utils.show_notes_dialog(caption, width, height)
+function utils.show_notes_dialog(parent, caption, width, height)
     if not finaleplugin.RTFNotes and not finaleplugin.Notes then
         return
+    end
+    if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
+        error("argument 1 must be nil or an instance of FCResourceWindow", 2)
     end
 
     local function dedent(input)
@@ -332,7 +380,7 @@ function utils.show_notes_dialog(caption, width, height)
     end
 
     if not caption then
-        caption = plugindef()
+        caption = plugindef():gsub("%.%.%.", "")
         if finaleplugin.Version then
             local version = finaleplugin.Version
             if string.sub(version, 1, 1) ~= "v" then
@@ -379,8 +427,25 @@ function utils.show_notes_dialog(caption, width, height)
                 edit_text:ResetColors()
                 ok:SetKeyboardFocus()
             end)
-        dlg:ExecuteModal(nil)
+        dlg:ExecuteModal(parent)
     end
+end
+
+--[[
+% win_mac
+
+Returns the winval or the macval depending on which operating system the script is running on.
+
+@ windows_value (any) The Windows value to return
+@ mac_value (any) The macOS value to return
+: (any) The windows_value or mac_value based on finenv.UI()IsOnWindows()
+]]
+
+function utils.win_mac(windows_value, mac_value)
+    if finenv.UI():IsOnWindows() then
+        return windows_value
+    end
+    return mac_value
 end
 
 return utils

@@ -41,7 +41,7 @@ const getHashURL = (name: string): string => {
 const getRTFNotes = (input: string): string => {    
     let result = '';
 
-    const notesRegex = /(?<=finaleplugin.Notes = \[\[).*(?=\]\])/ius;
+    const notesRegex = /(?<=finaleplugin.Notes = \[\[).*?(?=\]\])/ius;
     const match = input.match(notesRegex);
 
     if (match) {

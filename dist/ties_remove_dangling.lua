@@ -716,7 +716,7 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
             if end_note then
                 local next_stemdir = end_note.Entry:CalcStemUp() and 1 or -1
                 end_placement = calc_placement_for_endpoint(end_note, tie_mod, tie_prefs, direction, next_stemdir, true)
-            else
+            elseif start_note then
 
 
 
@@ -867,7 +867,7 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
                 horz_end = next_cell_metrics.MusicStartPos * staff_scaling
             end
             horz_end = horz_end / horz_stretch
-        else
+        elseif start_note then
             local entry_metrics = tie_mod:IsStartTie() and entry_metrics_end or entry_metrics_start
             local note_index = start_note.NoteIndex
             if end_note then
@@ -1121,7 +1121,7 @@ package.preload["library.client"] = package.preload["library.client"] or functio
     end
     local function requires_later_plugin_version(feature)
         if feature then
-            return "This script uses " .. to_human_string(feature) .. "which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
+            return "This script uses " .. to_human_string(feature) .. " which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
         end
         return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
     end
@@ -1189,6 +1189,10 @@ package.preload["library.client"] = package.preload["library.client"] or functio
             test = finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1),
             error = requires_finale_version("27.1", "a SMUFL font"),
         },
+        luaosutils = {
+            test = finenv.EmbeddedLuaOSUtils,
+            error = requires_later_plugin_version("the embedded luaosutils library")
+        }
     }
 
     function client.supports(feature)
@@ -1208,6 +1212,16 @@ package.preload["library.client"] = package.preload["library.client"] or functio
             error("Your Finale version does not support " .. to_human_string(feature), error_level)
         end
         return true
+    end
+
+    function client.encode_with_client_codepage(input_string)
+        if client.supports("luaosutils") then
+            local text = require("luaosutils").text
+            if text and text.get_default_codepage() ~= text.get_utf8_codepage() then
+                return text.convert_encoding(input_string, text.get_utf8_codepage(), text.get_default_codepage())
+            end
+        end
+        return input_string
     end
     return client
 end
@@ -1420,6 +1434,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
 
                 local cmd = finenv.UI():IsOnWindows() and "dir " or "ls "
                 local handle = io.popen(cmd .. options .. " \"" .. smufl_directory .. "\"")
+                if not handle then return "" end
                 local retval = handle:read("*a")
                 handle:close()
                 return retval
@@ -1587,7 +1602,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         return system:Save()
     end
 
-    function library.calc_script_name(include_extension)
+    function library.calc_script_filepath()
         local fc_string = finale.FCString()
         if finenv.RunningLuaFilePath then
 
@@ -1597,6 +1612,12 @@ package.preload["library.general_library"] = package.preload["library.general_li
 
             fc_string:SetRunningLuaFilePath()
         end
+        return fc_string.LuaString
+    end
+
+    function library.calc_script_name(include_extension)
+        local fc_string = finale.FCString()
+        fc_string.LuaString = library.calc_script_filepath()
         local filename_string = finale.FCString()
         fc_string:SplitToPathAndFile(nil, filename_string)
         local retval = filename_string.LuaString

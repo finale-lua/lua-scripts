@@ -9,7 +9,7 @@ $module FCMStrings
 - Added polyfill for `CopyFromStringTable`.
 - Added `CreateStringTable` method.
 ]] --
-local mixin = require("library.mixin")
+local mixin = require("library.mixin") -- luacheck: ignore
 local mixin_helper = require("library.mixin_helper")
 
 local class = {Methods = {}}
@@ -32,7 +32,17 @@ Override Changes:
 function methods:AddCopy(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
-    mixin_helper.boolean_to_error(self, "AddCopy", mixin_helper.to_fcstring(str, temp_str))
+    str = mixin_helper.to_fcstring(str, temp_str)
+
+    -- versions of Finale Lua before 0.71 always return false. This was a long-standing
+    -- bug in the PDK Framework. For these versions, ignore the return value and make
+    -- the function fluid.
+
+    if finenv.MajorVersion > 0 or finenv.MinorVersion >= 71 then
+        mixin_helper.boolean_to_error(self, "AddCopy", str)
+    else
+        self:AddCopy__(str)
+    end
 end
 
 --[[
@@ -41,21 +51,9 @@ end
 Same as `AddCopy`, but accepts multiple arguments so that multiple values can be added at a time.
 
 @ self (FCMStrings)
-@ ... (FCStrings | FCString | string | number) `number`s will be cast to `string`
+@ ... (FCStrings | FCString | string | number | table) `number`s will be cast to `string`
 ]]
-function methods:AddCopies(...)
-    for i = 1, select("#", ...) do
-        local v = select(i, ...)
-        mixin_helper.assert_argument_type(i + 1, v, "FCStrings", "FCString", "string", "number")
-        if mixin_helper.is_instance_of(v, "FCStrings") then
-            for str in each(v) do
-                self:AddCopy__(str)
-            end
-        else
-            mixin.FCStrings.AddCopy(self, v)
-        end
-    end
-end
+methods.AddCopies = mixin_helper.create_multi_string_proxy("AddCopy")
 
 --[[
 % Find
@@ -72,7 +70,7 @@ Override Changes:
 function methods:Find(str)
     mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
 
-    return self:Find_(mixin_helper.to_fcstring(str, temp_str))
+    return self:Find__(mixin_helper.to_fcstring(str, temp_str))
 end
 
 --[[
@@ -160,7 +158,7 @@ end
 --[[
 % InsertStringAt
 
-**[>= v0.59] [Fluid] [Override]**
+**[>= v0.68] [Fluid] [Override]**
 
 Override Changes:
 - Accepts Lua `string` and `number` in addition to `FCString`.
@@ -169,7 +167,9 @@ Override Changes:
 @ str (FCString | string | number)
 @ index (number)
 ]]
-if finenv.MajorVersion > 0 or finenv.MinorVersion >= 59 then
+if finenv.MajorVersion > 0 or finenv.MinorVersion >= 68 then
+    -- NOTE: the version of InsertStringAt before 0.68 was not safe, and
+    --          this function would have crashed Finale.
     function methods:InsertStringAt(str, index)
         mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
         mixin_helper.assert_argument_type(3, index, "number")

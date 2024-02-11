@@ -6,7 +6,7 @@ package.preload["library.client"] = package.preload["library.client"] or functio
     end
     local function requires_later_plugin_version(feature)
         if feature then
-            return "This script uses " .. to_human_string(feature) .. "which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
+            return "This script uses " .. to_human_string(feature) .. " which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
         end
         return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
     end
@@ -74,6 +74,10 @@ package.preload["library.client"] = package.preload["library.client"] or functio
             test = finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1),
             error = requires_finale_version("27.1", "a SMUFL font"),
         },
+        luaosutils = {
+            test = finenv.EmbeddedLuaOSUtils,
+            error = requires_later_plugin_version("the embedded luaosutils library")
+        }
     }
 
     function client.supports(feature)
@@ -93,6 +97,16 @@ package.preload["library.client"] = package.preload["library.client"] or functio
             error("Your Finale version does not support " .. to_human_string(feature), error_level)
         end
         return true
+    end
+
+    function client.encode_with_client_codepage(input_string)
+        if client.supports("luaosutils") then
+            local text = require("luaosutils").text
+            if text and text.get_default_codepage() ~= text.get_utf8_codepage() then
+                return text.convert_encoding(input_string, text.get_utf8_codepage(), text.get_default_codepage())
+            end
+        end
+        return input_string
     end
     return client
 end
@@ -305,6 +319,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
 
                 local cmd = finenv.UI():IsOnWindows() and "dir " or "ls "
                 local handle = io.popen(cmd .. options .. " \"" .. smufl_directory .. "\"")
+                if not handle then return "" end
                 local retval = handle:read("*a")
                 handle:close()
                 return retval
@@ -472,7 +487,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         return system:Save()
     end
 
-    function library.calc_script_name(include_extension)
+    function library.calc_script_filepath()
         local fc_string = finale.FCString()
         if finenv.RunningLuaFilePath then
 
@@ -482,6 +497,12 @@ package.preload["library.general_library"] = package.preload["library.general_li
 
             fc_string:SetRunningLuaFilePath()
         end
+        return fc_string.LuaString
+    end
+
+    function library.calc_script_name(include_extension)
+        local fc_string = finale.FCString()
+        fc_string.LuaString = library.calc_script_filepath()
         local filename_string = finale.FCString()
         fc_string:SplitToPathAndFile(nil, filename_string)
         local retval = filename_string.LuaString
@@ -1115,14 +1136,11 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 This script implements three menu options to modify expressions.\line
-        \line
-        - Expression Set To Score And Parts\line
-        - Expression Set To Score Only\line
-        - Expression Set To Parts Only\line
-        \line
-        It changes any selected single-staff expressions that is visible in the current score or part view.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 ]] finaleplugin.AdditionalMenuOptions = [[ Expression Set To Score Only Expression Set To Parts Only]] finaleplugin.AdditionalDescriptions = [[ Set any single-staff text expression in the currenly selected region to Score Only assignment. Set any single-staff text expression in the currenly selected region to Parts Only assignment.]] finaleplugin.AdditionalPrefixes = [[ set_for_score = true set_for_parts = false set_for_score = false set_for_parts = true\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script implements three menu options to modify expressions.\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Expression Set To Score And Parts\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Expression Set To Score Only\par}
+        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Expression Set To Parts Only\sa180\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 It changes any selected single-staff expressions that is visible in the current score or part view.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_score_parts_assignment.hash"

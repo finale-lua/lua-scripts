@@ -40,7 +40,7 @@ describe('bundle', () => {
     }
 
     it('bundleFile', () => {
-        const bundle = bundleFileBase('a.lua', {}, [], fetcher)
+        const bundle = bundleFileBase('a.lua', {}, [], [], fetcher)
         expect(bundle).toBe(
             [
                 'package.preload["b"] = package.preload["b"] or function()',
@@ -58,17 +58,17 @@ describe('bundle', () => {
     })
 
     it('bundleFile with no imports', () => {
-        const bundle = bundleFileBase('c.lua', {}, [], fetcher)
+        const bundle = bundleFileBase('c.lua', {}, [], [], fetcher)
         expect(bundle).toBe('return {}')
     })
 
     it('ignore unresolvable imports', () => {
-        const bundle = bundleFileBase('invalid.lua', {}, [], fetcher)
+        const bundle = bundleFileBase('invalid.lua', {}, [], [], fetcher)
         expect(bundle).toBe(["local invalid = require('invalid.import')"].join('\n'))
     })
 
     it('imports all mixins', () => {
-        const bundle = bundleFileBase('mixin.lua', {}, ['mixin.FCMControl', 'mixin.FCMString'], fetcher)
+        const bundle = bundleFileBase('mixin.lua', {}, ['mixin.FCMControl', 'mixin.FCMString'], [], fetcher)
         expect(bundle).toBe(
             [
                 'package.preload["mixin.FCMControl"] = package.preload["mixin.FCMControl"] or function()',

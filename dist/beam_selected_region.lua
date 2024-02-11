@@ -345,22 +345,10 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 This script beams together any notes or rests in the selected region that can\line
-        be beamed together and breaks beams that cross into or out of the selected\line
-        region at the boundaries of the selected region. The beam options in Finale\u8217's\line
-        Document Settings determine whether rests can be included at the start or end of a beam.\line
-        If you select multiple staves vertically, you can create the same beaming pattern\line
-        across all the staves with a single invocation of the script.\line
-        \line
-        It does *not* create beams over barlines.\line
-        \line
-        By default, the plugin installs two menu options, one to beam the selected region and\line
-        the other to unbeam the selected region. You can instead unbeam all notes in the selected region\line
-        by invoking the "Beam Selected Region" menu option with the Option key pressed (macOS) or\line
-        the Shift key pressed. This is identical to invoking the "Unbeam Selected Region" menu option.\line
-        \line
-        This script could be particularly useful if you assign it a keystroke using a keyboard macro utility.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 ]] finaleplugin.AdditionalMenuOptions = [[ Unbeam Selected Region]] finaleplugin.AdditionalDescriptions = [[ Unbeam Selected Region]] finaleplugin.AdditionalPrefixes = [[ do_unbeam = true\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script beams together any notes or rests in the selected region that can be beamed together and breaks beams that cross into or out of the selected region at the boundaries of the selected region. The beam options in Finale\u8217's Document Settings determine whether rests can be included at the start or end of a beam. If you select multiple staves vertically, you can create the same beaming pattern across all the staves with a single invocation of the script.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 It does {\i not} create beams over barlines.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 By default, the plugin installs two menu options, one to beam the selected region and the other to unbeam the selected region. You can instead unbeam all notes in the selected region by invoking the \u8220"Beam Selected Region\u8221" menu option with the Option key pressed (macOS) or the Shift key pressed. This is identical to invoking the \u8220"Unbeam Selected Region\u8221" menu option.\par}
+        {\pard \ql \f0 \sa180 \li0 \fi0 This script could be particularly useful if you assign it a keystroke using a keyboard macro utility.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/beam_selected_region.hash"

@@ -310,11 +310,18 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
 
 
 
-    function utils.copy_table(t)
+    function utils.copy_table(t, to_table, overwrite)
+        overwrite = (overwrite == nil) and true or false
         if type(t) == "table" then
-            local new = {}
+            local new = type(to_table) == "table" and to_table or {}
             for k, v in pairs(t) do
-                new[utils.copy_table(k)] = utils.copy_table(v)
+                local new_key = utils.copy_table(k)
+                local new_value = utils.copy_table(v)
+                if overwrite then
+                    new[new_key] = new_value
+                else
+                    new[new_key] = new[new_key] == nil and new_value or new[new_key]
+                end
             end
             setmetatable(new, utils.copy_table(getmetatable(t)))
             return new
@@ -338,6 +345,22 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
             c = a(b, c)
             return c
         end
+    end
+
+    function utils.create_keys_table(t)
+        local retval = {}
+        for k, _ in pairsbykeys(t) do
+            table.insert(retval, k)
+        end
+        return retval
+    end
+
+    function utils.create_lookup_table(t)
+        local lookup = {}
+        for _, v in pairs(t) do
+            lookup[v] = true
+        end
+        return lookup
     end
 
     function utils.round(value, places)
@@ -457,9 +480,12 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         return "'" .. rethrow_placeholder .. "'"
     end
 
-    function utils.show_notes_dialog(caption, width, height)
+    function utils.show_notes_dialog(parent, caption, width, height)
         if not finaleplugin.RTFNotes and not finaleplugin.Notes then
             return
+        end
+        if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
+            error("argument 1 must be nil or an instance of FCResourceWindow", 2)
         end
         local function dedent(input)
             local first_line_indent = input:match("^(%s*)")
@@ -483,7 +509,7 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
             return rtf
         end
         if not caption then
-            caption = plugindef()
+            caption = plugindef():gsub("%.%.%.", "")
             if finaleplugin.Version then
                 local version = finaleplugin.Version
                 if string.sub(version, 1, 1) ~= "v" then
@@ -526,8 +552,15 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
                     edit_text:ResetColors()
                     ok:SetKeyboardFocus()
                 end)
-            dlg:ExecuteModal(nil)
+            dlg:ExecuteModal(parent)
         end
+    end
+
+    function utils.win_mac(windows_value, mac_value)
+        if finenv.UI():IsOnWindows() then
+            return windows_value
+        end
+        return mac_value
     end
     return utils
 end

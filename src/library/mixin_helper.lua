@@ -10,6 +10,7 @@ require("library.lua_compatibility")
 local utils = require("library.utils")
 local mixin = require("library.mixin")
 local library = require("library.general_library")
+local localization = require("library.localization")
 
 local mixin_helper = {}
 
@@ -138,7 +139,8 @@ The followimg types can be specified:
 
 *NOTE: This function will only assert if in debug mode (ie `finenv.DebugEnabled == true`). If assertions are always required, use `force_assert_argument_type` instead.*
 
-@ argument_number (number) The REAL argument number for the error message (self counts as argument #1).
+@ argument_number (number | string) The REAL argument number for the error message (self counts as argument #1). If the argument is a string, it should
+start with a number that is the real argument number.
 @ value (any) The value to test.
 @ ... (string) Valid types (as many as needed). Can be standard Lua types, Finale class names, or mixin class names.
 ]]
@@ -557,8 +559,25 @@ function mixin_helper.to_fcstring(value, fcstr)
     end
 
     fcstr = fcstr or finale.FCString()
-    fcstr.LuaString = tostring(value)
+    fcstr.LuaString = value == nil and "" or tostring(value)
     return fcstr
+end
+
+--[[
+% to_string
+
+Casts a value to a Lua string. If the value is an `FCString`, it returns `LuaString`, otherwise it calls `tostring`.
+
+@ value (any)
+: (string)
+]]
+
+function mixin_helper.to_string(value)
+    if mixin_helper.is_instance_of(value, "FCString") then
+        return value.LuaString
+    end
+
+    return value == nil and "" or tostring(value)
 end
 
 --[[
@@ -577,5 +596,77 @@ function mixin_helper.boolean_to_error(object, method, ...)
         error("'" .. object.MixinClass .. "." .. method .. "' has encountered an error.", 3)
     end
 end
+
+--[[
+% create_localized_proxy
+
+Creates a proxy method that takes localization keys instead of raw strings.
+
+@ method_name (string)
+@ class_name (string|nil) If `nil`, the resulting call will be on the `self` object. If a `string` is passed, it will be forwarded to a static call on that class in the `mixin` namespace.
+@ only_localize_args (table|nil) If `nil`, all values passed to the method will be localized. If only certain arguments need localizing, pass a `table` of argument `number`s (note that `self` is argument #1).
+: (function)
+]]
+function mixin_helper.create_localized_proxy(method_name, class_name, only_localize_args)
+    local args_to_localize
+    if only_localize_args == nil then
+        args_to_localize = setmetatable({}, { __index = function() return true end })
+    else
+        args_to_localize = utils.create_lookup_table(only_localize_args)
+    end
+
+    return function(self, ...)
+        local args = table.pack(...)
+
+        for arg_num = 1, args.n do
+            if args_to_localize[arg_num] then
+                mixin_helper.assert_argument_type(arg_num, args[arg_num], "string", "FCString")
+                args[arg_num] = localization.localize(mixin_helper.to_string(args[arg_num]))
+            end
+        end
+
+        --Tail call. Errors will pass through to the correct level
+        return (class_name and mixin[class_name] or self)[method_name](self, table.unpack(args, 1, args.n))
+    end
+end
+
+--[[
+% create_multi_string_proxy
+
+Creates a proxy method that takes multiple string arguments.
+
+@ method_name (string) An instance method on the class that accepts a single Lua `string`, `FCString`, or `number`
+: (function)
+]]
+function mixin_helper.create_multi_string_proxy(method_name)
+    local function to_key_string(value)
+        if type(value) == "string" then
+            value = "\"" .. value .. "\""
+        end
+
+        return "[" .. tostring(value) .. "]"
+    end
+    return function(self, ...)
+        mixin_helper.assert_argument_type(1, self, "userdata")
+        for i = 1, select("#", ...) do
+            local v = select(i, ...)
+            mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings", "table")
+
+            if type(v) == "userdata" and v:ClassName() == "FCStrings" then
+                for str in each(v) do
+                    self[method_name](self, str)
+                end
+            elseif type(v) == "table" then
+                for k2, v2 in pairsbykeys(v) do
+                    mixin_helper.assert_argument_type(tostring(i + 1) .. to_key_string(k2), v2, "string", "number", "FCString")
+                    self[method_name](self, v2)
+                end
+            else
+                self[method_name](self, v)
+            end
+        end
+    end
+end
+
 
 return mixin_helper

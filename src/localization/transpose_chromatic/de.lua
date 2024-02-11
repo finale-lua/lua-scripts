@@ -1,0 +1,42 @@
+--
+-- Localization de.lua for transpose_chromatic.lua
+--
+local loc = {
+    error_msg_transposition = "Finale kann einige der transponierten Tönhöhen nicht darstellen. Diese Tönhöhen wurden unverändert gelassen.",
+    augmented_fifth = "Übermäßige Quinte",
+    augmented_fourth = "Übermäßige Quarte",
+    augmented_second = "Übermäßige Sekunde",
+    augmented_seventh = "Übermäßige Septime",
+    augmented_sixth = "Übermäßige Sexte",
+    augmented_third = "Übermäßige Terz",
+    augmented_unison = "Übermäßige Prime",
+    diminished_fifth = "Verminderte Quinte",
+    diminished_fourth = "Verminderte Quarte",
+    diminished_octave = "Verminderte Oktave",
+    diminished_second = "Verminderte Sekunde",
+    diminished_seventh = "Verminderte Septime",
+    diminished_sixth = "Verminderte Sexte",
+    diminished_third = "Verminderte Terz",
+    direction = "Richtung",
+    down = "Runter",
+    interval = "Intervall",
+    major_second = "Große Sekunde",
+    major_seventh = "Große Septime",
+    major_sixth = "Große Sexte",
+    major_third = "Große Terz",
+    minor_second = "Kleine Sekunde",
+    minor_seventh = "Kleine Septime",
+    minor_sixth = "Kleine Sexte",
+    minor_third = "Kleine Terz",
+    perfect_fifth = "Reine Quinte",
+    perfect_fourth = "Reine Quarte",
+    perfect_octave = "Reine Oktave",
+    perfect_unison = "Reine Prime",
+    plus_octaves = "Plus Oktaven",
+    preserve_existing = "Bestehende Noten beibehalten",
+    simplify_spelling = "Notation vereinfachen",
+    transposition_error = "Transpositionsfehler",
+    up = "Hoch",
+}
+
+return loc

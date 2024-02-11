@@ -221,6 +221,8 @@ package.preload["mixin.FCMControl"] = package.preload["mixin.FCMControl"] or fun
 
 
     methods.AddHandleCommand, methods.RemoveHandleCommand = mixin_helper.create_standard_control_event("HandleCommand")
+
+    methods.SetTextLocalized = mixin_helper.create_localized_proxy("SetText", "FCMControl")
     return class
 end
 package.preload["mixin.FCMCtrlButton"] = package.preload["mixin.FCMCtrlButton"] or function()
@@ -290,6 +292,29 @@ package.preload["mixin.FCMCtrlCheckbox"] = package.preload["mixin.FCMCtrlCheckbo
         mixin.FCMControl.RestoreState(self)
         self:SetCheck__(private[self].Check)
     end
+    return class
+end
+package.preload["mixin.FCMCtrlComboBox"] = package.preload["mixin.FCMCtrlComboBox"] or function()
+
+
+
+    local mixin = require("library.mixin")
+    local mixin_helper = require("library.mixin_helper")
+    local class = {Methods = {}}
+    local methods = class.Methods
+    local temp_str = finale.FCString()
+
+    function methods:AddString(str)
+        mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
+        str = mixin_helper.to_fcstring(str, temp_str)
+        self:AddString__(str)
+    end
+
+    methods.AddStringLocalized = mixin_helper.create_localized_proxy("AddString")
+
+    methods.AddStrings = mixin_helper.create_multi_string_proxy("AddString")
+
+    methods.AddStringsLocalized = mixin_helper.create_multi_string_proxy("AddStringLocalized")
     return class
 end
 package.preload["mixin.FCMCtrlDataList"] = package.preload["mixin.FCMCtrlDataList"] or function()
@@ -522,19 +547,11 @@ package.preload["mixin.FCMCtrlListBox"] = package.preload["mixin.FCMCtrlListBox"
         table.insert(private[self].Items, str.LuaString)
     end
 
-    function methods:AddStrings(...)
-        for i = 1, select("#", ...) do
-            local v = select(i, ...)
-            mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings")
-            if type(v) == "userdata" and v:ClassName() == "FCStrings" then
-                for str in each(v) do
-                    mixin.FCMCtrlListBox.AddString(self, str)
-                end
-            else
-                mixin.FCMCtrlListBox.AddString(self, v)
-            end
-        end
-    end
+    methods.AddStringLocalized = mixin_helper.create_localized_proxy("AddString")
+
+    methods.AddStrings = mixin_helper.create_multi_string_proxy("AddString")
+
+    methods.AddStringsLocalized = mixin_helper.create_multi_string_proxy("AddStringLocalized")
 
     function methods:GetStrings(strs)
         mixin_helper.assert_argument_type(2, strs, "nil", "FCStrings")
@@ -806,19 +823,11 @@ package.preload["mixin.FCMCtrlPopup"] = package.preload["mixin.FCMCtrlPopup"] or
         table.insert(private[self].Items, str.LuaString)
     end
 
-    function methods:AddStrings(...)
-        for i = 1, select("#", ...) do
-            local v = select(i, ...)
-            mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings")
-            if type(v) == "userdata" and v:ClassName() == "FCStrings" then
-                for str in each(v) do
-                    mixin.FCMCtrlPopup.AddString(self, str)
-                end
-            else
-                mixin.FCMCtrlPopup.AddString(self, v)
-            end
-        end
-    end
+    methods.AddStringLocalized = mixin_helper.create_localized_proxy("AddString")
+
+    methods.AddStrings = mixin_helper.create_multi_string_proxy("AddString")
+
+    methods.AddStringsLocalized = mixin_helper.create_multi_string_proxy("AddStringLocalized")
 
     function methods:GetStrings(strs)
         mixin_helper.assert_argument_type(2, strs, "nil", "FCStrings")
@@ -1147,7 +1156,7 @@ package.preload["mixin.FCMCtrlStatic"] = package.preload["mixin.FCMCtrlStatic"] 
         set_measurement(self, "MeasurementEfix", measurementunit, value)
     end
 
-    function methods:SetMeasurementEfix(value, measurementunit)
+    function methods:SetMeasurement10000th(value, measurementunit)
         mixin_helper.assert_argument_type(2, value, "number")
         mixin_helper.assert_argument_type(3, measurementunit, "number", "nil")
         set_measurement(self, "Measurement10000th", measurementunit, value)
@@ -1788,6 +1797,7 @@ package.preload["mixin.FCMCustomWindow"] = package.preload["mixin.FCMCustomWindo
 
     local mixin = require("library.mixin")
     local mixin_helper = require("library.mixin_helper")
+    local loc = require("library.localization")
     local class = {Methods = {}}
     local methods = class.Methods
     local private = setmetatable({}, {__mode = "k"})
@@ -1874,6 +1884,29 @@ package.preload["mixin.FCMCustomWindow"] = package.preload["mixin.FCMCustomWindo
                 return create_control(self, control_type, num_args, ...)
             end
             :: continue ::
+        end
+    end
+
+
+
+    loc.add_to_locale("en", { ok = "OK", cancel = "Cancel", close = "Close" })
+    loc.add_to_locale("es", { ok = "Aceptar", cancel = "Cancelar", close = "Cerrar" })
+    loc.add_to_locale("de", { ok = "OK", cancel = "Abbrechen", close = "Schließen" })
+    for num_args, method_info in pairs({
+        [0] = { CancelButton = "cancel", OkButton = "ok" },
+        [2] = { CloseButton = "close" },
+    })
+    do
+        for method_name, localization_key in pairs(method_info) do
+            methods["Create" .. method_name .. "AutoLocalized"] = function(self, ...)
+                for i = 1, num_args do
+                    mixin_helper.assert_argument_type(i + 1, select(i, ...), "number")
+                end
+                mixin_helper.assert_argument_type(num_args + 2, select(num_args + 1, ...), "string", "nil", "FCString")
+                return self["Create" .. method_name](self, ...)
+                    :SetTextLocalized(localization_key)
+                    :_FallbackCall("DoAutoResizeWidth", nil)
+            end
         end
     end
 
@@ -2172,26 +2205,22 @@ package.preload["mixin.FCMStrings"] = package.preload["mixin.FCMStrings"] or fun
 
     function methods:AddCopy(str)
         mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
-        mixin_helper.boolean_to_error(self, "AddCopy", mixin_helper.to_fcstring(str, temp_str))
-    end
+        str = mixin_helper.to_fcstring(str, temp_str)
 
-    function methods:AddCopies(...)
-        for i = 1, select("#", ...) do
-            local v = select(i, ...)
-            mixin_helper.assert_argument_type(i + 1, v, "FCStrings", "FCString", "string", "number")
-            if mixin_helper.is_instance_of(v, "FCStrings") then
-                for str in each(v) do
-                    self:AddCopy__(str)
-                end
-            else
-                mixin.FCStrings.AddCopy(self, v)
-            end
+
+
+        if finenv.MajorVersion > 0 or finenv.MinorVersion >= 71 then
+            mixin_helper.boolean_to_error(self, "AddCopy", str)
+        else
+            self:AddCopy__(str)
         end
     end
 
+    methods.AddCopies = mixin_helper.create_multi_string_proxy("AddCopy")
+
     function methods:Find(str)
         mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
-        return self:Find_(mixin_helper.to_fcstring(str, temp_str))
+        return self:Find__(mixin_helper.to_fcstring(str, temp_str))
     end
 
     function methods:FindNocase(str)
@@ -2217,7 +2246,9 @@ package.preload["mixin.FCMStrings"] = package.preload["mixin.FCMStrings"] or fun
         mixin_helper.boolean_to_error(self, "LoadSystemFontNames")
     end
 
-    if finenv.MajorVersion > 0 or finenv.MinorVersion >= 59 then
+    if finenv.MajorVersion > 0 or finenv.MinorVersion >= 68 then
+
+
         function methods:InsertStringAt(str, index)
             mixin_helper.assert_argument_type(2, str, "string", "number", "FCString")
             mixin_helper.assert_argument_type(3, index, "number")
@@ -2384,6 +2415,21 @@ package.preload["mixin.FCMUI"] = package.preload["mixin.FCMUI"] or function()
             return str.LuaString
         end
     end
+
+    function methods:GetUserLocaleName(str)
+        mixin_helper.assert_argument_type(2, str, "nil", "FCString")
+        local do_return = false
+        if not str then
+            str = temp_str
+            do_return = true
+        end
+        self:GetUserLocaleName__(str)
+        if do_return then
+            return str.LuaString
+        end
+    end
+
+    methods.AlertErrorLocalized = mixin_helper.create_localized_proxy("AlertError")
     return class
 end
 package.preload["mixin.FCXCtrlMeasurementEdit"] = package.preload["mixin.FCXCtrlMeasurementEdit"] or function()
@@ -3149,234 +3195,6 @@ package.preload["library.lua_compatibility"] = package.preload["library.lua_comp
     end
     return true
 end
-package.preload["library.utils"] = package.preload["library.utils"] or function()
-
-    local utils = {}
-
-
-
-
-    function utils.copy_table(t)
-        if type(t) == "table" then
-            local new = {}
-            for k, v in pairs(t) do
-                new[utils.copy_table(k)] = utils.copy_table(v)
-            end
-            setmetatable(new, utils.copy_table(getmetatable(t)))
-            return new
-        else
-            return t
-        end
-    end
-
-    function utils.table_remove_first(t, value)
-        for k = 1, #t do
-            if t[k] == value then
-                table.remove(t, k)
-                return
-            end
-        end
-    end
-
-    function utils.iterate_keys(t)
-        local a, b, c = pairs(t)
-        return function()
-            c = a(b, c)
-            return c
-        end
-    end
-
-    function utils.round(value, places)
-        places = places or 0
-        local multiplier = 10^places
-        local ret = math.floor(value * multiplier + 0.5)
-
-        return places == 0 and ret or ret / multiplier
-    end
-
-    function utils.to_integer_if_whole(value)
-        local int = math.floor(value)
-        return value == int and int or value
-    end
-
-    function utils.calc_roman_numeral(num)
-        local thousands = {'M','MM','MMM'}
-        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
-        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
-        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
-        local roman_numeral = ''
-        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
-        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
-        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
-        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
-        return roman_numeral
-    end
-
-    function utils.calc_ordinal(num)
-        local units = num % 10
-        local tens = num % 100
-        if units == 1 and tens ~= 11 then
-            return num .. "st"
-        elseif units == 2 and tens ~= 12 then
-            return num .. "nd"
-        elseif units == 3 and tens ~= 13 then
-            return num .. "rd"
-        end
-        return num .. "th"
-    end
-
-    function utils.calc_alphabet(num)
-        local letter = ((num - 1) % 26) + 1
-        local n = math.floor((num - 1) / 26)
-        return string.char(64 + letter) .. (n > 0 and n or "")
-    end
-
-    function utils.clamp(num, minimum, maximum)
-        return math.min(math.max(num, minimum), maximum)
-    end
-
-    function utils.ltrim(str)
-        return string.match(str, "^%s*(.*)")
-    end
-
-    function utils.rtrim(str)
-        return string.match(str, "(.-)%s*$")
-    end
-
-    function utils.trim(str)
-        return utils.ltrim(utils.rtrim(str))
-    end
-
-    local pcall_wrapper
-    local rethrow_placeholder = "tryfunczzz"
-    local pcall_line = debug.getinfo(1, "l").currentline + 2
-    function utils.call_and_rethrow(levels, tryfunczzz, ...)
-        return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
-
-    end
-
-    local source = debug.getinfo(1, "S").source
-    local source_is_file = source:sub(1, 1) == "@"
-    if source_is_file then
-        source = source:sub(2)
-    end
-
-    pcall_wrapper = function(levels, success, result, ...)
-        if not success then
-            local file
-            local line
-            local msg
-            file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
-            msg = msg or result
-            local file_is_truncated = file and file:sub(1, 3) == "..."
-            file = file_is_truncated and file:sub(4) or file
-
-
-
-            if file
-                and line
-                and source_is_file
-                and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
-                and tonumber(line) == pcall_line
-            then
-                local d = debug.getinfo(levels, "n")
-
-                msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
-
-                if d.namewhat == "method" then
-                    local arg = msg:match("^bad argument #(%d+)")
-                    if arg then
-                        msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
-                    end
-                end
-                error(msg, levels + 1)
-
-
-            else
-                error(result, 0)
-            end
-        end
-        return ...
-    end
-
-    function utils.rethrow_placeholder()
-        return "'" .. rethrow_placeholder .. "'"
-    end
-
-    function utils.show_notes_dialog(caption, width, height)
-        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
-            return
-        end
-        local function dedent(input)
-            local first_line_indent = input:match("^(%s*)")
-            local pattern = "\n" .. string.rep(" ", #first_line_indent)
-            local result = input:gsub(pattern, "\n")
-            result = result:gsub("^%s+", "")
-            return result
-        end
-        local function replace_font_sizes(rtf)
-            local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
-            if font_sizes_json then
-                local cjson = require("cjson.safe")
-                local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
-                if font_sizes and font_sizes.os then
-                    local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
-                    if (font_sizes.os == this_os) then
-                        rtf = rtf:gsub("fs%d%d", font_sizes)
-                    end
-                end
-            end
-            return rtf
-        end
-        if not caption then
-            caption = plugindef()
-            if finaleplugin.Version then
-                local version = finaleplugin.Version
-                if string.sub(version, 1, 1) ~= "v" then
-                    version = "v" .. version
-                end
-                caption = string.format("%s %s", caption, version)
-            end
-        end
-        if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
-            finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)
-        else
-            local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
-            if finaleplugin.RTFNotes then
-                notes = replace_font_sizes(notes)
-            end
-            width = width or 500
-            height = height or 350
-
-            local dlg = finale.FCCustomLuaWindow()
-            dlg:SetTitle(finale.FCString(caption))
-            local edit_text = dlg:CreateTextEditor(10, 10)
-            edit_text:SetWidth(width)
-            edit_text:SetHeight(height)
-            edit_text:SetUseRichText(finaleplugin.RTFNotes)
-            edit_text:SetReadOnly(true)
-            edit_text:SetWordWrap(true)
-            local ok = dlg:CreateOkButton()
-            dlg:RegisterInitWindow(
-                function()
-                    local notes_str = finale.FCString(notes)
-                    if edit_text:GetUseRichText() then
-                        edit_text:SetRTFString(notes_str)
-                    else
-                        local edit_font = finale.FCFontInfo()
-                        edit_font.Name = "Arial"
-                        edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
-                        edit_text:SetFont(edit_font)
-                        edit_text:SetText(notes_str)
-                    end
-                    edit_text:ResetColors()
-                    ok:SetKeyboardFocus()
-                end)
-            dlg:ExecuteModal(nil)
-        end
-    end
-    return utils
-end
 package.preload["library.client"] = package.preload["library.client"] or function()
 
     local client = {}
@@ -3385,7 +3203,7 @@ package.preload["library.client"] = package.preload["library.client"] or functio
     end
     local function requires_later_plugin_version(feature)
         if feature then
-            return "This script uses " .. to_human_string(feature) .. "which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
+            return "This script uses " .. to_human_string(feature) .. " which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
         end
         return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
     end
@@ -3453,6 +3271,10 @@ package.preload["library.client"] = package.preload["library.client"] or functio
             test = finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1),
             error = requires_finale_version("27.1", "a SMUFL font"),
         },
+        luaosutils = {
+            test = finenv.EmbeddedLuaOSUtils,
+            error = requires_later_plugin_version("the embedded luaosutils library")
+        }
     }
 
     function client.supports(feature)
@@ -3472,6 +3294,16 @@ package.preload["library.client"] = package.preload["library.client"] or functio
             error("Your Finale version does not support " .. to_human_string(feature), error_level)
         end
         return true
+    end
+
+    function client.encode_with_client_codepage(input_string)
+        if client.supports("luaosutils") then
+            local text = require("luaosutils").text
+            if text and text.get_default_codepage() ~= text.get_utf8_codepage() then
+                return text.convert_encoding(input_string, text.get_utf8_codepage(), text.get_default_codepage())
+            end
+        end
+        return input_string
     end
     return client
 end
@@ -3684,6 +3516,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
 
                 local cmd = finenv.UI():IsOnWindows() and "dir " or "ls "
                 local handle = io.popen(cmd .. options .. " \"" .. smufl_directory .. "\"")
+                if not handle then return "" end
                 local retval = handle:read("*a")
                 handle:close()
                 return retval
@@ -3851,7 +3684,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
         return system:Save()
     end
 
-    function library.calc_script_name(include_extension)
+    function library.calc_script_filepath()
         local fc_string = finale.FCString()
         if finenv.RunningLuaFilePath then
 
@@ -3861,6 +3694,12 @@ package.preload["library.general_library"] = package.preload["library.general_li
 
             fc_string:SetRunningLuaFilePath()
         end
+        return fc_string.LuaString
+    end
+
+    function library.calc_script_name(include_extension)
+        local fc_string = finale.FCString()
+        fc_string.LuaString = library.calc_script_filepath()
         local filename_string = finale.FCString()
         fc_string:SplitToPathAndFile(nil, filename_string)
         local retval = filename_string.LuaString
@@ -3883,6 +3722,366 @@ package.preload["library.general_library"] = package.preload["library.general_li
     end
     return library
 end
+package.preload["library.utils"] = package.preload["library.utils"] or function()
+
+    local utils = {}
+
+
+
+
+    function utils.copy_table(t, to_table, overwrite)
+        overwrite = (overwrite == nil) and true or false
+        if type(t) == "table" then
+            local new = type(to_table) == "table" and to_table or {}
+            for k, v in pairs(t) do
+                local new_key = utils.copy_table(k)
+                local new_value = utils.copy_table(v)
+                if overwrite then
+                    new[new_key] = new_value
+                else
+                    new[new_key] = new[new_key] == nil and new_value or new[new_key]
+                end
+            end
+            setmetatable(new, utils.copy_table(getmetatable(t)))
+            return new
+        else
+            return t
+        end
+    end
+
+    function utils.table_remove_first(t, value)
+        for k = 1, #t do
+            if t[k] == value then
+                table.remove(t, k)
+                return
+            end
+        end
+    end
+
+    function utils.iterate_keys(t)
+        local a, b, c = pairs(t)
+        return function()
+            c = a(b, c)
+            return c
+        end
+    end
+
+    function utils.create_keys_table(t)
+        local retval = {}
+        for k, _ in pairsbykeys(t) do
+            table.insert(retval, k)
+        end
+        return retval
+    end
+
+    function utils.create_lookup_table(t)
+        local lookup = {}
+        for _, v in pairs(t) do
+            lookup[v] = true
+        end
+        return lookup
+    end
+
+    function utils.round(value, places)
+        places = places or 0
+        local multiplier = 10^places
+        local ret = math.floor(value * multiplier + 0.5)
+
+        return places == 0 and ret or ret / multiplier
+    end
+
+    function utils.to_integer_if_whole(value)
+        local int = math.floor(value)
+        return value == int and int or value
+    end
+
+    function utils.calc_roman_numeral(num)
+        local thousands = {'M','MM','MMM'}
+        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
+        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
+        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
+        local roman_numeral = ''
+        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
+        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
+        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
+        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
+        return roman_numeral
+    end
+
+    function utils.calc_ordinal(num)
+        local units = num % 10
+        local tens = num % 100
+        if units == 1 and tens ~= 11 then
+            return num .. "st"
+        elseif units == 2 and tens ~= 12 then
+            return num .. "nd"
+        elseif units == 3 and tens ~= 13 then
+            return num .. "rd"
+        end
+        return num .. "th"
+    end
+
+    function utils.calc_alphabet(num)
+        local letter = ((num - 1) % 26) + 1
+        local n = math.floor((num - 1) / 26)
+        return string.char(64 + letter) .. (n > 0 and n or "")
+    end
+
+    function utils.clamp(num, minimum, maximum)
+        return math.min(math.max(num, minimum), maximum)
+    end
+
+    function utils.ltrim(str)
+        return string.match(str, "^%s*(.*)")
+    end
+
+    function utils.rtrim(str)
+        return string.match(str, "(.-)%s*$")
+    end
+
+    function utils.trim(str)
+        return utils.ltrim(utils.rtrim(str))
+    end
+
+    local pcall_wrapper
+    local rethrow_placeholder = "tryfunczzz"
+    local pcall_line = debug.getinfo(1, "l").currentline + 2
+    function utils.call_and_rethrow(levels, tryfunczzz, ...)
+        return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
+
+    end
+
+    local source = debug.getinfo(1, "S").source
+    local source_is_file = source:sub(1, 1) == "@"
+    if source_is_file then
+        source = source:sub(2)
+    end
+
+    pcall_wrapper = function(levels, success, result, ...)
+        if not success then
+            local file
+            local line
+            local msg
+            file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
+            msg = msg or result
+            local file_is_truncated = file and file:sub(1, 3) == "..."
+            file = file_is_truncated and file:sub(4) or file
+
+
+
+            if file
+                and line
+                and source_is_file
+                and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
+                and tonumber(line) == pcall_line
+            then
+                local d = debug.getinfo(levels, "n")
+
+                msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
+
+                if d.namewhat == "method" then
+                    local arg = msg:match("^bad argument #(%d+)")
+                    if arg then
+                        msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
+                    end
+                end
+                error(msg, levels + 1)
+
+
+            else
+                error(result, 0)
+            end
+        end
+        return ...
+    end
+
+    function utils.rethrow_placeholder()
+        return "'" .. rethrow_placeholder .. "'"
+    end
+
+    function utils.show_notes_dialog(parent, caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+        if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
+            error("argument 1 must be nil or an instance of FCResourceWindow", 2)
+        end
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        local function replace_font_sizes(rtf)
+            local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
+            if font_sizes_json then
+                local cjson = require("cjson.safe")
+                local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
+                if font_sizes and font_sizes.os then
+                    local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
+                    if (font_sizes.os == this_os) then
+                        rtf = rtf:gsub("fs%d%d", font_sizes)
+                    end
+                end
+            end
+            return rtf
+        end
+        if not caption then
+            caption = plugindef():gsub("%.%.%.", "")
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
+            finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)
+        else
+            local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
+            if finaleplugin.RTFNotes then
+                notes = replace_font_sizes(notes)
+            end
+            width = width or 500
+            height = height or 350
+
+            local dlg = finale.FCCustomLuaWindow()
+            dlg:SetTitle(finale.FCString(caption))
+            local edit_text = dlg:CreateTextEditor(10, 10)
+            edit_text:SetWidth(width)
+            edit_text:SetHeight(height)
+            edit_text:SetUseRichText(finaleplugin.RTFNotes)
+            edit_text:SetReadOnly(true)
+            edit_text:SetWordWrap(true)
+            local ok = dlg:CreateOkButton()
+            dlg:RegisterInitWindow(
+                function()
+                    local notes_str = finale.FCString(notes)
+                    if edit_text:GetUseRichText() then
+                        edit_text:SetRTFString(notes_str)
+                    else
+                        local edit_font = finale.FCFontInfo()
+                        edit_font.Name = "Arial"
+                        edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
+                        edit_text:SetFont(edit_font)
+                        edit_text:SetText(notes_str)
+                    end
+                    edit_text:ResetColors()
+                    ok:SetKeyboardFocus()
+                end)
+            dlg:ExecuteModal(parent)
+        end
+    end
+
+    function utils.win_mac(windows_value, mac_value)
+        if finenv.UI():IsOnWindows() then
+            return windows_value
+        end
+        return mac_value
+    end
+    return utils
+end
+package.preload["library.localization"] = package.preload["library.localization"] or function()
+
+    local localization = {}
+    local library = require("library.general_library")
+    local utils = require("library.utils")
+    local locale = (function()
+            if finenv.UI().GetUserLocaleName then
+                local fcstr = finale.FCString()
+                finenv.UI():GetUserLocaleName(fcstr)
+                return fcstr.LuaString:gsub("-", "_")
+            end
+            return "en_US"
+        end)()
+    local fallback_locale = "en"
+    local script_name = library.calc_script_name()
+    local tried_locales = {}
+
+    function localization.set_locale(input_locale)
+        locale = input_locale:gsub("-", "_")
+    end
+
+    function localization.get_locale()
+        return locale
+    end
+
+    function localization.set_fallback_locale(input_locale)
+        fallback_locale = input_locale:gsub("-", "_")
+    end
+
+    function localization.get_fallback_locale()
+        return fallback_locale
+    end
+    local function get_original_locale_table(try_locale)
+        local require_library = "localization" .. "." .. script_name .. "." .. try_locale
+        local success, result = pcall(function() return require(require_library) end)
+        if success and type(result) == "table" then
+            return result
+        end
+        return nil
+    end
+
+
+    local function get_localized_table(try_locale)
+        local table_exists = type(localization[try_locale]) == "table"
+        if not table_exists or not tried_locales[try_locale] then
+            assert(table_exists or type(localization[try_locale]) == "nil",
+                        "incorrect type for localization[" .. try_locale .. "]; got " .. type(localization[try_locale]))
+            local original_table = get_original_locale_table(try_locale)
+            if type(original_table) == "table" then
+
+
+                localization[try_locale] = utils.copy_table(original_table, localization[try_locale])
+            end
+
+            tried_locales[try_locale] = true
+        end
+        return localization[try_locale]
+    end
+
+    function localization.add_to_locale(try_locale, t)
+        if type(localization[try_locale]) ~= "table" then
+            if not get_original_locale_table(try_locale) then
+                return false
+            end
+        end
+        localization[try_locale] = utils.copy_table(t, localization[try_locale], false)
+        return true
+    end
+    local function try_locale_or_language(try_locale)
+        local t = get_localized_table(try_locale)
+        if t then
+            return t
+        end
+        if #try_locale > 2 then
+            t = get_localized_table(try_locale:sub(1, 2))
+            if t then
+                return t
+            end
+        end
+        return nil
+    end
+
+    function localization.localize(input_string)
+        assert(type(input_string) == "string", "expected string, got " .. type(input_string))
+        if locale == nil then
+            return input_string
+        end
+        assert(type(locale) == "string", "invalid locale setting " .. tostring(locale))
+
+        local t = try_locale_or_language(locale)
+        if t and t[input_string] then
+            return t[input_string]
+        end
+        t = get_localized_table(fallback_locale)
+
+        return t and t[input_string] or input_string
+    end
+    return localization
+end
 package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"] or function()
 
 
@@ -3892,6 +4091,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
     local utils = require("library.utils")
     local mixin = require("library.mixin")
     local library = require("library.general_library")
+    local localization = require("library.localization")
     local mixin_helper = {}
     local debug_enabled = finenv.DebugEnabled
 
@@ -4243,13 +4443,68 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             return value
         end
         fcstr = fcstr or finale.FCString()
-        fcstr.LuaString = tostring(value)
+        fcstr.LuaString = value == nil and "" or tostring(value)
         return fcstr
+    end
+
+    function mixin_helper.to_string(value)
+        if mixin_helper.is_instance_of(value, "FCString") then
+            return value.LuaString
+        end
+        return value == nil and "" or tostring(value)
     end
 
     function mixin_helper.boolean_to_error(object, method, ...)
         if not object[method .. "__"](object, ...) then
             error("'" .. object.MixinClass .. "." .. method .. "' has encountered an error.", 3)
+        end
+    end
+
+    function mixin_helper.create_localized_proxy(method_name, class_name, only_localize_args)
+        local args_to_localize
+        if only_localize_args == nil then
+            args_to_localize = setmetatable({}, { __index = function() return true end })
+        else
+            args_to_localize = utils.create_lookup_table(only_localize_args)
+        end
+        return function(self, ...)
+            local args = table.pack(...)
+            for arg_num = 1, args.n do
+                if args_to_localize[arg_num] then
+                    mixin_helper.assert_argument_type(arg_num, args[arg_num], "string", "FCString")
+                    args[arg_num] = localization.localize(mixin_helper.to_string(args[arg_num]))
+                end
+            end
+
+            return (class_name and mixin[class_name] or self)[method_name](self, table.unpack(args, 1, args.n))
+        end
+    end
+
+    function mixin_helper.create_multi_string_proxy(method_name)
+        local function to_key_string(value)
+            if type(value) == "string" then
+                value = "\"" .. value .. "\""
+            end
+            return "[" .. tostring(value) .. "]"
+        end
+        return function(self, ...)
+            mixin_helper.assert_argument_type(1, self, "userdata")
+            for i = 1, select("#", ...) do
+                local v = select(i, ...)
+                mixin_helper.assert_argument_type(i + 1, v, "string", "number", "FCString", "FCStrings", "table")
+                if type(v) == "userdata" and v:ClassName() == "FCStrings" then
+                    for str in each(v) do
+                        self[method_name](self, str)
+                    end
+                elseif type(v) == "table" then
+                    for k2, v2 in pairsbykeys(v) do
+                        mixin_helper.assert_argument_type(tostring(i + 1) .. to_key_string(k2), v2, "string", "number", "FCString")
+                        self[method_name](self, v2)
+                    end
+                else
+                    self[method_name](self, v)
+                end
+            end
         end
     end
     return mixin_helper
@@ -4280,6 +4535,15 @@ package.preload["mixin.__FCMUserWindow"] = package.preload["mixin.__FCMUserWindo
     function methods:SetTitle(title)
         mixin_helper.assert_argument_type(2, title, "string", "number", "FCString")
         self:SetTitle__(mixin_helper.to_fcstring(title, temp_str))
+    end
+
+    methods.SetTitleLocalized = mixin_helper.create_localized_proxy("SetTitle")
+
+    function methods:CreateChildUI()
+        if self.CreateChildUI__ then
+            return self:CreateChildUI__()
+        end
+        return mixin.UI()
     end
     return class
 end
