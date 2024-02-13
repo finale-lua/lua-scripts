@@ -5439,7 +5439,7 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
 end
 function plugindef()
     finaleplugin.RequireSelection = false
-    finaleplugin.HandlesUndo = true 
+    finaleplugin.HandlesUndo = true -- not recognized by JW Lua or RGP Lua v0.55
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.AuthorURL = "https://www.robertgpatterson.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"

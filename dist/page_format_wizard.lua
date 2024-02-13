@@ -405,7 +405,7 @@ function plugindef()
   finaleplugin.Version = "1.2.2"
   finaleplugin.HandlesUndo = true
   finaleplugin.NoStore = false
-  finaleplugin.MinJWLuaVersion = 0.70 
+  finaleplugin.MinJWLuaVersion = 0.70 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
   finaleplugin.Notes = [[
         USING THE 'PAGE FORMAT WIZARD'
         

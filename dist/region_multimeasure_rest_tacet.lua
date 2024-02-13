@@ -1,6 +1,4 @@
 function plugindef()
-    
-    
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "The JWs: Jacob Winkler & Jari Williamsson"
     finaleplugin.Version = "3.0"

@@ -1,7 +1,7 @@
 function plugindef()
     finaleplugin.RequireSelection = true
     finaleplugin.Author = "Jacob Winkler"
-
+--    finaleplugin.AuthorURL = "http://"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "v1.0"
     finaleplugin.Date = "2022/07/30"
@@ -25,8 +25,8 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
     scale_bool = true
     ]]
-
-
+--    finaleplugin.MinJWLuaVersion = 0.63
+--    finaleplugin.ScriptGroupName = ""
     finaleplugin.Notes = [[
     This plug-in will set or clear the option to scale with entries in the selected region. It will not work on expressions that are assigned to staff lists, such as tempo marks and tempo alterations.
     ]]

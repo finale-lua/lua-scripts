@@ -5776,9 +5776,9 @@ function plugindef()
     ]]
     finaleplugin.AdditionalPrefixes = [[
         hairpin_type = finale.SMARTSHAPE_DIMINUENDO
-        hairpin_type = -1 
-        hairpin_type = -2 
-        hairpin_type = -3 
+        hairpin_type = -1 -- "swell"
+        hairpin_type = -2 -- "unswell"
+        hairpin_type = -3 -- "configure"
     ]]
     finaleplugin.MinJWLuaVersion = 0.63
     finaleplugin.ScriptGroupName = "Hairpin Creator"

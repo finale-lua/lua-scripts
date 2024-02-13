@@ -83,6 +83,6 @@ export const bundleFile = (name: string, sourcePath: string, mixins: string[]): 
     const parts = getFileParts(bundled);
 
     return removeComments(parts.prolog, true) 
-        + removeComments(parts.plugindef, false) 
+        + parts.plugindef
         + removeComments(parts.epilog, true);
 }
