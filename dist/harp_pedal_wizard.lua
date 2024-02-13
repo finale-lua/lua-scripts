@@ -924,15 +924,13 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     return configuration
 end
 function plugindef()
-    
-    
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Jacob Winkler"
     finaleplugin.Copyright = "2022"
     finaleplugin.Version = "2.0.3"
     finaleplugin.Date = "2024-01-15"
     finaleplugin.HandlesUndo = true
-    finaleplugin.MinJWLuaVersion = 0.63 
+    finaleplugin.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/harp_pedal_wizard.hash"
     return "Harp Pedal Wizard...", "Harp Pedal Wizard", "Creates Harp Diagrams and Pedal Changes"
 end

@@ -1498,8 +1498,6 @@ package.preload["library.expression"] = package.preload["library.expression"] or
     return expression
 end
 function plugindef()
-   
-   
     finaleplugin.RequireSelection = false
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"

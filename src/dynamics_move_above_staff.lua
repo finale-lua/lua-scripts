@@ -1,6 +1,4 @@
 function plugindef()
-   -- This function and the 'finaleplugin' namespace
-   -- are both reserved for the plug-in definition.
    finaleplugin.RequireScore = false
    finaleplugin.RequireSelection = true
    finaleplugin.Author = "Jacob Winkler"

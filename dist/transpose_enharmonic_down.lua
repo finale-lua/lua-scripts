@@ -1672,6 +1672,10 @@ package.preload["localization.transpose_enharmonic_down.es"] = package.preload["
     return loc
 end
 function plugindef(locale)
+--[[
+-- This comment allows RGP Lua pre-0.71 to find the plugindef function
+function plugindef()
+--]]
     local loc = {}
     loc.en = {
         menu = "Enharmonic Transpose Down",

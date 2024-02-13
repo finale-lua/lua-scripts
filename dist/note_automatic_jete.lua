@@ -1324,8 +1324,8 @@ function plugindef()
         3. Add either or both of the following lines to it.
 
         ```
-        dot_character = 46           
-        hide_last_note = true        
+        dot_character = 46           -- This may be any character code you wish to search use, including a SMuFL character code.
+        hide_last_note = true        -- This value will be reversed if you hold down a modifier key when invoking the script. (See above.)
         ```
     ]]
     finaleplugin.RTFNotes = [[
@@ -1353,12 +1353,12 @@ function plugindef()
         {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab If it does not exist, create a subfolder called {\f1 script_settings} in the folder where this script resides.\par}
         {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Create a text file in the {\f1 script_settings} folder called {\f1 note_automatic_jete.config.txt}.\par}
         {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Add either or both of the following lines to it.\sa180\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 dot_character = 46           
-        hide_last_note = true        
+        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 dot_character = 46           -- This may be any character code you wish to search use, including a SMuFL character code.\line
+        hide_last_note = true        -- This value will be reversed if you hold down a modifier key when invoking the script. (See above.)\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_automatic_jete.hash"
-    return "Automatic Jeté", "Automatic Jete", 
+    return "Automatic Jeté", "Automatic Jete", -- JW Lua has trouble with non-ascii chars in the Undo string, so eliminate the accent on "é" for Undo
            "Add gliss. marks, hide noteheads, and adjust staccato marks as needed for jeté bowing."
 end
 local note_entry = require("library.note_entry")

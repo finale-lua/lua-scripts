@@ -397,13 +397,11 @@ package.preload["library.configuration"] = package.preload["library.configuratio
     return configuration
 end
 function plugindef()
-  
-  
   finaleplugin.Author = "Jacob Winkler"
   finaleplugin.Copyright = "2022"
   finaleplugin.Version = "3.0"
   finaleplugin.Date = "2024/01/26"
-  finaleplugin.MinJWLuaVersion = 0.63 
+  finaleplugin.MinJWLuaVersion = 0.63 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
   finaleplugin.Notes = [[
 USING THE 'STAFF RENAME' SCRIPT
 

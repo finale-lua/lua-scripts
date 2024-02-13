@@ -305,7 +305,7 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
 end
 function plugindef()
     finaleplugin.RequireSelection = true
-    finaleplugin.Author = "Jacob Winkler" 
+    finaleplugin.Author = "Jacob Winkler" -- With help & advice from CJ Garcia, Nick Mazuk, and Jan Angermüller. Thanks guys!
     finaleplugin.Copyright = "©2019 Jacob Winkler"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Version = "1.0.1"

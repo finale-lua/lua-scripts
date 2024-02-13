@@ -531,7 +531,7 @@ function plugindef()
     finaleplugin.Version = "2.0.2"
     finaleplugin.Date = "March 24, 2023"
     finaleplugin.CategoryTags = "Layout"
-    finaleplugin.MinJWLuaVersion = 0.67 
+    finaleplugin.MinJWLuaVersion = 0.67 -- https://robertgpatterson.com/-fininfo/-rgplua/rgplua.html
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/smufl_load_engraving_defaults.hash"
     return "Load SMuFL Engraving Defaults", "Load SMuFL Engraving Defaults", "Loads engraving defaults for the current SMuFL Default Music Font."
 end

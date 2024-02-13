@@ -1,6 +1,4 @@
 function plugindef()
-   
-   
    finaleplugin.RequireScore = false
    finaleplugin.RequireSelection = true
    finaleplugin.Author = "Jacob Winkler"
