@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.24"
-    finaleplugin.Date = "2024/02/14"
+    finaleplugin.Version = "0.25 modal option"
+    finaleplugin.Date = "2024/02/15"
     finaleplugin.CategoryTags = "Rests, Selection"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
@@ -26,8 +26,11 @@ function plugindef()
         same offset as the first rest on that layer in the selection. 
         Layer numbers can be changed "on the fly" to help 
         balance rests across multiple layers. 
-        Click __Apply__ [Return/Enter] to set the changed rest positions. 
-        Click __Cancel__ [Escape] to cancel the current action and close the window. 
+        Select __Modeless__ if you prefer the dialog window to 
+        "float" above your score. In this mode you must 
+        click __Apply__ [Return/Enter] to "set" new rest positions 
+        and __Cancel__ [Escape] to close the window. 
+        __Modeless__ will apply _next_ time you use the script.
 
         > If __Layer Number__ is highlighted these __Key Commands__ are available: 
 
@@ -47,6 +50,7 @@ end
 local config = {
     layer_num = 0,
     timer_id = 1,
+    modeless = 0, -- 0 = modal / 1 = modeless
     window_pos_x = false,
     window_pos_y = false
 }
@@ -58,6 +62,7 @@ local library = require("library.general_library")
 local script_name = library.calc_script_name()
 
 local first_offset = 0 -- set to real offset of first rest in selection
+local refocus_document = false
 local save_displacement, adjacent_offsets, saved_bounds = {}, {}, {}
 local name = plugindef():gsub("%.%.%.", "")
 local bounds = { -- primary region selection boundaries
@@ -191,7 +196,9 @@ local function save_rest_positions()
 end
 
 local function restore_rest_positions()
-    finenv.StartNewUndoBlock(name .. " " .. selection.region .. " reset", false)
+    if config.modeless == 1 then
+        finenv.StartNewUndoBlock(name .. " " .. selection.region .. " reset", false)
+    end
     for entry in eachentrysaved(finenv.Region()) do
         local v = save_displacement[entry.EntryNumber]
         if entry:IsRest() and v ~= nil then
@@ -199,7 +206,7 @@ local function restore_rest_positions()
             entry:SetFloatingRest(v[2])
         end
     end
-    finenv.EndUndoBlock(true)
+    if config.modeless == 1 then finenv.EndUndoBlock(true) end
     finenv.Region():Redraw()
 end
 
@@ -214,20 +221,21 @@ local function run_the_dialog_box()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Shift Rests")
         -- local functions
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 500, 415)
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 435)
+            refocus_document = true
         end
         local function yd(diff)
             y = diff and (y + diff) or (y + 25)
         end
         local function shift_rests(shift, float)
             local id = string.format("%s %s L-%d pos%d", name, selection.region, save_layer, shift)
-            finenv.StartNewUndoBlock(id, false)
+            if config.modeless == 1 then finenv.StartNewUndoBlock(id, false) end
             for entry in eachentrysaved(finenv.Region(), save_layer) do
                 if entry:IsRest() then
                     offset_rest(entry, shift, float)
                 end
             end
-            finenv.EndUndoBlock(true)
+            if config.modeless == 1 then finenv.EndUndoBlock(true) end
             finenv.Region():Redraw()
         end
         local function set_value(thumb, float, set_thumb)
@@ -326,27 +334,42 @@ local function run_the_dialog_box()
         :AddHandleCommand(function() set_midstaff("below") end)
     dialog:CreateButton(x[4] - 110, y):SetText("floating rests (x)")
         :SetWidth(button_wide):AddHandleCommand(function() set_zero(true) end)
+    yd()
+    answer.modeless = dialog:CreateCheckbox(0, y):SetWidth(x[4]):SetCheck(config.modeless)
+        :SetText("Modeless Operation (\"floating\" dialog window)")
     -- wrap it up
-    dialog:CreateOkButton():SetText("Apply")
+    dialog:CreateOkButton():SetText(config.modeless == 0 and "OK" or "Apply")
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterHandleTimer(on_timer)
+    if config.modeless == 1 then
+        dialog:RegisterHandleTimer(on_timer)
+        dialog:RegisterHandleOkButtonPressed(function()
+            save_rest_positions() -- save rest positions so "Close" leaves correct positions
+        end)
+    end
     dialog:RegisterInitWindow(function(self)
+        if config.modeless == 1 then self:SetTimer(config.timer_id, 125) end
         q:SetFont(q:CreateFontInfo():SetBold(true))
-        self:SetTimer(config.timer_id, 125)
         answer.layer_num:SetKeyboardFocus()
     end)
-    dialog:SetOkButtonCanClose(false)
+    dialog:SetOkButtonCanClose(config.modeless == 0)
     dialog:RegisterCloseWindow(function(self)
         config.layer_num = answer.layer_num:GetInteger()
-        self:StopTimer(config.timer_id)
+        config.modeless = answer.modeless:GetCheck()
         dialog_save_position(self)
-        restore_rest_positions()
+        if config.modeless == 1 then
+            self:StopTimer(config.timer_id)
+            restore_rest_positions()
+        end
     end)
-    dialog:RegisterHandleOkButtonPressed(function()
-        save_rest_positions() -- save rest positions so "Close" leaves correct positions
-    end)
-    dialog:RunModeless()
+    if config.modeless == 1 then -- "modeless"
+        dialog:RunModeless()
+    else -- "modal"
+        if (dialog:ExecuteModal() ~= finale.EXECMODAL_OK) then
+            restore_rest_positions()
+            if refocus_document then finenv.UI():ActivateDocumentWindow() end
+        end
+    end
 end
 
 local function slide_rests()
