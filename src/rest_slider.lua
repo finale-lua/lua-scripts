@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.21"
-    finaleplugin.Date = "2024/02/13"
+    finaleplugin.Version = "0.24"
+    finaleplugin.Date = "2024/02/14"
     finaleplugin.CategoryTags = "Rests, Selection"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
@@ -26,7 +26,7 @@ function plugindef()
         same offset as the first rest on that layer in the selection. 
         Layer numbers can be changed "on the fly" to help 
         balance rests across multiple layers. 
-        Click __Save__ [Return/Enter] to save the changed rest positions. 
+        Click __Apply__ [Return/Enter] to set the changed rest positions. 
         Click __Cancel__ [Escape] to cancel the current action and close the window. 
 
         > If __Layer Number__ is highlighted these __Key Commands__ are available: 
@@ -59,7 +59,7 @@ local script_name = library.calc_script_name()
 
 local first_offset = 0 -- set to real offset of first rest in selection
 local save_displacement, adjacent_offsets, saved_bounds = {}, {}, {}
-local name = plugindef():gsub("%.%.%.", " ")
+local name = plugindef():gsub("%.%.%.", "")
 local bounds = { -- primary region selection boundaries
     "StartStaff", "StartMeasure", "StartMeasurePos",
     "EndStaff",   "EndMeasure",   "EndMeasurePos",
@@ -98,20 +98,17 @@ local function update_selection()
         selection = { staff = "no staff", region = " no selection"}
         return
     end
-    local ratio = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
-    local id = "m" .. string.format("%.2f", ratio) .. "-"
+    local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
     local m = measure_duration(rgn.EndMeasure)
-    ratio = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
-    id = id .. "m" .. string.format("%.2f", ratio)
-    selection.region = id
+    local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
+    selection.region = string.format("m%.2f-m%.2f", r1, r2)
 
     local staff = finale.FCStaff()
     staff:Load(rgn.StartStaff)
-    local str = staff:CreateDisplayFullNameString()
-    id = str.LuaString .. " → "
+    local s1 = staff:CreateDisplayFullNameString()
     staff:Load(rgn.EndStaff)
-    str = staff:CreateDisplayFullNameString()
-    selection.staff = id .. str.LuaString
+    local s2 = staff:CreateDisplayFullNameString()
+    selection.staff = string.format("%s → %s", s1.LuaString, s2.LuaString)
 end
 
 local function get_rest_offset(entry)
@@ -194,7 +191,7 @@ local function save_rest_positions()
 end
 
 local function restore_rest_positions()
-    finenv.StartNewUndoBlock(name .. selection.region .. " reset", false)
+    finenv.StartNewUndoBlock(name .. " " .. selection.region .. " reset", false)
     for entry in eachentrysaved(finenv.Region()) do
         local v = save_displacement[entry.EntryNumber]
         if entry:IsRest() and v ~= nil then
@@ -223,8 +220,8 @@ local function run_the_dialog_box()
             y = diff and (y + diff) or (y + 25)
         end
         local function shift_rests(shift, float)
-            local id = string.format("%s L%d pos%d", selection.region, save_layer, shift)
-            finenv.StartNewUndoBlock(name .. id, false)
+            local id = string.format("%s %s L-%d pos%d", name, selection.region, save_layer, shift)
+            finenv.StartNewUndoBlock(id, false)
             for entry in eachentrysaved(finenv.Region(), save_layer) do
                 if entry:IsRest() then
                     offset_rest(entry, shift, float)
@@ -314,7 +311,7 @@ local function run_the_dialog_box()
     answer.layer_num = dialog:CreateEdit(x[2], y - y_off):SetWidth(20):SetText(save_layer)
         :AddHandleCommand(function() key_change() end )
     answer.value = dialog:CreateStatic(x[3] - 12, y):SetWidth(75)
-    set_value(first_offset + center, false, false)
+    set_value(first_offset + center, false, false) -- preset slider and all selected rests
 
     dialog:CreateButton(x[4] - 110, y):SetText("reset zero (z)"):SetWidth(button_wide)
         :AddHandleCommand(function() set_zero() end)
@@ -330,7 +327,7 @@ local function run_the_dialog_box()
     dialog:CreateButton(x[4] - 110, y):SetText("floating rests (x)")
         :SetWidth(button_wide):AddHandleCommand(function() set_zero(true) end)
     -- wrap it up
-    dialog:CreateOkButton():SetText("Save")
+    dialog:CreateOkButton():SetText("Apply")
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     dialog:RegisterHandleTimer(on_timer)
@@ -347,7 +344,7 @@ local function run_the_dialog_box()
         restore_rest_positions()
     end)
     dialog:RegisterHandleOkButtonPressed(function()
-        save_rest_positions() -- save rest positions so final "Cancel" leaves correct positions
+        save_rest_positions() -- save rest positions so "Close" leaves correct positions
     end)
     dialog:RunModeless()
 end
