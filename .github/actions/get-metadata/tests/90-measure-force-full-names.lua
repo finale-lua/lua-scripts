@@ -8,7 +8,7 @@ function plugindef()
     finaleplugin.Date = "June 10, 2020"
     finaleplugin.CategoryTags = "Measure"
     return "Force Full Names", "Force Full Names", "Force first selected measure to show full staff names."
- end
+end
  
  --NOTE: This script replaces a pre-Finale 2011 Patterson Plugin that created staff styles and massaged group names
  --to achieve a result that looked like the full names on the first system. But starting in Fin11 all we have to do is
