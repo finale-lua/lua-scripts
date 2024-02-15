@@ -45,7 +45,14 @@ const toArray = (input: string) => {
         return input.split('\n').map(s => s.trim())
 }
 
-// Make sure that Max/MinJWLuaVersion is a string with two decimals
+/**
+ * Min/MaxJWLuaVersion are defined as numbers in Lua,
+ * but they're expected to have two decimal places -- v0.70
+ * is not v0.7. This conversion ensures that the values
+ * will display with two decimal places. If there's eveer
+ * a case where the input value has more or fewer decimal
+ * places (e.g., v0.100), this will need to be revisited.
+ */
 const twoDecimals = (input: string) => {
     return input ? Number.parseFloat(input).toFixed(2) : input
 }

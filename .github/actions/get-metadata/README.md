@@ -44,3 +44,10 @@ This is the author data from the script. It contains the following properties:
 - Return the captured data as a JSON object
 - Perform some manipulation on the JSON (dates, string arrays, etc.)
 - Build an array of the returned JSON and save to a file
+
+## Caution
+
+`MinJWLuaVersion` and `MaxJWLuaVersion` Min/MaxJWLuaVersion are defined as numbers in Lua,
+but they're expected to have two decimal places -- v0.70 is not v0.7. A function in `parse.ts`
+ensures that the values will display with two decimal places. If there's eveer a case where
+the input value has more or fewer decimal places (e.g., v0.100), this will need to be revisited.
