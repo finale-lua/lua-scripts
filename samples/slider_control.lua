@@ -27,7 +27,16 @@ dialog:RegisterHandleControlEvent(slider, function(ctrl)
     static:SetText(str)
 end)
 
---require('mobdebug').start()
+dialog:RegisterMouseTrackingStarted(function(ctrl)
+    local thumb_pos = ctrl:GetThumbPosition()
+    print("Slider tracking started: " .. thumb_pos)
+end)
+
+dialog:RegisterMouseTrackingStopped(function(ctrl)
+    local thumb_pos = ctrl:GetThumbPosition()
+    print("Slider tracking stopped: " .. thumb_pos)
+end)
+
 dialog:ExecuteModal(nil)
 
 finenv.UI():AlertInfo("Thumb position: " .. tostring(slider:GetThumbPosition()), "")
