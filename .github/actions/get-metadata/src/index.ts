@@ -16,8 +16,11 @@ sourceFiles.forEach((fileName: string) => {
     const contents = fs.readFileSync(path.join(sourcePath, fileName)).toString()
     const parsed = parseMetadata(contents)
     if (parsed) {
+        console.log(`SUCCESS: ${fileName}`)
         parsed.fileName = fileName
         allMetadata.push(parsed)
+    } else {
+        console.log(`ERROR: ${fileName}`)
     }
 })
 

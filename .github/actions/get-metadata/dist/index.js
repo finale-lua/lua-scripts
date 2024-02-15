@@ -28822,8 +28822,12 @@ sourceFiles.forEach((fileName) => {
     const contents = fs_extra_1.default.readFileSync(path_1.default.join(sourcePath, fileName)).toString();
     const parsed = (0, parse_1.parseMetadata)(contents);
     if (parsed) {
+        console.log(`SUCCESS: ${fileName}`);
         parsed.fileName = fileName;
         allMetadata.push(parsed);
+    }
+    else {
+        console.log(`ERROR: ${fileName}`);
     }
 });
 fs_extra_1.default.writeFileSync(outFile, JSON.stringify(allMetadata.sort((a, b) => a.name.localeCompare(b.name))));
