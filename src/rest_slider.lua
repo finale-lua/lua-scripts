@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.25 modal option"
+    finaleplugin.Version = "0.27"
     finaleplugin.Date = "2024/02/15"
     finaleplugin.CategoryTags = "Rests, Selection"
     finaleplugin.MinJWLuaVersion = 0.70
@@ -50,7 +50,7 @@ end
 local config = {
     layer_num = 0,
     timer_id = 1,
-    modeless = 0, -- 0 = modal / 1 = modeless
+    modeless = false, -- false = modal / true = modeless
     window_pos_x = false,
     window_pos_y = false
 }
@@ -110,9 +110,9 @@ local function update_selection()
 
     local staff = finale.FCStaff()
     staff:Load(rgn.StartStaff)
-    local s1 = staff:CreateDisplayFullNameString()
+    local s1 = staff:CreateDisplayFullNameString() or ("Staff " .. rgn.StartStaff)
     staff:Load(rgn.EndStaff)
-    local s2 = staff:CreateDisplayFullNameString()
+    local s2 = staff:CreateDisplayFullNameString() or ("Staff " .. rgn.EndStaff)
     selection.staff = string.format("%s → %s", s1.LuaString, s2.LuaString)
 end
 
@@ -196,7 +196,7 @@ local function save_rest_positions()
 end
 
 local function restore_rest_positions()
-    if config.modeless == 1 then
+    if config.modeless then
         finenv.StartNewUndoBlock(name .. " " .. selection.region .. " reset", false)
     end
     for entry in eachentrysaved(finenv.Region()) do
@@ -206,7 +206,7 @@ local function restore_rest_positions()
             entry:SetFloatingRest(v[2])
         end
     end
-    if config.modeless == 1 then finenv.EndUndoBlock(true) end
+    if config.modeless then finenv.EndUndoBlock(true) end
     finenv.Region():Redraw()
 end
 
@@ -229,13 +229,13 @@ local function run_the_dialog_box()
         end
         local function shift_rests(shift, float)
             local id = string.format("%s %s L-%d pos%d", name, selection.region, save_layer, shift)
-            if config.modeless == 1 then finenv.StartNewUndoBlock(id, false) end
+            if config.modeless then finenv.StartNewUndoBlock(id, false) end
             for entry in eachentrysaved(finenv.Region(), save_layer) do
                 if entry:IsRest() then
                     offset_rest(entry, shift, float)
                 end
             end
-            if config.modeless == 1 then finenv.EndUndoBlock(true) end
+            if config.modeless then finenv.EndUndoBlock(true) end
             finenv.Region():Redraw()
         end
         local function set_value(thumb, float, set_thumb)
@@ -280,6 +280,8 @@ local function run_the_dialog_box()
                     elseif val:find("z") then set_zero(false)
                     elseif val:find("x") then set_zero(true)
                     elseif val:find("i") then invert_shift()
+                    elseif val:find("m") then
+                        answer.modeless:SetCheck((answer.modeless:GetCheck() + 1) % 2)
                     end
                     answer.layer_num:SetText(save_layer):SetKeyboardFocus()
                 else
@@ -335,40 +337,34 @@ local function run_the_dialog_box()
     dialog:CreateButton(x[4] - 110, y):SetText("floating rests (x)")
         :SetWidth(button_wide):AddHandleCommand(function() set_zero(true) end)
     yd()
-    answer.modeless = dialog:CreateCheckbox(0, y):SetWidth(x[4]):SetCheck(config.modeless)
+    answer.modeless = dialog:CreateCheckbox(0, y):SetWidth(x[4]):SetCheck(config.modeless and 1 or 0)
         :SetText("Modeless Operation (\"floating\" dialog window)")
     -- wrap it up
-    dialog:CreateOkButton():SetText(config.modeless == 0 and "OK" or "Apply")
+    dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    if config.modeless == 1 then
-        dialog:RegisterHandleTimer(on_timer)
-        dialog:RegisterHandleOkButtonPressed(function()
-            save_rest_positions() -- save rest positions so "Close" leaves correct positions
-        end)
-    end
+    if config.modeless then dialog:RegisterHandleTimer(on_timer) end
+    dialog:RegisterHandleOkButtonPressed(function()
+        save_rest_positions() -- save rest positions so "Close" leaves correct positions
+    end)
     dialog:RegisterInitWindow(function(self)
-        if config.modeless == 1 then self:SetTimer(config.timer_id, 125) end
+        if config.modeless then self:SetTimer(config.timer_id, 125) end
         q:SetFont(q:CreateFontInfo():SetBold(true))
         answer.layer_num:SetKeyboardFocus()
     end)
-    dialog:SetOkButtonCanClose(config.modeless == 0)
+    dialog:SetOkButtonCanClose(not config.modeless)
     dialog:RegisterCloseWindow(function(self)
         config.layer_num = answer.layer_num:GetInteger()
-        config.modeless = answer.modeless:GetCheck()
+        config.modeless = (answer.modeless:GetCheck() == 1)
         dialog_save_position(self)
-        if config.modeless == 1 then
-            self:StopTimer(config.timer_id)
-            restore_rest_positions()
-        end
+        if config.modeless then self:StopTimer(config.timer_id) end
+        restore_rest_positions()
     end)
-    if config.modeless == 1 then -- "modeless"
+    if config.modeless then -- "modeless"
         dialog:RunModeless()
     else -- "modal"
-        if (dialog:ExecuteModal() ~= finale.EXECMODAL_OK) then
-            restore_rest_positions()
-            if refocus_document then finenv.UI():ActivateDocumentWindow() end
-        end
+        dialog:ExecuteModal()
+        if refocus_document then finenv.UI():ActivateDocumentWindow() end
     end
 end
 
