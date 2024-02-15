@@ -69,7 +69,7 @@ local function create_dialog()
             local grp1 = global_dialog:GetControl("radio1")
             print("radio group 1 selected item: " .. grp1:GetSelectedItem())
             local grp2 = global_dialog:GetControl("radio2")
-            print("radio group 1 selected item: " .. grp2:GetSelectedItem())
+            print("radio group 2 selected item: " .. grp2:GetSelectedItem())
             --[[
             finenv.StartNewUndoBlock("Playback Region", false)
             finenv.Region():Playback()
