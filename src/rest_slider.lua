@@ -1,87 +1,81 @@
 function plugindef()
-    finaleplugin.RequireSelection = true
+    finaleplugin.RequireSelection = false
+    finaleplugin.HandlesUndo = true
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.15"
-    finaleplugin.Date = "2023/12/15"
+    finaleplugin.Version = "0.27"
+    finaleplugin.Date = "2024/02/15"
     finaleplugin.CategoryTags = "Rests, Selection"
-    finaleplugin.MinJWLuaVersion = 0.68
+    finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Slide rests up and down on the nominated layer with continuous visual feedback. 
         This was designed especially to help align rests midway 
         between staves with cross-staff notes. 
-        The "mid-staff above" and "mid-staff below" buttons achieve this with one click. 
-        Cancel the script to leave rests unchanged.
+        The _Mid-Staff Above_ and _Mid-Staff Below_ buttons achieve this with one click. 
+        Cancel the script to leave rests unchanged. 
 
-        "Reset Zero" sets nil offset. 
-        Note that with transposing instruments this is NOT the middle 
-        of the staff if "Display in Concert Pitch" is selected. 
-        In those instances use "Floating Rests" to return them to 
+        _Reset Zero_ sets nil offset. 
+        Note that on transposing instruments this is NOT the middle 
+        of the staff if _Display in Concert Pitch_ is selected. 
+        In those instances use _Floating Rests_ to return them to 
         their virgin state where the only offset is that set at 
-        Document → Document Options → Layers → Adjust Floating Rests by...
+        _Document_ → _Document Options_ → _Layers_ → _Adjust Floating Rests by..._
 
         At startup all rests in the chosen layer are moved to the 
-        same offset as the first rest in the selection. 
+        same offset as the first rest on that layer in the selection. 
         Layer numbers can be changed "on the fly" to help 
-        balance rests in multiple layers.
+        balance rests across multiple layers. 
+        Select __Modeless__ if you prefer the dialog window to 
+        "float" above your score. In this mode you must 
+        click __Apply__ [Return/Enter] to "set" new rest positions 
+        and __Cancel__ [Escape] to close the window. 
+        __Modeless__ will apply _next_ time you use the script.
 
-        KEY COMMANDS:  
-        - [a] [+] move rests up by single steps  
-        - [s] [-] move rests down by single steps  
-        - [d] move to mid-staff above (if one staff selected)
-        - [f] move to mid-staff below (if one staff selected)
-        - [z] reset to "zero" shift (not floating)  
-        - [x] floating rests  
-        - [q] show these script notes  
-        - [0]-[4] layer number (delete key not needed)
+        > If __Layer Number__ is highlighted these __Key Commands__ are available: 
+
+        > - __a__ (__-__): move rests down one step 
+        > - __s__ (__+__): move rests up one step 
+        > - __d__: move to mid-staff above (if one staff selected) 
+        > - __f__: move to mid-staff below (if one staff selected) 
+        > - __z__: reset to "zero" shift (not floating) 
+        > - __x__: floating rests 
+        > - __i__: invert shift direction 
+        > - __q__: show these script notes 
+        > - __0-4__: layer number (delete key not needed) 
     ]]
     return "Rest Slider...", "Rest Slider", "Slide rests up and down with continuous visual feedback"
 end
 
-local info_notes = [[
-Slide rests up and down on the nominated layer with continuous visual feedback.
-This was designed especially to help align rests midway
-between staves with cross-staff notes.
-The "mid-staff above" and "mid-staff below" buttons achieve this with one click.
-Cancel the script to leave rests unchanged.
-**
-"Reset Zero" sets nil offset.
-Note that with transposing instruments this is NOT the middle
-of the staff if "Display in Concert Pitch" is selected.
-In those instances use "Floating Rests" to return them to
-their virgin state where the only offset is that set at
-Document → Document Options → Layers → Adjust Floating Rests by...
-**
-At startup all rests in the chosen layer are moved to the
-same offset as the first rest in the selection.
-Layer numbers can be changed "on the fly" to help
-balance rests in multiple layers.
-**
-Key Commands:
-*• [a] [+] move rests up by single steps
-*• [s] [-] move rests down by single steps
-*• [d] move to mid-staff above (if one staff selected)
-*• [f] move to mid-staff below (if one staff selected)
-*• [z] reset to "zero" shift (not floating)
-*• [x] floating rests  
-*• [q] show these script notes  
-*• [0]-[4] layer number (delete key not needed)
-]]
-
-info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n")
-
 local config = {
     layer_num = 0,
+    timer_id = 1,
+    modeless = false, -- false = modal / true = modeless
     window_pos_x = false,
     window_pos_y = false
 }
-local first_offset = 0 -- set to real offset of first rest in selection
 local mixin = require("library.mixin")
 local layer = require("library.layer")
 local configuration = require("library.configuration")
-local script_name = "rest_slider"
-local save_displacement = {}
+local utils = require("library.utils")
+local library = require("library.general_library")
+local script_name = library.calc_script_name()
+
+local first_offset = 0 -- set to real offset of first rest in selection
+local refocus_document = false
+local save_displacement, adjacent_offsets, saved_bounds = {}, {}, {}
+local name = plugindef():gsub("%.%.%.", "")
+local bounds = { -- primary region selection boundaries
+    "StartStaff", "StartMeasure", "StartMeasurePos",
+    "EndStaff",   "EndMeasure",   "EndMeasurePos",
+}
+local selection = { staff = "no staff", region = "no selection"}
+
+local function set_saved_bounds()
+    for _, prop in ipairs(bounds) do
+        saved_bounds[prop] = finenv.Region()[prop]
+    end
+end
 
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -98,10 +92,32 @@ local function dialog_save_position(dialog)
     configuration.save_user_settings(script_name, config)
 end
 
-local function get_rest_offset(entry)
-    -- had to liberate this routine from the note_entry library
-    if entry:IsNote() then return 0 end
+local function measure_duration(measure_number)
+    local m = finale.FCMeasure()
+    return m:Load(measure_number) and m:GetDuration() or 0
+end
 
+local function update_selection()
+    local rgn = finenv.Region()
+    if rgn:IsEmpty() then
+        selection = { staff = "no staff", region = " no selection"}
+        return
+    end
+    local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
+    local m = measure_duration(rgn.EndMeasure)
+    local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
+    selection.region = string.format("m%.2f-m%.2f", r1, r2)
+
+    local staff = finale.FCStaff()
+    staff:Load(rgn.StartStaff)
+    local s1 = staff:CreateDisplayFullNameString() or ("Staff " .. rgn.StartStaff)
+    staff:Load(rgn.EndStaff)
+    local s2 = staff:CreateDisplayFullNameString() or ("Staff " .. rgn.EndStaff)
+    selection.staff = string.format("%s → %s", s1.LuaString, s2.LuaString)
+end
+
+local function get_rest_offset(entry)
+    if entry:IsNote() then return 0 end -- only rests wanted
     local spec = finale.FCCurrentStaffSpec()
     spec:LoadForEntry(entry)
     local rest_pos = spec.OtherRestPosition
@@ -126,51 +142,51 @@ local function offset_rest(entry, shift, float)
     end
 end
 
-local function adjacent_staff_offsets(rgn)
-    local start = {
-        staff = rgn.StartStaff,
-        slot  = rgn:CalcSlotNumber(rgn.StartStaff)
-    }
-    local adjacent, offset = {}, {}
-    if rgn.StartStaff == rgn.EndStaff then -- single staff selection required
-        local stack = mixin.FCMMusicRegion()
-        stack:SetRegion(rgn):SetFullMeasureStack()
-        if start.slot > 1 then
-            adjacent.above = stack:CalcStaffNumber(start.slot - 1)
-        end
-        if start.slot < stack.EndSlot then
-            adjacent.below = stack:CalcStaffNumber(start.slot + 1)
-        end
-        local system_staves = finale.FCSystemStaves()
-        system_staves:LoadAllForRegion(stack)
-        local sys_staff = system_staves:FindStaff(start.staff)
-        start.position = sys_staff.Distance
+local function set_adjacent_offsets()
+    adjacent_offsets = {} -- start with blank collection
+    local rgn = finenv.Region()
+    local start_staff = rgn.StartStaff
+    if start_staff ~= rgn.EndStaff then return end -- single staff required
 
-        for key, staff_num in pairs(adjacent) do -- find 2(?) staff offsets
+    local start_slot = rgn:CalcSlotNumber(rgn.StartStaff)
+    local next_staff = {} -- locate staff above/below
+    local stack = mixin.FCMMusicRegion()
+    stack:SetRegion(rgn):SetFullMeasureStack()
+    if start_slot > 1 then
+        next_staff.above = stack:CalcStaffNumber(start_slot - 1)
+    end
+    if start_slot < stack.EndSlot then
+        next_staff.below = stack:CalcStaffNumber(start_slot + 1)
+    end
+    local system_staves = finale.FCSystemStaves()
+    system_staves:LoadAllForRegion(stack)
+    local sys_staff = system_staves:FindStaff(start_staff)
+    if sys_staff then
+        local start_position = sys_staff.Distance
+        for key, staff_num in pairs(next_staff) do -- find 0, 1 or 2 adjacent_offsets
             sys_staff = system_staves:FindStaff(staff_num)
-            local n = start.position - sys_staff.Distance
-            offset[key] = math.floor(n / 24) -- convert EVPU to (half) steps
+            local n = start_position - sys_staff.Distance
+            adjacent_offsets[key] = math.floor(n / 24) -- convert EVPU to HALF steps
         end
     end
-    return offset
 end
 
-local function first_rest_offset(rgn, layer_num)
+local function first_rest_offset(layer_num)
     local offset = 0
-    for entry in eachentry(rgn, layer_num) do
+    for entry in eachentry(finenv.Region(), layer_num) do
         if entry:IsRest() then
             if not entry.FloatingRest then
                 offset = entry:GetRestDisplacement() + get_rest_offset(entry)
             end
-            break
+            break -- only need the first rest within layer_num
         end
     end
     return offset
 end
 
-local function save_rests(rgn)
-    first_offset = first_rest_offset(rgn, config.layer_num)
-    for entry in eachentry(rgn) do
+local function save_rest_positions()
+    first_offset = first_rest_offset(config.layer_num)
+    for entry in eachentry(finenv.Region()) do
         if entry:IsRest() then
             save_displacement[entry.EntryNumber] = {
                 entry:GetRestDisplacement(), entry.FloatingRest
@@ -179,37 +195,48 @@ local function save_rests(rgn)
     end
 end
 
-local function restore_rests(rgn)
-    for entry in eachentrysaved(rgn) do
+local function restore_rest_positions()
+    if config.modeless then
+        finenv.StartNewUndoBlock(name .. " " .. selection.region .. " reset", false)
+    end
+    for entry in eachentrysaved(finenv.Region()) do
         local v = save_displacement[entry.EntryNumber]
         if entry:IsRest() and v ~= nil then
             entry:SetRestDisplacement(v[1])
-            entry.FloatingRest = v[2]
+            entry:SetFloatingRest(v[2])
         end
     end
-    rgn:Redraw()
+    if config.modeless then finenv.EndUndoBlock(true) end
+    finenv.Region():Redraw()
 end
 
-local function user_chooses(rgn)
-    local max_thumb, center = 72, 36
-    local y, x =  0, { 0, 107, max_thumb * 2.5, max_thumb * 5 }
+local function run_the_dialog_box()
+    local y, max_thumb, center = 0, 72, 36
+    local x =  { 0, 107, max_thumb * 2.5, max_thumb * 5 }
     local y_off = finenv.UI():IsOnMac() and 3 or 0
-    local max, butt_wide = layer.max_layers(), 100
-    local save_layer, answer = config.layer_num, {}
-    local mid_offset = adjacent_staff_offsets(rgn)
-        local function yd(diff)
-            y = diff and y + diff or y + 25
-        end
+    local max, button_wide = layer.max_layers(), 107
+    local save_layer = config.layer_num
+    local answer = {}
+    --
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Shift Rests")
+        -- local functions
         local function show_info()
-            finenv.UI():AlertInfo(info_notes, "About " .. plugindef())
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 435)
+            refocus_document = true
+        end
+        local function yd(diff)
+            y = diff and (y + diff) or (y + 25)
         end
         local function shift_rests(shift, float)
-            for entry in eachentrysaved(rgn, save_layer) do
+            local id = string.format("%s %s L-%d pos%d", name, selection.region, save_layer, shift)
+            if config.modeless then finenv.StartNewUndoBlock(id, false) end
+            for entry in eachentrysaved(finenv.Region(), save_layer) do
                 if entry:IsRest() then
                     offset_rest(entry, shift, float)
                 end
             end
-            rgn:Redraw()
+            if config.modeless then finenv.EndUndoBlock(true) end
+            finenv.Region():Redraw()
         end
         local function set_value(thumb, float, set_thumb)
             local pos = thumb - center
@@ -229,10 +256,14 @@ local function user_chooses(rgn)
             end
         end
         local function set_midstaff(direction)
-            if mid_offset[direction] then
-                local n = mid_offset[direction] + center
+            if adjacent_offsets[direction] then
+                local n = adjacent_offsets[direction] + center
                 set_value(n, false, true)
             end
+        end
+        local function invert_shift()
+            local n = (answer.slider:GetThumbPosition() - center) * -1
+            set_value(n + center, false, true)
         end
         local function key_change() -- key command replacements in layer_num box
             local val = answer.layer_num:GetText():lower()
@@ -240,14 +271,17 @@ local function user_chooses(rgn)
                 answer.layer_num:SetText("0")
                 save_layer = 0
             else
-                if val:find("[^0-" .. max .. "4]") then
+                if val:find("[^0-" .. max .. "]") then
                     if val:find("[?q]") then show_info()
-                    elseif val:find("[+a=]") then nudge_thumb(1)
-                    elseif val:find("[-s_]") then nudge_thumb(-1)
+                    elseif val:find("[-a_%[]") then nudge_thumb(-1)
+                    elseif val:find("[+s=%]]") then nudge_thumb(1)
                     elseif val:find("d") then set_midstaff("above")
                     elseif val:find("f") then set_midstaff("below")
                     elseif val:find("z") then set_zero(false)
                     elseif val:find("x") then set_zero(true)
+                    elseif val:find("i") then invert_shift()
+                    elseif val:find("m") then
+                        answer.modeless:SetCheck((answer.modeless:GetCheck() + 1) % 2)
                     end
                     answer.layer_num:SetText(save_layer):SetKeyboardFocus()
                 else
@@ -255,7 +289,7 @@ local function user_chooses(rgn)
                     local n = tonumber(val) or 0
                     if save_layer ~= 0 and save_layer ~= n then
                         save_layer = n
-                        first_offset = first_rest_offset(rgn, n)
+                        first_offset = first_rest_offset(n)
                         set_value(first_offset + center, false, true)
                     end
                     answer.layer_num:SetText(n)
@@ -263,68 +297,92 @@ local function user_chooses(rgn)
                 end
             end
         end
-
-    -- start dialog
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-
+        local function on_timer() -- look for changes in selected region
+            for prop, value in pairs(saved_bounds) do
+                if finenv.Region()[prop] ~= value then -- selection changed
+                    set_saved_bounds() -- save new selection bounds
+                    update_selection() -- update selection ID
+                    dialog:GetControl("info"):SetText(selection.staff .. ": " .. selection.region)
+                    set_adjacent_offsets() -- get new mid-staff offsets (if any)
+                    dialog:GetControl("above"):SetEnable(adjacent_offsets.above ~= nil)
+                    dialog:GetControl("below"):SetEnable(adjacent_offsets.below ~= nil)
+                    break -- all done
+                end
+            end
+        end
+    -- draw dialog contents
+    dialog:CreateStatic(0, y, "info"):SetWidth(x[4]):SetText(selection.staff .. ": " .. selection.region)
+    yd()
     answer.slider = dialog:CreateSlider(0, y):SetMinValue(0):SetMaxValue(max_thumb)
         :SetWidth(x[4]):SetThumbPosition(first_offset + center)
         :AddHandleCommand(function(self) set_value(self:GetThumbPosition(), false, false) end)
-    yd()
+    yd(32)
     dialog:CreateStatic(0, y):SetWidth(x[2]):SetText("Layer 1-" .. max .. " (0 = all):")
-    save_layer = config.layer_num
     answer.layer_num = dialog:CreateEdit(x[2], y - y_off):SetWidth(20):SetText(save_layer)
         :AddHandleCommand(function() key_change() end )
     answer.value = dialog:CreateStatic(x[3] - 12, y):SetWidth(75)
-    dialog:CreateButton(x[4] - 110, y):SetText("reset zero (z)"):SetWidth(butt_wide)
+    set_value(first_offset + center, false, false) -- preset slider and all selected rests
+
+    dialog:CreateButton(x[4] - 110, y):SetText("reset zero (z)"):SetWidth(button_wide)
         :AddHandleCommand(function() set_zero() end)
     yd()
-    dialog:CreateButton(0, y):SetText("?"):SetWidth(20)
+    local q = dialog:CreateButton(0, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
-    dialog:CreateButton(x[4] - 110, 50):SetText("floating rests (x)"):SetWidth(butt_wide)
-        :AddHandleCommand(function() set_zero(true) end)
-
-    -- provide mid-staff buttons?
-    if rgn.StartStaff ~= rgn.EndStaff then -- more than one staff selected
-        dialog:CreateStatic(50, y - 3):SetWidth(x[3]):SetText("select music in a single staff to \n")
-        dialog:CreateStatic(47, y + 11):SetWidth(x[3]):SetText("enable auto mid-staff placement")
-    else
-        if mid_offset.above then
-            dialog:CreateButton(30, y):SetText("mid-staff above"):SetWidth(butt_wide)
-            :AddHandleCommand(function() set_midstaff("above") end)
-        else
-            dialog:CreateStatic(40, y):SetWidth(x[3] / 2):SetText("(highest staff)")
-        end
-        if mid_offset.below then
-            dialog:CreateButton(135, y):SetText("mid-staff below"):SetWidth(butt_wide)
-            :AddHandleCommand(function() set_midstaff("below") end)
-        else
-            dialog:CreateStatic(145, y):SetWidth(x[3] / 2):SetText("(lowest staff)")
-        end
-    end
-
-    dialog:CreateOkButton()
+    dialog:CreateButton(25, y, "above"):SetText("mid-staff above (d)"):SetWidth(button_wide)
+        :SetEnable(adjacent_offsets.above ~= nil)
+        :AddHandleCommand(function() set_midstaff("above") end)
+    dialog:CreateButton(137, y, "below"):SetText("mid-staff below (f)"):SetWidth(button_wide)
+        :SetEnable(adjacent_offsets.below ~= nil)
+        :AddHandleCommand(function() set_midstaff("below") end)
+    dialog:CreateButton(x[4] - 110, y):SetText("floating rests (x)")
+        :SetWidth(button_wide):AddHandleCommand(function() set_zero(true) end)
+    yd()
+    answer.modeless = dialog:CreateCheckbox(0, y):SetWidth(x[4]):SetCheck(config.modeless and 1 or 0)
+        :SetText("Modeless Operation (\"floating\" dialog window)")
+    -- wrap it up
+    dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
     dialog:CreateCancelButton()
-    dialog:RegisterInitWindow(function()
-        set_value(first_offset + center, false, false)
+    dialog_set_position(dialog)
+    if config.modeless then dialog:RegisterHandleTimer(on_timer) end
+    dialog:RegisterHandleOkButtonPressed(function()
+        save_rest_positions() -- save rest positions so "Close" leaves correct positions
+    end)
+    dialog:RegisterInitWindow(function(self)
+        if config.modeless then self:SetTimer(config.timer_id, 125) end
+        q:SetFont(q:CreateFontInfo():SetBold(true))
         answer.layer_num:SetKeyboardFocus()
     end)
-    dialog_set_position(dialog)
-    dialog:RegisterHandleOkButtonPressed(function()
+    dialog:SetOkButtonCanClose(not config.modeless)
+    dialog:RegisterCloseWindow(function(self)
         config.layer_num = answer.layer_num:GetInteger()
+        config.modeless = (answer.modeless:GetCheck() == 1)
+        dialog_save_position(self)
+        if config.modeless then self:StopTimer(config.timer_id) end
+        restore_rest_positions()
     end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    if config.modeless then -- "modeless"
+        dialog:RunModeless()
+    else -- "modal"
+        dialog:ExecuteModal()
+        if refocus_document then finenv.UI():ActivateDocumentWindow() end
+    end
 end
 
 local function slide_rests()
     configuration.get_user_settings(script_name, config)
-    local rgn = mixin.FCMMusicRegion()
-    rgn:SetRegion(finenv.Region())
-    save_rests(rgn)
-    if not user_chooses(rgn) then
-        restore_rests(rgn)
+    if finenv.Region():IsEmpty() then
+        finenv.UI():AlertError(
+            "Please select some music before\nrunning this script.",
+            name
+        )
+        return
     end
+    -- initialise parameters
+    set_saved_bounds()
+    update_selection()
+    set_adjacent_offsets()
+    save_rest_positions()
+    run_the_dialog_box()
 end
 
 slide_rests()
