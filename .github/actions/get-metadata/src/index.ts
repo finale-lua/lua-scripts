@@ -1,6 +1,6 @@
 import path from 'path'
 
-import { getInput } from '@actions/core'
+import { getInput, setFailed } from '@actions/core'
 import fs from 'fs-extra'
 import { parseMetadata } from './parse'
 
@@ -21,6 +21,7 @@ sourceFiles.forEach((fileName: string) => {
         allMetadata.push(parsed)
     } else {
         console.log(`ERROR: ${fileName}`)
+        setFailed(`Error parsing metadata for ${fileName}`);
     }
 })
 
