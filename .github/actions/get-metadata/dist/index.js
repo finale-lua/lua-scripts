@@ -28828,6 +28828,7 @@ sourceFiles.forEach((fileName) => {
     }
     else {
         console.log(`ERROR: ${fileName}`);
+        (0, core_1.setFailed)(`Error parsing metadata for ${fileName}`);
     }
 });
 fs_extra_1.default.writeFileSync(outFile, JSON.stringify(allMetadata.sort((a, b) => a.name.localeCompare(b.name))));
