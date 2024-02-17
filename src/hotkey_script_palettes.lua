@@ -15,7 +15,7 @@ function plugindef()
         and triggered by simple "hotkey" keystrokes.
 
         The _Hotkey Palette_ principle is demonstrated expertly by 
-        Nick Mazuk [on YouTube](https://www.youtube.com/@nickmazuk). 
+        Nick Mazuk on YouTube (https://www.youtube.com/@nickmazuk). 
         Scripts are grouped into primary categories like _Intervals_, _Layers_, 
         _Notes & Chords_, _Measure Items_ and so on as a set of palettes triggered by keystroke. 
         Each primary palette calls up a second palette containing scripts in related areas, 
@@ -23,14 +23,14 @@ function plugindef()
         just two keystrokes with the actual hotkeys presented as a visual reminder. 
         Actions you repeat often will link to muscle memory and become easier to recall.
 
-        Nick uses [Keyboard Maestro](https://keyboardmaestro.com) on Mac for this, 
+        Nick uses Keyboard Maestro (https://keyboardmaestro.com) on Mac for this, 
         but this script makes it free (cross-platform) within Finale 
         using RGP Lua without other software or configuration. 
         Scripts that use modifier keys (shift, alt/option etc) for "alternative" behaviours 
-        respond to those keys when called from these palettes.
+        respond to those keys when called from these palettes. 
 
         This script is loaded with a set of "demo" palettes containing many of the 
-        Lua scripts available at [FinaleLua.com](https://FinaleLua.com). 
+        Lua scripts available at FinaleLua.com (https://FinaleLua.com). 
         If a script isn't installed on your system you will get an "unidentified" warning 
         on execution. Delete those scripts and add new ones in their place. 
         Reconfigure each of the _Main_ palettes, change their name or hotkey, 
