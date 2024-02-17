@@ -23,8 +23,8 @@ function plugindef()
         This script adds a diagonal "slash" to the start of 
         every beamed group of grace notes in the current selection. 
         It emulates Jari Williamsson's 2017 
-        [JWGraceNoteSlash](http://finaletips.nu/index.php/download/category/44-64-bit-mac-plug-ins?start=20) 
-         plug-in to work on Macs with non-Intel processors, 
+        _JWGraceNoteSlash_ (http://finaletips.nu/index.php/download/) 
+        plug-in to work on Macs with non-Intel processors, 
         but also offers customised angle, size and placement options, 
         optional slashing of single grace notes and filtering by layer. 
 
