@@ -22,8 +22,8 @@ function plugindef()
     finaleplugin.Notes = [[
         This script adds a diagonal "slash" to the start of 
         every beamed group of grace notes in the current selection. 
-        It emulates Jari Williamsson's 2017 
-        _JWGraceNoteSlash_ (http://finaletips.nu/index.php/download/) 
+        It emulates Jari Williamsson's 2017 _JWGraceNoteSlash_ 
+        ([finaletips.nu/index.php/download/](http://finaletips.nu/index.php/download/)) 
         plug-in to work on Macs with non-Intel processors, 
         but also offers customised angle, size and placement options, 
         optional slashing of single grace notes and filtering by layer. 
@@ -43,8 +43,8 @@ function plugindef()
         > - __q__: display these notes 
         > - __0-4__: layer number (delete key not needed)  
         > - To change measurement units: 
-        > - __e__ - EVPUs; __i__ - Inches; __c__ - Centimeters; 
-        > - __o__ - Points; __a__ - Picas; __s__ - Spaces; 
+        > - __e__: EVPU / __i__: Inches / __c__: Centimeters 
+        > - __o__: Points / __a__: Picas / __s__: Spaces 
     ]]
     return "Gracenote Slash", "Gracenote Slash",
         "Add a slash to beamed gracenote groups in the current selection"
