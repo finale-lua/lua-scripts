@@ -175,7 +175,7 @@ local function assert_table_argument_type(argument_number, table_value, ...)
     end
 
     for k, v in pairsbykeys(table_value) do
-        if k ~= "n" or type(k) ~= "number" do
+        if k ~= "n" or type(k) ~= "number" then
             assert_argument_type(5, tostring(argument_number) .. to_key_string(k), v, ...)
         end
     end
