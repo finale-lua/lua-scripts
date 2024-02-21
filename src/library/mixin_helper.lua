@@ -118,9 +118,7 @@ local function assert_argument_type(levels, argument_number, value, ...)
         secondary_type = value.MixinClass or value.ClassName
     end
 
-    error(
-        "bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) ..
-            ")", levels)
+    error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) .. ")", levels)
 end
 
 --[[
@@ -161,6 +159,59 @@ The same as `assert_argument_type` except this function always asserts, regardle
 ]]
 function mixin_helper.force_assert_argument_type(argument_number, value, ...)
     assert_argument_type(4, argument_number, value, ...)
+end
+
+local function to_key_string(value)
+    if type(value) == "string" then
+        value = "\"" .. value .. "\""
+    end
+
+    return "[" .. tostring(value) .. "]"
+end
+
+local function assert_table_argument_type(argument_number, table_value, ...)
+    if type(table_value) ~= "table" then
+        error("bad argument #2 to 'assert_table_argument_type' (table expected, got " .. type(table_value) .. ")", 3)
+    end
+
+    for k, v in pairsbykeys(table_value) do
+        if k ~= "n" or type(k) ~= "number" do
+            assert_argument_type(5, tostring(argument_number) .. to_key_string(k), v, ...)
+        end
+    end
+end
+
+--[[
+% assert_table_argument_type
+
+For mixin methods that accept a table of values as an argument, this function will validate the types of the values within the table.
+It is assumed that the table itself has already been validated with `assert_argument_type`. If a table is not passed, an error will be thrown.
+
+As the key `n` has special meaning in Lua, if it is present and a `number`, it will be ignored.
+
+*NOTE: This function will only assert if in debug mode (ie `finenv.DebugEnabled == true`). If assertions are always required, use `force_assert_table_argument_type` instead.*
+
+@ argument_number (number) The REAL argument number for the error message (self counts as argument #1).
+@ table_value (table) A table of values to test.
+@ ... (string) Valid types (as many as needed). Can be standard Lua types, Finale class names, or mixin class names.
+]]
+function mixin_helper.assert_table_argument_type(argument_number, value, ...)
+    if debug_enabled then
+        assert_table_argument_type(argument_number, value, ...)
+    end
+end
+
+--[[
+% force_assert_table_argument_type
+
+The same as `assert_table_argument_type` except this function always asserts, regardless of whether debug mode is enabled.
+
+@ argument_number (number) The REAL argument number for the error message (self counts as argument #1).
+@ table_value (table) A table of values to test.
+@ ... (string) Valid types (as many as needed). Can be standard Lua types, Finale class names, or mixin class names.
+]]
+function mixin_helper.force_assert_table_argument_type(argument_number, value, ...)
+    assert_table_argument_type(argument_number, value, ...)
 end
 
 local function assert_func(condition, message, level)
@@ -413,13 +464,12 @@ function mixin_helper.create_custom_control_change_event(...)
             return
         end
 
-        window:AddInitWindow(
-            function()
-                -- This will go through the controls in random order but unless it becomes an issue, it's not worth doing anything about
-                for control in event.target_iterator() do
-                    event.dispatcher(control)
-                end
-            end)
+        window:AddInitWindow(function()
+            -- This will go through the controls in random order but unless it becomes an issue, it's not worth doing anything about
+            for control in event.target_iterator() do
+                event.dispatcher(control)
+            end
+        end)
 
         window:AddHandleCommand(event.dispatcher)
     end
@@ -449,11 +499,10 @@ function mixin_helper.create_custom_control_change_event(...)
         local window = control:GetParent()
 
         if window:WindowExists__() then
-            window:QueueHandleCustom(
-                function()
-                    queued[control] = nil
-                    event.dispatcher(control)
-                end)
+            window:QueueHandleCustom(function()
+                queued[control] = nil
+                event.dispatcher(control)
+            end)
 
             queued[control] = true
         end
@@ -513,11 +562,10 @@ function mixin_helper.create_custom_window_change_event(...)
             return
         end
 
-        window:QueueHandleCustom(
-            function()
-                queued[window] = nil
-                event.dispatcher(window)
-            end)
+        window:QueueHandleCustom(function()
+            queued[window] = nil
+            event.dispatcher(window)
+        end)
 
         queued[window] = true
     end
@@ -639,13 +687,6 @@ Creates a proxy method that takes multiple string arguments.
 : (function)
 ]]
 function mixin_helper.create_multi_string_proxy(method_name)
-    local function to_key_string(value)
-        if type(value) == "string" then
-            value = "\"" .. value .. "\""
-        end
-
-        return "[" .. tostring(value) .. "]"
-    end
     return function(self, ...)
         mixin_helper.assert_argument_type(1, self, "userdata")
         for i = 1, select("#", ...) do
@@ -657,8 +698,8 @@ function mixin_helper.create_multi_string_proxy(method_name)
                     self[method_name](self, str)
                 end
             elseif type(v) == "table" then
-                for k2, v2 in pairsbykeys(v) do
-                    mixin_helper.assert_argument_type(tostring(i + 1) .. to_key_string(k2), v2, "string", "number", "FCString")
+                mixin_helper.assert_table_argument_type(i + 1, v, "string", "number", "FCString")
+                for _, v2 in pairsbykeys(v) do
                     self[method_name](self, v2)
                 end
             else
