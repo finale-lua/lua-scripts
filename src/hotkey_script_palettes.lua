@@ -3,9 +3,9 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.65"
+    finaleplugin.Version = "0.66"
     finaleplugin.LoadLuaOSUtils = true
-    finaleplugin.Date = "2024/02/08"
+    finaleplugin.Date = "2024/02/23"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[ 
@@ -16,7 +16,7 @@ function plugindef()
 
         The _Hotkey Palette_ principle is demonstrated expertly by 
         Nick Mazuk on YouTube 
-        ([www.youtube.com/@nickmazuk](https://www.youtube.com/@nickmazuk)). 
+        ([www.youtube.com/@nickmazuk ](https://www.youtube.com/@nickmazuk)). 
         Scripts are grouped into primary categories like _Intervals_, _Layers_, 
         _Notes & Chords_, _Measure Items_ and so on as a set of palettes triggered by keystroke. 
         Each primary palette calls up a second palette containing scripts in related areas, 
@@ -24,14 +24,14 @@ function plugindef()
         just two keystrokes with the actual hotkeys presented as a visual reminder. 
         Actions you repeat often will link to muscle memory and become easier to recall.
 
-        Nick uses Keyboard Maestro ([keyboardmaestro.com](https://keyboardmaestro.com)) on Mac for this, 
+        Nick uses Keyboard Maestro ([keyboardmaestro.com ](https://keyboardmaestro.com)) on Mac for this, 
         but this script makes it free (cross-platform) within Finale 
         using RGP Lua without other software or configuration. 
         Scripts that use modifier keys (shift, alt/option etc) for "alternative" behaviours 
         respond to those keys when called from these palettes. 
 
         This script is loaded with a set of "demo" palettes containing many of the 
-        Lua scripts available at [FinaleLua.com](https://FinaleLua.com). 
+        Lua scripts available at [FinaleLua.com ](https://FinaleLua.com). 
         If a script isn't installed on your system you will get an "unidentified" warning 
         on execution. Delete those scripts and add new ones in their place. 
         Reconfigure each of the _Main_ palettes, change their name or hotkey, 
@@ -91,7 +91,7 @@ local palettes = {}
 } -- ]]
 
 local function show_info(parent)
-    utils.show_notes_dialog(parent, "About " .. plugindef():gsub("%.%.%.", ""))
+    utils.show_notes_dialog(parent, "About " .. plugindef():gsub("%.%.%.", ""), 500, 365)
     refocus_document = true
 end
 
@@ -237,7 +237,7 @@ local function user_chooses_script(index, palette_number, instruction, parent_wi
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Choose Script Item")
     dialog:CreateStatic(0, 0):SetText(instruction):SetWidth(x_wide - 22)
     make_info_button(dialog, x_wide - 20, 0)
-    local script_list = dialog:CreatePopup(0, 20):SetWidth(x_wide)
+    local script_list = dialog:CreatePopup(0, 23):SetWidth(x_wide)
     local selected = 1
     for i, v in ipairs(script_names) do
         script_list:AddString(v)
@@ -246,10 +246,10 @@ local function user_chooses_script(index, palette_number, instruction, parent_wi
             selected = i
         end
     end
-    dialog:CreateStatic(0, 44):SetText("Name for Listing:"):SetWidth(x_wide)
-    local list_name = dialog:CreateEdit(0, 66 - offset):SetText(old_menu.name):SetWidth(x_wide)
-    dialog:CreateStatic(0, 90):SetText("Hotkey:"):SetWidth(x_wide)
-    local key_edit = dialog:CreateEdit(45, 90 - offset):SetText(old_menu.key):SetWidth(25)
+    dialog:CreateStatic(0, 47):SetText("Name for Listing:"):SetWidth(x_wide)
+    local list_name = dialog:CreateEdit(0, 69 - offset):SetText(old_menu.name):SetWidth(x_wide)
+    dialog:CreateStatic(0, 93):SetText("Hotkey:"):SetWidth(x_wide)
+    local key_edit = dialog:CreateEdit(45, 93 - offset):SetText(old_menu.key):SetWidth(25)
     script_list:AddHandleCommand(function()
         local new = script_list:GetSelectedItem() + 1
         if new ~= selected then
@@ -259,7 +259,11 @@ local function user_chooses_script(index, palette_number, instruction, parent_wi
     end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    dialog:RegisterInitWindow(function() script_list:SetKeyboardFocus() end)
+    dialog:RegisterInitWindow(function(self)
+        self:GetControl("q"):SetFont(self:GetControl("q"):CreateFontInfo():SetBold(true))
+        list_name:SetText(script_names[selected])
+        script_list:SetKeyboardFocus()
+    end)
     dialog_set_position(dialog)
     local ok = (dialog:ExecuteModal(parent_window) == finale.EXECMODAL_OK)
     local menu_name = script_names[script_list:GetSelectedItem() + 1]
@@ -324,7 +328,7 @@ After you've highlighted an active menu item from the list a "Test Menu Item" bu
 will appear to make sure it works before you add it to the current palette.
 Note that many Finale menus do nothing unless part of the score is already selected.
 ]]
-    dialog:CreateButton(mid_x + x2_wide - 20, y):SetText("?"):SetWidth(20)
+    dialog:CreateButton(mid_x + x2_wide - 20, y, "q"):SetText("?"):SetWidth(20)
         :AddHandleCommand(function()
             dialog:CreateChildUI()
             :AlertInfo(menu_about:gsub("%s*\n%s*", " "):gsub("*", "\n"), "Adding Menu Items")
@@ -408,7 +412,8 @@ Note that many Finale menus do nothing unless part of the score is already selec
         end
     end)
     dialog:RegisterHandleListDoubleClick(function() one_level_down() end)
-    dialog:RegisterInitWindow(function()
+    dialog:RegisterInitWindow(function(self)
+        self:GetControl("q"):SetFont(self:GetControl("q"):CreateFontInfo():SetBold(true))
         menu_tree = cjson.decode(config.menu_tree)
         selected = 1
         local top_menu = menu_bar
@@ -540,7 +545,10 @@ local function configure_palette(palette_number, index_num, parent_window)
     dialog:CreateOkButton():SetText("Save")
     dialog:CreateCancelButton():SetText("Discard")
     dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function() list_box:SetKeyboardFocus() end)
+    dialog:RegisterInitWindow(function(self)
+        self:GetControl("q"):SetFont(self:GetControl("q"):CreateFontInfo():SetBold(true))
+        list_box:SetKeyboardFocus()
+    end)
     dialog:RegisterHandleCancelButtonPressed(function()
         configuration.get_user_settings(script_name, config) -- restore original user values
         palettes = cjson.decode(config.palettes)
@@ -595,7 +603,10 @@ local function choose_palette(palette_number)
         configuration.save_user_settings(script_name, config) -- save new settings
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    dialog:RegisterInitWindow(function() item_list:SetKeyboardFocus() end)
+    dialog:RegisterInitWindow(function(self)
+        item_list:SetKeyboardFocus()
+        self:GetControl("q"):SetFont(self:GetControl("q"):CreateFontInfo():SetBold(true))
+    end)
     local ok = (dialog:ExecuteModal() == finale.EXECMODAL_OK)
     return ok, (item_list:GetSelectedItem() + 1)
 end
