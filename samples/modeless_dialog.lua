@@ -66,10 +66,17 @@ local function create_dialog()
 
     dlg:RegisterHandleControlEvent(do_something,
         function(_control)
+            local fpath = finale.FCString()
+            fpath:SetRunningLuaFolderPath()
+            local fname = finale.FCString()
+            fname:SetRunningLuaFilePath()
+            dlg:CreateChildUI():AlertInfo(fname.LuaString, fpath.LuaString)
+            --[[
             local grp1 = global_dialog:GetControl("radio1")
             print("radio group 1 selected item: " .. grp1:GetSelectedItem())
             local grp2 = global_dialog:GetControl("radio2")
             print("radio group 2 selected item: " .. grp2:GetSelectedItem())
+            ]]
             --[[
             finenv.StartNewUndoBlock("Playback Region", false)
             finenv.Region():Playback()
@@ -90,13 +97,6 @@ local function create_dialog()
             else
                 finenv.UI():AlertInfo("nothing selected", "")
             end
-            ]]
-            --[[
-            local fpath = finale.FCString()
-            fpath:SetRunningLuaFolderPath()
-            local fname = finale.FCString()
-            fname:SetRunningLuaFilePath()
-            finenv.UI():AlertInfo(fname.LuaString, fpath.LuaString)
             ]]
             --[[
             local function fcstr(s)
