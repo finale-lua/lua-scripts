@@ -16,6 +16,24 @@ local mixin = require("library.mixin")
 local strings = {"Option 1", "Option 2", "Option 3"}
 local strings2 = {"Long Suboption 1", "Long Suboption 2"}
 
+local function modal_dialog()
+    local dlg = mixin.FCXCustomLuaWindow()
+    dlg:SetTitle("Modal Popup")
+    dlg:CreateButton(0, 0)
+        :SetText("Popup Message")
+        :SetWidth(150)
+        :AddHandleCommand(function(_control)
+            local fpath = finale.FCString()
+            fpath:SetRunningLuaFolderPath()
+            local fname = finale.FCString()
+            fname:SetRunningLuaFilePath()
+            dlg:CreateChildUI():AlertInfo(fname.LuaString, fpath.LuaString)
+        end)
+    dlg:CreateOkButton()
+    dlg:CreateCancelButton()
+    dlg:ExecuteModal()
+end
+
 local function create_dialog()
     local dlg = mixin.FCXCustomLuaWindow()
     dlg:SetTitle(finale.FCString("RGP Lua Modeless Test"))
@@ -66,11 +84,7 @@ local function create_dialog()
 
     dlg:RegisterHandleControlEvent(do_something,
         function(_control)
-            local fpath = finale.FCString()
-            fpath:SetRunningLuaFolderPath()
-            local fname = finale.FCString()
-            fname:SetRunningLuaFilePath()
-            dlg:CreateChildUI():AlertInfo(fname.LuaString, fpath.LuaString)
+            modal_dialog()
             --[[
             local grp1 = global_dialog:GetControl("radio1")
             print("radio group 1 selected item: " .. grp1:GetSelectedItem())
