@@ -1,37 +1,41 @@
 function plugindef()
-  finaleplugin.RequireSelection = true
-  finaleplugin.Author = "Jacob Winkler, Nick Mazuk & Carl Vine"
-  finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
-  finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-  finaleplugin.Version = "1.0"
-  finaleplugin.Date = "2024-01-26"
-  finaleplugin.CategoryTags = "Pitch"
-  finaleplugin.Notes = [[
-USING PITCH ENTRY KEEP-DELETE
+    finaleplugin.RequireSelection = true
+    finaleplugin.Author = "Jacob Winkler, Nick Mazuk & Carl Vine"
+    finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
+    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
+    finaleplugin.Version = "1.2"
+    finaleplugin.Date = "2024-02-19"
+    finaleplugin.CategoryTags = "Pitch"
+    finaleplugin.Notes = [[
+        Using __Pitch Entry Keep-Delete__
 
-Select a note within each chord to either keep or delete, 
-numbered from either the top or bottom of each chord.  
-"1" deletes (or keeps) the top (or bottom) note,  
-"2" deletes (or keeps) the 2nd note from top (or from bottom),  
-etc.  
+        Select a note within each chord to either keep or delete, 
+        numbered from either the top or bottom of each chord. 
 
-__Key Commands:__ 
+        - __1__ deletes (or keeps) the top (or bottom) note 
+        - __2__ deletes (or keeps) the 2nd note from top (or bottom) 
+        - etc. 
 
-- __a__ - keep 
-- __z__ - delete 
-- __s__ - from the top 
-- __x__ - from the bottom 
-- __q__ - toggle keep/delete 
-- __w__ - toggle top/bottom 
-- __1-9__ - enter note count (delete key not needed) 
-]]
-  return "Pitch: Chord Notes Keep-Delete...", "Pitch: Chord Notes Keep-Delete",
+        >__Key Commands:__ 
+
+        > - __a__ - keep 
+        > - __z__ - delete 
+        > - __s__ - from the top 
+        > - __x__ - from the bottom 
+        > - – 
+        > - __q__ - toggle keep/delete 
+        > - __w__ - toggle top/bottom 
+        > - __e__ - show these notes 
+        > - __1-9__ - enter note count (delete key not needed) 
+    ]]
+    return "Pitch: Chord Notes Keep-Delete...", "Pitch: Chord Notes Keep-Delete",
     "Keep or Delete selected notes from chords"
 end
 
 local configuration = require("library.configuration")
 local note_entry = require("library.note_entry")
 local mixin = require("library.mixin")
+local utils = require("library.utils")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
 
@@ -59,24 +63,30 @@ local function dialog_save_position(dialog)
 end
 
 local function user_chooses()
-    local x, y, y_diff = 85, 3, 20
+    local x, y, y_diff = 85, 3, 24
     local y_offset = finenv.UI():IsOnMac() and 3 or 0
     local answer = {}
     local saved = config.number
-        --
-        local function flip_popup(name)
-            local n = answer[name]:GetSelectedItem()
-            answer[name]:SetSelectedItem((n + 1) % 2)
+    local name = plugindef():gsub("%.%.%.", "")
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
+        -- local functions
+        local function show_info()
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 280)
+        end
+        local function flip_radio(id)
+            local n = answer[id]:GetSelectedItem()
+            answer[id]:SetSelectedItem((n + 1) % 2)
         end
         local function key_check(ctl)
             local s = ctl:GetText():lower()
-            if  s:find("[^0-9]") then
+            if  s:find("[^1-9]") then
                 if     s:find("a") then answer.keep_delete:SetSelectedItem(0)
                 elseif s:find("z") then answer.keep_delete:SetSelectedItem(1)
-                elseif s:find("q") then flip_popup("keep_delete")
+                elseif s:find("q") then flip_radio("keep_delete")
                 elseif s:find("s") then answer.direction:SetSelectedItem(0)
                 elseif s:find("x") then answer.direction:SetSelectedItem(1)
-                elseif s:find("w") then flip_popup("direction")
+                elseif s:find("w") then flip_radio("direction")
+                elseif s:find("e") then show_info()
                 end
                 ctl:SetText(saved):SetKeyboardFocus()
             elseif s ~= "" then
@@ -86,18 +96,27 @@ local function user_chooses()
             end
         end
         --
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef():gsub("%.%.%.", ""))
     dialog:CreateStatic(0, y):SetText("Note Number:"):SetWidth(x)
     answer.number = dialog:CreateEdit(x, y - y_offset):SetInteger(config.number)
         :AddHandleCommand(function(self) key_check(self) end):SetWidth(25)
+    dialog:CreateButton(x + 105 - 20, 0):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() show_info() end)
     y = y + y_diff
-    answer.keep_delete = dialog:CreatePopup(0, y):SetWidth(x - 10)
-        :AddStrings("Keep (a)", "Delete (z)")  -- == 0 ... 1
-        :SetSelectedItem(config.keep_delete)
-    answer.direction = dialog:CreatePopup(x, y):SetWidth(110)
-        :AddStrings("From Top (s)", "From Bottom (x)")  -- == 0 ... 1
-        :SetSelectedItem(config.direction)
 
+    local titles = { {"Keep (a)", "Delete (z)"}, {"From Top (s)", "From Bottom (x)"}}
+    local labels = finale.FCStrings()
+    labels:CopyFromStringTable(titles[1])
+    answer.keep_delete = dialog:CreateRadioButtonGroup(0, y, 2)
+        :SetText(labels):SetWidth(x - 10)
+        :SetSelectedItem(config.keep_delete)
+    labels:CopyFromStringTable(titles[2])
+    answer.direction = dialog:CreateRadioButtonGroup(x, y, 2)
+        :SetText(labels):SetWidth(105)
+        :SetSelectedItem(config.direction)
+    y = y + 31
+    dialog:CreateStatic(0 + 14, y):SetText("Toggle (q)")
+    dialog:CreateStatic(x + 14, y):SetText("Toggle (w)")
+    -- wrap it up
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
@@ -113,22 +132,23 @@ end
 
 local function keep_delete()
     configuration.get_user_settings(script_name, config, true)
-    if not user_chooses() then return end -- user cancelled
-
-    for entry in eachentrysaved(finenv.Region()) do
-        if (entry.Count >= 2) then
-            local n = math.max(config.number, 1)
-            local target = (config.direction == 0) and (n - 1) or (entry.Count - n)
-            local i = 0
-            for note in eachbackwards(entry) do
-                if      (i == target and config.keep_delete == 1)
-                    or  (i ~= target and config.keep_delete == 0) then
-                    note_entry.delete_note(note)
+    if user_chooses() then
+        for entry in eachentrysaved(finenv.Region()) do
+            if (entry.Count >= 2) then
+                local n = config.number
+                local target = (config.direction == 0) and (n - 1) or (entry.Count - n)
+                local i = 0
+                for note in eachbackwards(entry) do -- scan pitches top to bottom
+                    if      (i == target and config.keep_delete == 1)
+                        or  (i ~= target and config.keep_delete == 0) then
+                        note_entry.delete_note(note)
+                    end
+                    i = i + 1
                 end
-                i = i + 1
             end
         end
     end
+    finenv.UI():ActivateDocumentWindow()
 end
 
 keep_delete()
