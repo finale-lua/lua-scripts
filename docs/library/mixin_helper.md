@@ -7,6 +7,8 @@ A library of helper functions to improve code reuse in mixins.
 - [is_instance_of(object)](#is_instance_of)
 - [assert_argument_type(argument_number, value)](#assert_argument_type)
 - [force_assert_argument_type(argument_number, value)](#force_assert_argument_type)
+- [assert_table_argument_type(argument_number, table_value)](#assert_table_argument_type)
+- [force_assert_table_argument_type(argument_number, table_value)](#force_assert_table_argument_type)
 - [assert(condition, message, level)](#assert)
 - [force_assert(condition, message, level)](#force_assert)
 - [create_standard_control_event(name)](#create_standard_control_event)
@@ -62,7 +64,7 @@ Summary:
 mixin_helper.assert_argument_type(argument_number, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L147)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L145)
 
 Asserts that an argument to a mixin method is the expected type(s). This should only be used within mixin methods as the function name will be inserted automatically.
 
@@ -91,7 +93,7 @@ start with a number that is the real argument number.
 mixin_helper.force_assert_argument_type(argument_number, value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L162)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L160)
 
 The same as `assert_argument_type` except this function always asserts, regardless of whether debug mode is enabled.
 
@@ -102,13 +104,52 @@ The same as `assert_argument_type` except this function always asserts, regardle
 | `argument_number` | `number` | The REAL argument number for the error message (self counts as argument #1). |
 | `value` | `any` | The value to test. |
 
+### assert_table_argument_type
+
+```lua
+mixin_helper.assert_table_argument_type(argument_number, table_value)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L198)
+
+For mixin methods that accept a table of values as an argument, this function will validate the types of the values within the table.
+It is assumed that the table itself has already been validated with `assert_argument_type`. If a table is not passed, an error will be thrown.
+
+As the key `n` has special meaning in Lua, if it is present and a `number`, it will be ignored.
+
+*NOTE: This function will only assert if in debug mode (ie `finenv.DebugEnabled == true`). If assertions are always required, use `force_assert_table_argument_type` instead.*
+
+@ ... (string) Valid types (as many as needed). Can be standard Lua types, Finale class names, or mixin class names.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `argument_number` | `number` | The REAL argument number for the error message (self counts as argument #1). |
+| `table_value` | `table` | A table of values to test. |
+
+### force_assert_table_argument_type
+
+```lua
+mixin_helper.force_assert_table_argument_type(argument_number, table_value)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L213)
+
+The same as `assert_table_argument_type` except this function always asserts, regardless of whether debug mode is enabled.
+
+@ ... (string) Valid types (as many as needed). Can be standard Lua types, Finale class names, or mixin class names.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `argument_number` | `number` | The REAL argument number for the error message (self counts as argument #1). |
+| `table_value` | `table` | A table of values to test. |
+
 ### assert
 
 ```lua
 mixin_helper.assert(condition, message, level)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L187)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L238)
 
 Asserts a condition in a mixin method. If the condition is false, an error is thrown one level above where this function is called.
 
@@ -126,7 +167,7 @@ Asserts a condition in a mixin method. If the condition is false, an error is th
 mixin_helper.force_assert(condition, message, level)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L202)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L253)
 
 The same as `assert` except this function always asserts, regardless of whether debug mode is enabled.
 
@@ -142,7 +183,7 @@ The same as `assert` except this function always asserts, regardless of whether 
 mixin_helper.create_standard_control_event(name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L215)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L266)
 
 A helper function for creating a standard control event. standard refers to the `Handle*` methods from `FCCustomLuaWindow` (not including `HandleControlEvent`).
 For example usage, refer to the source for the `FCMControl` mixin.
@@ -161,7 +202,7 @@ For example usage, refer to the source for the `FCMControl` mixin.
 mixin_helper.create_custom_control_change_event()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L406)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L457)
 
 Helper function for creating a custom event for a control.
 Custom events are bootstrapped to InitWindow and HandleCommand, in addition be being able to be triggered manually.
@@ -187,7 +228,7 @@ This function returns 4 values which are all functions:
 mixin_helper.create_custom_window_change_event()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L493)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L542)
 
 Creates a custom change event for a window class. For details, see the documentation for `create_custom_control_change_event`, which works in exactly the same way as this function except for controls.
 
@@ -199,7 +240,7 @@ Creates a custom change event for a window class. For details, see the documenta
 mixin_helper.to_fcstring(value, fcstr)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L556)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L604)
 
 Casts a value to an `FCString` object. If the value is already an `FCString`, it will be returned.
 
@@ -218,7 +259,7 @@ Casts a value to an `FCString` object. If the value is already an `FCString`, it
 mixin_helper.to_string(value)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L575)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L623)
 
 Casts a value to a Lua string. If the value is an `FCString`, it returns `LuaString`, otherwise it calls `tostring`.
 
@@ -236,7 +277,7 @@ Casts a value to a Lua string. If the value is an `FCString`, it returns `LuaStr
 mixin_helper.boolean_to_error(object, method)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L594)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L642)
 
 There are many PDK methods that return a boolean value to indicate success / failure instead of throwing an error.
 This function captures that result and throws an error in case of failure.
@@ -254,7 +295,7 @@ This function captures that result and throws an error in case of failure.
 mixin_helper.create_localized_proxy(method_name, class_name, only_localize_args)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L610)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L658)
 
 Creates a proxy method that takes localization keys instead of raw strings.
 
@@ -274,7 +315,7 @@ Creates a proxy method that takes localization keys instead of raw strings.
 mixin_helper.create_multi_string_proxy(method_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L641)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/mixin_helper.lua#L689)
 
 Creates a proxy method that takes multiple string arguments.
 

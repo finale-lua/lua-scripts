@@ -4214,9 +4214,7 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
         if library.is_finale_object(value) then
             secondary_type = value.MixinClass or value.ClassName
         end
-        error(
-            "bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) ..
-                ")", levels)
+        error("bad argument #" .. tostring(argument_number) .. " to 'tryfunczzz' (" .. table.concat(table.pack(...), " or ") .. " expected, got " .. (secondary_type or primary_type) .. ")", levels)
     end
 
     function mixin_helper.assert_argument_type(argument_number, value, ...)
@@ -4227,6 +4225,32 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
 
     function mixin_helper.force_assert_argument_type(argument_number, value, ...)
         assert_argument_type(4, argument_number, value, ...)
+    end
+    local function to_key_string(value)
+        if type(value) == "string" then
+            value = "\"" .. value .. "\""
+        end
+        return "[" .. tostring(value) .. "]"
+    end
+    local function assert_table_argument_type(argument_number, table_value, ...)
+        if type(table_value) ~= "table" then
+            error("bad argument #2 to 'assert_table_argument_type' (table expected, got " .. type(table_value) .. ")", 3)
+        end
+        for k, v in pairsbykeys(table_value) do
+            if k ~= "n" or type(k) ~= "number" then
+                assert_argument_type(5, tostring(argument_number) .. to_key_string(k), v, ...)
+            end
+        end
+    end
+
+    function mixin_helper.assert_table_argument_type(argument_number, value, ...)
+        if debug_enabled then
+            assert_table_argument_type(argument_number, value, ...)
+        end
+    end
+
+    function mixin_helper.force_assert_table_argument_type(argument_number, value, ...)
+        assert_table_argument_type(argument_number, value, ...)
     end
     local function assert_func(condition, message, level)
         if type(condition) == "function" then
@@ -4392,13 +4416,12 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             if windows[window] then
                 return
             end
-            window:AddInitWindow(
-                function()
+            window:AddInitWindow(function()
 
-                    for control in event.target_iterator() do
-                        event.dispatcher(control)
-                    end
-                end)
+                for control in event.target_iterator() do
+                    event.dispatcher(control)
+                end
+            end)
             window:AddHandleCommand(event.dispatcher)
         end
         local function add_func(self, callback)
@@ -4420,11 +4443,10 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             end
             local window = control:GetParent()
             if window:WindowExists__() then
-                window:QueueHandleCustom(
-                    function()
-                        queued[control] = nil
-                        event.dispatcher(control)
-                    end)
+                window:QueueHandleCustom(function()
+                    queued[control] = nil
+                    event.dispatcher(control)
+                end)
                 queued[control] = true
             end
         end
@@ -4468,11 +4490,10 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
             if not event.has_callbacks(window) or queued[window] or not window:WindowExists__() then
                 return
             end
-            window:QueueHandleCustom(
-                function()
-                    queued[window] = nil
-                    event.dispatcher(window)
-                end)
+            window:QueueHandleCustom(function()
+                queued[window] = nil
+                event.dispatcher(window)
+            end)
             queued[window] = true
         end
         local function trigger_func(window, immediate)
@@ -4538,12 +4559,6 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
     end
 
     function mixin_helper.create_multi_string_proxy(method_name)
-        local function to_key_string(value)
-            if type(value) == "string" then
-                value = "\"" .. value .. "\""
-            end
-            return "[" .. tostring(value) .. "]"
-        end
         return function(self, ...)
             mixin_helper.assert_argument_type(1, self, "userdata")
             for i = 1, select("#", ...) do
@@ -4554,8 +4569,8 @@ package.preload["library.mixin_helper"] = package.preload["library.mixin_helper"
                         self[method_name](self, str)
                     end
                 elseif type(v) == "table" then
-                    for k2, v2 in pairsbykeys(v) do
-                        mixin_helper.assert_argument_type(tostring(i + 1) .. to_key_string(k2), v2, "string", "number", "FCString")
+                    mixin_helper.assert_table_argument_type(i + 1, v, "string", "number", "FCString")
+                    for _, v2 in pairsbykeys(v) do
                         self[method_name](self, v2)
                     end
                 else
