@@ -3,82 +3,48 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.60.1"
+    finaleplugin.Version = "0.66"
     finaleplugin.LoadLuaOSUtils = true
-    finaleplugin.Date = "2024/01/15"
+    finaleplugin.Date = "2024/02/23"
     finaleplugin.CategoryTags = "Menu, Utilities"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[ 
-        This is designed to help navigate the many scripts crowding your RGP Lua menu. 
+        This is designed to help navigate the many scripts crowding your _RGP Lua_ menu. 
         It provides access to Lua scripts and Finale menu items through a set of 
         easily configurable palettes (dialog windows) organised by type of activity 
         and triggered by simple "hotkey" keystrokes.
 
-        The "Hotkey Palette" principle is demonstrated expertly by Nick Mazuk at 
-        [https://www.youtube.com/@nickmazuk]. 
-        Scripts are grouped into primary categories like "Intervals", "Layers", 
-        "Notes & Chords", "Measure Items" and so on as a set of palettes triggered by keystroke. 
-        Each primary palette calls up a second palette containg scripts in related areas, 
+        The _Hotkey Palette_ principle is demonstrated expertly by 
+        Nick Mazuk on YouTube 
+        ([www.youtube.com/@nickmazuk ](https://www.youtube.com/@nickmazuk)). 
+        Scripts are grouped into primary categories like _Intervals_, _Layers_, 
+        _Notes & Chords_, _Measure Items_ and so on as a set of palettes triggered by keystroke. 
+        Each primary palette calls up a second palette containing scripts in related areas, 
         also triggered by keystroke. Reach hundreds of scripts in your collection using 
         just two keystrokes with the actual hotkeys presented as a visual reminder. 
         Actions you repeat often will link to muscle memory and become easier to recall.
 
-        Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac for this, 
-        but the principle is available free (cross-platform) within Finale 
+        Nick uses Keyboard Maestro ([keyboardmaestro.com ](https://keyboardmaestro.com)) on Mac for this, 
+        but this script makes it free (cross-platform) within Finale 
         using RGP Lua without other software or configuration. 
         Scripts that use modifier keys (shift, alt/option etc) for "alternative" behaviours 
-        respond to those keys when called from these palettes.
+        respond to those keys when called from these palettes. 
 
         This script is loaded with a set of "demo" palettes containing many of the 
-        Lua scripts available at https://FinaleLua.com. 
+        Lua scripts available at [FinaleLua.com ](https://FinaleLua.com). 
         If a script isn't installed on your system you will get an "unidentified" warning 
         on execution. Delete those scripts and add new ones in their place. 
-        Reconfigure each of the "Main" palettes, change their name or hotkey, 
+        Reconfigure each of the _Main_ palettes, change their name or hotkey, 
         delete them or add new ones.
 
         You can also add Finale menus to your palettes. 
-        Not every menu item is available, including Plug-ins that are NOT added by "RGP Lua", 
-        and when using "Add Menu Item" you can try it out before saving it to a palette.
+        Not every menu item is available, including Plug-ins that are __not__ added by _RGP Lua_, 
+        so when using _Add Menu Item_ try it out before saving to a palette.
     ]]
     return "Hotkey Script Palettes...",
         "Hotkey Script Palettes",
         "Trigger RGP Lua scripts by keystroke through a configurable set of dialog windows"
 end
-
-local info_notes = [[
-This script is designed to help navigate the many items crowding your RGP Lua menu.
-It provides access to Lua scripts and Finale menu items through a set of
-easily configurable palettes (dialog windows) organised by type of activity
-and triggered by simple "hotkey" keystrokes.
-**
-The "Hotkey Palette" principle is demonstrated expertly by Nick Mazuk at
-[https://www.youtube.com/@nickmazuk].
-Scripts are grouped into primary categories like "Intervals", "Layers",
-"Notes & Chords", "Measure Items" and so on as a set of palettes triggered by keystroke.
-Each primary palette calls up a second palette containg scripts in related areas,
-also triggered by keystroke. Reach hundreds of scripts in your collection using
-just two keystrokes with the actual hotkeys presented as a visual reminder.
-Actions you repeat often will link to muscle memory and become easier to recall.
-**
-Nick uses Keyboard Maestro [keyboardmaestro.com] on Mac for this,
-but the principle is available free (cross-platform) within Finale
-using RGP Lua without other software or configuration.
-Scripts that use modifier keys (shift, alt/option etc) for "alternative" behaviours
-respond to those keys when called from these palettes.
-**
-This script is loaded with a set of "demo" palettes containing many of the
-Lua scripts available at https://FinaleLua.com.
-If a script isn't installed on your system you will get an "unidentified" warning
-on execution. Delete those scripts and add new ones in their place.
-Reconfigure each of the "Main" palettes, change their name or hotkey,
-delete them or add new ones.
-**
-You can also add Finale menus to your palettes.
-Not every menu item is available, including Plug-ins that are NOT added by "RGP Lua",
-and when using "Add Menu Item" you can try it out before saving it to a palette.
-]]
-info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n")
-    .. "\n(" .. finaleplugin.Version .. ")"
 
 local config = { -- this is a DEMO fully-equipped data set. Some of these scripts won't be present on the user's system.
     palettes = [[ [{"key":"A","last":1,"sub":[{"key":"Z","script":"Hairpin Create Crescendo","name":"Hairpin Crescendo"},{"key":"X","script":"Hairpin Create Diminuendo","name":"Hairpin Diminuendo"},{"key":"C","script":"Hairpin Create Swell","name":"Hairpin Swell"},{"key":"V","script":"Hairpin Create Unswell","name":"Hairpin Unswell"},{"key":"H","script":"Harp gliss","name":"Harp gliss"},{"key":"S","script":"Slur Selection","name":"Slur Selection"},{"key":"P","script":"Swap Staves","name":"Swap Staves"}],"name":"Automations"},{"key":"C","last":"1","sub":[{"key":"E","script":"Note Ends Eighths","name":"Note Ends Eighths"},{"key":"Q","script":"Note Ends Quarters","name":"Note Ends Quarters"},{"key":"A","script":"Noteheads Change by Layer...","name":"Noteheads Change"},{"key":"B","script":"Break Secondary Beams","name":"Secondary Beams Break"},{"key":"J","script":"Clear Secondary Beam Breaks","name":"Secondary Beams Clear"},{"key":"T","script":"Tie Notes","name":"Tie Notes"},{"key":"G","script":"Untie Notes","name":"Ties Remove"}],"name":"Chords & Notes"},{"key":"E","last":1,"sub":[{"key":"X","script":"Deletion Chooser...","name":"Deletion Chooser..."},{"key":"P","script":"Expression Set To Parts Only","name":"Expression Set To Parts Only"},{"key":"B","script":"Expression Set To Score and Parts","name":"Expression Set To Score and Parts"},{"key":"S","script":"Swap Staves","name":"Swap Staves"},{"key":"T","script":"Tuplet State Chooser...","name":"Tuplet State Chooser..."}],"name":"Expressions & misc."},{"key":"W","last":"1","sub":[{"key":"5","script":"Enharmonic Transpose Down","name":"Enharmonic Transpose Down"},{"key":"6","script":"Enharmonic Transpose Up","name":"Enharmonic Transpose Up"},{"key":"S","script":"Staff Explode Layers","name":"Explode Layers"},{"key":"W","script":"Staff Explode Pairs","name":"Explode Pairs"},{"key":"Q","script":"Staff Explode Singles","name":"Explode Singles"},{"key":"E","script":"Staff Explode Split Pairs","name":"Explode Split Pairs"},{"key":"C","script":"Transpose Chromatic...","name":"Transpose Chromatic..."}],"name":"Intervals"},{"key":"Q","last":"1","sub":[{"key":"3","script":"Clear Layer Selective","name":"Clear Layer Selective"},{"key":"8","script":"Layer Hide","name":"Layer Hide"},{"key":"5","script":"Layer Mute","name":"Layer Mute"},{"key":"9","script":"Layer Unhide","name":"Layer Unhide"},{"key":"6","script":"Layer Unmute","name":"Layer Unmute"},{"key":"2","script":"Swap Layers Selective","name":"Swap Layers Selective"}],"name":"Layers etc."},{"key":"B","last":1,"sub":[{"key":"D","script":"Barline Set Double","name":"Barline Double"},{"key":"E","script":"Barline Set Final","name":"Barline Final"},{"key":"0","script":"Barline Set None","name":"Barline None"},{"key":"N","script":"Barline Set Normal","name":"Barline Normal"},{"key":"Q","script":"Cue Notes Create...","name":"Cue Notes Create..."},{"key":"H","script":"Measure Span Divide","name":"Measure Span Divide"},{"key":"J","script":"Measure Span Join","name":"Measure Span Join"},{"key":"B","script":"Measure Span Options...","name":"Measure Span Options..."},{"key":"9","script":"Meter Set Numeric","name":"Meter Set Numeric"}],"name":"Measure Items"}] ]],
@@ -92,13 +58,15 @@ local config = { -- this is a DEMO fully-equipped data set. Some of these script
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
+local utils = require("library.utils")
 local osutils = require("luaosutils")
 local menu = osutils.menu
 local cjson = require("cjson")
+local library = require("library.general_library")
+local script_name = library.calc_script_name()
+local refocus_document = false
 
 local script_array = {} -- assemble all script items from the RGPLua menu
-local script_name = "hotkey_script_palettes"
-
 local palettes = {}
 --[[ ordered set of "main" palettes encapsulating sub-palettes
 -- these are cjson decoded from config.palettes in the main() routine at the bottom
@@ -122,13 +90,23 @@ local palettes = {}
     }, etc etc...
 } -- ]]
 
-function clean_key(input) -- return one clean uppercase character
+local function show_info(parent)
+    utils.show_notes_dialog(parent, "About " .. plugindef():gsub("%.%.%.", ""), 500, 365)
+    refocus_document = true
+end
+
+local function make_info_button(dialog, x, y)
+    dialog:CreateButton(x, y, "q"):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() show_info(dialog) end)
+end
+
+local function clean_key(input) -- return one clean uppercase character
     local key = string.upper(string.sub(input, 1, 1))
     if key == "" then key = "?" end -- non-NULL hotkey
     return key
 end
 
-function sort_table(array, match_text, match_type)
+local function sort_table(array, match_text, match_type)
     table.sort(array, function(a, b) return string.lower(a.name) < string.lower(b.name) end)
     local index = 1
     for i, v in ipairs(array) do
@@ -140,7 +118,7 @@ function sort_table(array, match_text, match_type)
     return index
 end
 
-function dialog_set_position(dialog)
+local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
@@ -148,14 +126,14 @@ function dialog_set_position(dialog)
     end
 end
 
-function dialog_save_position(dialog)
+local function dialog_save_position(dialog)
     dialog:StorePosition()
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
 end
 
-function reassign_all_keys(palette_number, index)
+local function reassign_all_keys(palette_number, index, parent_window)
     local is_macro = (palette_number == 0)
     local y, y_step, x_wide =  0, 17, 220
     local offset = finenv.UI():IsOnMac() and 3 or 0
@@ -216,14 +194,14 @@ function reassign_all_keys(palette_number, index)
                 end
                 msg = msg .. "\n\n"
             end
-            finenv.UI():AlertError(msg, "Duplicate Key Assignment")
+            dialog:CreateChildUI():AlertError(msg, "Duplicate Key Assignment")
         end
     end)
-    local ok = (dialog:ExecuteModal() == finale.EXECMODAL_OK)
+    local ok = (dialog:ExecuteModal(parent_window) == finale.EXECMODAL_OK)
     return ok, is_duplicate
 end
 
-function user_enters_text(array, title)
+local function user_enters_text(array, title, parent_window)
     local x_wide = 220
     local offset = finenv.UI():IsOnMac() and 3 or 0
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(title)
@@ -236,11 +214,11 @@ function user_enters_text(array, title)
     dialog:CreateCancelButton()
     dialog:RegisterInitWindow(function() answer:SetKeyboardFocus() end)
     dialog_set_position(dialog)
-    local ok = (dialog:ExecuteModal() == finale.EXECMODAL_OK)
+    local ok = (dialog:ExecuteModal(parent_window) == finale.EXECMODAL_OK)
     return ok, answer:GetText(), clean_key(key_edit:GetText())
 end
 
-function user_chooses_script(index, palette_number, instruction)
+local function user_chooses_script(index, palette_number, instruction, parent_window)
     local x_wide = 220
     local offset = finenv.UI():IsOnMac() and 3 or 0
     local sub = palettes[palette_number].sub
@@ -257,22 +235,23 @@ function user_chooses_script(index, palette_number, instruction)
     table.sort(script_names)
     --
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Choose Script Item")
-    dialog:CreateStatic(0, 0):SetText(instruction):SetWidth(x_wide)
-    local scripts = dialog:CreatePopup(0, 20):SetWidth(x_wide)
+    dialog:CreateStatic(0, 0):SetText(instruction):SetWidth(x_wide - 22)
+    make_info_button(dialog, x_wide - 20, 0)
+    local script_list = dialog:CreatePopup(0, 23):SetWidth(x_wide)
     local selected = 1
     for i, v in ipairs(script_names) do
-        scripts:AddString(v)
+        script_list:AddString(v)
         if v == old_menu.script then
-            scripts:SetSelectedItem(i - 1)
+            script_list:SetSelectedItem(i - 1)
             selected = i
         end
     end
-    dialog:CreateStatic(0, 44):SetText("Name for Listing:"):SetWidth(x_wide)
-    local list_name = dialog:CreateEdit(0, 66 - offset):SetText(old_menu.name):SetWidth(x_wide)
-    dialog:CreateStatic(0, 90):SetText("Hotkey:"):SetWidth(x_wide)
-    local key_edit = dialog:CreateEdit(45, 90 - offset):SetText(old_menu.key):SetWidth(25)
-    scripts:AddHandleCommand(function()
-        local new = scripts:GetSelectedItem() + 1
+    dialog:CreateStatic(0, 47):SetText("Name for Listing:"):SetWidth(x_wide)
+    local list_name = dialog:CreateEdit(0, 69 - offset):SetText(old_menu.name):SetWidth(x_wide)
+    dialog:CreateStatic(0, 93):SetText("Hotkey:"):SetWidth(x_wide)
+    local key_edit = dialog:CreateEdit(45, 93 - offset):SetText(old_menu.key):SetWidth(25)
+    script_list:AddHandleCommand(function()
+        local new = script_list:GetSelectedItem() + 1
         if new ~= selected then
             list_name:SetText(script_names[new])
             selected = new
@@ -280,25 +259,30 @@ function user_chooses_script(index, palette_number, instruction)
     end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
-    dialog:RegisterInitWindow(function() scripts:SetKeyboardFocus() end)
+    dialog:RegisterInitWindow(function(self)
+        self:GetControl("q"):SetFont(self:GetControl("q"):CreateFontInfo():SetBold(true))
+        list_name:SetText(script_names[selected])
+        script_list:SetKeyboardFocus()
+    end)
     dialog_set_position(dialog)
-    local ok = (dialog:ExecuteModal() == finale.EXECMODAL_OK)
-    local menu_name = script_names[scripts:GetSelectedItem() + 1]
+    local ok = (dialog:ExecuteModal(parent_window) == finale.EXECMODAL_OK)
+    local menu_name = script_names[script_list:GetSelectedItem() + 1]
     return ok, list_name:GetText(), menu_name, clean_key(key_edit:GetText())
 end
 
-function fill_list_box(list_box, array, selected)
+local function fill_list_box(list_box, array, selected)
     list_box:Clear()
     local join = finenv.UI():IsOnMac() and "\t" or ": "
     for _, v in ipairs(array) do
         list_box:AddString(v.key .. join .. v.name)
     end
-    if selected and tonumber(selected) > 1 then
-        list_box:SetSelectedItem(tonumber(selected) - 1)
+    local n = tonumber(selected) or 0
+    if n > 1 and n <= #array then
+        list_box:SetSelectedItem(n - 1)
     end
 end
 
-function load_menu_level(top_menu, old_name, level, match_title)
+local function load_menu_level(top_menu, old_name, level, match_title)
     local menu_level = { parent = top_menu, members = {} }
     local index, match_index = 1, 1
     menu_level.pos = (level == 1) and "Menu Bar" or
@@ -321,7 +305,7 @@ function load_menu_level(top_menu, old_name, level, match_title)
     return menu_level, match_index
 end
 
-function user_chooses_menu_item()
+local function user_chooses_menu_item(parent_window)
     local menu_bar = menu.get_top_level_menu(finenv.GetFinaleMainWindow())
     local y, y_step, list_wide, x_wide, x2_wide =  0, 17, 160, 230, 160
     local mid_x = list_wide + 10
@@ -344,9 +328,11 @@ After you've highlighted an active menu item from the list a "Test Menu Item" bu
 will appear to make sure it works before you add it to the current palette.
 Note that many Finale menus do nothing unless part of the score is already selected.
 ]]
-    dialog:CreateButton(mid_x + x2_wide - 20, y):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() finenv.UI()
-        :AlertInfo(menu_about:gsub("\n%s*", " "):gsub("*", "\n"), "Adding Menu Items") end)
+    dialog:CreateButton(mid_x + x2_wide - 20, y, "q"):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function()
+            dialog:CreateChildUI()
+            :AlertInfo(menu_about:gsub("%s*\n%s*", " "):gsub("*", "\n"), "Adding Menu Items")
+        end)
     y = y + y_step
     dialog:CreateStatic(0, y):SetText("Choose Menu Item:"):SetWidth(x_wide)
     y = y + y_step + 5
@@ -426,7 +412,8 @@ Note that many Finale menus do nothing unless part of the score is already selec
         end
     end)
     dialog:RegisterHandleListDoubleClick(function() one_level_down() end)
-    dialog:RegisterInitWindow(function()
+    dialog:RegisterInitWindow(function(self)
+        self:GetControl("q"):SetFont(self:GetControl("q"):CreateFontInfo():SetBold(true))
         menu_tree = cjson.decode(config.menu_tree)
         selected = 1
         local top_menu = menu_bar
@@ -449,26 +436,27 @@ Note that many Finale menus do nothing unless part of the score is already selec
     dialog:RegisterHandleOkButtonPressed(function() menu_tree[level] = chosen_now.text end)
     dialog:RegisterCloseWindow(function() config.menu_tree = cjson.encode(menu_tree) end)
     dialog_set_position(dialog)
-    local ok = (dialog:ExecuteModal() == finale.EXECMODAL_OK)
+    local ok = (dialog:ExecuteModal(parent_window) == finale.EXECMODAL_OK)
     local menu_id = chosen_now.id
     return ok, inputs[2]:GetText(), menu_id, clean_key(inputs[4]:GetText())
 end
 
-function configure_palette(palette_number, index_num)
+local function configure_palette(palette_number, index_num, parent_window)
     local y, y_step, x_wide =  0, 17, 228
     local is_macro = (palette_number == 0)
 
     local array = is_macro and palettes or palettes[palette_number].sub
     local box_high = (#array > 3) and (#array * y_step + 5) or (4 * y_step)
-    local text = is_macro and "Configure Palettes" or "Configure Scripts"
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(text)
+    local dialog = mixin.FCXCustomLuaWindow()
+        :SetTitle(is_macro and "Configure Palettes" or "Configure Scripts")
+    make_info_button(dialog, x_wide - 20, y)
     if not is_macro then
-        dialog:CreateStatic(0, y):SetWidth(x_wide)
+        dialog:CreateStatic(0, y):SetWidth(x_wide - 25)
             :SetText("Palette Name: " .. palettes[palette_number].name)
         y = y + y_step
     end
-    text = is_macro and "Choose Palette:" or "Choose Script Item:"
-    dialog:CreateStatic(0, y):SetText(text):SetWidth(x_wide)
+    dialog:CreateStatic(0, y):SetWidth(x_wide - 25)
+        :SetText(is_macro and "Choose Palette:" or "Choose Script Item:")
     y = y + y_step + 5
     local list_box = dialog:CreateListBox(0, y):SetWidth(x_wide):SetHeight(box_high)
     fill_list_box(list_box, array, index_num)
@@ -478,8 +466,8 @@ function configure_palette(palette_number, index_num)
     local remove_item = dialog:CreateButton(0, y):SetText("Remove"):SetWidth(x_off * 9)
     local rename_item = dialog:CreateButton(x_off * 11, y):SetWidth(x_off * 9):SetText("Change Name")
     y = y + y_step + 5
-    text = is_macro and "New Palette" or "Add Script"
-    local add_item = dialog:CreateButton(0, y):SetText(text):SetWidth(x_off * 9)
+    local add_item = dialog:CreateButton(0, y):SetWidth(x_off * 9)
+        :SetText(is_macro and "New Palette" or "Add Script")
     local reassign_keys, add_menu
     if is_macro then
         reassign_keys = dialog:CreateButton(x_off * 11, y):SetText("Reassign Keys"):SetWidth(x_off * 9)
@@ -497,7 +485,7 @@ function configure_palette(palette_number, index_num)
     rename_item:AddHandleCommand(function() -- RENAME PALETTE / SCRIPT / MENU
         local index = list_box:GetSelectedItem() + 1
         local title = is_macro and "Rename Palette" or "Rename Script/Menu"
-        local ok, new_name, hotkey = user_enters_text(array[index], title)
+        local ok, new_name, hotkey = user_enters_text(array[index], title, dialog)
         if ok then
             array[index].name = new_name
             array[index].key  = hotkey
@@ -509,7 +497,7 @@ function configure_palette(palette_number, index_num)
         local ok, is_duplicate = true, true
         local idx = list_box:GetSelectedItem() + 1
         while ok and is_duplicate do -- wait for valid choices in reassign_all_keys()
-            ok, is_duplicate = reassign_all_keys(palette_number, idx)
+            ok, is_duplicate = reassign_all_keys(palette_number, idx, dialog)
         end
         if ok then
             fill_list_box(list_box, array, 1)
@@ -518,18 +506,21 @@ function configure_palette(palette_number, index_num)
         end
     end)
     add_item:AddHandleCommand(function() -- ADD PALETTE or SCRIPT
-        local new_name, new_script, hotkey, ok
+        local ok, new_name, hotkey
         local new_element = {}
         if is_macro then
             new_element = { name = "", key = "?" }
-            ok, new_name, hotkey = user_enters_text(new_element, "Create New Palette")
+            ok, new_name, hotkey = user_enters_text(new_element, "Create New Palette", dialog)
             if ok then
                 new_element = {
                     name = new_name, key = hotkey, last = 1,
                     sub = { { name = "(script unassigned)", key = "?", script = "unassigned" } } }
             end
         else -- SCRIPT palette
-            ok, new_name, new_script, hotkey = user_chooses_script(0, palette_number, "Add New RGP Lua Script:")
+            local new_script
+            ok, new_name, new_script, hotkey = user_chooses_script(
+                0, palette_number, "Add New RGP Lua Script:", dialog
+            )
             if ok then
                 new_element = { name = new_name, key = hotkey, script = new_script }
             end
@@ -542,7 +533,7 @@ function configure_palette(palette_number, index_num)
     end)
     if not is_macro then
         add_menu:AddHandleCommand(function() -- ADD NEW MENU ITEM
-            local ok, new_name, menu_id, trigger = user_chooses_menu_item()
+            local ok, new_name, menu_id, trigger = user_chooses_menu_item(dialog)
             if ok then
                 local new_element = { name = new_name, key = trigger, menu = menu_id }
                 table.insert(array, new_element)
@@ -554,17 +545,20 @@ function configure_palette(palette_number, index_num)
     dialog:CreateOkButton():SetText("Save")
     dialog:CreateCancelButton():SetText("Discard")
     dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function() list_box:SetKeyboardFocus() end)
+    dialog:RegisterInitWindow(function(self)
+        self:GetControl("q"):SetFont(self:GetControl("q"):CreateFontInfo():SetBold(true))
+        list_box:SetKeyboardFocus()
+    end)
     dialog:RegisterHandleCancelButtonPressed(function()
         configuration.get_user_settings(script_name, config) -- restore original user values
         palettes = cjson.decode(config.palettes)
     end)
     dialog:RegisterHandleOkButtonPressed(function() config.palettes = cjson.encode(palettes) end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
+    return (dialog:ExecuteModal(parent_window) == finale.EXECMODAL_OK)
 end
 
-function choose_palette(palette_number)
+local function choose_palette(palette_number)
     local y, y_step = 0, 17
     local is_macro = (palette_number == 0)
     local array = is_macro and palettes or palettes[palette_number].sub
@@ -572,35 +566,30 @@ function choose_palette(palette_number)
     local box_high = (#array > 3) and (#array * y_step + 5) or (4 * y_step)
     local selected = is_macro and config.last_palette or palettes[palette_number].last
 
-    local text = "Hotkey Script Palettes"
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(text)
-    dialog:CreateButton(box_wide - 20, 0):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function()
-            finenv.UI():AlertInfo(info_notes, "About " .. plugindef())
-        end)
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef():gsub("%.%.%.", ""))
+    make_info_button(dialog, box_wide - 20, 0)
     if not is_macro then
         dialog:CreateStatic(0, y):SetText("Palette: " .. palettes[palette_number].name)
             :SetWidth(box_wide * .9)
         y = y + y_step
     end
-    text = is_macro and "Choose Palette:" or "Activate Script:"
-    dialog:CreateStatic(0, y):SetText(text):SetWidth(box_wide * .9)
+    dialog:CreateStatic(0, y):SetWidth(box_wide * .9)
+        :SetText(is_macro and "Choose Palette:" or "Activate Script:")
     y = y + y_step + 5
     local item_list = dialog:CreateListBox(0, y):SetWidth(box_wide):SetHeight(box_high)
     fill_list_box(item_list, array, selected)
 
     local x_off = box_wide / 4
     y = y + box_high + 8
-    text = is_macro and "Configure Palettes" or "Configure Scripts"
-    local reconfigure = dialog:CreateButton(x_off, y):SetText(text):SetWidth(x_off * 2)
-    reconfigure:AddHandleCommand(function()
-        local index_num = item_list:GetSelectedItem() + 1
-        if configure_palette(palette_number, index_num) then
-            fill_list_box(item_list, array, index_num)
-        end
-    end)
-    text = is_macro and "Choose" or "Activate"
-    dialog:CreateOkButton():SetText(text)
+    dialog:CreateButton(x_off, y):SetWidth(x_off * 2)
+        :SetText(is_macro and "Configure Palettes" or "Configure Scripts")
+        :AddHandleCommand(function()
+            local index_num = item_list:GetSelectedItem() + 1
+            if configure_palette(palette_number, index_num, dialog) then
+                fill_list_box(item_list, array, index_num)
+            end
+        end)
+    dialog:CreateOkButton():SetText(is_macro and "Choose" or "Activate")
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function()
@@ -614,12 +603,15 @@ function choose_palette(palette_number)
         configuration.save_user_settings(script_name, config) -- save new settings
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    dialog:RegisterInitWindow(function() item_list:SetKeyboardFocus() end)
+    dialog:RegisterInitWindow(function(self)
+        item_list:SetKeyboardFocus()
+        self:GetControl("q"):SetFont(self:GetControl("q"):CreateFontInfo():SetBold(true))
+    end)
     local ok = (dialog:ExecuteModal() == finale.EXECMODAL_OK)
     return ok, (item_list:GetSelectedItem() + 1)
 end
 
-function main()
+local function main()
     local scripts = finenv.CreateLuaScriptItems()
     for i = 1, scripts.Count do
         local script = scripts:GetItemAt(i - 1)
@@ -650,8 +642,8 @@ function main()
         else
             finished = true -- user cancelled and wants to exit
         end
-        finenv.UI():ActivateDocumentWindow()
     end
+    if refocus_document then finenv.UI():ActivateDocumentWindow() end
 end
 
 main()
