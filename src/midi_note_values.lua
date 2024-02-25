@@ -3,10 +3,10 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.13"
-    finaleplugin.Date = "2023/04/07"
+    finaleplugin.Version = "0.22"
+    finaleplugin.Date = "2024/02/03"
     finaleplugin.CategoryTags = "MIDI"
-    finaleplugin.MinJWLuaVersion = 0.63
+    finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.AdditionalMenuOptions = [[
         MIDI Note Duration...
         MIDI Note Velocity...
@@ -16,35 +16,48 @@ function plugindef()
         MIDI Note Velocity
     ]]
     finaleplugin.AdditionalDescriptions = [[
-        Change the MIDI duration of notes by layer
-        Change the MIDI velocity of notes by layer
+        Change the MIDI duration of notes on a chosen layer
+        Change the MIDI velocity of notes on a chosen layer
     ]]
     finaleplugin.AdditionalPrefixes = [[
         action = 0
         action = 2
     ]]
     finaleplugin.ScriptGroupName = "MIDI Note Values"
-    finaleplugin.ScriptGroupDescription = "Change the MIDI velocity and duration values of notes by layer"
+    finaleplugin.ScriptGroupDescription = "Change the MIDI velocity and duration of notes on a chosen layer"
     finaleplugin.Notes = [[
-        Change the playback MIDI Velocity and Duration (Start/Stop times) 
+        Change the playback __MIDI Velocity__ and __Duration__ (Start/Stop times) 
         of every note in the currently selected music on one or all layers. 
-        Choose the "MIDI Note Values" menu item to change both at once or set them independently with the  
-        "MIDI Note Duration" and "MIDI Note Velocity" menu items.
+        Choose the _MIDI Note Values_ menu item to change both at once or set them 
+        independently with _MIDI Note Duration_ and _MIDI Note Velocity_.  
 
-        If Human Playback is active, "Velocity" and "Start/Stop Time" must be set to "HP Incorporate Data" at 
-        [Finale -> Settings -> Human Playback -> MIDI Data] to affect playback. 
-        Otherwise set "Key Velocities" and "Note Durations" to "Play Recorded" 
-        under "Playback/Record Options" in the "Playback Controls" window. 
+        To affect playback when _Human Playback_ is active you must set 
+        _Velocity_ and _Start/Stop Time_ to __HP Incorporate Data__ at 
+        _Settings_ → _Human Playback_ → _MIDI Data_. 
+        Otherwise set _Key Velocities_ and _Note Durations_ to __Play Recorded__ 
+        under _Playback/Record Options_ in the _Playback Controls_ window. 
         Note that some playback samples don't respond to velocity settings. 
 
-        Holding down the SHIFT or ALT (option) keys when invoking a menu item 
-        will make the changes using your most recent values without showing any 
-        confirmation dialog window (or any other visual confirmation!)
+        Hold down [Shift] when opening the script to 
+        repeat your last choices without a confirmation dialog. 
+        Layer number is "clamped" to a single character so to change 
+        layer just type a new number - delete key not needed.  
     ]]
-    return "MIDI Note Values...", "MIDI Note Values", "Change the MIDI velocity and duration values of notes by layer"
+    return "MIDI Note Values...",
+        "MIDI Note Values",
+        "Change the MIDI velocity and duration of notes on a chosen layer"
 end
 
 action = action or 1 -- 0 = Duration only / 1 = Both / 2 = Velocity only
+
+local configuration = require("library.configuration")
+local mixin = require("library.mixin")
+local layer = require("library.layer")
+local utils = require("library.utils")
+local library = require("library.general_library")
+local script_name = library.calc_script_name()
+local focus_document = false -- set to true if utils.show_notes_dialog is used
+
 local config = {
     layer = 0,
     start_offset = 0,
@@ -53,35 +66,14 @@ local config = {
     window_pos_x = false, -- saved dialog window position
     window_pos_y = false,
 }
+local options = { -- key; text description
+    start_offset = "Start time (EDU):",
+    stop_offset  = "Stop time (EDU):",
+    velocity     = "Key Velocity (0-127):",
+    layer        = "Layer 1-" .. layer.max_layers() .. " (0 = all):"
+}
 
-local configuration = require("library.configuration")
-local mixin = require("library.mixin")
-local layer = require("library.layer")
-local script_name = "midi_note_values"
-
-function user_error()
-    local max = layer.max_layers()
-    local msg = ""
-    if config.layer < 0 or config.layer > max then
-        msg = "Layer number must be an integer between zero and " .. max .. " (not " .. config.layer .. ").\n\n"
-    end
-    if (action <= 1) -- duration" or both
-        and (math.abs(config.start_offset) > 9999 or math.abs(config.stop_offset) > 9999) then
-        msg = msg .. "Offset levels must be reasonable, say -9999 to 9999 (not " ..
-            config.start_offset .. " to " .. config.stop_offset .. "). \n\n"
-    end
-    if (action >= 1) -- "velocity" or both
-        and (config.velocity < 0 or config.velocity > 127) then
-        msg = msg .. "Velocity must be an integer between 0 and 127 (not " .. config.velocity .. "). "
-    end
-    if msg ~= "" then
-        finenv.UI():AlertInfo(msg, "User Error")
-        return true
-    end
-    return false
-end
-
-function dialog_set_position(dialog)
+local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
@@ -89,52 +81,82 @@ function dialog_set_position(dialog)
     end
 end
 
-function dialog_save_position(dialog)
+local function dialog_save_position(dialog)
     dialog:StorePosition()
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
+    configuration.save_user_settings(script_name, config)
 end
 
-function user_choices(basekey)
+local function user_choices()
     local offset = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac EDIT box
     local y, y_step = offset, 25
     local edit_x, e_wide = 120, 45
+    local saved = {}
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(finaleplugin.ScriptGroupName)
+        -- local functions
+        local function show_info()
+            utils.show_notes_dialog(dialog, "About " .. finaleplugin.ScriptGroupName, 400, 247)
+            focus_document = true -- return focus to document
+        end
+        local function key_check(ctl, name) -- inhibit alphabetic keys and some negation
+            local val = ctl:GetText()
+            if      val:find("[^-0-9]")
+                    or (name == "layer" and val:find("[^0-" .. layer.max_layers() .. "]"))
+                    or (name == "velocity" and val:find("-"))
+                    then
+                if val:find("[?q]") then show_info() end
+                ctl:SetText(saved[name]):SetKeyboardFocus()
+            elseif val ~= "" then
+                if name == "layer" then
+                    val = val:sub(-1) -- one character only
+                elseif name == "velocity" then
+                    if tonumber(val) > 127 then val = "127" end
+                else -- EDU offsets
+                    local num_chars = (val:sub(1,1) == "-") and 5 or 4
+                    val = val:sub(1, num_chars) -- 4/5 characters max
+                end
+                ctl:SetText(val)
+                saved[name] = val
+            end
+        end
+        local function create_value(name)
+            saved[name] = config[name] -- restore config values
+            dialog:CreateStatic(0, y):SetText(options[name]):SetWidth(edit_x)
+            dialog:CreateEdit(edit_x, y - offset, name):SetText(saved[name])
+                :SetWidth((name == "layer") and 20 or e_wide)
+                :AddHandleCommand(function(self) key_check(self, name) end)
+            y = y + y_step
+        end
 
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     if (action <= 1) then -- "duration" or both
-        dialog:CreateStatic(0, y):SetText("Start time (EDU):"):SetWidth(edit_x)
-        dialog:CreateEdit(edit_x, y - offset, "start"):SetInteger(config.start_offset or 0):SetWidth(e_wide)
-        y = y + y_step
-        dialog:CreateStatic(0, y):SetText("Stop time (EDU):"):SetWidth(edit_x)
-        dialog:CreateEdit(edit_x, y - offset, "stop"):SetInteger(config.stop_offset or 0):SetWidth(e_wide)
-        y = y + y_step
+        create_value("start_offset")
+        create_value("stop_offset")
     end
     if (action >= 1) then -- "velocity" or both
-        dialog:CreateStatic(0, y):SetText("Key Velocity (0-127):"):SetWidth(edit_x)
-        dialog:CreateEdit(edit_x, y - offset, "velocity"):SetInteger(config.velocity or basekey):SetWidth(e_wide)
-        y = y + y_step
+        create_value("velocity")
     end
-    dialog:CreateStatic(0, y):SetText("Layer 1-4 (0 = all):"):SetWidth(edit_x)
-    dialog:CreateEdit(edit_x, y - offset, "layer"):SetInteger(config.layer or 0):SetWidth(e_wide)
-
+    create_value("layer") -- always
+    dialog:CreateButton(edit_x + 26, y - y_step):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() show_info() end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterHandleOkButtonPressed(function(self)
-        config.layer = self:GetControl("layer"):GetInteger()
-        if (action <= 1) then
-            config.start_offset = self:GetControl("start"):GetInteger()
-            config.stop_offset = self:GetControl("stop"):GetInteger()
+        for k, _ in pairs(options) do
+            local ctl = self:GetControl(k)
+            if ctl then config[k] = ctl:GetInteger() end
         end
-        if (action >= 1) then
-            config.velocity = self:GetControl("velocity"):GetInteger()
-        end
-        dialog_save_position(self)
     end)
     dialog_set_position(dialog)
-    return dialog
+    dialog:RegisterCloseWindow(function() dialog_save_position(dialog) end)
+    return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
 end
 
-function change_values(basekey)
+function change_values()
+    local prefs = finale.FCPlaybackPrefs()
+    prefs:Load(1)
+    local basekey = prefs:GetBaseKeyVelocity()
+
     for entry in eachentrysaved(finenv.Region(), config.layer) do
 		if entry:IsNote() then
             local perf_mod = finale.FCPerformanceMod()
@@ -160,25 +182,13 @@ end
 
 function midi_note_values()
     configuration.get_user_settings(script_name, config, true)
-    local basekey = 64
-    if action >= 1 then -- velocity
-        local prefs = finale.FCPlaybackPrefs()
-        prefs:Load(1)
-        basekey = prefs:GetBaseKeyVelocity()
-    end
+    local qim = finenv.QueryInvokedModifierKeys
+    local mod_down = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
 
-    local mod_down = finenv.QueryInvokedModifierKeys and
-        (finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_ALT)
-         or finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
-        )
-    if not mod_down then -- modifiers inhibit confirmation dialog
-        local dialog = user_choices()
-        if (dialog:ExecuteModal(nil) ~= finale.EXECMODAL_OK) or user_error() then
-            return -- user cancelled or made a mistake
-        end
-        configuration.save_user_settings(script_name, config)
+    if mod_down or user_choices() then
+        change_values()
     end
-    change_values(basekey)
+    if focus_document then finenv.UI():ActivateDocumentWindow() end
 end
 
 midi_note_values()
