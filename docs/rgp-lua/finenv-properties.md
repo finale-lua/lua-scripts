@@ -168,6 +168,12 @@ local parsed_plugindef = finenv.GetPluginDefFunction()
 
 ---
 
+#### IsActive\* (function)
+
+Boolean function that should always return `true`. This value is primarily useful as a diagnostic tool for testing _RGP Lua_. It proves that the plugin can find a running script from its Lua state, even if that Lua state is a coroutine state. Normal scripts probably never need to access this function.
+
+---
+
 #### IsFinaleDemo\* (read-only property)
 
 Returns `true` if the version of Finale that is currently running is the demo version that cannot save or print. (Available starting in version 0.67 of _RGP Lua_.)
