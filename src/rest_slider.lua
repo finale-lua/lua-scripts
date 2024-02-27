@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.27"
-    finaleplugin.Date = "2024/02/15"
+    finaleplugin.Version = "0.29"
+    finaleplugin.Date = "2024/02/28"
     finaleplugin.CategoryTags = "Rests, Selection"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
@@ -16,7 +16,7 @@ function plugindef()
         Cancel the script to leave rests unchanged. 
 
         _Reset Zero_ sets nil offset. 
-        Note that on transposing instruments this is NOT the middle 
+        Note that on transposing instruments this is __not__ the middle 
         of the staff if _Display in Concert Pitch_ is selected. 
         In those instances use _Floating Rests_ to return them to 
         their virgin state where the only offset is that set at 
@@ -30,7 +30,7 @@ function plugindef()
         "float" above your score. In this mode you must 
         click __Apply__ [Return/Enter] to "set" new rest positions 
         and __Cancel__ [Escape] to close the window. 
-        __Modeless__ will apply _next_ time you use the script.
+        Cancelling __Modeless__ will apply the _next_ time you use the script.
 
         > If __Layer Number__ is highlighted these __Key Commands__ are available: 
 
@@ -69,13 +69,7 @@ local bounds = { -- primary region selection boundaries
     "StartStaff", "StartMeasure", "StartMeasurePos",
     "EndStaff",   "EndMeasure",   "EndMeasurePos",
 }
-local selection = { staff = "no staff", region = "no selection"}
-
-local function set_saved_bounds()
-    for _, prop in ipairs(bounds) do
-        saved_bounds[prop] = finenv.Region()[prop]
-    end
-end
+local selection
 
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -97,23 +91,63 @@ local function measure_duration(measure_number)
     return m:Load(measure_number) and m:GetDuration() or 0
 end
 
-local function update_selection()
-    local rgn = finenv.Region()
-    if rgn:IsEmpty() then
-        selection = { staff = "no staff", region = " no selection"}
-        return
-    end
-    local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
-    local m = measure_duration(rgn.EndMeasure)
-    local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
-    selection.region = string.format("m%.2f-m%.2f", r1, r2)
-
+local function get_staff_name(staff_num)
     local staff = finale.FCStaff()
-    staff:Load(rgn.StartStaff)
-    local s1 = staff:CreateDisplayFullNameString() or ("Staff " .. rgn.StartStaff)
-    staff:Load(rgn.EndStaff)
-    local s2 = staff:CreateDisplayFullNameString() or ("Staff " .. rgn.EndStaff)
-    selection.staff = string.format("%s → %s", s1.LuaString, s2.LuaString)
+    staff:Load(staff_num)
+    local str = staff:CreateDisplayFullNameString().LuaString
+    if not str or str == "" then
+        str = "Staff " .. staff_num
+    end
+    return str
+end
+
+local function initialise_parameters()
+    -- set_saved_bounds
+    local rgn = finenv.Region()
+    for _, prop in ipairs(bounds) do
+        saved_bounds[prop] = rgn[prop]
+    end
+    -- update_selection_id
+    selection = { staff = "no staff", region = "no selection"} -- default
+    if not rgn:IsEmpty() then
+        -- measures
+        local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
+        local m = measure_duration(rgn.EndMeasure)
+        local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
+        selection.region = string.format("m%.2f-m%.2f", r1, r2)
+        -- staves
+        selection.staff = get_staff_name(rgn.StartStaff)
+        if rgn.EndStaff ~= rgn.StartStaff then
+            selection.staff = selection.staff .. " → " .. get_staff_name(rgn.EndStaff)
+        end
+    end
+
+    -- set_adjacent_offsets
+    adjacent_offsets = {} -- start with blank collection
+    local start_staff = rgn.StartStaff
+    if start_staff ~= rgn.EndStaff then return end -- single staff required
+
+    local start_slot = rgn:CalcSlotNumber(rgn.StartStaff)
+    local next_staff = {} -- locate staff above/below
+    local stack = mixin.FCMMusicRegion()
+    stack:SetRegion(rgn):SetFullMeasureStack()
+    if start_slot > 1 then
+        next_staff.above = stack:CalcStaffNumber(start_slot - 1)
+    end
+    if start_slot < stack.EndSlot then
+        next_staff.below = stack:CalcStaffNumber(start_slot + 1)
+    end
+    local system_staves = finale.FCSystemStaves()
+    system_staves:LoadAllForRegion(stack)
+    local sys_staff = system_staves:FindStaff(start_staff)
+    if sys_staff then
+        local start_position = sys_staff.Distance
+        for key, staff_num in pairs(next_staff) do -- find 0, 1 or 2 adjacent_offsets
+            sys_staff = system_staves:FindStaff(staff_num)
+            local n = start_position - sys_staff.Distance
+            adjacent_offsets[key] = math.floor(n / 24) -- convert EVPU to HALF steps
+        end
+    end
 end
 
 local function get_rest_offset(entry)
@@ -139,35 +173,6 @@ local function offset_rest(entry, shift, float)
     else
         local offset = get_rest_offset(entry)
         entry:SetRestDisplacement(entry:GetRestDisplacement() + shift - offset)
-    end
-end
-
-local function set_adjacent_offsets()
-    adjacent_offsets = {} -- start with blank collection
-    local rgn = finenv.Region()
-    local start_staff = rgn.StartStaff
-    if start_staff ~= rgn.EndStaff then return end -- single staff required
-
-    local start_slot = rgn:CalcSlotNumber(rgn.StartStaff)
-    local next_staff = {} -- locate staff above/below
-    local stack = mixin.FCMMusicRegion()
-    stack:SetRegion(rgn):SetFullMeasureStack()
-    if start_slot > 1 then
-        next_staff.above = stack:CalcStaffNumber(start_slot - 1)
-    end
-    if start_slot < stack.EndSlot then
-        next_staff.below = stack:CalcStaffNumber(start_slot + 1)
-    end
-    local system_staves = finale.FCSystemStaves()
-    system_staves:LoadAllForRegion(stack)
-    local sys_staff = system_staves:FindStaff(start_staff)
-    if sys_staff then
-        local start_position = sys_staff.Distance
-        for key, staff_num in pairs(next_staff) do -- find 0, 1 or 2 adjacent_offsets
-            sys_staff = system_staves:FindStaff(staff_num)
-            local n = start_position - sys_staff.Distance
-            adjacent_offsets[key] = math.floor(n / 24) -- convert EVPU to HALF steps
-        end
     end
 end
 
@@ -221,7 +226,7 @@ local function run_the_dialog_box()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Shift Rests")
         -- local functions
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 500, 435)
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 380)
             refocus_document = true
         end
         local function yd(diff)
@@ -240,7 +245,7 @@ local function run_the_dialog_box()
         end
         local function set_value(thumb, float, set_thumb)
             local pos = thumb - center
-            local sign = pos > 0 and "[ +" or "[ "
+            local sign = (pos > 0) and "[ +" or "[ "
             answer.value:SetText(sign .. pos .. " ]")
             shift_rests(pos, float)
             if set_thumb then answer.slider:SetThumbPosition(thumb) end
@@ -300,10 +305,8 @@ local function run_the_dialog_box()
         local function on_timer() -- look for changes in selected region
             for prop, value in pairs(saved_bounds) do
                 if finenv.Region()[prop] ~= value then -- selection changed
-                    set_saved_bounds() -- save new selection bounds
-                    update_selection() -- update selection ID
+                    initialise_parameters() -- reset all selection variables
                     dialog:GetControl("info"):SetText(selection.staff .. ": " .. selection.region)
-                    set_adjacent_offsets() -- get new mid-staff offsets (if any)
                     dialog:GetControl("above"):SetEnable(adjacent_offsets.above ~= nil)
                     dialog:GetControl("below"):SetEnable(adjacent_offsets.below ~= nil)
                     break -- all done
@@ -323,8 +326,8 @@ local function run_the_dialog_box()
     answer.value = dialog:CreateStatic(x[3] - 12, y):SetWidth(75)
     set_value(first_offset + center, false, false) -- preset slider and all selected rests
 
-    dialog:CreateButton(x[4] - 110, y):SetText("reset zero (z)"):SetWidth(button_wide)
-        :AddHandleCommand(function() set_zero() end)
+    dialog:CreateButton(x[4] - 110, y):SetText("Reset Zero (z)"):SetWidth(button_wide)
+        :AddHandleCommand(function() set_zero(false) end)
     yd()
     local q = dialog:CreateButton(0, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
@@ -334,7 +337,7 @@ local function run_the_dialog_box()
     dialog:CreateButton(137, y, "below"):SetText("mid-staff below (f)"):SetWidth(button_wide)
         :SetEnable(adjacent_offsets.below ~= nil)
         :AddHandleCommand(function() set_midstaff("below") end)
-    dialog:CreateButton(x[4] - 110, y):SetText("floating rests (x)")
+    dialog:CreateButton(x[4] - 110, y):SetText("Floating Rests (x)")
         :SetWidth(button_wide):AddHandleCommand(function() set_zero(true) end)
     yd()
     answer.modeless = dialog:CreateCheckbox(0, y):SetWidth(x[4]):SetCheck(config.modeless and 1 or 0)
@@ -348,41 +351,46 @@ local function run_the_dialog_box()
         save_rest_positions() -- save rest positions so "Close" leaves correct positions
     end)
     dialog:RegisterInitWindow(function(self)
+        dialog:SetOkButtonCanClose(not config.modeless)
         if config.modeless then self:SetTimer(config.timer_id, 125) end
         q:SetFont(q:CreateFontInfo():SetBold(true))
         answer.layer_num:SetKeyboardFocus()
     end)
-    dialog:SetOkButtonCanClose(not config.modeless)
+    local change_mode = false
     dialog:RegisterCloseWindow(function(self)
-        config.layer_num = answer.layer_num:GetInteger()
-        config.modeless = (answer.modeless:GetCheck() == 1)
-        dialog_save_position(self)
         if config.modeless then self:StopTimer(config.timer_id) end
         restore_rest_positions()
+        local mode = (answer.modeless:GetCheck() == 1)
+        change_mode = (mode and not config.modeless) -- modal -> modeless?
+        config.modeless = mode
+        config.layer_num = answer.layer_num:GetInteger()
+        dialog_save_position(self)
     end)
-    if config.modeless then -- "modeless"
+    if config.modeless then   -- "modeless"
         dialog:RunModeless()
-    else -- "modal"
-        dialog:ExecuteModal()
+    else
+        dialog:ExecuteModal() -- "modal"
         if refocus_document then finenv.UI():ActivateDocumentWindow() end
     end
+    return change_mode
 end
 
 local function slide_rests()
     configuration.get_user_settings(script_name, config)
-    if finenv.Region():IsEmpty() then
+    if not config.modeless and finenv.Region():IsEmpty() then
         finenv.UI():AlertError(
-            "Please select some music before\nrunning this script.",
+            "Please select some music \nbefore running this script.",
             name
         )
         return
     end
-    -- initialise parameters
-    set_saved_bounds()
-    update_selection()
-    set_adjacent_offsets()
+
+    local mode_change = true
+    initialise_parameters()
     save_rest_positions()
-    run_the_dialog_box()
+    while mode_change do
+        mode_change = run_the_dialog_box()
+    end
 end
 
 slide_rests()
