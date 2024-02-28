@@ -151,7 +151,7 @@ local function run_the_dialog()
     local offset = finenv.UI():IsOnMac() and 3 or 0
     local max = finale.FCLayerPrefs.GetMaxLayers and finale.FCLayerPrefs.GetMaxLayers() or 4
     local y, y_inc = 0, 21
-    local pop_wide, box_wide = 55, 105
+    local pop_wide, x_step = 55, 105
     local interval_names = { "unis.", "2nd", "3rd", "4th", "5th", "6th", "7th", "8ve"}
     local options = {"layer", "interval", "octave", "direction"}
     local save, answer = {}, {}
@@ -171,7 +171,7 @@ local function run_the_dialog()
             local ctl = answer[id]
             local val = ctl:GetText():lower()
             if     val:find("[^0-8]")
-                or (id == "layer" and val:find("[" .. (max + 1) .. "-9]"))
+                or (id == "layer" and val:find("[" .. (max + 1) .. "-8]"))
                 or (id == "interval" and val:find("0"))
                     then
                 if val:find("z") then -- flip direction
@@ -190,8 +190,7 @@ local function run_the_dialog()
                     answer.msg:SetText(interval_names[n])
                 end
             end
-            ctl:SetText(save[id])
-            ctl:SetKeyboardFocus()
+            ctl:SetText(save[id]):SetKeyboardFocus()
         end
         local function on_timer() -- look for changes in selected region
             for k, v in pairs(saved_bounds) do
@@ -206,34 +205,34 @@ local function run_the_dialog()
 
     answer.a = cs(0, y, "Direction:", 60)
     cs(60, y, "(z)", 25)
-    answer.direction = dialog:CreatePopup(box_wide - 15, y - offset + 1)
+    answer.direction = dialog:CreatePopup(x_step - 15, y - offset + 1)
         :AddStrings("Up", "Down"):SetWidth(55)
         :SetSelectedItem(save.direction)
     dy()
-    answer.b = cs(0, y, "Diatonic Interval:", box_wide)
-    answer.interval = dialog:CreateEdit(box_wide, y - offset)
+    answer.b = cs(0, y, "Diatonic Interval:", x_step)
+    answer.interval = dialog:CreateEdit(x_step, y - offset)
         :SetText(save.interval):SetWidth(20)
         :AddHandleCommand(function() key_command("interval") end)
-    answer.msg = cs(box_wide + 25, y, interval_names[save.interval], pop_wide - 20)
+    answer.msg = cs(x_step + 25, y, interval_names[save.interval], pop_wide - 20)
     dy()
-    answer.c = cs(0, y, "Extra Octaves:", box_wide)
-    answer.octave = dialog:CreateEdit(box_wide, y - offset):SetText(save.octave):SetWidth(20)
+    answer.c = cs(0, y, "Extra Octaves:", x_step)
+    answer.octave = dialog:CreateEdit(x_step, y - offset):SetText(save.octave):SetWidth(20)
         :AddHandleCommand(function() key_command("octave") end)
     dy()
-    answer.d = cs(0, y, "Layer Number:", box_wide)
-    answer.layer = dialog:CreateEdit(box_wide, y - offset):SetWidth(20):SetText(save.layer)
+    answer.d = cs(0, y, "Layer Number:", x_step)
+    answer.layer = dialog:CreateEdit(x_step, y - offset):SetWidth(20):SetText(save.layer)
         :AddHandleCommand(function() key_command("layer") end)
     dy()
-    answer.modeless = dialog:CreateCheckbox(0, y):SetWidth(box_wide + 15)
+    answer.modeless = dialog:CreateCheckbox(0, y):SetWidth(x_step + 15)
         :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
-    answer.q = dialog:CreateButton(box_wide + pop_wide - 37, y - 1):SetText("?"):SetWidth(20)
+    answer.q = dialog:CreateButton(x_step + pop_wide - 37, y - 1):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
     -- modeless selection info
-    if config.modeless then
+    if config.modeless then -- include selection info
         dy(15)
-        answer.info1 = cs(0, y, selection.staff, box_wide + pop_wide)
+        answer.info1 = cs(0, y, selection.staff, x_step + pop_wide)
         dy(15)
-        answer.info2 = cs(0, y, selection.region, box_wide + pop_wide)
+        answer.info2 = cs(0, y, selection.region, x_step + pop_wide)
     end
     dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
     dialog:CreateCancelButton()
@@ -246,9 +245,9 @@ local function run_the_dialog()
             answer[v]:SetFont(bold)
         end
         answer.interval:SetKeyboardFocus()
+        dialog:SetOkButtonCanClose(not config.modeless)
     end)
     local change_mode = false
-    dialog:SetOkButtonCanClose(not config.modeless)
     dialog:RegisterHandleOkButtonPressed(function()
         config.interval = tonumber(save.interval) -- 1-8 ("shift" interval value PLUS 1)
         config.octave = answer.octave:GetInteger()
@@ -259,7 +258,7 @@ local function run_the_dialog()
     dialog:RegisterCloseWindow(function(self)
         if config.modeless then self:StopTimer(config.timer_id) end
         local mode = (answer.modeless:GetCheck() == 1)
-        change_mode = (config.modeless ~= mode) -- new mode!
+        change_mode = (mode and not config.modeless) -- modal -> modeless?
         config.modeless = mode
         dialog_save_position(self)
     end)

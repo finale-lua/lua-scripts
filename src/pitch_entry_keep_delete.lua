@@ -1,5 +1,6 @@
 function plugindef()
-    finaleplugin.RequireSelection = true
+    finaleplugin.RequireSelection = false
+    finaleplugin.HandlesUndo = true
     finaleplugin.Author = "Jacob Winkler, Nick Mazuk & Carl Vine"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
@@ -12,7 +13,7 @@ function plugindef()
 
         - __1__ deletes (or keeps) the top (or bottom) note 
         - __2__ deletes (or keeps) the 2nd note from the top (or bottom) 
-        - etc. 
+        - etc. ...
 
         > If __Note Number__ or __Layer__ are highlighted  
         > then these __Key Commands__ are available:
@@ -27,13 +28,15 @@ function plugindef()
 
         Select __Modeless__ if you prefer the dialog window to 
         "float" above your score and you can change the score selection 
-        while it floats. In this mode click __Apply__ [Return/Enter] 
+        while it's active. In this mode, click __Apply__ [Return/Enter] 
         to make changes and __Cancel__ [Escape] to close the window. 
         Cancelling __Modeless__ will apply the _next_ time you use the script.
 
         To repeat the last action without a confirmation dialog 
         hold down [Shift] when starting the script. 
     ]]
+    finaleplugin.MinJWLuaVersion = 0.70
+    finaleplugin.CategoryTags = "Pitch, Transposition"
     return "Pitch: Chord Notes Keep-Delete...",
         "Pitch: Chord Notes Keep-Delete",
         "Keep or Delete selected notes from chords"
@@ -249,7 +252,7 @@ local function run_the_dialog()
     dialog:RegisterCloseWindow(function(self)
         if config.modeless then self:StopTimer(config.timer_id) end
         local mode = (answer.modeless:GetCheck() == 1)
-        change_mode = (config.modeless ~= mode) -- new mode!
+        change_mode = (mode and not config.modeless) -- modal -> modeless?
         config.modeless = mode
         dialog_save_position(self)
     end)
