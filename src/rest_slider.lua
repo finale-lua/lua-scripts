@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.29"
+    finaleplugin.Version = "0.30"
     finaleplugin.Date = "2024/02/28"
     finaleplugin.CategoryTags = "Rests, Selection"
     finaleplugin.MinJWLuaVersion = 0.70
@@ -27,9 +27,9 @@ function plugindef()
         Layer numbers can be changed "on the fly" to help 
         balance rests across multiple layers. 
         Select __Modeless__ if you prefer the dialog window to 
-        "float" above your score. In this mode you must 
-        click __Apply__ [Return/Enter] to "set" new rest positions 
-        and __Cancel__ [Escape] to close the window. 
+        "float" above your score so you can change the score selection 
+        while it's active. In this mode, click __Apply__ [Return/Enter] 
+        to "set" new rest positions and __Cancel__ [Escape] to close the window. 
         Cancelling __Modeless__ will apply the _next_ time you use the script.
 
         > If __Layer Number__ is highlighted these __Key Commands__ are available: 
@@ -226,7 +226,7 @@ local function run_the_dialog_box()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Shift Rests")
         -- local functions
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 500, 380)
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 420)
             refocus_document = true
         end
         local function yd(diff)
@@ -288,18 +288,17 @@ local function run_the_dialog_box()
                     elseif val:find("m") then
                         answer.modeless:SetCheck((answer.modeless:GetCheck() + 1) % 2)
                     end
-                    answer.layer_num:SetText(save_layer):SetKeyboardFocus()
                 else
                     val = val:sub(-1)
                     local n = tonumber(val) or 0
                     if save_layer ~= 0 and save_layer ~= n then
-                        save_layer = n
+                       save_layer = n
                         first_offset = first_rest_offset(n)
                         set_value(first_offset + center, false, true)
                     end
-                    answer.layer_num:SetText(n)
                     save_layer = n
                 end
+                answer.layer_num:SetText(save_layer):SetKeyboardFocus()
             end
         end
         local function on_timer() -- look for changes in selected region
