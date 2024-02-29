@@ -89,9 +89,10 @@ function tie.calc_tied_from(note, tie_must_exist)
             break
         end
         if equal_note(entry, note, false, tie_must_exist) then
-            return true
+            return note
         end
     end
+    return nil
 end
 
 --[[
