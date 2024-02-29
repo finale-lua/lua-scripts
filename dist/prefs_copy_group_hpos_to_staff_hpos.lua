@@ -15,7 +15,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script mitigates a bug that existed in Finale 2012 but was fixed as of Finale 2014.5. Editing a linked part with a plugin frequently caused the horizontal position of staves to be randomly modified in the score. This script restores the staff horizontal position by setting it to match the default horizontal group name position.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script mitigates a bug that existed in Finale 2012 but was fixed as of Finale 2014.5. Editing a linked part with a plugin frequently caused the horizontal position of staves to be randomly modified in the score. This script restores the staff horizontal position by setting it to match the default horizontal group name position.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/prefs_copy_group_hpos_to_staff_hpos.hash"

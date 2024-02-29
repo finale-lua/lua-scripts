@@ -109,7 +109,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Run this script and all staves will be unmuted.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Run this script and all staves will be unmuted.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_unmute_all_staves.hash"

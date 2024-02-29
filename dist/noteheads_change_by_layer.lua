@@ -5572,10 +5572,10 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Change notehead shapes on a specific layer of the current selection to one of these options:\line Circled | Default | Diamond | Guitar Diamond |\line Hidden | Number | Round | Slash | Square |\line Strikethrough | Triangle | Wedge | X |\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script produces an ordered list of notehead types, each line beginning with a configurable \u8220"hotkey\u8221". Call the script, type the hotkey and hit [enter] or [return].\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 In SMuFL fonts like Finale Maestro, shapes can vary according to duration values. Most duration-dependent shapes are not available in Finale\u8217's old (non-SMuFL) Maestro and Engraver fonts. \u8220"Diamond (Guitar)\u8221" is like \u8220"Diamond\u8221" except quarter notes and shorter use filled diamonds. \u8220"Number\u8221" lets you specify any font character as a number including SMuFL (Unicode) numbers in the form \u8220"0xe0e1\u8221" or \u8220"0xE0E1\u8221".\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 To repeat the same action as last time without a confirmation dialog either select the \u8220"Noteheads Change Repeat\u8221" menu item or hold down the [shift] key when opening the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Change notehead shapes on a specific layer of the current selection to one of these options:\line Circled | Default | Diamond | Guitar Diamond |\line Hidden | Number | Round | Slash | Square |\line Strikethrough | Triangle | Wedge | X |\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script produces an ordered list of notehead types, each line beginning with a configurable \u8220"hotkey\u8221". Call the script, type the hotkey and hit [enter] or [return].\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 In SMuFL fonts like Finale Maestro, shapes can vary according to duration values. Most duration-dependent shapes are not available in Finale\u8217's old (non-SMuFL) Maestro and Engraver fonts. \u8220"Diamond (Guitar)\u8221" is like \u8220"Diamond\u8221" except quarter notes and shorter use filled diamonds. \u8220"Number\u8221" lets you specify any font character as a number including SMuFL (Unicode) numbers in the form \u8220"0xe0e1\u8221" or \u8220"0xE0E1\u8221".\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To repeat the same action as last time without a confirmation dialog either select the \u8220"Noteheads Change Repeat\u8221" menu item or hold down the [shift] key when opening the script.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/noteheads_change_by_layer.hash"

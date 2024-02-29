@@ -1723,12 +1723,12 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 In normal 12-note music, enharmonically transposing is the same as transposing by a diminished 2nd. However, in some microtone systems (specifically 19-EDO and 31-EDO), enharmonic transposition produces a different result than chromatic transposition. As an example, C is equivalent to Dbb in 12-tone systems. But in 31-EDO, C is five microsteps lower than D whereas Dbb is four microsteps lower than D. Transposing C up a diminished 2nd gives Dbb in either system, but in 31-EDO, Dbb is not the same pitch as C.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 If you are using custom key signatures with JW Lua or an early version of RGP Lua, you must create a {\f1 custom_key_sig.config.txt} file in a folder called {\f1 script_settings} within the same folder as the script. It should contains the following two lines that define the custom key signature you are using. Unfortunately, the JW Lua and early versions of RGP Lua do not allow scripts to read this information from the Finale document.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 (This example is for 31-EDO.)\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 number_of_steps = 31\line
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 In normal 12-note music, enharmonically transposing is the same as transposing by a diminished 2nd. However, in some microtone systems (specifically 19-EDO and 31-EDO), enharmonic transposition produces a different result than chromatic transposition. As an example, C is equivalent to Dbb in 12-tone systems. But in 31-EDO, C is five microsteps lower than D whereas Dbb is four microsteps lower than D. Transposing C up a diminished 2nd gives Dbb in either system, but in 31-EDO, Dbb is not the same pitch as C.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 If you are using custom key signatures with JW Lua or an early version of RGP Lua, you must create a {\f1 custom_key_sig.config.txt} file in a folder called {\f1 script_settings} within the same folder as the script. It should contains the following two lines that define the custom key signature you are using. Unfortunately, the JW Lua and early versions of RGP Lua do not allow scripts to read this information from the Finale document.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 (This example is for 31-EDO.)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \f1 number_of_steps = 31\line
         diatonic_steps = \{0, 5, 10, 13, 18, 23, 28\}\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct information from the Finale document.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct information from the Finale document.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/transpose_enharmonic_up.hash"

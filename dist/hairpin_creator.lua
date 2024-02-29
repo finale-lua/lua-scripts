@@ -5846,18 +5846,18 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script creates hairpins spanning the currently selected music region. It provides four menu items to create {\b Crescendo}, {\b Diminuendo}, {\b Swell} ({\i messa di voce}) and {\b Unswell} ({\i inverse messa di voce}) hairpins.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Hairpins are shifted vertically to avoid colliding with the lowest notes, down-stem tails, articulations and dynamics on each staff in the selection. Dynamics are shifted to match the hairpin vertical. Dynamics in the middle of a hairpin will also be levelled, so give them an opaque background to sit \u8220"above\u8221" the hairpin. The script also considers trailing notes and dynamics, just beyond the end of the selected music, since a hairpin is normally expected to end just before the note with the destination dynamic.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Hairpin positions are more accurate when attached to these \u8220"trailing\u8221" notes and dynamics, but this can be a problem if they fall across a barline and especially if they are on a different system from the end of the hairpin. (Elaine Gould, {\i Behind Bars} pp.103-106, outlines several scenarios in which hairpins either should or shouldn\u8217't \u8220"attach\u8221" across barlines. Individual preferences may differ.)\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script works better if dynamic markings are added first. It will find the lowest matching vertical offset for the hairpin, but if you want the hairpin lower than that then first move a dynamic to the lowest required point.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 To change options use the {\i Configuration} menu or hold down the [Shift] key when selecting a {\i Hairpin Creator} menu. For simple hairpins that don\u8217't mess around with trailing barlines and dynamics try selecting {\i Dynamics Match Hairpin} with no other options.\par}
-        {\pard \ql \f0 \sa180 \li720 \fi0 {\b Key Commands} in the {\i Configuration} window:\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d - f - g - h} toggle the checkboxes\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: reset default values\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: display these notes\line \par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Change measurement units:\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e} - EVPU; {\b i} - Inches; {\b c} - Centimeters;\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b o} - Points; {\b a} - Picas; {\b s} - Spaces;\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script creates hairpins spanning the currently selected music region. It provides four menu items to create {\b Crescendo}, {\b Diminuendo}, {\b Swell} ({\i messa di voce}) and {\b Unswell} ({\i inverse messa di voce}) hairpins.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Hairpins are shifted vertically to avoid colliding with the lowest notes, down-stem tails, articulations and dynamics on each staff in the selection. Dynamics are shifted to match the hairpin vertical. Dynamics in the middle of a hairpin will also be levelled, so give them an opaque background to sit \u8220"above\u8221" the hairpin. The script also considers trailing notes and dynamics, just beyond the end of the selected music, since a hairpin is normally expected to end just before the note with the destination dynamic.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Hairpin positions are more accurate when attached to these \u8220"trailing\u8221" notes and dynamics, but this can be a problem if they fall across a barline and especially if they are on a different system from the end of the hairpin. (Elaine Gould, {\i Behind Bars} pp.103-106, outlines several scenarios in which hairpins either should or shouldn\u8217't \u8220"attach\u8221" across barlines. Individual preferences may differ.)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script works better if dynamic markings are added first. It will find the lowest matching vertical offset for the hairpin, but if you want the hairpin lower than that then first move a dynamic to the lowest required point.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To change options use the {\i Configuration} menu or hold down the [Shift] key when selecting a {\i Hairpin Creator} menu. For simple hairpins that don\u8217't mess around with trailing barlines and dynamics try selecting {\i Dynamics Match Hairpin} with no other options.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 {\b Key Commands} in the {\i Configuration} window:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d - f - g - h} toggle the checkboxes\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: reset default values\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: display these notes\line \par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Change measurement units:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e} - EVPU; {\b i} - Inches; {\b c} - Centimeters;\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b o} - Points; {\b a} - Picas; {\b s} - Spaces;\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/hairpin_creator.hash"

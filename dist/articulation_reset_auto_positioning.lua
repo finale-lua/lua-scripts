@@ -19,7 +19,7 @@ logic to manage the stacking context.
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script resets all selected articulations to their default positions but only if they are not manually positioned. Due to complications arising from how Finale stored articulation positions before Finale 26, it requires Finale 26 or higher. Due to issues around maintaining the context for automatic stacking, it must be run under RGP Lua. JW Lua does not have the necessary logic to manage the stacking context.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script resets all selected articulations to their default positions but only if they are not manually positioned. Due to complications arising from how Finale stored articulation positions before Finale 26, it requires Finale 26 or higher. Due to issues around maintaining the context for automatic stacking, it must be run under RGP Lua. JW Lua does not have the necessary logic to manage the stacking context.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/articulation_reset_auto_positioning.hash"

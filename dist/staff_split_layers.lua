@@ -5479,12 +5479,12 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Chords from the source layers in the selected region are split into another layer on the same staff based on a split point. Multiple measures and staves can be selected at once. Articulations on the original are optionally copied to the other layer.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 The dialog box has the following options:\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab From Layer (1-4): the source layer to split from (defaults to 1)\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To Layer (1-4): the target layer to split to (defaults to 2)\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Split At [ ] Notes From Top: the number of chord tones to preserve in the source layer, counting from the top of each chord. All other notes are split to the target layer.\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Copy Articulations: if checked, copies articulations from the source to the target.\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Chords from the source layers in the selected region are split into another layer on the same staff based on a split point. Multiple measures and staves can be selected at once. Articulations on the original are optionally copied to the other layer.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The dialog box has the following options:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab From Layer (1-4): the source layer to split from (defaults to 1)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab To Layer (1-4): the target layer to split to (defaults to 2)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Split At [ ] Notes From Top: the number of chord tones to preserve in the source layer, counting from the top of each chord. All other notes are split to the target layer.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Copy Articulations: if checked, copies articulations from the source to the target.\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_split_layers.hash"

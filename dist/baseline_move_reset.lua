@@ -531,14 +531,14 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script nudges system baselines up or down by a single staff-space (24 evpus). It introduces 10 menu options to nudge each baseline type up or down. It also introduces 5 menu options to reset the baselines to their staff-level values.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 The possible prefix inputs to the script are\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 direction -- 1 for up, -1 for down, 0 for reset\line
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script nudges system baselines up or down by a single staff-space (24 evpus). It introduces 10 menu options to nudge each baseline type up or down. It also introduces 5 menu options to reset the baselines to their staff-level values.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The possible prefix inputs to the script are\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \f1 direction -- 1 for up, -1 for down, 0 for reset\line
         baseline_types -- a table containing a list of the baseline types to process\line
         nudge_evpus -- a positive number indicating the size of the nudge\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 You can also change the size of the nudge by creating a configuration file called {\f1 baseline_move.config.txt} and adding a single line with the size of the nudge in evpus.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 nudge_evpus = 36 -- or whatever size you wish\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 A value in a prefix overrides any setting in a configuration file.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 You can also change the size of the nudge by creating a configuration file called {\f1 baseline_move.config.txt} and adding a single line with the size of the nudge in evpus.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \f1 nudge_evpus = 36 -- or whatever size you wish\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 A value in a prefix overrides any setting in a configuration file.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/baseline_move_reset.hash"

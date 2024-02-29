@@ -5336,19 +5336,19 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Slide rests up and down on the nominated layer with continuous visual feedback. This was designed especially to help align rests midway between staves with cross-staff notes. The {\i Mid-Staff Above} and {\i Mid-Staff Below} buttons achieve this with one click. Cancel the script to leave rests unchanged.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 {\i Reset Zero} sets nil offset. Note that on transposing instruments this is NOT the middle of the staff if {\i Display in Concert Pitch} is selected. In those instances use {\i Floating Rests} to return them to their virgin state where the only offset is that set at {\i Document} \u8594? {\i Document Options} \u8594? {\i Layers} \u8594? {\i Adjust Floating Rests by\u8230?}\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 At startup all rests in the chosen layer are moved to the same offset as the first rest on that layer in the selection. Layer numbers can be changed \u8220"on the fly\u8221" to help balance rests across multiple layers. Select {\b Modeless} if you prefer the dialog window to \u8220"float\u8221" above your score. In this mode you must click {\b Apply} [Return/Enter] to \u8220"set\u8221" new rest positions and {\b Cancel} [Escape] to close the window. {\b Modeless} will apply {\i next} time you use the script.\par}
-        {\pard \ql \f0 \sa180 \li720 \fi0 If {\b Layer Number} is highlighted these {\b Key Commands} are available:\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b a} ({\b -}): move rests down one step\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b s} ({\b +}): move rests up one step\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d}: move to mid-staff above (if one staff selected)\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b f}: move to mid-staff below (if one staff selected)\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: reset to \u8220"zero\u8221" shift (not floating)\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x}: floating rests\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b i}: invert shift direction\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: show these script notes\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-4}: layer number (delete key not needed)\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Slide rests up and down on the nominated layer with continuous visual feedback. This was designed especially to help align rests midway between staves with cross-staff notes. The {\i Mid-Staff Above} and {\i Mid-Staff Below} buttons achieve this with one click. Cancel the script to leave rests unchanged.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\i Reset Zero} sets nil offset. Note that on transposing instruments this is NOT the middle of the staff if {\i Display in Concert Pitch} is selected. In those instances use {\i Floating Rests} to return them to their virgin state where the only offset is that set at {\i Document} \u8594? {\i Document Options} \u8594? {\i Layers} \u8594? {\i Adjust Floating Rests by\u8230?}\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 At startup all rests in the chosen layer are moved to the same offset as the first rest on that layer in the selection. Layer numbers can be changed \u8220"on the fly\u8221" to help balance rests across multiple layers. Select {\b Modeless} if you prefer the dialog window to \u8220"float\u8221" above your score. In this mode you must click {\b Apply} [Return/Enter] to \u8220"set\u8221" new rest positions and {\b Cancel} [Escape] to close the window. {\b Modeless} will apply {\i next} time you use the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 If {\b Layer Number} is highlighted these {\b Key Commands} are available:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b a} ({\b -}): move rests down one step\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b s} ({\b +}): move rests up one step\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d}: move to mid-staff above (if one staff selected)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b f}: move to mid-staff below (if one staff selected)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: reset to \u8220"zero\u8221" shift (not floating)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x}: floating rests\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b i}: invert shift direction\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: show these script notes\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-4}: layer number (delete key not needed)\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/rest_slider.hash"

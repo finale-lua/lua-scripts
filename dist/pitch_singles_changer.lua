@@ -5222,11 +5222,11 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Change up to four specific pitches to other specific pitches. Pitch specification is exact and immutable:\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 First character: pitch name A-G. (Lower case will be replaced automatically with upper case)\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Last character: octave number 0-9.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 In between: accidentals if needed. b / bb / bbb / # / ## / ### (you can use \u8220"s\u8221" instead of \u8220"#\u8221" - automatic replacement)\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 If you make a mistake with the pitch format you will be asked to \u8220"FIX\u8221" the mistake before the pitch change can take place. \u8220"C4\u8221" is middle C. \u8220"B4\u8221" is a major seventh above that.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Change up to four specific pitches to other specific pitches. Pitch specification is exact and immutable:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 First character: pitch name A-G. (Lower case will be replaced automatically with upper case)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Last character: octave number 0-9.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 In between: accidentals if needed. b / bb / bbb / # / ## / ### (you can use \u8220"s\u8221" instead of \u8220"#\u8221" - automatic replacement)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 If you make a mistake with the pitch format you will be asked to \u8220"FIX\u8221" the mistake before the pitch change can take place. \u8220"C4\u8221" is middle C. \u8220"B4\u8221" is a major seventh above that.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_singles_changer.hash"

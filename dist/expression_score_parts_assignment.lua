@@ -1134,11 +1134,11 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script implements three menu options to modify expressions.\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Expression Set To Score And Parts\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Expression Set To Score Only\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Expression Set To Parts Only\sa180\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 It changes any selected single-staff expressions that is visible in the current score or part view.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script implements three menu options to modify expressions.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Expression Set To Score And Parts\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Expression Set To Score Only\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Expression Set To Parts Only\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 It changes any selected single-staff expressions that is visible in the current score or part view.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_score_parts_assignment.hash"

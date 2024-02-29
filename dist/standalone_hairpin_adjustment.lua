@@ -1528,8 +1528,8 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This plugin has several configuration options. To set the options, create a plain text file called standalone_hairpin_adjustment.config.txt in a folder called {\f1 script_settings} within the same folder as the script. It can contain any or all of the following configuration parameters. (The default values are shown.)\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 left_dynamic_cushion = 9                    -- space between a dynamic and a hairpin on the left (evpu)\line
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This plugin has several configuration options. To set the options, create a plain text file called standalone_hairpin_adjustment.config.txt in a folder called {\f1 script_settings} within the same folder as the script. It can contain any or all of the following configuration parameters. (The default values are shown.)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \f1 left_dynamic_cushion = 9                    -- space between a dynamic and a hairpin on the left (evpu)\line
         right_dynamic_cushion = -9                  -- space between a dynamic and a haripin on the right (evpu)\line
         left_selection_cushion = 0                  -- currently not used\line
         right_selection_cushion = 0                 -- additional space between a hairpin and the end of its beat region (evpu)\line

@@ -5201,8 +5201,8 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Finale makes it surprisingly difficult to remove text inserts from an existing Page Text. It requires extremely precise positioning of the cursor, and even then it frequently modifies the insert instead of the Page Text. This is especially true if the Page Text contains {\i only} one or more inserts. This script allows you to select a Page Text and remove the inserts with no fuss.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 For version 0.68 and higher of RGP Lua, you can edit the text inserts directly.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Finale makes it surprisingly difficult to remove text inserts from an existing Page Text. It requires extremely precise positioning of the cursor, and even then it frequently modifies the insert instead of the Page Text. This is especially true if the Page Text contains {\i only} one or more inserts. This script allows you to select a Page Text and remove the inserts with no fuss.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 For version 0.68 and higher of RGP Lua, you can edit the text inserts directly.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/page_title_remove_inserts.hash"

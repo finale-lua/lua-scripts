@@ -31,7 +31,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This plug-in aligns the ends of notes followed by a rest to a specific \u8220"duration boundary\u8221". It helps improve readability of music with lots of short notes and rests. It creates two menu items, {\f1 Note Ends Eighths} and {\f1 Note Ends Quarters}.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This plug-in aligns the ends of notes followed by a rest to a specific \u8220"duration boundary\u8221". It helps improve readability of music with lots of short notes and rests. It creates two menu items, {\f1 Note Ends Eighths} and {\f1 Note Ends Quarters}.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_ends.hash"

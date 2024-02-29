@@ -21,7 +21,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 To navigate to a specific time in the current file, enter the minutes and seconds in duration. Either value can include decimal points. Accelerandos and Rallentandos are not considered and only the first tempo mark in each measure is evaluated. These are assumed to take effect at the start of that measure.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To navigate to a specific time in the current file, enter the minutes and seconds in duration. Either value can include decimal points. Accelerandos and Rallentandos are not considered and only the first tempo mark in each measure is evaluated. These are assumed to take effect at the start of that measure.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/go_to_time.hash"

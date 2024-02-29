@@ -36,7 +36,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This plug-in will set or clear the option to scale with entries in the selected region. It will not work on expressions that are assigned to staff lists, such as tempo marks and tempo alterations.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This plug-in will set or clear the option to scale with entries in the selected region. It will not work on expressions that are assigned to staff lists, such as tempo marks and tempo alterations.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_scale_noscale.hash"

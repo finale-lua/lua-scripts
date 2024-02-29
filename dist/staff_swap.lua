@@ -14,7 +14,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Swap the music on two different staves. Just create a selection, and the music on the top staff of the selection will be swapped with the music on the bottom staff of that selection.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Swap the music on two different staves. Just create a selection, and the music on the top staff of the selection will be swapped with the music on the bottom staff of that selection.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_swap.hash"

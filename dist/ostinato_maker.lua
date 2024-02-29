@@ -5221,9 +5221,9 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Copy the current selection and paste it consecutively to the right a nominated number of times. The replicas can span barlines ignoring time signatures. The same effect can be achieved with Edit \u8594? Paste Multiple but this script is simpler to use and works intuitively on the current music selection in a single step.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 To repeat the last action without confirmation dialog hold down [shift] when starting the script. Choose to independently include or remove articulations, expressions, smartshapes, lyrics or chords from the repeats.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script grew from the \u8220"region_replicate_music.lua\u8221" script in the FinaleLua.com repository by Michael McClennan and Jacob Winkler.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Copy the current selection and paste it consecutively to the right a nominated number of times. The replicas can span barlines ignoring time signatures. The same effect can be achieved with Edit \u8594? Paste Multiple but this script is simpler to use and works intuitively on the current music selection in a single step.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To repeat the last action without confirmation dialog hold down [shift] when starting the script. Choose to independently include or remove articulations, expressions, smartshapes, lyrics or chords from the repeats.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script grew from the \u8220"region_replicate_music.lua\u8221" script in the FinaleLua.com repository by Michael McClennan and Jacob Winkler.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/ostinato_maker.hash"

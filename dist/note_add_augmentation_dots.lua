@@ -333,7 +333,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This plugin adds two menu items, \u8220"Add Augmentation Dots\u8221" and \u8220"Remove Augmentation Dots\u8221". The \u8220"Remove\u8221" function reverses the result of the \u8220"Add\u8221" function, which means it removes only the right-most dot each time you invoke it. However, if you invoke the \u8220"Remove\u8221" function while holding down the Shift or Option keys, the script removes all augmentation dots in a single invocation. (This requires a version of RGP Lua that supports it, which includes the current version.)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This plugin adds two menu items, \u8220"Add Augmentation Dots\u8221" and \u8220"Remove Augmentation Dots\u8221". The \u8220"Remove\u8221" function reverses the result of the \u8220"Add\u8221" function, which means it removes only the right-most dot each time you invoke it. However, if you invoke the \u8220"Remove\u8221" function while holding down the Shift or Option keys, the script removes all augmentation dots in a single invocation. (This requires a version of RGP Lua that supports it, which includes the current version.)\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/note_add_augmentation_dots.hash"

@@ -1000,7 +1000,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Ties notes in adjacent entries if matching pitches are available. A companion menu item is also created to {\f1 Untie} all notes in the selection.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Ties notes in adjacent entries if matching pitches are available. A companion menu item is also created to {\f1 Untie} all notes in the selection.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/notes_tie.hash"

@@ -5225,10 +5225,10 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 The main goal of this script is to emulate the tokens that Sibelius allows when exporting PDFs. Using this script, you can change the names of your PDFs, after they have been created, to include any combination of the score filename, score title, part name, part number, total number of parts, current date, and current time.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 A simple use of the script would be to prepend the part number so that your PDFs can be sorted in the order they appear in the \u8220"Manage Parts\u8221" dialog.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 The script will also fix filename artifacts that result from certain Finale versions and PDF drivers \u8211- for example, an extra \u8220"x\u8221" after the score filename or a truncated filename if the part names contains a \u8220"/\u8221".\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 The script assumes that PDFs currently have the default names assigned by Finale \u8211- generally, \u8220"[score filename] - [part name].pdf\u8221".\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The main goal of this script is to emulate the tokens that Sibelius allows when exporting PDFs. Using this script, you can change the names of your PDFs, after they have been created, to include any combination of the score filename, score title, part name, part number, total number of parts, current date, and current time.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 A simple use of the script would be to prepend the part number so that your PDFs can be sorted in the order they appear in the \u8220"Manage Parts\u8221" dialog.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The script will also fix filename artifacts that result from certain Finale versions and PDF drivers \u8211- for example, an extra \u8220"x\u8221" after the score filename or a truncated filename if the part names contains a \u8220"/\u8221".\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The script assumes that PDFs currently have the default names assigned by Finale \u8211- generally, \u8220"[score filename] - [part name].pdf\u8221".\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/document_rename_pdfs.hash"

@@ -14,7 +14,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script removes all default whole rests from the entire score.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script removes all default whole rests from the entire score.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/rest_remove_default_whole_rests.hash"

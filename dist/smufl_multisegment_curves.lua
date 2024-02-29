@@ -5072,7 +5072,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Allows you to construct a string from SMuFL multi-segment curved-line characters that can be used, e.g., for expressions or custom lines to indicate random/uneven motion.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Allows you to construct a string from SMuFL multi-segment curved-line characters that can be used, e.g., for expressions or custom lines to indicate random/uneven motion.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/smufl_multisegment_curves.hash"

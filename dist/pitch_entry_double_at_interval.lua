@@ -1174,12 +1174,12 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script doubles selected entries at a specified diatonic interval above or below. By default, it creates menu options to double an octave up and down as well as options to double a third up and down. RGP Lua allows you to add further menu options by creating additional instances of the script file and setting Optional Menu Text and Optional Prefix. To avoid confusion, you should also set the Optional Description. If you omit Optional Undo Text, the undo text will be the same as the menu option.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Here is an example that creates a \u8220"Double Fifth Up\u8221" menu option.\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Menu Text: {\f1 Double Fifth Up}\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Description: {\f1 Doubles the current note a diatonic fifth higher}\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Prefix: {\f1 input_interval = 4}\sa180\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Intervals are defined as 0=unison, 1=second, 2=third, etc. Positive values transpose up and negative values transpose down. See the \u8220"AdditionalPrefixes\u8221" above for examples.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script doubles selected entries at a specified diatonic interval above or below. By default, it creates menu options to double an octave up and down as well as options to double a third up and down. RGP Lua allows you to add further menu options by creating additional instances of the script file and setting Optional Menu Text and Optional Prefix. To avoid confusion, you should also set the Optional Description. If you omit Optional Undo Text, the undo text will be the same as the menu option.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Here is an example that creates a \u8220"Double Fifth Up\u8221" menu option.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Menu Text: {\f1 Double Fifth Up}\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Description: {\f1 Doubles the current note a diatonic fifth higher}\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Optional Prefix: {\f1 input_interval = 4}\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Intervals are defined as 0=unison, 1=second, 2=third, etc. Positive values transpose up and negative values transpose down. See the \u8220"AdditionalPrefixes\u8221" above for examples.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_entry_double_at_interval.hash"

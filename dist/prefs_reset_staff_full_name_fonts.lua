@@ -669,7 +669,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script only affects selected staves. If you select the entire document before running this script, it modifies any full staff names found in staff styles as well.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script only affects selected staves. If you select the entire document before running this script, it modifies any full staff names found in staff styles as well.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/prefs_reset_staff_full_name_fonts.hash"

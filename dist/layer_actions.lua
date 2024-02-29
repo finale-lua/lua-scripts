@@ -5321,9 +5321,9 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Perform specific actions on individual note layers in the current selection. Each action in the list begins with a configurable hotkey. Open the script, type the hotkey and hit RETURN or ENTER. To repeat the same action as last time without a confirmation dialog hold down the SHIFT key when starting the script.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Actions: - Erase Layer - Playback Enable - Playback Mute - Visible - Invisible - Stems Up - Stems Down - Stems Default\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Note that \u8220"Erase Layer\u8221" will delete a whole measure even if only part of it is selected. All other actions respect selection boundaries. This script replaces four old (deprecated) ones in the repo: \u8220"layer_hide.lua\u8221", \u8220"layer_mute.lua\u8221", \u8220"stem_direction_by_layer.lua\u8221" and \u8220"layer_clear_selective.lua\u8221".\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Perform specific actions on individual note layers in the current selection. Each action in the list begins with a configurable hotkey. Open the script, type the hotkey and hit RETURN or ENTER. To repeat the same action as last time without a confirmation dialog hold down the SHIFT key when starting the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Actions: - Erase Layer - Playback Enable - Playback Mute - Visible - Invisible - Stems Up - Stems Down - Stems Default\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Note that \u8220"Erase Layer\u8221" will delete a whole measure even if only part of it is selected. All other actions respect selection boundaries. This script replaces four old (deprecated) ones in the repo: \u8220"layer_hide.lua\u8221", \u8220"layer_mute.lua\u8221", \u8220"stem_direction_by_layer.lua\u8221" and \u8220"layer_clear_selective.lua\u8221".\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/layer_actions.hash"

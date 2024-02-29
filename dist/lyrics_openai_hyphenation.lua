@@ -5301,17 +5301,17 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Uses the OpenAI online api to add or correct lyrics hyphenation. You must have a OpenAI account and internet connection. You will need your API Key, which can be obtained as follows:\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Login to your OpenAI account at openai.com.\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select API and then click on Personal\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You will see an option to create an API Key.\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must keep your API Key secure. Do not share it online.\sa180\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 To configure your OpenAI account, enter your API Key in the prefix when adding the script to RGP Lua. If you want OpenAI to be available in any script, you can add your key to the System Prefix instead.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Your prefix should include this line of code:\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 openai_api_key = "<your secure api key>"\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 It is important to enclose the API Key you got from OpenAI in quotes as shown above.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 The first time you use the script, RGP Lua will prompt you for permission to post data to the openai.com server. You can choose Allow Always to suppress that prompt in the future.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 The OpenAI service is not free, but each request for lyrics hyphenation is very light (using ChatGPT 3.5) and small jobs only cost fractions of a cent. Check the pricing at the OpenAI site.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Uses the OpenAI online api to add or correct lyrics hyphenation. You must have a OpenAI account and internet connection. You will need your API Key, which can be obtained as follows:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Login to your OpenAI account at openai.com.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select API and then click on Personal\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You will see an option to create an API Key.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab You must keep your API Key secure. Do not share it online.\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To configure your OpenAI account, enter your API Key in the prefix when adding the script to RGP Lua. If you want OpenAI to be available in any script, you can add your key to the System Prefix instead.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Your prefix should include this line of code:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \f1 openai_api_key = "<your secure api key>"\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 It is important to enclose the API Key you got from OpenAI in quotes as shown above.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The first time you use the script, RGP Lua will prompt you for permission to post data to the openai.com server. You can choose Allow Always to suppress that prompt in the future.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The OpenAI service is not free, but each request for lyrics hyphenation is very light (using ChatGPT 3.5) and small jobs only cost fractions of a cent. Check the pricing at the OpenAI site.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/lyrics_openai_hyphenation.hash"

@@ -5531,21 +5531,21 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Using {\b Pitch Entry Keep-Delete}\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Select a note within each chord to either keep or delete, numbered from either the top or bottom of each chord.\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b 1} deletes (or keeps) the top (or bottom) note\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b 2} deletes (or keeps) the 2nd note from top (or bottom)\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab etc.\sa180\par}
-        {\pard \ql \f0 \sa180 \li720 \fi0 {\b Key Commands:}\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b a} - keep\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z} - delete\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b s} - from the top\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x} - from the bottom\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab \u8211-\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q} - toggle keep/delete\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b w} - toggle top/bottom\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e} - show these notes\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 1-9} - enter note count (delete key not needed)\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Using {\b Pitch Entry Keep-Delete}\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select a note within each chord to either keep or delete, numbered from either the top or bottom of each chord.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b 1} deletes (or keeps) the top (or bottom) note\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b 2} deletes (or keeps) the 2nd note from top (or bottom)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab etc.\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 {\b Key Commands:}\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b a} - keep\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z} - delete\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b s} - from the top\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x} - from the bottom\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab \u8211-\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q} - toggle keep/delete\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b w} - toggle top/bottom\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e} - show these notes\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 1-9} - enter note count (delete key not needed)\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_entry_keep_delete.hash"

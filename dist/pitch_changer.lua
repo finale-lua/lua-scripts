@@ -5330,10 +5330,10 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script was inspired by Jari Williamsson\u8217's \u8220"JW Change Pitches\u8221" plug-in (2017) revived to work on Macs with non-Intel processors.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Identify \u8220"from\u8221" and \u8220"to\u8221" pitches by note name (a-g or A-G) followed by accidental (#-###, b-bbb) as required. Matching pitches will be changed in every octave. To repeat the last pitch change without a confirmation dialog use the \u8220"Pitch Changer Repeat\u8221" menu or hold down the SHIFT key at startup.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 KEY REPLACEMENTS:\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Type \u8220"z\u8221", \u8220"x\u8221" or \u8220"v\u8221" to change the DIRECTION to \u8220"Closest\u8221", \u8220"Up\u8221" or \u8220"Down\u8221" respectively. Type \u8220"s\u8221" as an alternative to \u8220"#\u8221". Type \u8220"w\u8221" to swap the values in the \u8220"From:\u8221" and \u8220"To:\u8221" fields. Type \u8220"q\u8221" to display this \u8220"Information\u8221" window.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script was inspired by Jari Williamsson\u8217's \u8220"JW Change Pitches\u8221" plug-in (2017) revived to work on Macs with non-Intel processors.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Identify \u8220"from\u8221" and \u8220"to\u8221" pitches by note name (a-g or A-G) followed by accidental (#-###, b-bbb) as required. Matching pitches will be changed in every octave. To repeat the last pitch change without a confirmation dialog use the \u8220"Pitch Changer Repeat\u8221" menu or hold down the SHIFT key at startup.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 KEY REPLACEMENTS:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Type \u8220"z\u8221", \u8220"x\u8221" or \u8220"v\u8221" to change the DIRECTION to \u8220"Closest\u8221", \u8220"Up\u8221" or \u8220"Down\u8221" respectively. Type \u8220"s\u8221" as an alternative to \u8220"#\u8221". Type \u8220"w\u8221" to swap the values in the \u8220"From:\u8221" and \u8220"To:\u8221" fields. Type \u8220"q\u8221" to display this \u8220"Information\u8221" window.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_changer.hash"

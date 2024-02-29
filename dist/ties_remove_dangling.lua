@@ -1669,8 +1669,8 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 TIES: REMOVE DANGLING\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script will search for \u8216'dangling ties\u8217' - ties that go to rests rather than other notes - and either remove them or replace them with slurs.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 TIES: REMOVE DANGLING\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script will search for \u8216'dangling ties\u8217' - ties that go to rests rather than other notes - and either remove them or replace them with slurs.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/ties_remove_dangling.hash"

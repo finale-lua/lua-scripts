@@ -5845,7 +5845,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Notes and chords in the current music selection are doubled either up or down by the chosen diatonic interval. Act on one layer or all four. To repeat the last action without a confirmation dialog use the \u8220"Repeat\u8221" menu or hold down [shift] when starting the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Notes and chords in the current music selection are doubled either up or down by the chosen diatonic interval. Act on one layer or all four. To repeat the last action without a confirmation dialog use the \u8220"Repeat\u8221" menu or hold down [shift] when starting the script.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_entry_diatonic_double.hash"

@@ -16,7 +16,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 The Expression Selection Dialog expects expression definitions to be stored sequentially and stops looking for definitions once the next value is not found. However, Finale can leave orphaned expression definitions with higher values. These are inaccessible unless you add in dummy expressions to fill in the gaps. This script builds a report of any such expression definitions.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The Expression Selection Dialog expects expression definitions to be stored sequentially and stops looking for definitions once the next value is not found. However, Finale can leave orphaned expression definitions with higher values. These are inaccessible unless you add in dummy expressions to fill in the gaps. This script builds a report of any such expression definitions.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/expression_find_orphaned_definitions.hash"

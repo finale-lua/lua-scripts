@@ -5338,20 +5338,20 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script adds a diagonal \u8220"slash\u8221" to the start of every beamed group of grace notes in the current selection. It emulates Jari Williamsson\u8217's 2017 {\i JWGraceNoteSlash} ({\field{\*\fldinst{HYPERLINK "http://finaletips.nu/index.php/download/"}}{\fldrslt{\ul
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script adds a diagonal \u8220"slash\u8221" to the start of every beamed group of grace notes in the current selection. It emulates Jari Williamsson\u8217's 2017 {\i JWGraceNoteSlash} ({\field{\*\fldinst{HYPERLINK "http://finaletips.nu/index.php/download/"}}{\fldrslt{\ul
         finaletips.nu/index.php/download/
         }}}
         ) plug-in to work on Macs with non-Intel processors, but also offers customised angle, size and placement options, optional slashing of single grace notes and filtering by layer.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Unchecking {\i Slash Single Grace Notes} will {\i remove} slashes on individual (unbeamed) notes, but only if {\i Always Slash Flagged Grace Notes} is {\b not} selected at {\i Document} \u8594? {\i Document Options\u8230?} \u8594? {\i Grace Notes}.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 To change script parameters use the {\i Configuration} menu or hold down [Shift] when opening the script.\par}
-        {\pard \ql \f0 \sa180 \li720 \fi0 {\b Key Commands:}\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b g}: toggle \u8220"slash single grace notes\u8221"\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: restore default values\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: display these notes\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-4}: layer number (delete key not needed)\line \par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab To change measurement units:\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e}: EVPU / {\b i}: Inches / {\b c}: Centimeters\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b o}: Points / {\b a}: Picas / {\b s}: Spaces\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Unchecking {\i Slash Single Grace Notes} will {\i remove} slashes on individual (unbeamed) notes, but only if {\i Always Slash Flagged Grace Notes} is {\b not} selected at {\i Document} \u8594? {\i Document Options\u8230?} \u8594? {\i Grace Notes}.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To change script parameters use the {\i Configuration} menu or hold down [Shift] when opening the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 {\b Key Commands:}\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b g}: toggle \u8220"slash single grace notes\u8221"\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: restore default values\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: display these notes\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-4}: layer number (delete key not needed)\line \par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab To change measurement units:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e}: EVPU / {\b i}: Inches / {\b c}: Centimeters\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b o}: Points / {\b a}: Picas / {\b s}: Spaces\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/gracenote_slash.hash"

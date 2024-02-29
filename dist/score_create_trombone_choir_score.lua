@@ -1537,9 +1537,9 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script sets up a score for trombone octet - 6 tenors, 2 basses.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 To use it, first open your default document or document styles. Then, run the script. All existing staffs will be deleted. And in their place, the trombone octet will be created.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script uses the standard ensemble creation configuration options.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script sets up a score for trombone octet - 6 tenors, 2 basses.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To use it, first open your default document or document styles. Then, run the script. All existing staffs will be deleted. And in their place, the trombone octet will be created.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script uses the standard ensemble creation configuration options.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/score_create_trombone_choir_score.hash"

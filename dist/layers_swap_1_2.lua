@@ -109,7 +109,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Swaps layers 1 and 2 for the selected region.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Swaps layers 1 and 2 for the selected region.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/layers_swap_1_2.hash"

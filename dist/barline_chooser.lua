@@ -5224,7 +5224,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Change all barlines in the selection to one of seven styles by hotkey. To repeat the same barline change as last time without a confirmation dialog, select the \u8220"Barline Chooser Repeat\u8221" menu or hold down the SHIFT key when starting the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Change all barlines in the selection to one of seven styles by hotkey. To repeat the same barline change as last time without a confirmation dialog, select the \u8220"Barline Chooser Repeat\u8221" menu or hold down the SHIFT key when starting the script.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/barline_chooser.hash"

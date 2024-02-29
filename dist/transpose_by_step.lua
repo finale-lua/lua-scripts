@@ -5898,13 +5898,13 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script allows you to specify a number of chromatic steps by which to transpose and the script simplifies the spelling. Chromatic steps are half-steps in a standard 12-tone scale, but they are smaller if you are using a microtone sytem defined in a custom key signature.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Normally the script opens a modeless window. However, if you invoke the plugin with a shift, option, or alt key pressed, it skips opening a window and uses the last settings you entered into the window. (This works with RGP Lua version 0.60 and higher.)\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 If you are using custom key signatures with JW Lua or an early version of RGP Lua, you must create a custom_key_sig.config.txt file in a folder called {\f1 script_settings} within the same folder as the script. It should contain the following two lines that define the custom key signature you are using. Unfortunately, the JW Lua and early versions of RGP Lua do not allow scripts to read this information from the Finale document.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 (This example is for 31-EDO.)\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 number_of_steps = 31\line
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script allows you to specify a number of chromatic steps by which to transpose and the script simplifies the spelling. Chromatic steps are half-steps in a standard 12-tone scale, but they are smaller if you are using a microtone sytem defined in a custom key signature.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Normally the script opens a modeless window. However, if you invoke the plugin with a shift, option, or alt key pressed, it skips opening a window and uses the last settings you entered into the window. (This works with RGP Lua version 0.60 and higher.)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 If you are using custom key signatures with JW Lua or an early version of RGP Lua, you must create a custom_key_sig.config.txt file in a folder called {\f1 script_settings} within the same folder as the script. It should contain the following two lines that define the custom key signature you are using. Unfortunately, the JW Lua and early versions of RGP Lua do not allow scripts to read this information from the Finale document.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 (This example is for 31-EDO.)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \f1 number_of_steps = 31\line
         diatonic_steps = \{0, 5, 10, 13, 18, 23, 28\}\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct information from the Finale document.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Later versions of RGP Lua (0.58 or higher) ignore this configuration file (if it exists) and read the correct information from the Finale document.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/transpose_by_step.hash"

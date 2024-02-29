@@ -33,7 +33,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script will apply a \u8220"Hide Staff\u8221" staff style to any full measures in the selected region of the active score/part that do not have any entries. If you have more than one \u8220"Hide Staff\u8221" staff style defined, you can pick the one you want to use.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script will apply a \u8220"Hide Staff\u8221" staff style to any full measures in the selected region of the active score/part that do not have any entries. If you have more than one \u8220"Hide Staff\u8221" staff style defined, you can pick the one you want to use.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_hide_empty.hash"

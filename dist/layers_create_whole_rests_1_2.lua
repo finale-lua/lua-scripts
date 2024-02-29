@@ -24,12 +24,12 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This plug-in is intended to aid in producing scores with multi-instrument staves.\par}
-        {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab In any given selected measure, if the plugin finds no entries in layer 1 but entries in other layers, it will add a whole rest in layer 1.\par}
-        {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The same for layer 2.\par}
-        {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If the time signature of the measure is anything other than 4/4, the whole note will be made into a tuplet lasting the entire measure. This will prevent Finale from complaining about the rest being too long, or filling the measure with more rests, according to the current settings.\par}
-        {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The tuplet will be hidden, but the hidden number \u8216'1\u8217' will still be shown as a visual reminder of the tuplet.\sa180\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 NOTE: Finale {\i might} exhibit some odd behavior when copying/pasting single-note tuplets!\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This plug-in is intended to aid in producing scores with multi-instrument staves.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab In any given selected measure, if the plugin finds no entries in layer 1 but entries in other layers, it will add a whole rest in layer 1.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The same for layer 2.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab If the time signature of the measure is anything other than 4/4, the whole note will be made into a tuplet lasting the entire measure. This will prevent Finale from complaining about the rest being too long, or filling the measure with more rests, according to the current settings.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab The tuplet will be hidden, but the hidden number \u8216'1\u8217' will still be shown as a visual reminder of the tuplet.\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 NOTE: Finale {\i might} exhibit some odd behavior when copying/pasting single-note tuplets!\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/layers_create_whole_rests_1_2.hash"

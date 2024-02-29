@@ -479,11 +479,11 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Changes the meter in a selected range.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 If a single measure is selected, the meter will be set for all measures until the next meter change, or until the next measure with Time Signature set to \u8220"Always Show\u8221", or for the remaining measures in the score. You can override stopping at \u8220"Always Show\u8221" measures with a configuration file script_settings/meter_change.config.txt that contains the following line:\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 \f1 stop_at_always_show = false\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 You can limit the meter change to one bar by holding down Shift or Option keys when invoking the script. Then the meter is changed only for the single measure you selected.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 If multiple measures are selected, the meter will be set exactly for the selected measures.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Changes the meter in a selected range.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 If a single measure is selected, the meter will be set for all measures until the next meter change, or until the next measure with Time Signature set to \u8220"Always Show\u8221", or for the remaining measures in the score. You can override stopping at \u8220"Always Show\u8221" measures with a configuration file script_settings/meter_change.config.txt that contains the following line:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \f1 stop_at_always_show = false\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 You can limit the meter change to one bar by holding down Shift or Option keys when invoking the script. Then the meter is changed only for the single measure you selected.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 If multiple measures are selected, the meter will be set exactly for the selected measures.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/meter_change.hash"

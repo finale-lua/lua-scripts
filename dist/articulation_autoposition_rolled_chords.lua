@@ -384,13 +384,13 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 How to use this script:\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Manually apply rolled-chord articulations to the chords that need them (without worrying about how they look).\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Select the region you want to change.\par}
-        {\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Run the script.\sa180\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 The script searches for any articulations with the \u8220"Copy Main Symbol Vertically\u8221" option checked. It automatically positions them to the left of any accidentals and changes their length so that they align with the top and bottom of the chord with a slight extension. (Approximately 1/4 space on either end. It may be longer depending on the length of the character defined for the articulation.)\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 If you are working with a keyboard or other multi-staff instrument, the script automatically extends the top articulation across any staff or staves below, provided the lower staves also have the same articulation mark. It then hides the lower mark(s). This behavior is limited to staves that are selected. To suppress this behavior and restrict positioning to single staves, hold down Shift, Option (macOS), or Alt (Windows) key when invoking the script.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script requires RGP Lua 0.59 or later.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 How to use this script:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Manually apply rolled-chord articulations to the chords that need them (without worrying about how they look).\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Select the region you want to change.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Run the script.\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The script searches for any articulations with the \u8220"Copy Main Symbol Vertically\u8221" option checked. It automatically positions them to the left of any accidentals and changes their length so that they align with the top and bottom of the chord with a slight extension. (Approximately 1/4 space on either end. It may be longer depending on the length of the character defined for the articulation.)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 If you are working with a keyboard or other multi-staff instrument, the script automatically extends the top articulation across any staff or staves below, provided the lower staves also have the same articulation mark. It then hides the lower mark(s). This behavior is limited to staves that are selected. To suppress this behavior and restrict positioning to single staves, hold down Shift, Option (macOS), or Alt (Windows) key when invoking the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script requires RGP Lua 0.59 or later.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/articulation_autoposition_rolled_chords.hash"

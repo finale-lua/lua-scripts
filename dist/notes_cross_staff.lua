@@ -5349,17 +5349,17 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Selected notes are \u8220"crossed\u8221" to the next staff above or below the selection. This duplicates Finale\u8217's inbuilt {\b alt} (option) up/down arrow shortcuts for cross-staff entries, but in my experience these malfunction at random. This script doesn\u8217't, but also offers filtering by layer, optional stem reversal and horizontal note shift to counteract stem reversal. Tobias Giesen\u8217's {\i TGTools} \u8594? {\i Cross Staff} is great for more complex tasks, but this is slicker and more versatile than the inbuilt version for simple ones.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 To change options use the {\i Notes Cross-Staff Configuration\u8230?} menu or hold down [Shift] when starting the script. When crossing with stem reversal to the staff {\b above} try EVPU offsets of {\b 12} (crossed) and {\b -12} (not crossed), or {\b 24/0}. When crossing to the staff {\b below} try offsets of {\b -12/12} or {\b -24/0} EVPUs.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 By default only notes within the selection or part of the beam groups it contains will be shifted horizontally. Select \u8220"{\i Shift horizontals across whole measure}\u8221" ({\b g}) to shift every note in the selected measure.\par}
-        {\pard \ql \f0 \sa180 \li720 \fi0 {\b Key Commands} (in the Configuration window):\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d - f - g - h}: toggle the checkboxes\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: reset to default values\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: display these notes\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-4}: layer number (delete key not needed)\line \par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab To change measurement units:\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e}: EVPU / {\b i}: Inches / {\b c}: Centimeters\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b o}: Points / {\b a}: Picas / {\b s}: Spaces\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Selected notes are \u8220"crossed\u8221" to the next staff above or below the selection. This duplicates Finale\u8217's inbuilt {\b alt} (option) up/down arrow shortcuts for cross-staff entries, but in my experience these malfunction at random. This script doesn\u8217't, but also offers filtering by layer, optional stem reversal and horizontal note shift to counteract stem reversal. Tobias Giesen\u8217's {\i TGTools} \u8594? {\i Cross Staff} is great for more complex tasks, but this is slicker and more versatile than the inbuilt version for simple ones.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To change options use the {\i Notes Cross-Staff Configuration\u8230?} menu or hold down [Shift] when starting the script. When crossing with stem reversal to the staff {\b above} try EVPU offsets of {\b 12} (crossed) and {\b -12} (not crossed), or {\b 24/0}. When crossing to the staff {\b below} try offsets of {\b -12/12} or {\b -24/0} EVPUs.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 By default only notes within the selection or part of the beam groups it contains will be shifted horizontally. Select \u8220"{\i Shift horizontals across whole measure}\u8221" ({\b g}) to shift every note in the selected measure.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 {\b Key Commands} (in the Configuration window):\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d - f - g - h}: toggle the checkboxes\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: reset to default values\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: display these notes\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-4}: layer number (delete key not needed)\line \par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab To change measurement units:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e}: EVPU / {\b i}: Inches / {\b c}: Centimeters\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b o}: Points / {\b a}: Picas / {\b s}: Spaces\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/notes_cross_staff.hash"

@@ -35,7 +35,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 A stream of many short beamed notes (say 32nd notes) are easier to read if the secondary beam is broken in the middle of a beat. This script breaks secondary beams in simple meters (2/4, 3/4, 4/4 etc) in the middle of each beat. If the meter is compound (6/8, 9/8 etc) then the beat is divided into three sections. Two menus are created, {\f1 Break secondary beams} and {\f1 Clear secondary beam breaks}.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 A stream of many short beamed notes (say 32nd notes) are easier to read if the secondary beam is broken in the middle of a beat. This script breaks secondary beams in simple meters (2/4, 3/4, 4/4 etc) in the middle of each beat. If the meter is compound (6/8, 9/8 etc) then the beat is divided into three sections. Two menus are created, {\f1 Break secondary beams} and {\f1 Clear secondary beam breaks}.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/secondary_beam_breaks.hash"

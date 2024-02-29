@@ -5552,9 +5552,9 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script is designed to take music from one staff and create \u8220"cue note\u8221" copies in the same measure on one or more empty staves. The copy is smaller and muted, and can include chosen markings from the original. It is copied to the chosen layer with a whole-note rest placed in the original layer.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Preferences are preserved between each run. This script uses an expression category called \u8220"Cue Names\u8221" which will be created if needed.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 An extra menu, \u8220"Cue Notes Flip Frozen\u8221", will look for notes in the previously selected \u8220"cue note\u8221" layer and flip the direction of their stems if they have been \u8220"frozen\u8221" up or down.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script is designed to take music from one staff and create \u8220"cue note\u8221" copies in the same measure on one or more empty staves. The copy is smaller and muted, and can include chosen markings from the original. It is copied to the chosen layer with a whole-note rest placed in the original layer.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Preferences are preserved between each run. This script uses an expression category called \u8220"Cue Names\u8221" which will be created if needed.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 An extra menu, \u8220"Cue Notes Flip Frozen\u8221", will look for notes in the previously selected \u8220"cue note\u8221" layer and flip the direction of their stems if they have been \u8220"frozen\u8221" up or down.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/cue_notes_create.hash"

@@ -5239,17 +5239,17 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This is designed to help navigate the many scripts crowding your {\i RGP Lua} menu. It provides access to Lua scripts and Finale menu items through a set of easily configurable palettes (dialog windows) organised by type of activity and triggered by simple \u8220"hotkey\u8221" keystrokes.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 The {\i Hotkey Palette} principle is demonstrated expertly by Nick Mazuk on YouTube ([www.youtube.com/@nickmazuk ](https://www.youtube.com/@nickmazuk)). Scripts are grouped into primary categories like {\i Intervals}, {\i Layers}, {\i Notes & Chords}, {\i Measure Items} and so on as a set of palettes triggered by keystroke. Each primary palette calls up a second palette containing scripts in related areas, also triggered by keystroke. Reach hundreds of scripts in your collection using just two keystrokes with the actual hotkeys presented as a visual reminder. Actions you repeat often will link to muscle memory and become easier to recall.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Nick uses Keyboard Maestro ({\field{\*\fldinst{HYPERLINK "https://keyboardmaestro.com"}}{\fldrslt{\ul
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This is designed to help navigate the many scripts crowding your {\i RGP Lua} menu. It provides access to Lua scripts and Finale menu items through a set of easily configurable palettes (dialog windows) organised by type of activity and triggered by simple \u8220"hotkey\u8221" keystrokes.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The {\i Hotkey Palette} principle is demonstrated expertly by Nick Mazuk on YouTube ([www.youtube.com/@nickmazuk ](https://www.youtube.com/@nickmazuk)). Scripts are grouped into primary categories like {\i Intervals}, {\i Layers}, {\i Notes & Chords}, {\i Measure Items} and so on as a set of palettes triggered by keystroke. Each primary palette calls up a second palette containing scripts in related areas, also triggered by keystroke. Reach hundreds of scripts in your collection using just two keystrokes with the actual hotkeys presented as a visual reminder. Actions you repeat often will link to muscle memory and become easier to recall.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Nick uses Keyboard Maestro ({\field{\*\fldinst{HYPERLINK "https://keyboardmaestro.com"}}{\fldrslt{\ul
         keyboardmaestro.com
         }}}
         ) on Mac for this, but this script makes it free (cross-platform) within Finale using RGP Lua without other software or configuration. Scripts that use modifier keys (shift, alt/option etc) for \u8220"alternative\u8221" behaviours respond to those keys when called from these palettes.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script is loaded with a set of \u8220"demo\u8221" palettes containing many of the Lua scripts available at {\field{\*\fldinst{HYPERLINK "https://FinaleLua.com"}}{\fldrslt{\ul
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script is loaded with a set of \u8220"demo\u8221" palettes containing many of the Lua scripts available at {\field{\*\fldinst{HYPERLINK "https://FinaleLua.com"}}{\fldrslt{\ul
         FinaleLua.com
         }}}
         . If a script isn\u8217't installed on your system you will get an \u8220"unidentified\u8221" warning on execution. Delete those scripts and add new ones in their place. Reconfigure each of the {\i Main} palettes, change their name or hotkey, delete them or add new ones.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 You can also add Finale menus to your palettes. Not every menu item is available, including Plug-ins that are {\b not} added by {\i RGP Lua}, so when using {\i Add Menu Item} try it out before saving to a palette.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 You can also add Finale menus to your palettes. Not every menu item is available, including Plug-ins that are {\b not} added by {\i RGP Lua}, so when using {\i Add Menu Item} try it out before saving to a palette.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/hotkey_script_palettes.hash"

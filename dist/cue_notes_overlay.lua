@@ -5652,27 +5652,27 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script takes music from a nominated layer in the selected staff and creates a {\b Cue} version on one or more other staves. It is intended to create cue notes above or below existing \u8220"played\u8221" material in the destination. If the destination measure is empty a whole-measure rest will be created as a reminder that the cue isn\u8217't played.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Cue notes are often shown in a different octave to accommodate the clef and transposition of the destination. Use {\i Cue Octave Offset} setting for this. Cues can interact visually with \u8220"played\u8221" material in countless ways so settings probably need to change between scenarios.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 The cue copy is reduced in size and muted, and can optionally duplicate articulations, expressions, lyrics and smart shapes. \u8220"Note-based\u8221" smart shapes are copied, typically slurs and glissandos, because they actually \u8220"attach\u8221" to the cued notes.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 This script stores cue names in a text expression category called {\i Cue Names} which will be created automatically if needed. Once created you can adjust its text and position parameters like any other expression category.\par}
-        {\pard \ql \f0 \sa180 \li0 \fi0 Rests in the cue will be offset by the value you have set for layer 1 at {\i Document} \u8594? {\i Document Options} \u8594? {\i Layers}. They will automatically offset in the same direction as the nominated cue stem direction.\par}
-        {\pard \ql \f0 \sa180 \li720 \fi0 {\b Command Keys}\line In the {\i Destination Staff} window, hit the tab key to move the cursor\line into a numeric field and these key commands become available:\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q} - show these script notes\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b w} - flip [copy articulations]\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e} - flip [copy expressions]\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b r} - flip [copy smartshapes]\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b t} - flip [copy lyrics]\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b y} - flip [mute cuenotes]\line \par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b a} - check all options\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b s} - check no options\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d} - select all staves\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b f} - select no staves\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b g} - select empty staves\line \par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z (-)} - octave -1\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x (+)} - octave +1\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b c} - flip stem direction\par}
-        {\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b v} - flip [destination stems opposite]\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script takes music from a nominated layer in the selected staff and creates a {\b Cue} version on one or more other staves. It is intended to create cue notes above or below existing \u8220"played\u8221" material in the destination. If the destination measure is empty a whole-measure rest will be created as a reminder that the cue isn\u8217't played.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Cue notes are often shown in a different octave to accommodate the clef and transposition of the destination. Use {\i Cue Octave Offset} setting for this. Cues can interact visually with \u8220"played\u8221" material in countless ways so settings probably need to change between scenarios.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The cue copy is reduced in size and muted, and can optionally duplicate articulations, expressions, lyrics and smart shapes. \u8220"Note-based\u8221" smart shapes are copied, typically slurs and glissandos, because they actually \u8220"attach\u8221" to the cued notes.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script stores cue names in a text expression category called {\i Cue Names} which will be created automatically if needed. Once created you can adjust its text and position parameters like any other expression category.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Rests in the cue will be offset by the value you have set for layer 1 at {\i Document} \u8594? {\i Document Options} \u8594? {\i Layers}. They will automatically offset in the same direction as the nominated cue stem direction.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 {\b Command Keys}\line In the {\i Destination Staff} window, hit the tab key to move the cursor\line into a numeric field and these key commands become available:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q} - show these script notes\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b w} - flip [copy articulations]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e} - flip [copy expressions]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b r} - flip [copy smartshapes]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b t} - flip [copy lyrics]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b y} - flip [mute cuenotes]\line \par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b a} - check all options\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b s} - check no options\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d} - select all staves\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b f} - select no staves\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b g} - select empty staves\line \par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z (-)} - octave -1\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x (+)} - octave +1\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b c} - flip stem direction\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b v} - flip [destination stems opposite]\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/cue_notes_overlay.hash"
