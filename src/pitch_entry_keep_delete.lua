@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Jacob Winkler, Nick Mazuk & Carl Vine"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.33"
-    finaleplugin.Date = "2024-02-26"
+    finaleplugin.Version = "1.34"
+    finaleplugin.Date = "2024-03-01"
     finaleplugin.CategoryTags = "Pitch"
     finaleplugin.Notes = [[
         Select a note within each chord to either keep or delete, 
@@ -35,6 +35,8 @@ function plugindef()
         To repeat the last action without a confirmation dialog 
         hold down [Shift] when starting the script. 
     ]]
+    finaleplugin.MinJWLuaVersion = 0.70
+    finaleplugin.CategoryTags = "Pitch, Transposition"
     return "Pitch: Chord Notes Keep-Delete...",
         "Pitch: Chord Notes Keep-Delete",
         "Keep or Delete selected notes from chords"
@@ -119,9 +121,7 @@ local function initialise_parameters()
 end
 
 local function make_changes()
-    if config.modeless then
-        finenv.StartNewUndoBlock(script_name:sub(13) .. " " .. selection.region, false)
-    end
+    finenv.StartNewUndoBlock("Keep-Delete " .. selection.region, false)
     for entry in eachentrysaved(finenv.Region(), config.layer) do
         if (entry.Count >= 2) then
             local n = config.number
@@ -136,10 +136,8 @@ local function make_changes()
             end
         end
     end
-    if config.modeless then
-        finenv.EndUndoBlock(true)
-        finenv.Region():Redraw()
-    end
+    finenv.EndUndoBlock(true)
+    finenv.Region():Redraw()
 end
 
 local function run_the_dialog()
@@ -267,7 +265,7 @@ local function keep_delete()
     configuration.get_user_settings(script_name, config, true)
     if not config.modeless and finenv.Region():IsEmpty() then
         finenv.UI():AlertError(
-            "Please select some music before\nrunning this script.",
+            "Please select some music\nbefore running this script.",
             finaleplugin.ScriptGroupName
         )
         return

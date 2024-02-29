@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.14" -- STREAMLINED MODELESS
-    finaleplugin.Date = "2024/02/25"
+    finaleplugin.Version = "0.15" -- MODELESS/MODAL
+    finaleplugin.Date = "2024/03/01"
     finaleplugin.AdditionalMenuOptions = [[
         Double Diatonic Repeat
     ]]
@@ -131,9 +131,7 @@ local function initialise_parameters()
 end
 
 local function do_double_diatonic()
-    if config.modeless then
-        finenv.StartNewUndoBlock(finaleplugin.ScriptGroupName .. " " .. selection.region, false)
-    end
+    finenv.StartNewUndoBlock(finaleplugin.ScriptGroupName .. " " .. selection.region, false)
     local direction = (config.direction * -2) + 1
     local shift = ((config.octave * 7) + config.interval - 1) * direction
     if shift ~= 0 then
@@ -141,10 +139,8 @@ local function do_double_diatonic()
             transposition.entry_diatonic_transpose(entry, shift, true)
         end
     end
-    if config.modeless then
-        finenv.EndUndoBlock(true)
-        finenv.Region():Redraw()
-    end
+    finenv.EndUndoBlock(true)
+    finenv.Region():Redraw()
 end
 
 local function run_the_dialog()
@@ -275,7 +271,7 @@ function interval_doubler()
     configuration.get_user_settings(script_name, config, true)
     if not config.modeless and finenv.Region():IsEmpty() then
         finenv.UI():AlertError(
-            "Please select some music before\nrunning this script.",
+            "Please select some music\nbefore running this script.",
             finaleplugin.ScriptGroupName
         )
         return
