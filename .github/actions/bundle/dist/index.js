@@ -7011,6 +7011,11 @@ const getRTFNotes = (input) => {
          * other win sizes are replaced below. The mac sizes are injected, as a JSON
          * fragment, into the RTF comment field; utils.show_notes_dialog() can use
          * this to perform replacements.
+         *
+         * We also add \sl264 \slmult1 to each paragraph to set line spacing
+         * to 110%. This works for both Mac and Win: 264 is 110% of 240, which
+         * is the default font size of 12pt in twips, and \slmult1 tells RTF to
+         * interpret this as a multiple of whatever font size is currently in use.
          */
         const args = `
             -f markdown 
@@ -7029,7 +7034,7 @@ const getRTFNotes = (input) => {
                     case 'fs28': return 'fs20';
                     default: return match;
                 }
-            });
+            }).replace(/\\pard/g, '\\pard \\sl264 \\slmult1');
             result = `    finaleplugin.RTFNotes = [[${result}]]`;
         }
     }
