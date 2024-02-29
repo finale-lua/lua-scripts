@@ -160,7 +160,7 @@ local function run_the_dialog()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(finaleplugin.ScriptGroupName)
         -- local functions
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. finaleplugin.ScriptGroupName, 400, 290)
+            utils.show_notes_dialog(dialog, "About " .. finaleplugin.ScriptGroupName, 400, 315)
             refocus_document = true
         end
         local function dy(diff) y = diff and (y + diff) or (y + y_inc) end

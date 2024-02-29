@@ -35,8 +35,6 @@ function plugindef()
         To repeat the last action without a confirmation dialog 
         hold down [Shift] when starting the script. 
     ]]
-    finaleplugin.MinJWLuaVersion = 0.70
-    finaleplugin.CategoryTags = "Pitch, Transposition"
     return "Pitch: Chord Notes Keep-Delete...",
         "Pitch: Chord Notes Keep-Delete",
         "Keep or Delete selected notes from chords"
@@ -156,7 +154,7 @@ local function run_the_dialog()
             return dialog:CreateStatic(dx, dy):SetText(title):SetWidth(width)
         end
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 400, 330)
+            utils.show_notes_dialog(dialog, "About " .. name, 400, 375)
             refocus_document = true
         end
         local function flip_radio(id)
