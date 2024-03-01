@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.30"
-    finaleplugin.Date = "2024/02/28"
+    finaleplugin.Version = "0.31"
+    finaleplugin.Date = "2024/03/02"
     finaleplugin.CategoryTags = "Rests, Selection"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
@@ -42,6 +42,7 @@ function plugindef()
         > - __x__: floating rests 
         > - __i__: invert shift direction 
         > - __q__: show these script notes 
+        > - __m__: toggle "Modeless" 
         > - __0-4__: layer number (delete key not needed) 
     ]]
     return "Rest Slider...", "Rest Slider", "Slide rests up and down with continuous visual feedback"
@@ -102,28 +103,27 @@ local function get_staff_name(staff_num)
 end
 
 local function initialise_parameters()
-    -- set_saved_bounds
     local rgn = finenv.Region()
-    for _, prop in ipairs(bounds) do
-        saved_bounds[prop] = rgn[prop]
-    end
-    -- update_selection_id
     selection = { staff = "no staff", region = "no selection"} -- default
-    if not rgn:IsEmpty() then
-        -- measures
-        local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
-        local m = measure_duration(rgn.EndMeasure)
-        local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
-        selection.region = string.format("m%.2f-m%.2f", r1, r2)
-        -- staves
-        selection.staff = get_staff_name(rgn.StartStaff)
-        if rgn.EndStaff ~= rgn.StartStaff then
-            selection.staff = selection.staff .. " → " .. get_staff_name(rgn.EndStaff)
-        end
+    adjacent_offsets = {} -- start with blank collection
+    -- set_saved_bounds
+    for _, prop in ipairs(bounds) do
+        saved_bounds[prop] = rgn:IsEmpty() and 0 or rgn[prop]
+    end
+    if rgn:IsEmpty() then return end -- nothing else to initialise
+
+    -- update_selection_id: measures
+    local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
+    local m = measure_duration(rgn.EndMeasure)
+    local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
+    selection.region = string.format("m%.2f-m%.2f", r1, r2)
+    -- staves
+    selection.staff = get_staff_name(rgn.StartStaff)
+    if rgn.EndStaff ~= rgn.StartStaff then
+        selection.staff = selection.staff .. " → " .. get_staff_name(rgn.EndStaff)
     end
 
     -- set_adjacent_offsets
-    adjacent_offsets = {} -- start with blank collection
     local start_staff = rgn.StartStaff
     if start_staff ~= rgn.EndStaff then return end -- single staff required
 
@@ -226,14 +226,14 @@ local function run_the_dialog_box()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Shift Rests")
         -- local functions
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 500, 420)
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 440)
             refocus_document = true
         end
         local function yd(diff)
             y = diff and (y + diff) or (y + 25)
         end
         local function shift_rests(shift, float)
-            local id = string.format("%s %s L-%d pos%d", name, selection.region, save_layer, shift)
+            local id = string.format("%s %s L%d pos%d", name, selection.region, save_layer, shift)
             if config.modeless then finenv.StartNewUndoBlock(id, false) end
             for entry in eachentrysaved(finenv.Region(), save_layer) do
                 if entry:IsRest() then
@@ -292,7 +292,7 @@ local function run_the_dialog_box()
                     val = val:sub(-1)
                     local n = tonumber(val) or 0
                     if save_layer ~= 0 and save_layer ~= n then
-                       save_layer = n
+                        save_layer = n
                         first_offset = first_rest_offset(n)
                         set_value(first_offset + center, false, true)
                     end
@@ -305,6 +305,8 @@ local function run_the_dialog_box()
             for prop, value in pairs(saved_bounds) do
                 if finenv.Region()[prop] ~= value then -- selection changed
                     initialise_parameters() -- reset all selection variables
+                    save_rest_positions()
+                    set_value(first_offset + center, false, false) -- reset slider and rests
                     dialog:GetControl("info"):SetText(selection.staff .. ": " .. selection.region)
                     dialog:GetControl("above"):SetEnable(adjacent_offsets.above ~= nil)
                     dialog:GetControl("below"):SetEnable(adjacent_offsets.below ~= nil)
@@ -378,16 +380,16 @@ local function slide_rests()
     configuration.get_user_settings(script_name, config)
     if not config.modeless and finenv.Region():IsEmpty() then
         finenv.UI():AlertError(
-            "Please select some music \nbefore running this script.",
+            "Please select some music\nbefore running this script.",
             name
         )
         return
     end
-
-    local mode_change = true
+    local mode_change = true -- cycle from Modal -> Modeless
     initialise_parameters()
     save_rest_positions()
     while mode_change do
+        finaleplugin.HandlesUndo = config.modeless -- restrict custom Undo to Modeless
         mode_change = run_the_dialog_box()
     end
 end
