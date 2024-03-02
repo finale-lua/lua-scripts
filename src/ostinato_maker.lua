@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.23" -- MODAL/MODELESS optional
-    finaleplugin.Date = "2024/03/01"
+    finaleplugin.Version = "0.24" -- MODAL/MODELESS optional
+    finaleplugin.Date = "2024/03/02"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Copy the current selection and paste it consecutively 
@@ -125,14 +125,12 @@ end
 
 local function add_duration(measure_number, position, add_edu)
     local m_width = measure_duration(measure_number)
-    if m_width == 0 then -- measure didn't load
-        return 0, 0
-    end
+    if m_width == 0 then return 0, 0 end -- measure didn't load
     if position > m_width then
         position = m_width
     end
     local remaining_to_add = position + add_edu
-    while remaining_to_add > m_width do
+    while remaining_to_add >= m_width do
         remaining_to_add = remaining_to_add - m_width
         local next_width = measure_duration(measure_number + 1) -- another measure?
         if next_width == 0 then -- no more measures
@@ -148,10 +146,10 @@ end
 
 local function shift_region_by_EDU(rgn, add_edu)
     rgn.EndMeasure, rgn.EndMeasurePos =
-            add_duration(rgn.EndMeasure, rgn.EndMeasurePos, add_edu)
+        add_duration(rgn.EndMeasure, rgn.EndMeasurePos, add_edu)
     if rgn.EndMeasure == 0 then return false end
     rgn.StartMeasure, rgn.StartMeasurePos =
-            add_duration(rgn.StartMeasure, rgn.StartMeasurePos, add_edu)
+        add_duration(rgn.StartMeasure, rgn.StartMeasurePos, add_edu)
     if rgn.StartMeasure == 0 then return false end
     return true
 end
@@ -190,22 +188,22 @@ local function round_measure_position(measure_num, pos)
 end
 
 local function region_duration(rgn)
-    local meas = {
+    local measure = {
         start = rgn.StartMeasure,
-        stop = rgn.EndMeasure
+        stop  = rgn.EndMeasure
     }
     local pos = {
-        start = round_measure_position(meas.start, rgn.StartMeasurePos),
-        stop = round_measure_position(meas.stop, rgn.EndMeasurePos)
+        start = rgn.StartMeasurePos,
+        stop  = round_measure_position(measure.stop, rgn.EndMeasurePos)
     }
-    local diff, duration
-    if meas.start == meas.stop then -- simple EDU offset
+    local diff
+    if measure.start == measure.stop then -- simple EDU offset
         diff = pos.stop - pos.start
     else
-        duration = -pos.start
-        while meas.start < meas.stop do
-            duration = duration + measure_duration(meas.start)
-            meas.start = meas.start + 1
+        local duration = -pos.start
+        while measure.start < measure.stop do
+            duration = duration + measure_duration(measure.start)
+            measure.start = measure.start + 1
         end
         diff = duration + pos.stop
     end
@@ -218,7 +216,7 @@ local function region_erasures(rgn)
         local sh_rgn = finale.FCMusicRegion()
         sh_rgn:SetRegion(rgn) -- extend erasure region for stray hairpins
         sh_rgn.EndMeasure, sh_rgn.EndMeasurePos =
-            add_duration(sh_rgn.EndMeasure, sh_rgn.EndMeasurePos, 512)
+            add_duration(sh_rgn.EndMeasure, sh_rgn.EndMeasurePos, finale.NOTE_8TH)
         for mark in loadallforregion(finale.FCSmartShapeMeasureMarks(), sh_rgn) do
             local shape = mark:CreateSmartShape()
             if shape and
@@ -266,17 +264,14 @@ local function region_erasures(rgn)
 end
 
 local function paste_many_copies(region)
-    if region:IsEmpty() or config.num_repeats < 1 then return end
+    if region:IsEmpty() or config.num_repeats < 1 then return end -- no duplication
     local rgn = mixin.FCMMusicRegion()
     rgn:SetRegion(region)
     finenv.StartNewUndoBlock(
         string.format("Ostinato %s x %d", selection.region, config.num_repeats),
         false
     )
-    local m_d = measure_duration(rgn.EndMeasure)
-    if rgn.EndMeasurePos >= m_d then
-        rgn.EndMeasurePos = m_d - 1
-    end
+    rgn.EndMeasurePos = math.min(rgn.EndMeasurePos, measure_duration(rgn.EndMeasure))
     rgn:CopyMusic() -- save a copy of the current selection
     local duration = region_duration(rgn)
     local first_step
@@ -306,7 +301,7 @@ local function run_user_dialog()
     local name = plugindef():sub(1, -4)
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
     local y = 0
-    --
+        -- local functions
         local function flip_check(id)
             local ctl = dialog:GetControl(dialog_options[id])
             ctl:SetCheck((ctl:GetCheck() + 1) % 2)
@@ -320,7 +315,7 @@ local function run_user_dialog()
             utils.show_notes_dialog(dialog, "About " .. name, 500, 420)
             refocus_document = true
         end
-        local function key_check(ctl) -- some stray key commands
+        local function key_check(ctl) -- key commands
             local s = ctl:GetText():lower()
             if s:find("[^0-9]") then
                 if s:find("q") then info_dialog()
@@ -337,7 +332,7 @@ local function run_user_dialog()
                 elseif s:find("z") then check_all_state(0)
                 end
             else
-                s = s:sub(-2) -- 2-digit limit
+                s = s:sub(-2) -- 2-character limit
                 save_rpt = s
             end
             ctl:SetText(save_rpt):SetKeyboardFocus()
@@ -425,7 +420,6 @@ local function make_ostinato()
     local qim = finenv.QueryInvokedModifierKeys
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
     local mode_change = true
-
     initialise_parameters()
     if mod_key then
         paste_many_copies(finenv.Region())
