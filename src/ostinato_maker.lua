@@ -28,18 +28,15 @@ function plugindef()
         to create an ostinato and __Cancel__ [Escape] to close the window. 
         Cancelling __Modeless__ will apply the _next_ time you use the script.
 
-        This script grew out of the _region_replicate_music.lua_ script 
-        by Michael McClennan and Jacob Winkler in the 
-        [FinaleLua.com](https://FinaleLua.com) repository. 
-
-        > __Key Commands__: 
+        > These __Key Commands__ are available when the __times__ field is highlighted: 
 
         > - __q__: show these script notes 
         > - __w__: flip [copy Articulations] 
         > - __e__: flip [copy Expressions] 
-        > - __r__: flip [copy Smartshapes] 
-        > - __t__: flip [copy Lyrics] 
-        > - __y__: flip [copy Chords]  
+        > - __r__: flip [copy Slurs] 
+        > - __t__: flip [copy Other Smartshapes] 
+        > - __y__: flip [copy Lyrics] 
+        > - __u__: flip [copy Chords]  
         > - __a__: copy all 
         > - __z__: copy none 
         > - __m__: flip [Modeless] 
@@ -69,8 +66,8 @@ local config = {
     window_pos_y = false,
 }
 local dialog_options = { -- and populate config values (unchecked)
-    "copy_articulations", "copy_expressions", "copy_smartshapes",
-    "copy_lyrics", "copy_chords"
+    "copy_articulations", "copy_expressions", "copy_slurs",
+     "copy_smartshapes",  "copy_lyrics",      "copy_chords"
 }
 for _, v in ipairs(dialog_options) do config[v] = 0 end -- (default unchecked)
 
@@ -105,13 +102,13 @@ local function get_staff_name(staff_num)
 end
 
 local function initialise_parameters()
-    -- set_saved_bounds
     local rgn = finenv.Region()
-    for _, property in ipairs(bounds) do
-        saved_bounds[property] = rgn[property]
-    end
-    -- update_selection_id
     selection = { staff = "no staff", region = "no selection"} -- default
+    -- saved_bounds
+    for _, property in ipairs(bounds) do
+        saved_bounds[property] = rgn:IsEmpty() and 0 or rgn[property]
+    end
+    -- selection_id
     if not rgn:IsEmpty() then
         -- measures
         local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
@@ -140,6 +137,7 @@ local function add_duration(measure_number, position, add_edu)
         local next_width = measure_duration(measure_number + 1) -- another measure?
         if next_width == 0 then -- no more measures
             remaining_to_add = m_width -- finished calculating
+            break
         else
             measure_number = measure_number + 1 -- next measure
             m_width = next_width
@@ -216,14 +214,19 @@ end
 
 local function region_erasures(rgn)
     -- region-based markings
-    if config.copy_smartshapes == 0 then -- erase SMART SHAPES
+    if config.copy_smartshapes == 0 or config.copy_slurs == 0 then -- erase SMART SHAPES
         local sh_rgn = finale.FCMusicRegion()
         sh_rgn:SetRegion(rgn) -- extend erasure region for stray hairpins
         sh_rgn.EndMeasure, sh_rgn.EndMeasurePos =
-            add_duration(sh_rgn.EndMeasure, sh_rgn.EndMeasurePos, 256)
+            add_duration(sh_rgn.EndMeasure, sh_rgn.EndMeasurePos, 512)
         for mark in loadallforregion(finale.FCSmartShapeMeasureMarks(), sh_rgn) do
             local shape = mark:CreateSmartShape()
-            if shape then shape:DeleteData() end
+            if shape and
+                (   (not shape:IsSlur() and config.copy_smartshapes == 0) or
+                    (shape:IsSlur() and config.copy_slurs == 0)
+                )   then
+                shape:DeleteData()
+            end
         end
     end
     if config.copy_expressions == 0 then -- erase EXPRESSIONS
@@ -243,13 +246,13 @@ local function region_erasures(rgn)
     -- then entry-based markings
     if config.copy_articulations == 0 or config.copy_lyrics == 0 then
         for entry in eachentrysaved(rgn) do
-            if entry.ArticulationFlag and config.copy_articulations == 0 then -- erase ARTICULATIONS
+            if config.copy_articulations == 0 and entry.ArticulationFlag then -- erase ARTICULATIONS
                 for articulation in eachbackwards(entry:CreateArticulations()) do
                     articulation:DeleteData()
                 end
                 entry:SetArticulationFlag(false)
             end
-            if entry.LyricFlag and config.copy_lyrics == 0 then -- erase LYRICS
+            if config.copy_lyrics == 0 and entry.LyricFlag then -- erase LYRICS
                 for _, v in ipairs{"FCChorusSyllable", "FCSectionSyllable", "FCVerseSyllable"} do
                     local lyric = finale[v]()
                     lyric:SetNoteEntry(entry)
@@ -263,10 +266,13 @@ local function region_erasures(rgn)
 end
 
 local function paste_many_copies(region)
+    if region:IsEmpty() or config.num_repeats < 1 then return end
     local rgn = mixin.FCMMusicRegion()
     rgn:SetRegion(region)
-    finenv.StartNewUndoBlock("Ostinato " .. selection.region .. " x " .. config.num_repeats,
-        false)
+    finenv.StartNewUndoBlock(
+        string.format("Ostinato %s x %d", selection.region, config.num_repeats),
+        false
+    )
     local m_d = measure_duration(rgn.EndMeasure)
     if rgn.EndMeasurePos >= m_d then
         rgn.EndMeasurePos = m_d - 1
@@ -288,10 +294,9 @@ local function paste_many_copies(region)
         rgn.StartMeasurePos = first_step.pos
     end
     region_erasures(rgn)  -- erase markings from subset of full region
-    rgn:SetRegion(region) -- reset to original selection
-    rgn:SetInDocument()
+    region:SetInDocument() -- restore original selection
     finenv.EndUndoBlock(true)
-    finenv.Region():Redraw()
+    region:Redraw()
 end
 
 local function run_user_dialog()
@@ -312,7 +317,7 @@ local function run_user_dialog()
             end
         end
         local function info_dialog()
-            utils.show_notes_dialog(dialog, "About " .. name)
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 420)
             refocus_document = true
         end
         local function key_check(ctl) -- some stray key commands
@@ -324,6 +329,7 @@ local function run_user_dialog()
                 elseif s:find("r") then flip_check(3)
                 elseif s:find("t") then flip_check(4)
                 elseif s:find("y") then flip_check(5)
+                elseif s:find("u") then flip_check(6)
                 elseif s:find("m") then
                     local mod = dialog:GetControl("modeless")
                     mod:SetCheck((mod:GetCheck() + 1) % 2)
@@ -355,17 +361,19 @@ local function run_user_dialog()
         :AddHandleCommand(function(self) key_check(self) end)
     dialog:CreateStatic(e_wide, y + 2):SetText("times"):SetWidth(edit_x)
     for _, v in ipairs(dialog_options) do
+        local id = v:sub(6):gsub("^%l", string.upper)
+        if id:find("Smart") then id = "Other Smartshapes" end
         dialog:CreateCheckbox(edit_x, y, v):SetCheck(config[v])
-           :SetText(v:sub(6, -1):gsub("^%l", string.upper)):SetWidth(90)
+           :SetText(id):SetWidth(120)
         y = y + y_step
     end
     dialog:CreateCheckbox(0, y, "modeless"):SetWidth(80)
         :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
-    local q = dialog:CreateButton(edit_x + 70, y):SetText("?"):SetWidth(20)
+    local q = dialog:CreateButton(edit_x + 100, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() info_dialog() end)
     -- modeless selection info
     if config.modeless then
-        y = y + 15
+        y = y + 17
         dialog:CreateStatic(20, y, "info1"):SetText(selection.staff):SetWidth(edit_x + 70)
         y = y + 15
         dialog:CreateStatic(20, y, "info2"):SetText(selection.region):SetWidth(edit_x + 70)
@@ -407,9 +415,9 @@ end
 
 local function make_ostinato()
     configuration.get_user_settings(script_name, config, true)
-    if not config.modelss and finenv.Region():IsEmpty() then
+    if not config.modeless and finenv.Region():IsEmpty() then
         finenv.UI():AlertError(
-            "Please select some music before\nrunning this script", plugindef()
+            "Please select some music\nbefore running this script", plugindef()
         )
         return
     end
