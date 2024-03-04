@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.28" -- MODAL/MODELESS optional
-    finaleplugin.Date = "2024/03/04"
+    finaleplugin.Version = "0.29" -- MODAL/MODELESS optional
+    finaleplugin.Date = "2024/03/05"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Copy the current selection and paste it consecutively 
@@ -256,15 +256,6 @@ local function region_erasures(rgn)
     end
 end
 
-local function shave_end_pos(rgn)
-    if rgn.EndMeasurePos > 1 then
-        rgn.EndMeasurePos = rgn.EndMeasurePos - 1
-    else
-        rgn.EndMeasure = rgn.EndMeasure - 1
-        rgn.EndMeasurePos = measure_duration(rgn.EndMeasure) - 1
-    end
-end
-
 local function paste_many_copies(region)
     if region:IsEmpty() or config.num_repeats < 1 then return end -- no duplication
     local rgn = mixin.FCMMusicRegion()
@@ -277,8 +268,8 @@ local function paste_many_copies(region)
     rgn.EndMeasurePos = math.min(rgn.EndMeasurePos, measure_duration(rgn.EndMeasure))
     local end_pos = rgn.EndMeasurePos
     local rounded_pos = round_measure_position(rgn.EndMeasure, end_pos)
-    if end_pos == rounded_pos then
-        shave_end_pos(rgn) -- don't run over to start of next beat
+    if end_pos >= rounded_pos and rounded_pos > 1 then
+        rgn.EndMeasurePos = rounded_pos - 1
     end
 
     rgn:CopyMusic() -- save a copy of the current selection
