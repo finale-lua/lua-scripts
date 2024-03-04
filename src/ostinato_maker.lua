@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.27" -- MODAL/MODELESS optional
+    finaleplugin.Version = "0.28" -- MODAL/MODELESS optional
     finaleplugin.Date = "2024/03/04"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
@@ -127,7 +127,7 @@ local function add_duration(measure_number, position, add_edu)
     local m_width = measure_duration(measure_number)
     if m_width == 0 then return 0, 0 end -- measure didn't load
     if position > m_width then
-        position = m_width
+        position = m_width -- override faulty measure positioning
     end
     local remaining_to_add = position + add_edu
     while remaining_to_add >= m_width do
@@ -161,7 +161,7 @@ local function round_measure_position(measure_num, pos)
     if (beat_edu % 3 == 0) then beat_edu = beat_edu / 3 end -- compound meter
 
     local ok, count = false, 0
-    while not ok and count < 4 do -- scan down to 1/8th sub-beat
+    while not ok and count < 4 do -- scan down to 1/16th sub-beat
         local remainder = pos % beat_edu
         if remainder == 0 then
             ok = true -- found integer multiple
@@ -291,7 +291,7 @@ local function paste_many_copies(region)
             first_step = { m = rgn.StartMeasure, pos = rgn.StartMeasurePos }
         end
     end
-    rgn:ReleaseMusic()
+    rgn:ReleaseMusic() -- finished pasting
     -- erase unwanted markings across whole ostinato passage
     rgn.StartMeasure = first_step.m
     rgn.StartMeasurePos = first_step.pos
@@ -302,10 +302,10 @@ local function paste_many_copies(region)
 end
 
 local function run_user_dialog()
-    local edit_x, e_wide, y_step = 110, 40, 18
+    local edit_x, y_step = 105, 18
     local y_offset = finenv.UI():IsOnMac() and 3 or 0
     local save_rpt = config.num_repeats
-    local name = plugindef():sub(1, -4)
+    local name = plugindef():gsub("%.%.%.", "")
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
     local y = 0
         -- local functions
@@ -361,12 +361,12 @@ local function run_user_dialog()
     dialog:CreateStatic(edit_x, y):SetText("Include:"):SetWidth(90)
     y = y + y_step + 2
     local num_repeats = dialog:CreateEdit(0, y + 2 - y_offset)
-        :SetWidth(e_wide - 4):SetText(config.num_repeats)
+        :SetWidth(30):SetText(config.num_repeats)
         :AddHandleCommand(function(self) key_check(self) end)
-    dialog:CreateStatic(e_wide, y + 2):SetText("times"):SetWidth(edit_x)
+    dialog:CreateStatic(35, y + 2):SetText("times"):SetWidth(edit_x)
     for _, v in ipairs(dialog_options) do
         local id = v:sub(6):gsub("^%l", string.upper)
-        if id:find("Smart") then id = "Other Smartshapes" end
+        if id == "Smartshapes" then id = "Other Smartshapes" end
         dialog:CreateCheckbox(edit_x, y, v):SetCheck(config[v])
            :SetText(id):SetWidth(120)
         y = y + y_step
@@ -378,9 +378,9 @@ local function run_user_dialog()
     -- modeless selection info
     if config.modeless then
         y = y + 17
-        dialog:CreateStatic(20, y, "info1"):SetText(selection.staff):SetWidth(edit_x + 70)
+        dialog:CreateStatic(15, y, "info1"):SetText(selection.staff):SetWidth(edit_x + 75)
         y = y + 15
-        dialog:CreateStatic(20, y, "info2"):SetText(selection.region):SetWidth(edit_x + 70)
+        dialog:CreateStatic(15, y, "info2"):SetText(selection.region):SetWidth(edit_x + 75)
     end
 
     dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
@@ -393,7 +393,6 @@ local function run_user_dialog()
         q:SetFont(q:CreateFontInfo():SetBold(true))
         num_repeats:SetKeyboardFocus()
     end)
-    local change_mode = false
     dialog:RegisterHandleOkButtonPressed(function()
         config.num_repeats = num_repeats:GetInteger()
         for _, v in ipairs(dialog_options) do
@@ -401,6 +400,7 @@ local function run_user_dialog()
         end
         paste_many_copies(finenv.Region())
     end)
+    local change_mode = false
     dialog:RegisterCloseWindow(function(self)
         if config.modeless then self:StopTimer(config.timer_id) end
         local mode = (dialog:GetControl("modeless"):GetCheck() == 1)
@@ -421,7 +421,8 @@ local function make_ostinato()
     configuration.get_user_settings(script_name, config, true)
     if not config.modeless and finenv.Region():IsEmpty() then
         finenv.UI():AlertError(
-            "Please select some music\nbefore running this script", plugindef()
+            "Please select some music\nbefore running this script",
+            plugindef():gsub("%.%.%.", "")
         )
         return
     end
