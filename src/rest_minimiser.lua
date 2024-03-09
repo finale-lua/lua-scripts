@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.10"
+    finaleplugin.Version = "0.11"
     finaleplugin.Date = "2024/03/09"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
@@ -104,22 +104,21 @@ end
 
 local function minimise_rests()
     local region = finenv.Region()
-    local rgns = {} -- collect sub-beat-level sub-regions of selection
     local level_div = {} -- number of divisions on each sub-group "level"
 
     local function check_beat_region(cell, start_pos, beat_wide, level, layer_num)
-        rgns[level] = rgns[level] or mixin.FCMMusicRegion() -- instantiate if needed
-        rgns[level]:SetStartMeasure(cell.Measure):SetEndMeasure(cell.Measure)
+        local rgn = mixin.FCMMusicRegion() -- instantiate if needed
+        rgn:SetStartMeasure(cell.Measure):SetEndMeasure(cell.Measure)
             :SetStartStaff(cell.Staff):SetStartMeasurePos(start_pos)
             :SetEndStaff(cell.Staff):SetEndMeasurePos(start_pos + beat_wide - 1)
         for _ = 1, level_div[level] do -- number of divisions on this level
-            if level < #level_div and not remove_rests(rgns[level], beat_wide, layer_num) then
+            if level < #level_div and not remove_rests(rgn, beat_wide, layer_num) then
                 -- rests not removed so examine sub-beats
                 local new_beat = beat_wide / level_div[level + 1]
                 -- recursion to next lower (smaller) sub-group
                 check_beat_region(cell, start_pos, new_beat, level + 1, layer_num)
             end
-            shift_rgn(rgns[level], beat_wide) -- shift to next sub-beat
+            shift_rgn(rgn, beat_wide) -- shift to next sub-beat
             start_pos = start_pos + beat_wide -- update new sub-beat position
         end
     end
