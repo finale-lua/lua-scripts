@@ -56,9 +56,10 @@ local alteration_names =
 }
 
 local function calc_key_mode_desc(key_mode)
-    local diatonic_steps = #key_mode.DiatonicStepsMap
-    if diatonic_steps == 0 then diatonic_steps = 7 end
-    local chromatic_steps = key_mode.TotalChromaticSteps
+    -- Use FCKeySignature because it populates defaults if needed.
+    local key = key_mode:CreateKeySignature()
+    local diatonic_steps = #key:CalcDiatonicStepsMap()
+    local chromatic_steps = key:CalcTotalChromaticSteps()
     if chromatic_steps == 0 then chromatic_steps = 12 end
     local function get_type()
         if key_mode:IsPredefined() then
