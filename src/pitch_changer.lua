@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.28"
+    finaleplugin.Version = "v0.29"
     finaleplugin.Date = "2024/03/12"
     finaleplugin.AdditionalMenuOptions = [[
         Pitch Changer Repeat
@@ -154,11 +154,10 @@ local function decode_note_string(str)
         return "", 0, 0
     end
     local raise_lower = 0
-    local acci = s:sub(2)
+    local acci = s:sub(2):gsub("S", "#")
     if acci:find("[B#S]") then
         for _ in acci:gmatch("B") do raise_lower = raise_lower - 1 end
         for _ in acci:gmatch("#") do raise_lower = raise_lower + 1 end
-        for _ in acci:gmatch("S") do raise_lower = raise_lower + 1 end
     end
     return pitch, raise_lower
 end
@@ -210,7 +209,7 @@ local function run_the_dialog()
     local m_offset = finenv.UI():IsOnMac() and 3 or 0
     local y = 0
     local name = finaleplugin.ScriptGroupName
-    local pitch = {}
+    local pitch, errors = {}, {}
     local save_text = { find = config.find_string, new = config.new_string }
 
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
@@ -220,7 +219,10 @@ local function run_the_dialog()
             dialog:CreateChildUI():AlertError(
                 "Pitch names cannot be empty and must start with a single "
                 .. "note name (a-g or A-G) followed by accidentals "
-                .. "(#-###, b-bbb) as required.", name .. " Error"
+                .. "(#-###, b-bbb) as required.\n\n"
+                .. "These pitch names are invalid:\n"
+                .. table.concat(errors, "; "),
+                name .. " Error"
             )
         end
         local function show_info()
@@ -250,7 +252,7 @@ local function run_the_dialog()
                 elseif  s:find("X") then pitch.popup:SetSelectedItem(1) -- up
                 elseif  s:find("V") then pitch.popup:SetSelectedItem(2) -- down
                 elseif  s:find("S") and kind ~= "layer" then
-                    save_text[kind] = save_text[kind] .. "#" -- substitute "#"
+                    save_text[kind] = s:gsub("S", "#") -- substitute "#"
                 elseif  s:find("W") then value_swap()
                 elseif  s:find("[?Q]") then show_info()
                 elseif s:find("M") then toggle_check("modeless")
@@ -259,18 +261,17 @@ local function run_the_dialog()
                 if kind == "layer" or not s:find("W") then
                     pitch[kind]:SetText(save_text[kind])
                 end
-            elseif t ~= "" then
-                if kind == "layer" then
-                    t = t:sub(-1)
-                    pitch[kind]:SetText(t)
-                end
-                save_text[kind] = t
+            elseif s ~= "" then
+                s = (kind == "layer") and s:sub(-1) or (s:sub(1, 1) .. t:sub(2))
+                save_text[kind] = s
+                pitch[kind]:SetText(s)
             end
         end
         local function encode_pitches(kind)
             local s = pitch[kind]:GetText()
             local note, raise_lower = decode_note_string(s)
             if note == "" or s:sub(2):upper():find("[^B#S]") then -- pitch name error
+                table.insert(errors, s) -- add error to list
                 return false -- flag user input error
             end
             config[kind .. "_pitch"] = note
@@ -341,7 +342,9 @@ local function run_the_dialog()
     dialog_set_position(dialog)
     if config.modeless then dialog:RegisterHandleTimer(on_timer) end
     dialog:RegisterHandleOkButtonPressed(function(self)
-        if encode_pitches("find") and encode_pitches("new") then
+        errors = {} -- empty error list
+        local good_name1, good_name2 = encode_pitches("find"), encode_pitches("new")
+        if good_name1 and good_name2 then -- no pitch name errors
             config.layer_num = pitch.layer:GetInteger()
             config.direction = pitch.popup:GetSelectedItem() + 1 -- one-based index
             config.modeless = (self:GetControl("modeless"):GetCheck() == 1)
