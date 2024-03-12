@@ -88,7 +88,7 @@ local function calc_key_mode_desc(key_mode)
     elseif key_mode:IsLinear() and (mode_type == "Linear" or tonal_center ~= 0) then
         retval = retval .. " " .. linear_mode_types[(tonal_center % 7) + 1]
     elseif key_mode:IsNonLinear() then
-        local notes = ""
+        local notes = " " .. note_names[(tonal_center % 7) + 1] .. ":"
         local acci_amounts = key_mode.AccidentalAmounts
         local acci_order = key_mode.AccidentalOrder
         for x = 1, 7 do
