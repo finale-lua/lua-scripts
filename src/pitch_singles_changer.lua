@@ -1,42 +1,60 @@
 function plugindef()
     finaleplugin.RequireSelection = false
+    finaleplugin.HandlesUndo = true
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.07"
-    finaleplugin.Date = "2024/01/24"
+    finaleplugin.Version = "0.12"
+    finaleplugin.Date = "2024/03/12"
     finaleplugin.CategoryTags = "Entries, Pitch, Transposition"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = [[
         Change up to four specific pitches to other specific pitches. 
-        Pitch specification is exact and immutable:
+        Pitch specification is exact and immutable: 
 
-        First character: pitch name A-G. 
-        (Lower case will be replaced automatically with upper case)
+        > 1. First character: pitch name __A__-__G__  
+        > (Lower case will be replaced automatically with upper case)  
+        > 2. Last character: octave number __0__-__9__  
+        > 3. In between: accidentals if needed  
+        > b / bb / bbb / # / ## / ###  
+        > (you can use __s__ instead of __#__ - automatic replacement) 
 
-        Last character: octave number 0-9.
+        Mistakes in the pitch format must be corrected before pitches will be changed. 
+        __C4__ is middle C. __B4__ is a major seventh above that. 
+        For transposing instruments on transposing scores select 
+        __Written Pitch__ to affect the pitch you see on screen. 
 
-        In between: accidentals if needed. 
-        b / bb / bbb / # / ## / ### 
-        (you can use "s" instead of "#" - automatic replacement)
-
-        If you make a mistake with the pitch format you will be asked to 
-        "FIX" the mistake before the pitch change can take place. 
-        "C4" is middle C. "B4" is a major seventh above that.
+        Select __Modeless__ if you prefer the dialog window to 
+        "float" above your score so you can change the score selection 
+        while it's active. In this mode, click __Apply__ [Return/Enter] 
+        to make changes and __Cancel__ [Escape] to close the window. 
+        Cancelling __Modeless__ will apply the _next_ time you use the script.
     ]]
-    return "Pitch Singles Changer...", "Pitch Singles Changer", "Change up to four specific pitches to other specific pitches"
+    return "Pitch Singles Changer...",
+        "Pitch Singles Changer",
+        "Change up to four specific pitches to other specific pitches"
 end
+
+local config = {
+    pitch_set = '["C4", "C5"]', -- JSON encoded pitch replacement set
+    layer_num   = 0,
+    timer_id    = 1,
+    modeless    = false, -- false = modal / true = modeless
+    written_pitch = false,
+    window_pos_x = false,
+    window_pos_y = false,
+}
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local cjson = require("cjson")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
-
-local config = {
-    pitch_set = '[["C4", "C5"]]', -- JSON encoded pitch replacement set
-    window_pos_x = false,
-    window_pos_y = false,
+local selection
+local saved_bounds = {}
+local bounds = { -- primary region selection boundaries
+    "StartStaff", "StartMeasure", "StartMeasurePos",
+    "EndStaff",   "EndMeasure",   "EndMeasurePos",
 }
 
 local function dialog_set_position(dialog)
@@ -54,9 +72,46 @@ local function dialog_save_position(dialog)
     configuration.save_user_settings(script_name, config)
 end
 
+local function measure_duration(measure_number)
+    local m = finale.FCMeasure()
+    return m:Load(measure_number) and m:GetDuration() or 0
+end
+
+local function get_staff_name(staff_num)
+    local staff = finale.FCStaff()
+    staff:Load(staff_num)
+    local str = staff:CreateDisplayFullNameString().LuaString
+    if not str or str == "" then
+        str = "Staff " .. staff_num
+    end
+    return str
+end
+
+local function initialise_parameters()
+    -- set_saved_bounds
+    local rgn = finenv.Region()
+    for _, property in ipairs(bounds) do
+        saved_bounds[property] = rgn:IsEmpty() and 0 or rgn[property]
+    end
+    -- update_selection_id
+    selection = { staff = "no staff", region = "no selection"} -- default
+    if not rgn:IsEmpty() then
+        -- measures
+        local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
+        local m = measure_duration(rgn.EndMeasure)
+        local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
+        selection.region = string.format("m%.2f-m%.2f", r1, r2)
+        -- staves
+        selection.staff = get_staff_name(rgn.StartStaff)
+        if rgn.EndStaff ~= rgn.StartStaff then
+            selection.staff = selection.staff .. " → " .. get_staff_name(rgn.EndStaff)
+        end
+    end
+end
+
 local function extract_pitch(p)
-    if p == nil or p == "" then return "", "", "" end
-    return p:sub(1, 1):upper(), p:sub(2, -2):lower():gsub("s", "#"), p:sub(-1)
+    if not p or p == "" then return "", "", "" end
+    return p:sub(1, 1):upper(), p:sub(2, -2):lower():gsub("s", "#"), p:sub(-1):lower()
 end
 
 local function rewrite_pitch(p)
@@ -73,94 +128,160 @@ local function is_error(p)
     return false
 end
 
-local function user_selects_pitches(pitches)
-    local y, yd, x = 0, 25, { 83, 126, 150 }
-    local answer = {}
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef():gsub("%.%.%.", ""))
-        local function cstat(dx, dy, txt, wid)
-            local y_off = finenv.UI():IsOnMac() and 3 or 0
-            return dialog:CreateStatic(dx, dy + y_off):SetText(txt):SetWidth(wid)
+local function make_the_changes(pitches)
+    local undo_str = "Pitch Change "
+    for i = 1, 7, 2 do -- run through pitch pairs provided
+        if pitches[i] ~= "" and pitches[i + 1] ~= "" then
+            undo_str = undo_str .. string.format("%s-%s ", pitches[i], pitches[i + 1])
         end
-        local function cedit(dx, dy, txt, wid)
-            return dialog:CreateEdit(dx, dy):SetWidth(wid):SetText(txt)
-        end
-    for bank = 1, 4 do
-        answer[bank] = {}
-        cstat(0, y, "Change From:", 100)
-        local pb = pitches[bank] and {pitches[bank][1], pitches[bank][2]} or {"", ""}
-        answer[bank][1] = cedit(x[1], y, pb[1], 40)
-        cstat(x[2], y, "To:", 20)
-        answer[bank][2] = cedit(x[3], y, pb[2], 40)
-        local bad = {is_error(pb[1]), is_error(pb[2])}
-        if bad[1] or bad[2] then
-            y = y + yd
-            if bad[1] then
-                answer[bank][1]:SetText("")
-                cstat(60, y, "FIX: " .. pb[1], 100)
-            end
-            if bad[2] then
-                answer[bank][2]:SetText("")
-                cstat(x[2], y, "FIX: " .. pb[2], 100)
-            end
-        end
-        y = y + yd
     end
-    y = y + 10
-    cstat(5, y, "Pitch examples: C4 / G#5 / Abb2", 180)
-    y = y + 14
-    cstat(50, y, "(C4 = middle C)", 110)
-
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    local pitch_set = {}
-    local user_error = false
-    dialog_set_position(dialog)
-    dialog:RegisterHandleOkButtonPressed(function()
-        for bank = 1, 4 do
-            local s = answer[bank][1]:GetText()
-            pitch_set[bank] = { rewrite_pitch(s) }
-            if is_error(s) then user_error = true end
-            s = answer[bank][2]:GetText()
-            pitch_set[bank][2] = rewrite_pitch(s)
-            if is_error(s) then user_error = true end
-        end
-    end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    local ok = (dialog:ExecuteModal() == finale.EXECMODAL_OK)
-    return ok, user_error, pitch_set
-end
-
-local function change_pitches()
-    if finenv.Region():IsEmpty() then
-        finenv.UI():AlertError("Please select some music before\n"
-            .. "running this script.", plugindef() .. " Error" )
-        return
-    end
-    configuration.get_user_settings(script_name, config, true)
-    local pitch_set = cjson.decode(config.pitch_set)
+    finenv.StartNewUndoBlock(undo_str .. selection.region)
     local m = finale.FCMeasure()
     local pitch_str = finale.FCString()
-    local ok, user_error = true, true
-    while ok and user_error do
-        ok, user_error, pitch_set = user_selects_pitches(pitch_set)
-    end
-    if not ok then return end -- user cancelled
-
-    config.pitch_set = cjson.encode(pitch_set)
-    configuration.save_user_settings(script_name, config)
-    for entry in eachentrysaved(finenv.Region()) do
+    for entry in eachentrysaved(finenv.Region(), config.layer_num) do
         m:Load(entry.Measure)
         local keysig = m.KeySignature
 
         for note in each(entry) do
-            note:GetString(pitch_str, keysig, false, false)
-            for _, v in ipairs(pitch_set) do
-                if pitch_str.LuaString == v[1] and v[2] ~= "" then
-                    pitch_str.LuaString = v[2]
-                    note:SetString(pitch_str, keysig, false)
+            note:GetString(pitch_str, keysig, false, config.written_pitch)
+            for i = 1, 7, 2 do
+                local a, b = pitches[i], pitches[i + 1]
+                if a ~= "" and b~= "" and pitch_str.LuaString == a then
+                    pitch_str.LuaString = b
+                    note:SetString(pitch_str, keysig, config.written_pitch)
                 end
             end
         end
+    end
+    finenv.EndUndoBlock(true)
+    if config.modeless then finenv.Region():Redraw() end
+end
+
+local function run_the_dialog()
+    local pitches = cjson.decode(config.pitch_set)
+    local y, y_diff = 0, 25
+    local x = { 81, 128, 150 }
+    local answer = {}
+    local name = plugindef():gsub("%.%.%.", "")
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
+
+        -- local functions
+        local function yd(diff) y = y + (diff or y_diff) end
+        local function cstat(dx, dy, txt, wid)
+            return dialog:CreateStatic(dx, dy):SetText(txt):SetWidth(wid)
+        end
+        local function cedit(dx, dy, txt, wid, id)
+            local y_off = finenv.UI():IsOnMac() and 3 or 0
+            return dialog:CreateEdit(dx, dy - y_off, id):SetWidth(wid):SetText(txt)
+        end
+        local function on_timer() -- look for changes in selected region
+            for k, v in pairs(saved_bounds) do
+                if finenv.Region()[k] ~= v then -- selection changed
+                    initialise_parameters() -- update selection tracker
+                    dialog:GetControl("info1"):SetText(selection.staff)
+                    dialog:GetControl("info2"):SetText(selection.region)
+                    break -- all done
+                end
+            end
+        end
+    for i = 1, 7, 2 do
+        cstat(0, y, "Change From:", 100)
+        answer[i] = cedit(x[1], y, pitches[i], 45)
+        cstat(x[2], y, "To:", 20)
+        answer[i + 1] = cedit(x[3], y, pitches[i + 1], 45)
+        yd()
+    end
+    cstat(0, y, "Layer (0-4):", 78)
+    cedit(x[1] - 11, y, config.layer_num, 20, "layer_num")
+    dialog:CreateCheckbox(x[1] + 30, y, "written_pitch"):SetWidth(85)
+        :SetCheck(config.written_pitch and 1 or 0):SetText("Written Pitch")
+    yd(24)
+    dialog:CreateHorizontalLine(0, y - 3, x[3] + 50)
+    cstat(5, y, "Pitch examples: C4 / G#5 / Abb2", 180)
+    yd(14)
+    cstat(50, y, "(C4 = middle C)", 110)
+    yd(22)
+    dialog:CreateHorizontalLine(0, y - 6, x[3] + 50)
+    dialog:CreateCheckbox(0, y, "modeless"):SetWidth(x[3] - 20)
+        :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
+    dialog:CreateButton(x[3] - 20, y - 1):SetText("Clear All"):SetWidth(60)
+        :AddHandleCommand(function()
+            for i = 1, 8 do answer[i]:SetText("") end
+        end)
+    -- modeless selection info
+    if config.modeless then
+        yd(17)
+        dialog:CreateStatic(16, y, "info1"):SetText(selection.staff):SetWidth(170)
+        yd(14)
+        dialog:CreateStatic(16, y, "info2"):SetText(selection.region):SetWidth(170)
+    end
+
+    dialog:CreateOkButton():SetText(config.modeless and "Apply" or "Change")
+    dialog:CreateCancelButton()
+    dialog_set_position(dialog)
+    if config.modeless then dialog:RegisterHandleTimer(on_timer) end
+    dialog:RegisterInitWindow(function(self)
+        self:SetOkButtonCanClose(not config.modeless)
+        if config.modeless then self:SetTimer(config.timer_id, 125) end
+    end)
+    local user_error
+    local pitch_set = {}
+    dialog:RegisterHandleOkButtonPressed(function(self)
+        user_error = false
+        local errors = {}
+        for i = 1, 8 do
+            local s = answer[i]:GetText()
+            if is_error(s) then
+                user_error = true
+                pitch_set[i] = s
+                table.insert(errors, s)
+            else
+                pitch_set[i] = rewrite_pitch(s)
+                if config.modeless then answer[i]:SetText(pitch_set[i]) end
+            end
+        end
+        config.pitch_set = cjson.encode(pitch_set) -- save the bad with the good
+        config.layer_num = self:GetControl("layer_num"):GetInteger()
+        config.written_pitch = (self:GetControl("written_pitch"):GetCheck() == 1)
+        configuration.save_user_settings(script_name, config)
+        if user_error then -- errors to be flagged
+            self:CreateChildUI():AlertError(
+                "These pitch names are unrecognisable:\n"
+                .. table.concat(errors, "; "), "Error: " .. name)
+        else -- everything OK
+            make_the_changes(pitch_set)
+        end
+    end)
+    local change_mode
+    dialog:RegisterCloseWindow(function(self)
+        if config.modeless then self:StopTimer(config.timer_id) end
+        local mode = (self:GetControl("modeless"):GetCheck() == 1)
+        change_mode = (mode and not config.modeless) -- modal -> modeless?
+        config.modeless = mode
+        dialog_save_position(self)
+    end)
+    local ok = true
+    if config.modeless then   -- "modeless"
+        dialog:RunModeless()
+    else
+        ok = dialog:ExecuteModal() -- "modal"
+    end
+    return ok, (change_mode or user_error) -- (re-enter if modal operation)
+end
+
+local function change_pitches()
+    configuration.get_user_settings(script_name, config, true)
+    if not config.modeless and finenv.Region():IsEmpty() then
+        finenv.UI():AlertError(
+            "Please select some music\nbefore running this script.",
+            finaleplugin.ScriptGroupName
+        )
+        return
+    end
+    initialise_parameters()
+    local ok, unfinished = true, true
+    while ok and unfinished do -- loop for modal dialog
+        ok, unfinished = run_the_dialog()
     end
 end
 
