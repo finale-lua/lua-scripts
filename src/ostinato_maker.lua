@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.29" -- MODAL/MODELESS optional
-    finaleplugin.Date = "2024/03/05"
+    finaleplugin.Version = "0.30" -- MODAL/MODELESS optional
+    finaleplugin.Date = "2024/03/16"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Copy the current selection and paste it consecutively 
@@ -69,7 +69,7 @@ local dialog_options = { -- and populate config values (unchecked)
     "copy_articulations", "copy_expressions", "copy_slurs",
      "copy_smartshapes",  "copy_lyrics",      "copy_chords"
 }
-for _, v in ipairs(dialog_options) do config[v] = 0 end -- (default unchecked)
+for _, v in ipairs(dialog_options) do config[v] = 0 end -- (default all unchecked)
 
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -256,40 +256,41 @@ local function region_erasures(rgn)
     end
 end
 
-local function paste_many_copies(region)
-    if region:IsEmpty() or config.num_repeats < 1 then return end -- no duplication
-    local rgn = mixin.FCMMusicRegion()
-    rgn:SetRegion(region)
+local function paste_many_copies(source_region)
+    if source_region:IsEmpty() or config.num_repeats < 1 then return end -- no duplication
+    local rpt_rgn = mixin.FCMMusicRegion()
+    rpt_rgn:SetRegion(source_region)
     --
     finenv.StartNewUndoBlock(
         string.format("Ostinato %s x %d", selection.region, config.num_repeats),
         false
     )
-    rgn.EndMeasurePos = math.min(rgn.EndMeasurePos, measure_duration(rgn.EndMeasure))
-    local end_pos = rgn.EndMeasurePos
-    local rounded_pos = round_measure_position(rgn.EndMeasure, end_pos)
+    rpt_rgn.EndMeasurePos = math.min(rpt_rgn.EndMeasurePos, measure_duration(rpt_rgn.EndMeasure))
+    local end_pos = rpt_rgn.EndMeasurePos
+    local rounded_pos = round_measure_position(rpt_rgn.EndMeasure, end_pos)
     if end_pos >= rounded_pos and rounded_pos > 1 then
-        rgn.EndMeasurePos = rounded_pos - 1
+        rpt_rgn.EndMeasurePos = rounded_pos - 1
     end
 
-    rgn:CopyMusic() -- save a copy of the current selection
-    local duration = region_duration(rgn, rounded_pos) -- "full" duration of duplicate period
-    local first_step = { m = region.StartMeasure, pos = region.StartMeasurePos }
+    rpt_rgn:CopyMusic() -- save a copy of the current selection
+    local duration = region_duration(rpt_rgn, rounded_pos) -- "full" duration of duplicate period
+    local first_measure, first_pos = source_region.StartMeasure, source_region.StartMeasurePos
     for i = 1, config.num_repeats do
-        if not shift_region_by_EDU(rgn, duration) then break end -- no more music
-        rgn:PasteMusic()
+        if not shift_region_by_EDU(rpt_rgn, duration) then break end -- no more music
+        rpt_rgn:PasteMusic()
         if i == 1 then -- save start of the first repeat region
-            first_step = { m = rgn.StartMeasure, pos = rgn.StartMeasurePos }
+            first_measure = rpt_rgn.StartMeasure
+            first_pos = rpt_rgn.StartMeasurePos
         end
     end
-    rgn:ReleaseMusic() -- finished pasting
+    rpt_rgn:ReleaseMusic() -- finished pasting
     -- erase unwanted markings across whole ostinato passage
-    rgn.StartMeasure = first_step.m
-    rgn.StartMeasurePos = first_step.pos
-    region_erasures(rgn)  -- erase markings from full "duplicated" region
-    region:SetInDocument() -- restore original selection
+    rpt_rgn.StartMeasure = first_measure
+    rpt_rgn.StartMeasurePos = first_pos
+    region_erasures(rpt_rgn)  -- erase markings from full "duplicated" region
+    source_region:SetInDocument() -- restore original selection
     finenv.EndUndoBlock(true)
-    region:Redraw()
+    source_region:Redraw()
 end
 
 local function run_user_dialog()
@@ -368,7 +369,7 @@ local function run_user_dialog()
         :AddHandleCommand(function() info_dialog() end)
     -- modeless selection info
     if config.modeless then
-        y = y + 17
+        y = y + 15
         dialog:CreateStatic(15, y, "info1"):SetText(selection.staff):SetWidth(edit_x + 75)
         y = y + 15
         dialog:CreateStatic(15, y, "info2"):SetText(selection.region):SetWidth(edit_x + 75)
@@ -405,7 +406,7 @@ local function run_user_dialog()
         dialog:ExecuteModal() -- "modal"
         if refocus_document then finenv.UI():ActivateDocumentWindow() end
     end
-    return change_mode
+    return change_mode -- only functional in "modal" operation
 end
 
 local function make_ostinato()
@@ -420,13 +421,11 @@ local function make_ostinato()
 
     local qim = finenv.QueryInvokedModifierKeys
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
-    local mode_change = true
     initialise_parameters()
     if mod_key then
         paste_many_copies(finenv.Region())
     else
-        while mode_change do
-            mode_change = run_user_dialog()
+        while run_user_dialog() do
         end
     end
 end
