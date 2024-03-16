@@ -75,9 +75,9 @@ local function calc_key_mode_desc(key_mode)
     end
     local tonal_center = key_mode.TonalCenters[0] or 0
     local mode_type = key_mode_types[get_type()]
-    if key_mode:IsPredefinedMajor() then
+    if key:IsMajor() then
         return mode_type .. " Major"
-    elseif key_mode:IsPredefinedMinor() then
+    elseif key:IsMinor() then
         return mode_type .. " Minor"
     end
     local retval = mode_type
