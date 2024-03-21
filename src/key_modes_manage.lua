@@ -104,6 +104,9 @@ local function display_def(dialog, def)
     assert(def:IsLinear() or def:IsNonLinear(), "key mode " .. def.ItemNo .. "is invalid")
     local type_popup = dialog:GetControl("keymode_type")
     type_popup:SetSelectedItem(def:IsLinear() and 0 or 1)
+    -- populate info
+    dialog:GetControl("middle_note"):SetInteger(def.MiddleKeyNumber)
+    dialog:GetControl("tonal_center"):SetText(note_names[def.BaseTonalCenter + 1])
     -- populate key map
     local key_map = def.DiatonicStepsMap
     key_map = key_map and #key_map > 0 and key_map or {0, 2, 4, 5, 7, 9, 11}
@@ -175,6 +178,36 @@ local function on_close_window(_dialog)
     global_dialog:StopTimer(context.global_timer_id) -- first step
 end
 
+local function listen_to_midi(_control)
+    local result = finale.FCListenToMidiResult()
+    if global_dialog:CreateChildUI():DisplayListenToMidiDialog(result) then
+        if result.Status & 0x90 == 0x90 then
+            global_dialog:GetControl("middle_note"):SetInteger(result.Data1)
+        end
+    end
+end
+
+local function on_note_name_edit(control)
+    local curr_text = control:GetText()
+    local last_char = curr_text:sub(-1)
+    local result = ""
+    if last_char >= 'a' and last_char <= 'g' then
+        result = last_char:upper()
+    elseif last_char >= 'A' and last_char <= 'G' then
+        result = last_char
+    elseif last_char and #last_char > 0 then
+        -- Check which one is closer to 'A' or 'G'
+        local dist_to_A = math.abs(last_char:byte() - ('A'):byte())
+        local dist_to_G = math.abs(last_char:byte() - ('G'):byte())
+        if dist_to_A < dist_to_G then
+            result = 'A'
+        else
+            result = 'G'
+        end
+    end
+    control:SetText(result)
+end
+
 local function create_dialog_box()
     local padding = 5
     local y_increment = 30
@@ -192,10 +225,35 @@ local function create_dialog_box()
         :DoAutoResizeWidth()
         :AssureNoHorizontalOverlap(dlg:GetControl("keymodes"), padding)
     curr_y = curr_y + y_increment
+    -- basic information
+    dlg:CreateStatic(0, curr_y, "middle_note_label")
+        :SetText("MIDI Note for Middle C")
+        :DoAutoResizeWidth(0)
+    dlg:CreateEdit(0, curr_y - utils.win_mac(win_edit_offset, mac_edit_offset), "middle_note")
+        :SetWidth(30)
+        :AssureNoHorizontalOverlap(dlg:GetControl("middle_note_label"), padding)
+    dlg:CreateButton(0, curr_y, "listen_to_midi")
+        :SetText("Listen...")
+        :DoAutoResizeWidth()
+        :AssureNoHorizontalOverlap(dlg:GetControl("middle_note"), padding)
+        :AddHandleCommand(listen_to_midi)
+    dlg:CreateStatic(0, curr_y, "tonal_center_label")
+        :SetText("Base Tonal Center")
+        :DoAutoResizeWidth(0)
+        :AssureNoHorizontalOverlap(dlg:GetControl("listen_to_midi"), 2 * padding)
+    dlg:CreateEdit(0, curr_y - utils.win_mac(win_edit_offset, mac_edit_offset), "tonal_center")
+        :SetWidth(25)
+        :AssureNoHorizontalOverlap(dlg:GetControl("tonal_center_label"), padding)
+        :AddHandleCommand(on_note_name_edit)
+    curr_y = curr_y + y_increment
+    -- divider
+    dlg:CreateHorizontalLine(0, curr_y, 10)
+        :StretchToAlignWithRight()
+    curr_y = curr_y + y_increment
     -- diatonic steps
     dlg:CreateStatic(0, curr_y, "diatonic_step_map")
         :SetText("Diatonic Step Map")
-        :DoAutoResizeWidth()
+        :DoAutoResizeWidth(0)
     for k, v in ipairs(note_names) do
         local previous_control_name = k > 1 and "ds_" .. k - 1 or "diatonic_step_map"
         local static = dlg:CreateStatic(0, curr_y)
@@ -208,7 +266,7 @@ local function create_dialog_box()
     end
     dlg:CreateStatic(0, curr_y)
         :SetText(note_names[1])
-        :DoAutoResizeWidth()
+        :DoAutoResizeWidth(0)
         :AssureNoHorizontalOverlap(dlg:GetControl("ds_" .. #note_names), padding)
     curr_y = curr_y + y_increment
     -- close button
