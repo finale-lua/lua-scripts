@@ -6,6 +6,11 @@ function plugindef()
     finaleplugin.Date = "March 12, 2024"
     finaleplugin.CategoryTags = "Key Signatures"
     finaleplugin.Notes = [[
+        This script provides a much simpler interface for managing the most common types
+        of custom key modes (called "Nonstandard Key Signatures" in Finale.) Limitations include
+        - Key modes must have 7 diatonic steps per octave
+        - Linear key signatures must use the standard accidental order and size (for their EDO value)
+        - Linear tonal centers must follow the standard circle of fifths for their respective key signatures
     ]]
     return "Nonstandard Key Signatures...", "Nonstandard Key Signatures",
            "Manages Nonstandard Key Signatures. Allows view, modify, create, and delete."
@@ -21,7 +26,8 @@ context = context or
     global_timer_id = 1,
     current_doc = 0,
     current_keymodes = finale.FCCustomKeyModeDefs(),
-    current_selection = 0
+    current_selection = 0,
+    current_fontname = finale.FCString()
 }
 
 local key_mode_types =
@@ -62,6 +68,9 @@ local alteration_names =
     [2] = "x"
 }
 
+local hide_on_linear = {}
+local hide_on_nonlinear = {}
+
 local function calc_key_mode_desc(key_mode)
     -- Use FCKeySignature because it populates defaults if needed.
     local key = key_mode:CreateKeySignature()
@@ -87,44 +96,89 @@ local function calc_key_mode_desc(key_mode)
         local acci_amounts = key_mode.AccidentalAmounts
         local acci_order = key_mode.AccidentalOrder
         for x = 1, 7 do
-            if not acci_amounts[x] or acci_amounts[x] == 0 then
+            if acci_amounts[x] == 0 then
                 break
             end
+            notes = notes .. " " .. note_names[(acci_order[x] % 7) + 1]
             if not acci_order[x] then
                 break
             end
-            notes = notes .. " " .. note_names[(acci_order[x] % 7) + 1] .. tostring(alteration_names[acci_amounts[x]])
+            if chromatic_steps == 12 and acci_amounts[x] then
+                notes = notes .. tostring(alteration_names[acci_amounts[x]])
+            else
+                notes = notes .. tostring(acci_amounts[x])
+            end
         end
         retval = retval .. notes
     end
     return retval
 end
 
+local function calc_current_symbol_font()
+    local fpref = finale.FCFontPrefs()
+    assert(fpref:Load(finale.FONTPREF_KEYSIG), "failed to load default font for key signatures")
+    local font = fpref:CreateFontInfo()
+    if context.current_fontname.Length > 0 then
+        font:SetNameString(context.current_fontname)
+    end
+    return font
+end
+
 local function display_def(dialog, def)
     assert(def:IsLinear() or def:IsNonLinear(), "key mode " .. def.ItemNo .. "is invalid")
+    for _, v in ipairs(hide_on_linear) do
+        dialog:GetControl(v):SetVisible(def:IsNonLinear())
+    end
+    for _, v in ipairs(hide_on_nonlinear) do
+        dialog:GetControl(v):SetVisible(def:IsLinear())
+    end
     local type_popup = dialog:GetControl("keymode_type")
     type_popup:SetSelectedItem(def:IsLinear() and 0 or 1)
     -- populate info
     dialog:GetControl("middle_note"):SetInteger(def.MiddleKeyNumber)
     dialog:GetControl("tonal_center"):SetText(note_names[def.BaseTonalCenter + 1])
+    local fpref = finale.FCFontPrefs()
+    assert(fpref:Load(finale.FONTPREF_KEYSIG), "failed to load default font for key signatures")
+    def:GetAccidentalFontName(context.current_fontname)
+    local font = calc_current_symbol_font()
+    dialog:GetControl("show_font"):SetText(font:CreateDescription())
     -- populate key map
     local key_map = def.DiatonicStepsMap
     key_map = key_map and #key_map > 0 and key_map or {0, 2, 4, 5, 7, 9, 11}
     local num_steps = def.TotalChromaticSteps
     num_steps = num_steps > 0 and num_steps or 12
     for x = 1, math.min(#key_map, #note_names) do
-        local count = x < #key_map and key_map[x+1] - key_map[x] or num_steps - key_map[x]
+        local count = x < #key_map and key_map[x + 1] - key_map[x] or num_steps - key_map[x]
         dialog:GetControl("ds_" .. x):SetInteger(count)
+    end
+    -- populate accidental order and amounts
+    if def:IsLinear() then
+        local acci_amounts = def.AccidentalAmounts
+        dialog:GetControl("chromatic_halfstep_size"):SetInteger(math.abs(acci_amounts[1] or 1))
+    else
+        local acci_order = def.AccidentalOrder
+        local acci_amounts = def.AccidentalAmounts
+        local termination = false
+        for x = 1, 7 do
+            local acci_note = acci_order[x] or 0
+            local acci_amount = acci_amounts[x] or 0
+            if not termination and acci_amount == 0 then
+                termination = true
+            end
+            local note_text = termination and "" or note_names[acci_note + 1]
+            local amount_text = termination and "" or tostring(acci_amount)
+            dialog:GetControl("acci_order_" .. x):SetText(note_text)
+            dialog:GetControl("acci_amount_" .. x):SetText(amount_text)
+        end
     end
 end
 
 local function select_keymode(dialog)
     local popup = dialog:GetControl("keymodes")
-    local type_popup = dialog:GetControl("keymode_type")
     local curr_selection = popup:GetSelectedItem()
+    local selection_exists = curr_selection >= 2
     if curr_selection == 0 then
         display_def(dialog, finale.FCCustomKeyModeDef())
-        type_popup:SetEnable(true)
     elseif curr_selection == 1 then
         popup:SetSelection(context.current_selection)
         return
@@ -132,8 +186,10 @@ local function select_keymode(dialog)
         local keymode = context.current_keymodes:GetItemAt(curr_selection - 2)
         assert(keymode, "keymode not found for popup item " .. curr_selection)
         display_def(dialog, keymode)
-        type_popup:SetEnable(false)
     end
+    dialog:GetControl("keymode_type"):SetEnable(not selection_exists)
+    dialog:GetControl("delete"):SetEnable(selection_exists)
+    dialog:GetControl("delete_all"):SetEnable(context.current_keymodes.Count > 0)
     context.current_selection = curr_selection
 end
 
@@ -190,13 +246,28 @@ local function on_close_window(_dialog)
     global_dialog:StopTimer(context.global_timer_id) -- first step
 end
 
-local function listen_to_midi(_control)
+local function on_listen_to_midi(_control)
     local result = finale.FCListenToMidiResult()
     if global_dialog:CreateChildUI():DisplayListenToMidiDialog(result) then
         if result.Status & 0x90 == 0x90 then
             global_dialog:GetControl("middle_note"):SetInteger(result.Data1)
         end
     end
+end
+
+local function on_choose_font(_control)
+    local font = calc_current_symbol_font()
+    local font_dialog = finale.FCFontDialog(global_dialog:CreateChildUI(), font)
+    font_dialog.UseSizes = false
+    font_dialog.UseStyles = false
+    if font_dialog:Execute() then
+        font:GetNameString(context.current_fontname)
+        global_dialog:GetControl("show_font"):SetText(font:CreateDescription())
+    end
+end
+
+local function on_edit_symbols(_control)
+    --ToDo: something here
 end
 
 local function on_note_name_edit(control)
@@ -220,49 +291,77 @@ local function on_note_name_edit(control)
     control:SetText(result)
 end
 
+local function on_delete_all()
+end
+
 local function create_dialog_box()
     local padding = 5
     local y_increment = 30
     local curr_y = 0
     local win_edit_offset = 5
     local mac_edit_offset = 3
+    local edit_offset = utils.win_mac(win_edit_offset, mac_edit_offset)
+    hide_on_linear = {}
+    hide_on_nonlinear = {}
     local dlg = mixin.FCXCustomLuaWindow()
         :SetTitle(plugindef():gsub("%.%.%.", ""))
-    -- keymode list
+-- keymode list
     dlg:CreatePopup(0, curr_y, "keymodes")
         :SetWidth(300)
         :AddHandleCommand(on_popup)
-    dlg:CreatePopup(0, curr_y, "keymode_type")
-        :AddStrings("Linear", "Nonlinear")
+    dlg:CreateButton(0, curr_y, "delete")
+        :SetText("Delete")
         :DoAutoResizeWidth()
-        :AssureNoHorizontalOverlap(dlg:GetControl("keymodes"), padding)
+        :AssureNoHorizontalOverlap(dlg:GetControl("keymodes"), 2 * padding)
+    dlg:CreateButton(0, curr_y, "delete_all")
+        :SetText("Delete All")
+        :DoAutoResizeWidth()
+        :HorizontallyAlignRightWithFurthest()
     curr_y = curr_y + y_increment
-    -- basic information
+-- basic information
     dlg:CreateStatic(0, curr_y, "middle_note_label")
         :SetText("MIDI Note for Middle C")
         :DoAutoResizeWidth(0)
-    dlg:CreateEdit(0, curr_y - utils.win_mac(win_edit_offset, mac_edit_offset), "middle_note")
+    dlg:CreateEdit(0, curr_y - edit_offset, "middle_note")
         :SetWidth(30)
         :AssureNoHorizontalOverlap(dlg:GetControl("middle_note_label"), padding)
     dlg:CreateButton(0, curr_y, "listen_to_midi")
         :SetText("Listen...")
         :DoAutoResizeWidth()
         :AssureNoHorizontalOverlap(dlg:GetControl("middle_note"), padding)
-        :AddHandleCommand(listen_to_midi)
+        :AddHandleCommand(on_listen_to_midi)
     dlg:CreateStatic(0, curr_y, "tonal_center_label")
         :SetText("Base Tonal Center")
         :DoAutoResizeWidth(0)
         :AssureNoHorizontalOverlap(dlg:GetControl("listen_to_midi"), 2 * padding)
-    dlg:CreateEdit(0, curr_y - utils.win_mac(win_edit_offset, mac_edit_offset), "tonal_center")
+    dlg:CreateEdit(0, curr_y - edit_offset, "tonal_center")
         :SetWidth(25)
         :AssureNoHorizontalOverlap(dlg:GetControl("tonal_center_label"), padding)
         :AddHandleCommand(on_note_name_edit)
+    dlg:CreatePopup(0, curr_y, "keymode_type")
+        :AddStrings("Linear", "Nonlinear")
+        :DoAutoResizeWidth()
+        :HorizontallyAlignRightWithFurthest()
     curr_y = curr_y + y_increment
-    -- divider
+    -- symbols info
+        dlg:CreateButton(0, curr_y, "symbol_font")
+        :SetText("Accidental Font...")
+        :DoAutoResizeWidth()
+        :AddHandleCommand(on_choose_font)
+    dlg:CreateStatic(0, curr_y, "show_font")
+        :DoAutoResizeWidth()
+        :AssureNoHorizontalOverlap(dlg:GetControl("symbol_font"), padding)
+    dlg:CreateButton(0, curr_y, "symbols")
+        :SetText("Accidental Symbols...")
+        :DoAutoResizeWidth()
+        :HorizontallyAlignRightWithFurthest()
+        :AddHandleCommand(on_edit_symbols)
+    curr_y = curr_y + y_increment
+-- divider
     dlg:CreateHorizontalLine(0, curr_y, 10)
         :StretchToAlignWithRight()
     curr_y = curr_y + y_increment / 2
-    -- diatonic steps
+-- diatonic steps
     dlg:CreateStatic(0, curr_y, "diatonic_step_map")
         :SetText("Diatonic Step Map")
         :DoAutoResizeWidth(0)
@@ -272,7 +371,7 @@ local function create_dialog_box()
             :SetText(v)
             :DoAutoResizeWidth(0)
             :AssureNoHorizontalOverlap(dlg:GetControl(previous_control_name), padding)
-        dlg:CreateEdit(0, curr_y - utils.win_mac(win_edit_offset, mac_edit_offset), "ds_" .. k)
+        dlg:CreateEdit(0, curr_y - edit_offset, "ds_" .. k)
             :SetWidth(25)
             :AssureNoHorizontalOverlap(static, padding)
     end
@@ -281,10 +380,50 @@ local function create_dialog_box()
         :DoAutoResizeWidth(0)
         :AssureNoHorizontalOverlap(dlg:GetControl("ds_" .. #note_names), padding)
     curr_y = curr_y + y_increment
-    -- close button
+-- divider
+    dlg:CreateHorizontalLine(0, curr_y, 10)
+        :StretchToAlignWithRight()
+    curr_y = curr_y + y_increment / 2
+-- accidental order/amounts
+    -- controls for linear mode types
+    dlg:CreateStatic(0, curr_y, "chromatic_halfstep_size_label")
+        :SetText("Accidental Step Amount (Chromatic Halfstep Size)")
+        :DoAutoResizeWidth(0)
+    dlg:CreateEdit(0, curr_y - edit_offset, "chromatic_halfstep_size")
+        :SetWidth(30)
+        :AssureNoHorizontalOverlap(dlg:GetControl("chromatic_halfstep_size_label"), padding)
+    table.insert(hide_on_nonlinear, "chromatic_halfstep_size_label")
+    table.insert(hide_on_nonlinear, "chromatic_halfstep_size")
+    -- controls for non-linear mode types
+    dlg:CreateStatic(0, curr_y, "accidental_order_label")
+        :SetText("Accidental Order")
+        :DoAutoResizeWidth(0)
+    table.insert(hide_on_linear, "accidental_order_label")
+    for x = 1, 7 do
+        local acci_order_id = "acci_order_" .. x
+        local acci_amount_id = "acci_amount_" .. x
+        local prev_ctrl = x == 1 and dlg:GetControl("accidental_order_label") or dlg:GetControl("acci_divider_" .. x - 1)
+        dlg:CreateEdit(0, curr_y - edit_offset, acci_order_id)
+            :SetWidth(25)
+            :AssureNoHorizontalOverlap(prev_ctrl, padding)
+            :AddHandleCommand(on_note_name_edit)
+        dlg:CreateEdit(0, curr_y - edit_offset, acci_amount_id)
+            :SetWidth(25)
+            :AssureNoHorizontalOverlap(dlg:GetControl(acci_order_id), padding)
+        table.insert(hide_on_linear, acci_order_id)
+        table.insert(hide_on_linear, acci_amount_id)
+        if x < 7 then
+            local acci_divider_id = "acci_divider_" .. x
+            dlg:CreateVerticalLine(0, curr_y - edit_offset, 20, acci_divider_id)
+                :AssureNoHorizontalOverlap(dlg:GetControl(acci_amount_id), padding)
+            table.insert(hide_on_linear, acci_divider_id)
+        end
+    end
+    curr_y = curr_y + y_increment
+-- close button
     dlg:CreateCloseButton(0, curr_y)
         :HorizontallyAlignRightWithFurthest()
-    -- Registrations
+-- Registrations
     dlg:RegisterInitWindow(on_init_window)
     dlg:RegisterCloseWindow(on_close_window)
     dlg:RegisterHandleTimer(on_timer)
