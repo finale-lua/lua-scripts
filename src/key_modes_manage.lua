@@ -193,7 +193,7 @@ local function select_keymode(dialog)
     context.current_selection = curr_selection
 end
 
-local function on_document_change(dialog)
+local function on_document_change(dialog, select_item)
     context.current_doc = finale.FCDocument().ID
     local popup = dialog:GetControl("keymodes")
         :Clear()
@@ -207,7 +207,9 @@ local function on_document_change(dialog)
         popup:AddString(calc_key_mode_desc(def))
         x = x + 1
     end
-    if context.current_keymodes.Count > 0 then
+    if select_item and select_item < popup:GetCount() then
+        popup:SetSelectedItem(select_item)
+    elseif context.current_keymodes.Count > 0 then
         local sel_region = finale.FCMusicRegion()
         sel_region:SetCurrentSelection()
         if sel_region:IsEmpty() then
@@ -291,7 +293,32 @@ local function on_note_name_edit(control)
     control:SetText(result)
 end
 
-local function on_delete_all()
+local function on_delete_all(_control)
+    assert(context.current_keymodes.Count > 0, "no key modes to delete")
+    if global_dialog:CreateChildUI():AlertYesNo("Delete all Nonstandard Key Definitions in this document?", "") == finale.YESRETURN then
+        finenv.StartNewUndoBlock("Delete All Nonstandard Key Signatures", false)
+        for def in eachbackwards(context.current_keymodes) do
+            def:DeleteData()
+        end
+        finenv.EndUndoBlock(true)
+        finenv.UI():RedrawDocument()
+        on_document_change(global_dialog)
+    end
+end
+
+local function on_delete(_control)
+    assert(context.current_selection >= 2, "no key mode selected to delete")
+    local popup = global_dialog:GetControl("keymodes")
+    local fstr = finale.FCString()
+    popup:GetItemText(context.current_selection, fstr)
+    if global_dialog:CreateChildUI():AlertYesNo("Delete ".. fstr.LuaString .. "?", "") == finale.YESRETURN then
+        finenv.StartNewUndoBlock("Delete " .. fstr.LuaString, false)
+        local def = context.current_keymodes:GetItemAt(context.current_selection - 2)
+        def:DeleteData()
+        finenv.EndUndoBlock(true)
+        finenv.UI():RedrawDocument()
+        on_document_change(global_dialog, popup:GetSelectedItem())
+    end
 end
 
 local function create_dialog_box()
@@ -313,10 +340,12 @@ local function create_dialog_box()
         :SetText("Delete")
         :DoAutoResizeWidth()
         :AssureNoHorizontalOverlap(dlg:GetControl("keymodes"), 2 * padding)
+        :AddHandleCommand(on_delete)
     dlg:CreateButton(0, curr_y, "delete_all")
         :SetText("Delete All")
         :DoAutoResizeWidth()
         :HorizontallyAlignRightWithFurthest()
+        :AddHandleCommand(on_delete_all)
     curr_y = curr_y + y_increment
 -- basic information
     dlg:CreateStatic(0, curr_y, "middle_note_label")
