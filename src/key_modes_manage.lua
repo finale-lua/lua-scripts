@@ -26,18 +26,12 @@ context = context or
     global_timer_id = 1,
     current_doc = 0,
     current_keymodes = finale.FCCustomKeyModeDefs(),
-    current_selection = 0,
+    current_selection = -1,
+    current_type_selection = -1,
     current_fontname = finale.FCString()
 }
 
-local key_mode_types =
-{
-    "Predefined",
-    "Linear",
-    "Nonlinear"
-}
-
-local linear_mode_types =
+linear_mode_types =
 {
     "Ionian",
     "Dorian",
@@ -48,7 +42,7 @@ local linear_mode_types =
     "Locrian"
 }
 
-local note_names =
+note_names =
 {
     "C",
     "D",
@@ -59,7 +53,15 @@ local note_names =
     "B"
 }
 
-local alteration_names =
+note_number_by_names = (function()
+    local retval = {}
+    for k, v in ipairs(note_names) do
+        retval[v] = k
+    end
+    return retval
+end)()
+
+alteration_names =
 {
     [-2] = "bb",
     [-1] = "b",
@@ -124,16 +126,25 @@ local function calc_current_symbol_font()
     return font
 end
 
+local function on_type_popup(control)
+    local get_value = control:GetSelectedItem()
+    local dialog = control:GetParent()
+    if get_value ~= context.current_type_selection then
+        for _, v in ipairs(hide_on_linear) do
+            dialog:GetControl(v):SetVisible(get_value == 1)
+        end
+        for _, v in ipairs(hide_on_nonlinear) do
+            dialog:GetControl(v):SetVisible(get_value == 0)
+        end
+        context.current_type_selection = get_value
+    end
+end
+
 local function display_def(dialog, def)
     assert(def:IsLinear() or def:IsNonLinear(), "key mode " .. def.ItemNo .. "is invalid")
-    for _, v in ipairs(hide_on_linear) do
-        dialog:GetControl(v):SetVisible(def:IsNonLinear())
-    end
-    for _, v in ipairs(hide_on_nonlinear) do
-        dialog:GetControl(v):SetVisible(def:IsLinear())
-    end
     local type_popup = dialog:GetControl("keymode_type")
     type_popup:SetSelectedItem(def:IsLinear() and 0 or 1)
+    on_type_popup(type_popup)
     -- populate info
     dialog:GetControl("middle_note"):SetInteger(def.MiddleKeyNumber)
     dialog:GetControl("tonal_center"):SetText(note_names[def.BaseTonalCenter + 1])
@@ -152,24 +163,20 @@ local function display_def(dialog, def)
         dialog:GetControl("ds_" .. x):SetInteger(count)
     end
     -- populate accidental order and amounts
-    if def:IsLinear() then
-        local acci_amounts = def.AccidentalAmounts
-        dialog:GetControl("chromatic_halfstep_size"):SetInteger(math.abs(acci_amounts[1] or 1))
-    else
-        local acci_order = def.AccidentalOrder
-        local acci_amounts = def.AccidentalAmounts
-        local termination = false
-        for x = 1, 7 do
-            local acci_note = acci_order[x] or 0
-            local acci_amount = acci_amounts[x] or 0
-            if not termination and acci_amount == 0 then
-                termination = true
-            end
-            local note_text = termination and "" or note_names[acci_note + 1]
-            local amount_text = termination and "" or tostring(acci_amount)
-            dialog:GetControl("acci_order_" .. x):SetText(note_text)
-            dialog:GetControl("acci_amount_" .. x):SetText(amount_text)
+    local acci_amounts = def.AccidentalAmounts
+    dialog:GetControl("chromatic_halfstep_size"):SetInteger(math.abs(acci_amounts[1] or 1))
+    local acci_order = def.AccidentalOrder
+    local termination = false
+    for x = 1, 7 do
+        local acci_note = acci_order[x] or 0
+        local acci_amount = acci_amounts[x] or 0
+        if not termination and acci_amount == 0 then
+            termination = true
         end
+        local note_text = termination and "" or note_names[acci_note + 1]
+        local amount_text = termination and "" or tostring(acci_amount)
+        dialog:GetControl("acci_order_" .. x):SetText(note_text)
+        dialog:GetControl("acci_amount_" .. x):SetText(amount_text)
     end
 end
 
@@ -240,6 +247,9 @@ local function on_timer(dialog, timer)
 end
 
 local function on_init_window(dialog)
+    context.current_selection = -1
+    context.current_type_selection = -1
+    context.current_doc = 0
     on_timer(dialog, context.global_timer_id)
     global_dialog:SetTimer(context.global_timer_id, 100) -- last step
 end
@@ -291,6 +301,91 @@ local function on_note_name_edit(control)
         end
     end
     control:SetText(result)
+end
+
+local function copy_dialog_to_def(dialog, def, for_create)
+    local type_selected = dialog:GetControl("keymode_type"):GetSelectedItem()
+    if not for_create then
+        assert(def:IsLinear() and type_selected == 0 or def:IsNonLinear() and type_selected == 1,
+            "type pulldown does not match keymode item number")
+    end
+    -- populate info
+    def.MiddleKeyNumber = dialog:GetControl("middle_note"):GetInteger()
+    def.BaseTonalCenter = note_number_by_names[dialog:GetControl("tonal_center"):GetText()] - 1
+    def:SetAccidentalFontName(context.current_fontname)
+    -- populate key map
+    local accumulator = 0
+    local steps_map = {}
+    for x = 1, 7 do
+        table.insert(steps_map, accumulator)
+        local next_value = dialog:GetControl("ds_" .. x):GetInteger()
+        if next_value <= 0 then
+            return false, "All 7 diatonic steps must contain a positive value."
+        end
+        accumulator = accumulator + next_value
+    end
+    def.TotalChromaticSteps = accumulator
+    def.DiatonicStepsMap = steps_map
+    -- populate accidental order and amounts
+    local acci_order = {}
+    local acci_amounts = {}
+    if type_selected == 0 then
+        local acci_amount = dialog:GetControl("chromatic_halfstep_size"):GetInteger()
+        if acci_amount <= 0 then
+            return false, "Accidental Step Amount must be a positive value."
+        end
+        if acci_amount ~= 1 then
+            acci_order = finale.FCCustomKeyModeDef.GetDefaultAccidentalOrder()
+            for x = -7, -1 do
+                acci_amounts[x] = -acci_amount
+            end
+            for x = 1, 7 do
+                acci_amounts[x] = acci_amount
+            end
+        end
+    else
+        for x = 1, 7 do
+            local acci_amount = dialog:GetControl("acci_amount_" .. x):GetInteger()
+            if acci_amount == 0 then
+                break
+            end
+            local acci_value = note_number_by_names[dialog:GetControl("acci_order_" .. x):GetText()]
+            if not acci_value then
+                return false, "Accidental note name is not populated in position " .. x .. "."
+            end
+            table.insert(acci_order, acci_value - 1)
+            table.insert(acci_amounts, acci_amount)
+        end
+    end
+    def.AccidentalOrder = acci_order
+    def.AccidentalAmounts = acci_amounts
+    -- success exit
+    return true
+end
+
+local function on_save(_control)
+    local def, success, errmsg
+    local for_create = context.current_selection < 2
+    if for_create then
+        def = finale.FCCustomKeyModeDef()
+        success, errmsg = copy_dialog_to_def(global_dialog, def, for_create)
+    else
+        def = context.current_keymodes:GetItemAt(context.current_selection - 2)
+        assert(def, "selected FCCustomKeyModeDef not found for save")
+        success, errmsg = copy_dialog_to_def(global_dialog, def, for_create)
+    end
+    if not success then
+        global_dialog:CreateChildUI():AlertError(errmsg, "Unable to Save")
+        return
+    end
+    if for_create then
+        -- ToDo: create a new one
+    else
+        finenv.StartNewUndoBlock("Modify Nonstandard Key Signature", false)
+        assert(def:Save(), "save failed")
+        finenv.EndUndoBlock(true)
+        on_document_change(global_dialog, context.current_selection)
+    end
 end
 
 local function on_delete_all(_control)
@@ -371,6 +466,7 @@ local function create_dialog_box()
         :AddStrings("Linear", "Nonlinear")
         :DoAutoResizeWidth()
         :HorizontallyAlignRightWithFurthest()
+        :AddHandleCommand(on_type_popup)
     curr_y = curr_y + y_increment
     -- symbols info
         dlg:CreateButton(0, curr_y, "symbol_font")
@@ -450,6 +546,10 @@ local function create_dialog_box()
     end
     curr_y = curr_y + y_increment
 -- close button
+    dlg:CreateButton(0, curr_y, "save_button")
+        :SetText("Save")
+        :DoAutoResizeWidth()
+        :AddHandleCommand(on_save)
     dlg:CreateCloseButton(0, curr_y)
         :HorizontallyAlignRightWithFurthest()
 -- Registrations
