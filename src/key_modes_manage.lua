@@ -151,6 +151,18 @@ local function on_document_change(dialog)
         popup:AddString(calc_key_mode_desc(def))
         x = x + 1
     end
+    if context.current_keymodes.Count > 0 then
+        local sel_region = finale.FCMusicRegion()
+        sel_region:SetCurrentSelection()
+        if sel_region:IsEmpty() then
+            sel_region:SetFullDocument()
+        end
+        local cell = finale.FCCell(sel_region.StartMeasure, sel_region.StartStaff)
+        local key_index = context.current_keymodes:FindIndexForKeySignature(cell:GetKeySignature())
+        if key_index >= 0 then
+            popup:SetSelectedItem(key_index + 2)
+        end
+    end
     select_keymode(dialog)
 end
 
@@ -249,7 +261,7 @@ local function create_dialog_box()
     -- divider
     dlg:CreateHorizontalLine(0, curr_y, 10)
         :StretchToAlignWithRight()
-    curr_y = curr_y + y_increment
+    curr_y = curr_y + y_increment / 2
     -- diatonic steps
     dlg:CreateStatic(0, curr_y, "diatonic_step_map")
         :SetText("Diatonic Step Map")
