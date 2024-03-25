@@ -28,7 +28,8 @@ context = context or
     current_keymodes = finale.FCCustomKeyModeDefs(),
     current_selection = -1,
     current_type_selection = -1,
-    current_fontname = finale.FCString()
+    current_fontname = finale.FCString(),
+    current_symbol_list = 0
 }
 
 linear_mode_types =
@@ -159,6 +160,7 @@ local function display_def(dialog, def)
     def:GetAccidentalFontName(context.current_fontname)
     local font = calc_current_symbol_font()
     dialog:GetControl("show_font"):SetText(font:CreateDescription())
+    context.current_symbol_list = def.SymbolListID
     -- populate key map
     local key_map = def.DiatonicStepsMap
     key_map = key_map and #key_map > 0 and key_map or {0, 2, 4, 5, 7, 9, 11}
@@ -290,7 +292,49 @@ local function on_choose_font(_control)
 end
 
 local function on_edit_symbols(_control)
-    --ToDo: something here
+    local symbol_list = finale.FCCustomKeyModeSymbolList.GetDefaultList()
+    local editor_width = 60
+    local editor_height = 80
+    local dlg = mixin.FCXCustomLuaWindow()
+        :SetTitle("Accidental Symbols")
+    local curr_y = 0
+    local y_increment = 10
+    local x_increment = 10
+    local function acci_name(sign)
+        if sign == 0 then
+            return "natural"
+        elseif sign > 0 then
+            return "sharp"
+        else
+            return "flat"
+        end
+    end
+    local function add_symbol_controls(x, sign)
+        local control_name = "edit_" .. acci_name(sign) .. "_" .. x
+        print (calc_current_symbol_font():CreateDescription())
+        local ctrl = dlg:CreateEdit(0, curr_y, control_name)
+            :SetHeight(editor_height)
+            :SetWidth(editor_width)
+            :SetFont(calc_current_symbol_font())
+            :SetText(symbol_list[x * sign] or "")
+        if x > 1 then
+            ctrl:AssureNoHorizontalOverlap(dlg:GetControl("edit_" .. acci_name(sign) .. "_" .. x-1), x_increment)
+        end
+    end
+    for x = 1, 7 do
+        add_symbol_controls(x, -1)
+    end
+    curr_y = curr_y + editor_height + y_increment
+    add_symbol_controls(0, 1)
+    curr_y = curr_y + editor_height + y_increment
+    for x = 1, 7 do
+        add_symbol_controls(x, 1)
+    end
+    dlg:CreateOkButton()
+    dlg:CreateCancelButton()
+    if dlg:ExecuteModal(global_dialog) then
+        --ToDo: something
+    end
 end
 
 local function on_note_name_edit(control)
