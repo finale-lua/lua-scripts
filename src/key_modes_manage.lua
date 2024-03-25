@@ -80,7 +80,13 @@ local function calc_key_mode_desc(key_mode)
     local chromatic_steps = key:CalcTotalChromaticSteps()
     if chromatic_steps == 0 then chromatic_steps = 12 end
     local tonal_center = key_mode.BaseTonalCenter
-    local retval = "[" .. (key_mode.ItemNo & ~0xc000) .. "]"
+    local retval = "["
+    if key_mode:IsLinear() then
+        retval = retval .. "Linear "
+    elseif key_mode:IsNonLinear() then
+        retval = retval .. "Nonlinear "
+    end
+    retval = retval .. (key_mode.ItemNo & ~0xc000) .. "]"
     if key:IsMajor() then
         return retval .. " Predefined Major"
     elseif key:IsMinor() then
@@ -200,18 +206,23 @@ local function select_keymode(dialog)
     context.current_selection = curr_selection
 end
 
-local function on_document_change(dialog, select_item)
+local function on_document_change(dialog, select_itemno)
     context.current_doc = finale.FCDocument().ID
     local popup = dialog:GetControl("keymodes")
         :Clear()
         :AddString("< New >")
     context.current_keymodes:LoadAll()
     local x = 0
+    local select_item
     for def in each(context.current_keymodes) do
         if x == 0 then
             popup:AddString("-")
         end
         popup:AddString(calc_key_mode_desc(def))
+        if select_itemno and def.ItemNo == select_itemno then
+            select_item = popup:GetCount() - 1
+            print("got selected item:", x, select_item)
+        end
         x = x + 1
     end
     if select_item and select_item < popup:GetCount() then
@@ -379,13 +390,20 @@ local function on_save(_control)
         return
     end
     if for_create then
-        -- ToDo: create a new one
+        local new_linear = global_dialog:GetControl("keymode_type"):GetSelectedItem() == 0
+        finenv.StartNewUndoBlock("Create Nonstandard Key Signature", false)
+        if new_linear then
+            assert(def:SaveNewLinear(), "save new linear failed")
+        else
+            assert(def:SaveNewNonLinear(), "save new non-linear failed")
+        end
     else
         finenv.StartNewUndoBlock("Modify Nonstandard Key Signature", false)
         assert(def:Save(), "save failed")
-        finenv.EndUndoBlock(true)
-        on_document_change(global_dialog, context.current_selection)
     end
+    finenv.EndUndoBlock(true)
+    finenv.UI():RedrawDocument()
+    on_document_change(global_dialog, def.ItemNo)
 end
 
 local function on_delete_all(_control)
@@ -408,11 +426,16 @@ local function on_delete(_control)
     popup:GetItemText(context.current_selection, fstr)
     if global_dialog:CreateChildUI():AlertYesNo("Delete ".. fstr.LuaString .. "?", "") == finale.YESRETURN then
         finenv.StartNewUndoBlock("Delete " .. fstr.LuaString, false)
-        local def = context.current_keymodes:GetItemAt(context.current_selection - 2)
+        local curr_def_index = context.current_selection - 2
+        local def = context.current_keymodes:GetItemAt(curr_def_index)
         def:DeleteData()
         finenv.EndUndoBlock(true)
         finenv.UI():RedrawDocument()
-        on_document_change(global_dialog, popup:GetSelectedItem())
+        local next_itemno
+        if curr_def_index + 1 < context.current_keymodes.Count then
+            next_itemno = context.current_keymodes:GetItemAt(curr_def_index + 1).ItemNo
+        end
+        on_document_change(global_dialog, next_itemno)
     end
 end
 
