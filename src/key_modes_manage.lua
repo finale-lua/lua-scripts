@@ -73,6 +73,7 @@ alteration_names =
 
 local hide_on_linear = {}
 local hide_on_nonlinear = {}
+local suppress_popup = false
 
 local function calc_key_mode_desc(key_mode)
     -- Use FCKeySignature because it populates defaults if needed.
@@ -210,9 +211,11 @@ end
 
 local function on_document_change(dialog, select_itemno)
     context.current_doc = finale.FCDocument().ID
+    suppress_popup = true
     local popup = dialog:GetControl("keymodes")
         :Clear()
         :AddString("< New >")
+        :SetSelectedItem(0)
     context.current_keymodes:LoadAll()
     local x = 0
     local select_item
@@ -227,6 +230,7 @@ local function on_document_change(dialog, select_itemno)
         end
         x = x + 1
     end
+    suppress_popup = false
     if select_item and select_item < popup:GetCount() then
         popup:SetSelectedItem(select_item)
     elseif context.current_keymodes.Count > 0 then
@@ -245,10 +249,14 @@ local function on_document_change(dialog, select_itemno)
 end
 
 local function on_popup(control)
-    local curr_selection = control:GetSelectedItem()
-    if curr_selection ~= context.current_selection then
-        select_keymode(control:GetParent())
+    if not suppress_popup then
+        suppress_popup = true
+        local curr_selection = control:GetSelectedItem()
+        if curr_selection ~= context.current_selection then
+            select_keymode(control:GetParent())
+        end
     end
+    suppress_popup = false
 end
 
 local function on_timer(dialog, timer)
@@ -311,22 +319,41 @@ local function on_edit_symbols(_control)
     end
     local function add_symbol_controls(x, sign)
         local control_name = "edit_" .. acci_name(sign) .. "_" .. x
-        print (calc_current_symbol_font():CreateDescription())
+        local font = calc_current_symbol_font()
         local ctrl = dlg:CreateEdit(0, curr_y, control_name)
             :SetHeight(editor_height)
             :SetWidth(editor_width)
-            :SetFont(calc_current_symbol_font())
+            :SetFont(font)
             :SetText(symbol_list[x * sign] or "")
         if x > 1 then
-            ctrl:AssureNoHorizontalOverlap(dlg:GetControl("edit_" .. acci_name(sign) .. "_" .. x-1), x_increment)
+            ctrl:AssureNoHorizontalOverlap(dlg:GetControl("edit_" .. acci_name(sign) .. "_" .. x - 1), x_increment)
+        end
+        local btn = dlg:CreateButton(0, curr_y + editor_height + 10, control_name .. "_ins")
+            :SetWidth(editor_width)
+            :SetText("Symbol...")
+            :AddHandleCommand(function(_button)
+                local fcstr = finale.FCString()
+                ctrl:GetText(fcstr)
+                local last_point = 0
+                for _, c in utf8.codes(fcstr.LuaString) do
+                    last_point = c
+                end
+                local new_point = dlg:CreateChildUI():DisplaySymbolDialog(font, last_point)
+                if new_point ~= last_point then
+                    fcstr:AppendCharacter(new_point)
+                    ctrl:SetText(fcstr)
+                end
+            end)
+        if x > 1 then
+            btn:AssureNoHorizontalOverlap(dlg:GetControl("edit_" .. acci_name(sign) .. "_" .. x - 1), x_increment)
         end
     end
     for x = 1, 7 do
         add_symbol_controls(x, -1)
     end
-    curr_y = curr_y + editor_height + y_increment
+    curr_y = curr_y + editor_height + 4*y_increment
     add_symbol_controls(0, 1)
-    curr_y = curr_y + editor_height + y_increment
+    curr_y = curr_y + editor_height + 4*y_increment
     for x = 1, 7 do
         add_symbol_controls(x, 1)
     end
@@ -533,6 +560,7 @@ local function create_dialog_box()
         :AddStrings("Linear", "Nonlinear")
         :DoAutoResizeWidth()
         :HorizontallyAlignRightWithFurthest()
+        :SetSelectedItem(0)
         :AddHandleCommand(on_type_popup)
     curr_y = curr_y + y_increment
     -- symbols info
