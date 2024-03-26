@@ -300,7 +300,15 @@ local function on_choose_font(_control)
 end
 
 local function on_edit_symbols(_control)
-    local symbol_list = finale.FCCustomKeyModeSymbolList.GetDefaultList()
+    local symbol_list = (function()
+        if context.current_symbol_list > 0 then
+            local retval = finale.FCCustomKeyModeSymbolList()
+            if retval:Load(context.current_symbol_list) then
+                return retval.List
+            end
+        end
+        return finale.FCCustomKeyModeSymbolList.GetDefaultList()
+    end)()
     local editor_width = 60
     local editor_height = 80
     local dlg = mixin.FCXCustomLuaWindow()
@@ -308,27 +316,28 @@ local function on_edit_symbols(_control)
     local curr_y = 0
     local y_increment = 10
     local x_increment = 10
-    local function acci_name(sign)
+    local function control_name(x, sign)
+        local acci_name
         if sign == 0 then
-            return "natural"
+            acci_name = "natural"
         elseif sign > 0 then
-            return "sharp"
+            acci_name = "sharp"
         else
-            return "flat"
+            acci_name = "flat"
         end
+        return "edit_" .. acci_name .. "_" .. x
     end
     local function add_symbol_controls(x, sign)
-        local control_name = "edit_" .. acci_name(sign) .. "_" .. x
         local font = calc_current_symbol_font()
-        local ctrl = dlg:CreateEdit(0, curr_y, control_name)
+        local ctrl = dlg:CreateEdit(0, curr_y, control_name(x, sign))
             :SetHeight(editor_height)
             :SetWidth(editor_width)
             :SetFont(font)
             :SetText(symbol_list[x * sign] or "")
         if x > 1 then
-            ctrl:AssureNoHorizontalOverlap(dlg:GetControl("edit_" .. acci_name(sign) .. "_" .. x - 1), x_increment)
+            ctrl:AssureNoHorizontalOverlap(dlg:GetControl(control_name(x - 1, sign)), x_increment)
         end
-        local btn = dlg:CreateButton(0, curr_y + editor_height + 10, control_name .. "_ins")
+        local btn = dlg:CreateButton(0, curr_y + editor_height + 10, control_name(x, sign) .. "_ins")
             :SetWidth(editor_width)
             :SetText("Symbol...")
             :AddHandleCommand(function(_button)
@@ -345,7 +354,7 @@ local function on_edit_symbols(_control)
                 end
             end)
         if x > 1 then
-            btn:AssureNoHorizontalOverlap(dlg:GetControl("edit_" .. acci_name(sign) .. "_" .. x - 1), x_increment)
+            btn:AssureNoHorizontalOverlap(dlg:GetControl(control_name(x - 1, sign)), x_increment)
         end
     end
     for x = 1, 7 do
@@ -395,6 +404,7 @@ local function copy_dialog_to_def(dialog, def, for_create)
     def.MiddleKeyNumber = dialog:GetControl("middle_note"):GetInteger()
     def.BaseTonalCenter = note_number_by_names[dialog:GetControl("tonal_center"):GetText()] - 1
     def:SetAccidentalFontName(context.current_fontname)
+    def.SymbolListID = context.current_symbol_list
     -- populate key map
     local accumulator = 0
     local steps_map = {}
