@@ -343,9 +343,9 @@ local function on_edit_symbols(_control)
         end
         return "edit_" .. acci_name .. "_" .. x
     end
+    local font = calc_current_symbol_font()
+    local is_symbol = font:IsMacSymbolFont()
     local function add_symbol_controls(x, sign)
-        local font = calc_current_symbol_font()
-        local is_symbol = not font.IsSMuFLFont -- for now use (not IsSMuFLFont) as a proxy for CalcIsMacSymbolFont
         local ctrl = dlg:CreateEdit(0, curr_y, control_name(x, sign))
             :SetHeight(editor_height)
             :SetWidth(editor_width)
