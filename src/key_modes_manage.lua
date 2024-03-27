@@ -299,6 +299,22 @@ local function on_choose_font(_control)
     end
 end
 
+local function get_symbol_fcstr(control, is_symbol)
+    local fcstr = finale.FCString()
+    control:GetText(fcstr)
+    if is_symbol then
+        fcstr:EncodeToMacRoman()
+    end
+    return fcstr
+end
+
+local function set_symbol_fcstr(control, is_symbol, fcstr)
+    if is_symbol then
+        fcstr:EncodeFromMacRoman()
+    end
+    control:SetText(fcstr)
+end
+
 local function on_edit_symbols(_control)
     local symbol_list = (function()
         if context.current_symbol_list > 0 then
@@ -329,11 +345,12 @@ local function on_edit_symbols(_control)
     end
     local function add_symbol_controls(x, sign)
         local font = calc_current_symbol_font()
+        local is_symbol = not font.IsSMuFLFont -- for now use (not IsSMuFLFont) as a proxy for CalcIsMacSymbolFont
         local ctrl = dlg:CreateEdit(0, curr_y, control_name(x, sign))
             :SetHeight(editor_height)
             :SetWidth(editor_width)
             :SetFont(font)
-            :SetText(symbol_list[x * sign] or "")
+        set_symbol_fcstr(ctrl, is_symbol, finale.FCString(symbol_list[x * sign] or ""))
         if x > 1 then
             ctrl:AssureNoHorizontalOverlap(dlg:GetControl(control_name(x - 1, sign)), x_increment)
         end
@@ -341,8 +358,7 @@ local function on_edit_symbols(_control)
             :SetWidth(editor_width)
             :SetText("Symbol...")
             :AddHandleCommand(function(_button)
-                local fcstr = finale.FCString()
-                ctrl:GetText(fcstr)
+                local fcstr = get_symbol_fcstr(ctrl, is_symbol)
                 local last_point = 0
                 for _, c in utf8.codes(fcstr.LuaString) do
                     last_point = c
@@ -350,7 +366,7 @@ local function on_edit_symbols(_control)
                 local new_point = dlg:CreateChildUI():DisplaySymbolDialog(font, last_point)
                 if new_point ~= last_point then
                     fcstr:AppendCharacter(new_point)
-                    ctrl:SetText(fcstr)
+                    set_symbol_fcstr(ctrl, is_symbol, fcstr)
                 end
             end)
         if x > 1 then
