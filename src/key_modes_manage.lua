@@ -28,7 +28,7 @@ context = context or
     current_keymodes = finale.FCCustomKeyModeDefs(),
     current_selection = -1,
     current_type_selection = -1,
-    current_fontname = finale.FCString(),
+    current_font = finale.FCFontInfo,
     current_symbol_list = 0
 }
 
@@ -124,16 +124,6 @@ local function calc_key_mode_desc(key_mode)
     return retval
 end
 
-local function calc_current_symbol_font()
-    local fpref = finale.FCFontPrefs()
-    fpref:Load(finale.FONTPREF_KEYSIG)
-    local font = fpref:CreateFontInfo() or finale.FCFontInfo()
-    if context.current_fontname.Length > 0 then
-        font:SetNameString(context.current_fontname)
-    end
-    return font
-end
-
 local function on_type_popup(control)
     local get_value = control:GetSelectedItem()
     local dialog = control:GetParent()
@@ -156,9 +146,8 @@ local function display_def(dialog, def)
     -- populate info
     dialog:GetControl("middle_note"):SetInteger(def.MiddleKeyNumber)
     dialog:GetControl("tonal_center"):SetText(note_names[def.BaseTonalCenter + 1])
-    def:GetAccidentalFontName(context.current_fontname)
-    local font = calc_current_symbol_font()
-    dialog:GetControl("show_font"):SetText(font:CreateDescription())
+    context.current_font = def:CreateAccidentalFontInfo() or finale.FCFontInfo()
+    dialog:GetControl("show_font"):SetText(context.current_font:CreateDescription())
     context.current_symbol_list = def.SymbolListID
     -- populate key map
     local key_map = def.DiatonicStepsMap
@@ -286,21 +275,23 @@ local function on_listen_to_midi(_control)
 end
 
 local function on_choose_font(control)
-    local font = calc_current_symbol_font()
     local dlg = control:GetParent()
-    local font_dialog = finale.FCFontDialog(dlg:CreateChildUI(), font)
+    local font_dialog = finale.FCFontDialog(dlg:CreateChildUI(), context.current_font)
     font_dialog.UseSizes = false
     font_dialog.UseStyles = false
     if font_dialog:Execute() then
-        font:GetNameString(context.current_fontname)
-        dlg:GetControl("show_font"):SetText(font:CreateDescription())
+        dlg:GetControl("show_font"):SetText(context.current_font:CreateDescription())
         return true
     end
     return false
 end
 
 local function on_edit_symbols(_control)
-    local save_fontname = context.current_fontname.LuaString
+    local save_font = (function()
+        local def = finale.FCCustomKeyModeDef()
+        def.AccidentalFontID = context.current_font.FontID
+        return def:CreateAccidentalFontInfo()
+    end)()
     local editor_width = 60
     local editor_height = 80
     local curr_y = 0
@@ -335,8 +326,7 @@ local function on_edit_symbols(_control)
         end
         return "edit_" .. acci_name .. "_" .. x
     end
-    local font = calc_current_symbol_font()
-    local is_symbol = font:IsMacSymbolFont()
+    local is_symbol = context.current_font:IsMacSymbolFont()
     local curr_sel = 0
     local lists = finale.FCCustomKeyModeSymbolLists()
     lists:LoadAll()
@@ -359,7 +349,7 @@ local function on_edit_symbols(_control)
         local ctrl = dlg:CreateEdit(0, curr_y, control_name(x, sign))
             :SetHeight(editor_height)
             :SetWidth(editor_width)
-            :SetFont(font)
+            :SetFont(context.current_font)
         if x > 1 then
             ctrl:AssureNoHorizontalOverlap(dlg:GetControl(control_name(x - 1, sign)), x_increment)
         end
@@ -372,7 +362,7 @@ local function on_edit_symbols(_control)
                 for _, c in utf8.codes(fcstr.LuaString) do
                     last_point = c
                 end
-                local new_point = dlg:CreateChildUI():DisplaySymbolDialog(font, last_point)
+                local new_point = dlg:CreateChildUI():DisplaySymbolDialog(context.current_font, last_point)
                 if new_point ~= 0 then
                     fcstr:AppendCharacter(new_point)
                     set_symbol_fcstr(ctrl, is_symbol, fcstr)
@@ -414,20 +404,18 @@ local function on_edit_symbols(_control)
         :AddHandleCommand(function(control)
             local old_is_symbol = is_symbol
             if on_choose_font(control) then
-                font = calc_current_symbol_font()
-                is_symbol = font:IsMacSymbolFont()
+                is_symbol = context.current_font:IsMacSymbolFont()
                 for i = -7, 7 do
                     local ctrl = dlg:GetControl(control_name(math.abs(i), i < 0 and -1 or 1))
                     local ctrl_value = get_symbol_fcstr(ctrl, old_is_symbol)
-                    dlg:GetControl(control_name(math.abs(i), i < 0 and -1 or 1)):SetFont(font)
+                    dlg:GetControl(control_name(math.abs(i), i < 0 and -1 or 1)):SetFont(context.current_font)
                     set_symbol_fcstr(ctrl, is_symbol, ctrl_value)
                 end
             end
         end)
-    print(context.current_fontname)
     dlg:CreateStatic(0, curr_y, "show_font")
         :DoAutoResizeWidth()
-        :SetText(context.current_fontname)
+        :SetText(context.current_font:CreateDescription())
         :AssureNoHorizontalOverlap(dlg:GetControl("symbol_font"), y_increment)
     curr_y = curr_y + button_height + y_increment
     -- editor boxes
@@ -449,8 +437,7 @@ local function on_edit_symbols(_control)
         apply_symbol_list(context.current_symbol_list)
     end)
     if dlg:ExecuteModal(global_dialog) == finale.EXECMODAL_OK then
-        font:GetNameString(context.current_fontname)
-        global_dialog:GetControl("show_font"):SetText(context.current_fontname)
+        global_dialog:GetControl("show_font"):SetText(context.current_font:CreateDescription())
         local new_list = {}
         for i = -7, 7 do
             local ctrl = dlg:GetControl(control_name(math.abs(i), i < 0 and -1 or 1))
@@ -464,7 +451,7 @@ local function on_edit_symbols(_control)
         finenv.EndUndoBlock(true)
         context.current_symbol_list = list.ItemNo
     else
-        context.current_fontname.LuaString = save_fontname
+        context.current_font = save_font
     end
 end
 
@@ -498,7 +485,7 @@ local function copy_dialog_to_def(dialog, def, for_create)
     -- populate info
     def.MiddleKeyNumber = dialog:GetControl("middle_note"):GetInteger()
     def.BaseTonalCenter = note_number_by_names[dialog:GetControl("tonal_center"):GetText()] - 1
-    def:SetAccidentalFontName(context.current_fontname)
+    def.AccidentalFontID = context.current_font.FontID
     def.SymbolListID = context.current_symbol_list
     -- populate key map
     local accumulator = 0
