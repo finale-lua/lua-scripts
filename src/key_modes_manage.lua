@@ -126,8 +126,8 @@ end
 
 local function calc_current_symbol_font()
     local fpref = finale.FCFontPrefs()
-    assert(fpref:Load(finale.FONTPREF_KEYSIG), "failed to load default font for key signatures")
-    local font = fpref:CreateFontInfo()
+    fpref:Load(finale.FONTPREF_KEYSIG)
+    local font = fpref:CreateFontInfo() or finale.FCFontInfo()
     if context.current_fontname.Length > 0 then
         font:SetNameString(context.current_fontname)
     end
@@ -156,8 +156,6 @@ local function display_def(dialog, def)
     -- populate info
     dialog:GetControl("middle_note"):SetInteger(def.MiddleKeyNumber)
     dialog:GetControl("tonal_center"):SetText(note_names[def.BaseTonalCenter + 1])
-    local fpref = finale.FCFontPrefs()
-    assert(fpref:Load(finale.FONTPREF_KEYSIG), "failed to load default font for key signatures")
     def:GetAccidentalFontName(context.current_fontname)
     local font = calc_current_symbol_font()
     dialog:GetControl("show_font"):SetText(font:CreateDescription())
@@ -226,7 +224,6 @@ local function on_document_change(dialog, select_itemno)
         popup:AddString(calc_key_mode_desc(def))
         if select_itemno and def.ItemNo == select_itemno then
             select_item = popup:GetCount() - 1
-            print("got selected item:", x, select_item)
         end
         x = x + 1
     end
@@ -288,50 +285,45 @@ local function on_listen_to_midi(_control)
     end
 end
 
-local function on_choose_font(_control)
+local function on_choose_font(control)
     local font = calc_current_symbol_font()
-    local font_dialog = finale.FCFontDialog(global_dialog:CreateChildUI(), font)
+    local dlg = control:GetParent()
+    local font_dialog = finale.FCFontDialog(dlg:CreateChildUI(), font)
     font_dialog.UseSizes = false
     font_dialog.UseStyles = false
     if font_dialog:Execute() then
         font:GetNameString(context.current_fontname)
-        global_dialog:GetControl("show_font"):SetText(font:CreateDescription())
+        dlg:GetControl("show_font"):SetText(font:CreateDescription())
+        return true
     end
-end
-
-local function get_symbol_fcstr(control, is_symbol)
-    local fcstr = finale.FCString()
-    control:GetText(fcstr)
-    if is_symbol then
-        fcstr:EncodeToMacRoman()
-    end
-    return fcstr
-end
-
-local function set_symbol_fcstr(control, is_symbol, fcstr)
-    if is_symbol then
-        fcstr:EncodeFromMacRoman()
-    end
-    control:SetText(fcstr)
+    return false
 end
 
 local function on_edit_symbols(_control)
-    local symbol_list = (function()
-        if context.current_symbol_list > 0 then
-            local retval = finale.FCCustomKeyModeSymbolList()
-            if retval:Load(context.current_symbol_list) then
-                return retval.List
-            end
-        end
-        return finale.FCCustomKeyModeSymbolList.GetDefaultList()
-    end)()
+    local save_fontname = context.current_fontname.LuaString
     local editor_width = 60
     local editor_height = 80
-    local dlg = mixin.FCXCustomLuaWindow()
-        :SetTitle("Accidental Symbols")
     local curr_y = 0
+    local button_height = 20
     local y_increment = 10
     local x_increment = 10
+    local dlg = mixin.FCXCustomLuaWindow()
+        :SetTitle("Accidental Symbols")
+    -- utility functions
+    local function get_symbol_fcstr(control, is_symbol)
+        local fcstr = finale.FCString()
+        control:GetText(fcstr)
+        if is_symbol then
+            fcstr:EncodeToMacRoman()
+        end
+        return fcstr
+    end
+    local function set_symbol_fcstr(control, is_symbol, fcstr)
+        if is_symbol then
+            fcstr:EncodeFromMacRoman()
+        end
+        control:SetText(fcstr)
+    end
     local function control_name(x, sign)
         local acci_name
         if sign == 0 then
@@ -345,12 +337,29 @@ local function on_edit_symbols(_control)
     end
     local font = calc_current_symbol_font()
     local is_symbol = font:IsMacSymbolFont()
+    local curr_sel = 0
+    local lists = finale.FCCustomKeyModeSymbolLists()
+    lists:LoadAll()
+    local function apply_symbol_list(list_id)
+        local list
+        if list_id > 0 then
+            local retval = finale.FCCustomKeyModeSymbolList()
+            if retval:Load(list_id) then
+                list = retval.List
+            end
+        end
+        if not list then
+            list = finale.FCCustomKeyModeSymbolList.GetDefaultList()
+        end
+        for i = -7, 7 do
+            set_symbol_fcstr(dlg:GetControl(control_name(math.abs(i), i < 0 and -1 or 1)), is_symbol, finale.FCString(list[i] or ""))
+        end
+    end
     local function add_symbol_controls(x, sign)
         local ctrl = dlg:CreateEdit(0, curr_y, control_name(x, sign))
             :SetHeight(editor_height)
             :SetWidth(editor_width)
             :SetFont(font)
-        set_symbol_fcstr(ctrl, is_symbol, finale.FCString(symbol_list[x * sign] or ""))
         if x > 1 then
             ctrl:AssureNoHorizontalOverlap(dlg:GetControl(control_name(x - 1, sign)), x_increment)
         end
@@ -373,6 +382,56 @@ local function on_edit_symbols(_control)
             btn:AssureNoHorizontalOverlap(dlg:GetControl(control_name(x - 1, sign)), x_increment)
         end
     end
+    -- header fields
+    local popup = dlg:CreatePopup(0, curr_y, "popup")
+        :SetWidth(300)
+        :AddStrings("< New >", "-")
+        :AddHandleCommand(function(control)
+            local new_sel = control:GetSelectedItem()
+            if new_sel ~= curr_sel then
+                if new_sel == 0 then
+                    apply_symbol_list(0)
+                elseif new_sel == 1 then
+                    control:SetSelectedItem(curr_sel)
+                    return
+                else
+                    apply_symbol_list(lists:GetItemAt(new_sel - 2).ItemNo)
+                end
+                curr_sel = new_sel
+            end
+        end)
+    for list in each(lists) do
+        popup:AddString(list:CreateListString())
+        if list.ItemNo == context.current_symbol_list then
+            curr_sel = popup:GetCount() - 1
+        end
+    end
+    curr_y = curr_y + button_height + y_increment
+    -- symbols info
+    dlg:CreateButton(0, curr_y, "symbol_font")
+        :SetText("Accidental Font...")
+        :DoAutoResizeWidth()
+        :AddHandleCommand(function(control)
+            local old_is_symbol = is_symbol
+            if on_choose_font(control) then
+                font = calc_current_symbol_font()
+                is_symbol = font:IsMacSymbolFont()
+                for i = -7, 7 do
+                    local ctrl = dlg:GetControl(control_name(math.abs(i), i < 0 and -1 or 1))
+                    local ctrl_value = get_symbol_fcstr(ctrl, old_is_symbol)
+                    dlg:GetControl(control_name(math.abs(i), i < 0 and -1 or 1)):SetFont(font)
+                    set_symbol_fcstr(ctrl, is_symbol, ctrl_value)
+                end
+            end
+        end)
+    print(context.current_fontname)
+    dlg:CreateStatic(0, curr_y, "show_font")
+        :DoAutoResizeWidth()
+        :SetText(context.current_fontname)
+        :AssureNoHorizontalOverlap(dlg:GetControl("symbol_font"), y_increment)
+    curr_y = curr_y + button_height + y_increment
+    -- editor boxes
+    popup:SetSelectedItem(curr_sel)
     for x = 1, 7 do
         add_symbol_controls(x, -1)
     end
@@ -382,10 +441,30 @@ local function on_edit_symbols(_control)
     for x = 1, 7 do
         add_symbol_controls(x, 1)
     end
+    -- ok/cancel buttons
     dlg:CreateOkButton()
     dlg:CreateCancelButton()
-    if dlg:ExecuteModal(global_dialog) then
-        --ToDo: something
+    -- registrations
+    dlg:RegisterInitWindow(function()
+        apply_symbol_list(context.current_symbol_list)
+    end)
+    if dlg:ExecuteModal(global_dialog) == finale.EXECMODAL_OK then
+        font:GetNameString(context.current_fontname)
+        global_dialog:GetControl("show_font"):SetText(context.current_fontname)
+        local new_list = {}
+        for i = -7, 7 do
+            local ctrl = dlg:GetControl(control_name(math.abs(i), i < 0 and -1 or 1))
+            local ctrl_value = get_symbol_fcstr(ctrl, is_symbol)
+            new_list[i] = ctrl_value.LuaString
+        end
+        local list = curr_sel >= 2 and lists:GetItemAt(curr_sel - 2) or finale.FCCustomKeyModeSymbolList()
+        list.List = new_list
+        finenv.StartNewUndoBlock("Edit Accidental Symbol List", false)
+        list:Save()
+        finenv.EndUndoBlock(true)
+        context.current_symbol_list = list.ItemNo
+    else
+        context.current_fontname.LuaString = save_fontname
     end
 end
 
@@ -590,7 +669,7 @@ local function create_dialog_box()
         :AddHandleCommand(on_type_popup)
     curr_y = curr_y + y_increment
     -- symbols info
-        dlg:CreateButton(0, curr_y, "symbol_font")
+    dlg:CreateButton(0, curr_y, "symbol_font")
         :SetText("Accidental Font...")
         :DoAutoResizeWidth()
         :AddHandleCommand(on_choose_font)
