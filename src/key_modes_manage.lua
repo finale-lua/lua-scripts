@@ -196,7 +196,7 @@ local function select_keymode(dialog)
     if curr_selection == 0 then
         display_def(dialog, finale.FCCustomKeyModeDef())
     elseif curr_selection == 1 then
-        popup:SetSelection(context.current_selection)
+        popup:SetSelectedItem(context.current_selection)
         return
     else
         local keymode = context.current_keymodes:GetItemAt(curr_selection - 2)
@@ -364,7 +364,7 @@ local function on_edit_symbols(_control)
                     last_point = c
                 end
                 local new_point = dlg:CreateChildUI():DisplaySymbolDialog(font, last_point)
-                if new_point ~= last_point then
+                if new_point ~= 0 then
                     fcstr:AppendCharacter(new_point)
                     set_symbol_fcstr(ctrl, is_symbol, fcstr)
                 end
