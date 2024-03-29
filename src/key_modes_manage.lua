@@ -21,6 +21,11 @@ end
 local utils = require("library.utils")
 local mixin = require("library.mixin")
 
+local win_edit_offset = 3
+local mac_edit_offset = 3
+local edit_offset = utils.win_mac(win_edit_offset, mac_edit_offset)
+local button_offset = utils.win_mac(win_edit_offset + 1, 0)
+
 context = context or
 {
     global_timer_id = 1,
@@ -375,14 +380,14 @@ local function on_edit_symbols(_control)
         end
     end
     local function add_symbol_controls(x, sign)
-        local ctrl = dlg:CreateEdit(0, curr_y, control_name(x, sign))
+        local ctrl = dlg:CreateEdit(0, curr_y - edit_offset, control_name(x, sign))
             :SetHeight(editor_height)
             :SetWidth(editor_width)
             :SetFont(context.current_font)
         if x > 1 then
             ctrl:AssureNoHorizontalOverlap(dlg:GetControl(control_name(x - 1, sign)), x_increment)
         end
-        local btn = dlg:CreateButton(0, curr_y + editor_height + 10, control_name(x, sign) .. "_ins")
+        local btn = dlg:CreateButton(0, curr_y + editor_height + 10 - button_offset, control_name(x, sign) .. "_ins")
             :SetWidth(editor_width)
             :SetText("Symbol...")
             :AddHandleCommand(function(_button)
@@ -424,7 +429,7 @@ local function on_edit_symbols(_control)
             curr_sel = popup:GetCount() - 1
         end
     end
-    dlg:CreateButton(0, curr_y, "delete_symbol_list")
+    dlg:CreateButton(0, curr_y - button_offset, "delete_symbol_list")
         :SetText("Delete")
         :DoAutoResizeWidth()
         :AssureNoHorizontalOverlap(popup, 10)
@@ -466,7 +471,7 @@ local function on_edit_symbols(_control)
         end)
     curr_y = curr_y + button_height + y_increment
     -- symbols info
-    dlg:CreateButton(0, curr_y, "symbol_font")
+    dlg:CreateButton(0, curr_y - button_offset, "symbol_font")
         :SetText("Accidental Font...")
         :DoAutoResizeWidth()
         :AddHandleCommand(function(control)
@@ -568,7 +573,7 @@ end
 
 local function on_acci_octaves(_control)
     local curr_y = 0
-    local row_height = 20
+    local row_height = 22 --utils.win_mac(22, 20)
     local first_edit_pos = 75
     local edit_pos_diff = 35
     local curr_values = context.current_acci_octaves
@@ -613,7 +618,7 @@ local function on_acci_octaves(_control)
             curr_x = first_edit_pos
             for i = -7, 7 do
                 if acci_amounts[i] and acci_amounts[i] ~= 0 then
-                    dlg:CreateEdit(curr_x, curr_y, "acci_pos_" .. clef.ClefIndex .. "_" .. i)
+                    dlg:CreateEdit(curr_x, curr_y - edit_offset, "acci_pos_" .. clef.ClefIndex .. "_" .. i)
                         :SetText(clef_table[i] and tostring(clef_table[i]) or "")
                         :SetWidth(25)
                     curr_x = curr_x + edit_pos_diff
@@ -767,9 +772,6 @@ local function create_dialog_box()
     local padding = 5
     local y_increment = 30
     local curr_y = 0
-    local win_edit_offset = 5
-    local mac_edit_offset = 3
-    local edit_offset = utils.win_mac(win_edit_offset, mac_edit_offset)
     hide_on_linear = {}
     hide_on_nonlinear = {}
     local dlg = mixin.FCXCustomLuaWindow()
@@ -778,12 +780,12 @@ local function create_dialog_box()
     dlg:CreatePopup(0, curr_y, "keymodes")
         :SetWidth(300)
         :AddHandleCommand(on_popup)
-    dlg:CreateButton(0, curr_y, "delete")
+    dlg:CreateButton(0, curr_y - button_offset, "delete")
         :SetText("Delete")
         :DoAutoResizeWidth()
         :AssureNoHorizontalOverlap(dlg:GetControl("keymodes"), 2 * padding)
         :AddHandleCommand(on_delete)
-    dlg:CreateButton(0, curr_y, "delete_all")
+    dlg:CreateButton(0, curr_y - button_offset, "delete_all")
         :SetText("Delete All")
         :DoAutoResizeWidth()
         :HorizontallyAlignRightWithFurthest()
@@ -796,7 +798,7 @@ local function create_dialog_box()
     dlg:CreateEdit(0, curr_y - edit_offset, "middle_note")
         :SetWidth(30)
         :AssureNoHorizontalOverlap(dlg:GetControl("middle_note_label"), padding)
-    dlg:CreateButton(0, curr_y, "listen_to_midi")
+    dlg:CreateButton(0, curr_y - button_offset, "listen_to_midi")
         :SetText("Listen...")
         :DoAutoResizeWidth()
         :AssureNoHorizontalOverlap(dlg:GetControl("middle_note"), padding)
@@ -817,14 +819,14 @@ local function create_dialog_box()
         :AddHandleCommand(on_type_popup)
     curr_y = curr_y + y_increment
     -- symbols info
-    dlg:CreateButton(0, curr_y, "symbol_font")
+    dlg:CreateButton(0, curr_y - button_offset, "symbol_font")
         :SetText("Accidental Font...")
         :DoAutoResizeWidth()
         :AddHandleCommand(on_choose_font)
     dlg:CreateStatic(0, curr_y, "show_font")
         :DoAutoResizeWidth()
         :AssureNoHorizontalOverlap(dlg:GetControl("symbol_font"), padding)
-    dlg:CreateButton(0, curr_y, "symbols")
+    dlg:CreateButton(0, curr_y - button_offset, "symbols")
         :SetText("Accidental Symbols...")
         :DoAutoResizeWidth()
         :HorizontallyAlignRightWithFurthest()
@@ -894,11 +896,11 @@ local function create_dialog_box()
     end
     curr_y = curr_y + y_increment
 -- clef octaves
-    dlg:CreateButton(0, curr_y, "acci_octaves")
+    dlg:CreateButton(0, curr_y - button_offset, "acci_octaves")
         :SetText("Accidental Octaves...")
         :DoAutoResizeWidth()
         :AddHandleCommand(on_acci_octaves)
-    dlg:CreateButton(0, curr_y, "clear_acci_octave")
+    dlg:CreateButton(0, curr_y - button_offset, "clear_acci_octave")
         :SetText("Revert...")
         :DoAutoResizeWidth()
         :AssureNoHorizontalOverlap(dlg:GetControl("acci_octaves"), padding)
