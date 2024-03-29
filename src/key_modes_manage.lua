@@ -29,7 +29,8 @@ context = context or
     current_selection = -1,
     current_type_selection = -1,
     current_font = finale.FCFontInfo,
-    current_symbol_list = 0
+    current_symbol_list = 0,
+    current_acci_octaves = {}
 }
 
 linear_mode_types =
@@ -52,6 +53,28 @@ note_names =
     "G",
     "A",
     "B"
+}
+
+clef_names =
+{
+    "Treble",
+    "Alto",
+    "Tenor",
+    "Bass",
+    "Percussion",
+    "Treble 8vb",
+    "Bass 8vb",
+    "Baritone",
+    "Violin",
+    "Baritone C",
+    "Mezzo",
+    "Soprano",
+    "Alt. Perc.",
+    "Treble 8va",
+    "Bass 8va",
+    "Blank",
+    "TAB 1",
+    "TAB 2"
 }
 
 note_number_by_names = (function()
@@ -174,6 +197,8 @@ local function display_def(dialog, def)
         dialog:GetControl("acci_order_" .. x):SetText(note_text)
         dialog:GetControl("acci_amount_" .. x):SetText(amount_text)
     end
+    -- accidental octaves by clef
+    context.current_acci_octaves = def.ClefAccidentalPlacements
 end
 
 local function select_keymode(dialog)
@@ -254,6 +279,7 @@ local function on_timer(dialog, timer)
 end
 
 local function on_init_window(dialog)
+    dialog.OkButtonCanClose = true
     context.current_selection = -1
     context.current_type_selection = -1
     context.current_doc = 0
@@ -344,7 +370,8 @@ local function on_edit_symbols(_control)
             list = finale.FCCustomKeyModeSymbolList.GetDefaultList()
         end
         for i = -7, 7 do
-            set_symbol_fcstr(dlg:GetControl(control_name(math.abs(i), i < 0 and -1 or 1)), is_symbol, finale.FCString(list[i] or ""))
+            set_symbol_fcstr(dlg:GetControl(control_name(math.abs(i), i < 0 and -1 or 1)), is_symbol,
+                finale.FCString(list[i] or ""))
         end
     end
     local function add_symbol_controls(x, sign)
@@ -464,9 +491,9 @@ local function on_edit_symbols(_control)
     for x = 1, 7 do
         add_symbol_controls(x, -1)
     end
-    curr_y = curr_y + editor_height + 4*y_increment
+    curr_y = curr_y + editor_height + 4 * y_increment
     add_symbol_controls(0, 1)
-    curr_y = curr_y + editor_height + 4*y_increment
+    curr_y = curr_y + editor_height + 4 * y_increment
     for x = 1, 7 do
         add_symbol_controls(x, 1)
     end
@@ -497,6 +524,124 @@ local function on_edit_symbols(_control)
         end
     else
         context.current_font = save_font
+    end
+end
+
+local function get_acci_order_and_amounts(dialog)
+    local acci_order = {}
+    local acci_amounts = {}
+    local type_selected = dialog:GetControl("keymode_type"):GetSelectedItem()
+    if type_selected == 0 then
+        local acci_amount = dialog:GetControl("chromatic_halfstep_size"):GetInteger()
+        if acci_amount <= 0 then
+            return false, "Accidental Step Amount must be a positive value."
+        end
+        if acci_amount ~= 1 then
+            acci_order = finale.FCCustomKeyModeDef.GetDefaultAccidentalOrder()
+            for x = -7, -1 do
+                acci_amounts[x] = -acci_amount
+            end
+            for x = 1, 7 do
+                acci_amounts[x] = acci_amount
+            end
+        end
+    else
+        for x = 1, 7 do
+            local acci_amount = dialog:GetControl("acci_amount_" .. x):GetInteger()
+            if acci_amount == 0 then
+                break
+            end
+            local acci_value = note_number_by_names[dialog:GetControl("acci_order_" .. x):GetText()]
+            if not acci_value then
+                return false, "Accidental note name is not populated in position " .. x .. "."
+            end
+            table.insert(acci_order, acci_value - 1)
+            table.insert(acci_amounts, acci_amount)
+        end
+    end
+    if finale.FCCustomKeyModeDef.CalcIsDefaultAccidentalAmounts(acci_amounts) and finale.FCCustomKeyModeDef.CalcIsDefaultAccidentalOrder(acci_order) then
+        acci_order = {}
+        acci_amounts = {}
+    end
+    return acci_order, acci_amounts
+end
+
+local function on_acci_octaves(_control)
+    local curr_y = 0
+    local row_height = 20
+    local first_edit_pos = 75
+    local edit_pos_diff = 35
+    local curr_values = context.current_acci_octaves
+    if utils.table_is_empty(curr_values) then
+        curr_values = finale.FCCustomKeyModeDef.GetDefaultClefAccidentalPlacements()
+    end
+    local acci_order, acci_amounts = get_acci_order_and_amounts(global_dialog)
+    if utils.table_is_empty(acci_order) then
+        acci_order = finale.FCCustomKeyModeDef.GetDefaultAccidentalOrder()
+    end
+    if utils.table_is_empty(acci_amounts) then
+        acci_amounts = finale.FCCustomKeyModeDef.GetDefaultAccidentalAmounts()
+    end
+    local dlg = mixin.FCXCustomLuaWindow()
+        :SetTitle("Accidental Octaves By Clef")
+    -- instructions
+    dlg:CreateStatic(0, curr_y)
+        :SetText("Each value specifies an octave for the accidental, where 0 is the middle-C (C4) octave.")
+        :DoAutoResizeWidth(0)
+    curr_y = curr_y + row_height + 5
+    -- note name headers
+    local curr_x = first_edit_pos
+    for i = -7, 7 do
+        if acci_amounts[i] and acci_amounts[i] ~= 0 then
+            local note_name = note_names[(acci_order[i] or 0) + 1] .. (acci_amounts[i] < 0 and "-" or "+")
+            dlg:CreateStatic(curr_x + 5, curr_y)
+                :SetText(note_name)
+                :DoAutoResizeWidth(0)
+            curr_x = curr_x + edit_pos_diff
+        end
+    end
+    curr_y = curr_y + row_height
+    -- clef grid
+    local clefs = finale.FCClefDefs()
+    clefs:LoadAll()
+    for clef in each(clefs) do
+        if curr_values[clef.ClefIndex + 1] then
+            dlg:CreateStatic(0, curr_y, "show_clef_" .. clef.ClefIndex)
+                :SetWidth(first_edit_pos - 5)
+                :SetText(clef_names[clef.ClefIndex + 1])
+            local clef_table = curr_values[clef.ClefIndex + 1]
+            curr_x = first_edit_pos
+            for i = -7, 7 do
+                if acci_amounts[i] and acci_amounts[i] ~= 0 then
+                    dlg:CreateEdit(curr_x, curr_y, "acci_pos_" .. clef.ClefIndex .. "_" .. i)
+                        :SetText(clef_table[i] and tostring(clef_table[i]) or "")
+                        :SetWidth(25)
+                    curr_x = curr_x + edit_pos_diff
+                end
+            end
+            curr_y = curr_y + row_height
+        end
+    end
+    dlg:CreateOkButton()
+    dlg:CreateCancelButton()
+    if dlg:ExecuteModal(global_dialog) == finale.EXECMODAL_OK then
+        local new_values = {}
+        for clef in each(clefs) do
+            for i = -7, 7 do
+                local ctrl = dlg:GetControl("acci_pos_" .. clef.ClefIndex .. "_" .. i)
+                if ctrl then
+                    if not new_values[clef.ClefIndex + 1] then
+                        new_values[clef.ClefIndex + 1] = {}
+                    end
+                    new_values[clef.ClefIndex + 1][i] = ctrl:GetInteger()
+                end
+            end
+        end
+        if finale.FCCustomKeyModeDef.CalcIsDefaultClefAccidentalPlacements(new_values) then
+            context.current_acci_octaves = {}
+        else
+            context.current_acci_octaves = new_values
+        end
     end
 end
 
@@ -546,38 +691,9 @@ local function copy_dialog_to_def(dialog, def, for_create)
     def.TotalChromaticSteps = accumulator
     def.DiatonicStepsMap = steps_map
     -- populate accidental order and amounts
-    local acci_order = {}
-    local acci_amounts = {}
-    if type_selected == 0 then
-        local acci_amount = dialog:GetControl("chromatic_halfstep_size"):GetInteger()
-        if acci_amount <= 0 then
-            return false, "Accidental Step Amount must be a positive value."
-        end
-        if acci_amount ~= 1 then
-            acci_order = finale.FCCustomKeyModeDef.GetDefaultAccidentalOrder()
-            for x = -7, -1 do
-                acci_amounts[x] = -acci_amount
-            end
-            for x = 1, 7 do
-                acci_amounts[x] = acci_amount
-            end
-        end
-    else
-        for x = 1, 7 do
-            local acci_amount = dialog:GetControl("acci_amount_" .. x):GetInteger()
-            if acci_amount == 0 then
-                break
-            end
-            local acci_value = note_number_by_names[dialog:GetControl("acci_order_" .. x):GetText()]
-            if not acci_value then
-                return false, "Accidental note name is not populated in position " .. x .. "."
-            end
-            table.insert(acci_order, acci_value - 1)
-            table.insert(acci_amounts, acci_amount)
-        end
-    end
-    def.AccidentalOrder = acci_order
-    def.AccidentalAmounts = acci_amounts
+    def.AccidentalOrder, def.AccidentalAmounts = get_acci_order_and_amounts(dialog)
+    -- populate clef accidental octaves
+    def.ClefAccidentalPlacements = context.current_acci_octaves
     -- success exit
     return true
 end
@@ -777,14 +893,25 @@ local function create_dialog_box()
         end
     end
     curr_y = curr_y + y_increment
--- close button
-    dlg:CreateButton(0, curr_y, "save_button")
-        :SetText("Save")
+-- clef octaves
+    dlg:CreateButton(0, curr_y, "acci_octaves")
+        :SetText("Accidental Octaves...")
         :DoAutoResizeWidth()
-        :AddHandleCommand(on_save)
-    dlg:CreateCloseButton(0, curr_y)
-        :HorizontallyAlignRightWithFurthest()
--- Registrations
+        :AddHandleCommand(on_acci_octaves)
+    dlg:CreateButton(0, curr_y, "clear_acci_octave")
+        :SetText("Revert...")
+        :DoAutoResizeWidth()
+        :AssureNoHorizontalOverlap(dlg:GetControl("acci_octaves"), padding)
+        :AddHandleCommand(function(_control)
+            if dlg:CreateChildUI():AlertYesNo("Revert all clef accidental octave settings to their default values?", "Revert") == finale.YESRETURN then
+                context.current_acci_octaves = {}
+            end
+        end)
+-- close buttons
+    dlg:CreateOkButton()
+    dlg:CreateCancelButton()
+ -- Registrations
+    dlg:RegisterHandleOkButtonPressed(on_save)
     dlg:RegisterInitWindow(on_init_window)
     dlg:RegisterCloseWindow(on_close_window)
     dlg:RegisterHandleTimer(on_timer)
