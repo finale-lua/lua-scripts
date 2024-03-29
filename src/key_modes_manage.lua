@@ -287,11 +287,12 @@ local function on_choose_font(control)
 end
 
 local function on_edit_symbols(_control)
-    local save_font = (function()
+    local function calc_current_font()
         local def = finale.FCCustomKeyModeDef()
         def.AccidentalFontID = context.current_font.FontID
         return def:CreateAccidentalFontInfo()
-    end)()
+    end
+    local save_font = calc_current_font()
     local editor_width = 60
     local editor_height = 80
     local curr_y = 0
@@ -329,12 +330,13 @@ local function on_edit_symbols(_control)
     local is_symbol = context.current_font:IsMacSymbolFont()
     local curr_sel = 0
     local lists = finale.FCCustomKeyModeSymbolLists()
+    local list_ids = {}
     lists:LoadAll()
-    local function apply_symbol_list(list_id)
+    local function apply_symbol_list()
         local list
-        if list_id > 0 then
+        if curr_sel >= 2 then
             local retval = finale.FCCustomKeyModeSymbolList()
-            if retval:Load(list_id) then
+            if retval:Load(list_ids[curr_sel - 1]) then
                 list = retval.List
             end
         end
@@ -379,23 +381,62 @@ local function on_edit_symbols(_control)
         :AddHandleCommand(function(control)
             local new_sel = control:GetSelectedItem()
             if new_sel ~= curr_sel then
-                if new_sel == 0 then
-                    apply_symbol_list(0)
-                elseif new_sel == 1 then
+                if new_sel == 1 then
                     control:SetSelectedItem(curr_sel)
                     return
-                else
-                    apply_symbol_list(lists:GetItemAt(new_sel - 2).ItemNo)
                 end
                 curr_sel = new_sel
+                apply_symbol_list()
+                dlg:GetControl("delete_symbol_list"):SetEnable(curr_sel >= 2)
             end
         end)
     for list in each(lists) do
-        popup:AddString(list:CreateListString())
+        popup:AddString("[" .. list.ItemNo .. "] " .. list:CreateListString().LuaString)
+        table.insert(list_ids, list.ItemNo)
         if list.ItemNo == context.current_symbol_list then
             curr_sel = popup:GetCount() - 1
         end
     end
+    dlg:CreateButton(0, curr_y, "delete_symbol_list")
+        :SetText("Delete")
+        :DoAutoResizeWidth()
+        :AssureNoHorizontalOverlap(popup, 10)
+        :SetEnable(curr_sel >= 2)
+        :AddHandleCommand(function(_button)
+            if curr_sel >= 2 then
+                local del_item = list_ids[curr_sel - 1]
+                popup:DeleteItem(curr_sel)
+                table.remove(list_ids, curr_sel - 1)
+                if (curr_sel >= popup:GetCount()) then
+                    curr_sel = 0
+                    popup:SetSelectedItem(0)
+                end
+                apply_symbol_list()
+                finenv.StartNewUndoBlock("Delete Accidental Symbol List", false)
+                local list = finale.FCCustomKeyModeSymbolList()
+                if list:Load(del_item) then
+                    list:DeleteData()
+                end
+                for def in each(context.current_keymodes) do
+                    if def.SymbolListID == del_item then
+                        def.SymbolListID = 0
+                        def.AccidentalFontID = 0
+                        def:Save()
+                    end
+                end
+                finenv.EndUndoBlock(true)
+                if context.current_symbol_list == del_item then
+                    context.current_symbol_list = 0
+                end
+                local itemno = 0
+                if context.current_selection >= 2 then
+                    itemno = context.current_keymodes:GetItemAt(context.current_selection - 2).ItemNo
+                end
+                on_document_change(global_dialog, itemno)
+                finenv.UI():RedrawDocument()
+                save_font = calc_current_font()
+            end
+        end)
     curr_y = curr_y + button_height + y_increment
     -- symbols info
     dlg:CreateButton(0, curr_y, "symbol_font")
@@ -434,7 +475,7 @@ local function on_edit_symbols(_control)
     dlg:CreateCancelButton()
     -- registrations
     dlg:RegisterInitWindow(function()
-        apply_symbol_list(context.current_symbol_list)
+        apply_symbol_list()
     end)
     if dlg:ExecuteModal(global_dialog) == finale.EXECMODAL_OK then
         global_dialog:GetControl("show_font"):SetText(context.current_font:CreateDescription())
@@ -446,10 +487,14 @@ local function on_edit_symbols(_control)
         end
         local list = curr_sel >= 2 and lists:GetItemAt(curr_sel - 2) or finale.FCCustomKeyModeSymbolList()
         list.List = new_list
-        finenv.StartNewUndoBlock("Edit Accidental Symbol List", false)
-        list:Save()
-        finenv.EndUndoBlock(true)
-        context.current_symbol_list = list.ItemNo
+        if curr_sel == 0 and list:CalcIsDefaultList() then
+            context.current_symbol_list = 0
+        else
+            finenv.StartNewUndoBlock("Edit Accidental Symbol List", false)
+            list:Save()
+            finenv.EndUndoBlock(true)
+            context.current_symbol_list = list.ItemNo
+        end
     else
         context.current_font = save_font
     end
@@ -485,8 +530,8 @@ local function copy_dialog_to_def(dialog, def, for_create)
     -- populate info
     def.MiddleKeyNumber = dialog:GetControl("middle_note"):GetInteger()
     def.BaseTonalCenter = note_number_by_names[dialog:GetControl("tonal_center"):GetText()] - 1
-    def.AccidentalFontID = context.current_font.FontID
     def.SymbolListID = context.current_symbol_list
+    def.AccidentalFontID = def.SymbolListID > 0 and context.current_font.FontID or 0
     -- populate key map
     local accumulator = 0
     local steps_map = {}
