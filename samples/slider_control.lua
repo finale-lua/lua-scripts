@@ -20,6 +20,9 @@ slider:SetThumbPosition(2)
 str.LuaString = "Thumb position: " .. slider:GetThumbPosition()
 static:SetText(str)
 
+dialog:CreateOkButton()
+dialog:CreateCancelButton()
+
 dialog:RegisterHandleControlEvent(slider, function(ctrl)
     local thumb_pos = ctrl:GetThumbPosition()
     str.LuaString = "Thumb position: " .. tostring(thumb_pos)
@@ -27,7 +30,17 @@ dialog:RegisterHandleControlEvent(slider, function(ctrl)
     static:SetText(str)
 end)
 
---require('mobdebug').start()
-dialog:ExecuteModal(nil)
+dialog:RegisterMouseTrackingStarted(function(ctrl)
+    local thumb_pos = ctrl:GetThumbPosition()
+    print("Slider tracking started: " .. thumb_pos)
+end)
+
+dialog:RegisterMouseTrackingStopped(function(ctrl)
+    local thumb_pos = ctrl:GetThumbPosition()
+    print("Slider tracking stopped: " .. thumb_pos)
+end)
+
+local result = dialog:ExecuteModal(nil)
+print("ExecuteModal returned: " .. result)
 
 finenv.UI():AlertInfo("Thumb position: " .. tostring(slider:GetThumbPosition()), "")

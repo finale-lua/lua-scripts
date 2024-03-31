@@ -49,7 +49,7 @@ Returns an instance of `FCLuaScriptItems` that can be used to launch ad-hoc scri
 
 ##### Inputs:
 
-- `string1` : A Lua string containing the fully qualified path to the script file.
+- `string1` : [optional] A Lua string containing the fully qualified path to the script file. If this parameter is omitted, it still creates a collection with one item. You can then supply the Lua code with the item's `SetOptionalScriptText` method.
 - `string2` : [optional] A Lua string containing the Lua code to execute. If this parameter is provided, the contents of the fully qualified path are ignored, though RGP Lua will continue to use the path for display and security purposes.
 
 ##### Outputs:
@@ -193,6 +193,12 @@ if finenv.IsRGPLua then
    -- do something available only in RGP Lua
 end
 ```
+
+---
+
+#### IsScriptActive\* (function)
+
+Boolean function that should always return `true`. This value is primarily useful as a diagnostic tool for testing _RGP Lua_. It proves that the plugin can find a running script from its Lua state, even if that Lua state is a coroutine state. Normal scripts probably never need to access this function.
 
 ---
 

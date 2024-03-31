@@ -56,6 +56,25 @@ function utils.table_remove_first(t, value)
 end
 
 --[[
+% table_is_empty
+
+Returns true if the table is an empty table. This works with both
+array tables and keyed tables
+
+@ t *table
+: (boolean) true if the input table is empty; false if it is not empty or the input is not a table
+]]
+function utils.table_is_empty(t)
+    if type(t) ~= "table" then
+        return false
+    end
+    for _, _ in pairs(t) do -- luacheck: ignore
+        return false
+    end
+    return true
+end
+
+--[[
 % iterate_keys
 
 Returns an unordered iterator for the keys in a table.

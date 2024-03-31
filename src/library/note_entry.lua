@@ -433,6 +433,9 @@ If the input entry is V1, only the current measure and layer is searched.
 : (FCNoteEntry) the next entry or `nil` in none
 ]]
 function note_entry.get_next_same_v(entry)
+    if entry.NextSameVInFrame then -- if this version of the Lua plugin has the function built in
+        return entry:NextSameVInFrame()
+    end
     local next_entry = entry:Next()
     if entry.Voice2 then
         if (nil ~= next_entry) and next_entry.Voice2 then

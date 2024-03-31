@@ -4,6 +4,9 @@ function plugindef()
     finaleplugin.Notes = [[
         This script illustrates how to set up a modeless dialog box.
     ]]
+    finaleplugin.AdditionalMenuOptions = [[
+        "0--modeless_dialog.lua 2"
+    ]]
     return "0--modeless_dialog.lua"
 end
 
@@ -14,7 +17,29 @@ end
 local mixin = require("library.mixin")
 
 local strings = {"Option 1", "Option 2", "Option 3"}
-local strings2 = {"Long Suboption 1", "Long Suboption 2"}
+local strings2 = { "Long Suboption 1", "Long Suboption 2" }
+
+local function show_self(dlg)
+    local fpath = finale.FCString()
+    fpath:SetRunningLuaFolderPath()
+    local fname = finale.FCString()
+    fname:SetRunningLuaFilePath()
+    dlg:CreateChildUI():AlertInfo(fname.LuaString, fpath.LuaString)
+end
+
+local function modal_dialog() -- luacheck: ignore
+    local dlg = mixin.FCXCustomLuaWindow()
+    dlg:SetTitle("Modal Popup")
+    dlg:CreateButton(0, 0)
+        :SetText("Popup Message")
+        :SetWidth(150)
+        :AddHandleCommand(function(_control)
+            show_self(dlg)
+        end)
+    dlg:CreateOkButton()
+    dlg:CreateCancelButton()
+    dlg:ExecuteModal()
+end
 
 local function create_dialog()
     local dlg = mixin.FCXCustomLuaWindow()
@@ -66,10 +91,14 @@ local function create_dialog()
 
     dlg:RegisterHandleControlEvent(do_something,
         function(_control)
+            show_self(dlg)
+--            modal_dialog()
+            --[[
             local grp1 = global_dialog:GetControl("radio1")
             print("radio group 1 selected item: " .. grp1:GetSelectedItem())
             local grp2 = global_dialog:GetControl("radio2")
-            print("radio group 1 selected item: " .. grp2:GetSelectedItem())
+            print("radio group 2 selected item: " .. grp2:GetSelectedItem())
+            ]]
             --[[
             finenv.StartNewUndoBlock("Playback Region", false)
             finenv.Region():Playback()
@@ -90,13 +119,6 @@ local function create_dialog()
             else
                 finenv.UI():AlertInfo("nothing selected", "")
             end
-            ]]
-            --[[
-            local fpath = finale.FCString()
-            fpath:SetRunningLuaFolderPath()
-            local fname = finale.FCString()
-            fname:SetRunningLuaFilePath()
-            finenv.UI():AlertInfo(fname.LuaString, fpath.LuaString)
             ]]
             --[[
             local function fcstr(s)

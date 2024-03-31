@@ -45,10 +45,12 @@ The Console recognizes standard keyboard navigation commands for each operating 
 
 #### File Popup Shortcuts
 
-- **New File**: `cmd+N` (macOS) `ctrl+N` (Windows)
+- **New File**: `shift-cmd+N` (macOS) `ctrl+N` (Windows)
 - **Open File**: `cmd+O` (macOS) `ctrl+O` (Windows)
 - **Save File**: `cmd+S` (macOS) `ctrl+S` (Windows)
 - **Close File**: `cmd+W` (macOS) `ctrl+W` (Windows)
+
+(Note the `shift` key added for **New File** on macOS. This leaves `cmd+N` available for opening new Finale file while the console is in focus.)
 
 #### Search Shortcuts
 
