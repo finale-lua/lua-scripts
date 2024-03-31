@@ -252,6 +252,9 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
     end
 
     function note_entry.get_next_same_v(entry)
+        if entry.NextSameVInFrame then
+            return entry:NextSameVInFrame()
+        end
         local next_entry = entry:Next()
         if entry.Voice2 then
             if (nil ~= next_entry) and next_entry.Voice2 then
@@ -364,9 +367,10 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
                 break
             end
             if equal_note(entry, note, false, tie_must_exist) then
-                return true
+                return note
             end
         end
+        return nil
     end
 
     function tie.calc_tie_span(note, for_tied_to, tie_must_exist)

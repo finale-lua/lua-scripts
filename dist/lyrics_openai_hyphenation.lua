@@ -4893,6 +4893,16 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         end
     end
 
+    function utils.table_is_empty(t)
+        if type(t) ~= "table" then
+            return false
+        end
+        for _, _ in pairs(t) do
+            return false
+        end
+        return true
+    end
+
     function utils.iterate_keys(t)
         local a, b, c = pairs(t)
         return function()

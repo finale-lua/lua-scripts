@@ -409,7 +409,7 @@ If the input entry is V1, only the current measure and layer is searched.
 note_entry.hide_stem(entry)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L458)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L461)
 
 Hides the stem of the entry by replacing it with Shape 0.
 
@@ -423,7 +423,7 @@ Hides the stem of the entry by replacing it with Shape 0.
 note_entry.rest_offset(entry, offset)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L480)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/note_entry.lua#L483)
 
 Confirms the entry is a rest then offsets it from the staff rest "center" position. 
 

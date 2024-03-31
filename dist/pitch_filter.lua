@@ -252,6 +252,9 @@ package.preload["library.note_entry"] = package.preload["library.note_entry"] or
     end
 
     function note_entry.get_next_same_v(entry)
+        if entry.NextSameVInFrame then
+            return entry:NextSameVInFrame()
+        end
         local next_entry = entry:Next()
         if entry.Voice2 then
             if (nil ~= next_entry) and next_entry.Voice2 then
@@ -337,6 +340,16 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
                 return
             end
         end
+    end
+
+    function utils.table_is_empty(t)
+        if type(t) ~= "table" then
+            return false
+        end
+        for _, _ in pairs(t) do
+            return false
+        end
+        return true
     end
 
     function utils.iterate_keys(t)
