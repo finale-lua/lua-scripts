@@ -581,10 +581,10 @@ local function on_acci_octaves(_control)
         curr_values = finale.FCCustomKeyModeDef.GetDefaultClefAccidentalPlacements()
     end
     local acci_order, acci_amounts = get_acci_order_and_amounts(global_dialog)
-    if utils.table_is_empty(acci_order) then
+    if not acci_order or utils.table_is_empty(acci_order) then
         acci_order = finale.FCCustomKeyModeDef.GetDefaultAccidentalOrder()
     end
-    if utils.table_is_empty(acci_amounts) then
+    if not acci_amounts or utils.table_is_empty(acci_amounts) then
         acci_amounts = finale.FCCustomKeyModeDef.GetDefaultAccidentalAmounts()
     end
     local dlg = mixin.FCXCustomLuaWindow()
@@ -595,17 +595,23 @@ local function on_acci_octaves(_control)
         :DoAutoResizeWidth(0)
     curr_y = curr_y + row_height + 5
     -- note name headers
+    dlg:CreateStatic(0, curr_y)
+        :SetText("Clef")
+        :DoAutoResizeWidth(0)
     local curr_x = first_edit_pos
     for i = -7, 7 do
         if acci_amounts[i] and acci_amounts[i] ~= 0 then
-            local note_name = note_names[(acci_order[i] or 0) + 1] .. (acci_amounts[i] < 0 and "-" or "+")
-            dlg:CreateStatic(curr_x + 5, curr_y)
+            local note_name = note_names[(acci_order[i] or 0) + 1] .. (acci_amounts[i] < 0 and "b" or "#")
+            dlg:CreateStatic(curr_x + 3, curr_y)
                 :SetText(note_name)
                 :DoAutoResizeWidth(0)
             curr_x = curr_x + edit_pos_diff
         end
     end
     curr_y = curr_y + row_height
+    dlg:CreateHorizontalLine(0, curr_y, 10)
+        :StretchToAlignWithRight()
+    curr_y = curr_y + row_height/2
     -- clef grid
     local clefs = finale.FCClefDefs()
     clefs:LoadAll()
