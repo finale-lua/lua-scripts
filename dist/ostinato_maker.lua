@@ -3238,277 +3238,6 @@ package.preload["library.lua_compatibility"] = package.preload["library.lua_comp
     end
     return true
 end
-package.preload["library.utils"] = package.preload["library.utils"] or function()
-
-    local utils = {}
-
-
-
-
-    function utils.copy_table(t, to_table, overwrite)
-        overwrite = (overwrite == nil) and true or false
-        if type(t) == "table" then
-            local new = type(to_table) == "table" and to_table or {}
-            for k, v in pairs(t) do
-                local new_key = utils.copy_table(k)
-                local new_value = utils.copy_table(v)
-                if overwrite then
-                    new[new_key] = new_value
-                else
-                    new[new_key] = new[new_key] == nil and new_value or new[new_key]
-                end
-            end
-            setmetatable(new, utils.copy_table(getmetatable(t)))
-            return new
-        else
-            return t
-        end
-    end
-
-    function utils.table_remove_first(t, value)
-        for k = 1, #t do
-            if t[k] == value then
-                table.remove(t, k)
-                return
-            end
-        end
-    end
-
-    function utils.table_is_empty(t)
-        if type(t) ~= "table" then
-            return false
-        end
-        for _, _ in pairs(t) do
-            return false
-        end
-        return true
-    end
-
-    function utils.iterate_keys(t)
-        local a, b, c = pairs(t)
-        return function()
-            c = a(b, c)
-            return c
-        end
-    end
-
-    function utils.create_keys_table(t)
-        local retval = {}
-        for k, _ in pairsbykeys(t) do
-            table.insert(retval, k)
-        end
-        return retval
-    end
-
-    function utils.create_lookup_table(t)
-        local lookup = {}
-        for _, v in pairs(t) do
-            lookup[v] = true
-        end
-        return lookup
-    end
-
-    function utils.round(value, places)
-        places = places or 0
-        local multiplier = 10^places
-        local ret = math.floor(value * multiplier + 0.5)
-
-        return places == 0 and ret or ret / multiplier
-    end
-
-    function utils.to_integer_if_whole(value)
-        local int = math.floor(value)
-        return value == int and int or value
-    end
-
-    function utils.calc_roman_numeral(num)
-        local thousands = {'M','MM','MMM'}
-        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
-        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
-        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
-        local roman_numeral = ''
-        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
-        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
-        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
-        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
-        return roman_numeral
-    end
-
-    function utils.calc_ordinal(num)
-        local units = num % 10
-        local tens = num % 100
-        if units == 1 and tens ~= 11 then
-            return num .. "st"
-        elseif units == 2 and tens ~= 12 then
-            return num .. "nd"
-        elseif units == 3 and tens ~= 13 then
-            return num .. "rd"
-        end
-        return num .. "th"
-    end
-
-    function utils.calc_alphabet(num)
-        local letter = ((num - 1) % 26) + 1
-        local n = math.floor((num - 1) / 26)
-        return string.char(64 + letter) .. (n > 0 and n or "")
-    end
-
-    function utils.clamp(num, minimum, maximum)
-        return math.min(math.max(num, minimum), maximum)
-    end
-
-    function utils.ltrim(str)
-        return string.match(str, "^%s*(.*)")
-    end
-
-    function utils.rtrim(str)
-        return string.match(str, "(.-)%s*$")
-    end
-
-    function utils.trim(str)
-        return utils.ltrim(utils.rtrim(str))
-    end
-
-    local pcall_wrapper
-    local rethrow_placeholder = "tryfunczzz"
-    local pcall_line = debug.getinfo(1, "l").currentline + 2
-    function utils.call_and_rethrow(levels, tryfunczzz, ...)
-        return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
-
-    end
-
-    local source = debug.getinfo(1, "S").source
-    local source_is_file = source:sub(1, 1) == "@"
-    if source_is_file then
-        source = source:sub(2)
-    end
-
-    pcall_wrapper = function(levels, success, result, ...)
-        if not success then
-            local file
-            local line
-            local msg
-            file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
-            msg = msg or result
-            local file_is_truncated = file and file:sub(1, 3) == "..."
-            file = file_is_truncated and file:sub(4) or file
-
-
-
-            if file
-                and line
-                and source_is_file
-                and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
-                and tonumber(line) == pcall_line
-            then
-                local d = debug.getinfo(levels, "n")
-
-                msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
-
-                if d.namewhat == "method" then
-                    local arg = msg:match("^bad argument #(%d+)")
-                    if arg then
-                        msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
-                    end
-                end
-                error(msg, levels + 1)
-
-
-            else
-                error(result, 0)
-            end
-        end
-        return ...
-    end
-
-    function utils.rethrow_placeholder()
-        return "'" .. rethrow_placeholder .. "'"
-    end
-
-    function utils.show_notes_dialog(parent, caption, width, height)
-        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
-            return
-        end
-        if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
-            error("argument 1 must be nil or an instance of FCResourceWindow", 2)
-        end
-        local function dedent(input)
-            local first_line_indent = input:match("^(%s*)")
-            local pattern = "\n" .. string.rep(" ", #first_line_indent)
-            local result = input:gsub(pattern, "\n")
-            result = result:gsub("^%s+", "")
-            return result
-        end
-        local function replace_font_sizes(rtf)
-            local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
-            if font_sizes_json then
-                local cjson = require("cjson.safe")
-                local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
-                if font_sizes and font_sizes.os then
-                    local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
-                    if (font_sizes.os == this_os) then
-                        rtf = rtf:gsub("fs%d%d", font_sizes)
-                    end
-                end
-            end
-            return rtf
-        end
-        if not caption then
-            caption = plugindef():gsub("%.%.%.", "")
-            if finaleplugin.Version then
-                local version = finaleplugin.Version
-                if string.sub(version, 1, 1) ~= "v" then
-                    version = "v" .. version
-                end
-                caption = string.format("%s %s", caption, version)
-            end
-        end
-        if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
-            finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)
-        else
-            local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
-            if finaleplugin.RTFNotes then
-                notes = replace_font_sizes(notes)
-            end
-            width = width or 500
-            height = height or 350
-
-            local dlg = finale.FCCustomLuaWindow()
-            dlg:SetTitle(finale.FCString(caption))
-            local edit_text = dlg:CreateTextEditor(10, 10)
-            edit_text:SetWidth(width)
-            edit_text:SetHeight(height)
-            edit_text:SetUseRichText(finaleplugin.RTFNotes)
-            edit_text:SetReadOnly(true)
-            edit_text:SetWordWrap(true)
-            local ok = dlg:CreateOkButton()
-            dlg:RegisterInitWindow(
-                function()
-                    local notes_str = finale.FCString(notes)
-                    if edit_text:GetUseRichText() then
-                        edit_text:SetRTFString(notes_str)
-                    else
-                        local edit_font = finale.FCFontInfo()
-                        edit_font.Name = "Arial"
-                        edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
-                        edit_text:SetFont(edit_font)
-                        edit_text:SetText(notes_str)
-                    end
-                    edit_text:ResetColors()
-                    ok:SetKeyboardFocus()
-                end)
-            dlg:ExecuteModal(parent)
-        end
-    end
-
-    function utils.win_mac(windows_value, mac_value)
-        if finenv.UI():IsOnWindows() then
-            return windows_value
-        end
-        return mac_value
-    end
-    return utils
-end
 package.preload["library.localization"] = package.preload["library.localization"] or function()
 
     local localization = {}
@@ -4673,6 +4402,277 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     end
     return mixin
 end
+package.preload["library.utils"] = package.preload["library.utils"] or function()
+
+    local utils = {}
+
+
+
+
+    function utils.copy_table(t, to_table, overwrite)
+        overwrite = (overwrite == nil) and true or false
+        if type(t) == "table" then
+            local new = type(to_table) == "table" and to_table or {}
+            for k, v in pairs(t) do
+                local new_key = utils.copy_table(k)
+                local new_value = utils.copy_table(v)
+                if overwrite then
+                    new[new_key] = new_value
+                else
+                    new[new_key] = new[new_key] == nil and new_value or new[new_key]
+                end
+            end
+            setmetatable(new, utils.copy_table(getmetatable(t)))
+            return new
+        else
+            return t
+        end
+    end
+
+    function utils.table_remove_first(t, value)
+        for k = 1, #t do
+            if t[k] == value then
+                table.remove(t, k)
+                return
+            end
+        end
+    end
+
+    function utils.table_is_empty(t)
+        if type(t) ~= "table" then
+            return false
+        end
+        for _, _ in pairs(t) do
+            return false
+        end
+        return true
+    end
+
+    function utils.iterate_keys(t)
+        local a, b, c = pairs(t)
+        return function()
+            c = a(b, c)
+            return c
+        end
+    end
+
+    function utils.create_keys_table(t)
+        local retval = {}
+        for k, _ in pairsbykeys(t) do
+            table.insert(retval, k)
+        end
+        return retval
+    end
+
+    function utils.create_lookup_table(t)
+        local lookup = {}
+        for _, v in pairs(t) do
+            lookup[v] = true
+        end
+        return lookup
+    end
+
+    function utils.round(value, places)
+        places = places or 0
+        local multiplier = 10^places
+        local ret = math.floor(value * multiplier + 0.5)
+
+        return places == 0 and ret or ret / multiplier
+    end
+
+    function utils.to_integer_if_whole(value)
+        local int = math.floor(value)
+        return value == int and int or value
+    end
+
+    function utils.calc_roman_numeral(num)
+        local thousands = {'M','MM','MMM'}
+        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
+        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
+        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
+        local roman_numeral = ''
+        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
+        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
+        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
+        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
+        return roman_numeral
+    end
+
+    function utils.calc_ordinal(num)
+        local units = num % 10
+        local tens = num % 100
+        if units == 1 and tens ~= 11 then
+            return num .. "st"
+        elseif units == 2 and tens ~= 12 then
+            return num .. "nd"
+        elseif units == 3 and tens ~= 13 then
+            return num .. "rd"
+        end
+        return num .. "th"
+    end
+
+    function utils.calc_alphabet(num)
+        local letter = ((num - 1) % 26) + 1
+        local n = math.floor((num - 1) / 26)
+        return string.char(64 + letter) .. (n > 0 and n or "")
+    end
+
+    function utils.clamp(num, minimum, maximum)
+        return math.min(math.max(num, minimum), maximum)
+    end
+
+    function utils.ltrim(str)
+        return string.match(str, "^%s*(.*)")
+    end
+
+    function utils.rtrim(str)
+        return string.match(str, "(.-)%s*$")
+    end
+
+    function utils.trim(str)
+        return utils.ltrim(utils.rtrim(str))
+    end
+
+    local pcall_wrapper
+    local rethrow_placeholder = "tryfunczzz"
+    local pcall_line = debug.getinfo(1, "l").currentline + 2
+    function utils.call_and_rethrow(levels, tryfunczzz, ...)
+        return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
+
+    end
+
+    local source = debug.getinfo(1, "S").source
+    local source_is_file = source:sub(1, 1) == "@"
+    if source_is_file then
+        source = source:sub(2)
+    end
+
+    pcall_wrapper = function(levels, success, result, ...)
+        if not success then
+            local file
+            local line
+            local msg
+            file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
+            msg = msg or result
+            local file_is_truncated = file and file:sub(1, 3) == "..."
+            file = file_is_truncated and file:sub(4) or file
+
+
+
+            if file
+                and line
+                and source_is_file
+                and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
+                and tonumber(line) == pcall_line
+            then
+                local d = debug.getinfo(levels, "n")
+
+                msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
+
+                if d.namewhat == "method" then
+                    local arg = msg:match("^bad argument #(%d+)")
+                    if arg then
+                        msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
+                    end
+                end
+                error(msg, levels + 1)
+
+
+            else
+                error(result, 0)
+            end
+        end
+        return ...
+    end
+
+    function utils.rethrow_placeholder()
+        return "'" .. rethrow_placeholder .. "'"
+    end
+
+    function utils.show_notes_dialog(parent, caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+        if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
+            error("argument 1 must be nil or an instance of FCResourceWindow", 2)
+        end
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        local function replace_font_sizes(rtf)
+            local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
+            if font_sizes_json then
+                local cjson = require("cjson.safe")
+                local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
+                if font_sizes and font_sizes.os then
+                    local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
+                    if (font_sizes.os == this_os) then
+                        rtf = rtf:gsub("fs%d%d", font_sizes)
+                    end
+                end
+            end
+            return rtf
+        end
+        if not caption then
+            caption = plugindef():gsub("%.%.%.", "")
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
+            finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)
+        else
+            local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
+            if finaleplugin.RTFNotes then
+                notes = replace_font_sizes(notes)
+            end
+            width = width or 500
+            height = height or 350
+
+            local dlg = finale.FCCustomLuaWindow()
+            dlg:SetTitle(finale.FCString(caption))
+            local edit_text = dlg:CreateTextEditor(10, 10)
+            edit_text:SetWidth(width)
+            edit_text:SetHeight(height)
+            edit_text:SetUseRichText(finaleplugin.RTFNotes)
+            edit_text:SetReadOnly(true)
+            edit_text:SetWordWrap(true)
+            local ok = dlg:CreateOkButton()
+            dlg:RegisterInitWindow(
+                function()
+                    local notes_str = finale.FCString(notes)
+                    if edit_text:GetUseRichText() then
+                        edit_text:SetRTFString(notes_str)
+                    else
+                        local edit_font = finale.FCFontInfo()
+                        edit_font.Name = "Arial"
+                        edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
+                        edit_text:SetFont(edit_font)
+                        edit_text:SetText(notes_str)
+                    end
+                    edit_text:ResetColors()
+                    ok:SetKeyboardFocus()
+                end)
+            dlg:ExecuteModal(parent)
+        end
+    end
+
+    function utils.win_mac(windows_value, mac_value)
+        if finenv.UI():IsOnWindows() then
+            return windows_value
+        end
+        return mac_value
+    end
+    return utils
+end
 package.preload["library.client"] = package.preload["library.client"] or function()
 
     local client = {}
@@ -5206,24 +5206,42 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.19"
-    finaleplugin.Date = "2024/01/31"
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.Version = "0.30" -- MODAL/MODELESS optional
+    finaleplugin.Date = "2024/03/16"
+    finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Copy the current selection and paste it consecutively 
         to the right a nominated number of times. 
         The replicas can span barlines ignoring time signatures. 
-        The same effect can be achieved with Edit → Paste Multiple 
+        The same effect can be achieved with _Edit_ → _Paste Multiple_, 
         but this script is simpler to use and works intuitively 
         on the current music selection in a single step. 
 
-        To repeat the last action without confirmation 
-        dialog hold down [shift] when starting the script. 
-        Choose to independently include or remove articulations, 
+        To repeat the last action without a confirmation 
+        dialog hold down [Shift] when starting the script. 
+        Independently include or remove articulations, 
         expressions, smartshapes, lyrics or chords from the repeats. 
+        Your choice at _Finale_ → _Settings..._ → _Edit_ → _Automatic Music Spacing_ 
+        determines whether or not the music is _respaced_ on completion. 
 
-        This script grew from the "region_replicate_music.lua" script in 
-        the FinaleLua.com repository by Michael McClennan and Jacob Winkler.
+        Select __Modeless__ if you prefer the dialog window to 
+        "float" above your score so you can change the score selection 
+        while the script is active. In this mode, click __Apply__ [Return/Enter] 
+        to create an ostinato and __Cancel__ [Escape] to close the window. 
+        Cancelling __Modeless__ will apply the _next_ time you use the script.
+
+        > These __Key Commands__ are available when the __times__ field is highlighted: 
+
+        > - __q__: show these script notes 
+        > - __w__: flip [copy Articulations] 
+        > - __e__: flip [copy Expressions] 
+        > - __r__: flip [copy Slurs] 
+        > - __t__: flip [copy Other Smartshapes] 
+        > - __y__: flip [copy Lyrics] 
+        > - __u__: flip [copy Chords]  
+        > - __a__: copy all 
+        > - __z__: copy none 
+        > - __m__: flip [Modeless] 
     ]]
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
@@ -5231,79 +5249,58 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Copy the current selection and paste it consecutively to the right a nominated number of times. The replicas can span barlines ignoring time signatures. The same effect can be achieved with Edit \u8594? Paste Multiple but this script is simpler to use and works intuitively on the current music selection in a single step.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To repeat the last action without confirmation dialog hold down [shift] when starting the script. Choose to independently include or remove articulations, expressions, smartshapes, lyrics or chords from the repeats.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script grew from the \u8220"region_replicate_music.lua\u8221" script in the FinaleLua.com repository by Michael McClennan and Jacob Winkler.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Copy the current selection and paste it consecutively to the right a nominated number of times. The replicas can span barlines ignoring time signatures. The same effect can be achieved with {\i Edit} \u8594? {\i Paste Multiple}, but this script is simpler to use and works intuitively on the current music selection in a single step.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To repeat the last action without a confirmation dialog hold down [Shift] when starting the script. Independently include or remove articulations, expressions, smartshapes, lyrics or chords from the repeats. Your choice at {\i Finale} \u8594? {\i Settings\u8230?} \u8594? {\i Edit} \u8594? {\i Automatic Music Spacing} determines whether or not the music is {\i respaced} on completion.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select {\b Modeless} if you prefer the dialog window to \u8220"float\u8221" above your score so you can change the score selection while the script is active. In this mode, click {\b Apply} [Return/Enter] to create an ostinato and {\b Cancel} [Escape] to close the window. Cancelling {\b Modeless} will apply the {\i next} time you use the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 These {\b Key Commands} are available when the {\b times} field is highlighted:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: show these script notes\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b w}: flip [copy Articulations]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e}: flip [copy Expressions]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b r}: flip [copy Slurs]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b t}: flip [copy Other Smartshapes]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b y}: flip [copy Lyrics]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b u}: flip [copy Chords]\line \par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b a}: copy all\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: copy none\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b m}: flip [Modeless]\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/ostinato_maker.hash"
     return "Ostinato Maker...", "Ostinato Maker",
         "Copy the current selection and paste it consecutively to the right a number of times"
 end
-local info_notes = [[
-Copy the current selection and paste it consecutively
-to the right a nominated number of times.
-The replicas can span barlines ignoring time signatures.
-The same effect can be achieved with Edit → Paste Multiple
-but this script is simpler to use and works intuitively
-on the current music selection in a single step.
-**
-To repeat the last action without confirmation
-dialog hold down [shift] when starting the script.
-Choose to independently include or remove articulations,
-expressions, smartshapes, lyrics or chords from the repeats.
-**
-This script grew from the "region_replicate_music.lua" script in
-the FinaleLua.com repository by Michael McClennan and Jacob Winkler.
-**
-Key Commands:
-*• q @t show these script notes
-*• w @t flip [copy articulations]
-*• e @t flip [copy expressions]
-*• r @t flip [copy smartshapes]
-*• t @t flip [copy lyrics]
-*• y @t flip [copy chords]
-*– – –
-*• a @t copy all
-*• z @t copy none
-]]
-info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
-    .. "\n(" .. finaleplugin.Version .. ")"
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
+local utils = require("library.utils")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
-local dialog, current_selection
-local config = {
-    num_repeats  = 1,
-    timer_id     = 1,
-    window_pos_x = false,
-    window_pos_y = false,
-}
-local dialog_options = {
-    "copy_articulations", "copy_expressions", "copy_smartshapes",
-    "copy_lyrics", "copy_chords"
-}
-for _, v in ipairs(dialog_options) do config[v] = 0 end
+local refocus_document = false
+local selection
+local saved_bounds = {}
 local bounds = {
     "StartStaff", "StartMeasure", "StartMeasurePos",
     "EndStaff",   "EndMeasure",   "EndMeasurePos",
 }
-local function copy_region_bounds()
-    local copy = {}
-    for _, v in ipairs(bounds) do
-        copy[v] = finenv.Region()[v]
-    end
-    return copy
-end
-local function dialog_set_position()
+local config = {
+    num_repeats  = 1,
+    timer_id    = 1,
+    modeless    = false,
+    window_pos_x = false,
+    window_pos_y = false,
+}
+local dialog_options = {
+    "copy_articulations", "copy_expressions", "copy_slurs",
+     "copy_smartshapes",  "copy_lyrics",      "copy_chords"
+}
+for _, v in ipairs(dialog_options) do config[v] = 0 end
+local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
         dialog:SetRestorePositionOnlyData(config.window_pos_x, config.window_pos_y)
         dialog:RestorePosition()
     end
 end
-local function dialog_save_position()
+local function dialog_save_position(dialog)
     dialog:StorePosition()
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
@@ -5313,36 +5310,44 @@ local function measure_duration(measure_number)
     local m = finale.FCMeasure()
     return m:Load(measure_number) and m:GetDuration() or 0
 end
-local function selection_id()
-    if finenv.Region():IsEmpty() then return " - no selection - " end
-    local rgn = finenv.Region()
-    local ratio = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
-    local id = "m" .. string.format("%.2f", ratio) .. "-"
-    local m = measure_duration(rgn.EndMeasure)
-    ratio = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
-    id = id .. "m" .. string.format("%.2f", ratio)
-    return id
-end
-local function staff_id()
-    if finenv.Region():IsEmpty() then return "" end
+local function get_staff_name(staff_num)
     local staff = finale.FCStaff()
-    staff:Load(finenv.Region().StartStaff)
-    local str = staff:CreateDisplayFullNameString()
-    local id = "Staff: " .. str.LuaString .. " → "
-    staff:Load(finenv.Region().EndStaff)
-    str = staff:CreateDisplayFullNameString()
-    return id .. str.LuaString
+    staff:Load(staff_num)
+    local str = staff:CreateDisplayFullNameString().LuaString
+    if not str or str == "" then
+        str = "Staff " .. staff_num
+    end
+    return str
+end
+local function initialise_parameters()
+    local rgn = finenv.Region()
+    selection = { staff = "no staff", region = "no selection"}
+
+    for _, property in ipairs(bounds) do
+        saved_bounds[property] = rgn:IsEmpty() and 0 or rgn[property]
+    end
+
+    if not rgn:IsEmpty() then
+
+        local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
+        local m = measure_duration(rgn.EndMeasure)
+        local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
+        selection.region = string.format("m%.2f-m%.2f", r1, r2)
+
+        selection.staff = get_staff_name(rgn.StartStaff)
+        if rgn.EndStaff ~= rgn.StartStaff then
+            selection.staff = selection.staff .. " → " .. get_staff_name(rgn.EndStaff)
+        end
+    end
 end
 local function add_duration(measure_number, position, add_edu)
     local m_width = measure_duration(measure_number)
-    if m_width == 0 then
-        return 0, 0
-    end
+    if m_width == 0 then return 0, 0 end
     if position > m_width then
         position = m_width
     end
     local remaining_to_add = position + add_edu
-    while remaining_to_add > m_width do
+    while remaining_to_add >= m_width do
         remaining_to_add = remaining_to_add - m_width
         local next_width = measure_duration(measure_number + 1)
         if next_width == 0 then
@@ -5356,33 +5361,29 @@ local function add_duration(measure_number, position, add_edu)
 end
 local function shift_region_by_EDU(rgn, add_edu)
     rgn.EndMeasure, rgn.EndMeasurePos =
-            add_duration(rgn.EndMeasure, rgn.EndMeasurePos, add_edu)
+        add_duration(rgn.EndMeasure, rgn.EndMeasurePos, add_edu)
     if rgn.EndMeasure == 0 then return false end
     rgn.StartMeasure, rgn.StartMeasurePos =
-            add_duration(rgn.StartMeasure, rgn.StartMeasurePos, add_edu)
+        add_duration(rgn.StartMeasure, rgn.StartMeasurePos, add_edu)
     if rgn.StartMeasure == 0 then return false end
     return true
 end
 local function round_measure_position(measure_num, pos)
 
     local measure = finale.FCMeasure()
-    local beat_edu = finale.NOTE_QUARTER
     measure:Load(measure_num)
-    local time_sig = measure:GetTimeSignature()
-    if not time_sig.CompositeTop then
-        beat_edu = time_sig.BeatDuration
-        if (beat_edu % 3 == 0) then beat_edu = beat_edu / 3 end
-    end
-    local ok, count = false, 1
-    while not ok and count <= 3 do
+    local beat_edu = measure:GetTimeSignature():CalcLargestBeatDuration()
+    if (beat_edu % 3 == 0) then beat_edu = beat_edu / 3 end
+    local ok, count = false, 0
+    while not ok and count < 4 do
         local remainder = pos % beat_edu
         if remainder == 0 then
             ok = true
         else
             local ratio = remainder / beat_edu
             local num_beats = math.floor(pos / beat_edu)
-            if ratio >= 7/8 or ratio <= 1/8 then
-                if ratio >= 7/8 then num_beats = num_beats + 1 end
+            if ratio >= 15/16 or ratio <= 1/16 then
+                if ratio >= 15/16 then num_beats = num_beats + 1 end
                 pos = num_beats * beat_edu
                 ok = true
             end
@@ -5394,23 +5395,21 @@ local function round_measure_position(measure_num, pos)
     end
     return pos
 end
-local function region_duration(rgn)
-    local meas = {
+local function region_duration(rgn, rounded_end_pos)
+    local measure = {
         start = rgn.StartMeasure,
-        stop = rgn.EndMeasure
+        stop  = rgn.EndMeasure
     }
     local pos = {
-        start = round_measure_position(meas.start, rgn.StartMeasurePos),
-        stop = round_measure_position(meas.stop, rgn.EndMeasurePos)
+        start = rgn.StartMeasurePos,
+        stop  = rounded_end_pos
     }
-    local diff, duration
-    if meas.start == meas.stop then
-        diff = pos.stop - pos.start
-    else
-        duration = -pos.start
-        while meas.start < meas.stop do
-            duration = duration + measure_duration(meas.start)
-            meas.start = meas.start + 1
+    local diff = pos.stop - pos.start
+    if measure.start ~= measure.stop then
+        local duration = pos.start * -1
+        while measure.start < measure.stop do
+            duration = duration + measure_duration(measure.start)
+            measure.start = measure.start + 1
         end
         diff = duration + pos.stop
     end
@@ -5418,14 +5417,19 @@ local function region_duration(rgn)
 end
 local function region_erasures(rgn)
 
-    if config.copy_smartshapes == 0 then
+    if config.copy_smartshapes == 0 or config.copy_slurs == 0 then
         local sh_rgn = finale.FCMusicRegion()
         sh_rgn:SetRegion(rgn)
         sh_rgn.EndMeasure, sh_rgn.EndMeasurePos =
-            add_duration(sh_rgn.EndMeasure, sh_rgn.EndMeasurePos, 256)
+            add_duration(sh_rgn.EndMeasure, sh_rgn.EndMeasurePos, finale.NOTE_8TH)
         for mark in loadallforregion(finale.FCSmartShapeMeasureMarks(), sh_rgn) do
             local shape = mark:CreateSmartShape()
-            if shape then shape:DeleteData() end
+            if shape and
+                (   (not shape:IsSlur() and config.copy_smartshapes == 0) or
+                    (shape:IsSlur() and config.copy_slurs == 0)
+                )   then
+                shape:DeleteData()
+            end
         end
     end
     if config.copy_expressions == 0 then
@@ -5445,13 +5449,13 @@ local function region_erasures(rgn)
 
     if config.copy_articulations == 0 or config.copy_lyrics == 0 then
         for entry in eachentrysaved(rgn) do
-            if entry.ArticulationFlag and config.copy_articulations == 0 then
+            if config.copy_articulations == 0 and entry.ArticulationFlag then
                 for articulation in eachbackwards(entry:CreateArticulations()) do
                     articulation:DeleteData()
                 end
                 entry:SetArticulationFlag(false)
             end
-            if entry.LyricFlag and config.copy_lyrics == 0 then
+            if config.copy_lyrics == 0 and entry.LyricFlag then
                 for _, v in ipairs{"FCChorusSyllable", "FCSectionSyllable", "FCVerseSyllable"} do
                     local lyric = finale[v]()
                     lyric:SetNoteEntry(entry)
@@ -5463,142 +5467,172 @@ local function region_erasures(rgn)
         end
     end
 end
-local function paste_many_copies()
-    if finenv.Region():IsEmpty() then
-        finenv.UI():AlertError("Please select some music before\n"
-            .. "running this script.", plugindef() .. " Error" )
-        return
-    end
-    local rgn = finenv.Region()
-    local origin = copy_region_bounds()
-    local undo_str = "Ostinato Maker " .. selection_id()
-    finenv.StartNewUndoBlock(undo_str, false)
+local function paste_many_copies(source_region)
+    if source_region:IsEmpty() or config.num_repeats < 1 then return end
+    local rpt_rgn = mixin.FCMMusicRegion()
+    rpt_rgn:SetRegion(source_region)
 
-    local m_d = measure_duration(rgn.EndMeasure)
-    if rgn.EndMeasurePos >= m_d then
-        rgn.EndMeasurePos = m_d - 1
+    finenv.StartNewUndoBlock(
+        string.format("Ostinato %s x %d", selection.region, config.num_repeats),
+        false
+    )
+    rpt_rgn.EndMeasurePos = math.min(rpt_rgn.EndMeasurePos, measure_duration(rpt_rgn.EndMeasure))
+    local end_pos = rpt_rgn.EndMeasurePos
+    local rounded_pos = round_measure_position(rpt_rgn.EndMeasure, end_pos)
+    if end_pos >= rounded_pos and rounded_pos > 1 then
+        rpt_rgn.EndMeasurePos = rounded_pos - 1
     end
-    rgn:CopyMusic()
-    local duration = region_duration(rgn)
-    local first_rpt = nil
-    for _ = 1, config.num_repeats do
-        if not shift_region_by_EDU(rgn, duration) then break end
-        rgn:PasteMusic()
-        if not first_rpt then
-            first_rpt = { measure = rgn.StartMeasure, pos = rgn.StartMeasurePos }
+    rpt_rgn:CopyMusic()
+    local duration = region_duration(rpt_rgn, rounded_pos)
+    local first_measure, first_pos = source_region.StartMeasure, source_region.StartMeasurePos
+    for i = 1, config.num_repeats do
+        if not shift_region_by_EDU(rpt_rgn, duration) then break end
+        rpt_rgn:PasteMusic()
+        if i == 1 then
+            first_measure = rpt_rgn.StartMeasure
+            first_pos = rpt_rgn.StartMeasurePos
         end
     end
-    rgn:ReleaseMusic()
+    rpt_rgn:ReleaseMusic()
 
-    rgn.StartMeasure = first_rpt.measure
-    rgn.StartMeasurePos = first_rpt.pos
-    region_erasures(rgn)
-
-    for _, v in ipairs(bounds) do rgn[v] = origin[v] end
-    rgn:SetInDocument()
-
-    if finenv.EndUndoBlock then
-        finenv.EndUndoBlock(true)
-        finenv.Region():Redraw()
-    else
-        finenv.StartNewUndoBlock(undo_str, true)
-    end
+    rpt_rgn.StartMeasure = first_measure
+    rpt_rgn.StartMeasurePos = first_pos
+    region_erasures(rpt_rgn)
+    source_region:SetInDocument()
+    finenv.EndUndoBlock(true)
+    source_region:Redraw()
 end
-local function on_timer()
-    local changed = false
-    for _, v in ipairs(bounds) do
-        if current_selection[v] ~= finenv.Region()[v] then
-            changed = true
-            break
-        end
-    end
-    if changed then
-        current_selection = copy_region_bounds()
-        dialog:GetControl("info")
-            :SetText("Selection " .. selection_id() .. "\n" .. staff_id())
-    end
-end
-local function create_dialog()
-    local edit_x, e_wide, y_step = 110, 40, 18
+local function run_user_dialog()
+    local edit_x, y_step = 105, 18
     local y_offset = finenv.UI():IsOnMac() and 3 or 0
     local save_rpt = config.num_repeats
     local name = plugindef():gsub("%.%.%.", "")
-    dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
     local y = 0
-    local function flip_check(id)
-        local ctl = dialog:GetControl(dialog_options[id])
-        ctl:SetCheck((ctl:GetCheck() + 1) % 2)
-    end
-    local function check_all_state(state)
-        for _, v in ipairs(dialog_options) do
-            dialog:GetControl(v):SetCheck(state)
+
+        local function flip_check(id)
+            local ctl = dialog:GetControl(dialog_options[id])
+            ctl:SetCheck((ctl:GetCheck() + 1) % 2)
         end
-    end
-    local function info_dialog()
-        finenv.UI():AlertInfo(info_notes, "About " .. name)
-    end
-    local function key_check(ctl)
-        local s = ctl:GetText():lower()
-        if s:find("[^0-9]") then
-            if s:find("q") then info_dialog()
-            elseif s:find("w") then flip_check(1)
-            elseif s:find("e") then flip_check(2)
-            elseif s:find("r") then flip_check(3)
-            elseif s:find("t") then flip_check(4)
-            elseif s:find("y") then flip_check(5)
-            elseif s:find("a") then check_all_state(1)
-            elseif s:find("z") then check_all_state(0)
+        local function check_all_state(state)
+            for _, v in ipairs(dialog_options) do
+                dialog:GetControl(v):SetCheck(state)
             end
-            ctl:SetText(save_rpt):SetKeyboardFocus()
-        else
-            s = s:sub(-3)
-            ctl:SetText(s)
-            save_rpt = s
         end
-    end
-    dialog:CreateStatic(0, y, "info")
-        :SetText("Selection " .. selection_id() .. "\n" .. staff_id())
-        :SetWidth(edit_x * 2):SetHeight(30)
-    y = y + 35
+        local function info_dialog()
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 420)
+            refocus_document = true
+        end
+        local function key_check(ctl)
+            local s = ctl:GetText():lower()
+            if s:find("[^0-9]") then
+                if s:find("q") then info_dialog()
+                elseif s:find("w") then flip_check(1)
+                elseif s:find("e") then flip_check(2)
+                elseif s:find("r") then flip_check(3)
+                elseif s:find("t") then flip_check(4)
+                elseif s:find("y") then flip_check(5)
+                elseif s:find("u") then flip_check(6)
+                elseif s:find("m") then
+                    local mod = dialog:GetControl("modeless")
+                    mod:SetCheck((mod:GetCheck() + 1) % 2)
+                elseif s:find("a") then check_all_state(1)
+                elseif s:find("z") then check_all_state(0)
+                end
+                ctl:SetText(save_rpt):SetKeyboardFocus()
+            else
+                if #s > 2 then
+                    save_rpt = s:sub(-2)
+                    ctl:SetText(save_rpt)
+                end
+            end
+        end
+        local function on_timer()
+            for k, v in pairs(saved_bounds) do
+                if finenv.Region()[k] ~= v then
+                    initialise_parameters()
+                    dialog:GetControl("info1"):SetText(selection.staff)
+                    dialog:GetControl("info2"):SetText(selection.region)
+                    break
+                end
+            end
+        end
+
     dialog:CreateStatic(0, y):SetText("Repeat ostinato:"):SetWidth(edit_x)
     dialog:CreateStatic(edit_x, y):SetText("Include:"):SetWidth(90)
-    y = y + y_step
+    y = y + y_step + 2
     local num_repeats = dialog:CreateEdit(0, y + 2 - y_offset)
-        :SetWidth(e_wide - 4):SetText(config.num_repeats)
+        :SetWidth(30):SetText(config.num_repeats)
         :AddHandleCommand(function(self) key_check(self) end)
-    dialog:CreateStatic(e_wide, y + 2):SetText("times"):SetWidth(edit_x)
+    dialog:CreateStatic(35, y + 2):SetText("times"):SetWidth(edit_x)
     for _, v in ipairs(dialog_options) do
+        local id = v:sub(6):gsub("^%l", string.upper)
+        if id == "Smartshapes" then id = "Other Smartshapes" end
         dialog:CreateCheckbox(edit_x, y, v):SetCheck(config[v])
-           :SetText(v:sub(6, -1):gsub("^%l", string.upper)):SetWidth(90)
+           :SetText(id):SetWidth(120)
         y = y + y_step
     end
-    local q = dialog:CreateButton(0, y - 19):SetText("?"):SetWidth(20)
+    dialog:CreateCheckbox(0, y, "modeless"):SetWidth(80)
+        :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
+    local q = dialog:CreateButton(edit_x + 100, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() info_dialog() end)
-    dialog:CreateOkButton()
+
+    if config.modeless then
+        y = y + 15
+        dialog:CreateStatic(15, y, "info1"):SetText(selection.staff):SetWidth(edit_x + 75)
+        y = y + 15
+        dialog:CreateStatic(15, y, "info2"):SetText(selection.region):SetWidth(edit_x + 75)
+    end
+    dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
     dialog:CreateCancelButton()
-    dialog_set_position()
-    dialog:RegisterHandleTimer(on_timer)
-    dialog:RegisterInitWindow(function()
+    dialog_set_position(dialog)
+    if config.modeless then dialog:RegisterHandleTimer(on_timer) end
+    dialog:RegisterInitWindow(function(self)
+        dialog:SetOkButtonCanClose(not config.modeless)
+        if config.modeless then self:SetTimer(config.timer_id, 125) end
         q:SetFont(q:CreateFontInfo():SetBold(true))
         num_repeats:SetKeyboardFocus()
-        dialog:SetTimer(config.timer_id, 125)
-    end)
-    dialog:RegisterCloseWindow(function()
-        dialog_save_position()
-        dialog:StopTimer(config.timer_id)
     end)
     dialog:RegisterHandleOkButtonPressed(function()
         config.num_repeats = num_repeats:GetInteger()
         for _, v in ipairs(dialog_options) do
             config[v] = dialog:GetControl(v):GetCheck()
         end
-        paste_many_copies()
+        paste_many_copies(finenv.Region())
     end)
+    local change_mode = false
+    dialog:RegisterCloseWindow(function(self)
+        if config.modeless then self:StopTimer(config.timer_id) end
+        local mode = (dialog:GetControl("modeless"):GetCheck() == 1)
+        change_mode = (mode and not config.modeless)
+        config.modeless = mode
+        dialog_save_position(self)
+    end)
+    if config.modeless then
+        dialog:RunModeless()
+    else
+        dialog:ExecuteModal()
+        if refocus_document then finenv.UI():ActivateDocumentWindow() end
+    end
+    return change_mode
 end
 local function make_ostinato()
     configuration.get_user_settings(script_name, config, true)
-    current_selection = copy_region_bounds()
-    create_dialog()
-    dialog:RunModeless()
+    if not config.modeless and finenv.Region():IsEmpty() then
+        finenv.UI():AlertError(
+            "Please select some music\nbefore running this script",
+            plugindef():gsub("%.%.%.", "")
+        )
+        return
+    end
+    local qim = finenv.QueryInvokedModifierKeys
+    local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
+    initialise_parameters()
+    if mod_key then
+        paste_many_copies(finenv.Region())
+    else
+        while run_user_dialog() do
+        end
+    end
 end
 make_ostinato()
