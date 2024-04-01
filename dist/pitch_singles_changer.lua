@@ -3238,277 +3238,6 @@ package.preload["library.lua_compatibility"] = package.preload["library.lua_comp
     end
     return true
 end
-package.preload["library.utils"] = package.preload["library.utils"] or function()
-
-    local utils = {}
-
-
-
-
-    function utils.copy_table(t, to_table, overwrite)
-        overwrite = (overwrite == nil) and true or false
-        if type(t) == "table" then
-            local new = type(to_table) == "table" and to_table or {}
-            for k, v in pairs(t) do
-                local new_key = utils.copy_table(k)
-                local new_value = utils.copy_table(v)
-                if overwrite then
-                    new[new_key] = new_value
-                else
-                    new[new_key] = new[new_key] == nil and new_value or new[new_key]
-                end
-            end
-            setmetatable(new, utils.copy_table(getmetatable(t)))
-            return new
-        else
-            return t
-        end
-    end
-
-    function utils.table_remove_first(t, value)
-        for k = 1, #t do
-            if t[k] == value then
-                table.remove(t, k)
-                return
-            end
-        end
-    end
-
-    function utils.table_is_empty(t)
-        if type(t) ~= "table" then
-            return false
-        end
-        for _, _ in pairs(t) do
-            return false
-        end
-        return true
-    end
-
-    function utils.iterate_keys(t)
-        local a, b, c = pairs(t)
-        return function()
-            c = a(b, c)
-            return c
-        end
-    end
-
-    function utils.create_keys_table(t)
-        local retval = {}
-        for k, _ in pairsbykeys(t) do
-            table.insert(retval, k)
-        end
-        return retval
-    end
-
-    function utils.create_lookup_table(t)
-        local lookup = {}
-        for _, v in pairs(t) do
-            lookup[v] = true
-        end
-        return lookup
-    end
-
-    function utils.round(value, places)
-        places = places or 0
-        local multiplier = 10^places
-        local ret = math.floor(value * multiplier + 0.5)
-
-        return places == 0 and ret or ret / multiplier
-    end
-
-    function utils.to_integer_if_whole(value)
-        local int = math.floor(value)
-        return value == int and int or value
-    end
-
-    function utils.calc_roman_numeral(num)
-        local thousands = {'M','MM','MMM'}
-        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
-        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
-        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
-        local roman_numeral = ''
-        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
-        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
-        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
-        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
-        return roman_numeral
-    end
-
-    function utils.calc_ordinal(num)
-        local units = num % 10
-        local tens = num % 100
-        if units == 1 and tens ~= 11 then
-            return num .. "st"
-        elseif units == 2 and tens ~= 12 then
-            return num .. "nd"
-        elseif units == 3 and tens ~= 13 then
-            return num .. "rd"
-        end
-        return num .. "th"
-    end
-
-    function utils.calc_alphabet(num)
-        local letter = ((num - 1) % 26) + 1
-        local n = math.floor((num - 1) / 26)
-        return string.char(64 + letter) .. (n > 0 and n or "")
-    end
-
-    function utils.clamp(num, minimum, maximum)
-        return math.min(math.max(num, minimum), maximum)
-    end
-
-    function utils.ltrim(str)
-        return string.match(str, "^%s*(.*)")
-    end
-
-    function utils.rtrim(str)
-        return string.match(str, "(.-)%s*$")
-    end
-
-    function utils.trim(str)
-        return utils.ltrim(utils.rtrim(str))
-    end
-
-    local pcall_wrapper
-    local rethrow_placeholder = "tryfunczzz"
-    local pcall_line = debug.getinfo(1, "l").currentline + 2
-    function utils.call_and_rethrow(levels, tryfunczzz, ...)
-        return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
-
-    end
-
-    local source = debug.getinfo(1, "S").source
-    local source_is_file = source:sub(1, 1) == "@"
-    if source_is_file then
-        source = source:sub(2)
-    end
-
-    pcall_wrapper = function(levels, success, result, ...)
-        if not success then
-            local file
-            local line
-            local msg
-            file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
-            msg = msg or result
-            local file_is_truncated = file and file:sub(1, 3) == "..."
-            file = file_is_truncated and file:sub(4) or file
-
-
-
-            if file
-                and line
-                and source_is_file
-                and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
-                and tonumber(line) == pcall_line
-            then
-                local d = debug.getinfo(levels, "n")
-
-                msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
-
-                if d.namewhat == "method" then
-                    local arg = msg:match("^bad argument #(%d+)")
-                    if arg then
-                        msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
-                    end
-                end
-                error(msg, levels + 1)
-
-
-            else
-                error(result, 0)
-            end
-        end
-        return ...
-    end
-
-    function utils.rethrow_placeholder()
-        return "'" .. rethrow_placeholder .. "'"
-    end
-
-    function utils.show_notes_dialog(parent, caption, width, height)
-        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
-            return
-        end
-        if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
-            error("argument 1 must be nil or an instance of FCResourceWindow", 2)
-        end
-        local function dedent(input)
-            local first_line_indent = input:match("^(%s*)")
-            local pattern = "\n" .. string.rep(" ", #first_line_indent)
-            local result = input:gsub(pattern, "\n")
-            result = result:gsub("^%s+", "")
-            return result
-        end
-        local function replace_font_sizes(rtf)
-            local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
-            if font_sizes_json then
-                local cjson = require("cjson.safe")
-                local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
-                if font_sizes and font_sizes.os then
-                    local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
-                    if (font_sizes.os == this_os) then
-                        rtf = rtf:gsub("fs%d%d", font_sizes)
-                    end
-                end
-            end
-            return rtf
-        end
-        if not caption then
-            caption = plugindef():gsub("%.%.%.", "")
-            if finaleplugin.Version then
-                local version = finaleplugin.Version
-                if string.sub(version, 1, 1) ~= "v" then
-                    version = "v" .. version
-                end
-                caption = string.format("%s %s", caption, version)
-            end
-        end
-        if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
-            finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)
-        else
-            local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
-            if finaleplugin.RTFNotes then
-                notes = replace_font_sizes(notes)
-            end
-            width = width or 500
-            height = height or 350
-
-            local dlg = finale.FCCustomLuaWindow()
-            dlg:SetTitle(finale.FCString(caption))
-            local edit_text = dlg:CreateTextEditor(10, 10)
-            edit_text:SetWidth(width)
-            edit_text:SetHeight(height)
-            edit_text:SetUseRichText(finaleplugin.RTFNotes)
-            edit_text:SetReadOnly(true)
-            edit_text:SetWordWrap(true)
-            local ok = dlg:CreateOkButton()
-            dlg:RegisterInitWindow(
-                function()
-                    local notes_str = finale.FCString(notes)
-                    if edit_text:GetUseRichText() then
-                        edit_text:SetRTFString(notes_str)
-                    else
-                        local edit_font = finale.FCFontInfo()
-                        edit_font.Name = "Arial"
-                        edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
-                        edit_text:SetFont(edit_font)
-                        edit_text:SetText(notes_str)
-                    end
-                    edit_text:ResetColors()
-                    ok:SetKeyboardFocus()
-                end)
-            dlg:ExecuteModal(parent)
-        end
-    end
-
-    function utils.win_mac(windows_value, mac_value)
-        if finenv.UI():IsOnWindows() then
-            return windows_value
-        end
-        return mac_value
-    end
-    return utils
-end
 package.preload["library.localization"] = package.preload["library.localization"] or function()
 
     local localization = {}
@@ -4673,6 +4402,277 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     end
     return mixin
 end
+package.preload["library.utils"] = package.preload["library.utils"] or function()
+
+    local utils = {}
+
+
+
+
+    function utils.copy_table(t, to_table, overwrite)
+        overwrite = (overwrite == nil) and true or false
+        if type(t) == "table" then
+            local new = type(to_table) == "table" and to_table or {}
+            for k, v in pairs(t) do
+                local new_key = utils.copy_table(k)
+                local new_value = utils.copy_table(v)
+                if overwrite then
+                    new[new_key] = new_value
+                else
+                    new[new_key] = new[new_key] == nil and new_value or new[new_key]
+                end
+            end
+            setmetatable(new, utils.copy_table(getmetatable(t)))
+            return new
+        else
+            return t
+        end
+    end
+
+    function utils.table_remove_first(t, value)
+        for k = 1, #t do
+            if t[k] == value then
+                table.remove(t, k)
+                return
+            end
+        end
+    end
+
+    function utils.table_is_empty(t)
+        if type(t) ~= "table" then
+            return false
+        end
+        for _, _ in pairs(t) do
+            return false
+        end
+        return true
+    end
+
+    function utils.iterate_keys(t)
+        local a, b, c = pairs(t)
+        return function()
+            c = a(b, c)
+            return c
+        end
+    end
+
+    function utils.create_keys_table(t)
+        local retval = {}
+        for k, _ in pairsbykeys(t) do
+            table.insert(retval, k)
+        end
+        return retval
+    end
+
+    function utils.create_lookup_table(t)
+        local lookup = {}
+        for _, v in pairs(t) do
+            lookup[v] = true
+        end
+        return lookup
+    end
+
+    function utils.round(value, places)
+        places = places or 0
+        local multiplier = 10^places
+        local ret = math.floor(value * multiplier + 0.5)
+
+        return places == 0 and ret or ret / multiplier
+    end
+
+    function utils.to_integer_if_whole(value)
+        local int = math.floor(value)
+        return value == int and int or value
+    end
+
+    function utils.calc_roman_numeral(num)
+        local thousands = {'M','MM','MMM'}
+        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
+        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
+        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
+        local roman_numeral = ''
+        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
+        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
+        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
+        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
+        return roman_numeral
+    end
+
+    function utils.calc_ordinal(num)
+        local units = num % 10
+        local tens = num % 100
+        if units == 1 and tens ~= 11 then
+            return num .. "st"
+        elseif units == 2 and tens ~= 12 then
+            return num .. "nd"
+        elseif units == 3 and tens ~= 13 then
+            return num .. "rd"
+        end
+        return num .. "th"
+    end
+
+    function utils.calc_alphabet(num)
+        local letter = ((num - 1) % 26) + 1
+        local n = math.floor((num - 1) / 26)
+        return string.char(64 + letter) .. (n > 0 and n or "")
+    end
+
+    function utils.clamp(num, minimum, maximum)
+        return math.min(math.max(num, minimum), maximum)
+    end
+
+    function utils.ltrim(str)
+        return string.match(str, "^%s*(.*)")
+    end
+
+    function utils.rtrim(str)
+        return string.match(str, "(.-)%s*$")
+    end
+
+    function utils.trim(str)
+        return utils.ltrim(utils.rtrim(str))
+    end
+
+    local pcall_wrapper
+    local rethrow_placeholder = "tryfunczzz"
+    local pcall_line = debug.getinfo(1, "l").currentline + 2
+    function utils.call_and_rethrow(levels, tryfunczzz, ...)
+        return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
+
+    end
+
+    local source = debug.getinfo(1, "S").source
+    local source_is_file = source:sub(1, 1) == "@"
+    if source_is_file then
+        source = source:sub(2)
+    end
+
+    pcall_wrapper = function(levels, success, result, ...)
+        if not success then
+            local file
+            local line
+            local msg
+            file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
+            msg = msg or result
+            local file_is_truncated = file and file:sub(1, 3) == "..."
+            file = file_is_truncated and file:sub(4) or file
+
+
+
+            if file
+                and line
+                and source_is_file
+                and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
+                and tonumber(line) == pcall_line
+            then
+                local d = debug.getinfo(levels, "n")
+
+                msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
+
+                if d.namewhat == "method" then
+                    local arg = msg:match("^bad argument #(%d+)")
+                    if arg then
+                        msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
+                    end
+                end
+                error(msg, levels + 1)
+
+
+            else
+                error(result, 0)
+            end
+        end
+        return ...
+    end
+
+    function utils.rethrow_placeholder()
+        return "'" .. rethrow_placeholder .. "'"
+    end
+
+    function utils.show_notes_dialog(parent, caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+        if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
+            error("argument 1 must be nil or an instance of FCResourceWindow", 2)
+        end
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        local function replace_font_sizes(rtf)
+            local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
+            if font_sizes_json then
+                local cjson = require("cjson.safe")
+                local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
+                if font_sizes and font_sizes.os then
+                    local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
+                    if (font_sizes.os == this_os) then
+                        rtf = rtf:gsub("fs%d%d", font_sizes)
+                    end
+                end
+            end
+            return rtf
+        end
+        if not caption then
+            caption = plugindef():gsub("%.%.%.", "")
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
+            finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)
+        else
+            local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
+            if finaleplugin.RTFNotes then
+                notes = replace_font_sizes(notes)
+            end
+            width = width or 500
+            height = height or 350
+
+            local dlg = finale.FCCustomLuaWindow()
+            dlg:SetTitle(finale.FCString(caption))
+            local edit_text = dlg:CreateTextEditor(10, 10)
+            edit_text:SetWidth(width)
+            edit_text:SetHeight(height)
+            edit_text:SetUseRichText(finaleplugin.RTFNotes)
+            edit_text:SetReadOnly(true)
+            edit_text:SetWordWrap(true)
+            local ok = dlg:CreateOkButton()
+            dlg:RegisterInitWindow(
+                function()
+                    local notes_str = finale.FCString(notes)
+                    if edit_text:GetUseRichText() then
+                        edit_text:SetRTFString(notes_str)
+                    else
+                        local edit_font = finale.FCFontInfo()
+                        edit_font.Name = "Arial"
+                        edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
+                        edit_text:SetFont(edit_font)
+                        edit_text:SetText(notes_str)
+                    end
+                    edit_text:ResetColors()
+                    ok:SetKeyboardFocus()
+                end)
+            dlg:ExecuteModal(parent)
+        end
+    end
+
+    function utils.win_mac(windows_value, mac_value)
+        if finenv.UI():IsOnWindows() then
+            return windows_value
+        end
+        return mac_value
+    end
+    return utils
+end
 package.preload["library.client"] = package.preload["library.client"] or function()
 
     local client = {}
@@ -5202,29 +5202,35 @@ package.preload["library.general_library"] = package.preload["library.general_li
 end
 function plugindef()
     finaleplugin.RequireSelection = false
+    finaleplugin.HandlesUndo = true
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.07"
-    finaleplugin.Date = "2024/01/24"
+    finaleplugin.Version = "0.14"
+    finaleplugin.Date = "2024/03/24"
     finaleplugin.CategoryTags = "Entries, Pitch, Transposition"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = [[
         Change up to four specific pitches to other specific pitches. 
-        Pitch specification is exact and immutable:
+        Pitch specification is exact and immutable: 
 
-        First character: pitch name A-G. 
-        (Lower case will be replaced automatically with upper case)
+        > • First character: note name __A__-__G__  
+        > &nbsp;  (Lower case will be replaced by upper case)  
+        > • Last character: octave number __0__-__9__  
+        > • In between: accidentals if any (__b/bb/bbb__ ... __#/##/###__)  
+        > &nbsp;  (you can use __s__ instead of __#__) 
 
-        Last character: octave number 0-9.
+        __C4__ is middle C. __B4__ is a major seventh above that. 
+        Mistakes in the pitch name format must be corrected 
+        before pitches will be changed. 
+        For transposing instruments on transposing scores select 
+        __Written Pitch__ to affect the pitch you see on screen. 
 
-        In between: accidentals if needed. 
-        b / bb / bbb / # / ## / ### 
-        (you can use "s" instead of "#" - automatic replacement)
-
-        If you make a mistake with the pitch format you will be asked to 
-        "FIX" the mistake before the pitch change can take place. 
-        "C4" is middle C. "B4" is a major seventh above that.
+        Select __Modeless__ if you prefer the dialog window to 
+        "float" above your score so you can change the score selection 
+        while it's active. In this mode, click __Apply__ [Return/Enter] 
+        to make changes and __Cancel__ [Escape] to close the window. 
+        Cancelling __Modeless__ will apply the _next_ time you use the script.
     ]]
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
@@ -5233,24 +5239,37 @@ function plugindef()
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Change up to four specific pitches to other specific pitches. Pitch specification is exact and immutable:\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 First character: pitch name A-G. (Lower case will be replaced automatically with upper case)\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Last character: octave number 0-9.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 In between: accidentals if needed. b / bb / bbb / # / ## / ### (you can use \u8220"s\u8221" instead of \u8220"#\u8221" - automatic replacement)\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 If you make a mistake with the pitch format you will be asked to \u8220"FIX\u8221" the mistake before the pitch change can take place. \u8220"C4\u8221" is middle C. \u8220"B4\u8221" is a major seventh above that.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 \u8226? First character: note name {\b A}-{\b G}\line \u160? (Lower case will be replaced by upper case)\line \u8226? Last character: octave number {\b 0}-{\b 9}\line \u8226? In between: accidentals if any ({\b b/bb/bbb} \u8230? {\b #/##/###})\line \u160? (you can use {\b s} instead of {\b #})\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b C4} is middle C. {\b B4} is a major seventh above that. Mistakes in the pitch name format must be corrected before pitches will be changed. For transposing instruments on transposing scores select {\b Written Pitch} to affect the pitch you see on screen.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select {\b Modeless} if you prefer the dialog window to \u8220"float\u8221" above your score so you can change the score selection while it\u8217's active. In this mode, click {\b Apply} [Return/Enter] to make changes and {\b Cancel} [Escape] to close the window. Cancelling {\b Modeless} will apply the {\i next} time you use the script.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/pitch_singles_changer.hash"
-    return "Pitch Singles Changer...", "Pitch Singles Changer", "Change up to four specific pitches to other specific pitches"
+    return "Pitch Singles Changer...",
+        "Pitch Singles Changer",
+        "Change up to four specific pitches to other specific pitches"
 end
+local config = {
+    pitch_set = '["C4", "C5"]',
+    layer_num   = 0,
+    timer_id    = 1,
+    modeless    = false,
+    written_pitch = false,
+    window_pos_x = false,
+    window_pos_y = false,
+}
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local cjson = require("cjson")
+local utils = require("library.utils")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
-local config = {
-    pitch_set = '[["C4", "C5"]]',
-    window_pos_x = false,
-    window_pos_y = false,
+local selection
+local refocus_document = false
+local saved_bounds = {}
+local bounds = {
+    "StartStaff", "StartMeasure", "StartMeasurePos",
+    "EndStaff",   "EndMeasure",   "EndMeasurePos",
 }
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -5265,8 +5284,42 @@ local function dialog_save_position(dialog)
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
 end
+local function measure_duration(measure_number)
+    local m = finale.FCMeasure()
+    return m:Load(measure_number) and m:GetDuration() or 0
+end
+local function get_staff_name(staff_num)
+    local staff = finale.FCStaff()
+    staff:Load(staff_num)
+    local str = staff:CreateDisplayFullNameString().LuaString
+    if not str or str == "" then
+        str = "Staff " .. staff_num
+    end
+    return str
+end
+local function track_selection()
+
+    local rgn = finenv.Region()
+    for _, property in ipairs(bounds) do
+        saved_bounds[property] = rgn:IsEmpty() and 0 or rgn[property]
+    end
+
+    selection = { staff = "no staff", region = "no selection"}
+    if not rgn:IsEmpty() then
+
+        local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
+        local m = measure_duration(rgn.EndMeasure)
+        local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
+        selection.region = string.format("m%.2f-m%.2f", r1, r2)
+
+        selection.staff = get_staff_name(rgn.StartStaff)
+        if rgn.EndStaff ~= rgn.StartStaff then
+            selection.staff = selection.staff .. " → " .. get_staff_name(rgn.EndStaff)
+        end
+    end
+end
 local function extract_pitch(p)
-    if p == nil or p == "" then return "", "", "" end
+    if not p or p == "" then return "", "", "" end
     return p:sub(1, 1):upper(), p:sub(2, -2):lower():gsub("s", "#"), p:sub(-1)
 end
 local function rewrite_pitch(p)
@@ -5274,97 +5327,195 @@ local function rewrite_pitch(p)
     return a .. b .. c
 end
 local function is_error(p)
-    if p == nil or p == "" then return false end
     local a, b, c = extract_pitch(p)
-    if a:find("[^A-G]") then return true end
-    if b:find("[^b#]") then return true end
-    if c:find("[^0-9]") then return true end
+    if      a:find("[^A-G]") or c:find("[^0-9]") or p:find("%d") < p:len()
+        or  b:find("[^b#]") or  (b:find("b") and b:find("#")) then
+        return true
+    end
     return false
 end
-local function user_selects_pitches(pitches)
-    local y, yd, x = 0, 25, { 83, 126, 150 }
-    local answer = {}
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef():gsub("%.%.%.", ""))
-        local function cstat(dx, dy, txt, wid)
-            local y_off = finenv.UI():IsOnMac() and 3 or 0
-            return dialog:CreateStatic(dx, dy + y_off):SetText(txt):SetWidth(wid)
+local function make_the_changes(pitches)
+    local undo_str = "Pitch Change "
+    for i = 1, 7, 2 do
+        if pitches[i] ~= "" and pitches[i + 1] ~= "" then
+            undo_str = undo_str .. string.format("%s-%s ", pitches[i], pitches[i + 1])
         end
-        local function cedit(dx, dy, txt, wid)
-            return dialog:CreateEdit(dx, dy):SetWidth(wid):SetText(txt)
-        end
-    for bank = 1, 4 do
-        answer[bank] = {}
-        cstat(0, y, "Change From:", 100)
-        local pb = pitches[bank] and {pitches[bank][1], pitches[bank][2]} or {"", ""}
-        answer[bank][1] = cedit(x[1], y, pb[1], 40)
-        cstat(x[2], y, "To:", 20)
-        answer[bank][2] = cedit(x[3], y, pb[2], 40)
-        local bad = {is_error(pb[1]), is_error(pb[2])}
-        if bad[1] or bad[2] then
-            y = y + yd
-            if bad[1] then
-                answer[bank][1]:SetText("")
-                cstat(60, y, "FIX: " .. pb[1], 100)
-            end
-            if bad[2] then
-                answer[bank][2]:SetText("")
-                cstat(x[2], y, "FIX: " .. pb[2], 100)
-            end
-        end
-        y = y + yd
     end
-    y = y + 10
-    cstat(5, y, "Pitch examples: C4 / G#5 / Abb2", 180)
-    y = y + 14
-    cstat(50, y, "(C4 = middle C)", 110)
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    local pitch_set = {}
-    local user_error = false
-    dialog_set_position(dialog)
-    dialog:RegisterHandleOkButtonPressed(function()
-        for bank = 1, 4 do
-            local s = answer[bank][1]:GetText()
-            pitch_set[bank] = { rewrite_pitch(s) }
-            if is_error(s) then user_error = true end
-            s = answer[bank][2]:GetText()
-            pitch_set[bank][2] = rewrite_pitch(s)
-            if is_error(s) then user_error = true end
-        end
-    end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    local ok = (dialog:ExecuteModal() == finale.EXECMODAL_OK)
-    return ok, user_error, pitch_set
-end
-local function change_pitches()
-    if finenv.Region():IsEmpty() then
-        finenv.UI():AlertError("Please select some music before\n"
-            .. "running this script.", plugindef() .. " Error" )
-        return
-    end
-    configuration.get_user_settings(script_name, config, true)
-    local pitch_set = cjson.decode(config.pitch_set)
+    finenv.StartNewUndoBlock(undo_str .. selection.region)
     local m = finale.FCMeasure()
     local pitch_str = finale.FCString()
-    local ok, user_error = true, true
-    while ok and user_error do
-        ok, user_error, pitch_set = user_selects_pitches(pitch_set)
-    end
-    if not ok then return end
-    config.pitch_set = cjson.encode(pitch_set)
-    configuration.save_user_settings(script_name, config)
-    for entry in eachentrysaved(finenv.Region()) do
+    for entry in eachentrysaved(finenv.Region(), config.layer_num) do
         m:Load(entry.Measure)
         local keysig = m.KeySignature
         for note in each(entry) do
-            note:GetString(pitch_str, keysig, false, false)
-            for _, v in ipairs(pitch_set) do
-                if pitch_str.LuaString == v[1] and v[2] ~= "" then
-                    pitch_str.LuaString = v[2]
-                    note:SetString(pitch_str, keysig, false)
+            note:GetString(pitch_str, keysig, false, config.written_pitch)
+            for i = 1, 7, 2 do
+                local a, b = pitches[i], pitches[i + 1]
+                if pitch_str.LuaString == a  and a ~= "" and b~= "" then
+                    pitch_str.LuaString = b
+                    note:SetString(pitch_str, keysig, config.written_pitch)
                 end
             end
         end
     end
+    finenv.EndUndoBlock(true)
+    if config.modeless then finenv.Region():Redraw() end
+end
+local function run_the_dialog()
+    local pitches = cjson.decode(config.pitch_set)
+    local y, y_diff = 0, 25
+    local x = { 81, 128, 150 }
+    local answer, ctl, save = {}, {}, {}
+    local name = plugindef():gsub("%.%.%.", "")
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
+
+        local function yd(diff) y = y + (diff or y_diff) end
+        local function cstat(dx, dy, txt, width, id)
+            dialog:CreateStatic(dx, dy, id):SetText(txt):SetWidth(width)
+        end
+        local function cedit(dx, dy, txt, width)
+            local y_off = finenv.UI():IsOnMac() and 3 or 0
+            return dialog:CreateEdit(dx, dy - y_off):SetWidth(width):SetText(txt)
+        end
+        local function on_timer()
+            for k, v in pairs(saved_bounds) do
+                if finenv.Region()[k] ~= v then
+                    track_selection()
+                    ctl.info1:SetText(selection.staff)
+                    ctl.info2:SetText(selection.region)
+                    break
+                end
+            end
+        end
+        local function toggle_check(id)
+            ctl[id]:SetCheck((ctl[id]:GetCheck() + 1) % 2)
+        end
+        local function clear_all()
+            for i = 1, 8 do answer[i]:SetText("") end
+        end
+        local function show_info()
+            utils.show_notes_dialog(dialog, "About " .. name, 400, 280)
+            refocus_document = true
+        end
+        local function key_substitutions(id)
+            local s = answer[id]:GetText():upper()
+            if (id == 0 and s:find("[^0-4]"))
+              or (id > 0 and s:find("[^#SA-G0-9]")) then
+                if s:find("X") then
+                    clear_all()
+                else
+                    if     s:find("M") then toggle_check("modeless")
+                    elseif s:find("W") then toggle_check("written_pitch")
+                    elseif  s:find("[?Q]") then show_info()
+                    end
+                    answer[id]:SetText(save[id])
+                end
+            else
+                save[id] = (id == 0) and s:sub(-1)
+                    or (s:sub(1, 1) .. s:sub(2):lower():gsub("s", "#"))
+                answer[id]:SetText(save[id])
+            end
+        end
+    for i = 1, 7, 2 do
+        cstat(0, y, "Change From:", 100)
+        answer[i] = cedit(x[1], y, pitches[i], 45)
+        answer[i]:AddHandleCommand(function() key_substitutions(i) end)
+        cstat(x[2], y, "To:", 20)
+        answer[i + 1] = cedit(x[3], y, pitches[i + 1], 45)
+        answer[i + 1]:AddHandleCommand(function() key_substitutions(i + 1) end)
+        save[i] = pitches[i]
+        save[i + 1] = pitches[i + 1]
+        yd()
+    end
+    cstat(0, y, "Layer (0-4):", 78)
+    answer[0] = cedit(x[1] - 11, y, config.layer_num, 20)
+    answer[0]:AddHandleCommand(function() key_substitutions(0) end)
+    ctl.written_pitch = dialog:CreateCheckbox(x[1] + 30, y):SetWidth(85)
+        :SetCheck(config.written_pitch and 1 or 0):SetText("Written Pitch")
+    yd(22)
+    dialog:CreateHorizontalLine(0, y - 3, x[3] + 50)
+    cstat(0, y, "Pitch examples: C4 / G#5 / Abb2", 180)
+    yd(16)
+    cstat(0, y, "(C4 = middle C)", 110)
+    ctl.q = dialog:CreateButton(x[3] + 25, y - 3):SetWidth(20):SetText("?")
+        :AddHandleCommand(function() show_info() end)
+    yd(24)
+    dialog:CreateHorizontalLine(0, y - 6, x[3] + 50)
+    ctl.modeless = dialog:CreateCheckbox(0, y):SetWidth(x[3] - 20)
+        :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
+    dialog:CreateButton(x[3] - 25, y - 1):SetText("Clear All (x)"):SetWidth(70)
+        :AddHandleCommand(function() clear_all() end)
+
+    if config.modeless then
+        yd(15)
+        ctl.info1 = cstat(16, y, selection.staff, 170)
+        yd(15)
+        ctl.info2 = cstat(16, y, selection.region, 170)
+    end
+    dialog:CreateOkButton():SetText(config.modeless and "Apply" or "Change")
+    dialog:CreateCancelButton()
+    dialog_set_position(dialog)
+    if config.modeless then dialog:RegisterHandleTimer(on_timer) end
+    dialog:RegisterInitWindow(function(self)
+        self:SetOkButtonCanClose(not config.modeless)
+        if config.modeless then self:SetTimer(config.timer_id, 125) end
+    end)
+    local user_error
+    local pitch_set = {}
+    dialog:RegisterHandleOkButtonPressed(function(self)
+        user_error = false
+        local errors = {}
+        for i = 1, 8 do
+            local s = answer[i]:GetText()
+            if s and s ~= "" then
+                if is_error(s) then
+                    user_error = true
+                    pitch_set[i] = s
+                    table.insert(errors, s or "(blank entry)")
+                else
+                    pitch_set[i] = rewrite_pitch(s)
+                    if config.modeless then answer[i]:SetText(pitch_set[i]) end
+                end
+            end
+        end
+        config.pitch_set = cjson.encode(pitch_set)
+        config.layer_num = answer[0]:GetInteger()
+        config.written_pitch = (ctl.written_pitch:GetCheck() == 1)
+        configuration.save_user_settings(script_name, config)
+        if user_error then
+            self:CreateChildUI():AlertError(
+                "These pitch names are invalid:\n"
+                .. table.concat(errors, "; "), "Error: " .. name)
+        else
+            make_the_changes(pitch_set)
+        end
+    end)
+    local change_mode = false
+    dialog:RegisterCloseWindow(function(self)
+        if config.modeless then self:StopTimer(config.timer_id) end
+        local mode = (ctl.modeless:GetCheck() == 1)
+        change_mode = (mode and not config.modeless)
+        config.modeless = mode
+        dialog_save_position(self)
+    end)
+    if config.modeless then
+        dialog:RunModeless()
+    else
+        dialog:ExecuteModal()
+        if refocus_document then finenv.UI():ActivateDocumentWindow() end
+    end
+    return change_mode or user_error
+end
+local function change_pitches()
+    configuration.get_user_settings(script_name, config, true)
+    if not config.modeless and finenv.Region():IsEmpty() then
+        finenv.UI():AlertError(
+            "Please select some music\nbefore running this script.",
+            finaleplugin.ScriptGroupName
+        )
+        return
+    end
+    track_selection()
+    while run_the_dialog() do end
 end
 change_pitches()
