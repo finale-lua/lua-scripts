@@ -5067,23 +5067,63 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.72
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.0"
-    finaleplugin.Date = "March 12, 2024"
+    finaleplugin.Version = "1.1.0"
+    finaleplugin.Date = "April 6, 2024"
     finaleplugin.CategoryTags = "Key Signatures"
     finaleplugin.Notes = [[
-        This script provides a much simpler interface for managing the most common types
-        of custom key modes (called "Nonstandard Key Signatures" in Finale.) Limitations include
-        - Key modes must have 7 diatonic steps per octave
-        - Linear key signatures must use the standard accidental order and size (for their EDO value)
-        - Linear tonal centers must follow the standard circle of fifths for their respective key signatures
-    ]]
+This script provides a simplified interface for managing the most common types
+of custom key modes (called "Nonstandard Key Signatures" in Finale.) Limitations include
+        
+- Key modes must have 7 diatonic steps per octave
+- Linear key signatures must use the standard accidental order and size (for their EDO value)
+- Linear tonal centers must follow the standard circle of fifths for their respective key signatures
+
+The dialog has the following main components:
+
+- **List of Keymodes [Delete] [Delete All]**: Shows any currently existing custom key modes in the document, with buttons to delete the current or all of them.
+- **MIDI Note for Middle C**: The MIDI note that plays back for the note written one ledger line below the treble clef.
+- **Base Tonal Center**: For linear modes, the note that is the tonal center when there is no key signature. For nonlinear modes, the note that is the tonal center.
+- **Linear/Nonlinear**: Linear modes can be transposed into the full array of key signatures. Nonlinear modes only ever have the specified key signature.
+- **Accidental Font**: The font that is used for accidentals.
+- **Accidental Symbols**: Opens a dialog that allows you to specify strings for up to 7 flat steps and 7 sharp steps plus a natural symbol. These strings can have more than one symbol. If no accidentals have been set up, the dialog is populated with the default characters specified in the document settings.
+
+---
+
+- **Diatonic Step Map**: Specifies the number of divisions of the octave between each white note on the keyboard. Before any custom key modes are created in the document, this is initialized with the common practice 12-EDO values. Note that the diatonic step map _always_ starts with C, irrespective of which note is the base tonal center.
+- **EDO Presets Pulldown**: This pulldown provides a shortcut for populating the diatonic step map for commonly used EDO values.
+
+---
+
+- **[Linear Key Modes] Accidental Step Amount (Chromatic Halfstep Size)**: This the step amount for each accidental in the key signature as you step into more sharps or more flats in the key signature. To get common practice key signatures, set it to the number of divisions of the octave in a chromatic half-step. (The **EDO Presets Pulldown** sets this value automatically for linear key modes.)
+- **[Nonlinear Key Modes] Accidental Order [note][amount]**: The seven pairs of edit fields allow you to specify the accidentals in the nonlinear key signature in any arbitrary order with any mix of sharps of flats. The first amount value of 0 or blank terminates the key signature.
+- **Accidental Octaves**: Opens a grid of values by clef types. Each value specifies the octave in which the accidental in that slot appears for that clef. Linear key modes using common practice key signatures generally do not need to specify anything here. Nonlinear key modes almost certainly _will_ need to specify these values.
+- **Revert**: Reverts the accidental octaves to their default values.
+            ]]
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script provides a much simpler interface for managing the most common types of custom key modes (called \u8220"Nonstandard Key Signatures\u8221" in Finale.) Limitations include - Key modes must have 7 diatonic steps per octave - Linear key signatures must use the standard accidental order and size (for their EDO value) - Linear tonal centers must follow the standard circle of fifths for their respective key signatures\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script provides a simplified interface for managing the most common types of custom key modes (called \u8220"Nonstandard Key Signatures\u8221" in Finale.) Limitations include\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Key modes must have 7 diatonic steps per octave\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Linear key signatures must use the standard accidental order and size (for their EDO value)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Linear tonal centers must follow the standard circle of fifths for their respective key signatures\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The dialog has the following main components:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b List of Keymodes [Delete] [Delete All]}: Shows any currently existing custom key modes in the document, with buttons to delete the current or all of them.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b MIDI Note for Middle C}: The MIDI note that plays back for the note written one ledger line below the treble clef.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Base Tonal Center}: For linear modes, the note that is the tonal center when there is no key signature. For nonlinear modes, the note that is the tonal center.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Linear/Nonlinear}: Linear modes can be transposed into the full array of key signatures. Nonlinear modes only ever have the specified key signature.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Accidental Font}: The font that is used for accidentals.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Accidental Symbols}: Opens a dialog that allows you to specify strings for up to 7 flat steps and 7 sharp steps plus a natural symbol. These strings can have more than one symbol. If no accidentals have been set up, the dialog is populated with the default characters specified in the document settings.\sa180\par}
+        {\pard \sl264 \slmult1 \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Diatonic Step Map}: Specifies the number of divisions of the octave between each white note on the keyboard. Before any custom key modes are created in the document, this is initialized with the common practice 12-EDO values. Note that the diatonic step map {\i always} starts with C, irrespective of which note is the base tonal center.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b EDO Presets Pulldown}: This pulldown provides a shortcut for populating the diatonic step map for commonly used EDO values.\sa180\par}
+        {\pard \sl264 \slmult1 \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b [Linear Key Modes] Accidental Step Amount (Chromatic Halfstep Size)}: This the step amount for each accidental in the key signature as you step into more sharps or more flats in the key signature. To get common practice key signatures, set it to the number of divisions of the octave in a chromatic half-step. (The {\b EDO Presets Pulldown} sets this value automatically for linear key modes.)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b [Nonlinear Key Modes] Accidental Order [note][amount]}: The seven pairs of edit fields allow you to specify the accidentals in the nonlinear key signature in any arbitrary order with any mix of sharps of flats. The first amount value of 0 or blank terminates the key signature.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Accidental Octaves}: Opens a grid of values by clef types. Each value specifies the octave in which the accidental in that slot appears for that clef. Linear key modes using common practice key signatures generally do not need to specify anything here. Nonlinear key modes almost certainly {\i will} need to specify these values.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Revert}: Reverts the accidental octaves to their default values.\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/key_modes_manage.hash"
@@ -5105,7 +5145,8 @@ context = context or
     current_type_selection = -1,
     current_font = finale.FCFontInfo,
     current_symbol_list = 0,
-    current_acci_octaves = {}
+    current_acci_octaves = {},
+    current_preset = -1
 }
 linear_mode_types =
 {
@@ -5163,6 +5204,25 @@ alteration_names =
     [1] = "#",
     [2] = "x"
 }
+presets =
+{
+    {name = "12-EDO", diatonic_whole = 2, diatonic_half = 1},
+    {name = "19-EDO", diatonic_whole = 3, diatonic_half = 2},
+    {name = "24-EDO", diatonic_whole = 4, diatonic_half = 2},
+    {name = "31-EDO", diatonic_whole = 5, diatonic_half = 3},
+    {name = "48-EDO", diatonic_whole = 8, diatonic_half = 4},
+    {name = "62-EDO", diatonic_whole = 10, diatonic_half = 6},
+    {name = "96-EDO", diatonic_whole = 16, diatonic_half = 8},
+}
+presets_map = (function()
+    local retval = {}
+    retval[0] = 1
+    for k, v in ipairs(presets) do
+        local steps = 5*v.diatonic_whole + 2*v.diatonic_half
+        retval[steps] = k
+    end
+    return retval
+end)()
 local hide_on_linear = {}
 local hide_on_nonlinear = {}
 local suppress_popup = false
@@ -5200,10 +5260,10 @@ local function calc_key_mode_desc(key_mode)
             if acci_amounts[x] == 0 then
                 break
             end
-            notes = notes .. " " .. note_names[(acci_order[x] % 7) + 1]
             if not acci_order[x] then
                 break
             end
+            notes = notes .. " " .. note_names[(acci_order[x] % 7) + 1]
             if chromatic_steps == 12 and acci_amounts[x] then
                 notes = notes .. tostring(alteration_names[acci_amounts[x]])
             else
@@ -5227,6 +5287,24 @@ local function on_type_popup(control)
         context.current_type_selection = get_value
     end
 end
+local function on_presets_popup(control)
+    local selected_item = control:GetSelectedItem()
+    if selected_item == context.current_preset or selected_item <= 0 then
+        return
+    end
+    local preset = presets[selected_item]
+    for x = 1, 7 do
+        if x ~= 3 and x ~= 7 then
+            global_dialog:GetControl("ds_" .. x):SetInteger(preset.diatonic_whole)
+        else
+            global_dialog:GetControl("ds_" .. x):SetInteger(preset.diatonic_half)
+        end
+    end
+    if context.current_type_selection == 0 then
+        global_dialog:GetControl("chromatic_halfstep_size"):SetInteger(preset.diatonic_whole - preset.diatonic_half)
+    end
+    context.current_preset = selected_item
+end
 local function display_def(dialog, def)
     assert(def:IsLinear() or def:IsNonLinear(), "key mode " .. def.ItemNo .. "is invalid")
     local type_popup = dialog:GetControl("keymode_type")
@@ -5242,6 +5320,8 @@ local function display_def(dialog, def)
     local key_map = def.DiatonicStepsMap
     key_map = key_map and #key_map > 0 and key_map or {0, 2, 4, 5, 7, 9, 11}
     local num_steps = def.TotalChromaticSteps
+    context.current_preset = presets_map[num_steps] or 0
+    dialog:GetControl("presets"):SetSelectedItem(context.current_preset)
     num_steps = num_steps > 0 and num_steps or 12
     for x = 1, math.min(#key_map, #note_names) do
         local count = x < #key_map and key_map[x + 1] - key_map[x] or num_steps - key_map[x]
@@ -5343,6 +5423,7 @@ local function on_init_window(dialog)
     dialog.OkButtonCanClose = true
     context.current_selection = -1
     context.current_type_selection = -1
+    context.current_preset = -1
     context.current_doc = 0
     on_timer(dialog, context.global_timer_id)
     global_dialog:SetTimer(context.global_timer_id, 100)
@@ -5826,8 +5907,15 @@ local function create_dialog_box()
     hide_on_nonlinear = {}
     local dlg = mixin.FCXCustomLuaWindow()
         :SetTitle(plugindef():gsub("%.%.%.", ""))
+    dlg:CreateButton(0, curr_y - button_offset, "help")
+        :SetText("?")
+        :SetWidth(20)
+        :AddHandleCommand(function(_control)
+            utils.show_notes_dialog(dlg, nil, 600, 400)
+        end)
     dlg:CreatePopup(0, curr_y, "keymodes")
         :SetWidth(300)
+        :AssureNoHorizontalOverlap(dlg:GetControl("help"), padding)
         :AddHandleCommand(on_popup)
     dlg:CreateButton(0, curr_y - button_offset, "delete")
         :SetText("Delete")
@@ -5896,10 +5984,19 @@ local function create_dialog_box()
             :SetWidth(25)
             :AssureNoHorizontalOverlap(static, padding)
     end
-    dlg:CreateStatic(0, curr_y)
+    dlg:CreateStatic(0, curr_y, "final_map_letter")
         :SetText(note_names[1])
         :DoAutoResizeWidth(0)
         :AssureNoHorizontalOverlap(dlg:GetControl("ds_" .. #note_names), padding)
+    local presets_popup = dlg:CreatePopup(0, curr_y, "presets")
+        :DoAutoResizeWidth()
+        :AssureNoHorizontalOverlap(dlg:GetControl("final_map_letter"), 2*padding)
+        :AddString("< Other >")
+        :AddHandleCommand(on_presets_popup)
+    for _, t in ipairs(presets) do
+        presets_popup:AddString(t.name)
+    end
+    presets_popup:SetSelectedItem(0)
     curr_y = curr_y + y_increment
     dlg:CreateHorizontalLine(0, curr_y, 10)
         :StretchToAlignWithRight()
