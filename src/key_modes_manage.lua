@@ -2,16 +2,38 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.72
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.0"
-    finaleplugin.Date = "March 12, 2024"
+    finaleplugin.Version = "1.1.0"
+    finaleplugin.Date = "April 6, 2024"
     finaleplugin.CategoryTags = "Key Signatures"
     finaleplugin.Notes = [[
-        This script provides a much simpler interface for managing the most common types
-        of custom key modes (called "Nonstandard Key Signatures" in Finale.) Limitations include
-        - Key modes must have 7 diatonic steps per octave
-        - Linear key signatures must use the standard accidental order and size (for their EDO value)
-        - Linear tonal centers must follow the standard circle of fifths for their respective key signatures
-    ]]
+This script provides a simplified interface for managing the most common types
+of custom key modes (called "Nonstandard Key Signatures" in Finale.) Limitations include
+        
+- Key modes must have 7 diatonic steps per octave
+- Linear key signatures must use the standard accidental order and size (for their EDO value)
+- Linear tonal centers must follow the standard circle of fifths for their respective key signatures
+
+The dialog has the following main components:
+
+- **List of Keymodes [Delete] [Delete All]**: Shows any currently existing custom key modes in the document, with buttons to delete the current or all of them.
+- **MIDI Note for Middle C**: The MIDI note that plays back for the note written one ledger line below the treble clef.
+- **Base Tonal Center**: For linear modes, the note that is the tonal center when there is no key signature. For nonlinear modes, the note that is the tonal center.
+- **Linear/Nonlinear**: Linear modes can be transposed into the full array of key signatures. Nonlinear modes only ever have the specified key signature.
+- **Accidental Font**: The font that is used for accidentals.
+- **Accidental Symbols**: Opens a dialog that allows you to specify strings for up to 7 flat steps and 7 sharp steps plus a natural symbol. These strings can have more than one symbol. If no accidentals have been set up, the dialog is populated with the default characters specified in the document settings.
+
+---
+
+- **Diatonic Step Map**: Specifies the number of divisions of the octave between each white note on the keyboard. Before any custom key modes are created in the document, this is initialized with the common practice 12-EDO values. Note that the diatonic step map _always_ starts with C, irrespective of which note is the base tonal center.
+- **EDO Presets Pulldown**: This pulldown provides a shortcut for populating the diatonic step map for commonly used EDO values.
+
+---
+
+- **[Linear Key Modes] Accidental Step Amount (Chromatic Halfstep Size)**: This the step amount for each accidental in the key signature as you step into more sharps or more flats in the key signature. To get common practice key signatures, set it to the number of divisions of the octave in a chromatic half-step. (The **EDO Presets Pulldown** sets this value automatically for linear key modes.)
+- **[Nonlinear Key Modes] Accidental Order [note][amount]**: The seven pairs of edit fields allow you to specify the accidentals in the nonlinear key signature in any arbitrary order with any mix of sharps of flats. The first amount value of 0 or blank terminates the key signature.
+- **Accidental Octaves**: Opens a grid of values by clef types. Each value specifies the octave in which the accidental in that slot appears for that clef. Linear key modes using common practice key signatures generally do not need to specify anything here. Nonlinear key modes almost certainly _will_ need to specify these values.
+- **Revert**: Reverts the accidental octaves to their default values.
+            ]]
     return "Nonstandard Key Signatures...", "Nonstandard Key Signatures",
            "Manages Nonstandard Key Signatures. Allows view, modify, create, and delete."
 end
@@ -828,8 +850,15 @@ local function create_dialog_box()
     local dlg = mixin.FCXCustomLuaWindow()
         :SetTitle(plugindef():gsub("%.%.%.", ""))
 -- keymode list
+    dlg:CreateButton(0, curr_y - button_offset, "help")
+        :SetText("?")
+        :SetWidth(20)
+        :AddHandleCommand(function(_control)
+            utils.show_notes_dialog(dlg, nil, 600, 400)        
+        end)
     dlg:CreatePopup(0, curr_y, "keymodes")
         :SetWidth(300)
+        :AssureNoHorizontalOverlap(dlg:GetControl("help"), padding)
         :AddHandleCommand(on_popup)
     dlg:CreateButton(0, curr_y - button_offset, "delete")
         :SetText("Delete")
