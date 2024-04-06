@@ -35,7 +35,8 @@ context = context or
     current_type_selection = -1,
     current_font = finale.FCFontInfo,
     current_symbol_list = 0,
-    current_acci_octaves = {}
+    current_acci_octaves = {},
+    current_preset = -1
 }
 
 linear_mode_types =
@@ -99,6 +100,28 @@ alteration_names =
     [2] = "x"
 }
 
+presets =
+{
+    {name = "12-EDO", diatonic_whole = 2, diatonic_half = 1},
+    {name = "19-EDO", diatonic_whole = 3, diatonic_half = 2},
+    {name = "24-EDO", diatonic_whole = 4, diatonic_half = 2},
+    {name = "31-EDO", diatonic_whole = 5, diatonic_half = 3},
+    {name = "48-EDO", diatonic_whole = 8, diatonic_half = 4},
+    {name = "62-EDO", diatonic_whole = 10, diatonic_half = 6},
+    {name = "96-EDO", diatonic_whole = 16, diatonic_half = 8},
+}
+
+-- presets_map maps from the total steps to a preset
+presets_map = (function()
+    local retval = {}
+    retval[0] = 1 -- for when no key mode exists or is selected
+    for k, v in ipairs(presets) do
+        local steps = 5*v.diatonic_whole + 2*v.diatonic_half
+        retval[steps] = k
+    end
+    return retval
+end)()
+
 local hide_on_linear = {}
 local hide_on_nonlinear = {}
 local suppress_popup = false
@@ -137,10 +160,10 @@ local function calc_key_mode_desc(key_mode)
             if acci_amounts[x] == 0 then
                 break
             end
-            notes = notes .. " " .. note_names[(acci_order[x] % 7) + 1]
             if not acci_order[x] then
                 break
             end
+            notes = notes .. " " .. note_names[(acci_order[x] % 7) + 1]
             if chromatic_steps == 12 and acci_amounts[x] then
                 notes = notes .. tostring(alteration_names[acci_amounts[x]])
             else
@@ -166,6 +189,25 @@ local function on_type_popup(control)
     end
 end
 
+local function on_presets_popup(control)
+    local selected_item = control:GetSelectedItem()
+    if selected_item == context.current_preset or selected_item <= 0 then
+        return
+    end
+    local preset = presets[selected_item]
+    for x = 1, 7 do
+        if x ~= 3 and x ~= 7 then
+            global_dialog:GetControl("ds_" .. x):SetInteger(preset.diatonic_whole)
+        else
+            global_dialog:GetControl("ds_" .. x):SetInteger(preset.diatonic_half)
+        end
+    end
+    if context.current_type_selection == 0 then
+        global_dialog:GetControl("chromatic_halfstep_size"):SetInteger(preset.diatonic_whole - preset.diatonic_half)
+    end
+    context.current_preset = selected_item
+end
+
 local function display_def(dialog, def)
     assert(def:IsLinear() or def:IsNonLinear(), "key mode " .. def.ItemNo .. "is invalid")
     local type_popup = dialog:GetControl("keymode_type")
@@ -181,6 +223,8 @@ local function display_def(dialog, def)
     local key_map = def.DiatonicStepsMap
     key_map = key_map and #key_map > 0 and key_map or {0, 2, 4, 5, 7, 9, 11}
     local num_steps = def.TotalChromaticSteps
+    context.current_preset = presets_map[num_steps] or 0
+    dialog:GetControl("presets"):SetSelectedItem(context.current_preset)
     num_steps = num_steps > 0 and num_steps or 12
     for x = 1, math.min(#key_map, #note_names) do
         local count = x < #key_map and key_map[x + 1] - key_map[x] or num_steps - key_map[x]
@@ -287,6 +331,7 @@ local function on_init_window(dialog)
     dialog.OkButtonCanClose = true
     context.current_selection = -1
     context.current_type_selection = -1
+    context.current_preset = -1
     context.current_doc = 0
     on_timer(dialog, context.global_timer_id)
     global_dialog:SetTimer(context.global_timer_id, 100) -- last step
@@ -856,10 +901,19 @@ local function create_dialog_box()
             :SetWidth(25)
             :AssureNoHorizontalOverlap(static, padding)
     end
-    dlg:CreateStatic(0, curr_y)
+    dlg:CreateStatic(0, curr_y, "final_map_letter")
         :SetText(note_names[1])
         :DoAutoResizeWidth(0)
         :AssureNoHorizontalOverlap(dlg:GetControl("ds_" .. #note_names), padding)
+    local presets_popup = dlg:CreatePopup(0, curr_y, "presets")
+        :DoAutoResizeWidth()
+        :AssureNoHorizontalOverlap(dlg:GetControl("final_map_letter"), 2*padding)
+        :AddString("< Other >")
+        :AddHandleCommand(on_presets_popup)
+    for _, t in ipairs(presets) do
+        presets_popup:AddString(t.name)
+    end
+    presets_popup:SetSelectedItem(0)
     curr_y = curr_y + y_increment
 -- divider
     dlg:CreateHorizontalLine(0, curr_y, 10)
