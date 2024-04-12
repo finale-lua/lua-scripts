@@ -5296,59 +5296,44 @@ package.preload["library.general_library"] = package.preload["library.general_li
 end
 function plugindef()
     finaleplugin.RequireSelection = false
+    finaleplugin.HandlesUndo = true
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.53"
-    finaleplugin.Date = "2024/02/05"
-    finaleplugin.AdditionalMenuOptions = [[
-        Notes Cross-Staff Up
-        Notes Cross-Staff Configuration...
-    ]]
-    finaleplugin.AdditionalUndoText = [[
-        Notes Cross-Staff Up
-        Notes Cross-Staff Configuration
-    ]]
-    finaleplugin.AdditionalPrefixes = [[
-        direction = "Up"
-        direction = "Configuration"
-    ]]
-    finaleplugin.AdditionalDescriptions = [[ 
-        Selected notes are cross-staffed to the next higher staff
-        Set the horizontal offsets and active layer that will be applied to cross-staffed notes
-    ]]
+    finaleplugin.Version = "0.83"
+    finaleplugin.Date = "2024/04/11"
     finaleplugin.MinJWLuaVersion = 0.70
-    finaleplugin.ScriptGroupName = "Notes Cross-Staff"
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below the selection"
-	finaleplugin.Notes = [[ 
+	finaleplugin.Notes = [[
         Selected notes are "crossed" to the next staff above or below the selection. 
-        This duplicates Finale's inbuilt __alt__ (option) up/down arrow 
-        shortcuts for cross-staff entries, but in my 
-        experience these malfunction at random. 
-        This script doesn't, but also offers filtering by layer, optional 
-        stem reversal and horizontal note shift to counteract stem reversal. 
-        Tobias Giesen's _TGTools_ → _Cross Staff_ is great for 
-        more complex tasks, but this is slicker and more 
-        versatile than the inbuilt version for simple ones.
+        This mimics Finale's inbuilt __TG Tools__ Cross-Staff plugin, but in my 
+        experience it malfunctions sporadically. 
+        This script doesn't, but also offers options for layer filtering, 
+        stem reversal, horizontal note shift (to counteract stem reversal) 
+        and note pattern matching. 
 
-        To change options use the _Notes Cross-Staff Configuration..._ 
-        menu or hold down [Shift] when starting the script. 
-        When crossing with stem reversal to the staff __above__ try 
-        EVPU offsets of __12__ (crossed) and __-12__ (not crossed), or __24/0__. 
-        When crossing to the staff __below__ try offsets of 
-        __-12/12__ or __-24/0__ EVPUs. 
+        Hold down [Shift] when starting the script to quickly cross staves 
+        without a confirmation dialog, using the last active settings. 
+        Select __Modeless Dialog__ if you want the dialog window to persist 
+        on-screen for repeated use until you click _Cancel_ [Escape].
 
-        By default only notes within the selection or part of the 
-        beam groups it contains will be shifted horizontally. 
-        Select "_Shift horizontals across whole measure_" 
-        (__g__) to shift every note in the selected measure.  
+        __Reverse Stems of Crossed Notes__  
+        For stems to sit in between the staves the stems of _crossed_ 
+        notes must be reversed. With this option selected you may also shift notes 
+        horizontally to compensate for the misalignment caused by stem reversal. 
+
+        __Shift Horizontals Across Whole Measure__  
+        Horizontal shift is normally applied only to notes that are part of a 
+        _crossing_ beam group.  This can sometimes conflict with notes either side 
+        of the selection and it looks better if all notes in the measure are shifted equally. 
 
         > __Key Commands__ (in the Configuration window): 
 
-        > - __d - f - g - h__: toggle the checkboxes 
-        > - __z__: reset to default values 
-        > - __q__: display these notes 
-        > - __0-4__: layer number (delete key not needed)  
+        > - __d__ - __f__ - __g__ - __h__: toggle the checkboxes 
+        > - __z__: toggle __Up/Down__ direction
+        > - __x__: reset default __shift__ values 
+        > - __q__: display these script notes 
+        > - __m__: toggle __Modeless__  
         > - To change measurement units: 
         > - __e__: EVPU / __i__: Inches / __c__: Centimeters 
         > - __o__: Points / __a__: Picas / __s__: Spaces 
@@ -5359,23 +5344,26 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Selected notes are \u8220"crossed\u8221" to the next staff above or below the selection. This duplicates Finale\u8217's inbuilt {\b alt} (option) up/down arrow shortcuts for cross-staff entries, but in my experience these malfunction at random. This script doesn\u8217't, but also offers filtering by layer, optional stem reversal and horizontal note shift to counteract stem reversal. Tobias Giesen\u8217's {\i TGTools} \u8594? {\i Cross Staff} is great for more complex tasks, but this is slicker and more versatile than the inbuilt version for simple ones.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To change options use the {\i Notes Cross-Staff Configuration\u8230?} menu or hold down [Shift] when starting the script. When crossing with stem reversal to the staff {\b above} try EVPU offsets of {\b 12} (crossed) and {\b -12} (not crossed), or {\b 24/0}. When crossing to the staff {\b below} try offsets of {\b -12/12} or {\b -24/0} EVPUs.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 By default only notes within the selection or part of the beam groups it contains will be shifted horizontally. Select \u8220"{\i Shift horizontals across whole measure}\u8221" ({\b g}) to shift every note in the selected measure.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Selected notes are \u8220"crossed\u8221" to the next staff above or below the selection. This mimics Finale\u8217's inbuilt {\b TG Tools} Cross-Staff plugin, but in my experience it malfunctions sporadically. This script doesn\u8217't, but also offers options for layer filtering, stem reversal, horizontal note shift (to counteract stem reversal) and note pattern matching.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Hold down [Shift] when starting the script to quickly cross staves without a confirmation dialog, using the last active settings. Select {\b Modeless Dialog} if you want the dialog window to persist on-screen for repeated use until you click {\i Cancel} [Escape].\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Reverse Stems of Crossed Notes}\line For stems to sit in between the staves the stems of {\i crossed} notes must be reversed. With this option selected you may also shift notes horizontally to compensate for the misalignment caused by stem reversal.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Shift Horizontals Across Whole Measure}\line Horizontal shift is normally applied only to notes that are part of a {\i crossing} beam group. This can sometimes conflict with notes either side of the selection and it looks better if all notes in the measure are shifted equally.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 {\b Key Commands} (in the Configuration window):\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d - f - g - h}: toggle the checkboxes\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: reset to default values\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: display these notes\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-4}: layer number (delete key not needed)\line \par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d} - {\b f} - {\b g} - {\b h}: toggle the checkboxes\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: toggle {\b Up/Down} direction\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x}: reset default {\b shift} values\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: display these script notes\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b m}: toggle {\b Modeless}\line \par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab To change measurement units:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e}: EVPU / {\b i}: Inches / {\b c}: Centimeters\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b o}: Points / {\b a}: Picas / {\b s}: Spaces\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/notes_cross_staff.hash"
-    return "Notes Cross-Staff Down", "Notes Cross-Staff Down", "Selected notes are cross-staffed to the next lower staff"
+    return "Notes Cross-Staff",
+        "Notes Cross-Staff Down",
+        "Selected notes are cross-staffed to the next lower staff"
 end
-direction = direction or "Down"
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local layer = require("library.layer")
@@ -5385,27 +5373,36 @@ local library = require("library.general_library")
 local script_name = library.calc_script_name()
 local refocus_document = false
 local config = {
-    no_reverse    = false,
-    not_unbeamed  = false,
-    no_shift      = false,
-    whole_measure  = true,
+    rest_fill     = true,
+    not_unbeamed  = true,
+    reversing     = true,
+    whole_measure = false,
     measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
     layer_num     = 0,
+    direction     = "Up",
+    modeless      = false,
+    count_set     = 1,
+    count_group   = 1,
     window_pos_x  = false,
     window_pos_y  = false,
 }
 local offsets = {
-    { "Up_Crossed",     12 },
+    { "Up_Crossed",     12, "Cross Up Offset:" },
     { "Up_Uncrossed",  -12 },
-    { "Down_Crossed",  -12 },
-    { "Down_Uncrossed", 12 },
+    { "Down_Crossed",  -12, "Cross Down Offset:" },
+    { "Down_Uncrossed", 12 }
 }
 for _, v in ipairs(offsets) do config[v[1]] = v[2] end
 local checks = {
-    {"no_reverse", "Don't reverse note stems (d)" },
-    {"not_unbeamed", "Don't cross unbeamed notes (f)" },
-    {"whole_measure", "Shift horizontals across whole measure (g)" },
-    {"no_shift", "No horizontal shift (h)" },
+    { "rest_fill",    "Put invisible rest in empty destination (d)" },
+    { "not_unbeamed", "Don't cross unbeamed notes (f)" },
+    { "reversing",    "Reverse stems of crossed notes (g)" },
+    { "whole_measure", "Shift horizontals across whole measure (h)" }
+}
+local entry_text = { "note", "notes" }
+local pattern = {
+    { "count_set", "Cross", 37 },
+    { "count_group", entry_text[1], 68 }
 }
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -5420,17 +5417,26 @@ local function dialog_save_position(dialog)
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
 end
+local function get_staff_name(staff_num)
+    local staff = finale.FCStaff()
+    staff:Load(staff_num)
+    local str = staff:CreateDisplayAbbreviatedNameString().LuaString
+    if not str or str == "" then
+        str = "Staff" .. staff_num
+    end
+    return str
+end
 local function next_staff_or_error(rgn)
     local msg = ""
     local stack = mixin.FCMMusicRegion()
     stack:SetRegion(rgn):SetFullMeasureStack()
     local next_slot = rgn.StartSlot
     if rgn:IsEmpty() then
-        msg = "Please select some music \nbefore running this script"
+        msg = "Please select some music\nbefore running this script"
     elseif rgn.StartStaff ~= rgn.EndStaff then
-        msg = "This script will only work \nwith one staff selected"
+        msg = "This script will only work\nwith one staff selected"
     else
-        if direction == "Down" then
+        if config.direction == "Down" then
             next_slot = next_slot + 1
             if next_slot > stack.EndSlot then msg = "below" end
         else
@@ -5443,107 +5449,188 @@ local function next_staff_or_error(rgn)
         end
     end
     if msg ~= "" then
-        finenv.UI():AlertError(msg, finaleplugin.ScriptGroupName .. ": Error")
+        finenv.UI():AlertError(msg, plugindef() .. ": Error")
         return -1
+    end
+    return stack:CalcStaffNumber(next_slot)
+end
+local function clear_mods(entry, type)
+    local mods = finale[type](entry)
+    mods:LoadAll()
+    for m in eachbackwards(mods) do m:DeleteData() end
+end
+local function clean_entry(entry)
+    if entry:IsNote() then
+        clear_mods(entry, "FCCrossStaffMods")
+        clear_mods(entry, "FCPrimaryBeamMods")
+        entry.ReverseUpStem = false
+        entry.ReverseDownStem = false
+        entry.FreezeBeam = false
+        entry.FreezeStem = false
     else
-        return stack:CalcStaffNumber(next_slot)
+        entry:SetRestDisplacement(0)
+        entry.FloatingRest = true
+    end
+    entry.ManualPosition = 0
+end
+local function destination_rests(rgn, dest_staff)
+    if config.rest_fill then
+        for measurenum = rgn.StartMeasure, rgn.EndMeasure do
+            local layer_num = math.max(config.layer_num, 1)
+            local notecell = mixin.FCMNoteEntryCell(measurenum, dest_staff)
+            notecell:Load()
+            if notecell.Count == 0 then
+                local m = finale.FCMeasure()
+                local m_duration = m:Load(measurenum) and m:GetDuration() or finale.WHOLE_NOTE
+                local new_rest = notecell:AppendEntriesInLayer(layer_num, 1)
+                if new_rest then
+                    new_rest:MakeRest():SetDuration(m_duration):SetLegality(true):SetVisible(false)
+                    notecell:Save()
+                end
+            end
+        end
     end
 end
-local function cross_staff(next_staff, rgn)
-    local beam_groups = {}
+local function set_manual_pos(entry)
+    local type = config.direction .. (entry.CrossStaff and "_Crossed" or "_Uncrossed")
+    entry.ManualPosition = config[type]
+end
+local function cross_entry(entry, dest_staff)
+    local cross_mod = finale.FCCrossStaffMod()
+    cross_mod:SetNoteEntry(entry)
+    local loaded = cross_mod:LoadFirst()
+    cross_mod.Staff = dest_staff
+    for note in each(entry) do cross_mod:SaveAt(note) end
+    local _ = loaded and cross_mod:Save() or cross_mod:SaveNew()
+end
+local function cross_staff()
+    local rgn = mixin.FCMMusicRegion()
+    rgn:SetRegion(finenv.Region())
+    local next_staff = next_staff_or_error(rgn)
+    if next_staff < 0 then return false end
+
+    finenv.StartNewUndoBlock(string.format("Cross-Staff %s -> %s m.%d-%d",
+        get_staff_name(rgn.StartStaff), get_staff_name(next_staff),
+        rgn.StartMeasure, rgn.EndMeasure)
+    )
+    destination_rests(rgn, next_staff)
+    local beam_start = {}
+    local count, active_beam = 0, nil
     for entry in eachentrysaved(rgn, config.layer_num) do
+        count = count + 1
+        clean_entry(entry)
+
+        local beamed = not entry:CalcUnbeamedNote()
         if entry:IsNote() then
-            local unbeamed = entry:CalcUnbeamedNote()
-            if unbeamed and (config.not_unbeamed) then
-                if not config.no_shift then
-                    entry.ManualPosition = config[direction .. "_Uncrossed"]
+            if (beamed or not config.not_unbeamed) then
+                if beamed and not active_beam then
+                    active_beam = entry:CalcBeamStartEntry().EntryNumber
+                    beam_start[active_beam] = {}
                 end
-                entry.FreezeStem = false
-            else
-                local cross_mod = finale.FCCrossStaffMod()
-                cross_mod:SetNoteEntry(entry)
-                local loaded = cross_mod:LoadFirst()
-                cross_mod.Staff = next_staff
-                for note in each(entry) do
-                    cross_mod:SaveAt(note)
-                end
-                local _ = loaded and cross_mod:Save() or cross_mod:SaveNew()
-                if not config.no_shift then
-                    entry.ManualPosition = config[direction .. "_Crossed"]
-                end
-                if not unbeamed then
-                    if not config.no_reverse then
-                        entry["Reverse" .. direction .. "Stem"] = true
+                if (count <= config.count_set) then
+                    if config.reversing then
+                        entry["Reverse" .. config.direction .. "Stem"] = true
                     end
-                    entry.StemUp = (direction == "Up")
+                    entry.StemUp = (config.direction == "Up")
                     entry.FreezeStem = true
-                end
-            end
-            if not (unbeamed or config.no_shift or config.whole_measure) then
-
-                local beam_start_entry = entry:CalcBeamStartEntry()
-                if beam_start_entry ~= nil then
-                    local start_number = beam_start_entry.EntryNumber
-                    if beam_groups[start_number] == nil then
-                        local next_entry = entry:Next()
-                        local end_of_selection = (next_entry == nil) or (not rgn:IsEntryPosWithin(next_entry))
-                        local end_of_group = entry:CalcBeamedGroupEnd()
-
-                        if end_of_group or end_of_selection then
-                            beam_groups[start_number] = {
-                                StartStaff = entry.Staff,
-                                EndStaff = entry.Staff,
-                                StartMeasure = beam_start_entry.Measure,
-                                EndMeasure = entry.Measure,
-                                StartMeasurePos = beam_start_entry.MeasurePos,
-                                EndMeasurePos = entry.MeasurePos
-                            }
-                        end
-                        if end_of_selection and not end_of_group then
-                            local new_entry = entry
-                            while new_entry and not new_entry:CalcUnbeamedNote() do
-                                new_entry = new_entry:Next()
-                                if new_entry and new_entry:CalcBeamedGroupEnd() then
-                                    if new_entry and beam_groups[start_number] then
-                                        beam_groups[start_number].EndMeasure = new_entry.Measure
-                                        beam_groups[start_number].EndMeasurePos = new_entry.MeasurePos
-                                    end
-                                    break
-                                end
-                            end
-                        end
-                    end
+                    cross_entry(entry, next_staff)
                 end
             end
         end
+        if active_beam and entry:CalcBeamedGroupEnd() then
+            beam_start[active_beam].stop = entry.EntryNumber
+            active_beam = nil
+        end
+        if count >= config.count_group then count = 0 end
     end
-    if not config.no_shift then
-        if config.whole_measure then
-            local whole_measure = mixin.FCMMusicRegion()
-            whole_measure:SetRegion(rgn):SetStartMeasurePosLeft():SetEndMeasurePosRight()
-            for entry in eachentrysaved(whole_measure, config.layer_num) do
-                local crossing = entry.CrossStaff and "_Crossed" or "_Uncrossed"
-                entry.ManualPosition = config[direction .. crossing]
-            end
-        elseif beam_groups ~= {} then
-            local beam_region = mixin.FCMMusicRegion()
-            beam_region:SetRegion(rgn)
-            for _, group in pairs(beam_groups) do
-                for key, value in pairs(group) do
-                    beam_region[key] = value
-                end
-                for entry in eachentrysaved(beam_region, config.layer_num) do
-                    if (entry.Staff == rgn.StartStaff) and (not entry.CrossStaff) then
-                        entry.ManualPosition = config[direction .. "_Uncrossed"]
-                    end
-                end
+
+    active_beam = nil
+    local bsab
+    local whole_measure = mixin.FCMMusicRegion()
+    whole_measure:SetRegion(rgn):SetStartMeasurePosLeft():SetEndMeasurePosRight()
+    for entry in eachentrysaved(whole_measure, config.layer_num) do
+        local enum = entry.EntryNumber
+        if beam_start[enum] then
+            active_beam = enum
+            bsab = beam_start[active_beam]
+        end
+        if active_beam then
+            bsab[entry.CrossStaff and "cross" or "stay"] = true
+            entry.FreezeStem = entry.CrossStaff
+            entry.ManualPosition = 0
+            if enum == bsab.stop or entry:CalcBeamedGroupEnd() then
+                bsab.stop = enum
+                active_beam = nil
             end
         end
     end
+
+    active_beam = nil
+    for entry in eachentrysaved(whole_measure, config.layer_num) do
+        local enum = entry.EntryNumber
+        if beam_start[enum] then
+            active_beam = enum
+            bsab = beam_start[active_beam]
+            bsab.mixed = bsab.cross and bsab.stay and config.reversing
+        end
+        if active_beam then
+            if bsab.mixed then
+                if config.reversing then set_manual_pos(entry) end
+            else
+                entry.ReverseUpStem = false
+                entry.ReverseDownStem = false
+                entry.FreezeStem = false
+                entry.ManualPosition = 0
+            end
+            if enum == bsab.stop then active_beam = nil end
+        elseif config.reversing and config.whole_measure then
+            set_manual_pos(entry)
+        end
+    end
+    finenv.EndUndoBlock(true)
+    finenv.Region():Redraw()
+    return true
 end
-local function configuration_dialog()
+local function input_error()
+    local msg, str = "", finale.FCString()
+    if config.reversing then
+        local max_evpu = 576
+        local m_unit = config.measurement_unit
+        local u_name = " " .. measurement.get_unit_name(m_unit)
+        local function us(evpu)
+            str:SetMeasurement(evpu, m_unit)
+            return str.LuaString
+        end
+        local function usi(idx)
+            return us(config[offsets[idx][1]])
+        end
+        for i, v in ipairs(offsets) do
+            if i < 5 then
+                if math.abs(tonumber(config[v[1]]) or 0) > max_evpu then
+                    msg = msg .. "Choose realistic entry offset values, \nsay from -"
+                        .. us(max_evpu) .. " to " .. us(max_evpu) .. u_name .. ", not:\n"
+                        .. usi(1) .. " ... " .. usi(2) .. u_name .. " (upwards)\n"
+                        .. usi(3) .. " ... " .. usi(4) .. u_name .. " (downwards)"
+                    break
+                end
+            end
+        end
+    end
+    if config.count_set > config.count_group then
+        if msg ~= "" then msg = msg .. "\n\n" end
+        msg = msg .. "The \"Cross ___ notes\" number (" .. config.count_set
+        .. ")\nmust not be larger than the \n\"out of\" number ("
+        .. config.count_group .. ")"
+    end
+    if msg ~= "" then
+        finenv.UI():AlertError(msg, plugindef() .. " Error")
+        return true
+    end
+    return false
+end
+local function run_the_dialog()
     local max = layer.max_layers()
-    local x = { 0, 140, 210, 245, 110, 260 }
+    local x = { 140, 210, 245 }
     local y = 0
     local units = {
         e = finale.MEASUREMENTUNIT_EVPUS,       i = finale.MEASUREMENTUNIT_INCHES,
@@ -5551,42 +5638,44 @@ local function configuration_dialog()
         a = finale.MEASUREMENTUNIT_PICAS,       s = finale.MEASUREMENTUNIT_SPACES,
     }
     local answer, save_value = {}, {}
-    local dialog = mixin.FCXCustomLuaWindow()
-        :SetTitle(finaleplugin.ScriptGroupName .. " Configuration")
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
     dialog:SetMeasurementUnit(config.measurement_unit)
 
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. finaleplugin.ScriptGroupName, 500, 360)
+            utils.show_notes_dialog(dialog, "About " .. plugindef(), 500, 400)
             refocus_document = true
         end
         local function dy(diff)
             y = diff and (y + diff) or (y + 25)
         end
-        local function cstat(cx, cy, ctext, cwide, chigh)
+        local function cstat(cx, cy, ctext, cwide)
             local stat = dialog:CreateStatic(cx, cy):SetText(ctext)
             if cwide then stat:SetWidth(cwide) end
-            if chigh then stat:SetHeight(chigh) end
             return stat
         end
         local function toggle_check(id)
             local name = checks[id][1]
             answer[name]:SetCheck((answer[name]:GetCheck() + 1) % 2)
         end
-        local function toggle_offset_disable()
-            local off = (answer.no_shift:GetCheck() == 0)
-            for i = 1, 4 do answer[offsets[i][1]]:SetEnable(off) end
-            answer[off and "Up_Crossed" or "layer_num"]:SetKeyboardFocus()
+        local function set_offset_disable(enable)
+            answer.whole_measure:SetEnable(enable)
+            for i = 1, 4 do answer[offsets[i][1]]:SetEnable(enable) end
+            answer.popup:SetEnable(enable)
+            answer.default:SetEnable(enable)
         end
         local function update_saved()
-            for _, v in ipairs(offsets) do
-                save_value[v[1]] = answer[v[1]]:GetText()
-            end
+            for _, v in ipairs(offsets) do save_value[v[1]] = answer[v[1]]:GetText() end
+            for _, v in ipairs(pattern) do save_value[v[1]] = answer[v[1]]:GetText() end
+            save_value.layer_num = answer.layer_num:GetText()
         end
         local function set_default_values()
-            for _, v in ipairs(offsets) do
-                answer[v[1]]:SetMeasurementInteger(v[2])
-            end
+            for _, v in ipairs(offsets) do answer[v[1]]:SetMeasurementInteger(v[2]) end
+            for _, v in ipairs(pattern) do answer[v[1]]:SetInteger(1) end
             update_saved()
+        end
+        local function flip_direction()
+            local n = answer.direction:GetSelectedItem()
+            answer.direction:SetSelectedItem((n + 1) % 2)
         end
         local function key_check(id)
             local ctl = answer[id]
@@ -5594,16 +5683,21 @@ local function configuration_dialog()
             if  (s:find("p") and dialog:GetMeasurementUnit() ~= finale.MEASUREMENTUNIT_PICAS)
                 or s:find("[^-.p0-9]")
                 or (id == "layer_num" and s:find("[^0-" .. max .. "]"))
+                or (id:find("count") and s:find("[^1-9]"))
                 then
-                if      s:find("d") then toggle_check(1)
-                elseif  s:find("f") then toggle_check(2)
-                elseif  s:find("g") then toggle_check(3)
-                    answer.no_shift:SetCheck(0)      toggle_offset_disable()
-                elseif  s:find("h") then toggle_check(4)
-                    answer.whole_measure:SetCheck(0) toggle_offset_disable()
-                elseif  s:find("z") then set_default_values()
-                elseif  s:find("[?q]") then show_info()
-                elseif s:find("[eicoas]") then
+                local reversing = (answer.reversing:GetCheck() == 1)
+                if     s:find("d") then toggle_check(1)
+                elseif s:find("f") then toggle_check(2)
+                elseif s:find("g") then toggle_check(3)
+                    set_offset_disable(not reversing)
+                elseif s:find("h") and reversing then toggle_check(4)
+                elseif s:find("x") then set_default_values()
+                elseif s:find("z") then flip_direction()
+                elseif s:find("m") then
+                    local m = answer.modeless:GetCheck()
+                    answer.modeless:SetCheck((m + 1) % 2)
+                elseif s:find("[?q]") then show_info()
+                elseif reversing and s:find("[eicoas]") then
                     for k, v in pairs(units) do
                         if s:find(k) then
                             ctl:SetText(save_value[id])
@@ -5614,131 +5708,113 @@ local function configuration_dialog()
                         end
                     end
                 end
-                ctl:SetText(save_value[id])
             elseif s ~= "" then
-                if id == "layer_num" then
+                if id == "layer_num" or id:find("count") then
                     s = s:sub(-1)
+                    if id == "count_set" then
+                        local n = tonumber(s) or 1
+                        answer.entry2:SetText(n == 1 and entry_text[1] or entry_text[2])
+                    end
                 else
                     if s == "." then s = "0."
                     elseif s == "-." then s = "-0."
                     end
                 end
-                ctl:SetText(s)
                 save_value[id] = s
             end
+            ctl:SetText(save_value[id])
         end
-    answer.title = cstat(x[1], y, "HORIZONTAL ENTRY OFFSETS", 175)
     local y_off = finenv.UI():IsOnMac() and 3 or 0
-    answer.popup = dialog:CreateMeasurementUnitPopup(x[3] - 26, y - 1):SetWidth(90)
-        :AddHandleCommand(function() update_saved() end)
-    dy()
-    cstat(x[2], y, "Crossed", 70)
-    cstat(x[3] - 4, y, "Not Crossed", 70)
-    dy(20)
-    cstat(20, y, "Cross to staff above:", x[2])
-    for i, v in ipairs(offsets) do
-        if i == 3 then y = y + 25 end
-        local x_pos = (i % 2 == 1) and x[2] or x[3]
-        answer[v[1]] = dialog:CreateMeasurementEdit(x_pos, y - y_off):SetWidth(64)
-            :SetMeasurementInteger(config[v[1]])
-            :AddHandleCommand(function() key_check(v[1]) end)
-    end
-    update_saved()
-    cstat(20, y, "Cross to staff below:", x[2])
-    dy(30)
-    cstat(x[1], y, "Layer 1-" .. max .. ":", x[4])
-    answer.layer_num = dialog:CreateEdit(60, y - y_off):SetText(config.layer_num)
-        :AddHandleCommand(function() key_check("layer_num") end):SetWidth(20)
-    save_value.layer_num = config.layer_num
-    cstat(82, y, "(0 = all)", x[2])
-    dialog:CreateButton(x[2], y):SetText("Default Values (z)"):SetWidth(105)
-        :AddHandleCommand(function() set_default_values() end)
-    answer.q = dialog:CreateButton(x[3] + 44, y):SetText("?"):SetWidth(20)
+    answer.direction = dialog:CreatePopup(0, y - 1):SetWidth(90)
+        :AddStrings("Cross Up", "Cross Down")
+        :SetSelectedItem(config.direction == "Up" and 0 or 1)
+    answer.modeless = dialog:CreateCheckbox(131, y):SetWidth(120)
+        :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
+    answer.q = dialog:CreateButton(x[2] + 44, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
-    dy(20)
+    dy()
+    local x_off = 0
+    for i, v in ipairs(pattern) do
+        if i == 2 then cstat(x_off + v[3] - 37, y, "out of", 50) end
+        answer["entry" .. i] = cstat(x_off, y, v[2], v[3])
+        answer[v[1]] = dialog:CreateEdit(x_off + v[3], y - y_off):SetInteger(config[v[1]])
+            :AddHandleCommand(function() key_check(v[1]) end):SetWidth(17)
+        x_off = x_off + v[3] + 19
+    end
+    answer.entry2:SetText(config.count_set == 1 and entry_text[1] or entry_text[2])
+    cstat(x[2] - 18, y, "Layer 0-" .. max .. ":", 60)
+    answer.layer_num = dialog:CreateEdit(x[2] + 44, y - y_off):SetText(config.layer_num)
+        :AddHandleCommand(function() key_check("layer_num") end):SetWidth(20)
+    dy()
     for _, v in ipairs(checks) do
-        answer[v[1]] = dialog:CreateCheckbox(20, y):SetText(v[2]):SetWidth(x[6])
-            :SetCheck(config[v[1]] and 1 or 0)
+        answer[v[1]] = dialog:CreateCheckbox(20, y):SetText(v[2])
+            :SetCheck(config[v[1]] and 1 or 0):SetWidth(x[3])
         dy(18)
     end
-    answer.whole_measure:AddHandleCommand(function()
-            answer.no_shift:SetCheck(0)
-            toggle_offset_disable()
-        end)
-    answer.no_shift:AddHandleCommand(function()
-            answer.whole_measure:SetCheck(0)
-            toggle_offset_disable()
-        end)
-    dialog:CreateOkButton()
+    answer.reversing:AddHandleCommand(function(self)
+        set_offset_disable(self:GetCheck() == 1)
+    end)
+    dy(12)
+    dialog:CreateHorizontalLine(0, y - 9, x[2] + 64)
+    dialog:CreateHorizontalLine(0, y - 8, x[2] + 64)
+    cstat(0, y, "Units:", 37)
+    answer.popup = dialog:CreateMeasurementUnitPopup(37, y - 1):SetWidth(90)
+        :AddHandleCommand(function() update_saved() end)
+    cstat(x[1], y, "Crossed", 70)
+    cstat(x[2] - 4, y, "Not Crossed", 70)
+    for i, v in ipairs(offsets) do
+        if i % 2 == 1 then dy(22) end
+        if v[3] then cstat(20, y, v[3], x[1]) end
+        local x_pos = (i % 2 == 1) and x[1] or x[2]
+        answer[v[1]] = dialog:CreateMeasurementEdit(x_pos, y - y_off)
+            :SetMeasurementInteger(config[v[1]]):SetWidth(64)
+            :AddHandleCommand(function() key_check(v[1]) end)
+    end
+    dy(22)
+    answer.default = dialog:CreateButton(x[1] - 52, y):SetText("Default Values (x)"):SetWidth(105)
+        :AddHandleCommand(function() set_default_values() end)
+    update_saved()
+    dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function()
-        toggle_offset_disable()
-        local bold = answer.title:CreateFontInfo():SetBold(true)
-        answer.title:SetFont(bold)
-        answer.q:SetFont(bold)
+    local change_mode, user_error = false, false
+    dialog:RegisterInitWindow(function(self)
+        set_offset_disable(config.reversing)
+        self:SetOkButtonCanClose(not config.modeless)
+        answer.q:SetFont(answer.q:CreateFontInfo():SetBold(true))
+        answer.count_set:SetKeyboardFocus()
     end)
     dialog:RegisterHandleOkButtonPressed(function(self)
-        for _, v in ipairs(offsets) do
-            config[v[1]] = answer[v[1]]:GetMeasurementInteger()
-        end
-        for _, v in ipairs(checks) do
-            config[v[1]] = (answer[v[1]]:GetCheck() == 1)
-        end
+        for _, v in ipairs(offsets) do config[v[1]] = answer[v[1]]:GetMeasurementInteger() end
+        for _, v in ipairs(checks) do config[v[1]] = (answer[v[1]]:GetCheck() == 1) end
+        for _, v in ipairs(pattern) do config[v[1]] = answer[v[1]]:GetInteger() end
         config.layer_num = answer.layer_num:GetInteger()
         config.measurement_unit = self:GetMeasurementUnit()
+        config.direction = (answer.direction:GetSelectedItem() == 0) and "Up" or "Down"
+        user_error = input_error() or (not cross_staff())
     end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
-end
-local function input_error()
-    if not config.no_shift then
-        local max_evpu = 576
-        local m_unit = config.measurement_unit
-        local u_name = " " .. measurement.get_unit_name(m_unit)
-        local msg, str = "", finale.FCString()
-        local function us(evpu)
-            str:SetMeasurement(evpu, m_unit)
-            return str.LuaString
-        end
-        local function usi(idx)
-            return us(config[offsets[idx][1]])
-        end
-        for _, v in ipairs(offsets) do
-            if math.abs(tonumber(config[v[1]]) or 0) > max_evpu then
-                msg = msg .. "Choose realistic entry offset values, \nsay from -"
-                    .. us(max_evpu) .. " to " .. us(max_evpu) .. u_name .. ", not:\n"
-                    .. usi(1) .. " ... " .. usi(2) .. u_name .. " (upwards)\n"
-                    .. usi(3) .. " ... " .. usi(4) .. u_name .. " (downwards)"
-                break
-            end
-        end
-        if msg ~= "" then
-            finenv.UI():AlertError(msg, finaleplugin.ScriptGroupName .. " Error")
-            return true
-        end
+    dialog:RegisterCloseWindow(function(self)
+        local mode = (answer.modeless:GetCheck() == 1)
+        change_mode = (mode and not config.modeless)
+        config.modeless = mode
+        dialog_save_position(self)
+    end)
+    if config.modeless then
+        dialog:RunModeless()
+    else
+        dialog:ExecuteModal()
+        if refocus_document then finenv.UI():ActivateDocumentWindow() end
     end
-    return false
+    return (change_mode or user_error)
 end
-local function choose_action()
+local function cross_some_staves()
     configuration.get_user_settings(script_name, config, true)
-    local rgn = mixin.FCMMusicRegion()
-    rgn:SetRegion(finenv.Region())
     local qim = finenv.QueryInvokedModifierKeys
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
-    local configure = (direction == "Configuration")
-    local user_error = true
-    while user_error and (mod_key or configure) do
-        if not configuration_dialog() then
-            if refocus_document then finenv.UI():ActivateDocumentWindow() end
-            return
-        end
-        user_error = input_error()
+    if mod_key then
+        cross_staff()
+    else
+        while run_the_dialog() do end
     end
-    if not configure then
-        local next_staff = next_staff_or_error(rgn)
-        if next_staff > 0 then cross_staff(next_staff, rgn) end
-    end
-    if refocus_document then finenv.UI():ActivateDocumentWindow() end
 end
-choose_action()
+cross_some_staves()
