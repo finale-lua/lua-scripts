@@ -5300,10 +5300,10 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.31"
-    finaleplugin.Date = "2024/03/02"
+    finaleplugin.Version = "0.33" -- trying RegisterMouseTracking
+    finaleplugin.Date = "2024/04/10"
     finaleplugin.CategoryTags = "Rests, Selection"
-    finaleplugin.MinJWLuaVersion = 0.70
+    finaleplugin.MinJWLuaVersion = 0.72
     finaleplugin.Notes = [[
         Slide rests up and down on the nominated layer with continuous visual feedback. 
         This was designed especially to help align rests midway 
@@ -5336,7 +5336,7 @@ function plugindef()
         > - __f__: move to mid-staff below (if one staff selected) 
         > - __z__: reset to "zero" shift (not floating) 
         > - __x__: floating rests 
-        > - __i__: invert shift direction 
+        > - __c__: invert shift direction 
         > - __q__: show these script notes 
         > - __m__: toggle "Modeless" 
         > - __0-4__: layer number (delete key not needed) 
@@ -5357,7 +5357,7 @@ function plugindef()
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b f}: move to mid-staff below (if one staff selected)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: reset to \u8220"zero\u8221" shift (not floating)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x}: floating rests\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b i}: invert shift direction\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b c}: invert shift direction\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: show these script notes\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b m}: toggle \u8220"Modeless\u8221"\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-4}: layer number (delete key not needed)\sa180\par}
@@ -5387,6 +5387,7 @@ local bounds = {
     "StartStaff", "StartMeasure", "StartMeasurePos",
     "EndStaff",   "EndMeasure",   "EndMeasurePos",
 }
+local mouse_tracking = false
 local selection
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -5457,6 +5458,10 @@ local function initialise_parameters()
             adjacent_offsets[key] = math.floor(n / 24)
         end
     end
+end
+local function start_undo_block(layer_num, shift)
+    local id = string.format("%s %s L.%d pos.%d", name, selection.region, layer_num, shift)
+    finenv.StartNewUndoBlock(id, false)
 end
 local function get_rest_offset(entry)
     if entry:IsNote() then return 0 end
@@ -5536,14 +5541,17 @@ local function run_the_dialog_box()
             y = diff and (y + diff) or (y + 25)
         end
         local function shift_rests(shift, float)
-            local id = string.format("%s %s L%d pos%d", name, selection.region, save_layer, shift)
-            if config.modeless then finenv.StartNewUndoBlock(id, false) end
+            if config.modeless and not mouse_tracking then
+                start_undo_block(save_layer, shift)
+            end
             for entry in eachentrysaved(finenv.Region(), save_layer) do
                 if entry:IsRest() then
                     offset_rest(entry, shift, float)
                 end
             end
-            if config.modeless then finenv.EndUndoBlock(true) end
+            if config.modeless and not mouse_tracking then
+                finenv.EndUndoBlock(true)
+            end
             finenv.Region():Redraw()
         end
         local function set_value(thumb, float, set_thumb)
@@ -5587,7 +5595,7 @@ local function run_the_dialog_box()
                     elseif val:find("f") then set_midstaff("below")
                     elseif val:find("z") then set_zero(false)
                     elseif val:find("x") then set_zero(true)
-                    elseif val:find("i") then invert_shift()
+                    elseif val:find("c") then invert_shift()
                     elseif val:find("m") then
                         answer.modeless:SetCheck((answer.modeless:GetCheck() + 1) % 2)
                     end
@@ -5652,6 +5660,18 @@ local function run_the_dialog_box()
     if config.modeless then dialog:RegisterHandleTimer(on_timer) end
     dialog:RegisterHandleOkButtonPressed(function()
         save_rest_positions()
+    end)
+    dialog:RegisterMouseTrackingStarted(function(cntl)
+        mouse_tracking = true
+        if config.modeless then
+            start_undo_block(save_layer, cntl:GetThumbPosition() - center)
+        end
+    end)
+    dialog:RegisterMouseTrackingStopped(function()
+        if config.modeless and mouse_tracking then
+            mouse_tracking = false
+            finenv.EndUndoBlock(true)
+        end
     end)
     dialog:RegisterInitWindow(function(self)
         dialog:SetOkButtonCanClose(not config.modeless)
