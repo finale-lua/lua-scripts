@@ -4,32 +4,32 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.83"
-    finaleplugin.Date = "2024/04/11"
+    finaleplugin.Version = "0.84"
+    finaleplugin.Date = "2024/04/14"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below the selection"
 	finaleplugin.Notes = [[
         Selected notes are "crossed" to the next staff above or below the selection. 
-        This mimics Finale's inbuilt __TG Tools__ Cross-Staff plugin, but in my 
-        experience it malfunctions sporadically. 
+        This mimics Finale's inbuilt __TG Tools__ _Cross-Staff_ plugin, which in my 
+        experience malfunctions periodically. 
         This script doesn't, but also offers options for layer filtering, 
         stem reversal, horizontal note shift (to counteract stem reversal) 
         and note pattern matching. 
 
         Hold down [Shift] when starting the script to quickly cross staves 
-        without a confirmation dialog, using the last active settings. 
+        without a confirmation dialog, with the settings last used. 
         Select __Modeless Dialog__ if you want the dialog window to persist 
         on-screen for repeated use until you click _Cancel_ [Escape].
 
         __Reverse Stems of Crossed Notes__  
         For stems to sit in between the staves the stems of _crossed_ 
         notes must be reversed. With this option selected you may also shift notes 
-        horizontally to compensate for the misalignment caused by stem reversal. 
+        horizontally to compensate for uneven spacing caused by stem reversal. 
 
         __Shift Horizontals Across Whole Measure__  
         Horizontal shift is normally applied only to notes that are part of a 
         _crossing_ beam group.  This can sometimes conflict with notes either side 
-        of the selection and it looks better if all notes in the measure are shifted equally. 
+        of the selection and it looks better if all notes in the source measure are shifted equally. 
 
         > __Key Commands__ (in the Configuration window): 
 
@@ -80,7 +80,7 @@ local offsets = { -- ordered: id; default value; text label (if any)
 -- also pre-populate config values
 for _, v in ipairs(offsets) do config[v[1]] = v[2] end
 
-local checks = { -- name, text description (ordered)
+local checks = { -- key; text description (ordered) of the checkboxes
     { "rest_fill",    "Put invisible rest in empty destination (d)" },
     { "not_unbeamed", "Don't cross unbeamed notes (f)" },
     { "reversing",    "Reverse stems of crossed notes (g)" },
@@ -374,7 +374,6 @@ local function run_the_dialog()
         end
         local function set_default_values()
             for _, v in ipairs(offsets) do answer[v[1]]:SetMeasurementInteger(v[2]) end
-            for _, v in ipairs(pattern) do answer[v[1]]:SetInteger(1) end
             update_saved()
         end
         local function flip_direction()
