@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.92"
-    finaleplugin.Date = "2024/04/01"
+    finaleplugin.Version = "0.93"
+    finaleplugin.Date = "2024/04/16"
     finaleplugin.MinJWLuaVersion = 0.70
 	finaleplugin.Notes = [[ 
         This script presents an alphabetical list of 24 individual types 
@@ -18,10 +18,10 @@ function plugindef()
         > Custom Lines | Dynamics• | Expressions (Not Dynamics)•  
         > Expressions (All)• | Expressions (Measure-Attached) | Glissandos  
         > Hairpins | Lyrics• | MIDI Continuous Data | MIDI Note Data•  
-        > Note Position Offsets• | Notehead Modifications• | Secondary Beam Breaks•  
-        > Slurs | Smart Shapes (Note Attached)• | Smart Shapes (Beat Attached)  
-        > Smart Shapes (All) | Staff Styles | Tuplets• | User Selected...  
-        > (• = filter by layer)
+        > Note Position Offsets• | Notehead Modifications• | Notes•  
+        > Secondary Beam Breaks• | Slurs | Smart Shapes (Note Attached)•  
+        > Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles  
+        > Tuplets• | User Selected... | (• = filter by layer)
 
         To delete the same data as last time without a confirmation dialog 
         hold down [Shift] when starting the script. 
@@ -42,6 +42,7 @@ local mixin = require("library.mixin")
 local expression = require("library.expression")
 local layer = require("library.layer")
 local utils = require("library.utils")
+local note_entry = require("library.note_entry")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
 local refocus_document = false -- set to true if utils.show_notes_dialog is used
@@ -66,6 +67,7 @@ local dialog_options = { -- key, text description (ordered)
     { "midi_entry", "MIDI Note Data •" },
     { "entry_position", "Note Position Offsets •" },
     { "notehead_mods", "Notehead Modifications •" },
+    { "notes", "Notes •" },
     { "secondary_beam_breaks", "Secondary Beam Breaks •" }, 
     { "shape_IsSlur", "Slurs" },
     { "shape_IsEntryBased", "Smart Shapes (Note Attached) •" },
@@ -93,6 +95,7 @@ local config = { -- keystroke assignments, layer number and window position
     midi_entry = "I",
     entry_position = "N",
     notehead_mods = "J",
+    notes = "Q",
     secondary_beam_breaks = "K",
     shape_IsSlur = "S",
     shape_IsEntryBased = "P",
@@ -183,6 +186,17 @@ local function delete_selected(delete_type)
         chords:LoadAllForRegion(rgn)
         for chord in eachbackwards(chords) do
             if chord then chord:DeleteData() end
+        end
+    --
+    elseif delete_type == "notes" then -- NOTES
+        for entry in eachentrysaved(rgn, layer_num) do
+            if entry:IsNote() then note_entry.make_rest(entry) end
+        end
+        for m, s in eachcell(rgn) do
+            local c = finale.FCNoteEntryCell(m, s)
+            c:Load()
+            c:ReduceEntries()
+            c:Save()
         end
     --
     elseif delete_type == "measure_attached" then -- MEASURE-ATTACHED EXPRESSIONS type
