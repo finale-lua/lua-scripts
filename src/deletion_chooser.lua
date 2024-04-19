@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.93"
-    finaleplugin.Date = "2024/04/16"
+    finaleplugin.Version = "0.94"
+    finaleplugin.Date = "2024/04/19"
     finaleplugin.MinJWLuaVersion = 0.70
 	finaleplugin.Notes = [[ 
         This script presents an alphabetical list of 24 individual types 
@@ -50,66 +50,44 @@ local refocus_document = false -- set to true if utils.show_notes_dialog is used
 -- Mac / Windows menu command value ...
 local clear_selected_items_menu = finenv.UI():IsOnMac() and 1296385394 or 16010
 
-local dialog_options = { -- key, text description (ordered)
-    { "entry_articulation", "Articulations •" },
-    { "rest_articulation", "Articulations on Rests •" },
-    { "chords", "Chords" },
-    { "cross_staff", "Cross Staff Entries •" },
-    { "shape_IsCustomLine", "Custom Lines" },
-    { "expression_dynamic", "Dynamics •" },
-    { "expression_not_dynamic", "Expressions (Not Dynamics) •" },
-    { "expression_all", "Expressions (All Note-Attached) •" },
-    { "measure_attached", "Expressions (Measure-Attached)" },
-    { "shape_IsGlissando", "Glissandos" },
-    { "shape_IsHairpin", "Hairpins" },
-    { "entry_lyrics", "Lyrics •" },
-    { "midi_continuous", "MIDI Continuous Data" },
-    { "midi_entry", "MIDI Note Data •" },
-    { "entry_position", "Note Position Offsets •" },
-    { "notehead_mods", "Notehead Modifications •" },
-    { "notes", "Notes •" },
-    { "secondary_beam_breaks", "Secondary Beam Breaks •" }, 
-    { "shape_IsSlur", "Slurs" },
-    { "shape_IsEntryBased", "Smart Shapes (Note Attached) •" },
-    { "shape_GetBeatAttached", "Smart Shapes (Beat Attached)" },
-    { "shape_all", "Smart Shapes (All)" },
-    { "staff_styles", "Staff Styles (Current Score/Part)" },
-    { "entry_tuplets", "Tuplets •" },
-    { "user_selected", "User Selected Items ..."}
+local dialog_options = { -- name key, HOTKEY, text description (ordered)
+    { "entry_articulation",     "A", "Articulations •" },
+    { "rest_articulation",      "R", "Articulations on Rests •" },
+    { "chords",                 "W", "Chords" },
+    { "cross_staff",            "X", "Cross Staff Entries •" },
+    { "shape_IsCustomLine",     "C", "Custom Lines" },
+    { "expression_dynamic",     "D", "Dynamics •" },
+    { "expression_not_dynamic", "E", "Expressions (Not Dynamics) •" },
+    { "expression_all",         "F", "Expressions (All Note-Attached) •" },
+    { "measure_attached",       "M", "Expressions (Measure-Attached)" },
+    { "shape_IsGlissando",      "G", "Glissandos" },
+    { "shape_IsHairpin",        "H", "Hairpins" },
+    { "entry_lyrics",           "L", "Lyrics •" },
+    { "midi_continuous",        "O", "MIDI Continuous Data" },
+    { "midi_entry",             "I", "MIDI Note Data •" },
+    { "entry_position",         "Q", "Note Position Offsets •" },
+    { "notehead_mods",          "J", "Notehead Modifications •" },
+    { "notes",                  "N", "Notes •" },
+    { "secondary_beam_breaks",  "K", "Secondary Beam Breaks •" },
+    { "shape_IsSlur",           "S", "Slurs" },
+    { "shape_IsEntryBased",     "P", "Smart Shapes (Note Attached) •" },
+    { "shape_GetBeatAttached",  "B", "Smart Shapes (Beat Attached)" },
+    { "shape_all",              "V", "Smart Shapes (All)" },
+    { "staff_styles",           "Y", "Staff Styles (Current Score/Part)" },
+    { "entry_tuplets",          "T", "Tuplets •" },
+    { "user_selected",          "Z", "User Selected Items ..." },
 }
 
-local config = { -- keystroke assignments, layer number and window position
-    entry_articulation = "A",
-    rest_articulation = "R",
-    chords = "W",
-    cross_staff = "X",
-    shape_IsCustomLine = "C",
-    expression_dynamic = "D",
-    expression_not_dynamic = "E",
-    expression_all = "F",
-    measure_attached = "M",
-    shape_IsGlissando = "G",
-    shape_IsHairpin = "H",
-    entry_lyrics = "L",
-    midi_continuous = "O",
-    midi_entry = "I",
-    entry_position = "N",
-    notehead_mods = "J",
-    notes = "Q",
-    secondary_beam_breaks = "K",
-    shape_IsSlur = "S",
-    shape_IsEntryBased = "P",
-    shape_GetBeatAttached = "B",
-    shape_all = "V",
-    staff_styles = "Y",
-    entry_tuplets = "T",
-    user_selected = "Z",
+local config = { -- user config data
+    layer_num = 0,
     last_selected = 0, -- last selected menu item number (0-based)
     window_pos_x = false,
     window_pos_y = false,
     ignore_duplicates = 0,
-    layer_num = 0,
 }
+for _, v in ipairs(dialog_options) do -- add HOTKEYS to CONFIG
+    config[v[1]] = v[2] -- map NAME key onto HOTKEY
+end
 
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -341,7 +319,7 @@ local function reassign_keys(parent, selected)
                 local str = self:GetText():sub(-1):upper()
                 self:SetText(str):SetKeyboardFocus()
             end)
-        dialog:CreateStatic(25, y):SetText(v[2]):SetWidth(x_wide)
+        dialog:CreateStatic(25, y):SetText(v[3]):SetWidth(x_wide)
         y = y + y_step
     end
     y = y + 7
@@ -374,7 +352,7 @@ local function reassign_keys(parent, selected)
                 msg = msg .. "Key \"" .. k .. "\" is assigned to: "
                 for i, w in ipairs(v) do
                     if i > 1 then msg = msg .. " and " end
-                    msg = msg .. "\"" .. dialog_options[w][2] .. "\""
+                    msg = msg .. "\"" .. dialog_options[w][3] .. "\""
                 end
                 msg = msg .. "\n\n"
             end
@@ -407,7 +385,7 @@ local function user_chooses()
             local join = finenv.UI():IsOnMac() and "\t" or ":  "
             key_list:Clear()
             for _, v in ipairs(dialog_options) do
-                key_list:AddString(config[v[1]] .. join .. v[2])
+                key_list:AddString(config[v[1]] .. join .. v[3])
             end
             key_list:SetSelectedItem(config.last_selected or 0)
         end
@@ -417,7 +395,11 @@ local function user_chooses()
             while ok and is_duplicate do -- wait for valid choice in reassign_keystrokes()
                 ok, is_duplicate = reassign_keys(dialog, selected)
             end
-            if ok then fill_key_list() end
+            if ok then
+                fill_key_list() -- update hotkey choices
+            else -- "forget" the rejected choices
+                configuration.get_user_settings(script_name, config)
+            end
         end
 
     fill_key_list()
