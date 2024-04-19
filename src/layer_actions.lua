@@ -3,13 +3,13 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.10"
-    finaleplugin.Date = "2024/04/16"
+    finaleplugin.Version = "0.11"
+    finaleplugin.Date = "2024/04/19"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Perform specific actions on individual note layers in the current selection. 
         Each action in the list begins with a configurable _hotkey_. 
-        Open the script, type the _hotkey_ and hit [Return] or [Enter]. 
+        Open the script, type the _hotkey_ and hit [Return]. 
         To repeat the same action as last time without a confirmation 
         dialog hold down [Shift] when starting the script. 
         Eight layer actions are available: 
@@ -28,30 +28,25 @@ function plugindef()
 end
 
 local dialog_options = { -- key, text description (ordered)
-    { "erase", "Erase Layer"},
-    { "play_yes", "Playback Enable" },
-    { "play_no", "Playback Mute"},
-    { "see_yes", "Visible"},
-    { "see_no", "Invisible" },
-    { "stems_up", "Stems Up"},
-    { "stems_down", "Stems Down"},
-    { "stems_default", "Stems Default"},
+    { "erase",         "X", "Erase Layer"},
+    { "play_yes",      "P", "Playback Enable" },
+    { "play_no",       "M", "Playback Mute"},
+    { "see_yes",       "V", "Visible"},
+    { "see_no",        "I", "Invisible" },
+    { "stems_up",      "Q", "Stems Up"},
+    { "stems_down",    "W", "Stems Down"},
+    { "stems_default", "E", "Stems Default"},
 }
 
 local config = { -- keystroke assignments and window position
-    erase = "X",
-    play_yes = "P",
-    play_no = "M",
-    see_yes = "V",
-    see_no = "I",
-    stems_up = "Q",
-    stems_down = "W",
-    stems_default = "E",
     layer_num = 0,
     selected = 0, -- last selected menu item number (0-based)
     window_pos_x = false,
     window_pos_y = false,
 }
+for _, v in ipairs(dialog_options) do -- add HOTKEYS to CONFIG
+    config[v[1]] = v[2] -- map NAME key onto HOTKEY
+end
 
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
@@ -81,14 +76,23 @@ local function change_layer_state(state)
     local rgn = finenv.Region()
     local layer_num = tonumber(config.layer_num)
     if state == "erase" then -- LAYER ERASURE
-        for entry in eachentrysaved(rgn, layer_num) do
-            if entry:IsNote() then note_entry.make_rest(entry) end
-        end
-        for m, s in eachcell(rgn) do
-            local c = finale.FCNoteEntryCell(m, s)
-            c:Load()
-            c:ReduceEntries()
-            c:Save()
+        if rgn.StartMeasurePos == 0  and rgn:IsAbsoluteEndMeasurePos() then
+            if layer_num == 0 then -- delete the lot
+                rgn:CutMusic()
+                rgn:ReleaseMusic()
+            else
+                layer.clear(rgn, layer_num) -- erase ALL OF the nominated layer
+            end
+        else
+            for entry in eachentrysaved(rgn, layer_num) do -- erase PART OF measure layer
+                if entry:IsNote() then note_entry.make_rest(entry) end
+            end
+            for m, s in eachcell(rgn) do -- and remove excess rests
+                local c = finale.FCNoteEntryCell(m, s)
+                c:Load()
+                c:ReduceEntries()
+                c:Save()
+            end
         end
     else -- other states are note-by-note
         for entry in eachentrysaved(rgn, layer_num) do
@@ -122,7 +126,7 @@ local function reassign_keystrokes(parent, index)
                 local str = self:GetText():sub(-1):upper()
                 self:SetText(str):SetKeyboardFocus()
             end)
-        dialog:CreateStatic(25, y):SetText(v[2]):SetWidth(x_wide)
+        dialog:CreateStatic(25, y):SetText(v[3]):SetWidth(x_wide)
         y = y + y_step
     end
     y = y + 7
@@ -157,7 +161,7 @@ local function reassign_keystrokes(parent, index)
                 msg = msg .. "Key \"" .. k .. "\" is assigned to: "
                 for i, w in ipairs(v) do
                     if i > 1 then msg = msg .. " and " end
-                    msg = msg .. "\"" .. dialog_options[w][2] .. "\""
+                    msg = msg .. "\"" .. dialog_options[w][3] .. "\""
                 end
                 msg = msg .. "\n\n"
             end
@@ -191,7 +195,7 @@ local function user_chooses()
             local join = finenv.UI():IsOnMac() and "\t" or ": "
             key_list:Clear()
             for _, option in ipairs(dialog_options) do -- add ordered options with keycodes
-                key_list:AddString(config[option[1]] .. join .. option[2])
+                key_list:AddString(config[option[1]] .. join .. option[3])
             end
             key_list:SetSelectedItem(config.selected)
         end
@@ -200,7 +204,11 @@ local function user_chooses()
             while ok and is_duplicate do -- wait for valid choice in reassign_keystrokes()
                 ok, is_duplicate = reassign_keystrokes(dialog, key_list:GetSelectedItem() + 1)
             end
-            if ok then fill_key_list() end
+            if ok then
+                fill_key_list() -- update hotkey choices
+            else -- "forget" the rejected choices
+                configuration.get_user_settings(script_name, config)
+            end
         end
 
     fill_key_list()
