@@ -75,7 +75,6 @@ local function change_hotkeys(parent)
     local is_duplicate, errors, assigned = false, {}, {}
     local y = 3
     local saved = {}
-
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Change Hotkeys")
         local function dy(diff)
             y = y + (diff and diff or 18)
@@ -95,7 +94,7 @@ local function change_hotkeys(parent)
                 local id = tostring(v[1])
                 saved[id] = config[id]
                 dialog:CreateEdit(0, y - offset, id):SetText(config[id]):SetWidth(20)
-                    :AddHandleCommand(function(self) key_check(self, v[1]) end)
+                    :AddHandleCommand(function(self) key_check(self, id) end)
                 cstat(25, y, v[3], x_wide)
                 dy()
             end
@@ -120,9 +119,7 @@ local function change_hotkeys(parent)
     check_line(unisons)
     cstat(25, y, "- - -", x_wide)
     dy()
-    dialog:CreateEdit(0, y - offset, "change_keys"):SetText(config.change_keys):SetWidth(20)
-        :AddHandleCommand(function(self) key_check(self, "change_keys") end)
-    cstat(25, y, "Change Hotkeys", x_wide)
+    check_line{{"change_keys", nil, "Change Hotkeys"}}
     dialog:CreateOkButton():SetText("Save")
     dialog:CreateCancelButton()
     dialog:RegisterInitWindow(function(self)
@@ -152,12 +149,12 @@ local function change_hotkeys(parent)
 end
 
 local function run_the_dialog()
-    local x = { 20, 40, 125 }
+    local x = { 20, 40, 123 }
     local y = 0
     local m_offset = finenv.UI():IsOnMac() and 3 or 0
     local saved
 
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name:sub(1, -5))
     dialog:SetMeasurementUnit(config.measurement_unit)
         -- local functions
         local function dy(diff)
@@ -191,9 +188,8 @@ local function run_the_dialog()
             if ok then
                 rename_checkboxes(checks)
                 rename_checkboxes(unisons)
-                dialog:GetControl("Tchange_keys"):SetText(config.change_keys)
-                configuration.save_user_settings(script_name, config)
-            else
+                rename_checkboxes{{"change_keys"}}
+            else -- re-seed hotkeys from user config
                 configuration.get_user_settings(script_name, config)
             end
             dialog:GetControl("max_width"):SetKeyboardFocus()
@@ -226,8 +222,10 @@ local function run_the_dialog()
             end
             ctl:SetText(saved)
         end
+    cstat(0, y, "THE " .. name:upper(), 160, "title")
+    dy(25)
     cstat(0, y, "Avoid Collisions of:", x[3])
-    dialog:CreateButton(x[2] + x[3] - 25, y):SetText("?"):SetWidth(20)
+    dialog:CreateButton(x[2] + x[3] - 25, y, "q"):SetText("?"):SetWidth(20)
         :AddHandleCommand(function()
             utils.show_notes_dialog(dialog, "About " .. name, 300, 150)
             refocus_document = true
@@ -244,29 +242,35 @@ local function run_the_dialog()
         cstat(x[1], y, config[tostring(v[1])], x[2], "T" .. v[1])
         local check = (prefs.UnisonsMode == v[1]) and 1 or 0
         ccheck(x[2], y, tostring(v[1]), v[3], x[3], check)
+        dialog:GetControl(tostring(v[1]))
+            :AddHandleCommand(function() toggle_unison(v[1]) end)
         dy()
     end
     dy(8)
     cstat(0, y, "Max Width:", x[2] + 25)
     dialog:CreateMeasurementEdit(x[2] + 27, y - m_offset, "max_width")
-        :SetWidth(70):SetMeasurementInteger(prefs.MaxMeasureWidth)
+        :SetWidth(90):SetMeasurementInteger(prefs.MaxMeasureWidth)
         :AddHandleCommand(function(self) key_check(self) end)
     saved = dialog:GetControl("max_width"):GetText()
-    dy(22)
+    dy(25)
     cstat(x[2] - 10, y, "Units:", 37)
-    dialog:CreateMeasurementUnitPopup(x[2] + 27, y, "popup"):SetWidth(97)
+    dialog:CreateMeasurementUnitPopup(x[2] + 27, y, "popup"):SetWidth(90)
         :AddHandleCommand(function()
             saved = dialog:GetControl("max_width"):GetText()
         end)
-    dy(22)
+    dy(25)
     cstat(0, y, config.change_keys, x[2], "Tchange_keys")
-    dialog:CreateButton(x[1], y):SetText("Change Hotkeys"):SetWidth(97)
+    dialog:CreateButton(x[1], y):SetText("Change Hotkeys"):SetWidth(100)
         :AddHandleCommand(function() change_keys() end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     dialog:RegisterInitWindow(function(self)
         self:GetControl("max_width"):SetKeyboardFocus()
+        local q = self:GetControl("q")
+        local bold = q:CreateFontInfo():SetBold(true)
+        q:SetFont(bold)
+        self:GetControl("title"):SetFont(bold)
     end)
     dialog:RegisterHandleOkButtonPressed(function(self)
         for _, v in ipairs(checks) do
