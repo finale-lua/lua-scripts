@@ -4,13 +4,13 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.03"
-    finaleplugin.Date = "2024/04/21"
+    finaleplugin.Version = "0.04"
+    finaleplugin.Date = "2024/04/22"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
-        There's a couple of __Music Spacing__ options that I need to 
+        There's a couple of __Music Spacing__ options that I 
         change frequently for different spacing scenarios. 
-        This is a little hack using a couple of hotkeys 
+        This little hack uses a couple of hotkeys 
         to do that very quickly, without a mouse and without navigating 
         the whole __Document__ → __Document Options__ → 
         __Music Spacing__ → __Avoid Collision of__ → menu/dialog system.
@@ -21,9 +21,10 @@ function plugindef()
 end
 
 local config = {
-    measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
+    change_keys  = "H",
     window_pos_x = false,
     window_pos_y = false,
+    measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
 }
 local checks = { -- property key; hotkey; text description; type
     { "AvoidArticulations", "A", "Articulations" },
@@ -95,7 +96,7 @@ local function change_hotkeys(parent)
                 saved[id] = config[id]
                 dialog:CreateEdit(0, y - offset, id):SetText(config[id]):SetWidth(20)
                     :AddHandleCommand(function(self) key_check(self, v[1]) end)
-                dialog:CreateStatic(25, y):SetText(v[3]):SetWidth(x_wide)
+                cstat(25, y, v[3], x_wide)
                 dy()
             end
         end
@@ -117,17 +118,21 @@ local function change_hotkeys(parent)
     cstat(0, y, "Unison Noteheads:", x_wide)
     dy()
     check_line(unisons)
-    dy(7)
+    cstat(25, y, "- - -", x_wide)
+    dy()
+    dialog:CreateEdit(0, y - offset, "change_keys"):SetText(config.change_keys):SetWidth(20)
+        :AddHandleCommand(function(self) key_check(self, "change_keys") end)
+    cstat(25, y, "Change Hotkeys", x_wide)
     dialog:CreateOkButton():SetText("Save")
     dialog:CreateCancelButton()
     dialog:RegisterInitWindow(function(self)
-            self:GetControl("AvoidArticulations"):SetKeyboardFocus()
-        end
-    )
+        self:GetControl("AvoidArticulations"):SetKeyboardFocus()
+    end)
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function()
         error_check(checks, "")
         error_check(unisons, "Unisons ")
+        error_check( {{"change_keys", nil, "Change Hotkeys"}}, "")
         if is_duplicate then -- list reassignment duplications
             local msg = ""
             for k, v in pairs(errors) do
@@ -135,7 +140,6 @@ local function change_hotkeys(parent)
                 msg = msg .. "Key \"" .. k .. "\" is assigned to: "
                 for i, w in ipairs(v) do
                     if i > 1 then msg = msg .. " and " end
-
                     msg = msg .. "\"" .. w .. "\""
                 end
             end
@@ -174,22 +178,46 @@ local function run_the_dialog()
                 dialog:GetControl(tostring(i)):SetCheck(i == id and 1 or 0)
             end
         end
+        local function rename_checkboxes(array)
+            for _, v in ipairs(array) do
+                dialog:GetControl("T" .. v[1]):SetText(config[tostring(v[1])])
+            end
+        end
+        local function change_keys()
+            local ok, is_duplicate = true, true
+            while ok and is_duplicate do -- wait for good choice in reassign()
+                ok, is_duplicate = change_hotkeys(dialog)
+            end
+            if ok then
+                rename_checkboxes(checks)
+                rename_checkboxes(unisons)
+                dialog:GetControl("Tchange_keys"):SetText(config.change_keys)
+                configuration.save_user_settings(script_name, config)
+            else
+                configuration.get_user_settings(script_name, config)
+            end
+            dialog:GetControl("max_width"):SetKeyboardFocus()
+        end
         local function key_check(ctl)
             local s = ctl:GetText():upper()
             if s:find("[^.P0-9]") then
-                local got = false
-                for _, v in ipairs(checks) do
-                    if s:find(config[v[1]]) then
-                        toggle_check(v[1])
-                        got = true
-                        break
-                    end
-                end
-                if not got then
-                    for _, v in ipairs(unisons) do
-                        if s:find(config[tostring(v[1])]) then
-                            toggle_unison(v[1])
+                if s:find(config.change_keys) then
+                    change_keys()
+                else
+                    local got = false
+                    for _, v in ipairs(checks) do
+                        if s:find(config[v[1]]) then
+                            toggle_check(v[1])
+                            got = true
                             break
+                        end
+                    end
+                    if not got then
+                        for _, v in ipairs(unisons) do
+                            if s:find(config[tostring(v[1])]) then
+                                toggle_unison(v[1])
+                                break
+                            end
                         end
                     end
                 end
@@ -231,29 +259,15 @@ local function run_the_dialog()
             saved = dialog:GetControl("max_width"):GetText()
         end)
     dy(22)
-    local function rename_checkboxes(array)
-        for _, v in ipairs(array) do
-            dialog:GetControl("T" .. v[1]):SetText(config[tostring(v[1])])
-        end
-    end
-    dialog:CreateButton(x[2], y):SetText("Change Hotkeys"):SetWidth(97)
-        :AddHandleCommand(function()
-            local ok, is_duplicate = true, true
-            while ok and is_duplicate do -- wait for good choice in reassign()
-                ok, is_duplicate = change_hotkeys(dialog)
-            end
-            if ok then
-                rename_checkboxes(checks)
-                rename_checkboxes(unisons)
-                configuration.save_user_settings(script_name, config)
-            else
-                configuration.get_user_settings(script_name, config)
-            end
-        end)
+    cstat(0, y, config.change_keys, x[2], "Tchange_keys")
+    dialog:CreateButton(x[1], y):SetText("Change Hotkeys"):SetWidth(97)
+        :AddHandleCommand(function() change_keys() end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function() end)
+    dialog:RegisterInitWindow(function(self)
+        self:GetControl("max_width"):SetKeyboardFocus()
+    end)
     dialog:RegisterHandleOkButtonPressed(function(self)
         for _, v in ipairs(checks) do
             prefs[v[1]] = (self:GetControl(v[1]):GetCheck() == 1)
