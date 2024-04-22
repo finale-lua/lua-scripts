@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.94"
-    finaleplugin.Date = "2024/04/19"
+    finaleplugin.Version = "0.95"
+    finaleplugin.Date = "2024/04/22"
     finaleplugin.MinJWLuaVersion = 0.70
 	finaleplugin.Notes = [[ 
         This script presents an alphabetical list of 24 individual types 
@@ -316,8 +316,8 @@ local function reassign_keys(parent, selected)
     for _, v in ipairs(dialog_options) do -- add all options with keycodes
         dialog:CreateEdit(0, y - offset, v[1]):SetText(config[v[1]]):SetWidth(20)
             :AddHandleCommand(function(self)
-                local str = self:GetText():sub(-1):upper()
-                self:SetText(str):SetKeyboardFocus()
+                local s = self:GetText():sub(-1):upper()
+                self:SetText(s):SetKeyboardFocus()
             end)
         dialog:CreateStatic(25, y):SetText(v[3]):SetWidth(x_wide)
         y = y + y_step
@@ -331,7 +331,7 @@ local function reassign_keys(parent, selected)
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function(self)
         local assigned = {}
-        for i, v in ipairs(dialog_options) do
+        for _, v in ipairs(dialog_options) do
             local key = self:GetControl(v[1]):GetText()
             if key == "" then key = "?" end -- not null
             config[v[1]] = key -- save for another possible run-through
@@ -340,26 +340,27 @@ local function reassign_keys(parent, selected)
                 if assigned[key] then -- previously assigned
                     is_duplicate = true
                     if not errors[key] then errors[key] = { assigned[key] } end
-                    table.insert(errors[key], i)
+                    table.insert(errors[key], v[3])
                 else
-                    assigned[key] = i -- flag key assigned
+                    assigned[key] = v[3] -- flag key assigned
                 end
             end
         end
         if is_duplicate then -- list reassignment duplications
             local msg = ""
             for k, v in pairs(errors) do
+                if msg ~= "" then msg = msg .. "\n\n" end
                 msg = msg .. "Key \"" .. k .. "\" is assigned to: "
                 for i, w in ipairs(v) do
                     if i > 1 then msg = msg .. " and " end
-                    msg = msg .. "\"" .. dialog_options[w][3] .. "\""
+                    msg = msg .. "\"" .. w .. "\""
                 end
-                msg = msg .. "\n\n"
             end
-            finenv.UI():AlertError(msg, "Duplicate Key Assignment")
+            dialog:CreateChildUI():AlertError(msg, "Duplicate Key Assignment")
         end
     end)
     local ok = (dialog:ExecuteModal(parent) == finale.EXECMODAL_OK)
+    refocus_document = true
     return ok, is_duplicate
 end
 
@@ -392,7 +393,7 @@ local function user_chooses()
         local function change_keys()
             local ok, is_duplicate = true, true
             local selected = dialog_options[key_list:GetSelectedItem() + 1][1]
-            while ok and is_duplicate do -- wait for valid choice in reassign_keystrokes()
+            while ok and is_duplicate do -- wait for valid choice in reassign_keys()
                 ok, is_duplicate = reassign_keys(dialog, selected)
             end
             if ok then
@@ -421,7 +422,6 @@ local function user_chooses()
                 save_layer = val
             end
         end)
-
     dialog:CreateStatic(x_off + 60, y):SetWidth(x_off):SetText("(0 = all)")
     y = y + y_step + 2
     dialog:CreateButton(0, y):SetText("Reassign Hotkeys"):SetWidth(x_off * 2)
