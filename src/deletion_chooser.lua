@@ -3,14 +3,14 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.95"
-    finaleplugin.Date = "2024/04/22"
+    finaleplugin.Version = "0.96"
+    finaleplugin.Date = "2024/04/23"
     finaleplugin.MinJWLuaVersion = 0.70
 	finaleplugin.Notes = [[ 
         This script presents an alphabetical list of 24 individual types 
         of data to delete, each line beginning with a configurable _hotkey_. 
         Call the script, type the _hotkey_ and hit [Enter] or [Return]. 
-        Half of the datatypes can be filtered by layer.
+        Half of the types can be filtered by layer.
 
         __Delete Independently__: 
 
@@ -167,14 +167,23 @@ local function delete_selected(delete_type)
         end
     --
     elseif delete_type == "notes" then -- NOTES
-        for entry in eachentrysaved(rgn, layer_num) do
-            if entry:IsNote() then note_entry.make_rest(entry) end
-        end
-        for m, s in eachcell(rgn) do
-            local c = finale.FCNoteEntryCell(m, s)
-            c:Load()
-            c:ReduceEntries()
-            c:Save()
+        if rgn.StartMeasurePos == 0  and rgn:IsAbsoluteEndMeasurePos() then
+            if layer_num == 0 then -- delete the lot
+                rgn:CutMusic()
+                rgn:ReleaseMusic()
+            else
+                layer.clear(rgn, layer_num) -- erase ALL OF the nominated layer
+            end
+        else
+            for entry in eachentrysaved(rgn, layer_num) do
+                if entry:IsNote() then note_entry.make_rest(entry) end
+            end
+            for m, s in eachcell(rgn) do
+                local c = finale.FCNoteEntryCell(m, s)
+                c:Load()
+                c:ReduceEntries()
+                c:Save()
+            end
         end
     --
     elseif delete_type == "measure_attached" then -- MEASURE-ATTACHED EXPRESSIONS type
@@ -415,12 +424,10 @@ local function user_chooses()
                 if val:find("[?q]") then show_info()
                 elseif val:find("r") then change_keys()
                 end
-                self:SetText(save_layer):SetKeyboardFocus()
             elseif val ~= "" then
-                val = val:sub(-1)
-                self:SetText(val)
-                save_layer = val
+                save_layer = val:sub(-1)
             end
+            self:SetText(save_layer):SetKeyboardFocus()
         end)
     dialog:CreateStatic(x_off + 60, y):SetWidth(x_off):SetText("(0 = all)")
     y = y + y_step + 2
@@ -439,7 +446,6 @@ local function user_chooses()
     dialog:RegisterInitWindow(function()
         q:SetFont(q:CreateFontInfo():SetBold(true))
         key_list:SetKeyboardFocus()
-
     end)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
