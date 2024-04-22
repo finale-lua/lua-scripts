@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.84"
-    finaleplugin.Date = "2024/04/14"
+    finaleplugin.Version = "0.85"
+    finaleplugin.Date = "2024/04/22"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below the selection"
 	finaleplugin.Notes = [[
@@ -116,7 +116,7 @@ local function get_staff_name(staff_num)
     return str
 end
 
-local function next_staff_or_error(rgn)
+local function next_staff_or_error(rgn, dialog)
     local msg = ""
     local stack = mixin.FCMMusicRegion()
     stack:SetRegion(rgn):SetFullMeasureStack()
@@ -140,7 +140,11 @@ local function next_staff_or_error(rgn)
         end
     end
     if msg ~= "" then
-        finenv.UI():AlertError(msg, plugindef() .. ": Error")
+        if dialog then
+            dialog:CreateChildUI():AlertError(msg, plugindef() .. ": Error")
+        else
+            finenv.UI():AlertError(msg, plugindef() .. ": Error")
+        end
         return -1 -- signal error
     end
     return stack:CalcStaffNumber(next_slot) -- success
@@ -200,16 +204,15 @@ local function cross_entry(entry, dest_staff)
     local _ = loaded and cross_mod:Save() or cross_mod:SaveNew()
 end
 
-local function cross_staff()
+local function cross_staff(dialog)
     local rgn = mixin.FCMMusicRegion()
     rgn:SetRegion(finenv.Region())
-    local next_staff = next_staff_or_error(rgn)
+    local next_staff = next_staff_or_error(rgn, dialog)
     if next_staff < 0 then return false end -- error finding "next staff"
 
     -- ready to cross
     finenv.StartNewUndoBlock(string.format("Cross-Staff %s -> %s m.%d-%d",
-        get_staff_name(rgn.StartStaff), get_staff_name(next_staff),
-        rgn.StartMeasure, rgn.EndMeasure)
+        get_staff_name(rgn.StartStaff), get_staff_name(next_staff), rgn.StartMeasure, rgn.EndMeasure)
     )
     destination_rests(rgn, next_staff) -- add invisible rests to destination if requested
     local beam_start = {} -- track first note in each beam group
@@ -294,7 +297,7 @@ local function cross_staff()
     return true
 end
 
-local function input_error()
+local function submission_error()
     local msg, str = "", finale.FCString()
     if config.reversing then -- offsets matter
         local max_evpu = 576 -- who would want more than 2 inches?
@@ -497,7 +500,7 @@ local function run_the_dialog()
         config.layer_num = answer.layer_num:GetInteger()
         config.measurement_unit = self:GetMeasurementUnit()
         config.direction = (answer.direction:GetSelectedItem() == 0) and "Up" or "Down"
-        user_error = input_error() or (not cross_staff()) -- error if eligible failed
+        user_error = submission_error() or (not cross_staff(self)) -- error if eligible failed
     end)
     dialog:RegisterCloseWindow(function(self)
         local mode = (answer.modeless:GetCheck() == 1)
