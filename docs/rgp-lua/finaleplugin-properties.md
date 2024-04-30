@@ -45,7 +45,11 @@ Default is `true`.
 
 #### NoStore (boolean)
 
-If this is set to `true`, the script will run in “sandbox mode”. After the script has run, any saves made to Finale's database are automatically rolled back, so such a script will never do any permanent edits to a document. This might be useful for example when creatin diagnostic scripts, or during development to check that the script syntax will work. Example:
+If this is set to `true`, the script will run in “sandbox mode”. After the script has run, any saves made to Finale's database are automatically rolled back, so such a script will never do any permanent edits to a document. This might be useful for example when creatin diagnostic scripts, or during development to check that the script syntax will work.
+
+NOTE: Callbacks from modeless dialog windows are not automatically protected by `NoStore`. You should always add explicit calls to `StartNewUndoBlock` and `EndUndoBlock` in callbacks that modify or potentially modify the document. Provided you do this, however, `NoStore = true` prevents `EndUndoBlock` from saving any permanent edits.
+
+Example:
 
 ```lua
 finaleplugin.NoStore = true
@@ -140,12 +144,9 @@ Default is `false`.
 
 #### HandlesUndo\* (boolean)
 
-Both _JW Lua_ and _RGP Lua_ (by default) automatically run scripts within an undo block named according the undo string returned by the `plugindef()` function. However, it is possible for a script to notify _RGP Lua_ that it will handle undo blocks on its own by setting this value to `true`.
+Both _JW Lua_ and _RGP Lua_ (by default) automatically run scripts within an undo block named according the undo string returned by the `plugindef()` function. However, it is possible for a script to notify _RGP Lua_ that it will handle undo blocks on its own by setting this value to `true`. This tells _RGP Lua_ to cancel the automatic undo block when the main script exits.
 
-It is generally recommended never to set this value `true`, even just to open a modeless
-window, since the PDK Framework can unexpectedly modify the document. An example of when an unexpected modification can occur is constructing or using instances of `FCFontInfo`. These instances frequently add the font to the document if it is not already there.
-
-Note that even with `HandlesUndo` set to `false`, you must still manage your own undo blocks in callbacks from modeless dialog boxes.
+One primary reason a script might enable this option when creating a modeless dialog window. 
 
 Example:
 
