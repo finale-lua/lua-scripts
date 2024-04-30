@@ -140,7 +140,14 @@ Default is `false`.
 
 #### HandlesUndo\* (boolean)
 
-Both _JW Lua_ and _RGP Lua_ (by default) automatically run scripts within an undo block named according the undo string returned by the `plugindef()` function. However, it is possible for a script to notify _RGP Lua_ that it will handle undo blocks on its own by setting this value to `true`. One primary reason a script might enable this option is to open a modeless dialog window. Example:
+Both _JW Lua_ and _RGP Lua_ (by default) automatically run scripts within an undo block named according the undo string returned by the `plugindef()` function. However, it is possible for a script to notify _RGP Lua_ that it will handle undo blocks on its own by setting this value to `true`.
+
+It is generally recommended never to set this value `true`, even just to open a modeless
+window, since the PDK Framework can unexpectedly modify the document. An example of when an unexpected modification can occur is constructing or using instances of `FCFontInfo`. These instances frequently add the font to the document if it is not already there.
+
+Note that even with `HandlesUndo` set to `false`, you must still manage your own undo blocks in callbacks from modeless dialog boxes.
+
+Example:
 
 ```lua
 finaleplugin.HandlesUndo = true
