@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.06"
-    finaleplugin.Date = "2024/04/26"
+    finaleplugin.Version = "0.10"
+    finaleplugin.Date = "2024/05/03"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         There's a couple of __Music Spacing__ options that I 
@@ -21,7 +21,6 @@ function plugindef()
 end
 
 local config = {
-    change_hotkeys  = "H",
     window_pos_x = false,
     window_pos_y = false,
     measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
@@ -41,7 +40,8 @@ local unisons = {
 }
 local others = {
     {"change_hotkeys",        "H", "Change Hotkeys"},
-    {"AutomaticMusicSpacing", "Z", "Automatic Music Spacing"}
+    {"AutomaticMusicSpacing", "Z", "Automatic Music Spacing"},
+    {"script_info",           "Q", "Show Script Info"}
 }
 -- copy hotkeys to config
 for _, t in ipairs{checks, unisons, others} do
@@ -164,12 +164,12 @@ local function run_the_dialog()
     dialog:SetMeasurementUnit(config.measurement_unit)
         -- local functions
         local function dy(diff) y = y + (diff and diff or 17) end
-        local function cstat(cx, cy, ctext, cwide, cname)
-            dialog:CreateStatic(cx, cy, cname):SetText(ctext):SetWidth(cwide)
-        end
         local function show_info()
             utils.show_notes_dialog(dialog, "About " .. name, 300, 150)
             refocus_document = true
+        end
+        local function cstat(cx, cy, ctext, cwide, cname)
+            dialog:CreateStatic(cx, cy, cname):SetText(ctext):SetWidth(cwide)
         end
         local function ccheck(cx, cy, cname, ctext, cwide, check)
             dialog:CreateCheckbox(cx, cy, cname):SetText(ctext):SetWidth(cwide):SetCheck(check)
@@ -183,11 +183,6 @@ local function run_the_dialog()
                 dialog:GetControl(tostring(i)):SetCheck(i == id and 1 or 0)
             end
         end
-        local function rename_checkboxes(array)
-            for _, v in ipairs(array) do
-                dialog:GetControl("T" .. v[1]):SetText(config[tostring(v[1])])
-            end
-        end
         local function change_keys()
             local ok, is_duplicate = true, true
             while ok and is_duplicate do -- wait for good choice in reassign()
@@ -195,7 +190,11 @@ local function run_the_dialog()
             end
             if ok then
                 for _, t in ipairs{checks, unisons, others} do
-                    rename_checkboxes(t)
+                    for _, v in ipairs(t) do
+                        if v[1] ~= "script_info" then
+                            dialog:GetControl("T" .. v[1]):SetText(config[tostring(v[1])])
+                        end
+                    end
                 end
             else -- re-seed hotkeys from user config
                 configuration.get_user_settings(script_name, config)
@@ -209,21 +208,17 @@ local function run_the_dialog()
                     change_keys()
                 elseif s:find(config.AutomaticMusicSpacing) then
                     toggle_check("AutomaticMusicSpacing")
-                elseif s:find("?") then show_info()
+                elseif s:find(config.script_info) then show_info()
                 else
-                    local got = false
-                    for _, v in ipairs(checks) do
-                        if s:find(config[v[1]]) then
-                            toggle_check(v[1])
-                            got = true
-                            break
-                        end
-                    end
-                    if not got then
-                        for _, v in ipairs(unisons) do
-                            if s:find(config[tostring(v[1])]) then
-                                toggle_unison(v[1])
-                                break
+                    local matched = false
+                    for _, array in ipairs{{checks, toggle_check}, {unisons, toggle_unison}} do
+                        if not matched then
+                            for _, v in ipairs(array[1]) do
+                                if s:find(config[tostring(v[1])]) then
+                                    array[2](v[1])
+                                    matched = true
+                                    break
+                                end
                             end
                         end
                     end
@@ -247,10 +242,10 @@ local function run_the_dialog()
     cstat(x[1], y, "Unison Noteheads:", x[3])
     dy()
     for _, v in ipairs(unisons) do
-        cstat(x[1], y, config[tostring(v[1])], x[2], "T" .. v[1])
-        local check = (prefs.UnisonsMode == v[1]) and 1 or 0
-        ccheck(x[2], y, tostring(v[1]), v[3], x[3] - x[1], check)
-        dialog:GetControl(tostring(v[1]))
+        local id = tostring(v[1])
+        cstat(x[1], y, config[id], x[2], "T" .. v[1])
+        ccheck(x[2], y, id, v[3], x[3] - x[1], (prefs.UnisonsMode == v[1]) and 1 or 0)
+        dialog:GetControl(id)
             :AddHandleCommand(function() toggle_unison(v[1]) end)
         dy()
     end
@@ -304,11 +299,7 @@ local function run_the_dialog()
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     dialog:ExecuteModal()
-end
-
-local function spacing_hack()
-    while run_the_dialog() do end
     if refocus_document then finenv.UI():ActivateDocumentWindow() end
 end
 
-spacing_hack()
+run_the_dialog()
