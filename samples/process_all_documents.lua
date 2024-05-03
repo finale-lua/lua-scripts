@@ -5,7 +5,7 @@ function plugindef()
     finaleplugin.NoStore = false
     -- A true value of HandlesUndo does not prevent the automatic Undo logic in FCDocument/FCLuaIterator from saving changes,
     -- but it prevents other changes that are not protected by an explicit call to StartNewUndoBlock.
-    finaleplugin.HandlesUndo = true
+    finaleplugin.HandlesUndo = false
     finaleplugin.Notes = [[
         This script demonstrates how to process all open documents or batch process a list of files with an iterator.
         The SwitchTo/SwitchBack functions automatically manage the Undo blocks per document, based on the NoStore
@@ -16,7 +16,7 @@ function plugindef()
 end
 
 local shift_amount = 144
-local use_iterator = true
+local use_iterator = false
 local use_files = false
 local files = (function()
     local retval = finale.FCStrings()
@@ -67,8 +67,6 @@ local function move_expression_baseline()
         baseline:Save()
     end
 end
-
-finenv.StartNewUndoBlock("Explict changes", false)
 
 -- this change is suppressed if either NoStore or HandlesUndo is true
 -- otherwise, it creates a separate undo entry
