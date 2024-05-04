@@ -4,29 +4,32 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.57"
-    finaleplugin.Date = "2023/11/01"
+    finaleplugin.Version = "v1.64" -- Modeless option
+    finaleplugin.Date = "2024/04/13"
     finaleplugin.MinJWLuaVersion = 0.62
-    finaleplugin.Notes = [[ 
-        When crossing notes to adjacent staves the stems of 'crossed' notes can be reversed 
-        (on the "wrong"" side of the notehead) and look too far 
-        to the right (if shifting downwards) by the width of a notehead, around 24 EVPUs. 
-        This script shifts cross-staffed notes horizontally, 
-        with a different offset for non-crossed notes, acting on one or all layers. 
+    finaleplugin.Notes = [[
+        When crossing notes to adjacent staves the stems of _crossed_ notes 
+        can be reversed (on the "wrong" side of the notehead) and look misaligned 
+        by the width of a notehead, nominally 24 EVPUs (0.08333 inches). 
+        This script shifts cross-staffed notes horizontally to correct the spacing, 
+        with a matching offset for uncrossed notes, acting on one or all layers. 
+
         It is also a quick way to reset the horizontal position of all notes to zero. 
         To repeat your last settings without a confirmation dialog 
-        hold down the SHIFT key when starting the script.
+        hold down [Shift] when starting the script.
 
-        When crossing UP try EVPU offsets of 12 (crossed) and -12 (not crossed), or 24/0. 
-        When crossing DOWN try crossed/uncrossed offsets of -12/12 EVPUs or -24/0.
+        > __Key Commands__: 
 
-        To change measurement units without using the mouse, type one of these keys: 
-        "e" (EVPUs), "i" (Inches), "c" (Centimeters), 
-        "o" (Points), "a" (Picas), or "s" (Spaces).         
-        Use "u" and "d" to set the default values for crossing staves Up/Down. 
-        To view these notes type "q". 
+        > - __u__: reset default __up__ values 
+        > - __d__: reset default __down__ values 
+        > - __q__: display these notes 
+        > - __0 - 4__: layer number (delete key not needed)  
+        > - To change measurement units: 
+        > - __e__: EVPU / __i__: Inches / __c__: Centimeters 
+        > - __o__: Points / __a__: Picas / __s__: Spaces 
     ]]
-    return "CrossStaff Offset...", "CrossStaff Offset",
+    return "CrossStaff Offset...",
+        "CrossStaff Offset",
         "Offset horizontal position of cross-staff note entries"
 end
 
@@ -34,16 +37,21 @@ local config = {
     cross_staff_offset  = 0,
     non_cross_offset = 0,
     layer_num = 0,
+    modeless = true,
     measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
-    pos_x = false,
-    pos_y = false,
+    window_pos_x = false,
+    window_pos_y = false,
 }
 
 local configuration = require("library.configuration")
 local layer = require("library.layer")
 local mixin = require("library.mixin")
 local measurement = require("library.measurement")
-local script_name = "cross_staff_offset"
+local utils = require("library.utils")
+local library = require("library.general_library")
+local script_name = library.calc_script_name()
+local refocus_document = false
+local name = plugindef():gsub("%.%.%.", "")
 configuration.get_user_settings(script_name, config)
 
 local function dialog_set_position(dialog)
@@ -61,64 +69,83 @@ local function dialog_save_position(dialog)
     configuration.save_user_settings(script_name, config)
 end
 
-local function no_error()
-    local values = { 576, config.cross_staff_offset, config.non_cross_offset }
-    if math.abs(values[2]) <= values[1] and math.abs(values[3]) <= values[1] then
-        return true -- "reasonable" offset values
+local function get_staff_name(staff_num)
+    local staff = finale.FCStaff()
+    staff:Load(staff_num)
+    local staff_name = staff:CreateDisplayAbbreviatedNameString().LuaString
+    if not staff_name or staff_name == "" then
+        staff_name = "Staff " .. staff_num
     end
-    local s = {}
-    local str = finale.FCString()
-    for _, v in ipairs(values) do -- convert values to current measurement_unit
-        str:SetMeasurement(v, config.measurement_unit)
-        table.insert(s, str.LuaString)
-    end
-    local name = measurement.get_unit_name(config.measurement_unit)
-    local msg = "Choose realistic offset values, say from -" .. s[1] .. " to "
-    .. s[1] .. " " .. name .. " ...\nnot " .. s[2] .. " / " .. s[3] .. " " .. name
-    finenv.UI():AlertError(msg, "Error")
-    return false
+    return staff_name
 end
 
-local function user_chooses()
+local function change_offsets()
+    local rgn = finenv.Region()
+    finenv.StartNewUndoBlock(
+        string.format("%s %s m.%d-%d",
+            name, get_staff_name(rgn.StartStaff), rgn.StartMeasure, rgn.EndMeasure
+        )
+    )
+    for entry in eachentrysaved(rgn, config.layer_num) do
+        if entry:IsNote() then
+            entry.ManualPosition = entry.CrossStaff and config.cross_staff_offset or config.non_cross_offset
+        end
+    end
+    finenv.EndUndoBlock(true)
+    rgn:Redraw()
+end
+
+local function run_the_dialog()
     local x_grid = { 0, 113, 184 }
+    local y, y_step = 3, 23
+    local default_value = 24
+    local e_width = 64
     local box, save_value = {}, {}
+    local max = layer.max_layers()
+    local offset = finenv.UI():IsOnMac() and 3 or 0 -- y-offset for Mac EDIT control
     local units = { -- triggered by keystroke within "[eicoas]"
         e = finale.MEASUREMENTUNIT_EVPUS,       i = finale.MEASUREMENTUNIT_INCHES,
         c = finale.MEASUREMENTUNIT_CENTIMETERS, o = finale.MEASUREMENTUNIT_POINTS,
         a = finale.MEASUREMENTUNIT_PICAS,       s = finale.MEASUREMENTUNIT_SPACES,
     }
-    local max = layer.max_layers()
-    local e_width = 64
-    local y_step = 23
-    local offset = finenv.UI():IsOnMac() and 3 or 0 -- y-offset for Mac EDIT control
-
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
-    local notes = finaleplugin.Notes:gsub(" %s+", " "):gsub("\n ", "\n"):sub(2)
-    local function show_info() finenv.UI():AlertInfo(notes, "About " .. plugindef()) end
-    local function update_saved() -- after units change
-        save_value[1] = box[1]:GetText()
-        save_value[2] = box[2]:GetText()
-    end
-    local y = 3
+    local dialog_options = { -- ordered table: text, config key code
+        { "Cross-staff offset:", "cross_staff_offset"},
+        { "Non-crossed offset:", "non_cross_offset" },
+        { "Layer 1-" .. max .. " (0 = all):", "layer_num" }
+    }
+    local modeless, info = #dialog_options + 1, #dialog_options + 2
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
     dialog:SetMeasurementUnit(config.measurement_unit)
+    local function update_saved() -- after units change
+        for i = 1, #dialog_options do
+            save_value[i] = box[i]:GetText()
+        end
+    end
     local popup = dialog:CreateMeasurementUnitPopup(x_grid[3], y):SetWidth(97)
         :AddHandleCommand(function() update_saved() end)
 
+        -- local functions
+        local function show_info()
+            utils.show_notes_dialog(dialog, "About " .. name, 400, 320)
+            refocus_document = true
+        end
         local function set_defaults(pole)
-            box[1]:SetMeasurementInteger(12 * pole)
-            box[2]:SetMeasurementInteger(-12 * pole)
-            save_value[1] = box[1]:GetText()
-            save_value[2] = box[2]:GetText()
+            local n = default_value * pole / 2
+            box[1]:SetMeasurementInteger(n)
+            box[2]:SetMeasurementInteger(-n)
+            update_saved()
         end
         local function key_check(id)
             local s = box[id]:GetText():lower()
-            if (    s:find("p") and dialog:GetMeasurementUnit() ~= finale.MEASUREMENTUNIT_PICAS)
-                    or s:find("[^-.p0-9]")
-                    or (id == 3 and s:find("[-.p5-9]")
-                )   then
-                if s:find("[?q]") then show_info()
-                elseif s:find("u") then set_defaults(1) -- up
+            if (s:find("p") and dialog:GetMeasurementUnit() ~= finale.MEASUREMENTUNIT_PICAS)
+                or s:find("[^-.p0-9]")
+                or (id == 3 and s:find("[^0-" .. max .. "]"))
+                then
+                if     s:find("[?q]") then show_info()
+                elseif s:find("u") then set_defaults( 1) -- up
                 elseif s:find("d") then set_defaults(-1) -- down
+                elseif s:find("m") then -- toggle modeless
+                    box[modeless]:SetCheck((box[modeless]:GetCheck() + 1) % 2)
                 elseif s:find("[eicoas]") then -- change measurement unit
                     for k, v in pairs(units) do
                         if s:find(k) then
@@ -130,68 +157,101 @@ local function user_chooses()
                         end
                     end
                 end
-                box[id]:SetText(save_value[id]):SetKeyboardFocus()
-            else -- save new "clean" numnber
-                if id == 3 then s = s:sub(-1) -- layer number
+                box[id]:SetText(save_value[id])
+            elseif s ~= "" then -- save new "clean" numnber
+                if id == 3 then
+                    s = s:sub(-1) -- 1-char layer number
                 else
                     if s == "." then s = "0." -- offsets, leading zero
                     elseif s == "-." then s = "-0."
                     end
+                    s = s:sub(1, 8)
                 end
                 box[id]:SetText(s)
                 save_value[id] = s
             end
         end
-    local dialog_options = { -- ordered table: text, config key code
-        { "Cross-staff offset:", "cross_staff_offset"},
-        { "Non-crossed offset:", "non_cross_offset" },
-        { "Layer 1-" .. max .. " (0 = all):", "layer_num" }
-    }
+        local function submission_error()
+            local values = { 576, config.cross_staff_offset, config.non_cross_offset }
+            if math.abs(values[2]) <= values[1] and math.abs(values[3]) <= values[1] then
+                return false -- "reasonable" offset values == NO ERROR
+            end
+            local str = finale.FCString()
+            for k, v in ipairs(values) do -- convert values to measurement_unit
+                str:SetMeasurement(v, config.measurement_unit)
+                values[k] = str.LuaString
+            end
+            local u_name = " " .. measurement.get_unit_name(config.measurement_unit)
+            local msg = "Choose realistic offset values, say between -" .. values[1] .. " and "
+            .. values[1] .. u_name .. ",\nnot " .. values[2] .. " to " .. values[3] .. u_name
+            dialog:CreateChildUI():AlertError(msg, name .. " Error")
+            return true
+        end
     for i, v in ipairs(dialog_options) do
         dialog:CreateStatic(0, y):SetText(v[1]):SetWidth(x_grid[2])
         if i < 3 then
             box[i] = dialog.CreateMeasurementEdit(dialog, x_grid[2], y - offset, v[2])
                 :SetWidth(e_width):SetMeasurementInteger(config[v[2]])
                 :AddHandleCommand(function() key_check(i) end)
-        else
+        else -- third line
             box[i] = dialog:CreateEdit(x_grid[2], y - offset, v[2]):SetText(config[v[2]])
-                :SetWidth(e_width / 2):AddHandleCommand(function() key_check(i) end)
-            dialog:CreateButton(x_grid[3] + 77, y):SetText("?"):SetWidth(20)
+                :SetWidth(20):AddHandleCommand(function() key_check(i) end)
+            box[modeless] = dialog:CreateCheckbox(x_grid[3], y):SetWidth(80)
+                :SetCheck(config.modeless and 1 or 0):SetText("Modeless")
+            box[info] = dialog:CreateButton(x_grid[3] + 80, y - 2):SetText("?"):SetWidth(20)
                 :AddHandleCommand(function() show_info() end)
         end
-        if i == 2 then
+        if i == 2 then -- add UP/DOWN buttons
             dialog:CreateButton(x_grid[3], y):SetText("up (u)"):SetWidth(40)
-                :AddHandleCommand(function() set_defaults(1) end) -- polarity = 1 "up"
+                :AddHandleCommand(function() set_defaults(1) end)
             dialog:CreateButton(x_grid[3] + 42, y):SetText("down (d)"):SetWidth(55)
-                :AddHandleCommand(function() set_defaults(-1) end) -- polarity = -1 "down"
+                :AddHandleCommand(function() set_defaults(-1) end)
         end
-        save_value[i] = box[i]:GetText()
         y = y + y_step
     end
-    dialog:CreateOkButton()
+    update_saved()
+    dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function() box[1]:SetKeyboardFocus() end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    dialog:RegisterInitWindow(function()
+        box[info]:SetFont(box[info]:CreateFontInfo():SetBold(true))
+        box[1]:SetKeyboardFocus()
+    end)
+    local change_mode, user_error = false, false
     dialog:RegisterHandleOkButtonPressed(function(self)
-        config["cross_staff_offset"] = box[1]:GetMeasurementInteger()
-        config["non_cross_offset"] = box[2]:GetMeasurementInteger()
-        config["layer_num"] = box[3]:GetInteger()
+        config.cross_staff_offset = box[1]:GetMeasurementInteger()
+        config.non_cross_offset = box[2]:GetMeasurementInteger()
+        config.layer_num = box[3]:GetInteger()
         config.measurement_unit = self:GetMeasurementUnit()
+        if submission_error() then
+            user_error = true
+        else -- go ahead and change the offsets
+            change_offsets()
+        end
+    end)
+    dialog:RegisterCloseWindow(function(self)
+        local mode = (box[modeless]:GetCheck() == 1)
+        change_mode = (mode and not config.modeless) -- modal -> modeless?
+        config.modeless = mode
         dialog_save_position(self)
     end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    if config.modeless then   -- "modeless"
+        dialog:RunModeless()
+    else
+        dialog:ExecuteModal() -- "modal"
+        if refocus_document then finenv.UI():ActivateDocumentWindow() end
+    end
+    return change_mode or user_error
 end
 
 local function cross_staff_offset()
-    local shift_key = finenv.QueryInvokedModifierKeys and finenv.QueryInvokedModifierKeys(finale.CMDMODKEY_SHIFT)
+    local qim = finenv.QueryInvokedModifierKeys
+    local shift_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
 
-    if shift_key or (user_chooses() and no_error()) then -- *** DO THE WORK ***
-        for entry in eachentrysaved(finenv.Region(), config.layer_num) do
-            if entry:IsNote() then
-                entry.ManualPosition = entry.CrossStaff and config.cross_staff_offset or config.non_cross_offset
-            end
-        end
+    if shift_key  then
+        change_offsets()
+    else
+        while run_the_dialog() do end
     end
 end
 
