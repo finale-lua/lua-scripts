@@ -1,7 +1,7 @@
 function plugindef()
     finaleplugin.RequireDocument = false
     finaleplugin.MinJWLuaVersion = 0.74
-    -- A true value of NoStore causes all changes to be rolled back and prevent FCDocument instances from being saved.
+    -- A true value of NoStore causes all changes to be rolled back and prevents FCDocument instances from being saved.
     finaleplugin.NoStore = false
     -- A true value of HandlesUndo does not prevent the automatic Undo logic in FCDocument/FCLuaIterator from saving changes,
     -- but it prevents other changes that are not protected by an explicit call to StartNewUndoBlock.
@@ -84,7 +84,7 @@ else
     local count = docs:LoadAll()
     print("got " .. count .. " documents")
     for doc in each(docs) do
-        doc:SwitchTo(finale.FCString(file_name() .. " " .. doc.ID), true) -- true: save current changes
+        doc:SwitchTo(finale.FCString(file_name() .. " " .. doc.ID), true) -- true: save current changes (unless NoStore or HandlesUndo is true)
         process_document(doc)
         doc:SwitchBack(true) -- true: changes successful (will be saved unless NoStore is true)
     end
