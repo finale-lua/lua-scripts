@@ -45,7 +45,11 @@ Default is `true`.
 
 #### NoStore (boolean)
 
-If this is set to `true`, the script will run in “sandbox mode”. After the script has run, any saves made to Finale's database are automatically rolled back, so such a script will never do any permanent edits to a document. This might be useful for example when creatin diagnostic scripts, or during development to check that the script syntax will work. Example:
+If this is set to `true`, the script will run in “sandbox mode”. After the script has run, any saves made to Finale's database are automatically rolled back, so such a script will never do any permanent edits to a document. This might be useful for example when creating diagnostic scripts, or during development to check that the script syntax will work.
+
+NOTE: Callbacks from modeless dialog windows are not automatically protected by `NoStore`. You should always add explicit calls to `StartNewUndoBlock` and `EndUndoBlock` in modeless callbacks that modify or potentially modify the document. Provided you do this, however, `NoStore = true` prevents `EndUndoBlock` from saving any permanent edits, even if you specify `true` for the "save" parameter.
+
+Example:
 
 ```lua
 finaleplugin.NoStore = true
@@ -140,7 +144,11 @@ Default is `false`.
 
 #### HandlesUndo\* (boolean)
 
-Both _JW Lua_ and _RGP Lua_ (by default) automatically run scripts within an undo block named according the undo string returned by the `plugindef()` function. However, it is possible for a script to notify _RGP Lua_ that it will handle undo blocks on its own by setting this value to `true`. One primary reason a script might enable this option is to open a modeless dialog window. Example:
+Both _JW Lua_ and _RGP Lua_ (by default) automatically run scripts within an undo block named according the undo string returned by the `plugindef()` function. However, it is possible for a script to notify _RGP Lua_ that it will handle undo blocks on its own by setting this value to `true`. This tells _RGP Lua_ to cancel the automatic undo block when the main script exits.
+
+One primary reason a script might enable this option when creating a modeless dialog window. 
+
+Example:
 
 ```lua
 finaleplugin.HandlesUndo = true
