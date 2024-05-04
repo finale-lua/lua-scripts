@@ -45,9 +45,9 @@ Default is `true`.
 
 #### NoStore (boolean)
 
-If this is set to `true`, the script will run in “sandbox mode”. After the script has run, any saves made to Finale's database are automatically rolled back, so such a script will never do any permanent edits to a document. This might be useful for example when creatin diagnostic scripts, or during development to check that the script syntax will work.
+If this is set to `true`, the script will run in “sandbox mode”. After the script has run, any saves made to Finale's database are automatically rolled back, so such a script will never do any permanent edits to a document. This might be useful for example when creating diagnostic scripts, or during development to check that the script syntax will work.
 
-NOTE: Callbacks from modeless dialog windows are not automatically protected by `NoStore`. You should always add explicit calls to `StartNewUndoBlock` and `EndUndoBlock` in callbacks that modify or potentially modify the document. Provided you do this, however, `NoStore = true` prevents `EndUndoBlock` from saving any permanent edits.
+NOTE: Callbacks from modeless dialog windows are not automatically protected by `NoStore`. You should always add explicit calls to `StartNewUndoBlock` and `EndUndoBlock` in modeless callbacks that modify or potentially modify the document. Provided you do this, however, `NoStore = true` prevents `EndUndoBlock` from saving any permanent edits, even if you specify `true` for the "save" parameter.
 
 Example:
 
