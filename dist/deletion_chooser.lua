@@ -4402,314 +4402,6 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     end
     return mixin
 end
-package.preload["library.note_entry"] = package.preload["library.note_entry"] or function()
-
-    local note_entry = {}
-
-    function note_entry.get_music_region(entry)
-        local exp_region = finale.FCMusicRegion()
-        exp_region:SetCurrentSelection()
-        exp_region.StartStaff = entry.Staff
-        exp_region.EndStaff = entry.Staff
-        exp_region.StartMeasure = entry.Measure
-        exp_region.EndMeasure = entry.Measure
-        exp_region.StartMeasurePos = entry.MeasurePos
-        exp_region.EndMeasurePos = entry.MeasurePos
-        return exp_region
-    end
-
-
-    local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
-        if entry_metrics then
-            return entry_metrics, false
-        end
-        entry_metrics = finale.FCEntryMetrics()
-        if entry_metrics:Load(entry) then
-            return entry_metrics, true
-        end
-        return nil, false
-    end
-
-    function note_entry.get_evpu_notehead_height(entry)
-        local highest_note = entry:CalcHighestNote(nil)
-        local lowest_note = entry:CalcLowestNote(nil)
-        local evpu_height = (2 + highest_note:CalcStaffPosition() - lowest_note:CalcStaffPosition()) * 12
-        return evpu_height
-    end
-
-    function note_entry.get_top_note_position(entry, entry_metrics)
-        local retval = -math.huge
-        local loaded_here
-        entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
-        if nil == entry_metrics then
-            return retval
-        end
-        if not entry:CalcStemUp() then
-            retval = entry_metrics.TopPosition
-        else
-            local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
-            if nil ~= cell_metrics then
-                local evpu_height = note_entry.get_evpu_notehead_height(entry)
-                local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
-                retval = entry_metrics.BottomPosition + scaled_height
-                cell_metrics:FreeMetrics()
-            end
-        end
-        if loaded_here then
-            entry_metrics:FreeMetrics()
-        end
-        return retval
-    end
-
-    function note_entry.get_bottom_note_position(entry, entry_metrics)
-        local retval = math.huge
-        local loaded_here
-        entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
-        if nil == entry_metrics then
-            return retval
-        end
-        if entry:CalcStemUp() then
-            retval = entry_metrics.BottomPosition
-        else
-            local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
-            if nil ~= cell_metrics then
-                local evpu_height = note_entry.get_evpu_notehead_height(entry)
-                local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
-                retval = entry_metrics.TopPosition - scaled_height
-                cell_metrics:FreeMetrics()
-            end
-        end
-        if loaded_here then
-            entry_metrics:FreeMetrics()
-        end
-        return retval
-    end
-
-    function note_entry.calc_widths(entry)
-        local left_width = 0
-        local right_width = 0
-        for note in each(entry) do
-            local note_width = note:CalcNoteheadWidth()
-            if note_width > 0 then
-                if note:CalcRightsidePlacement() then
-                    if note_width > right_width then
-                        right_width = note_width
-                    end
-                else
-                    if note_width > left_width then
-                        left_width = note_width
-                    end
-                end
-            end
-        end
-        return left_width, right_width
-    end
-
-
-
-
-    function note_entry.calc_left_of_all_noteheads(entry)
-        if entry:CalcStemUp() then
-            return 0
-        end
-        local left, _ = note_entry.calc_widths(entry)
-        return -left
-    end
-
-    function note_entry.calc_left_of_primary_notehead(_entry)
-        return 0
-    end
-
-    function note_entry.calc_center_of_all_noteheads(entry)
-        local left, right = note_entry.calc_widths(entry)
-        local width_centered = (left + right) / 2
-        if not entry:CalcStemUp() then
-            width_centered = width_centered - left
-        end
-        return width_centered
-    end
-
-    function note_entry.calc_center_of_primary_notehead(entry)
-        local left, right = note_entry.calc_widths(entry)
-        if entry:CalcStemUp() then
-            return left / 2
-        end
-        return right / 2
-    end
-
-    function note_entry.calc_stem_offset(entry)
-        if not entry:CalcStemUp() then
-            return 0
-        end
-        local left, _ = note_entry.calc_widths(entry)
-        return left
-    end
-
-    function note_entry.calc_right_of_all_noteheads(entry)
-        local left, right = note_entry.calc_widths(entry)
-        if entry:CalcStemUp() then
-            return left + right
-        end
-        return right
-    end
-
-    function note_entry.calc_note_at_index(entry, note_index)
-        local x = 0
-        for note in each(entry) do
-            if x == note_index then
-                return note
-            end
-            x = x + 1
-        end
-        return nil
-    end
-
-    function note_entry.stem_sign(entry)
-        if entry:CalcStemUp() then
-            return 1
-        end
-        return -1
-    end
-
-    function note_entry.duplicate_note(note)
-        local new_note = note.Entry:AddNewNote()
-        if nil ~= new_note then
-            new_note.Displacement = note.Displacement
-            new_note.RaiseLower = note.RaiseLower
-            new_note.Tie = note.Tie
-            new_note.TieBackwards = note.TieBackwards
-        end
-        return new_note
-    end
-
-    function note_entry.delete_note(note)
-        local entry = note.Entry
-        if nil == entry then
-            return false
-        end
-
-        finale.FCAccidentalMod():EraseAt(note)
-        finale.FCCrossStaffMod():EraseAt(note)
-        finale.FCDotMod():EraseAt(note)
-        finale.FCNoteheadMod():EraseAt(note)
-        finale.FCPercussionNoteMod():EraseAt(note)
-        finale.FCTablatureNoteMod():EraseAt(note)
-        finale.FCPerformanceMod():EraseAt(note)
-        if finale.FCTieMod then
-            finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
-            finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
-        end
-        return entry:DeleteNote(note)
-    end
-
-    function note_entry.make_rest(entry)
-        local articulations = entry:CreateArticulations()
-        for articulation in each(articulations) do
-            articulation:DeleteData()
-        end
-        if entry:IsNote() then
-            while entry.Count > 0 do
-                note_entry.delete_note(entry:GetItemAt(0))
-            end
-        end
-        entry:MakeRest()
-        return true
-    end
-
-    function note_entry.calc_pitch_string(note)
-        local pitch_string = finale.FCString()
-        local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
-        local key_signature = cell:GetKeySignature()
-        note:GetString(pitch_string, key_signature, false, false)
-        return pitch_string
-    end
-
-    function note_entry.calc_spans_number_of_octaves(entry)
-        local top_note = entry:CalcHighestNote(nil)
-        local bottom_note = entry:CalcLowestNote(nil)
-        local displacement_diff = top_note.Displacement - bottom_note.Displacement
-        local num_octaves = math.ceil(displacement_diff / 7)
-        return num_octaves
-    end
-
-    function note_entry.add_augmentation_dot(entry)
-
-        entry.Duration = bit32.bor(entry.Duration, bit32.rshift(entry.Duration, 1))
-    end
-
-    function note_entry.remove_augmentation_dot(entry)
-        if entry.Duration <= 0 then
-            return false
-        end
-        local lowest_order_bit = 1
-        if bit32.band(entry.Duration, lowest_order_bit) == 0 then
-
-            lowest_order_bit = bit32.bxor(bit32.band(entry.Duration, entry.Duration - 1), entry.Duration)
-        end
-
-        local new_value = bit32.band(entry.Duration, bit32.bnot(lowest_order_bit))
-        if new_value ~= 0 then
-            entry.Duration = new_value
-            return true
-        end
-        return false
-    end
-
-    function note_entry.get_next_same_v(entry)
-        if entry.NextSameVInFrame then
-            return entry:NextSameVInFrame()
-        end
-        local next_entry = entry:Next()
-        if entry.Voice2 then
-            if (nil ~= next_entry) and next_entry.Voice2 then
-                return next_entry
-            end
-            return nil
-        end
-        if entry.Voice2Launch then
-            while (nil ~= next_entry) and next_entry.Voice2 do
-                next_entry = next_entry:Next()
-            end
-        end
-        return next_entry
-    end
-
-    function note_entry.hide_stem(entry)
-        local stem = finale.FCCustomStemMod()
-        stem:SetNoteEntry(entry)
-        stem:UseUpStemData(entry:CalcStemUp())
-        if stem:LoadFirst() then
-            stem.ShapeID = 0
-            stem:Save()
-        else
-            stem.ShapeID = 0
-            stem:SaveNew()
-        end
-    end
-
-    function note_entry.rest_offset(entry, offset)
-        if entry:IsNote() then
-            return false
-        end
-        local rest_prop = "OtherRestPosition"
-        if entry.Duration >= finale.BREVE then
-            rest_prop = "DoubleWholeRestPosition"
-        elseif entry.Duration >= finale.WHOLE_NOTE then
-            rest_prop = "WholeRestPosition"
-        elseif entry.Duration >= finale.HALF_NOTE then
-            rest_prop = "HalfRestPosition"
-        end
-        entry:MakeMovableRest()
-        local rest = entry:GetItemAt(0)
-        local curr_staffpos = rest:CalcStaffPosition()
-        local staff_spec = finale.FCCurrentStaffSpec()
-        staff_spec:LoadForEntry(entry)
-        local total_offset = staff_spec[rest_prop] + offset - curr_staffpos
-        entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset)
-        return true
-    end
-    return note_entry
-end
 package.preload["library.enigma_string"] = package.preload["library.enigma_string"] or function()
 
     local enigma_string = {}
@@ -5344,6 +5036,314 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     end
     return utils
 end
+package.preload["library.note_entry"] = package.preload["library.note_entry"] or function()
+
+    local note_entry = {}
+
+    function note_entry.get_music_region(entry)
+        local exp_region = finale.FCMusicRegion()
+        exp_region:SetCurrentSelection()
+        exp_region.StartStaff = entry.Staff
+        exp_region.EndStaff = entry.Staff
+        exp_region.StartMeasure = entry.Measure
+        exp_region.EndMeasure = entry.Measure
+        exp_region.StartMeasurePos = entry.MeasurePos
+        exp_region.EndMeasurePos = entry.MeasurePos
+        return exp_region
+    end
+
+
+    local use_or_get_passed_in_entry_metrics = function(entry, entry_metrics)
+        if entry_metrics then
+            return entry_metrics, false
+        end
+        entry_metrics = finale.FCEntryMetrics()
+        if entry_metrics:Load(entry) then
+            return entry_metrics, true
+        end
+        return nil, false
+    end
+
+    function note_entry.get_evpu_notehead_height(entry)
+        local highest_note = entry:CalcHighestNote(nil)
+        local lowest_note = entry:CalcLowestNote(nil)
+        local evpu_height = (2 + highest_note:CalcStaffPosition() - lowest_note:CalcStaffPosition()) * 12
+        return evpu_height
+    end
+
+    function note_entry.get_top_note_position(entry, entry_metrics)
+        local retval = -math.huge
+        local loaded_here
+        entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
+        if nil == entry_metrics then
+            return retval
+        end
+        if not entry:CalcStemUp() then
+            retval = entry_metrics.TopPosition
+        else
+            local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
+            if nil ~= cell_metrics then
+                local evpu_height = note_entry.get_evpu_notehead_height(entry)
+                local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
+                retval = entry_metrics.BottomPosition + scaled_height
+                cell_metrics:FreeMetrics()
+            end
+        end
+        if loaded_here then
+            entry_metrics:FreeMetrics()
+        end
+        return retval
+    end
+
+    function note_entry.get_bottom_note_position(entry, entry_metrics)
+        local retval = math.huge
+        local loaded_here
+        entry_metrics, loaded_here = use_or_get_passed_in_entry_metrics(entry, entry_metrics)
+        if nil == entry_metrics then
+            return retval
+        end
+        if entry:CalcStemUp() then
+            retval = entry_metrics.BottomPosition
+        else
+            local cell_metrics = finale.FCCell(entry.Measure, entry.Staff):CreateCellMetrics()
+            if nil ~= cell_metrics then
+                local evpu_height = note_entry.get_evpu_notehead_height(entry)
+                local scaled_height = math.floor(((cell_metrics.StaffScaling * evpu_height) / 10000) + 0.5)
+                retval = entry_metrics.TopPosition - scaled_height
+                cell_metrics:FreeMetrics()
+            end
+        end
+        if loaded_here then
+            entry_metrics:FreeMetrics()
+        end
+        return retval
+    end
+
+    function note_entry.calc_widths(entry)
+        local left_width = 0
+        local right_width = 0
+        for note in each(entry) do
+            local note_width = note:CalcNoteheadWidth()
+            if note_width > 0 then
+                if note:CalcRightsidePlacement() then
+                    if note_width > right_width then
+                        right_width = note_width
+                    end
+                else
+                    if note_width > left_width then
+                        left_width = note_width
+                    end
+                end
+            end
+        end
+        return left_width, right_width
+    end
+
+
+
+
+    function note_entry.calc_left_of_all_noteheads(entry)
+        if entry:CalcStemUp() then
+            return 0
+        end
+        local left, _ = note_entry.calc_widths(entry)
+        return -left
+    end
+
+    function note_entry.calc_left_of_primary_notehead(_entry)
+        return 0
+    end
+
+    function note_entry.calc_center_of_all_noteheads(entry)
+        local left, right = note_entry.calc_widths(entry)
+        local width_centered = (left + right) / 2
+        if not entry:CalcStemUp() then
+            width_centered = width_centered - left
+        end
+        return width_centered
+    end
+
+    function note_entry.calc_center_of_primary_notehead(entry)
+        local left, right = note_entry.calc_widths(entry)
+        if entry:CalcStemUp() then
+            return left / 2
+        end
+        return right / 2
+    end
+
+    function note_entry.calc_stem_offset(entry)
+        if not entry:CalcStemUp() then
+            return 0
+        end
+        local left, _ = note_entry.calc_widths(entry)
+        return left
+    end
+
+    function note_entry.calc_right_of_all_noteheads(entry)
+        local left, right = note_entry.calc_widths(entry)
+        if entry:CalcStemUp() then
+            return left + right
+        end
+        return right
+    end
+
+    function note_entry.calc_note_at_index(entry, note_index)
+        local x = 0
+        for note in each(entry) do
+            if x == note_index then
+                return note
+            end
+            x = x + 1
+        end
+        return nil
+    end
+
+    function note_entry.stem_sign(entry)
+        if entry:CalcStemUp() then
+            return 1
+        end
+        return -1
+    end
+
+    function note_entry.duplicate_note(note)
+        local new_note = note.Entry:AddNewNote()
+        if nil ~= new_note then
+            new_note.Displacement = note.Displacement
+            new_note.RaiseLower = note.RaiseLower
+            new_note.Tie = note.Tie
+            new_note.TieBackwards = note.TieBackwards
+        end
+        return new_note
+    end
+
+    function note_entry.delete_note(note)
+        local entry = note.Entry
+        if nil == entry then
+            return false
+        end
+
+        finale.FCAccidentalMod():EraseAt(note)
+        finale.FCCrossStaffMod():EraseAt(note)
+        finale.FCDotMod():EraseAt(note)
+        finale.FCNoteheadMod():EraseAt(note)
+        finale.FCPercussionNoteMod():EraseAt(note)
+        finale.FCTablatureNoteMod():EraseAt(note)
+        finale.FCPerformanceMod():EraseAt(note)
+        if finale.FCTieMod then
+            finale.FCTieMod(finale.TIEMODTYPE_TIESTART):EraseAt(note)
+            finale.FCTieMod(finale.TIEMODTYPE_TIEEND):EraseAt(note)
+        end
+        return entry:DeleteNote(note)
+    end
+
+    function note_entry.make_rest(entry)
+        local articulations = entry:CreateArticulations()
+        for articulation in each(articulations) do
+            articulation:DeleteData()
+        end
+        if entry:IsNote() then
+            while entry.Count > 0 do
+                note_entry.delete_note(entry:GetItemAt(0))
+            end
+        end
+        entry:MakeRest()
+        return true
+    end
+
+    function note_entry.calc_pitch_string(note)
+        local pitch_string = finale.FCString()
+        local cell = finale.FCCell(note.Entry.Measure, note.Entry.Staff)
+        local key_signature = cell:GetKeySignature()
+        note:GetString(pitch_string, key_signature, false, false)
+        return pitch_string
+    end
+
+    function note_entry.calc_spans_number_of_octaves(entry)
+        local top_note = entry:CalcHighestNote(nil)
+        local bottom_note = entry:CalcLowestNote(nil)
+        local displacement_diff = top_note.Displacement - bottom_note.Displacement
+        local num_octaves = math.ceil(displacement_diff / 7)
+        return num_octaves
+    end
+
+    function note_entry.add_augmentation_dot(entry)
+
+        entry.Duration = bit32.bor(entry.Duration, bit32.rshift(entry.Duration, 1))
+    end
+
+    function note_entry.remove_augmentation_dot(entry)
+        if entry.Duration <= 0 then
+            return false
+        end
+        local lowest_order_bit = 1
+        if bit32.band(entry.Duration, lowest_order_bit) == 0 then
+
+            lowest_order_bit = bit32.bxor(bit32.band(entry.Duration, entry.Duration - 1), entry.Duration)
+        end
+
+        local new_value = bit32.band(entry.Duration, bit32.bnot(lowest_order_bit))
+        if new_value ~= 0 then
+            entry.Duration = new_value
+            return true
+        end
+        return false
+    end
+
+    function note_entry.get_next_same_v(entry)
+        if entry.NextSameVInFrame then
+            return entry:NextSameVInFrame()
+        end
+        local next_entry = entry:Next()
+        if entry.Voice2 then
+            if (nil ~= next_entry) and next_entry.Voice2 then
+                return next_entry
+            end
+            return nil
+        end
+        if entry.Voice2Launch then
+            while (nil ~= next_entry) and next_entry.Voice2 do
+                next_entry = next_entry:Next()
+            end
+        end
+        return next_entry
+    end
+
+    function note_entry.hide_stem(entry)
+        local stem = finale.FCCustomStemMod()
+        stem:SetNoteEntry(entry)
+        stem:UseUpStemData(entry:CalcStemUp())
+        if stem:LoadFirst() then
+            stem.ShapeID = 0
+            stem:Save()
+        else
+            stem.ShapeID = 0
+            stem:SaveNew()
+        end
+    end
+
+    function note_entry.rest_offset(entry, offset)
+        if entry:IsNote() then
+            return false
+        end
+        local rest_prop = "OtherRestPosition"
+        if entry.Duration >= finale.BREVE then
+            rest_prop = "DoubleWholeRestPosition"
+        elseif entry.Duration >= finale.WHOLE_NOTE then
+            rest_prop = "WholeRestPosition"
+        elseif entry.Duration >= finale.HALF_NOTE then
+            rest_prop = "HalfRestPosition"
+        end
+        entry:MakeMovableRest()
+        local rest = entry:GetItemAt(0)
+        local curr_staffpos = rest:CalcStaffPosition()
+        local staff_spec = finale.FCCurrentStaffSpec()
+        staff_spec:LoadForEntry(entry)
+        local total_offset = staff_spec[rest_prop] + offset - curr_staffpos
+        entry:SetRestDisplacement(entry:GetRestDisplacement() + total_offset)
+        return true
+    end
+    return note_entry
+end
 package.preload["library.client"] = package.preload["library.client"] or function()
 
     local client = {}
@@ -5876,8 +5876,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.92"
-    finaleplugin.Date = "2024/04/01"
+    finaleplugin.Version = "0.95"
+    finaleplugin.Date = "2024/04/22"
     finaleplugin.MinJWLuaVersion = 0.70
 	finaleplugin.Notes = [[ 
         This script presents an alphabetical list of 24 individual types 
@@ -5891,10 +5891,10 @@ function plugindef()
         > Custom Lines | Dynamics• | Expressions (Not Dynamics)•  
         > Expressions (All)• | Expressions (Measure-Attached) | Glissandos  
         > Hairpins | Lyrics• | MIDI Continuous Data | MIDI Note Data•  
-        > Note Position Offsets• | Notehead Modifications• | Secondary Beam Breaks•  
-        > Slurs | Smart Shapes (Note Attached)• | Smart Shapes (Beat Attached)  
-        > Smart Shapes (All) | Staff Styles | Tuplets• | User Selected...  
-        > (• = filter by layer)
+        > Note Position Offsets• | Notehead Modifications• | Notes•  
+        > Secondary Beam Breaks• | Slurs | Smart Shapes (Note Attached)•  
+        > Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles  
+        > Tuplets• | User Selected... | (• = filter by layer)
 
         To delete the same data as last time without a confirmation dialog 
         hold down [Shift] when starting the script. 
@@ -5915,7 +5915,7 @@ function plugindef()
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script presents an alphabetical list of 24 individual types of data to delete, each line beginning with a configurable {\i hotkey}. Call the script, type the {\i hotkey} and hit [Enter] or [Return]. Half of the datatypes can be filtered by layer.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Delete Independently}:\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 Articulations\u8226? | Articulations on Rests\u8226? | Chords | Cross Staff Entries\u8226?\line Custom Lines | Dynamics\u8226? | Expressions (Not Dynamics)\u8226?\line Expressions (All)\u8226? | Expressions (Measure-Attached) | Glissandos\line Hairpins | Lyrics\u8226? | MIDI Continuous Data | MIDI Note Data\u8226?\line Note Position Offsets\u8226? | Notehead Modifications\u8226? | Secondary Beam Breaks\u8226?\line Slurs | Smart Shapes (Note Attached)\u8226? | Smart Shapes (Beat Attached)\line Smart Shapes (All) | Staff Styles | Tuplets\u8226? | User Selected\u8230?\line (\u8226? = filter by layer)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 Articulations\u8226? | Articulations on Rests\u8226? | Chords | Cross Staff Entries\u8226?\line Custom Lines | Dynamics\u8226? | Expressions (Not Dynamics)\u8226?\line Expressions (All)\u8226? | Expressions (Measure-Attached) | Glissandos\line Hairpins | Lyrics\u8226? | MIDI Continuous Data | MIDI Note Data\u8226?\line Note Position Offsets\u8226? | Notehead Modifications\u8226? | Notes\u8226?\line Secondary Beam Breaks\u8226? | Slurs | Smart Shapes (Note Attached)\u8226?\line Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles\line Tuplets\u8226? | User Selected\u8230? | (\u8226? = filter by layer)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To delete the same data as last time without a confirmation dialog hold down [Shift] when starting the script. The layer number is \u8220"clamped\u8221" to a single character so to change layer just type a new number - [Delete] key not needed.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Expression Layers}\line Expressions are not fixed to particular notes but can be \u8220"assigned\u8221" to a specific note layer. This {\i assignment} number is used for layer filtering here, and may not always correspond to the note layer you expect.\par}
         }
@@ -5928,67 +5928,48 @@ local mixin = require("library.mixin")
 local expression = require("library.expression")
 local layer = require("library.layer")
 local utils = require("library.utils")
+local note_entry = require("library.note_entry")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
 local refocus_document = false
 local clear_selected_items_menu = finenv.UI():IsOnMac() and 1296385394 or 16010
 local dialog_options = {
-    { "entry_articulation", "Articulations •" },
-    { "rest_articulation", "Articulations on Rests •" },
-    { "chords", "Chords" },
-    { "cross_staff", "Cross Staff Entries •" },
-    { "shape_IsCustomLine", "Custom Lines" },
-    { "expression_dynamic", "Dynamics •" },
-    { "expression_not_dynamic", "Expressions (Not Dynamics) •" },
-    { "expression_all", "Expressions (All Note-Attached) •" },
-    { "measure_attached", "Expressions (Measure-Attached)" },
-    { "shape_IsGlissando", "Glissandos" },
-    { "shape_IsHairpin", "Hairpins" },
-    { "entry_lyrics", "Lyrics •" },
-    { "midi_continuous", "MIDI Continuous Data" },
-    { "midi_entry", "MIDI Note Data •" },
-    { "entry_position", "Note Position Offsets •" },
-    { "notehead_mods", "Notehead Modifications •" },
-    { "secondary_beam_breaks", "Secondary Beam Breaks •" },
-    { "shape_IsSlur", "Slurs" },
-    { "shape_IsEntryBased", "Smart Shapes (Note Attached) •" },
-    { "shape_GetBeatAttached", "Smart Shapes (Beat Attached)" },
-    { "shape_all", "Smart Shapes (All)" },
-    { "staff_styles", "Staff Styles (Current Score/Part)" },
-    { "entry_tuplets", "Tuplets •" },
-    { "user_selected", "User Selected Items ..."}
+    { "entry_articulation",     "A", "Articulations •" },
+    { "rest_articulation",      "R", "Articulations on Rests •" },
+    { "chords",                 "W", "Chords" },
+    { "cross_staff",            "X", "Cross Staff Entries •" },
+    { "shape_IsCustomLine",     "C", "Custom Lines" },
+    { "expression_dynamic",     "D", "Dynamics •" },
+    { "expression_not_dynamic", "E", "Expressions (Not Dynamics) •" },
+    { "expression_all",         "F", "Expressions (All Note-Attached) •" },
+    { "measure_attached",       "M", "Expressions (Measure-Attached)" },
+    { "shape_IsGlissando",      "G", "Glissandos" },
+    { "shape_IsHairpin",        "H", "Hairpins" },
+    { "entry_lyrics",           "L", "Lyrics •" },
+    { "midi_continuous",        "O", "MIDI Continuous Data" },
+    { "midi_entry",             "I", "MIDI Note Data •" },
+    { "entry_position",         "Q", "Note Position Offsets •" },
+    { "notehead_mods",          "J", "Notehead Modifications •" },
+    { "notes",                  "N", "Notes •" },
+    { "secondary_beam_breaks",  "K", "Secondary Beam Breaks •" },
+    { "shape_IsSlur",           "S", "Slurs" },
+    { "shape_IsEntryBased",     "P", "Smart Shapes (Note Attached) •" },
+    { "shape_GetBeatAttached",  "B", "Smart Shapes (Beat Attached)" },
+    { "shape_all",              "V", "Smart Shapes (All)" },
+    { "staff_styles",           "Y", "Staff Styles (Current Score/Part)" },
+    { "entry_tuplets",          "T", "Tuplets •" },
+    { "user_selected",          "Z", "User Selected Items ..." },
 }
 local config = {
-    entry_articulation = "A",
-    rest_articulation = "R",
-    chords = "W",
-    cross_staff = "X",
-    shape_IsCustomLine = "C",
-    expression_dynamic = "D",
-    expression_not_dynamic = "E",
-    expression_all = "F",
-    measure_attached = "M",
-    shape_IsGlissando = "G",
-    shape_IsHairpin = "H",
-    entry_lyrics = "L",
-    midi_continuous = "O",
-    midi_entry = "I",
-    entry_position = "N",
-    notehead_mods = "J",
-    secondary_beam_breaks = "K",
-    shape_IsSlur = "S",
-    shape_IsEntryBased = "P",
-    shape_GetBeatAttached = "B",
-    shape_all = "V",
-    staff_styles = "Y",
-    entry_tuplets = "T",
-    user_selected = "Z",
+    layer_num = 0,
     last_selected = 0,
     window_pos_x = false,
     window_pos_y = false,
     ignore_duplicates = 0,
-    layer_num = 0,
 }
+for _, v in ipairs(dialog_options) do
+    config[v[1]] = v[2]
+end
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
@@ -6060,6 +6041,17 @@ local function delete_selected(delete_type)
         chords:LoadAllForRegion(rgn)
         for chord in eachbackwards(chords) do
             if chord then chord:DeleteData() end
+        end
+
+    elseif delete_type == "notes" then
+        for entry in eachentrysaved(rgn, layer_num) do
+            if entry:IsNote() then note_entry.make_rest(entry) end
+        end
+        for m, s in eachcell(rgn) do
+            local c = finale.FCNoteEntryCell(m, s)
+            c:Load()
+            c:ReduceEntries()
+            c:Save()
         end
 
     elseif delete_type == "measure_attached" then
@@ -6200,10 +6192,10 @@ local function reassign_keys(parent, selected)
     for _, v in ipairs(dialog_options) do
         dialog:CreateEdit(0, y - offset, v[1]):SetText(config[v[1]]):SetWidth(20)
             :AddHandleCommand(function(self)
-                local str = self:GetText():sub(-1):upper()
-                self:SetText(str):SetKeyboardFocus()
+                local s = self:GetText():sub(-1):upper()
+                self:SetText(s):SetKeyboardFocus()
             end)
-        dialog:CreateStatic(25, y):SetText(v[2]):SetWidth(x_wide)
+        dialog:CreateStatic(25, y):SetText(v[3]):SetWidth(x_wide)
         y = y + y_step
     end
     y = y + 7
@@ -6215,7 +6207,7 @@ local function reassign_keys(parent, selected)
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function(self)
         local assigned = {}
-        for i, v in ipairs(dialog_options) do
+        for _, v in ipairs(dialog_options) do
             local key = self:GetControl(v[1]):GetText()
             if key == "" then key = "?" end
             config[v[1]] = key
@@ -6224,26 +6216,27 @@ local function reassign_keys(parent, selected)
                 if assigned[key] then
                     is_duplicate = true
                     if not errors[key] then errors[key] = { assigned[key] } end
-                    table.insert(errors[key], i)
+                    table.insert(errors[key], v[3])
                 else
-                    assigned[key] = i
+                    assigned[key] = v[3]
                 end
             end
         end
         if is_duplicate then
             local msg = ""
             for k, v in pairs(errors) do
+                if msg ~= "" then msg = msg .. "\n\n" end
                 msg = msg .. "Key \"" .. k .. "\" is assigned to: "
                 for i, w in ipairs(v) do
                     if i > 1 then msg = msg .. " and " end
-                    msg = msg .. "\"" .. dialog_options[w][2] .. "\""
+                    msg = msg .. "\"" .. w .. "\""
                 end
-                msg = msg .. "\n\n"
             end
-            finenv.UI():AlertError(msg, "Duplicate Key Assignment")
+            dialog:CreateChildUI():AlertError(msg, "Duplicate Key Assignment")
         end
     end)
     local ok = (dialog:ExecuteModal(parent) == finale.EXECMODAL_OK)
+    refocus_document = true
     return ok, is_duplicate
 end
 local function user_chooses()
@@ -6267,7 +6260,7 @@ local function user_chooses()
             local join = finenv.UI():IsOnMac() and "\t" or ":  "
             key_list:Clear()
             for _, v in ipairs(dialog_options) do
-                key_list:AddString(config[v[1]] .. join .. v[2])
+                key_list:AddString(config[v[1]] .. join .. v[3])
             end
             key_list:SetSelectedItem(config.last_selected or 0)
         end
@@ -6277,7 +6270,11 @@ local function user_chooses()
             while ok and is_duplicate do
                 ok, is_duplicate = reassign_keys(dialog, selected)
             end
-            if ok then fill_key_list() end
+            if ok then
+                fill_key_list()
+            else
+                configuration.get_user_settings(script_name, config)
+            end
         end
     fill_key_list()
     dialog:CreateStatic(0, y):SetWidth(x_off * 3):SetText("For data types marked [•]:")
