@@ -84,7 +84,7 @@ else
     local count = docs:LoadAll()
     print("got " .. count .. " documents")
     for doc in each(docs) do
-        doc:SwitchTo(finale.FCString(file_name() .. " " .. doc.ID), true) -- true: save current changes (unless NoStore or HandlesUndo is true)
+        doc:SwitchTo(finale.FCString(file_name() .. " " .. doc.ID), true) -- true: save current changes (unless NoStore is true)
         process_document(doc)
         doc:SwitchBack(true) -- true: changes successful (will be saved unless NoStore is true)
     end
