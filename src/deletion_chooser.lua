@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.95"
-    finaleplugin.Date = "2024/04/22"
+    finaleplugin.Version = "0.98"
+    finaleplugin.Date = "2024/05/11"
     finaleplugin.MinJWLuaVersion = 0.70
 	finaleplugin.Notes = [[ 
         This script presents an alphabetical list of 24 individual types 
@@ -25,8 +25,6 @@ function plugindef()
 
         To delete the same data as last time without a confirmation dialog 
         hold down [Shift] when starting the script. 
-        The layer number is "clamped" to a single character so to change 
-        layer just type a new number - [Delete] key not needed.
 
         __Expression Layers__  
         Expressions are not fixed to particular notes but can be 
@@ -288,17 +286,27 @@ local function delete_selected(delete_type)
                     entry.ReverseDownStem = false
                     entry.FreezeBeam = false
                     entry.FreezeStem = false
-                    for _, type in ipairs{"FCCrossStaffMods", "FCPrimaryBeamMods"} do
-                        local mods = finale[type](entry)
-                        mods:LoadAll()
-                        for m in eachbackwards(mods) do
-                            m:DeleteData()
-                        end
-                    end
+                    local mods = finale.FCCrossStaffMods(entry)
+                    mods:LoadAll()
+                    for m in eachbackwards(mods) do m:DeleteData() end
                     if entry.StemDetailFlag then
                         local stem_mod = finale.FCStemMod()
                         stem_mod:SetNoteEntry(entry)
                         stem_mod:DeleteData()
+                    end
+                    local beam = finale.FCBeamMod(false)
+                    for _, v in ipairs{false, true} do
+                        beam:SetNoteEntry(entry)
+                        beam:UseUpStemData(v)
+                        if beam:LoadFirst() then
+                            beam:SetDefaultMode()
+                            beam.LeftVerticalOffset = 0
+                            beam.RightVerticalOffset = 0
+                            beam.LeftHorizontalOffset = 0
+                            beam.RightHorizontalOffset = 0
+                            beam.Thickness = -1
+                            beam:Save() -- it exists!
+                        end
                     end
                 end
                 entry.CrossStaff = false
@@ -379,7 +387,7 @@ local function user_chooses()
     local key_list = dialog:CreateListBox(0, 20):SetWidth(box_wide):SetHeight(box_high)
         -- local functions
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 500, 340)
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 325)
             refocus_document = true
         end
         local function fill_key_list()
@@ -415,12 +423,10 @@ local function user_chooses()
                 if val:find("[?q]") then show_info()
                 elseif val:find("r") then change_keys()
                 end
-                self:SetText(save_layer):SetKeyboardFocus()
             elseif val ~= "" then
-                val = val:sub(-1)
-                self:SetText(val)
-                save_layer = val
+                save_layer = val:sub(-1)
             end
+            self:SetText(save_layer):SetKeyboardFocus()
         end)
     dialog:CreateStatic(x_off + 60, y):SetWidth(x_off):SetText("(0 = all)")
     y = y + y_step + 2
@@ -439,7 +445,6 @@ local function user_chooses()
     dialog:RegisterInitWindow(function()
         q:SetFont(q:CreateFontInfo():SetBold(true))
         key_list:SetKeyboardFocus()
-
     end)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
