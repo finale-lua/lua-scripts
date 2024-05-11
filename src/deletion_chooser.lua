@@ -298,15 +298,7 @@ local function delete_selected(delete_type)
                     for _, v in ipairs{false, true} do
                         beam:SetNoteEntry(entry)
                         beam:UseUpStemData(v)
-                        if beam:LoadFirst() then
-                            beam:SetDefaultMode()
-                            beam.LeftVerticalOffset = 0
-                            beam.RightVerticalOffset = 0
-                            beam.LeftHorizontalOffset = 0
-                            beam.RightHorizontalOffset = 0
-                            beam.Thickness = -1
-                            beam:Save() -- it exists!
-                        end
+                        if beam:LoadFirst() then beam:DeleteData() end
                     end
                 end
                 entry.CrossStaff = false
