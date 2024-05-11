@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.95"
-    finaleplugin.Date = "2024/05/10"
+    finaleplugin.Version = "0.95d"
+    finaleplugin.Date = "2024/05/11"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below"
 	finaleplugin.Notes = [[
@@ -97,7 +97,7 @@ local config = {
     window_pos_y  = false,
 }
 
-local offsets = { -- name, default value (ordered)
+local offsets = { -- (ordered) name; default value; text description
     { "Up_Crossed",     12, "Cross Up:", 79 },
     { "Up_Uncrossed",  -12 },
     { "Down_Crossed",  -12, "Cross Down:", 65 },
@@ -107,7 +107,7 @@ local offsets = { -- name, default value (ordered)
 -- copy default offset values to config
 for _, v in ipairs(offsets) do config[v[1]] = v[2] end
 
-local checks = { -- key; text description (ordered) of the checkboxes
+local checks = { -- checkbox key; text description (ordered)
     { "rest_fill",    "Add Invisible Rest To Empty Destination" },
     { "not_unbeamed", "Don't Cross Unbeamed Notes" },
     { "reversing",    "Reverse Stems Of Crossed Notes" },
@@ -318,17 +318,12 @@ local function cross_staff(dialog)
     local src_staff_top, scale = get_staff_metrics(rgn.StartMeasure, rgn.StartStaff)
     local dest_staff_top, _ = get_staff_metrics(rgn.StartMeasure, next_staff)
 
-    -- "clean" all entry and beam mods
-    for entry in eachentrysaved(whole_measure, config.layer_num) do
-        clean_beams(entry) -- erase all beam offsets
-        if rgn:IsEntryPosWithin(entry) then
-            clean_entry(entry) -- also clean entries within selection
-        end
-    end
-    -- fix CROSSING and stem freezing in selection
+    -- pass 1 (selection) set {crossing} entries and {beam_start}
     for entry in eachentrysaved(rgn, config.layer_num) do
         count = count + 1
         if entry:IsNote() then
+            clean_beams(entry)
+            clean_entry(entry)
             local beamed = not entry:CalcUnbeamedNote()
             if (beamed or not config.not_unbeamed) then -- beamed plus eligible unbeamed
                 if beamed and not active_beam then
@@ -337,23 +332,32 @@ local function cross_staff(dialog)
                 end
                 if (count <= config.count_notes) then -- cross "cnt_notes" in "cnt_out_of" entries
                     crossing[entry.EntryNumber] = true
-                    if config.reversing then
-                        entry.StemUp = (config.direction == "Up")
-                        entry.FreezeStem = true
-                    end
                 end
             end
-        end -- allow that the "end" of a beam group might be a rest
+        end
         if active_beam and entry:CalcBeamedGroupEnd() then -- active beam ends
-            beam_start[active_beam].stop = entry.EntryNumber
             active_beam = nil
         end
         if count >= config.count_out_of then count = 0 end -- restart note count
     end
+    -- pass 2 (measure) reset affected beam mods
+    for entry in eachentrysaved(whole_measure, config.layer_num) do
+        if entry:IsNote() and beam_start[entry.EntryNumber] then
+            clean_beams(entry) -- erase beam offsets
+        end
+    end
+    -- pass 3 (selection) stem freezing if stems reversed
+    if config.reversing then
+        for entry in eachentrysaved(rgn, config.layer_num) do
+            if crossing[entry.EntryNumber] then
+                entry.StemUp = (config.direction == "Up")
+                entry.FreezeStem = true
+            end
+        end
+    end
     finale.FCNoteEntry.MarkEntryMetricsForUpdate()
 
-    -- now check whole measure(s) for stem reversal
-    active_beam = nil
+    -- pass 4 (measure) stem reversal & crossing
     local bsab
     for entry in eachentrysaved(whole_measure, config.layer_num) do
         if entry:IsNote() then
@@ -365,32 +369,30 @@ local function cross_staff(dialog)
                 cross_entry(entry, next_staff)
             end
             if beam_start[enum] then -- start of a new "crossing" beam-group
-                active_beam = enum
-                bsab = beam_start[active_beam] -- abbreviation
+                bsab = beam_start[enum] -- abbreviation
             end
-            if active_beam then -- continuing beam-group
+            if bsab then -- continuing beam-group
                 bsab[crossing[enum] and "cross" or "stay"] = true
-                if enum == bsab.stop or entry:CalcBeamedGroupEnd() then
+                if entry:CalcBeamedGroupEnd() then
                     bsab.stop = enum
-                    active_beam = nil -- beam ended
+                    bsab = nil -- beam ended
                 end
             end
         end
     end
-    -- only shift beam and reverse stems if beam is "mixed" crossed-and-uncrossed
-    active_beam = nil
+    bsab = nil
+    -- pass 5 (measure) shift beam and reverse stems if beam is "mixed" crossed-and-uncrossed
     for entry in eachentrysaved(whole_measure, config.layer_num) do
         if entry:IsNote() then
             local enum = entry.EntryNumber
             if beam_start[enum] then
-                active_beam = enum
-                bsab = beam_start[active_beam]
+                bsab = beam_start[enum]
                 bsab.mixed = (bsab.cross and bsab.stay)
                 if bsab.mixed then
                     beam_vertical_adjust(entry, src_staff_top, dest_staff_top, scale)
                 end
             end
-            if active_beam then
+            if bsab then
                 if bsab.mixed then
                     set_manual_pos(entry)
                 else -- not mixed == no stem reversal
@@ -399,15 +401,12 @@ local function cross_staff(dialog)
                     entry.FreezeStem = false
                     entry.ManualPosition = 0
                 end
-                if enum == bsab.stop then
-                    active_beam = nil
-                end
+                if enum == bsab.stop then bsab = nil end
             elseif config.whole_measure then -- and config.reversing then
                 set_manual_pos(entry)  -- outside "crossing" beam
             end
         end
     end
-    finale.FCNoteEntry.MarkEntryMetricsForUpdate()
     finenv.EndUndoBlock(true)
     finenv.Region():Redraw()
     return true
