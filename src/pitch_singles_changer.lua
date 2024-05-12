@@ -4,13 +4,13 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.14"
-    finaleplugin.Date = "2024/03/24"
+    finaleplugin.Version = "0.16"
+    finaleplugin.Date = "2024/05/01"
     finaleplugin.CategoryTags = "Entries, Pitch, Transposition"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = [[
         Change up to four specific pitches to other specific pitches. 
-        Pitch specification is exact and immutable: 
+        Pitch specification is precise and immutable: 
 
         > • First character: note name __A__-__G__  
         > &nbsp;  (Lower case will be replaced by upper case)  
@@ -26,7 +26,7 @@ function plugindef()
 
         Select __Modeless__ if you prefer the dialog window to 
         "float" above your score so you can change the score selection 
-        while it's active. In this mode, click __Apply__ [Return/Enter] 
+        while it's active. In this mode, click __Apply__ [Return] 
         to make changes and __Cancel__ [Escape] to close the window. 
         Cancelling __Modeless__ will apply the _next_ time you use the script.
     ]]
@@ -35,6 +35,12 @@ function plugindef()
         "Change up to four specific pitches to other specific pitches"
 end
 
+local hotkey = {
+    modeless      = "M",
+    written_pitch = "W",
+    show_info     = "Q",
+    clear_all     = "X",
+}
 local config = {
     pitch_set = '["C4", "C5"]', -- JSON encoded pitch replacement set
     layer_num   = 0,
@@ -74,17 +80,12 @@ local function dialog_save_position(dialog)
     configuration.save_user_settings(script_name, config)
 end
 
-local function measure_duration(measure_number)
-    local m = finale.FCMeasure()
-    return m:Load(measure_number) and m:GetDuration() or 0
-end
-
 local function get_staff_name(staff_num)
     local staff = finale.FCStaff()
     staff:Load(staff_num)
-    local str = staff:CreateDisplayFullNameString().LuaString
+    local str = staff:CreateDisplayAbbreviatedNameString().LuaString
     if not str or str == "" then
-        str = "Staff " .. staff_num
+        str = "Staff" .. staff_num
     end
     return str
 end
@@ -93,20 +94,18 @@ local function track_selection()
     -- set_saved_bounds
     local rgn = finenv.Region()
     for _, property in ipairs(bounds) do
-        saved_bounds[property] = rgn:IsEmpty() and 0 or rgn[property]
+        saved_bounds[property] = rgn[property]
     end
-    -- update_selection_id
-    selection = { staff = "no staff", region = "no selection"} -- default
+    -- update selection
+    selection = "no staff, no selection" -- default
     if not rgn:IsEmpty() then
-        -- measures
-        local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
-        local m = measure_duration(rgn.EndMeasure)
-        local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
-        selection.region = string.format("m%.2f-m%.2f", r1, r2)
-        -- staves
-        selection.staff = get_staff_name(rgn.StartStaff)
+        selection = get_staff_name(rgn.StartStaff)
         if rgn.EndStaff ~= rgn.StartStaff then
-            selection.staff = selection.staff .. " → " .. get_staff_name(rgn.EndStaff)
+            selection = selection .. "-" .. get_staff_name(rgn.EndStaff)
+        end
+        selection = selection .. " m." .. rgn.StartMeasure
+        if rgn.StartMeasure ~= rgn.EndMeasure then
+            selection = selection .. "-" .. rgn.EndMeasure
         end
     end
 end
@@ -131,19 +130,17 @@ local function is_error(p)
 end
 
 local function make_the_changes(pitches)
-    local undo_str = "Pitch Change "
-    for i = 1, 7, 2 do -- run through pitch pairs provided
-        if pitches[i] ~= "" and pitches[i + 1] ~= "" then
-            undo_str = undo_str .. string.format("%s-%s ", pitches[i], pitches[i + 1])
-        end
-    end
-    finenv.StartNewUndoBlock(undo_str .. selection.region)
-    local m = finale.FCMeasure()
+    finenv.StartNewUndoBlock("Pitch Singles " .. selection)
     local pitch_str = finale.FCString()
-    for entry in eachentrysaved(finenv.Region(), config.layer_num) do
-        m:Load(entry.Measure)
-        local keysig = m.KeySignature
+    local measure, staff, keysig = 0, 0, nil
 
+    for entry in eachentrysaved(finenv.Region(), config.layer_num) do
+        local e_m, e_s = entry.Measure, entry.Staff
+        if measure ~= e_m and staff ~= e_s then
+            measure = e_m
+            staff = e_s
+            keysig = finale.FCCell(e_m, e_s):GetKeySignature()
+        end
         for note in each(entry) do
             note:GetString(pitch_str, keysig, false, config.written_pitch)
             for i = 1, 7, 2 do
@@ -180,8 +177,7 @@ local function run_the_dialog()
             for k, v in pairs(saved_bounds) do
                 if finenv.Region()[k] ~= v then -- selection changed
                     track_selection() -- update selection tracker
-                    ctl.info1:SetText(selection.staff)
-                    ctl.info2:SetText(selection.region)
+                    dialog:GetControl("info"):SetText(selection)
                     break -- all done
                 end
             end
@@ -190,7 +186,10 @@ local function run_the_dialog()
             ctl[id]:SetCheck((ctl[id]:GetCheck() + 1) % 2)
         end
         local function clear_all()
-            for i = 1, 8 do answer[i]:SetText("") end
+            for i = 1, 8 do
+                answer[i]:SetText("")
+                save[i] = ""
+            end
         end
         local function show_info()
             utils.show_notes_dialog(dialog, "About " .. name, 400, 280)
@@ -200,12 +199,12 @@ local function run_the_dialog()
             local s = answer[id]:GetText():upper()
             if (id == 0 and s:find("[^0-4]"))
               or (id > 0 and s:find("[^#SA-G0-9]")) then
-                if s:find("X") then
+                if s:find(hotkey.clear_all) then
                     clear_all()
                 else
-                    if     s:find("M") then toggle_check("modeless")
-                    elseif s:find("W") then toggle_check("written_pitch")
-                    elseif  s:find("[?Q]") then show_info()
+                    if     s:find(hotkey.modeless)      then toggle_check("modeless")
+                    elseif s:find(hotkey.written_pitch) then toggle_check("written_pitch")
+                    elseif s:find(hotkey.show_info)     then show_info()
                     end
                     answer[id]:SetText(save[id])
                 end
@@ -242,15 +241,11 @@ local function run_the_dialog()
     dialog:CreateHorizontalLine(0, y - 6, x[3] + 50)
     ctl.modeless = dialog:CreateCheckbox(0, y):SetWidth(x[3] - 20)
         :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
-    dialog:CreateButton(x[3] - 25, y - 1):SetText("Clear All (x)"):SetWidth(70)
+    dialog:CreateButton(x[3] - 25, y - 1):SetWidth(70)
+        :SetText("Clear All (" .. hotkey.clear_all:lower() .. ")")
         :AddHandleCommand(function() clear_all() end)
-    -- modeless selection info
-    if config.modeless then
-        yd(15)
-        ctl.info1 = cstat(16, y, selection.staff, 170)
-        yd(15)
-        ctl.info2 = cstat(16, y, selection.region, 170)
-    end
+    yd(15)
+    cstat(16, y, selection, 170, "info")
 
     dialog:CreateOkButton():SetText(config.modeless and "Apply" or "Change")
     dialog:CreateCancelButton()
@@ -283,9 +278,11 @@ local function run_the_dialog()
         config.written_pitch = (ctl.written_pitch:GetCheck() == 1)
         configuration.save_user_settings(script_name, config)
         if user_error then -- errors to be flagged
-            self:CreateChildUI():AlertError(
+            local msg = (#errors > 1) and
                 "These pitch names are invalid:\n"
-                .. table.concat(errors, "; "), "Error: " .. name)
+                or "This pitch name is invalid:\n"
+            msg = msg .. table.concat(errors, "; ")
+            self:CreateChildUI():AlertError(msg, "Error: " .. name)
         else -- everything OK
             make_the_changes(pitch_set)
         end
@@ -317,7 +314,14 @@ local function change_pitches()
         return
     end
     track_selection()
-    while run_the_dialog() do end
+    local qim = finenv.QueryInvokedModifierKeys
+    local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
+    if mod_key then
+        local pitches = cjson.decode(config.pitch_set)
+        make_the_changes(pitches)
+    else
+        while run_the_dialog() do end
+    end
 end
 
 change_pitches()
