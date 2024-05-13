@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.95e"
-    finaleplugin.Date = "2024/05/12"
+    finaleplugin.Version = "0.95f"
+    finaleplugin.Date = "2024/05/13"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below"
 	finaleplugin.Notes = [[
@@ -16,7 +16,7 @@ function plugindef()
         stem reversal, horizontal note shift (to counteract stem reversal), 
         note pattern matching and beam height adjustment. 
 
-        Hold down [Shift] when starting the script to quickly cross staves 
+        Hold [Shift] when starting the script to quickly cross staves 
         without a confirmation dialog, with the settings last used. 
         Select __Modeless Dialog__ if you want the dialog window to persist 
         on-screen for repeated use until you click _Cancel_ [Escape].
@@ -24,9 +24,9 @@ function plugindef()
         __Beam Between Staves__  
         To centre beams _between_ the staves, the stems of __Crossed__ 
         notes must be __Reversed__. 
-        The midpoint between beams is measured from __Page View__ which 
+        The middle of the staves is measured from __Page View__ which 
         may look different in __Scroll View__. 
-        Using the __Reversed__ option you can also shift notes horizontally 
+        If using the __Reversed__ option you can also __shift notes horizontally__ 
         to correct uneven stem spacing caused by the reversal. 
 
         __Shift Horizontals Across Whole Measure__  
@@ -197,9 +197,13 @@ end
 
 local function clean_entry(entry) -- erase pre-exisiting conditions
     if entry:IsNote() then
+        for i = 1, entry.Count do
+            finale.FCCrossStaffMod():EraseAt(entry:GetItemAt(i - 1))
+        end
         local mods = finale.FCCrossStaffMods(entry)
         mods:LoadAll()
         for m in eachbackwards(mods) do m:DeleteData() end
+        entry.CrossStaff = false
         entry.ReverseUpStem = false
         entry.ReverseDownStem = false
         entry.FreezeBeam = false
@@ -318,7 +322,6 @@ local function cross_staff(dialog)
     for entry in eachentrysaved(rgn, config.layer_num) do
         count = count + 1
         if entry:IsNote() then
-            clean_beams(entry)
             clean_entry(entry)
             local beamed = not entry:CalcUnbeamedNote()
             if (beamed or not config.not_unbeamed) then -- beamed plus eligible unbeamed
@@ -336,10 +339,17 @@ local function cross_staff(dialog)
         end
         if count >= config.count_out_of then count = 0 end -- restart note count
     end
-    -- pass 2 (measure) reset affected beam mods
+    -- pass 2 (measure) clear affected beams
+    local bsab
     for entry in eachentrysaved(whole_measure, config.layer_num) do
-        if entry:IsNote() and beam_start[entry.EntryNumber] then
+        local enum = entry.EntryNumber
+        if entry:IsNote() and beam_start[enum] then
             clean_beams(entry) -- erase beam offsets
+            bsab = beam_start[enum] -- abbreviation
+        end
+        if bsab and entry:CalcBeamedGroupEnd() then
+            bsab.stop = enum
+            bsab = nil
         end
     end
     -- pass 3 (selection) stem freezing if stems reversed
@@ -354,7 +364,6 @@ local function cross_staff(dialog)
     finale.FCNoteEntry.MarkEntryMetricsForUpdate()
 
     -- pass 4 (measure) stem reversal & crossing
-    local bsab
     for entry in eachentrysaved(whole_measure, config.layer_num) do
         if entry:IsNote() then
             local enum = entry.EntryNumber
@@ -369,10 +378,7 @@ local function cross_staff(dialog)
             end
             if bsab then -- continuing beam-group
                 bsab[crossing[enum] and "cross" or "stay"] = true
-                if entry:CalcBeamedGroupEnd() then
-                    bsab.stop = enum
-                    bsab = nil -- beam ended
-                end
+                if bsab.stop == enum then bsab = nil end
             end
         end
     end
@@ -383,15 +389,14 @@ local function cross_staff(dialog)
             local enum = entry.EntryNumber
             if beam_start[enum] then
                 bsab = beam_start[enum]
-                bsab.mixed = (bsab.cross and bsab.stay)
+                bsab.mixed = bsab.cross and bsab.stay
                 if bsab.mixed then
                     beam_vertical_adjust(entry, src_staff_top, dest_staff_top, scale)
                 end
             end
             if bsab then
-                if bsab.mixed then
-                    set_manual_pos(entry)
-                else -- not mixed == no stem reversal
+                set_manual_pos(entry)
+                if not bsab.mixed then -- no stem reversal
                     entry.ReverseUpStem = false
                     entry.ReverseDownStem = false
                     entry.FreezeStem = false
@@ -562,16 +567,16 @@ local function run_the_dialog()
     dy(8)
     dialog:CreateHorizontalLine(0, y - 5, x[2] + 64)
     dialog:CreateHorizontalLine(0, y - 4, x[2] + 64)
-    answer.h1 = cstat(x[1] + 4, y, "HORIZONTAL OFFSETS", 130)
+    answer.h1 = cstat(x[1] + 4, y + 2, "HORIZONTAL OFFSETS", 130)
     dy(12)
     cstat(0, y - 7, "Units:", 37)
     answer.popup = dialog:CreateMeasurementUnitPopup(37, y - 8):SetWidth(90)
         :AddHandleCommand(function() update_saved() end)
-    answer.h2 = cstat(x[1], y, "Crossed", 70)
-    answer.h3 = cstat(x[2] - 4, y, "Not Crossed", 70)
+    answer.h2 = cstat(x[1], y + 2, "Crossed", 70)
+    answer.h3 = cstat(x[2] - 4, y + 2, "Not Crossed", 70)
 
     for i, v in ipairs(offsets) do -- OFFSET MEASUREMENTS
-        if i % 2 == 1 then dy(20) end
+        if i % 2 == 1 then dy(18) end
         local x_pos = (i % 2 == 1) and x[1] or x[2]
         answer[v[1]] = dialog:CreateMeasurementEdit(x_pos, y - y_off)
             :SetMeasurementInteger(config[v[1]]):SetWidth(64)
