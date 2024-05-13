@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.98"
-    finaleplugin.Date = "2024/05/11"
+    finaleplugin.Version = "0.99"
+    finaleplugin.Date = "2024/05/13"
     finaleplugin.MinJWLuaVersion = 0.70
 	finaleplugin.Notes = [[ 
         This script presents an alphabetical list of 24 individual types 
@@ -222,47 +222,44 @@ local function delete_selected(delete_type)
         end
     --
     else -- ENTRY-attached datatypes remain: step through selected region
+        -- local functions
+        local function delete_entry_mod(entry, type, up_stem, secondary)
+            local mod = finale[type](secondary)
+            mod:SetNoteEntry(entry)
+            if up_stem ~= nil then mod:UseUpStemData(up_stem) end
+            while mod:LoadFirst() do mod:DeleteData() end
+        end
+        local function del_create_mods(entry, type)
+            local mods = entry[type](entry)
+            if mods.Count > 0 then
+                for m in eachbackwards(mods) do
+                    m:DeleteData()
+                end
+            end
+        end
         for entry in eachentrysaved(rgn, layer_num) do
             --
             if delete_type:find("artic") and entry.ArticulationFlag then -- ARTICULATION
                 if delete_type == "entry_articulation" or (entry:IsRest() and delete_type == "rest_articulation") then
-                    for articulation in eachbackwards(entry:CreateArticulations()) do
-                        articulation:DeleteData()
-                    end
+                    del_create_mods(entry, "CreateArticulations")
                     entry:SetArticulationFlag(false)
                 end
             --
             elseif delete_type == "notehead_mods" and entry:IsNote() then -- NOTE-HEAD MODS
-                local mods = entry:CreateNoteheadMods()
-                if mods.Count > 0 then
-                    for mod in eachbackwards(mods) do
-                        mod:DeleteData()
-                    end
-                end
+                del_create_mods(entry, "CreateNoteheadMods")
             --
             elseif delete_type == "midi_entry" and entry.PerformanceDataFlag then -- NOTE-BASED MIDI
-                local perf_mods = entry:CreatePerformanceMods()
-                if perf_mods.Count > 0 then
-                    for mod in eachbackwards(perf_mods) do
-                        mod:DeleteData()
-                    end
-                end
+                del_create_mods(entry, "CreatePerformanceMods")
                 entry.PerformanceDataFlag = false
             --
             elseif delete_type == "entry_lyrics" and entry.LyricFlag then -- LYRICS
                 for _, v in ipairs{"FCChorusSyllable", "FCSectionSyllable", "FCVerseSyllable"} do
-                    local lyric = finale[v]()
-                    lyric:SetNoteEntry(entry)
-                    while lyric:LoadFirst() do
-                        lyric:DeleteData()
-                    end
+                    delete_entry_mod(entry, v)
                 end
             --
             elseif delete_type == "entry_tuplets" and entry.TupletStartFlag then -- TUPLETS
+                del_create_mods(entry, "CreateTuplets")
                 local tuplets = entry:CreateTuplets()
-                for tuplet in eachbackwards(tuplets) do
-                    tuplet:DeleteData()
-                end
                 tuplets:ClearAll()
                 entry.TupletStartFlag = false
             --
@@ -270,11 +267,7 @@ local function delete_selected(delete_type)
                 entry.ManualPosition = 0
             --
             elseif delete_type == "secondary_beam_breaks" then -- SECONDARY BEAM BREAKS
-                local sbbm = finale.FCSecondaryBeamBreakMod()
-                sbbm:SetNoteEntry(entry)
-                while sbbm:LoadFirst() do
-                    sbbm:DeleteData()
-                end
+                delete_entry_mod(entry, "FCSecondaryBeamBreakMod")
             --
             elseif delete_type == "cross_staff" then -- CROSS-STAFF
                 entry.ManualPosition = 0
@@ -286,19 +279,15 @@ local function delete_selected(delete_type)
                     entry.ReverseDownStem = false
                     entry.FreezeBeam = false
                     entry.FreezeStem = false
-                    local mods = finale.FCCrossStaffMods(entry)
-                    mods:LoadAll()
-                    for m in eachbackwards(mods) do m:DeleteData() end
-                    if entry.StemDetailFlag then
-                        local stem_mod = finale.FCStemMod()
-                        stem_mod:SetNoteEntry(entry)
-                        stem_mod:DeleteData()
+                    for i = entry.Count, 1, -1 do
+                        finale.FCCrossStaffMod():EraseAt(entry:GetItemAt(i - 1))
                     end
-                    local beam = finale.FCBeamMod(false)
-                    for _, v in ipairs{false, true} do
-                        beam:SetNoteEntry(entry)
-                        beam:UseUpStemData(v)
-                        if beam:LoadFirst() then beam:DeleteData() end
+                    delete_entry_mod(entry, "FCCrossStaffMod")
+                    if entry.StemDetailFlag then
+                        delete_entry_mod(entry, "FCStemMod")
+                    end
+                    for _, upstem in ipairs{false, true} do
+                        delete_entry_mod(entry, "FCBeamMod", upstem, false)
                     end
                 end
                 entry.CrossStaff = false
