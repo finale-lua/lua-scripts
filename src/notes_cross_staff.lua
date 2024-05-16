@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.95f"
-    finaleplugin.Date = "2024/05/13"
+    finaleplugin.Version = "0.95g"
+    finaleplugin.Date = "2024/05/17"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below"
 	finaleplugin.Notes = [[
@@ -21,19 +21,19 @@ function plugindef()
         Select __Modeless Dialog__ if you want the dialog window to persist 
         on-screen for repeated use until you click _Cancel_ [Escape].
 
-        __Beam Between Staves__  
+        __Reverse Stems For Mid-Staff Beams__  
         To centre beams _between_ the staves, the stems of __Crossed__ 
         notes must be __Reversed__. 
-        The middle of the staves is measured from __Page View__ which 
+        The midpoint between staves is measured from __Page View__ which 
         may look different in __Scroll View__. 
-        If using the __Reversed__ option you can also __shift notes horizontally__ 
+        If using the __Reverse__ option you can also __shift notes horizontally__ 
         to correct uneven stem spacing caused by the reversal. 
 
         __Shift Horizontals Across Whole Measure__  
-        Horizontal shift is normally applied only to notes part of the 
-        __crossing__ beam group.  This can sometimes conflict with notes either side 
-        of the selection and it looks better if all notes in the source measure are 
-        shifted at once. 
+        Horizontal shift is normally applied only to notes within a 
+        beam group containing __cross-staff__ notes.  This can sometimes 
+        conflict with notes either side of the selection and it looks 
+        better if all notes in the source measure are shifted at once. 
 
         > __Key Commands__: 
 
@@ -110,7 +110,7 @@ for _, v in ipairs(offsets) do config[v[1]] = v[2] end
 local checks = { -- checkbox key; text description (ordered)
     { "rest_fill",    "Add Invisible Rest To Empty Destination" },
     { "not_unbeamed", "Don't Cross Unbeamed Notes" },
-    { "reversing",    "Reverse Stems Of Crossed Notes" },
+    { "reversing",    "Reverse Stems For Mid-Staff Beams" },
     { "whole_measure", "Shift Horizontals Across Whole Measure" }
 }
 local entry_text = { "note", "notes" }
@@ -169,9 +169,9 @@ local function next_staff_or_error(rgn, dialog)
     end
     if msg ~= "" then -- **ERROR**
         if dialog then
-            dialog:CreateChildUI():AlertError(msg, plugindef() .. ": Error")
+            dialog:CreateChildUI():AlertError(msg, name .. ": Error")
         else
-            finenv.UI():AlertError(msg, plugindef() .. ": Error")
+            finenv.UI():AlertError(msg, name .. ": Error")
         end
         return -1 -- flag error
     end
@@ -203,6 +203,7 @@ local function clean_entry(entry) -- erase pre-exisiting conditions
         local mods = finale.FCCrossStaffMods(entry)
         mods:LoadAll()
         for m in eachbackwards(mods) do m:DeleteData() end
+        mods:ClearAll()
         entry.CrossStaff = false
         entry.ReverseUpStem = false
         entry.ReverseDownStem = false
@@ -310,7 +311,7 @@ local function cross_staff(dialog)
         get_staff_name(rgn.StartStaff), get_staff_name(next_staff), rgn.StartMeasure)
     )
     destination_rests(rgn, next_staff)  -- add invisible rests to destination if requested
-    local beam_start, crossing = {}, {} -- track first note in each beam group
+    local beam_start, crossing = {}, {} -- register first note in each beam group
     local whole_measure = mixin.FCMMusicRegion()
     whole_measure:SetRegion(rgn):SetStartMeasurePosLeft():SetEndMeasurePosRight()
     --
@@ -339,17 +340,17 @@ local function cross_staff(dialog)
         end
         if count >= config.count_out_of then count = 0 end -- restart note count
     end
-    -- pass 2 (measure) clear affected beams
-    local bsab
+    -- pass 2 (whole measure) clear affected beams
+    local bsen
     for entry in eachentrysaved(whole_measure, config.layer_num) do
         local enum = entry.EntryNumber
-        if entry:IsNote() and beam_start[enum] then
+        if beam_start[enum] then
             clean_beams(entry) -- erase beam offsets
-            bsab = beam_start[enum] -- abbreviation
+            bsen = beam_start[enum] -- abbreviation
         end
-        if bsab and entry:CalcBeamedGroupEnd() then
-            bsab.stop = enum
-            bsab = nil
+        if bsen and entry:CalcBeamedGroupEnd() then
+            bsen.stop = enum
+            bsen = nil
         end
     end
     -- pass 3 (selection) stem freezing if stems reversed
@@ -360,10 +361,11 @@ local function cross_staff(dialog)
                 entry.FreezeStem = true
             end
         end
+        finale.FCNoteEntry.MarkEntryMetricsForUpdate()
     end
-    finale.FCNoteEntry.MarkEntryMetricsForUpdate()
 
     -- pass 4 (measure) stem reversal & crossing
+    bsen = nil
     for entry in eachentrysaved(whole_measure, config.layer_num) do
         if entry:IsNote() then
             local enum = entry.EntryNumber
@@ -374,35 +376,35 @@ local function cross_staff(dialog)
                 cross_entry(entry, next_staff)
             end
             if beam_start[enum] then -- start of a new "crossing" beam-group
-                bsab = beam_start[enum] -- abbreviation
+                bsen = beam_start[enum] -- abbreviation
             end
-            if bsab then -- continuing beam-group
-                bsab[crossing[enum] and "cross" or "stay"] = true
-                if bsab.stop == enum then bsab = nil end
+            if bsen then -- continuing beam-group
+                bsen[crossing[enum] and "cross" or "stay"] = true
+                if bsen.stop == enum then bsen = nil end
             end
         end
     end
-    bsab = nil
+    bsen = nil
     -- pass 5 (measure) shift beam if "mixed" crossed-and-uncrossed
     for entry in eachentrysaved(whole_measure, config.layer_num) do
         if entry:IsNote() then
             local enum = entry.EntryNumber
             if beam_start[enum] then
-                bsab = beam_start[enum]
-                bsab.mixed = bsab.cross and bsab.stay
-                if bsab.mixed then
+                bsen = beam_start[enum]
+                bsen.mixed = bsen.cross and bsen.stay
+                if bsen.mixed then
                     beam_vertical_adjust(entry, src_staff_top, dest_staff_top, scale)
                 end
             end
-            if bsab then
+            if bsen then
                 set_manual_pos(entry)
-                if not bsab.mixed then -- no stem reversal
+                if not bsen.mixed then -- no stem reversal
                     entry.ReverseUpStem = false
                     entry.ReverseDownStem = false
                     entry.FreezeStem = false
                     entry.ManualPosition = 0
                 end
-                if enum == bsab.stop then bsab = nil end
+                if enum == bsen.stop then bsen = nil end
             elseif config.whole_measure then
                 set_manual_pos(entry) -- not a "crossing" note
             end
@@ -519,7 +521,7 @@ local function run_the_dialog()
                     end
                 end
             else
-                if id == "layer_num" or id:find("count") then
+                if id == "layer_num" or id:sub(1,5) == "count" then
                     s = s:sub(-1) -- one char only
                     if id == "count_notes" then
                         answer.entry2:SetText(s == "1" and entry_text[1] or entry_text[2])
@@ -536,7 +538,7 @@ local function run_the_dialog()
     -- dialog contents
     local y_off = finenv.UI():IsOnMac() and 3 or 0 -- y-offset for Mac edit box
     answer.direction = dialog:CreatePopup(0, y - 1):SetWidth(90)
-        :AddStrings("Cross Up", "Cross Down")  -- == 0 ... 1
+        :AddStrings("Cross Up", "Cross Down")  -- item# == 0 or 1
         :SetSelectedItem(config.direction == "Up" and 0 or 1)
     answer.modeless = dialog:CreateCheckbox(131, y):SetWidth(120)
         :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
