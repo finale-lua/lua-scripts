@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.95g"
-    finaleplugin.Date = "2024/05/17"
+    finaleplugin.Version = "0.95h"
+    finaleplugin.Date = "2024/05/19"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below"
 	finaleplugin.Notes = [[
@@ -26,7 +26,7 @@ function plugindef()
         notes must be __Reversed__. 
         The midpoint between staves is measured from __Page View__ which 
         may look different in __Scroll View__. 
-        If using the __Reverse__ option you can also __shift notes horizontally__ 
+        If using the __Reversed__ option you can also __shift notes horizontally__ 
         to correct uneven stem spacing caused by the reversal. 
 
         __Shift Horizontals Across Whole Measure__  
@@ -216,11 +216,11 @@ local function clean_entry(entry) -- erase pre-exisiting conditions
     entry.ManualPosition = 0
 end
 
-local function destination_rests(rgn, dest_staff)
+local function destination_rests(rgn, dest_staff_num)
     if not config.rest_fill then return end
     for measure_num = rgn.StartMeasure, rgn.EndMeasure do
         local layer_num = math.max(config.layer_num, 1) -- NOT layer "0"!
-        local note_cell = mixin.FCMNoteEntryCell(measure_num, dest_staff)
+        local note_cell = mixin.FCMNoteEntryCell(measure_num, dest_staff_num)
         note_cell:Load()
         if note_cell.Count == 0 then -- destination empty so proceed
             local m = finale.FCMeasure()
@@ -315,8 +315,8 @@ local function cross_staff(dialog)
     local whole_measure = mixin.FCMMusicRegion()
     whole_measure:SetRegion(rgn):SetStartMeasurePosLeft():SetEndMeasurePosRight()
     --
-    local src_staff_top, scale = get_staff_metrics(rgn.StartMeasure, rgn.StartStaff)
-    local dest_staff_top, _ = get_staff_metrics(rgn.StartMeasure, next_staff)
+    local src_staff, scale = get_staff_metrics(rgn.StartMeasure, rgn.StartStaff)
+    local dest_staff, _ = get_staff_metrics(rgn.StartMeasure, next_staff)
 
     -- pass 1 (selection) set {crossing} entries and {beam_start}
     local count, active_beam = 0, nil
@@ -340,7 +340,7 @@ local function cross_staff(dialog)
         end
         if count >= config.count_out_of then count = 0 end -- restart note count
     end
-    -- pass 2 (whole measure) clear affected beams
+    -- pass 2 (whole measure) "clean" affected beams
     local bsen
     for entry in eachentrysaved(whole_measure, config.layer_num) do
         local enum = entry.EntryNumber
@@ -375,12 +375,11 @@ local function cross_staff(dialog)
                 end
                 cross_entry(entry, next_staff)
             end
-            if beam_start[enum] then -- start of a new "crossing" beam-group
-                bsen = beam_start[enum] -- abbreviation
-            end
-            if bsen then -- continuing beam-group
+            if not bsen then -- new beam group?
+                if beam_start[enum] then bsen = beam_start[enum] end
+            else -- continuing beam-group
                 bsen[crossing[enum] and "cross" or "stay"] = true
-                if bsen.stop == enum then bsen = nil end
+                if bsen.stop == enum then bsen = nil end -- ended
             end
         end
     end
@@ -393,7 +392,7 @@ local function cross_staff(dialog)
                 bsen = beam_start[enum]
                 bsen.mixed = bsen.cross and bsen.stay
                 if bsen.mixed then
-                    beam_vertical_adjust(entry, src_staff_top, dest_staff_top, scale)
+                    beam_vertical_adjust(entry, src_staff, dest_staff, scale)
                 end
             end
             if bsen then
@@ -552,12 +551,14 @@ local function run_the_dialog()
         answer[v[1]] = dialog:CreateEdit(x_off + v[3], y - y_off):SetInteger(config[v[1]])
             :AddHandleCommand(function() key_check(v[1]) end):SetWidth(17)
         x_off = x_off + v[3] + 19
+        save_value[v[1]] = config[v[1]]
     end
     answer.entry2:SetText(config.count_notes == 1 and entry_text[1] or entry_text[2])
 
     cstat(x[2] - 18, y, "Layer 0-" .. max .. ":", 60)
     answer.layer_num = dialog:CreateEdit(x[2] + 44, y - y_off):SetText(config.layer_num)
         :AddHandleCommand(function() key_check("layer_num") end):SetWidth(20)
+    save_value.layer_num = config.layer_num
     dy()
     for _, v in ipairs(checks) do -- CHECKBOXES
         answer[v[1]] = dialog:CreateCheckbox(20, y):SetWidth(x[3])
@@ -578,13 +579,12 @@ local function run_the_dialog()
     answer.h3 = cstat(x[2] - 4, y + 2, "Not Crossed", 70)
 
     for i, v in ipairs(offsets) do -- OFFSET MEASUREMENTS
-        if i % 2 == 1 then dy(18) end
-        local x_pos = (i % 2 == 1) and x[1] or x[2]
-        answer[v[1]] = dialog:CreateMeasurementEdit(x_pos, y - y_off)
+        if (i % 2 == 1) then dy(18) end
+        answer[v[1]] = dialog:CreateMeasurementEdit((i % 2 == 1) and x[1] or x[2], y - y_off)
             :SetMeasurementInteger(config[v[1]]):SetWidth(64)
             :AddHandleCommand(function() key_check(v[1]) end)
         if v[3] then -- describe the entry values
-            answer["off" .. i] = cstat(v[4], y, v[3], x[1])
+            answer["off" .. i] = cstat(v[4], y, v[3], x[1] - v[4] - 2)
         end
     end
     dy(20)
@@ -596,8 +596,6 @@ local function run_the_dialog()
         :AddHandleCommand(function() set_default_values() end)
     -- set "saved" edit values
     update_saved()
-    for _, v in ipairs(pattern) do save_value[v[1]] = answer[v[1]]:GetText() end
-    save_value.layer_num = answer.layer_num:GetText()
 
     dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
     dialog:CreateCancelButton()
