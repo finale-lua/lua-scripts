@@ -579,14 +579,16 @@ local function run_the_dialog()
     answer.h3 = cstat(x[2] - 4, y + 2, "Not Crossed", 70)
 
     for i, v in ipairs(offsets) do -- OFFSET MEASUREMENTS
-        if (i % 2 == 1) then dy(18) end
+        if (i % 2 == 1) then dy(19) end
         answer[v[1]] = dialog:CreateMeasurementEdit((i % 2 == 1) and x[1] or x[2], y - y_off)
-            :SetMeasurementInteger(config[v[1]]):SetWidth(64)
+            :SetMeasurementInteger(config[v[1]]):SetWidth(63)
             :AddHandleCommand(function() key_check(v[1]) end)
         if v[3] then -- describe the entry values
             answer["off" .. i] = cstat(v[4], y, v[3], x[1] - v[4] - 2)
         end
     end
+    -- set "saved" edit values
+    update_saved()
     dy(20)
     dialog:CreateButton(x[1], y):SetWidth(105)
         :SetText("Zero Horiz. (" .. hotkey.set_zero .. ")")
@@ -594,8 +596,6 @@ local function run_the_dialog()
     dialog:CreateButton(20, y):SetWidth(105)
         :SetText("Default Horiz. (" .. hotkey.set_default .. ")")
         :AddHandleCommand(function() set_default_values() end)
-    -- set "saved" edit values
-    update_saved()
 
     dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
     dialog:CreateCancelButton()
