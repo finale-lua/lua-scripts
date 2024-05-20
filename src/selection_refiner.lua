@@ -3,86 +3,48 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.57"
-    finaleplugin.Date = "2024/01/25"
+    finaleplugin.Version = "0.58"
+    finaleplugin.Date = "2024/04/17"
     finaleplugin.CategoryTags = "Measures, Region, Selection"
-    finaleplugin.MinJWLuaVersion = 0.67
+    finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         The selected score area can be refined in Finale by measure and 
-        either beat or EDU at "Edit" → "Select Region...". 
+        either __beat__ or __EDU__ at _Edit_ → _Select Region..._. 
         This script offers a more organic option for precise positioning with 
         slider controls to change the beat and EDU position in each measure, 
-        continuously updating the score highlighting as the selection changes.
+        updating the score highlighting as the selection changes.
 
         Note that when one slider overlaps the other in the same 
-        measure, it will push the other out of the way creating a "null" 
+        measure, it will push it out of the way creating a __null__ 
         selection (start = end). This doesn't break anything 
-        but the selection contains no notes.
+        but the selection contains no notes. 
 
-        == Beat Boundaries ==  
+        __Beat Boundaries__  
         The duration of a Finale quarter note is 1024 EDUs, 
         but to select all of of the first beat in a 4/4 measure the 
         selection must be from 0 to 1023 EDU, otherwise it will 
-        include notes starting ON the second beat. 
-        This "minus one" adjustment is applied to all END positions 
+        include notes starting __on__ the second beat. 
+        This "minus one" adjustment is applied to all __end__ positions 
         relative to the beat, as happens when entering beat numbers 
-        on the inbuilt "Select Region" option.
+        on the inbuilt _Select Region_ option.
 
-        == Key Commands == 
-        - (w)(s) @tStart Staff up/down 
-        - (d)(f) @tStart Measure left/right 
-        - (g)(h) @tStart increments -/+ 
-        - (j)(k) / (-)(+) @tStart -/+ one EDU 
-        - • • 
-        - (a)(z) @tEnd Staff up/down 
-        - (x)(c) @tEnd Measure left/right 
-        - (v)(b) @tEnd increments -/+ 
-        - (n)(m) / ([)(]) @tEnd -/+ one EDU 
-        - • •
-        - (e) toggle the "follow selection" checkbox 
-        - (q) show these script notes 
+        > __Key Commands__: 
+
+        > - __w / s__: Start Staff up/down 
+        > - __d / f__: Start Measure left/right 
+        > - __g / h__: Start increments -/+ 
+        > - __j / k__: Start one EDU -/+ 
+        > - (__- / +__: Start one EDU  -/+)  
+        > - __a / z__: End Staff up/down 
+        > - __x / c__: End Measure left/right 
+        > - __v / b__: End increments -/+ 
+        > - __n / m__: End one EDU -/+ 
+        > - (__[ / ]__: End one EDU  -/+)  
+        > - __e__: toggle the "follow selection" checkbox 
+        > - __q__: show these script notes 
     ]]
     return "Selection Refiner...", "Selection Refiner", "Refine the selected music area with visual feedback"
 end
-
-local info_notes = [[
-The selected score area can be refined in Finale by measure and
-either beat or EDU at "Edit" → "Select Region...".
-This script offers a more organic option for precise positioning with
-slider controls to change the beat and EDU position in each measure,
-continuously updating the score highlighting as the selection changes.
-**
-Note that when one slider overlaps the other in the same
-measure, it will push the other out of the way creating a "null"
-selection (start = end). This doesn't break anything
-but the selection contains no notes.
-**
-== Beat Boundaries ==
-*
-The duration of a Finale quarter note is 1024 EDUs,
-but to select all of of the first beat in a 4/4 measure the
-selection must be from 0 to 1023 EDU, otherwise it will
-include notes starting ON the second beat.
-This "minus one" adjustment is applied to all END positions
-relative to the beat, as happens when entering beat numbers
-on the inbuilt "Select Region" option.
-**
-== Key Commands ==
-*• (w)(s) @tStart Staff up/down
-*• (d)(f) @tStart Measure left/right
-*• (g)(h) @tStart increments -/+
-*• (j)(k) / (-)(+) @tStart -/+ one EDU
-*• • •
-*• (a)(z) @tEnd Staff up/down
-*• (x)(c) @tEnd Measure left/right
-*• (v)(b) @tEnd increments -/+
-*• (m)(n) / ([)(]) @tEnd -/+ one EDU
-*• • •
-*• (e) toggle the "follow selection" checkbox
-*• (q) show these script notes
-]]
-info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n"):gsub("@t", "\t")
-    .. "\n(v" .. finaleplugin.Version .. ")"
 
 local config = {
     follow_measure = 0, -- follow selection beyond the visible screen? (== 1)
@@ -91,9 +53,11 @@ local config = {
 }
 
 local mixin = require("library.mixin")
-local library = require("library.general_library")
 local configuration = require("library.configuration")
+local utils = require("library.utils")
+local library = require("library.general_library")
 local script_name = library.calc_script_name()
+local refocus_document = false -- set to true if utils.show_notes_dialog is used
 
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -117,7 +81,7 @@ local function power_of_two(duration)
         smallest = smallest * 2
         power = power + 1
     end
-    return power -- 256th note = 1 ... breve = 10
+    return power -- 256th note = 1; 128th note = 2, ... breve = 10
 end
 
 local function score_limits(rgn)
@@ -127,7 +91,7 @@ local function score_limits(rgn)
     stack:SetRegion(rgn):SetFullDocument()
     for staff_number in eachstaff(stack) do
         staff:Load(staff_number)
-        -- {staff_list} index number matches SLOT number
+        -- {staff_list} #index = SLOT number
         table.insert(staff_list, staff:CreateDisplayFullNameString())
     end
     local max_slot = stack.EndSlot
@@ -246,19 +210,14 @@ local function user_chooses(rgn)
     local y, rest_wide, x_wide =  40, 130, 236
     local x_offset = finenv.UI():IsOnMac() and 0 or 3
     local name = plugindef():gsub("%.%.%.", "")
-        local function yd(diff)
-            y = diff and y + diff or y + 16
-        end
-        local function show_info()
-            finenv.UI():AlertInfo(info_notes, "About " .. name)
-        end
+
     -- indicator and control arrays for "start" [1] and "end" [2]:
     local measure, sliders, offset, save_off = {}, {}, {}, {}
     local rest, buttons, index, staff_sel, actions = {}, {}, {}, {}, {}
     local follow
     local max_measure, max_slot, staff_list = score_limits(rgn)
 
-    -- MD :: MEASURE DETAILS md = .{ {start}, {end} }
+    -- MD :: MEASURE DETAILS md = { {start}, {end} }
     local md = { get_measure_details(rgn, true), get_measure_details(rgn, false) }
     local function pos_to_index(side) -- convert selection position (edu) to thumb index
         return math.floor(md[side].pos * md[side].divisions / md[side].dur)
@@ -268,7 +227,11 @@ local function user_chooses(rgn)
 
     -- start dialog
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
-    -- local functions
+        -- local functions
+        local function show_info()
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 440)
+            refocus_document = true
+        end
         local function set_measure_pos(side)
             if side == 1 then rgn.StartMeasurePos = md[side].pos
             else rgn.EndMeasurePos = md[side].pos
@@ -484,7 +447,7 @@ local function user_chooses(rgn)
 
     local default_font = finale.FCFontInfo()
     default_font:LoadFontPrefs(finale.FONTPREF_MUSIC)
-    local button_x = (x_wide + rest_wide + 14) / 5 -- space buttons evenly by fifths
+    local button_x = (x_wide + rest_wide + 14) / 5 -- space buttons evenly in fifths
 
         local function make_rest_text(i, y_off)
             rest[i] = dialog:CreateStatic(x_wide + 65, y_off + md[i].rests.vert)
@@ -526,6 +489,9 @@ local function user_chooses(rgn)
     dialog:CreateStatic(0, y, "head_1"):SetText("START of Selection:"):SetWidth(x_wide)
     dialog:CreateButton(x_wide + rest_wide + 30, y, "q"):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
+    local function yd(diff)
+        y = diff and y + diff or y + 16
+    end
     yd(14)
     make_slider_and_offset(1)
     yd(30)
@@ -545,7 +511,9 @@ local function user_chooses(rgn)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterHandleOkButtonPressed(function() config.follow_measure = follow:GetCheck() end)
+    dialog:RegisterHandleOkButtonPressed(function()
+        config.follow_measure = follow:GetCheck()
+    end)
     dialog:RegisterInitWindow(function(self)
         local h = self:GetControl("head_1")
         local bold = h:CreateFontInfo():SetBold(true)
@@ -554,23 +522,24 @@ local function user_chooses(rgn)
         self:GetControl("q"):SetFont(bold)
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
 end
 
 local function refine_selection()
     configuration.get_user_settings(script_name, config)
     local rgn = mixin.FCMMusicRegion()
-    rgn:SetRegion(finenv.Region())
-
+    rgn:SetCurrentSelection()
     if rgn:IsEmpty() then
-        local msg = "Please select some music \n before running \"" .. plugindef() .. "\""
-        finenv.UI():AlertError(msg, "Error")
+        finenv.UI():AlertError("Please select some music\nbefore running this script",
+            plugindef():gsub("%.%.%.", "")
+        )
         return
     end
     if not user_chooses(rgn) then -- cancelled, so restore original selection
         rgn:SetRegion(finenv.Region())
     end
     rgn:SetInDocument() -- otherwise set new selection
+    if refocus_document then finenv.UI():ActivateDocumentWindow() end
 end
 
 refine_selection()
