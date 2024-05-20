@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.29"
-    finaleplugin.Date = "2023/11/30"
+    finaleplugin.Version = "0.34"
+    finaleplugin.Date = "2024/05/20"
     finaleplugin.AdditionalMenuOptions = [[
         Noteheads Change Repeat
     ]]
@@ -17,29 +17,30 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
         no_dialog = true
     ]]
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.ScriptGroupName = "Noteheads Change by Layer"
     finaleplugin.ScriptGroupDescription = "Change notehead shapes on a specific layer of the current selection"
-    finaleplugin.Notes = [[ 
-        Change notehead shapes on a specific layer of the current 
-        selection to one of these options:  
-        Circled | Default | Diamond | Guitar Diamond |  
-        Hidden | Number | Round | Slash | Square |  
-        Strikethrough | Triangle | Wedge | X |  
+    finaleplugin.Notes = [[
+        Change __notehead shapes__ on a specific layer of the current 
+        selection to one of these options: 
+
+        > Circled | Default | Diamond | Guitar Diamond  
+        > Hidden | Number | Round | Slash | Square  
+        > Strikethrough | Triangle | Wedge | X  
 
         This script produces an ordered list of notehead types, 
-        each line beginning with a configurable "hotkey". 
-        Call the script, type the hotkey and hit [enter] or [return].  
+        each line beginning with a configurable _hotkey_. 
+        Call the script, type the _hotkey_ and hit [Return].  
 
-        In SMuFL fonts like Finale Maestro, shapes can vary according 
+        In __SMuFL__ fonts like _Finale Maestro_, shapes can vary according 
         to duration values. Most duration-dependent shapes are not available 
-        in Finale's old (non-SMuFL) Maestro and Engraver fonts. 
-        "Diamond (Guitar)" is like "Diamond" except quarter notes and shorter use filled diamonds. 
-        "Number" lets you specify any font character as a number including SMuFL (Unicode) numbers 
-        in the form "0xe0e1" or "0xE0E1". 
+        in Finale's old (non-SMuFL) _Maestro_ and _Engraver_ fonts. 
+        _Diamond (Guitar)_ is like _Diamond_ except quarter notes and shorter use filled diamonds. 
+        _Number_ lets you specify any font character as a number including 
+        __SMuFL__ (Unicode) numbers in the form __0xe0e1__ or __0xE0E1__. 
 
         To repeat the same action as last time without a confirmation dialog either select the 
-        "Noteheads Change Repeat" menu item or hold down the [shift] key when opening the script.
+        __Noteheads Change Repeat__ menu item or hold down [Shift] when opening the script.
     ]]
     return "Noteheads Change by Layer...", "Noteheads Change by Layer",
         "Change notehead shapes on a specific layer of the current selection"
@@ -47,55 +48,32 @@ end
 
 no_dialog = no_dialog or false
 
-local info_notes = [[
-Change notehead shapes on a specific layer of the current 
-selection to one of these options:  
-Circled | Default | Diamond | Guitar Diamond |  
-Hidden | Number | Round | Slash | Square |  
-Strikethrough | Triangle | Wedge | X |  
-]] .. "\n" .. [[
-This script produces an ordered list of notehead types, 
-each line beginning with a configurable "hotkey". 
-Call the script, type the hotkey and hit [enter] or [return].  
-]] .. "\n" .. [[
-In SMuFL fonts like Finale Maestro, shapes can vary according 
-to duration values. Most duration-dependent shapes are not available 
-in Finale's old (non-SMuFL) Maestro and Engraver fonts. 
-"Diamond (Guitar)" is like "Diamond" except quarter notes and shorter use filled diamonds. 
-"Number" lets you specify any font character as a number including SMuFL (Unicode) numbers 
-in the form "0xe0e1" or "0xE0E1".  
-]] .. "\n" .. [[
-To repeat the same action as last time without a confirmation dialog either select the 
-"Noteheads Change Repeat" menu item or hold down the [shift] key when opening the script.
-]]
-info_notes = info_notes:gsub("  \n",  "\n"):gsub(" %s+", " "):gsub("\n ", "\n")
-
 local notehead = require("library.notehead")
 local mixin = require("library.mixin")
 local configuration = require("library.configuration")
+local utils = require("library.utils")
 local library = require("library.general_library")
 local layer = require("library.layer")
 local diamond = { smufl = 0xE0E1, non_smufl = 79 }
+local script_name = library.calc_script_name()
+local refocus_document = false
 
-local dialog_options = { -- ordered list for menu (list_box) selection
-    "Circled",  "Default",       "Diamond",  "Diamond_Guitar",
-    "Hidden",   "Number",        "Round",    "Slash",
-    "Square",   "Strikethrough", "Triangle", "Wedge",      "X"
+local dialog_options = { -- notehead name (and key), HOTKEY
+    { "Circled", "C" },
+    { "Default", "A" },
+    { "Diamond", "D" },
+    { "Diamond_Guitar", "G" },
+    { "Hidden",  "H" },
+    { "Number",  "N" },
+    { "Round",   "R" },
+    { "Slash",   "S" },
+    { "Square",  "Q" },
+    { "Strikethrough", "E" },
+    { "Triangle", "T" },
+    { "Wedge",    "W" },
+    { "X",        "Z" }
 }
 local config = {
-    Circled = "C", -- map dialog options onto key codes
-    Default = "A",
-    Diamond = "D",
-    Diamond_Guitar = "G",
-    Hidden = "H",
-    Number = "N",
-    Round = "R",
-    Slash = "S",
-    Square = "Q",
-    Strikethrough = "E",
-    Triangle = "T",
-    Wedge = "W",
-    X = "X",
     layer_num = 1,
     ignore_duplicates = 0,
     shape = "default",
@@ -103,7 +81,9 @@ local config = {
     window_pos_x = false,
     window_pos_y = false
 }
-local script_name = "noteheads_change_by_layer"
+for _, v in ipairs(dialog_options) do -- add HOTKEYS to CONFIG
+    config[v[1]] = v[2] -- map name (key) onto HOTKEY
+end
 
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -140,7 +120,7 @@ local function user_chooses_glyph()
         .. "and might contain no characters higher than 255"
     end
 
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(finaleplugin.ScriptGroupName)
     dialog:CreateStatic(0, y_diff):SetWidth(x + 70)
         :SetText("Enter required character (glyph) number:")
     dialog:CreateStatic(0, y_diff + 25):SetWidth(x + 100):SetHeight(50)
@@ -152,22 +132,22 @@ local function user_chooses_glyph()
     dialog:RegisterInitWindow(function() glyph:SetKeyboardFocus() end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     dialog:RegisterHandleOkButtonPressed(function() config.glyph = glyph:GetText() end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
 end
 
-local function reassign_keystrokes(index)
+local function reassign_keystrokes(parent, index)
     local y_step, x_wide = 17, 180
     local offset = finenv.UI():IsOnMac() and 3 or 0
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Noteheads: Reassign Keys")
     local is_duplicate, errors = false, {}
     local y = 0
     for _, v in ipairs(dialog_options) do -- add all options with keycodes
-        dialog:CreateEdit(0, y - offset, v):SetText(config[v]):SetWidth(20)
+        dialog:CreateEdit(0, y - offset, v[1]):SetText(config[v[1]]):SetWidth(20)
             :AddHandleCommand(function(self)
-                local str = self:GetText():upper()
-                self:SetText(str:sub(-1)):SetKeyboardFocus()
+                local str = self:GetText():sub(-1):upper()
+                self:SetText(str):SetKeyboardFocus()
             end)
-        dialog:CreateStatic(25, y):SetText(v):SetWidth(x_wide)
+        dialog:CreateStatic(25, y):SetText(v[1]):SetWidth(x_wide)
         y = y + y_step
     end
     y = y + 7
@@ -176,79 +156,83 @@ local function reassign_keystrokes(index)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterInitWindow(function(self)
-        self:GetControl(dialog_options[index]):SetKeyboardFocus()
+        self:GetControl(dialog_options[index][1]):SetKeyboardFocus()
     end)
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function(self)
         local assigned = {}
-        for i, v in ipairs(dialog_options) do
-            local key = self:GetControl(v):GetText()
+        for _, v in ipairs(dialog_options) do
+            local key = self:GetControl(v[1]):GetText()
             if key == "" then key = "?" end
-            config[v] = key -- save for another possible run-through
+            config[v[1]] = key -- save for another possible run-through
             config.ignore_duplicates = ignore:GetCheck()
             if config.ignore_duplicates == 0 then -- DON'T ignore duplicates
                 if assigned[key] then -- previously assigned
                     is_duplicate = true
                     if not errors[key] then errors[key] = { assigned[key] } end
-                    table.insert(errors[key], i)
+                    table.insert(errors[key], v[1])
                 else
-                    assigned[key] = i -- flag key assigned
+                    assigned[key] = v[1] -- flag key assigned
                 end
             end
         end
         if is_duplicate then -- list reassignment duplications
             local msg = ""
             for i, v in pairs(errors) do
+                if msg ~= "" then msg = msg .. "\n\n" end
                 msg = msg .. "Key \"" .. i .. "\" is assigned to: "
                 for j, w in ipairs(v) do
                     if j > 1 then msg = msg .. " and " end
-                    msg = msg .. "\"" .. dialog_options[w] .. "\""
+                    msg = msg .. "\"" .. w .. "\""
                 end
-                msg = msg .. "\n\n"
             end
-            finenv.UI():AlertError(msg, "Duplicate Key Assignment")
+            dialog:CreateChildUI():AlertError(msg, "Duplicate Key Assignment")
         end
     end)
-    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    local ok = (dialog:ExecuteModal(parent) == finale.EXECMODAL_OK)
     return ok, is_duplicate
 end
 
 local function user_chooses_shape()
-    local x_offset = 185
-    local y_step = 17
-    local join = finenv.UI():IsOnMac() and "\t" or ": "
-    local box_high = (#dialog_options * y_step) + 5
-    local function show_info()
-        finenv.UI():AlertInfo(info_notes, "About " .. finaleplugin.ScriptGroupName)
-    end
-
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    local x_offset = 140
+    local y_step = 18
+    local box_high = #dialog_options * 17 + 5
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(finaleplugin.ScriptGroupName)
     dialog:CreateStatic(0, 0):SetText("Select note shape:"):SetWidth(150)
-    local shape_list = dialog:CreateListBox(0, y_step):SetWidth(x_offset - 20):SetHeight(box_high)
+    local shape_list = dialog:CreateListBox(0, y_step):SetWidth(x_offset - 10):SetHeight(box_high)
         local function fill_shape_list()
+            local join = finenv.UI():IsOnMac() and "\t" or ": "
             shape_list:Clear()
             for i, v in ipairs(dialog_options) do
-                local item = (i ~= 4) and v or "Guitar Diamond"
-                shape_list:AddString(config[v] .. join .. item)
-                if v:lower() == config.shape then
+                local item = (i ~= 4) and v[1] or "Guitar Diamond"
+                shape_list:AddString(config[v[1]] .. join .. item)
+                if v[1]:lower() == config.shape then
                     shape_list:SetSelectedItem(i - 1)
                 end
             end
         end
     fill_shape_list()
-
+        local function show_info()
+            utils.show_notes_dialog(dialog, "About " .. finaleplugin.ScriptGroupName, 420, 310)
+            refocus_document = true
+        end
         local function reassign_keys()
             local ok, is_duplicate = true, true
             while ok and is_duplicate do -- wait for valid choice in reassign_keystrokes()
-                ok, is_duplicate = reassign_keystrokes(shape_list:GetSelectedItem() + 1)
+                ok, is_duplicate = reassign_keystrokes(dialog, shape_list:GetSelectedItem() + 1)
+                refocus_document = true
             end
-            if ok then fill_shape_list() end
+            if ok then
+                fill_shape_list()
+            else -- reinstall hotkeys from user config
+                configuration.get_user_settings(script_name, config)
+            end
         end
 
     local y = y_step * 3
     local max = layer.max_layers()
     dialog:CreateStatic(x_offset, y):SetText("Layer number (1-" .. max .. "):"):SetWidth(110)
-    y = y + y_step + 2
+    y = y + y_step-- + 2
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- + vertical offset for Mac edit boxes
     local save_layer = config.layer_num
     local layer_num = dialog:CreateEdit(x_offset + 38, y - mac_offset):SetWidth(20)
@@ -259,39 +243,41 @@ local function user_chooses_shape()
                 if val:find("r") then reassign_keys()
                 elseif val:find("[?q]") then show_info()
                 end
-                self:SetText(save_layer):SetKeyboardFocus()
             elseif val ~= "" then
-                val = val:sub(-1) -- layer number has one char
-                self:SetText(val)
-                save_layer = val
+                save_layer = val:sub(-1) -- layer number has one char
             end
+            self:SetText(save_layer):SetKeyboardFocus()
         end)
-    y = y + y_step + 2
+    y = y + y_step-- + 2
     dialog:CreateStatic(x_offset + 12, y):SetText("(0 = all layers)"):SetWidth(105)
-
-    y = y + y_step + 2
-    dialog:CreateButton(x_offset + 38, y):SetText("?"):SetWidth(20)
+    y = y + y_step-- + 2
+    dialog:CreateButton(x_offset + 38, y, "q"):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
     y = y_step * 3 + y
     dialog:CreateButton(x_offset, y)
-        :SetText("Reassign Keys"):SetWidth(100)
+        :SetText("Change Hotkeys"):SetWidth(100)
         :AddHandleCommand(function() reassign_keys() end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function() shape_list:SetKeyboardFocus() end)
-    dialog:RegisterHandleOkButtonPressed(function(self)
-        config.shape = string.lower( dialog_options[shape_list:GetSelectedItem() + 1] )
-        config.layer_num = layer_num:GetInteger()
-        dialog_save_position(self)
+    dialog:RegisterInitWindow(function()
+        local q = dialog:GetControl("q")
+        q:SetFont(q:CreateFontInfo():SetBold(true))
+        shape_list:SetKeyboardFocus()
     end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    dialog:RegisterHandleOkButtonPressed(function()
+        local item = shape_list:GetSelectedItem() + 1
+        config.shape = dialog_options[item][1]:lower()
+        config.layer_num = layer_num:GetInteger()
+    end)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
 end
 
 local function change_noteheads()
     configuration.get_user_settings(script_name, config, true)
-    local qimk = finenv.QueryInvokedModifierKeys
-    local mod_key = qimk and (qimk(finale.CMDMODKEY_ALT) or qimk(finale.CMDMODKEY_SHIFT))
+    local qim = finenv.QueryInvokedModifierKeys
+    local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
 
     if no_dialog or mod_key or user_chooses_shape() then
         if config.shape == "number" then
@@ -306,8 +292,8 @@ local function change_noteheads()
                 end
             end
         end
-        finenv.UI():ActivateDocumentWindow()
     end
+    if refocus_document then finenv.UI():ActivateDocumentWindow() end
 end
 
 change_noteheads()
