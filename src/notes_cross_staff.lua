@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.95h"
-    finaleplugin.Date = "2024/05/19"
+    finaleplugin.Version = "0.95i"
+    finaleplugin.Date = "2024/05/22"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below"
 	finaleplugin.Notes = [[
@@ -97,7 +97,7 @@ local config = {
     window_pos_y  = false,
 }
 
-local offsets = { -- (ordered) name; default value; text description
+local offsets = { -- (ordered) name; default value; text description; h_offset
     { "Up_Crossed",     12, "Cross Up:", 79 },
     { "Up_Uncrossed",  -12 },
     { "Down_Crossed",  -12, "Cross Down:", 65 },
@@ -341,11 +341,11 @@ local function cross_staff(dialog)
         if count >= config.count_out_of then count = 0 end -- restart note count
     end
     -- pass 2 (whole measure) "clean" affected beams
-    local bsen
+    local bsen -- abbreviation for beam_start[EntryNumber]
     for entry in eachentrysaved(whole_measure, config.layer_num) do
         local enum = entry.EntryNumber
         if beam_start[enum] then
-            clean_beams(entry) -- erase beam offsets
+            clean_beams(entry) -- "clean" old beam offsets
             bsen = beam_start[enum] -- abbreviation
         end
         if bsen and entry:CalcBeamedGroupEnd() then
@@ -375,9 +375,8 @@ local function cross_staff(dialog)
                 end
                 cross_entry(entry, next_staff)
             end
-            if not bsen then -- new beam group?
-                if beam_start[enum] then bsen = beam_start[enum] end
-            else -- continuing beam-group
+            if beam_start[enum] then bsen = beam_start[enum] end
+            if bsen then -- continuing beam-group
                 bsen[crossing[enum] and "cross" or "stay"] = true
                 if bsen.stop == enum then bsen = nil end -- ended
             end
@@ -579,7 +578,7 @@ local function run_the_dialog()
     answer.h3 = cstat(x[2] - 4, y + 2, "Not Crossed", 70)
 
     for i, v in ipairs(offsets) do -- OFFSET MEASUREMENTS
-        if (i % 2 == 1) then dy(19) end
+        if (i % 2 == 1) then dy(20) end
         answer[v[1]] = dialog:CreateMeasurementEdit((i % 2 == 1) and x[1] or x[2], y - y_off)
             :SetMeasurementInteger(config[v[1]]):SetWidth(63)
             :AddHandleCommand(function() key_check(v[1]) end)
