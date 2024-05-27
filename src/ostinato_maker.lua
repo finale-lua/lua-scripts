@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine after Michael McClennan & Jacob Winkler"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.30" -- MODAL/MODELESS optional
-    finaleplugin.Date = "2024/03/16"
+    finaleplugin.Version = "0.31"
+    finaleplugin.Date = "2024/05/27"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Copy the current selection and paste it consecutively 
@@ -57,6 +57,18 @@ local bounds = { -- primary region selection boundaries
     "StartStaff", "StartMeasure", "StartMeasurePos",
     "EndStaff",   "EndMeasure",   "EndMeasurePos",
 }
+local hotkey = { -- customise hotkeys (lowercase only)
+    copy_articulations = "w",
+    copy_expressions = "e",
+    copy_slurs       = "r",
+    copy_smartshapes = "t",
+    copy_lyrics      = "y",
+    copy_chords      = "u",
+    copy_all         = "a",
+    copy_none        = "z",
+    modeless         = "m",
+    show_info        = "q",
+}
 
 local config = {
     num_repeats  = 1,
@@ -67,7 +79,7 @@ local config = {
 }
 local dialog_options = { -- and populate config values (unchecked)
     "copy_articulations", "copy_expressions", "copy_slurs",
-     "copy_smartshapes",  "copy_lyrics",      "copy_chords"
+    "copy_smartshapes",   "copy_lyrics",      "copy_chords"
 }
 for _, v in ipairs(dialog_options) do config[v] = 0 end -- (default all unchecked)
 
@@ -94,9 +106,9 @@ end
 local function get_staff_name(staff_num)
     local staff = finale.FCStaff()
     staff:Load(staff_num)
-    local str = staff:CreateDisplayFullNameString().LuaString
+    local str = staff:CreateDisplayAbbreviatedNameString().LuaString
     if not str or str == "" then
-        str = "Staff " .. staff_num
+        str = "Staff" .. staff_num
     end
     return str
 end
@@ -110,16 +122,17 @@ local function initialise_parameters()
     end
     -- selection_id
     if not rgn:IsEmpty() then
+        -- staves
+        selection.staff = get_staff_name(rgn.StartStaff)
+        if rgn.EndStaff ~= rgn.StartStaff then
+            selection.staff = selection.staff .. "-" .. get_staff_name(rgn.EndStaff) .. " "
+        end
         -- measures
         local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
         local m = measure_duration(rgn.EndMeasure)
         local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
-        selection.region = string.format("m%.2f-m%.2f", r1, r2)
-        -- staves
-        selection.staff = get_staff_name(rgn.StartStaff)
-        if rgn.EndStaff ~= rgn.StartStaff then
-            selection.staff = selection.staff .. " → " .. get_staff_name(rgn.EndStaff)
-        end
+        selection.region = string.format("m%.2f-%.2f", r1, r2)
+        
     end
 end
 
@@ -256,7 +269,7 @@ local function region_erasures(rgn)
     end
 end
 
-local function paste_many_copies(source_region)
+local function paste_copies(source_region)
     if source_region:IsEmpty() or config.num_repeats < 1 then return end -- no duplication
     local rpt_rgn = mixin.FCMMusicRegion()
     rpt_rgn:SetRegion(source_region)
@@ -294,7 +307,7 @@ local function paste_many_copies(source_region)
 end
 
 local function run_user_dialog()
-    local edit_x, y_step = 105, 18
+    local edit_x, y_step = 105, 17
     local y_offset = finenv.UI():IsOnMac() and 3 or 0
     local save_rpt = config.num_repeats
     local name = plugindef():gsub("%.%.%.", "")
@@ -317,18 +330,18 @@ local function run_user_dialog()
         local function key_check(ctl) -- key commands
             local s = ctl:GetText():lower()
             if s:find("[^0-9]") then
-                if s:find("q") then info_dialog()
-                elseif s:find("w") then flip_check(1)
-                elseif s:find("e") then flip_check(2)
-                elseif s:find("r") then flip_check(3)
-                elseif s:find("t") then flip_check(4)
-                elseif s:find("y") then flip_check(5)
-                elseif s:find("u") then flip_check(6)
-                elseif s:find("m") then
+                if s:find(hotkey.copy_articulations)   then flip_check(1)
+                elseif s:find(hotkey.copy_expressions) then flip_check(2)
+                elseif s:find(hotkey.copy_slurs)       then flip_check(3)
+                elseif s:find(hotkey.copy_smartshapes) then flip_check(4)
+                elseif s:find(hotkey.copy_lyrics)      then flip_check(5)
+                elseif s:find(hotkey.copy_chords)      then flip_check(6)
+                elseif s:find(hotkey.copy_all)   then check_all_state(1)
+                elseif s:find(hotkey.copy_none)  then check_all_state(0)
+                elseif s:find(hotkey.show_info)  then info_dialog()
+                elseif s:find(hotkey.modeless)   then
                     local mod = dialog:GetControl("modeless")
                     mod:SetCheck((mod:GetCheck() + 1) % 2)
-                elseif s:find("a") then check_all_state(1)
-                elseif s:find("z") then check_all_state(0)
                 end
                 ctl:SetText(save_rpt):SetKeyboardFocus()
             else
@@ -342,8 +355,7 @@ local function run_user_dialog()
             for k, v in pairs(saved_bounds) do
                 if finenv.Region()[k] ~= v then -- selection changed
                     initialise_parameters() -- update selection tracker
-                    dialog:GetControl("info1"):SetText(selection.staff)
-                    dialog:GetControl("info2"):SetText(selection.region)
+                    dialog:GetControl("info"):SetText(selection.staff .. selection.region)
                     break -- all done
                 end
             end
@@ -359,22 +371,20 @@ local function run_user_dialog()
     for _, v in ipairs(dialog_options) do
         local id = v:sub(6):gsub("^%l", string.upper)
         if id == "Smartshapes" then id = "Other Smartshapes" end
+        id = id .. " (" .. hotkey[v] .. ")"
         dialog:CreateCheckbox(edit_x, y, v):SetCheck(config[v])
-           :SetText(id):SetWidth(120)
+           :SetText(id):SetWidth(135)
         y = y + y_step
     end
-    dialog:CreateCheckbox(0, y, "modeless"):SetWidth(80)
-        :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
+    dialog:CreateCheckbox(0, y, "modeless"):SetWidth(135)
+        :SetCheck(config.modeless and 1 or 0)
+        :SetText("\"Modeless\" Dialog (" .. hotkey.modeless .. ")")
     local q = dialog:CreateButton(edit_x + 100, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() info_dialog() end)
     -- modeless selection info
-    if config.modeless then
-        y = y + 15
-        dialog:CreateStatic(15, y, "info1"):SetText(selection.staff):SetWidth(edit_x + 75)
-        y = y + 15
-        dialog:CreateStatic(15, y, "info2"):SetText(selection.region):SetWidth(edit_x + 75)
-    end
-
+    y = y + 15
+    dialog:CreateStatic(15, y, "info"):SetWidth(edit_x + 75)
+        :SetText(selection.staff .. selection.region)
     dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
@@ -390,7 +400,7 @@ local function run_user_dialog()
         for _, v in ipairs(dialog_options) do
             config[v] = dialog:GetControl(v):GetCheck()
         end
-        paste_many_copies(finenv.Region())
+        paste_copies(finenv.Region())
     end)
     local change_mode = false
     dialog:RegisterCloseWindow(function(self)
@@ -423,7 +433,7 @@ local function make_ostinato()
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
     initialise_parameters()
     if mod_key then
-        paste_many_copies(finenv.Region())
+        paste_copies(finenv.Region())
     else
         while run_user_dialog() do
         end
