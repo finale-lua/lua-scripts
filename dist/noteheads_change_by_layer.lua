@@ -4504,6 +4504,143 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     end
     return mixin
 end
+package.preload["library.configuration"] = package.preload["library.configuration"] or function()
+
+
+
+    local configuration = {}
+    local utils = require("library.utils")
+    local script_settings_dir = "script_settings"
+    local comment_marker = "--"
+    local parameter_delimiter = "="
+    local path_delimiter = "/"
+    local file_exists = function(file_path)
+        local f = io.open(file_path, "r")
+        if nil ~= f then
+            io.close(f)
+            return true
+        end
+        return false
+    end
+    parse_parameter = function(val_string)
+        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "\"(.+)\"", "%1")
+        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "'(.+)'", "%1")
+        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
+            return load("return " .. val_string)()
+        elseif "true" == val_string then
+            return true
+        elseif "false" == val_string then
+            return false
+        end
+        return tonumber(val_string)
+    end
+    local get_parameters_from_file = function(file_path, parameter_list)
+        local file_parameters = {}
+        if not file_exists(file_path) then
+            return false
+        end
+        for line in io.lines(file_path) do
+            local comment_at = string.find(line, comment_marker, 1, true)
+            if nil ~= comment_at then
+                line = string.sub(line, 1, comment_at - 1)
+            end
+            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
+            if nil ~= delimiter_at then
+                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
+                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
+                file_parameters[name] = parse_parameter(val_string)
+            end
+        end
+        local function process_table(param_table, param_prefix)
+            param_prefix = param_prefix and param_prefix.."." or ""
+            for param_name, param_val in pairs(param_table) do
+                local file_param_name = param_prefix .. param_name
+                local file_param_val = file_parameters[file_param_name]
+                if nil ~= file_param_val then
+                    param_table[param_name] = file_param_val
+                elseif type(param_val) == "table" then
+                        process_table(param_val, param_prefix..param_name)
+                end
+            end
+        end
+        process_table(parameter_list)
+        return true
+    end
+
+    function configuration.get_parameters(file_name, parameter_list)
+        local path
+        if finenv.IsRGPLua then
+            path = finenv.RunningLuaFolderPath()
+        else
+            local str = finale.FCString()
+            str:SetRunningLuaFolderPath()
+            path = str.LuaString
+        end
+        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+        return get_parameters_from_file(file_path, parameter_list)
+    end
+
+
+    local calc_preferences_filepath = function(script_name)
+        local str = finale.FCString()
+        str:SetUserOptionsPath()
+        local folder_name = str.LuaString
+        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+
+            folder_name = os.getenv("HOME") .. folder_name:sub(2)
+        end
+        if finenv.UI():IsOnWindows() then
+            folder_name = folder_name .. path_delimiter .. "FinaleLua"
+        end
+        local file_path = folder_name .. path_delimiter
+        if finenv.UI():IsOnMac() then
+            file_path = file_path .. "com.finalelua."
+        end
+        file_path = file_path .. script_name .. ".settings.txt"
+        return file_path, folder_name
+    end
+
+    function configuration.save_user_settings(script_name, parameter_list)
+        local file_path, folder_path = calc_preferences_filepath(script_name)
+        local file = io.open(file_path, "w")
+        if not file and finenv.UI():IsOnWindows() then
+
+            local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
+            if osutils then
+                osutils.process.make_dir(folder_path)
+            else
+                os.execute('mkdir "' .. folder_path ..'"')
+            end
+            file = io.open(file_path, "w")
+        end
+        if not file then
+            return false
+        end
+        file:write("-- User settings for " .. script_name .. ".lua\n\n")
+        for k,v in pairs(parameter_list) do
+            if type(v) == "string" then
+                v = "\"" .. v .."\""
+            else
+                v = tostring(v)
+            end
+            file:write(k, " = ", v, "\n")
+        end
+        file:close()
+        return true
+    end
+
+    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+        if create_automatically == nil then create_automatically = true end
+        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+        if not exists and create_automatically then
+            configuration.save_user_settings(script_name, parameter_list)
+        end
+        return exists
+    end
+    return configuration
+end
 package.preload["library.utils"] = package.preload["library.utils"] or function()
 
     local utils = {}
@@ -4774,143 +4911,6 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         return mac_value
     end
     return utils
-end
-package.preload["library.configuration"] = package.preload["library.configuration"] or function()
-
-
-
-    local configuration = {}
-    local utils = require("library.utils")
-    local script_settings_dir = "script_settings"
-    local comment_marker = "--"
-    local parameter_delimiter = "="
-    local path_delimiter = "/"
-    local file_exists = function(file_path)
-        local f = io.open(file_path, "r")
-        if nil ~= f then
-            io.close(f)
-            return true
-        end
-        return false
-    end
-    parse_parameter = function(val_string)
-        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "\"(.+)\"", "%1")
-        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "'(.+)'", "%1")
-        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-            return load("return " .. val_string)()
-        elseif "true" == val_string then
-            return true
-        elseif "false" == val_string then
-            return false
-        end
-        return tonumber(val_string)
-    end
-    local get_parameters_from_file = function(file_path, parameter_list)
-        local file_parameters = {}
-        if not file_exists(file_path) then
-            return false
-        end
-        for line in io.lines(file_path) do
-            local comment_at = string.find(line, comment_marker, 1, true)
-            if nil ~= comment_at then
-                line = string.sub(line, 1, comment_at - 1)
-            end
-            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
-            if nil ~= delimiter_at then
-                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
-                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
-                file_parameters[name] = parse_parameter(val_string)
-            end
-        end
-        local function process_table(param_table, param_prefix)
-            param_prefix = param_prefix and param_prefix.."." or ""
-            for param_name, param_val in pairs(param_table) do
-                local file_param_name = param_prefix .. param_name
-                local file_param_val = file_parameters[file_param_name]
-                if nil ~= file_param_val then
-                    param_table[param_name] = file_param_val
-                elseif type(param_val) == "table" then
-                        process_table(param_val, param_prefix..param_name)
-                end
-            end
-        end
-        process_table(parameter_list)
-        return true
-    end
-
-    function configuration.get_parameters(file_name, parameter_list)
-        local path
-        if finenv.IsRGPLua then
-            path = finenv.RunningLuaFolderPath()
-        else
-            local str = finale.FCString()
-            str:SetRunningLuaFolderPath()
-            path = str.LuaString
-        end
-        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
-        return get_parameters_from_file(file_path, parameter_list)
-    end
-
-
-    local calc_preferences_filepath = function(script_name)
-        local str = finale.FCString()
-        str:SetUserOptionsPath()
-        local folder_name = str.LuaString
-        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
-
-            folder_name = os.getenv("HOME") .. folder_name:sub(2)
-        end
-        if finenv.UI():IsOnWindows() then
-            folder_name = folder_name .. path_delimiter .. "FinaleLua"
-        end
-        local file_path = folder_name .. path_delimiter
-        if finenv.UI():IsOnMac() then
-            file_path = file_path .. "com.finalelua."
-        end
-        file_path = file_path .. script_name .. ".settings.txt"
-        return file_path, folder_name
-    end
-
-    function configuration.save_user_settings(script_name, parameter_list)
-        local file_path, folder_path = calc_preferences_filepath(script_name)
-        local file = io.open(file_path, "w")
-        if not file and finenv.UI():IsOnWindows() then
-
-            local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
-            if osutils then
-                osutils.process.make_dir(folder_path)
-            else
-                os.execute('mkdir "' .. folder_path ..'"')
-            end
-            file = io.open(file_path, "w")
-        end
-        if not file then
-            return false
-        end
-        file:write("-- User settings for " .. script_name .. ".lua\n\n")
-        for k,v in pairs(parameter_list) do
-            if type(v) == "string" then
-                v = "\"" .. v .."\""
-            else
-                v = tostring(v)
-            end
-            file:write(k, " = ", v, "\n")
-        end
-        file:close()
-        return true
-    end
-
-    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
-        if create_automatically == nil then create_automatically = true end
-        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
-        if not exists and create_automatically then
-            configuration.save_user_settings(script_name, parameter_list)
-        end
-        return exists
-    end
-    return configuration
 end
 package.preload["library.client"] = package.preload["library.client"] or function()
 
@@ -5538,8 +5538,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.29"
-    finaleplugin.Date = "2023/11/30"
+    finaleplugin.Version = "0.34"
+    finaleplugin.Date = "2024/05/20"
     finaleplugin.AdditionalMenuOptions = [[
         Noteheads Change Repeat
     ]]
@@ -5552,29 +5552,30 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
         no_dialog = true
     ]]
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.ScriptGroupName = "Noteheads Change by Layer"
     finaleplugin.ScriptGroupDescription = "Change notehead shapes on a specific layer of the current selection"
-    finaleplugin.Notes = [[ 
-        Change notehead shapes on a specific layer of the current 
-        selection to one of these options:  
-        Circled | Default | Diamond | Guitar Diamond |  
-        Hidden | Number | Round | Slash | Square |  
-        Strikethrough | Triangle | Wedge | X |  
+    finaleplugin.Notes = [[
+        Change __notehead shapes__ on a specific layer of the current 
+        selection to one of these options: 
+
+        > Circled | Default | Diamond | Guitar Diamond  
+        > Hidden | Number | Round | Slash | Square  
+        > Strikethrough | Triangle | Wedge | X  
 
         This script produces an ordered list of notehead types, 
-        each line beginning with a configurable "hotkey". 
-        Call the script, type the hotkey and hit [enter] or [return].  
+        each line beginning with a configurable _hotkey_. 
+        Call the script, type the _hotkey_ and hit [Return].  
 
-        In SMuFL fonts like Finale Maestro, shapes can vary according 
+        In __SMuFL__ fonts like _Finale Maestro_, shapes can vary according 
         to duration values. Most duration-dependent shapes are not available 
-        in Finale's old (non-SMuFL) Maestro and Engraver fonts. 
-        "Diamond (Guitar)" is like "Diamond" except quarter notes and shorter use filled diamonds. 
-        "Number" lets you specify any font character as a number including SMuFL (Unicode) numbers 
-        in the form "0xe0e1" or "0xE0E1". 
+        in Finale's old (non-SMuFL) _Maestro_ and _Engraver_ fonts. 
+        _Diamond (Guitar)_ is like _Diamond_ except quarter notes and shorter use filled diamonds. 
+        _Number_ lets you specify any font character as a number including 
+        __SMuFL__ (Unicode) numbers in the form __0xe0e1__ or __0xE0E1__. 
 
         To repeat the same action as last time without a confirmation dialog either select the 
-        "Noteheads Change Repeat" menu item or hold down the [shift] key when opening the script.
+        __Noteheads Change Repeat__ menu item or hold down [Shift] when opening the script.
     ]]
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
@@ -5582,10 +5583,11 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Change notehead shapes on a specific layer of the current selection to one of these options:\line Circled | Default | Diamond | Guitar Diamond |\line Hidden | Number | Round | Slash | Square |\line Strikethrough | Triangle | Wedge | X |\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script produces an ordered list of notehead types, each line beginning with a configurable \u8220"hotkey\u8221". Call the script, type the hotkey and hit [enter] or [return].\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 In SMuFL fonts like Finale Maestro, shapes can vary according to duration values. Most duration-dependent shapes are not available in Finale\u8217's old (non-SMuFL) Maestro and Engraver fonts. \u8220"Diamond (Guitar)\u8221" is like \u8220"Diamond\u8221" except quarter notes and shorter use filled diamonds. \u8220"Number\u8221" lets you specify any font character as a number including SMuFL (Unicode) numbers in the form \u8220"0xe0e1\u8221" or \u8220"0xE0E1\u8221".\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To repeat the same action as last time without a confirmation dialog either select the \u8220"Noteheads Change Repeat\u8221" menu item or hold down the [shift] key when opening the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Change {\b notehead shapes} on a specific layer of the current selection to one of these options:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 Circled | Default | Diamond | Guitar Diamond\line Hidden | Number | Round | Slash | Square\line Strikethrough | Triangle | Wedge | X\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script produces an ordered list of notehead types, each line beginning with a configurable {\i hotkey}. Call the script, type the {\i hotkey} and hit [Return].\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 In {\b SMuFL} fonts like {\i Finale Maestro}, shapes can vary according to duration values. Most duration-dependent shapes are not available in Finale\u8217's old (non-SMuFL) {\i Maestro} and {\i Engraver} fonts. {\i Diamond (Guitar)} is like {\i Diamond} except quarter notes and shorter use filled diamonds. {\i Number} lets you specify any font character as a number including {\b SMuFL} (Unicode) numbers in the form {\b 0xe0e1} or {\b 0xE0E1}.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To repeat the same action as last time without a confirmation dialog either select the {\b Noteheads Change Repeat} menu item or hold down [Shift] when opening the script.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/noteheads_change_by_layer.hash"
@@ -5593,53 +5595,31 @@ function plugindef()
         "Change notehead shapes on a specific layer of the current selection"
 end
 no_dialog = no_dialog or false
-local info_notes = [[
-Change notehead shapes on a specific layer of the current
-selection to one of these options:
-Circled | Default | Diamond | Guitar Diamond |
-Hidden | Number | Round | Slash | Square |
-Strikethrough | Triangle | Wedge | X |
-]] .. "\n" .. [[
-This script produces an ordered list of notehead types,
-each line beginning with a configurable "hotkey".
-Call the script, type the hotkey and hit [enter] or [return].
-]] .. "\n" .. [[
-In SMuFL fonts like Finale Maestro, shapes can vary according
-to duration values. Most duration-dependent shapes are not available
-in Finale's old (non-SMuFL) Maestro and Engraver fonts.
-"Diamond (Guitar)" is like "Diamond" except quarter notes and shorter use filled diamonds.
-"Number" lets you specify any font character as a number including SMuFL (Unicode) numbers
-in the form "0xe0e1" or "0xE0E1".
-]] .. "\n" .. [[
-To repeat the same action as last time without a confirmation dialog either select the
-"Noteheads Change Repeat" menu item or hold down the [shift] key when opening the script.
-]]
-info_notes = info_notes:gsub("  \n",  "\n"):gsub(" %s+", " "):gsub("\n ", "\n")
 local notehead = require("library.notehead")
 local mixin = require("library.mixin")
 local configuration = require("library.configuration")
+local utils = require("library.utils")
 local library = require("library.general_library")
 local layer = require("library.layer")
 local diamond = { smufl = 0xE0E1, non_smufl = 79 }
+local script_name = library.calc_script_name()
+local refocus_document = false
 local dialog_options = {
-    "Circled",  "Default",       "Diamond",  "Diamond_Guitar",
-    "Hidden",   "Number",        "Round",    "Slash",
-    "Square",   "Strikethrough", "Triangle", "Wedge",      "X"
+    { "Circled", "C" },
+    { "Default", "A" },
+    { "Diamond", "D" },
+    { "Diamond_Guitar", "G" },
+    { "Hidden",  "H" },
+    { "Number",  "N" },
+    { "Round",   "R" },
+    { "Slash",   "S" },
+    { "Square",  "Q" },
+    { "Strikethrough", "E" },
+    { "Triangle", "T" },
+    { "Wedge",    "W" },
+    { "X",        "Z" }
 }
 local config = {
-    Circled = "C",
-    Default = "A",
-    Diamond = "D",
-    Diamond_Guitar = "G",
-    Hidden = "H",
-    Number = "N",
-    Round = "R",
-    Slash = "S",
-    Square = "Q",
-    Strikethrough = "E",
-    Triangle = "T",
-    Wedge = "W",
-    X = "X",
     layer_num = 1,
     ignore_duplicates = 0,
     shape = "default",
@@ -5647,7 +5627,9 @@ local config = {
     window_pos_x = false,
     window_pos_y = false
 }
-local script_name = "noteheads_change_by_layer"
+for _, v in ipairs(dialog_options) do
+    config[v[1]] = v[2]
+end
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
@@ -5679,7 +5661,7 @@ local function user_chooses_glyph()
         .. "should be lower than 4096 (\"0x1000\") "
         .. "and might contain no characters higher than 255"
     end
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(finaleplugin.ScriptGroupName)
     dialog:CreateStatic(0, y_diff):SetWidth(x + 70)
         :SetText("Enter required character (glyph) number:")
     dialog:CreateStatic(0, y_diff + 25):SetWidth(x + 100):SetHeight(50)
@@ -5691,21 +5673,21 @@ local function user_chooses_glyph()
     dialog:RegisterInitWindow(function() glyph:SetKeyboardFocus() end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     dialog:RegisterHandleOkButtonPressed(function() config.glyph = glyph:GetText() end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
 end
-local function reassign_keystrokes(index)
+local function reassign_keystrokes(parent, index)
     local y_step, x_wide = 17, 180
     local offset = finenv.UI():IsOnMac() and 3 or 0
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Noteheads: Reassign Keys")
     local is_duplicate, errors = false, {}
     local y = 0
     for _, v in ipairs(dialog_options) do
-        dialog:CreateEdit(0, y - offset, v):SetText(config[v]):SetWidth(20)
+        dialog:CreateEdit(0, y - offset, v[1]):SetText(config[v[1]]):SetWidth(20)
             :AddHandleCommand(function(self)
-                local str = self:GetText():upper()
-                self:SetText(str:sub(-1)):SetKeyboardFocus()
+                local str = self:GetText():sub(-1):upper()
+                self:SetText(str):SetKeyboardFocus()
             end)
-        dialog:CreateStatic(25, y):SetText(v):SetWidth(x_wide)
+        dialog:CreateStatic(25, y):SetText(v[1]):SetWidth(x_wide)
         y = y + y_step
     end
     y = y + 7
@@ -5714,75 +5696,81 @@ local function reassign_keystrokes(index)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog:RegisterInitWindow(function(self)
-        self:GetControl(dialog_options[index]):SetKeyboardFocus()
+        self:GetControl(dialog_options[index][1]):SetKeyboardFocus()
     end)
     dialog_set_position(dialog)
     dialog:RegisterHandleOkButtonPressed(function(self)
         local assigned = {}
-        for i, v in ipairs(dialog_options) do
-            local key = self:GetControl(v):GetText()
+        for _, v in ipairs(dialog_options) do
+            local key = self:GetControl(v[1]):GetText()
             if key == "" then key = "?" end
-            config[v] = key
+            config[v[1]] = key
             config.ignore_duplicates = ignore:GetCheck()
             if config.ignore_duplicates == 0 then
                 if assigned[key] then
                     is_duplicate = true
                     if not errors[key] then errors[key] = { assigned[key] } end
-                    table.insert(errors[key], i)
+                    table.insert(errors[key], v[1])
                 else
-                    assigned[key] = i
+                    assigned[key] = v[1]
                 end
             end
         end
         if is_duplicate then
             local msg = ""
             for i, v in pairs(errors) do
+                if msg ~= "" then msg = msg .. "\n\n" end
                 msg = msg .. "Key \"" .. i .. "\" is assigned to: "
                 for j, w in ipairs(v) do
                     if j > 1 then msg = msg .. " and " end
-                    msg = msg .. "\"" .. dialog_options[w] .. "\""
+                    msg = msg .. "\"" .. w .. "\""
                 end
-                msg = msg .. "\n\n"
             end
-            finenv.UI():AlertError(msg, "Duplicate Key Assignment")
+            dialog:CreateChildUI():AlertError(msg, "Duplicate Key Assignment")
         end
     end)
-    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    local ok = (dialog:ExecuteModal(parent) == finale.EXECMODAL_OK)
     return ok, is_duplicate
 end
 local function user_chooses_shape()
-    local x_offset = 185
-    local y_step = 17
-    local join = finenv.UI():IsOnMac() and "\t" or ": "
-    local box_high = (#dialog_options * y_step) + 5
-    local function show_info()
-        finenv.UI():AlertInfo(info_notes, "About " .. finaleplugin.ScriptGroupName)
-    end
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(plugindef())
+    local x_offset = 140
+    local y_step = 18
+    local box_high = #dialog_options * 17 + 5
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(finaleplugin.ScriptGroupName)
     dialog:CreateStatic(0, 0):SetText("Select note shape:"):SetWidth(150)
-    local shape_list = dialog:CreateListBox(0, y_step):SetWidth(x_offset - 20):SetHeight(box_high)
+    local shape_list = dialog:CreateListBox(0, y_step):SetWidth(x_offset - 10):SetHeight(box_high)
         local function fill_shape_list()
+            local join = finenv.UI():IsOnMac() and "\t" or ": "
             shape_list:Clear()
             for i, v in ipairs(dialog_options) do
-                local item = (i ~= 4) and v or "Guitar Diamond"
-                shape_list:AddString(config[v] .. join .. item)
-                if v:lower() == config.shape then
+                local item = (i ~= 4) and v[1] or "Guitar Diamond"
+                shape_list:AddString(config[v[1]] .. join .. item)
+                if v[1]:lower() == config.shape then
                     shape_list:SetSelectedItem(i - 1)
                 end
             end
         end
     fill_shape_list()
+        local function show_info()
+            utils.show_notes_dialog(dialog, "About " .. finaleplugin.ScriptGroupName, 420, 310)
+            refocus_document = true
+        end
         local function reassign_keys()
             local ok, is_duplicate = true, true
             while ok and is_duplicate do
-                ok, is_duplicate = reassign_keystrokes(shape_list:GetSelectedItem() + 1)
+                ok, is_duplicate = reassign_keystrokes(dialog, shape_list:GetSelectedItem() + 1)
+                refocus_document = true
             end
-            if ok then fill_shape_list() end
+            if ok then
+                fill_shape_list()
+            else
+                configuration.get_user_settings(script_name, config)
+            end
         end
     local y = y_step * 3
     local max = layer.max_layers()
     dialog:CreateStatic(x_offset, y):SetText("Layer number (1-" .. max .. "):"):SetWidth(110)
-    y = y + y_step + 2
+    y = y + y_step
     local mac_offset = finenv.UI():IsOnMac() and 3 or 0
     local save_layer = config.layer_num
     local layer_num = dialog:CreateEdit(x_offset + 38, y - mac_offset):SetWidth(20)
@@ -5793,37 +5781,40 @@ local function user_chooses_shape()
                 if val:find("r") then reassign_keys()
                 elseif val:find("[?q]") then show_info()
                 end
-                self:SetText(save_layer):SetKeyboardFocus()
             elseif val ~= "" then
-                val = val:sub(-1)
-                self:SetText(val)
-                save_layer = val
+                save_layer = val:sub(-1)
             end
+            self:SetText(save_layer):SetKeyboardFocus()
         end)
-    y = y + y_step + 2
+    y = y + y_step
     dialog:CreateStatic(x_offset + 12, y):SetText("(0 = all layers)"):SetWidth(105)
-    y = y + y_step + 2
-    dialog:CreateButton(x_offset + 38, y):SetText("?"):SetWidth(20)
+    y = y + y_step
+    dialog:CreateButton(x_offset + 38, y, "q"):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
     y = y_step * 3 + y
     dialog:CreateButton(x_offset, y)
-        :SetText("Reassign Keys"):SetWidth(100)
+        :SetText("Change Hotkeys"):SetWidth(100)
         :AddHandleCommand(function() reassign_keys() end)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function() shape_list:SetKeyboardFocus() end)
-    dialog:RegisterHandleOkButtonPressed(function(self)
-        config.shape = string.lower( dialog_options[shape_list:GetSelectedItem() + 1] )
-        config.layer_num = layer_num:GetInteger()
-        dialog_save_position(self)
+    dialog:RegisterInitWindow(function()
+        local q = dialog:GetControl("q")
+        q:SetFont(q:CreateFontInfo():SetBold(true))
+        shape_list:SetKeyboardFocus()
     end)
-    return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    dialog:RegisterHandleOkButtonPressed(function()
+        local item = shape_list:GetSelectedItem() + 1
+        config.shape = dialog_options[item][1]:lower()
+        config.layer_num = layer_num:GetInteger()
+    end)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
 end
 local function change_noteheads()
     configuration.get_user_settings(script_name, config, true)
-    local qimk = finenv.QueryInvokedModifierKeys
-    local mod_key = qimk and (qimk(finale.CMDMODKEY_ALT) or qimk(finale.CMDMODKEY_SHIFT))
+    local qim = finenv.QueryInvokedModifierKeys
+    local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
     if no_dialog or mod_key or user_chooses_shape() then
         if config.shape == "number" then
             if not user_chooses_glyph() then return end
@@ -5836,7 +5827,7 @@ local function change_noteheads()
                 end
             end
         end
-        finenv.UI():ActivateDocumentWindow()
     end
+    if refocus_document then finenv.UI():ActivateDocumentWindow() end
 end
 change_noteheads()
