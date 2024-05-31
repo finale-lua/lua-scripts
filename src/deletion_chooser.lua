@@ -3,9 +3,9 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.95"
-    finaleplugin.Date = "2024/04/22"
-    finaleplugin.MinJWLuaVersion = 0.70
+    finaleplugin.Version = "0.99c"
+    finaleplugin.Date = "2024/05/14"
+    finaleplugin.MinJWLuaVersion = 0.74
 	finaleplugin.Notes = [[ 
         This script presents an alphabetical list of 24 individual types 
         of data to delete, each line beginning with a configurable _hotkey_. 
@@ -25,8 +25,6 @@ function plugindef()
 
         To delete the same data as last time without a confirmation dialog 
         hold down [Shift] when starting the script. 
-        The layer number is "clamped" to a single character so to change 
-        layer just type a new number - [Delete] key not needed.
 
         __Expression Layers__  
         Expressions are not fixed to particular notes but can be 
@@ -51,7 +49,7 @@ local refocus_document = false -- set to true if utils.show_notes_dialog is used
 local clear_selected_items_menu = finenv.UI():IsOnMac() and 1296385394 or 16010
 
 local dialog_options = { -- name key, HOTKEY, text description (ordered)
-    { "entry_articulation",     "A", "Articulations •" },
+    { "CreateArticulations",     "A", "Articulations •" },
     { "rest_articulation",      "R", "Articulations on Rests •" },
     { "chords",                 "W", "Chords" },
     { "cross_staff",            "X", "Cross Staff Entries •" },
@@ -64,9 +62,9 @@ local dialog_options = { -- name key, HOTKEY, text description (ordered)
     { "shape_IsHairpin",        "H", "Hairpins" },
     { "entry_lyrics",           "L", "Lyrics •" },
     { "midi_continuous",        "O", "MIDI Continuous Data" },
-    { "midi_entry",             "I", "MIDI Note Data •" },
+    { "CreatePerformanceMods",  "I", "MIDI Note Data •" },
     { "entry_position",         "Q", "Note Position Offsets •" },
-    { "notehead_mods",          "J", "Notehead Modifications •" },
+    { "CreateNoteheadMods",     "J", "Notehead Modifications •" },
     { "notes",                  "N", "Notes •" },
     { "secondary_beam_breaks",  "K", "Secondary Beam Breaks •" },
     { "shape_IsSlur",           "S", "Slurs" },
@@ -74,7 +72,7 @@ local dialog_options = { -- name key, HOTKEY, text description (ordered)
     { "shape_GetBeatAttached",  "B", "Smart Shapes (Beat Attached)" },
     { "shape_all",              "V", "Smart Shapes (All)" },
     { "staff_styles",           "Y", "Staff Styles (Current Score/Part)" },
-    { "entry_tuplets",          "T", "Tuplets •" },
+    { "CreateTuplets",          "T", "Tuplets •", "TupletStartFlag" },
     { "user_selected",          "Z", "User Selected Items ..." },
 }
 
@@ -223,62 +221,47 @@ local function delete_selected(delete_type)
             end
         end
     --
-    else -- ENTRY-attached datatypes remain: step through selected region
+    else -- ENTRY-attached datatypes remain: step through the selection
+        -- local elements
+        local create_flags = {
+            CreateArticulations   = "ArticulationFlag",
+            CreateTuplets         = "TupletStartFlag",
+            CreatePerformanceMods = "PerformanceDataFlag",
+        }
+        local function delete_entry_mod(entry, type)
+            local mod = finale[type]()
+            mod:SetNoteEntry(entry)
+            while mod:LoadFirst() do mod:DeleteData() end
+        end
+        local function delete_create_mods(entry, type)
+            local mods = entry[type](entry)
+            for m in eachbackwards(mods) do
+                m:DeleteData()
+            end
+            mods:ClearAll()
+            if create_flags[type] then entry[create_flags[type]] = false end
+        end
+        --
         for entry in eachentrysaved(rgn, layer_num) do
             --
-            if delete_type:find("artic") and entry.ArticulationFlag then -- ARTICULATION
-                if delete_type == "entry_articulation" or (entry:IsRest() and delete_type == "rest_articulation") then
-                    for articulation in eachbackwards(entry:CreateArticulations()) do
-                        articulation:DeleteData()
-                    end
-                    entry:SetArticulationFlag(false)
-                end
-            --
-            elseif delete_type == "notehead_mods" and entry:IsNote() then -- NOTE-HEAD MODS
-                local mods = entry:CreateNoteheadMods()
-                if mods.Count > 0 then
-                    for mod in eachbackwards(mods) do
-                        mod:DeleteData()
-                    end
-                end
-            --
-            elseif delete_type == "midi_entry" and entry.PerformanceDataFlag then -- NOTE-BASED MIDI
-                local perf_mods = entry:CreatePerformanceMods()
-                if perf_mods.Count > 0 then
-                    for mod in eachbackwards(perf_mods) do
-                        mod:DeleteData()
-                    end
-                end
-                entry.PerformanceDataFlag = false
-            --
-            elseif delete_type == "entry_lyrics" and entry.LyricFlag then -- LYRICS
-                for _, v in ipairs{"FCChorusSyllable", "FCSectionSyllable", "FCVerseSyllable"} do
-                    local lyric = finale[v]()
-                    lyric:SetNoteEntry(entry)
-                    while lyric:LoadFirst() do
-                        lyric:DeleteData()
-                    end
-                end
-            --
-            elseif delete_type == "entry_tuplets" and entry.TupletStartFlag then -- TUPLETS
-                local tuplets = entry:CreateTuplets()
-                for tuplet in eachbackwards(tuplets) do
-                    tuplet:DeleteData()
-                end
-                tuplets:ClearAll()
-                entry.TupletStartFlag = false
-            --
-            elseif delete_type == "entry_position" then -- NOTE POSITION OFFSETS
+            if delete_type == "entry_position" then -- Note Position Offsets
                 entry.ManualPosition = 0
             --
-            elseif delete_type == "secondary_beam_breaks" then -- SECONDARY BEAM BREAKS
-                local sbbm = finale.FCSecondaryBeamBreakMod()
-                sbbm:SetNoteEntry(entry)
-                while sbbm:LoadFirst() do
-                    sbbm:DeleteData()
+            elseif delete_type:sub(1, 6) == "Create" then
+                delete_create_mods(entry, delete_type) -- Articulations / MIDI / Noteheads / Tuplets
+            elseif entry:IsRest() and entry.ArticulationFlag
+                    and delete_type == "rest_articulation" then -- Articulations on rests
+                delete_create_mods(entry, "CreateArticulations")
+            --
+            elseif delete_type == "entry_lyrics" and entry.LyricFlag then -- Lyrics
+                for _, v in ipairs{"FCChorusSyllable", "FCSectionSyllable", "FCVerseSyllable"} do
+                    delete_entry_mod(entry, v)
                 end
             --
-            elseif delete_type == "cross_staff" then -- CROSS-STAFF
+            elseif delete_type == "secondary_beam_breaks" then -- Secondary Beam Breaks
+                delete_entry_mod(entry, "FCSecondaryBeamBreakMod")
+            --
+            elseif delete_type == "cross_staff" then -- Cross-Staff
                 entry.ManualPosition = 0
                 if entry:IsRest() then
                     entry:SetRestDisplacement(0)
@@ -288,17 +271,27 @@ local function delete_selected(delete_type)
                     entry.ReverseDownStem = false
                     entry.FreezeBeam = false
                     entry.FreezeStem = false
-                    for _, type in ipairs{"FCCrossStaffMods", "FCPrimaryBeamMods"} do
-                        local mods = finale[type](entry)
-                        mods:LoadAll()
-                        for m in eachbackwards(mods) do
-                            m:DeleteData()
-                        end
+                    for i = entry.Count, 1, -1 do
+                        finale.FCCrossStaffMod():EraseAt(entry:GetItemAt(i - 1))
                     end
+                    delete_entry_mod(entry, "FCCrossStaffMod")
                     if entry.StemDetailFlag then
-                        local stem_mod = finale.FCStemMod()
-                        stem_mod:SetNoteEntry(entry)
-                        stem_mod:DeleteData()
+                        delete_entry_mod(entry, "FCStemMod")
+                    end
+                    -- "CLEAR" beam settings (instead of erase)
+                    local beam = finale.FCBeamMod(false)
+                    for _, v in ipairs{true, false} do
+                        beam:SetNoteEntry(entry)
+                        beam:UseUpStemData(v)
+                        if beam:LoadFirst() then
+                            beam:SetDefaultMode()
+                            beam.LeftVerticalOffset = 0
+                            beam.RightVerticalOffset = 0
+                            beam.LeftHorizontalOffset = 0
+                            beam.RightHorizontalOffset = 0
+                            beam.Thickness = -1
+                            beam:Save()
+                        end
                     end
                 end
                 entry.CrossStaff = false
@@ -379,7 +372,7 @@ local function user_chooses()
     local key_list = dialog:CreateListBox(0, 20):SetWidth(box_wide):SetHeight(box_high)
         -- local functions
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 500, 340)
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 325)
             refocus_document = true
         end
         local function fill_key_list()
@@ -415,12 +408,10 @@ local function user_chooses()
                 if val:find("[?q]") then show_info()
                 elseif val:find("r") then change_keys()
                 end
-                self:SetText(save_layer):SetKeyboardFocus()
             elseif val ~= "" then
-                val = val:sub(-1)
-                self:SetText(val)
-                save_layer = val
+                save_layer = val:sub(-1)
             end
+            self:SetText(save_layer):SetKeyboardFocus()
         end)
     dialog:CreateStatic(x_off + 60, y):SetWidth(x_off):SetText("(0 = all)")
     y = y + y_step + 2
@@ -439,7 +430,6 @@ local function user_chooses()
     dialog:RegisterInitWindow(function()
         q:SetFont(q:CreateFontInfo():SetBold(true))
         key_list:SetKeyboardFocus()
-
     end)
     return (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
