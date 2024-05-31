@@ -3,40 +3,40 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.83"
-    finaleplugin.Date = "2024/01/27"
-    finaleplugin.MinJWLuaVersion = 0.60
+    finaleplugin.Version = "0.84"
+    finaleplugin.Date = "2024/04/16"
+    finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[ 
         This script allows rapid creation of simple or complex 
         time signatures with a few keystrokes. 
-        It supports composite numerators like [3+2+3/16] and can join 
-        easily with extra composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]). 
-        "Display only" time signatures can be equally complex and set without using a mouse.  
+        It supports composite numerators like [3+2+3/16] and joins easily 
+        with extra composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]). 
+        __Display Only__ time signatures can be equally complex and set without mouse action.  
 
         At startup the time signature of the first selected measure is shown. 
-        To revert to a simple 4/4 with no other options click the "Clear All" button or type [x]. 
-        To read these script notes click the [?] button or type [q]. 
-        To respace notes on completion click the "Respace" button or type [r].
+        To revert to a simple 4/4 with no other options click the _Clear All_ button or type __x__. 
+        To read these script notes click the __?__ button or type __q__. 
+        To respace notes on completion click the _Respace_ button or type __r__.
 
         All measures in the current selection will be assigned the new time signature. 
-        Use this feature to quickly copy the initial meter throughout the selection. 
+        Use this feature to quickly copy the initial meter across the selection. 
         If just one measure is selected only it will be changed.
 
-        "Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, or 64. 
-        "Top" numbers (numerators) are integers, optionally joined by '+' signs for composite meters. 
+        __Bottom__ numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, or 64. 
+        __Top__ numbers (numerators) are integers, optionally joined by __+__ signs for composite meters. 
         Numerators that are multiples of 3 automatically convert to compound signatures 
-        so [9/16] will convert to three groups of dotted 8ths. 
-        To prevent automatic compounding, instead of the bottom 'note' number enter its 
+        so [9/16] will register as three groups of dotted 8ths. 
+        To prevent automatic compounding, instead of the bottom "note" number enter its 
         EDU value (quarter note = 1024; eighth note = 512; sixteenth = 256 etc).
 
-        Empty and zero "Top" numbers will be ignored. 
-        "Tertiary" values will be ignored if "Secondary" numbers are blank or zero.
+        Empty and zero __Top__ numbers will be ignored. 
+        __Tertiary__ values will be ignored if __Secondary__ numbers are blank or zero.
     ]]
 	return "Meter Set Numeric...", "Meter Set Numeric", "Set the Meter Numerically"
 end
 
 --[[
-    This version uses a new (intelligible!) data structure for composite Time Signatures:
+    Data structure for composite Time Signatures:
     local meter = {
         main = { 
             top = { {element_1a, element_1b, element_1c}, {element_2a, etc. ...}, {... element_3c} }, 
@@ -49,39 +49,16 @@ end
     }
 ]]
 
-local info_notes = [[
-This script allows rapid creation of simple or complex
-time signatures with a few keystrokes.
-It supports composite numerators like [3+2+3/16] and can join
-easily with extra composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]).
-"Display only" time signatures can be equally complex and set without using a mouse.
-**
-At startup the time signature of the first selected measure is shown.
-To revert to a simple 4/4 with no other options click the "Clear All" button or type [x].
-To read these script notes click the [?] button or type [q].
-To respace notes on completion click the "Respace" button or type [r].
-**
-All measures in the current selection will be assigned the new time signature.
-Use this feature to quickly copy the initial meter throughout the selection.
-If just one measure is selected only it will be changed.
-**
-"Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, or 64.
-"Top" numbers (numerators) are integers, optionally joined by '+' signs for composite meters.
-Numerators that are multiples of 3 automatically convert to compound signatures
-so [9/16] will convert to three groups of dotted 8ths.
-To prevent automatic compounding, instead of the bottom 'note' number enter its
-EDU value (quarter note = 1024; eighth note = 512; sixteenth = 256 etc).
-**
-Empty and zero "Top" numbers will be ignored.
-"Tertiary" values will be ignored if "Secondary" numbers are blank or zero.
-]]
-info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n")
-    .. "\n(v" .. finaleplugin.Version .. ")"
-
 local mixin = require("library.mixin")
 local configuration = require("library.configuration")
+local utils = require("library.utils")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
+local refocus_document = false -- set to true if utils.show_notes_dialog is used
+
+local function refocus() -- utils.show_notes_dialog has been used?
+    if refocus_document then finenv.UI():ActivateDocumentWindow() end
+end
 
 local config = {
     note_spacing = true,
@@ -110,132 +87,6 @@ local function dialog_save_position(dialog)
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
-end
-
-local function user_chooses_meter(meter, rgn)
-    local x = { 0, 70, 130, 210, 280, 290 } -- horizontal grid
-    local label = { -- data type descriptors and (range right) horizontal offset
-        { "PRIMARY", 0}, -- name, horiz (left) offset
-        { "(+ SECONDARY)", -37 },
-        { "(+ TERTIARY)", -21 }
-    }
-    local y_middle = 118 -- window vertical mid-point
-    local offset = finenv.UI():IsOnMac() and 3 or 0
-    local name = plugindef():gsub("%.%.%.", "") -- remove trailing dots
-    local function show_info() finenv.UI():AlertInfo(info_notes, "About " .. name) end
-    local box, save_text = {}, {} -- user's edit-box entry responses
-    local message = "m. " .. rgn.StartMeasure -- measure selection information
-    if rgn.StartMeasure ~= rgn.EndMeasure then  -- multiple measures
-        message = "m" .. message .. "-" .. rgn.EndMeasure
-    end
-    local respace_check -- pre-declare the "respace" checkbox
-
-    local y = 0
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
-        local function cstat(nx, ny, nwide, ntext, id)
-            local dx = (type(nx) == "number") and x[nx] or tonumber(nx)
-            return dialog:CreateStatic(dx, ny, id):SetWidth(nwide):SetText(ntext)
-        end
-        local function join(values) -- join integers from the meter.top array with '+' signs
-            if not values or #values == 0 then return "0" end
-            return table.concat(values, "+")
-        end
-        local function clear_entries()
-            for j = 0, 6, 6 do
-                for i = 1, 3 do
-                    local n = (j == 0 and i == 1) and 4 or 0
-                    box[j + i]:SetText(n)
-                    box[j + i + 3]:SetInteger(n)
-                    save_text[j + i] = n
-                    save_text[j + i + 3] = n
-                end
-            end
-            box[1]:SetKeyboardFocus()
-        end
-        local function key_check(id)
-            local s = box[id]:GetText():lower()
-            if s:find("[^0-9+]") then
-                if s:find("x") then
-                    clear_entries()
-                else
-                    if s:find("[?q]") then
-                        show_info()
-                    elseif s:find("r") then
-                        local n = respace_check:GetCheck()
-                        respace_check:SetCheck((n + 1) % 2)
-                    end
-                    box[id]:SetText(save_text[id])
-                end
-            elseif s ~= "" then
-                save_text[id] = s -- save newly entered text
-            end
-        end
-
-    cstat(1, y + 1, x[3], "TIME SIGNATURE", "main")
-    cstat(3, y, x[3], "TOP")
-    cstat(4, y, x[3], "BOTTOM")
-    cstat(6, 25, 80, "Selection:")
-    cstat(6, 40, 80, message)
-    dialog:CreateButton(x[5], y):SetWidth(80):SetText("Clear All (x)")
-        :AddHandleCommand(function() clear_entries() end)
-    y = y_middle
-    cstat(x[2] - 30, y - 30, 330, "'TOP' entries can include integers joined by '+' signs")
-    dialog:CreateHorizontalLine(x[1], y - 9, x[5] + 50)
-    dialog:CreateHorizontalLine(x[1], y - 8, x[5] + 50)
-    cstat(1, y + 1, x[3], "DISPLAY SIGNATURE", "second")
-    cstat(3, y, 150, "(set to '0' for none)")
-
-    -- COMPOSITE TIME SIG BOXES
-    y = 0
-    for jump = 0, 6, 6 do
-        local t_sig = (jump == 0) and meter.main or meter.display
-        for group = 1, 3 do
-            y = y + 20
-            local id = group + jump
-            box[id] = dialog:CreateEdit(x[3], y - offset)
-                :SetText(join(t_sig.top[group])):SetWidth(65)
-                :AddHandleCommand(function() key_check(id) end)
-            box[id + 3] = dialog:CreateEdit(x[4], y - offset)
-                :SetInteger(t_sig.bottom[group] or 0):SetWidth(65)
-                :AddHandleCommand(function() key_check(id + 3) end)
-            cstat(x[2] + label[group][2], y, 56 - label[group][2], label[group][1])
-            save_text[id] = box[id]:GetText()
-            save_text[id + 3] = box[id + 3]:GetText()
-        end
-        y = y_middle
-    end
-    y = y + 60
-    dialog:CreateButton(x[5] + 60, y, "q"):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() show_info() end)
-    y = y + 25
-    respace_check = dialog:CreateCheckbox(x[3], y):SetText("Respace notes on completion (r)")
-        :SetCheck(config.note_spacing and 1 or 0):SetWidth(185)
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    local choices = {} -- convert edit box values to 12-element table
-    dialog:RegisterInitWindow(function(self)
-        box[1]:SetKeyboardFocus()
-        local q = self:GetControl("q")
-        local bold = q:CreateFontInfo():SetBold(true)
-        q:SetFont(bold)
-        self:GetControl("main"):SetFont(bold)
-        self:GetControl("second"):SetFont(bold)
-    end)
-    dialog:RegisterHandleOkButtonPressed(function()
-        for count = 0, 6, 6 do -- "main" then "display" time_sig values
-            for group = 1, 3 do
-                local id = count + group
-                choices[id] = box[id]:GetText() or "0"
-                if choices[id] == "" then choices[id] = "0" end
-                choices[id + 3] = box[id + 3]:GetInteger() or 0
-            end
-        end
-        config.note_spacing = (respace_check:GetCheck() == 1)
-    end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    dialog_set_position(dialog)
-    local ok = dialog:ExecuteModal(nil)  -- run the dialog
-    return ok, choices
 end
 
 local function encode_current_meter(time_sig, sub_meter)
@@ -343,6 +194,143 @@ local function convert_choices_to_meter(choices, meter)
     return "" -- no error
 end
 
+local function user_chooses_meter(rgn)
+    local x = { 0, 70, 130, 210, 280, 290 } -- horizontal grid
+    local label = { -- data type descriptors and (range right) horizontal offset
+        { "PRIMARY", 0}, -- name, horiz (left) offset
+        { "(+ SECONDARY)", -37 },
+        { "(+ TERTIARY)", -21 }
+    }
+    local y_middle = 118 -- window vertical mid-point
+    local offset = finenv.UI():IsOnMac() and 3 or 0
+    local name = plugindef():gsub("%.%.%.", "") -- remove trailing dots
+    local box, save_text = {}, {} -- user's edit-box entry responses
+    local message = "m. " .. rgn.StartMeasure -- measure selection information
+    if rgn.StartMeasure ~= rgn.EndMeasure then  -- multiple measures
+        message = "m" .. message .. "-" .. rgn.EndMeasure
+    end
+    local respace_check -- pre-declare the "respace" checkbox
+
+    local y = 0
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
+        -- local functions
+        local function show_info()
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 350)
+            refocus_document = true
+        end
+        local function cstat(nx, ny, nwide, ntext, id)
+            local dx = (type(nx) == "number") and x[nx] or tonumber(nx)
+            return dialog:CreateStatic(dx, ny, id):SetWidth(nwide):SetText(ntext)
+        end
+        local function join(values) -- join integers from the meter.top array with '+' signs
+            if not values or #values == 0 then return "0" end
+            return table.concat(values, "+")
+        end
+        local function clear_entries()
+            for j = 0, 6, 6 do
+                for i = 1, 3 do
+                    local n = (j == 0 and i == 1) and 4 or 0
+                    box[j + i]:SetText(n)
+                    box[j + i + 3]:SetInteger(n)
+                    save_text[j + i] = n
+                    save_text[j + i + 3] = n
+                end
+            end
+            box[1]:SetKeyboardFocus()
+        end
+        local function key_check(id)
+            local s = box[id]:GetText():lower()
+            if s:find("[^0-9+]") then
+                if s:find("x") then
+                    clear_entries()
+                else
+                    if s:find("[?q]") then
+                        show_info()
+                    elseif s:find("r") then
+                        local n = respace_check:GetCheck()
+                        respace_check:SetCheck((n + 1) % 2)
+                    end
+                    box[id]:SetText(save_text[id])
+                end
+            elseif s ~= "" then
+                save_text[id] = s -- save newly entered text
+            end
+        end
+    cstat(1, y + 1, x[3], "TIME SIGNATURE", "main")
+    cstat(3, y, x[3], "TOP")
+    cstat(4, y, x[3], "BOTTOM")
+    cstat(6, 25, 80, "Selection:")
+    cstat(6, 40, 80, message)
+    dialog:CreateButton(x[5], y):SetWidth(80):SetText("Clear All (x)")
+        :AddHandleCommand(function() clear_entries() end)
+    y = y_middle
+    cstat(x[2] - 30, y - 30, 330, "'TOP' entries can include integers joined by '+' signs")
+    dialog:CreateHorizontalLine(x[1], y - 9, x[5] + 50)
+    dialog:CreateHorizontalLine(x[1], y - 8, x[5] + 50)
+    cstat(1, y + 1, x[3], "DISPLAY SIGNATURE", "second")
+    cstat(3, y, 150, "(set to '0' for none)")
+
+    -- COMPOSITE TIME SIG BOXES
+    local meter = copy_meter_from_score(rgn.StartMeasure)
+    y = 0
+    for jump = 0, 6, 6 do
+        local t_sig = (jump == 0) and meter.main or meter.display
+        for group = 1, 3 do
+            y = y + 20
+            local id = group + jump
+            box[id] = dialog:CreateEdit(x[3], y - offset) -- numerator
+                :SetText(join(t_sig.top[group])):SetWidth(65)
+                :AddHandleCommand(function() key_check(id) end)
+            save_text[id] = box[id]:GetText()
+            box[id + 3] = dialog:CreateEdit(x[4], y - offset) -- matching denominator
+                :SetInteger(t_sig.bottom[group] or 0):SetWidth(65)
+                :AddHandleCommand(function() key_check(id + 3) end)
+            cstat(x[2] + label[group][2], y, 56 - label[group][2], label[group][1])
+            save_text[id + 3] = box[id + 3]:GetText()
+        end
+        y = y_middle
+    end
+    y = y + 60
+    dialog:CreateButton(x[5] + 60, y, "q"):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() show_info() end)
+    y = y + 25
+    respace_check = dialog:CreateCheckbox(x[3], y):SetText("Respace notes on completion (r)")
+        :SetCheck(config.note_spacing and 1 or 0):SetWidth(185)
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    local choices = {} -- convert edit box values to 12-element table
+    dialog:RegisterInitWindow(function(self)
+        box[1]:SetKeyboardFocus()
+        local q = self:GetControl("q")
+        local bold = q:CreateFontInfo():SetBold(true)
+        q:SetFont(bold)
+        self:GetControl("main"):SetFont(bold)
+        self:GetControl("second"):SetFont(bold)
+    end)
+    local user_error = false
+    dialog_set_position(dialog)
+    dialog:RegisterHandleOkButtonPressed(function()
+        for count = 0, 6, 6 do -- "main" then "display" time_sig values
+            for group = 1, 3 do
+                local id = count + group
+                choices[id] = box[id]:GetText() or "0"
+                if choices[id] == "" then choices[id] = "0" end
+                choices[id + 3] = box[id + 3]:GetInteger() or 0
+            end
+        end
+        config.note_spacing = (respace_check:GetCheck() == 1)
+        meter = blank_meter() -- start over with an empty meter
+        local msg = convert_choices_to_meter(choices, meter)
+        if msg ~= "" then -- entry error
+            user_error = true
+            finenv.UI():AlertInfo(msg, plugindef())
+        end
+    end)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    return ok, user_error, meter
+end
+
 local function new_composite_top(sub_meter)
     local composite_top = finale.FCCompositeTimeSigTop()
     for count = 1, 3 do
@@ -395,16 +383,13 @@ local function create_new_meter()
     local region = mixin.FCMMusicRegion()
     region:SetRegion(finenv.Region()):SetStartMeasurePosLeft():SetEndMeasurePosRight()
 
-    local meter = copy_meter_from_score(region.StartMeasure)
-    local ok, choices = user_chooses_meter(meter, region) -- save user choices as 12-element table
-	if ok ~= finale.EXECMODAL_OK then return end -- user cancelled
-
-    meter = blank_meter() -- start over with an empty meter
-    local msg = convert_choices_to_meter(choices, meter)
-    if msg ~= "" then finenv.UI():AlertInfo(msg, plugindef()) return end -- entry error
-
+    local ok, error, meter = true, true, {}
+    while (ok and error) do -- re-entrant until no error
+        ok, error, meter = user_chooses_meter(region)
+    end
+    if not ok then refocus() return end -- user cancelled
     local composites = {
-        main = { top = nil, bottom = nil},
+        main =    { top = nil, bottom = nil},
         display = { top = nil, bottom = nil}
     }
     for _, kind in ipairs{"main", "display"} do
@@ -415,7 +400,6 @@ local function create_new_meter()
             end
         end
     end
-
     local measures = finale.FCMeasures()
     measures:LoadRegion(region)
     for measure in each(measures) do
@@ -442,6 +426,7 @@ local function create_new_meter()
         finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
         region:SetInDocument()
     end
+    refocus()
 end
 
 create_new_meter()
