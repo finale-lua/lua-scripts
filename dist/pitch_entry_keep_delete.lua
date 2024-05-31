@@ -5514,9 +5514,10 @@ function plugindef()
     finaleplugin.Author = "Jacob Winkler, Nick Mazuk & Carl Vine"
     finaleplugin.AuthorEmail = "jacob.winkler@mac.com"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.34"
-    finaleplugin.Date = "2024-03-01"
-    finaleplugin.CategoryTags = "Pitch"
+    finaleplugin.Version = "1.36"
+    finaleplugin.Date = "2024-04-17"
+    finaleplugin.MinJWLuaVersion = 0.70
+    finaleplugin.CategoryTags = "Pitch, Transposition"
     finaleplugin.Notes = [[
         Select a note within each chord to either keep or delete, 
         numbered from either the top or bottom of each chord. 
@@ -5530,23 +5531,21 @@ function plugindef()
 
         > - __z__: toggle keep/delete 
         > - __x__: toggle top/bottom 
-        > - __m__: toggle "Modeless"
+        > - __c__: toggle "Modeless"
         > - __q__: show these notes 
-        > - __1-9__: note number 
-        > - __0-4__: layer number 
+        > - __1__-__9__: note number 
+        > - __0__-__4__: layer number 
         > - (delete key not needed for number entry) 
 
         Select __Modeless__ if you prefer the dialog window to 
         "float" above your score and you can change the score selection 
-        while it's active. In this mode, click __Apply__ [Return/Enter] 
+        while it's active. In this mode, click __Apply__ [Return] 
         to make changes and __Cancel__ [Escape] to close the window. 
         Cancelling __Modeless__ will apply the _next_ time you use the script.
 
         To repeat the last action without a confirmation dialog 
         hold down [Shift] when starting the script. 
     ]]
-    finaleplugin.MinJWLuaVersion = 0.70
-    finaleplugin.CategoryTags = "Pitch, Transposition"
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
         {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -5560,12 +5559,12 @@ function plugindef()
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 If {\b Note Number} or {\b Layer} are highlighted\line then these {\b Key Commands} are available:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: toggle keep/delete\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x}: toggle top/bottom\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b m}: toggle \u8220"Modeless\u8221"\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b c}: toggle \u8220"Modeless\u8221"\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: show these notes\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 1-9}: note number\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-4}: layer number\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 1}-{\b 9}: note number\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0}-{\b 4}: layer number\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab (delete key not needed for number entry)\sa180\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select {\b Modeless} if you prefer the dialog window to \u8220"float\u8221" above your score and you can change the score selection while it\u8217's active. In this mode, click {\b Apply} [Return/Enter] to make changes and {\b Cancel} [Escape] to close the window. Cancelling {\b Modeless} will apply the {\i next} time you use the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select {\b Modeless} if you prefer the dialog window to \u8220"float\u8221" above your score and you can change the score selection while it\u8217's active. In this mode, click {\b Apply} [Return] to make changes and {\b Cancel} [Escape] to close the window. Cancelling {\b Modeless} will apply the {\i next} time you use the script.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To repeat the last action without a confirmation dialog hold down [Shift] when starting the script.\par}
         }
     ]]
@@ -5586,6 +5585,12 @@ local saved_bounds = {}
 local bounds = {
     "StartStaff", "StartMeasure", "StartMeasurePos",
     "EndStaff",   "EndMeasure",   "EndMeasurePos",
+}
+local hotkey = {
+    keep_delete = "z",
+    direction   = "x",
+    modeless    = "c",
+    show_info   = "q",
 }
 local config = {
     number      = 1,
@@ -5610,16 +5615,12 @@ local function dialog_save_position(dialog)
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
 end
-local function measure_duration(measure_number)
-    local m = finale.FCMeasure()
-    return m:Load(measure_number) and m:GetDuration() or 0
-end
 local function get_staff_name(staff_num)
     local staff = finale.FCStaff()
     staff:Load(staff_num)
-    local str = staff:CreateDisplayFullNameString().LuaString
+    local str = staff:CreateDisplayAbbreviatedNameString().LuaString
     if not str or str == "" then
-        str = "Staff " .. staff_num
+        str = "Staff" .. staff_num
     end
     return str
 end
@@ -5627,25 +5628,31 @@ local function initialise_parameters()
 
     local rgn = finenv.Region()
     for _, property in ipairs(bounds) do
-        saved_bounds[property] = rgn[property]
+        saved_bounds[property] = rgn:IsEmpty() and 0 or rgn[property]
     end
 
-    selection = { staff = "no staff", region = "no selection"}
+    selection = "no staff, no selection"
     if not rgn:IsEmpty() then
 
-        local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
-        local m = measure_duration(rgn.EndMeasure)
-        local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
-        selection.region = string.format("m%.2f-m%.2f", r1, r2)
-
-        selection.staff = get_staff_name(rgn.StartStaff)
+        selection = get_staff_name(rgn.StartStaff)
         if rgn.EndStaff ~= rgn.StartStaff then
-            selection.staff = selection.staff .. " → " .. get_staff_name(rgn.EndStaff)
+            selection = selection .. "-" .. get_staff_name(rgn.EndStaff)
+        end
+
+        selection = selection .. " " .. "m" .. rgn.StartMeasure
+        if rgn.EndMeasure ~= rgn.StartMeasure then
+            selection = selection .. "-" .. rgn.EndMeasure
         end
     end
 end
 local function make_changes()
-    finenv.StartNewUndoBlock("Keep-Delete " .. selection.region, false)
+    finenv.StartNewUndoBlock(
+        string.format("Pitch %s %s%d %s",
+            (config.keep_delete == 0 and "Keep" or "Delete"),
+            (config.direction == 0 and "Top" or "Bot"),
+             config.number, selection
+        )
+    )
     for entry in eachentrysaved(finenv.Region(), config.layer) do
         if (entry.Count >= 2) then
             local n = config.number
@@ -5669,7 +5676,7 @@ local function run_the_dialog()
     local answer = {}
     local saved = { number = config.number, layer = config.layer }
     local name = plugindef():gsub("%.%.%.", "")
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name:sub(1, 18))
 
         local function cs(dx, dy, title, width)
             return dialog:CreateStatic(dx, dy):SetText(title):SetWidth(width)
@@ -5688,10 +5695,10 @@ local function run_the_dialog()
             if     (id == "number" and s:find("[^1-9]") )
                 or (id == "layer" and s:find("[^0-4]"))
                     then
-                if     s:find("z") then flip_radio("keep_delete")
-                elseif s:find("x") then flip_radio("direction")
-                elseif s:find("q") then show_info()
-                elseif s:find("m") then
+                if     s:find(hotkey.keep_delete)  then flip_radio("keep_delete")
+                elseif s:find(hotkey.direction) then flip_radio("direction")
+                elseif s:find(hotkey.show_info) then show_info()
+                elseif s:find(hotkey.modeless)  then
                     local m = answer.modeless:GetCheck()
                     answer.modeless:SetCheck((m + 1) % 2)
                 end
@@ -5704,45 +5711,43 @@ local function run_the_dialog()
             for k, v in pairs(saved_bounds) do
                 if finenv.Region()[k] ~= v then
                     initialise_parameters()
-                    answer.info1:SetText(selection.staff)
-                    answer.info2:SetText(selection.region)
+                    answer.info:SetText(selection)
                     break
                 end
             end
         end
 
+    cs(10, y, name:sub(8):upper(), x + 95)
+    y = y + 20
     answer.a = cs(0, y, "Note Number:", x)
     answer.number = dialog:CreateEdit(x, y - y_offset):SetInteger(config.number)
         :AddHandleCommand(function() key_check("number") end):SetWidth(20)
     answer.b = cs(x + 42, y, "Layer:", 40)
     answer.layer = dialog:CreateEdit(x + 82, y - y_offset):SetInteger(config.layer)
         :AddHandleCommand(function() key_check("layer") end):SetWidth(20)
-    y = y + 22
+    y = y + 25
 
-    local titles = { {"Keep", "Delete"}, {"From Top", "From Bottom"}}
-    local tags   = {  "(z)",              "(x)"}
+    local titles = { {"Keep", "Delete"}, {"From Top", "From Bottom"} }
+    local tags   = {  hotkey.keep_delete,   hotkey.direction }
     local labels = finale.FCStrings()
     labels:CopyFromStringTable(titles[1])
     answer.keep_delete = dialog:CreateRadioButtonGroup(0, y, 2)
         :SetText(labels):SetWidth(x - 25)
         :SetSelectedItem(config.keep_delete)
-    cs(x - 28, y + 5, tags[1], tag_wide)
+    cs(x - 28, y + 5, "(" .. tags[1] .. ")", tag_wide)
     labels:CopyFromStringTable(titles[2])
     answer.direction = dialog:CreateRadioButtonGroup(x, y, 2)
         :SetText(labels):SetWidth(85)
         :SetSelectedItem(config.direction)
-    cs(x + 85, y + 5, tags[2], tag_wide)
+    cs(x + 85, y + 5, "(" .. tags[2] .. ")", tag_wide)
     y = y + 35
     answer.modeless = dialog:CreateCheckbox(0, y):SetWidth(x + 80)
         :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
     answer.q = dialog:CreateButton(x + 82, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
-
     if config.modeless then
-        y = y + 15
-        answer.info1 = cs(0, y, selection.staff, x + 105)
-        y = y + 15
-        answer.info2 = cs(0, y, selection.region, x + 105)
+        y = y + 17
+        answer.info = cs(0, y, selection, x + 105)
     end
 
     dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
@@ -5750,7 +5755,7 @@ local function run_the_dialog()
     dialog_set_position(dialog)
     if config.modeless then dialog:RegisterHandleTimer(on_timer) end
     dialog:RegisterInitWindow(function(self)
-        dialog:SetOkButtonCanClose(not config.modeless)
+        self:SetOkButtonCanClose(not config.modeless)
         if config.modeless then self:SetTimer(config.timer_id, 125) end
         local bold = answer.a:CreateFontInfo():SetBold(true)
         answer.a:SetFont(bold)
@@ -5792,14 +5797,11 @@ local function keep_delete()
     end
     local qim = finenv.QueryInvokedModifierKeys
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
-    local mode_change = true
     initialise_parameters()
     if mod_key then
         make_changes()
     else
-        while mode_change do
-            mode_change = run_the_dialog()
-        end
+        while run_the_dialog() do end
     end
 end
 keep_delete()

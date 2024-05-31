@@ -4265,6 +4265,143 @@ package.preload["library.mixin"] = package.preload["library.mixin"] or function(
     end
     return mixin
 end
+package.preload["library.configuration"] = package.preload["library.configuration"] or function()
+
+
+
+    local configuration = {}
+    local utils = require("library.utils")
+    local script_settings_dir = "script_settings"
+    local comment_marker = "--"
+    local parameter_delimiter = "="
+    local path_delimiter = "/"
+    local file_exists = function(file_path)
+        local f = io.open(file_path, "r")
+        if nil ~= f then
+            io.close(f)
+            return true
+        end
+        return false
+    end
+    parse_parameter = function(val_string)
+        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "\"(.+)\"", "%1")
+        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
+            return string.gsub(val_string, "'(.+)'", "%1")
+        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
+            return load("return " .. val_string)()
+        elseif "true" == val_string then
+            return true
+        elseif "false" == val_string then
+            return false
+        end
+        return tonumber(val_string)
+    end
+    local get_parameters_from_file = function(file_path, parameter_list)
+        local file_parameters = {}
+        if not file_exists(file_path) then
+            return false
+        end
+        for line in io.lines(file_path) do
+            local comment_at = string.find(line, comment_marker, 1, true)
+            if nil ~= comment_at then
+                line = string.sub(line, 1, comment_at - 1)
+            end
+            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
+            if nil ~= delimiter_at then
+                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
+                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
+                file_parameters[name] = parse_parameter(val_string)
+            end
+        end
+        local function process_table(param_table, param_prefix)
+            param_prefix = param_prefix and param_prefix.."." or ""
+            for param_name, param_val in pairs(param_table) do
+                local file_param_name = param_prefix .. param_name
+                local file_param_val = file_parameters[file_param_name]
+                if nil ~= file_param_val then
+                    param_table[param_name] = file_param_val
+                elseif type(param_val) == "table" then
+                        process_table(param_val, param_prefix..param_name)
+                end
+            end
+        end
+        process_table(parameter_list)
+        return true
+    end
+
+    function configuration.get_parameters(file_name, parameter_list)
+        local path
+        if finenv.IsRGPLua then
+            path = finenv.RunningLuaFolderPath()
+        else
+            local str = finale.FCString()
+            str:SetRunningLuaFolderPath()
+            path = str.LuaString
+        end
+        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
+        return get_parameters_from_file(file_path, parameter_list)
+    end
+
+
+    local calc_preferences_filepath = function(script_name)
+        local str = finale.FCString()
+        str:SetUserOptionsPath()
+        local folder_name = str.LuaString
+        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
+
+            folder_name = os.getenv("HOME") .. folder_name:sub(2)
+        end
+        if finenv.UI():IsOnWindows() then
+            folder_name = folder_name .. path_delimiter .. "FinaleLua"
+        end
+        local file_path = folder_name .. path_delimiter
+        if finenv.UI():IsOnMac() then
+            file_path = file_path .. "com.finalelua."
+        end
+        file_path = file_path .. script_name .. ".settings.txt"
+        return file_path, folder_name
+    end
+
+    function configuration.save_user_settings(script_name, parameter_list)
+        local file_path, folder_path = calc_preferences_filepath(script_name)
+        local file = io.open(file_path, "w")
+        if not file and finenv.UI():IsOnWindows() then
+
+            local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
+            if osutils then
+                osutils.process.make_dir(folder_path)
+            else
+                os.execute('mkdir "' .. folder_path ..'"')
+            end
+            file = io.open(file_path, "w")
+        end
+        if not file then
+            return false
+        end
+        file:write("-- User settings for " .. script_name .. ".lua\n\n")
+        for k,v in pairs(parameter_list) do
+            if type(v) == "string" then
+                v = "\"" .. v .."\""
+            else
+                v = tostring(v)
+            end
+            file:write(k, " = ", v, "\n")
+        end
+        file:close()
+        return true
+    end
+
+    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
+        if create_automatically == nil then create_automatically = true end
+        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
+        if not exists and create_automatically then
+            configuration.save_user_settings(script_name, parameter_list)
+        end
+        return exists
+    end
+    return configuration
+end
 package.preload["library.utils"] = package.preload["library.utils"] or function()
 
     local utils = {}
@@ -4535,143 +4672,6 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         return mac_value
     end
     return utils
-end
-package.preload["library.configuration"] = package.preload["library.configuration"] or function()
-
-
-
-    local configuration = {}
-    local utils = require("library.utils")
-    local script_settings_dir = "script_settings"
-    local comment_marker = "--"
-    local parameter_delimiter = "="
-    local path_delimiter = "/"
-    local file_exists = function(file_path)
-        local f = io.open(file_path, "r")
-        if nil ~= f then
-            io.close(f)
-            return true
-        end
-        return false
-    end
-    parse_parameter = function(val_string)
-        if "\"" == val_string:sub(1, 1) and "\"" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "\"(.+)\"", "%1")
-        elseif "'" == val_string:sub(1, 1) and "'" == val_string:sub(#val_string, #val_string) then
-            return string.gsub(val_string, "'(.+)'", "%1")
-        elseif "{" == val_string:sub(1, 1) and "}" == val_string:sub(#val_string, #val_string) then
-            return load("return " .. val_string)()
-        elseif "true" == val_string then
-            return true
-        elseif "false" == val_string then
-            return false
-        end
-        return tonumber(val_string)
-    end
-    local get_parameters_from_file = function(file_path, parameter_list)
-        local file_parameters = {}
-        if not file_exists(file_path) then
-            return false
-        end
-        for line in io.lines(file_path) do
-            local comment_at = string.find(line, comment_marker, 1, true)
-            if nil ~= comment_at then
-                line = string.sub(line, 1, comment_at - 1)
-            end
-            local delimiter_at = string.find(line, parameter_delimiter, 1, true)
-            if nil ~= delimiter_at then
-                local name = utils.trim(string.sub(line, 1, delimiter_at - 1))
-                local val_string = utils.trim(string.sub(line, delimiter_at + 1))
-                file_parameters[name] = parse_parameter(val_string)
-            end
-        end
-        local function process_table(param_table, param_prefix)
-            param_prefix = param_prefix and param_prefix.."." or ""
-            for param_name, param_val in pairs(param_table) do
-                local file_param_name = param_prefix .. param_name
-                local file_param_val = file_parameters[file_param_name]
-                if nil ~= file_param_val then
-                    param_table[param_name] = file_param_val
-                elseif type(param_val) == "table" then
-                        process_table(param_val, param_prefix..param_name)
-                end
-            end
-        end
-        process_table(parameter_list)
-        return true
-    end
-
-    function configuration.get_parameters(file_name, parameter_list)
-        local path
-        if finenv.IsRGPLua then
-            path = finenv.RunningLuaFolderPath()
-        else
-            local str = finale.FCString()
-            str:SetRunningLuaFolderPath()
-            path = str.LuaString
-        end
-        local file_path = path .. script_settings_dir .. path_delimiter .. file_name
-        return get_parameters_from_file(file_path, parameter_list)
-    end
-
-
-    local calc_preferences_filepath = function(script_name)
-        local str = finale.FCString()
-        str:SetUserOptionsPath()
-        local folder_name = str.LuaString
-        if not finenv.IsRGPLua and finenv.UI():IsOnMac() then
-
-            folder_name = os.getenv("HOME") .. folder_name:sub(2)
-        end
-        if finenv.UI():IsOnWindows() then
-            folder_name = folder_name .. path_delimiter .. "FinaleLua"
-        end
-        local file_path = folder_name .. path_delimiter
-        if finenv.UI():IsOnMac() then
-            file_path = file_path .. "com.finalelua."
-        end
-        file_path = file_path .. script_name .. ".settings.txt"
-        return file_path, folder_name
-    end
-
-    function configuration.save_user_settings(script_name, parameter_list)
-        local file_path, folder_path = calc_preferences_filepath(script_name)
-        local file = io.open(file_path, "w")
-        if not file and finenv.UI():IsOnWindows() then
-
-            local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
-            if osutils then
-                osutils.process.make_dir(folder_path)
-            else
-                os.execute('mkdir "' .. folder_path ..'"')
-            end
-            file = io.open(file_path, "w")
-        end
-        if not file then
-            return false
-        end
-        file:write("-- User settings for " .. script_name .. ".lua\n\n")
-        for k,v in pairs(parameter_list) do
-            if type(v) == "string" then
-                v = "\"" .. v .."\""
-            else
-                v = tostring(v)
-            end
-            file:write(k, " = ", v, "\n")
-        end
-        file:close()
-        return true
-    end
-
-    function configuration.get_user_settings(script_name, parameter_list, create_automatically)
-        if create_automatically == nil then create_automatically = true end
-        local exists = get_parameters_from_file(calc_preferences_filepath(script_name), parameter_list)
-        if not exists and create_automatically then
-            configuration.save_user_settings(script_name, parameter_list)
-        end
-        return exists
-    end
-    return configuration
 end
 package.preload["library.client"] = package.preload["library.client"] or function()
 
@@ -5205,34 +5205,34 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.83"
-    finaleplugin.Date = "2024/01/27"
-    finaleplugin.MinJWLuaVersion = 0.60
+    finaleplugin.Version = "0.84"
+    finaleplugin.Date = "2024/04/16"
+    finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[ 
         This script allows rapid creation of simple or complex 
         time signatures with a few keystrokes. 
-        It supports composite numerators like [3+2+3/16] and can join 
-        easily with extra composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]). 
-        "Display only" time signatures can be equally complex and set without using a mouse.  
+        It supports composite numerators like [3+2+3/16] and joins easily 
+        with extra composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]). 
+        __Display Only__ time signatures can be equally complex and set without mouse action.  
 
         At startup the time signature of the first selected measure is shown. 
-        To revert to a simple 4/4 with no other options click the "Clear All" button or type [x]. 
-        To read these script notes click the [?] button or type [q]. 
-        To respace notes on completion click the "Respace" button or type [r].
+        To revert to a simple 4/4 with no other options click the _Clear All_ button or type __x__. 
+        To read these script notes click the __?__ button or type __q__. 
+        To respace notes on completion click the _Respace_ button or type __r__.
 
         All measures in the current selection will be assigned the new time signature. 
-        Use this feature to quickly copy the initial meter throughout the selection. 
+        Use this feature to quickly copy the initial meter across the selection. 
         If just one measure is selected only it will be changed.
 
-        "Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, or 64. 
-        "Top" numbers (numerators) are integers, optionally joined by '+' signs for composite meters. 
+        __Bottom__ numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, or 64. 
+        __Top__ numbers (numerators) are integers, optionally joined by __+__ signs for composite meters. 
         Numerators that are multiples of 3 automatically convert to compound signatures 
-        so [9/16] will convert to three groups of dotted 8ths. 
-        To prevent automatic compounding, instead of the bottom 'note' number enter its 
+        so [9/16] will register as three groups of dotted 8ths. 
+        To prevent automatic compounding, instead of the bottom "note" number enter its 
         EDU value (quarter note = 1024; eighth note = 512; sixteenth = 256 etc).
 
-        Empty and zero "Top" numbers will be ignored. 
-        "Tertiary" values will be ignored if "Secondary" numbers are blank or zero.
+        Empty and zero __Top__ numbers will be ignored. 
+        __Tertiary__ values will be ignored if __Secondary__ numbers are blank or zero.
     ]]
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
@@ -5240,48 +5240,25 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script allows rapid creation of simple or complex time signatures with a few keystrokes. It supports composite numerators like [3+2+3/16] and can join easily with extra composites (e.g.\u160?[3+2+3/16]+[1/4]+[5+4/8]). \u8220"Display only\u8221" time signatures can be equally complex and set without using a mouse.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 At startup the time signature of the first selected measure is shown. To revert to a simple 4/4 with no other options click the \u8220"Clear All\u8221" button or type [x]. To read these script notes click the [?] button or type [q]. To respace notes on completion click the \u8220"Respace\u8221" button or type [r].\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 All measures in the current selection will be assigned the new time signature. Use this feature to quickly copy the initial meter throughout the selection. If just one measure is selected only it will be changed.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \u8220"Bottom\u8221" numbers (denominators) are the usual \u8220"note\u8221" numbers: 2, 4, 8, 16, 32, or 64. \u8220"Top\u8221" numbers (numerators) are integers, optionally joined by \u8216'+\u8217' signs for composite meters. Numerators that are multiples of 3 automatically convert to compound signatures so [9/16] will convert to three groups of dotted 8ths. To prevent automatic compounding, instead of the bottom \u8216'note\u8217' number enter its EDU value (quarter note = 1024; eighth note = 512; sixteenth = 256 etc).\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Empty and zero \u8220"Top\u8221" numbers will be ignored. \u8220"Tertiary\u8221" values will be ignored if \u8220"Secondary\u8221" numbers are blank or zero.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script allows rapid creation of simple or complex time signatures with a few keystrokes. It supports composite numerators like [3+2+3/16] and joins easily with extra composites (e.g.\u160?[3+2+3/16]+[1/4]+[5+4/8]). {\b Display Only} time signatures can be equally complex and set without mouse action.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 At startup the time signature of the first selected measure is shown. To revert to a simple 4/4 with no other options click the {\i Clear All} button or type {\b x}. To read these script notes click the {\b ?} button or type {\b q}. To respace notes on completion click the {\i Respace} button or type {\b r}.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 All measures in the current selection will be assigned the new time signature. Use this feature to quickly copy the initial meter across the selection. If just one measure is selected only it will be changed.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Bottom} numbers (denominators) are the usual \u8220"note\u8221" numbers: 2, 4, 8, 16, 32, or 64. {\b Top} numbers (numerators) are integers, optionally joined by {\b +} signs for composite meters. Numerators that are multiples of 3 automatically convert to compound signatures so [9/16] will register as three groups of dotted 8ths. To prevent automatic compounding, instead of the bottom \u8220"note\u8221" number enter its EDU value (quarter note = 1024; eighth note = 512; sixteenth = 256 etc).\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Empty and zero {\b Top} numbers will be ignored. {\b Tertiary} values will be ignored if {\b Secondary} numbers are blank or zero.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/meter_set_numeric.hash"
 	return "Meter Set Numeric...", "Meter Set Numeric", "Set the Meter Numerically"
 end
-local info_notes = [[
-This script allows rapid creation of simple or complex
-time signatures with a few keystrokes.
-It supports composite numerators like [3+2+3/16] and can join
-easily with extra composites (e.g. [3+2+3/16]+[1/4]+[5+4/8]).
-"Display only" time signatures can be equally complex and set without using a mouse.
-**
-At startup the time signature of the first selected measure is shown.
-To revert to a simple 4/4 with no other options click the "Clear All" button or type [x].
-To read these script notes click the [?] button or type [q].
-To respace notes on completion click the "Respace" button or type [r].
-**
-All measures in the current selection will be assigned the new time signature.
-Use this feature to quickly copy the initial meter throughout the selection.
-If just one measure is selected only it will be changed.
-**
-"Bottom" numbers (denominators) are the usual "note" numbers: 2, 4, 8, 16, 32, or 64.
-"Top" numbers (numerators) are integers, optionally joined by '+' signs for composite meters.
-Numerators that are multiples of 3 automatically convert to compound signatures
-so [9/16] will convert to three groups of dotted 8ths.
-To prevent automatic compounding, instead of the bottom 'note' number enter its
-EDU value (quarter note = 1024; eighth note = 512; sixteenth = 256 etc).
-**
-Empty and zero "Top" numbers will be ignored.
-"Tertiary" values will be ignored if "Secondary" numbers are blank or zero.
-]]
-info_notes = info_notes:gsub("\n%s*", " "):gsub("*", "\n")
-    .. "\n(v" .. finaleplugin.Version .. ")"
 local mixin = require("library.mixin")
 local configuration = require("library.configuration")
+local utils = require("library.utils")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
+local refocus_document = false
+local function refocus()
+    if refocus_document then finenv.UI():ActivateDocumentWindow() end
+end
 local config = {
     note_spacing = true,
     window_pos_x = false,
@@ -5306,128 +5283,6 @@ local function dialog_save_position(dialog)
     config.window_pos_x = dialog.StoredX
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
-end
-local function user_chooses_meter(meter, rgn)
-    local x = { 0, 70, 130, 210, 280, 290 }
-    local label = {
-        { "PRIMARY", 0},
-        { "(+ SECONDARY)", -37 },
-        { "(+ TERTIARY)", -21 }
-    }
-    local y_middle = 118
-    local offset = finenv.UI():IsOnMac() and 3 or 0
-    local name = plugindef():gsub("%.%.%.", "")
-    local function show_info() finenv.UI():AlertInfo(info_notes, "About " .. name) end
-    local box, save_text = {}, {}
-    local message = "m. " .. rgn.StartMeasure
-    if rgn.StartMeasure ~= rgn.EndMeasure then
-        message = "m" .. message .. "-" .. rgn.EndMeasure
-    end
-    local respace_check
-    local y = 0
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
-        local function cstat(nx, ny, nwide, ntext, id)
-            local dx = (type(nx) == "number") and x[nx] or tonumber(nx)
-            return dialog:CreateStatic(dx, ny, id):SetWidth(nwide):SetText(ntext)
-        end
-        local function join(values)
-            if not values or #values == 0 then return "0" end
-            return table.concat(values, "+")
-        end
-        local function clear_entries()
-            for j = 0, 6, 6 do
-                for i = 1, 3 do
-                    local n = (j == 0 and i == 1) and 4 or 0
-                    box[j + i]:SetText(n)
-                    box[j + i + 3]:SetInteger(n)
-                    save_text[j + i] = n
-                    save_text[j + i + 3] = n
-                end
-            end
-            box[1]:SetKeyboardFocus()
-        end
-        local function key_check(id)
-            local s = box[id]:GetText():lower()
-            if s:find("[^0-9+]") then
-                if s:find("x") then
-                    clear_entries()
-                else
-                    if s:find("[?q]") then
-                        show_info()
-                    elseif s:find("r") then
-                        local n = respace_check:GetCheck()
-                        respace_check:SetCheck((n + 1) % 2)
-                    end
-                    box[id]:SetText(save_text[id])
-                end
-            elseif s ~= "" then
-                save_text[id] = s
-            end
-        end
-    cstat(1, y + 1, x[3], "TIME SIGNATURE", "main")
-    cstat(3, y, x[3], "TOP")
-    cstat(4, y, x[3], "BOTTOM")
-    cstat(6, 25, 80, "Selection:")
-    cstat(6, 40, 80, message)
-    dialog:CreateButton(x[5], y):SetWidth(80):SetText("Clear All (x)")
-        :AddHandleCommand(function() clear_entries() end)
-    y = y_middle
-    cstat(x[2] - 30, y - 30, 330, "'TOP' entries can include integers joined by '+' signs")
-    dialog:CreateHorizontalLine(x[1], y - 9, x[5] + 50)
-    dialog:CreateHorizontalLine(x[1], y - 8, x[5] + 50)
-    cstat(1, y + 1, x[3], "DISPLAY SIGNATURE", "second")
-    cstat(3, y, 150, "(set to '0' for none)")
-
-    y = 0
-    for jump = 0, 6, 6 do
-        local t_sig = (jump == 0) and meter.main or meter.display
-        for group = 1, 3 do
-            y = y + 20
-            local id = group + jump
-            box[id] = dialog:CreateEdit(x[3], y - offset)
-                :SetText(join(t_sig.top[group])):SetWidth(65)
-                :AddHandleCommand(function() key_check(id) end)
-            box[id + 3] = dialog:CreateEdit(x[4], y - offset)
-                :SetInteger(t_sig.bottom[group] or 0):SetWidth(65)
-                :AddHandleCommand(function() key_check(id + 3) end)
-            cstat(x[2] + label[group][2], y, 56 - label[group][2], label[group][1])
-            save_text[id] = box[id]:GetText()
-            save_text[id + 3] = box[id + 3]:GetText()
-        end
-        y = y_middle
-    end
-    y = y + 60
-    dialog:CreateButton(x[5] + 60, y, "q"):SetText("?"):SetWidth(20)
-        :AddHandleCommand(function() show_info() end)
-    y = y + 25
-    respace_check = dialog:CreateCheckbox(x[3], y):SetText("Respace notes on completion (r)")
-        :SetCheck(config.note_spacing and 1 or 0):SetWidth(185)
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    local choices = {}
-    dialog:RegisterInitWindow(function(self)
-        box[1]:SetKeyboardFocus()
-        local q = self:GetControl("q")
-        local bold = q:CreateFontInfo():SetBold(true)
-        q:SetFont(bold)
-        self:GetControl("main"):SetFont(bold)
-        self:GetControl("second"):SetFont(bold)
-    end)
-    dialog:RegisterHandleOkButtonPressed(function()
-        for count = 0, 6, 6 do
-            for group = 1, 3 do
-                local id = count + group
-                choices[id] = box[id]:GetText() or "0"
-                if choices[id] == "" then choices[id] = "0" end
-                choices[id + 3] = box[id + 3]:GetInteger() or 0
-            end
-        end
-        config.note_spacing = (respace_check:GetCheck() == 1)
-    end)
-    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    dialog_set_position(dialog)
-    local ok = dialog:ExecuteModal(nil)
-    return ok, choices
 end
 local function encode_current_meter(time_sig, sub_meter)
     local function numerators_treble(top_table)
@@ -5527,6 +5382,140 @@ local function convert_choices_to_meter(choices, meter)
     end
     return ""
 end
+local function user_chooses_meter(rgn)
+    local x = { 0, 70, 130, 210, 280, 290 }
+    local label = {
+        { "PRIMARY", 0},
+        { "(+ SECONDARY)", -37 },
+        { "(+ TERTIARY)", -21 }
+    }
+    local y_middle = 118
+    local offset = finenv.UI():IsOnMac() and 3 or 0
+    local name = plugindef():gsub("%.%.%.", "")
+    local box, save_text = {}, {}
+    local message = "m. " .. rgn.StartMeasure
+    if rgn.StartMeasure ~= rgn.EndMeasure then
+        message = "m" .. message .. "-" .. rgn.EndMeasure
+    end
+    local respace_check
+    local y = 0
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
+
+        local function show_info()
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 350)
+            refocus_document = true
+        end
+        local function cstat(nx, ny, nwide, ntext, id)
+            local dx = (type(nx) == "number") and x[nx] or tonumber(nx)
+            return dialog:CreateStatic(dx, ny, id):SetWidth(nwide):SetText(ntext)
+        end
+        local function join(values)
+            if not values or #values == 0 then return "0" end
+            return table.concat(values, "+")
+        end
+        local function clear_entries()
+            for j = 0, 6, 6 do
+                for i = 1, 3 do
+                    local n = (j == 0 and i == 1) and 4 or 0
+                    box[j + i]:SetText(n)
+                    box[j + i + 3]:SetInteger(n)
+                    save_text[j + i] = n
+                    save_text[j + i + 3] = n
+                end
+            end
+            box[1]:SetKeyboardFocus()
+        end
+        local function key_check(id)
+            local s = box[id]:GetText():lower()
+            if s:find("[^0-9+]") then
+                if s:find("x") then
+                    clear_entries()
+                else
+                    if s:find("[?q]") then
+                        show_info()
+                    elseif s:find("r") then
+                        local n = respace_check:GetCheck()
+                        respace_check:SetCheck((n + 1) % 2)
+                    end
+                    box[id]:SetText(save_text[id])
+                end
+            elseif s ~= "" then
+                save_text[id] = s
+            end
+        end
+    cstat(1, y + 1, x[3], "TIME SIGNATURE", "main")
+    cstat(3, y, x[3], "TOP")
+    cstat(4, y, x[3], "BOTTOM")
+    cstat(6, 25, 80, "Selection:")
+    cstat(6, 40, 80, message)
+    dialog:CreateButton(x[5], y):SetWidth(80):SetText("Clear All (x)")
+        :AddHandleCommand(function() clear_entries() end)
+    y = y_middle
+    cstat(x[2] - 30, y - 30, 330, "'TOP' entries can include integers joined by '+' signs")
+    dialog:CreateHorizontalLine(x[1], y - 9, x[5] + 50)
+    dialog:CreateHorizontalLine(x[1], y - 8, x[5] + 50)
+    cstat(1, y + 1, x[3], "DISPLAY SIGNATURE", "second")
+    cstat(3, y, 150, "(set to '0' for none)")
+
+    local meter = copy_meter_from_score(rgn.StartMeasure)
+    y = 0
+    for jump = 0, 6, 6 do
+        local t_sig = (jump == 0) and meter.main or meter.display
+        for group = 1, 3 do
+            y = y + 20
+            local id = group + jump
+            box[id] = dialog:CreateEdit(x[3], y - offset)
+                :SetText(join(t_sig.top[group])):SetWidth(65)
+                :AddHandleCommand(function() key_check(id) end)
+            save_text[id] = box[id]:GetText()
+            box[id + 3] = dialog:CreateEdit(x[4], y - offset)
+                :SetInteger(t_sig.bottom[group] or 0):SetWidth(65)
+                :AddHandleCommand(function() key_check(id + 3) end)
+            cstat(x[2] + label[group][2], y, 56 - label[group][2], label[group][1])
+            save_text[id + 3] = box[id + 3]:GetText()
+        end
+        y = y_middle
+    end
+    y = y + 60
+    dialog:CreateButton(x[5] + 60, y, "q"):SetText("?"):SetWidth(20)
+        :AddHandleCommand(function() show_info() end)
+    y = y + 25
+    respace_check = dialog:CreateCheckbox(x[3], y):SetText("Respace notes on completion (r)")
+        :SetCheck(config.note_spacing and 1 or 0):SetWidth(185)
+    dialog:CreateOkButton()
+    dialog:CreateCancelButton()
+    local choices = {}
+    dialog:RegisterInitWindow(function(self)
+        box[1]:SetKeyboardFocus()
+        local q = self:GetControl("q")
+        local bold = q:CreateFontInfo():SetBold(true)
+        q:SetFont(bold)
+        self:GetControl("main"):SetFont(bold)
+        self:GetControl("second"):SetFont(bold)
+    end)
+    local user_error = false
+    dialog_set_position(dialog)
+    dialog:RegisterHandleOkButtonPressed(function()
+        for count = 0, 6, 6 do
+            for group = 1, 3 do
+                local id = count + group
+                choices[id] = box[id]:GetText() or "0"
+                if choices[id] == "" then choices[id] = "0" end
+                choices[id + 3] = box[id + 3]:GetInteger() or 0
+            end
+        end
+        config.note_spacing = (respace_check:GetCheck() == 1)
+        meter = blank_meter()
+        local msg = convert_choices_to_meter(choices, meter)
+        if msg ~= "" then
+            user_error = true
+            finenv.UI():AlertInfo(msg, plugindef())
+        end
+    end)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
+    local ok = (dialog:ExecuteModal(nil) == finale.EXECMODAL_OK)
+    return ok, user_error, meter
+end
 local function new_composite_top(sub_meter)
     local composite_top = finale.FCCompositeTimeSigTop()
     for count = 1, 3 do
@@ -5574,14 +5563,13 @@ end
 local function create_new_meter()
     local region = mixin.FCMMusicRegion()
     region:SetRegion(finenv.Region()):SetStartMeasurePosLeft():SetEndMeasurePosRight()
-    local meter = copy_meter_from_score(region.StartMeasure)
-    local ok, choices = user_chooses_meter(meter, region)
-	if ok ~= finale.EXECMODAL_OK then return end
-    meter = blank_meter()
-    local msg = convert_choices_to_meter(choices, meter)
-    if msg ~= "" then finenv.UI():AlertInfo(msg, plugindef()) return end
+    local ok, error, meter = true, true, {}
+    while (ok and error) do
+        ok, error, meter = user_chooses_meter(region)
+    end
+    if not ok then refocus() return end
     local composites = {
-        main = { top = nil, bottom = nil},
+        main =    { top = nil, bottom = nil},
         display = { top = nil, bottom = nil}
     }
     for _, kind in ipairs{"main", "display"} do
@@ -5617,5 +5605,6 @@ local function create_new_meter()
         finenv.UI():MenuCommand(finale.MENUCMD_NOTESPACING)
         region:SetInDocument()
     end
+    refocus()
 end
 create_new_meter()

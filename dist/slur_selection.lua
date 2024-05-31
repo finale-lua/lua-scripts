@@ -241,16 +241,16 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v0.56"
-    finaleplugin.Date = "2023/09/16"
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.Version = "v0.58"
+    finaleplugin.Date = "2024/01/29"
+    finaleplugin.MinJWLuaVersion = 0.68
     finaleplugin.Notes = [[
-        A good trick in Sibelius is hitting the 'S' key to create a slur across currently selected notes. 
-        Activate this script in Finale with a macro hotkey utility to do the same thing. 
+        A good trick in Sibelius is hitting the __S__ key to create a slur across currently selected notes. 
+        Activate this script in _Finale_ with a macro hotkey utility to do the same thing. 
         Each layer will be slurred independently, and if there are 
         several runs of notes separated by rests, each run will be slurred separately. 
         If you want to automate slurs on specific rhythmic patterns then try 
-        JW Pattern (→ Performance Notation → Slurs) or TGTools (→ Music → Create Slurs...).
+        __JW Pattern__ (→ _Performance Notation_ → _Slurs_) or __TGTools__ (→ _Music_ → _Create Slurs..._).
     ]]
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
@@ -258,7 +258,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 A good trick in Sibelius is hitting the \u8216'S\u8217' key to create a slur across currently selected notes. Activate this script in Finale with a macro hotkey utility to do the same thing. Each layer will be slurred independently, and if there are several runs of notes separated by rests, each run will be slurred separately. If you want to automate slurs on specific rhythmic patterns then try JW Pattern (\u8594? Performance Notation \u8594? Slurs) or TGTools (\u8594? Music \u8594? Create Slurs\u8230?).\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 A good trick in Sibelius is hitting the {\b S} key to create a slur across currently selected notes. Activate this script in {\i Finale} with a macro hotkey utility to do the same thing. Each layer will be slurred independently, and if there are several runs of notes separated by rests, each run will be slurred separately. If you want to automate slurs on specific rhythmic patterns then try {\b JW Pattern} (\u8594? {\i Performance Notation} \u8594? {\i Slurs}) or {\b TGTools} (\u8594? {\i Music} \u8594? {\i Create Slurs\u8230?}).\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/slur_selection.hash"
@@ -266,53 +266,31 @@ function plugindef()
 end
 local smartshape = require("library.smartshape")
 local layer = require("library.layer")
-function delete_region_slurs(rgn)
+function make_slurs()
+    local rgn = finenv.Region()
 
     for mark in loadallforregion(finale.FCSmartShapeMeasureMarks(), rgn) do
         local shape = mark:CreateSmartShape()
         if shape and shape:IsSlur() then shape:DeleteData() end
     end
-
-    local shape_starts, shape_ends = {}, {}
-    for entry in eachentry(rgn) do
-        for mark in loadall(finale.FCSmartShapeEntryMarks(entry)) do
-            local shape = mark:CreateSmartShape()
-            if mark:CalcLeftMark() then
-                shape_starts[shape.ItemNo] = true
-            end
-            if mark:CalcRightMark() then
-                shape_ends[shape.ItemNo] = true
-            end
-        end
-    end
-    for itemno, _ in pairs(shape_starts) do
-        if shape_ends[itemno] ~= nil then
-            local shape = finale.FCSmartShape()
-            shape:Load(itemno)
-            if shape:IsSlur() then shape:DeleteData() end
-        end
-    end
-end
-function make_slurs()
-    local rgn = finenv.Region()
-    delete_region_slurs(rgn)
     for staff_number in eachstaff(rgn) do
         for layer_number = 1, layer.max_layers() do
             local entry_layer = finale.FCNoteEntryLayer(layer_number - 1, staff_number, rgn.StartMeasure, rgn.EndMeasure)
             entry_layer:Load()
-            local start_slur = false
+            local started_slur = false
             for entry in each(entry_layer) do
                 if rgn:IsEntryPosWithin(entry) then
-                    if not start_slur then
+                    local next = entry:Next()
+                    if not started_slur then
                         if entry:IsNote() then
-                            start_slur = entry
+                            started_slur = entry
                         end
                     elseif entry:IsRest() then
-                        start_slur = false
+                        started_slur = false
 
-                    elseif not entry:Next() or entry:Next():IsRest() or not rgn:IsEntryPosWithin(entry:Next()) then
-                        smartshape.add_entry_based_smartshape(start_slur, entry, "auto_slur")
-                        start_slur = false
+                    elseif not next or next:IsRest() or not rgn:IsEntryPosWithin(next) then
+                        smartshape.add_entry_based_smartshape(started_slur, entry, "auto_slur")
+                        started_slur = false
                     end
                 end
             end

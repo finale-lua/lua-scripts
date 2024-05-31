@@ -5300,8 +5300,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "v0.32"
-    finaleplugin.Date = "2024/03/23"
+    finaleplugin.Version = "0.35"
+    finaleplugin.Date = "2024/05/04"
     finaleplugin.AdditionalMenuOptions = [[
         Pitch Changer Repeat
     ]]
@@ -5374,6 +5374,19 @@ function plugindef()
     return "Pitch Changer...", "Pitch Changer", "Change all notes of one pitch in the region to another pitch"
 end
 repeat_change = repeat_change or false
+local hotkey = {
+    Closest   = "Z",
+    Up        = "X",
+    Down      = "V",
+    Swap      = "W",
+    Modeless  = "M",
+    Written   = "R",
+    Show_Info = "Q",
+}
+local directions = { "Closest", "Up", "Down" }
+for i, v in ipairs(directions) do
+    directions[i] = string.format("%s (%s)", v, hotkey[v]:lower())
+end
 local config = {
     find_string = "F#",
     find_pitch = "F",
@@ -5402,7 +5415,6 @@ local bounds = {
     "StartStaff", "StartMeasure", "StartMeasurePos",
     "EndStaff",   "EndMeasure",   "EndMeasurePos",
 }
-local directions = { "Closest (z)", "Up (x)", "Down (v)" }
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
@@ -5416,16 +5428,12 @@ local function dialog_save_position(dialog)
     config.window_pos_y = dialog.StoredY
     configuration.save_user_settings(script_name, config)
 end
-local function measure_duration(measure_number)
-    local m = finale.FCMeasure()
-    return m:Load(measure_number) and m:GetDuration() or 0
-end
 local function get_staff_name(staff_num)
     local staff = finale.FCStaff()
     staff:Load(staff_num)
-    local str = staff:CreateDisplayFullNameString().LuaString
+    local str = staff:CreateDisplayAbbreviatedNameString().LuaString
     if not str or str == "" then
-        str = "Staff " .. staff_num
+        str = "Staff" .. staff_num
     end
     return str
 end
@@ -5433,20 +5441,18 @@ local function track_selection()
 
     local rgn = finenv.Region()
     for _, property in ipairs(bounds) do
-        saved_bounds[property] = rgn:IsEmpty() and 0 or rgn[property]
+        saved_bounds[property] = rgn[property]
     end
 
-    selection = { staff = "no staff", region = "no selection"}
+    selection = "no staff, no selection"
     if not rgn:IsEmpty() then
-
-        local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
-        local m = measure_duration(rgn.EndMeasure)
-        local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
-        selection.region = string.format("m%.2f-m%.2f", r1, r2)
-
-        selection.staff = get_staff_name(rgn.StartStaff)
+        selection = get_staff_name(rgn.StartStaff)
         if rgn.EndStaff ~= rgn.StartStaff then
-            selection.staff = selection.staff .. " → " .. get_staff_name(rgn.EndStaff)
+            selection = selection .. "-" .. get_staff_name(rgn.EndStaff)
+        end
+        selection = selection .. " m." .. rgn.StartMeasure
+        if rgn.StartMeasure ~= rgn.EndMeasure then
+            selection = selection .. "-" .. rgn.EndMeasure
         end
     end
 end
@@ -5490,13 +5496,18 @@ local function octave_direction()
 end
 local function change_the_pitches()
     finenv.StartNewUndoBlock(
-        string.format("Pitch Change %s to %s %s",
-            config.find_string, config.new_string, selection.region)
+        string.format("Pitch Change %s-%s %s",
+            config.find_string, config.new_string, selection)
     )
     local octave_change = octave_direction()
     local s = finale.FCString()
+    local measure, staff, key_sig = 0, 0, nil
     for entry in eachentrysaved(finenv.Region(), config.layer_num) do
-        local key_sig = finale.FCCell(entry.Measure, entry.Staff):GetKeySignature()
+        local e_m, e_s = entry.Measure, entry.Staff
+        if measure ~= e_m and staff ~= e_s then
+            measure = e_m     staff = e_s
+            key_sig = finale.FCCell(e_m, e_s):GetKeySignature()
+        end
         if entry:IsNote() then
             for note in each(entry) do
                 note:GetString(s, key_sig, false, config.written_pitch)
@@ -5523,7 +5534,7 @@ local function run_the_dialog()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
 
         local function yd(diff) y = y + (diff or 25) end
-        local function show_info()
+        local function Show_Info()
             utils.show_notes_dialog(dialog, "About " .. name, 420, 430)
             refocus_document = true
         end
@@ -5544,24 +5555,21 @@ local function run_the_dialog()
             if (kind == "layer" and s:find("[^0-4]"))
               or (kind ~= "layer" and s:find("[^A-G#]")) then
 
-                if      s:find("Z") then pitch.popup:SetSelectedItem(0)
-                elseif  s:find("X") then pitch.popup:SetSelectedItem(1)
-                elseif  s:find("V") then pitch.popup:SetSelectedItem(2)
-                elseif  s:find("S") and kind ~= "layer" then
+                if     s:find(hotkey.Closest) then pitch.popup:SetSelectedItem(0)
+                elseif s:find(hotkey.Up) then pitch.popup:SetSelectedItem(1)
+                elseif s:find(hotkey.Down) then pitch.popup:SetSelectedItem(2)
+                elseif s:find("S") and kind ~= "layer" then
                     save_text[kind] = s:gsub("S", "#")
-                elseif  s:find("W") then value_swap()
-                elseif  s:find("[?Q]") then show_info()
-                elseif s:find("M") then toggle_check("modeless")
-                elseif s:find("R") then toggle_check("written_pitch")
-                end
-                if kind == "layer" or not s:find("W") then
-                    pitch[kind]:SetText(save_text[kind])
+                elseif s:find(hotkey.Swap) then value_swap()
+                elseif s:find(hotkey.Show_Info) then Show_Info()
+                elseif s:find(hotkey.Modeless) then toggle_check("modeless")
+                elseif s:find(hotkey.Written) then toggle_check("written_pitch")
                 end
             else
                 s = (kind == "layer") and s:sub(-1) or (s:sub(1, 1) .. s:sub(2):lower())
                 save_text[kind] = s
-                pitch[kind]:SetText(s)
             end
+            pitch[kind]:SetText(save_text[kind])
         end
         local function encode_pitches(kind)
             local s = pitch[kind]:GetText()
@@ -5581,8 +5589,7 @@ local function run_the_dialog()
             for k, v in pairs(saved_bounds) do
                 if finenv.Region()[k] ~= v then
                     track_selection()
-                    ctl.info1:SetText(selection.staff)
-                    ctl.info2:SetText(selection.region)
+                    ctl.info:SetText(selection)
                     break
                 end
             end
@@ -5610,17 +5617,12 @@ local function run_the_dialog()
     ctl.written_pitch = dialog:CreateCheckbox(x_pos[3] + 12, y):SetWidth(85)
         :SetCheck(config.written_pitch and 1 or 0):SetText("Written Pitch")
     ctl.q = dialog:CreateButton(x_pos[4] + 60, y):SetText("?"):SetWidth(20)
-       :AddHandleCommand(function() show_info() end)
+       :AddHandleCommand(function() Show_Info() end)
     yd()
     ctl.modeless = dialog:CreateCheckbox(0, y):SetWidth(x_pos[4] + 80)
         :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
-
-    if config.modeless then
-        yd(14)
-        ctl.info1 = dialog:CreateStatic(16, y):SetText(selection.staff):SetWidth(x_pos[4] + 65)
-        yd(14)
-        ctl.info2 = dialog:CreateStatic(16, y):SetText(selection.region):SetWidth(x_pos[4] + 65)
-    end
+    yd(14)
+    ctl.info = dialog:CreateStatic(16, y):SetText(selection):SetWidth(x_pos[4] + 65)
 
     dialog:CreateOkButton():SetText(config.modeless and "Apply" or "Change")
     dialog:CreateCancelButton()
@@ -5645,14 +5647,13 @@ local function run_the_dialog()
             config.written_pitch = (ctl.written_pitch:GetCheck() == 1)
             change_the_pitches()
         else
-            dialog:CreateChildUI():AlertError(
-                "Pitch names cannot be empty and must start with a single "
-                .. "note name (a-g or A-G) followed by accidentals "
-                .. "(#-###, b-bbb) as required.\n\n"
-                .. "These pitch names are invalid:\n"
-                .. table.concat(errors, "; "),
-                name .. " Error"
-            )
+            local msg = (#errors > 1) and
+                "These pitch names are invalid:\n" or "This pitch name is invalid:\n"
+            msg = "Pitch names cannot be empty and must start "
+                .. "with a single note name (a-g or A-G) followed by "
+                .. "accidentals (#-###, b-bbb) as required.\n\n"
+                .. msg .. table.concat(errors, "; ")
+            dialog:CreateChildUI():AlertError(msg, name .. " Error")
             user_error = true
         end
     end)
