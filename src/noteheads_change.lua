@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.36"
-    finaleplugin.Date = "2024/06/01"
+    finaleplugin.Version = "0.37"
+    finaleplugin.Date = "2024/06/02"
     finaleplugin.AdditionalMenuOptions = [[
         Noteheads Change Repeat
     ]]
@@ -12,16 +12,16 @@ function plugindef()
         Noteheads Change Repeat
     ]]
     finaleplugin.AdditionalDescriptions = [[
-        Change notehead shapes on a specific layer of the current selection (no dialog)
+        Change the shape of noteheads in the current selection (no dialog)
     ]]
     finaleplugin.AdditionalPrefixes = [[
         no_dialog = true
     ]]
     finaleplugin.MinJWLuaVersion = 0.70
-    finaleplugin.ScriptGroupName = "Noteheads Change by Layer"
-    finaleplugin.ScriptGroupDescription = "Change notehead shapes on a specific layer of the current selection"
+    finaleplugin.ScriptGroupName = "Noteheads Change"
+    finaleplugin.ScriptGroupDescription = "Change the shape of noteheads in the current selection"
     finaleplugin.Notes = [[
-        Change __notehead shapes__ on a specific layer of the current 
+        Change __notehead shapes__ on one or all layers of the current 
         selection to one of these options: 
 
         > Circled | Default | Diamond | Guitar Diamond  
@@ -42,8 +42,8 @@ function plugindef()
         To repeat the same action as last time without a confirmation dialog either select the 
         __Noteheads Change Repeat__ menu item or hold down [Shift] when opening the script.
     ]]
-    return "Noteheads Change by Layer...", "Noteheads Change by Layer",
-        "Change notehead shapes on a specific layer of the current selection"
+    return "Noteheads Change...", "Noteheads Change",
+        "Change the shape of noteheads in the current selection"
 end
 
 no_dialog = no_dialog or false
