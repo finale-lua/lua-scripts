@@ -13,8 +13,8 @@ function plugindef()
         v1.0.1      First release
     ]]
     finaleplugin.Notes = [[
-        This script will insert or delete one or more measures; it will then adjust the start and
-        end measures of the current and subsequent measure number regions. 
+        This script will insert or delete one or more measures; it will then adjust the start
+        and end measures of the current and subsequent measure number regions. 
 
         It can also optionally:
 
