@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.34"
-    finaleplugin.Date = "2024/05/20"
+    finaleplugin.Version = "0.36"
+    finaleplugin.Date = "2024/06/01"
     finaleplugin.AdditionalMenuOptions = [[
         Noteheads Change Repeat
     ]]
@@ -36,7 +36,7 @@ function plugindef()
         to duration values. Most duration-dependent shapes are not available 
         in Finale's old (non-SMuFL) _Maestro_ and _Engraver_ fonts. 
         _Diamond (Guitar)_ is like _Diamond_ except quarter notes and shorter use filled diamonds. 
-        _Number_ lets you specify any font character as a number including 
+        _Custom Glyph_ lets you specify any font character as a number including 
         __SMuFL__ (Unicode) numbers in the form __0xe0e1__ or __0xE0E1__. 
 
         To repeat the same action as last time without a confirmation dialog either select the 
@@ -59,19 +59,19 @@ local script_name = library.calc_script_name()
 local refocus_document = false
 
 local dialog_options = { -- notehead name (and key), HOTKEY
-    { "Circled", "C" },
-    { "Default", "A" },
-    { "Diamond", "D" },
-    { "Diamond_Guitar", "G" },
-    { "Hidden",  "H" },
-    { "Number",  "N" },
-    { "Round",   "R" },
-    { "Slash",   "S" },
-    { "Square",  "Q" },
-    { "Strikethrough", "E" },
-    { "Triangle", "T" },
-    { "Wedge",    "W" },
-    { "X",        "Z" }
+    { "Circled",        "C" },
+    { "Custom Glyph",   "U", "custom" }, -- special key
+    { "Default",        "A" },
+    { "Diamond",        "D" },
+    { "Guitar Diamond", "G", "diamond_guitar" }, -- special key
+    { "Hidden",         "H" }, -- (all other keys are just lower case identifier)
+    { "Round",          "R" },
+    { "Slash",          "S" },
+    { "Square",         "Q" },
+    { "Strikethrough",  "E" },
+    { "Triangle",       "T" },
+    { "Wedge",          "W" },
+    { "X",              "Z" }
 }
 local config = {
     layer_num = 1,
@@ -101,37 +101,50 @@ local function dialog_save_position(dialog)
 end
 
 local function user_chooses_glyph()
-    local x = 230
-    local y_diff = finenv.UI():IsOnMac() and 3 or 0 -- extra y-offset for Mac text box
-
     local base_glyph = tonumber(config.glyph) or diamond.smufl
     local msg
     if library.is_font_smufl_font() then
         if base_glyph < 0xE000 then base_glyph = diamond.smufl end -- < 57344
-        config.glyph = string.format("0x%X", base_glyph)
-        msg = "... as a plain integer, or hex value like \"0xE0E1\". "
-            .. "The Default Music Font is SMuFL compliant so glyph numbers "
+        msg = "... as an integer or hex value like \"0xE0E1\". "
+            .. "The Default Music Font of the current document "
+            .. "is SMuFL compliant so glyph numbers "
             .. "should be higher than 57344 (\"0xE000\")."
     else
         if base_glyph >= 0x1000 then base_glyph = diamond.non_smufl end
-        config.glyph = tostring(base_glyph)
-        msg = "The Default Music Font is not SMuFL compliant so glyph numbers "
+        msg = "The Default Music Font of the current document "
+        .. "is not SMuFL compliant so glyph numbers "
         .. "should be lower than 4096 (\"0x1000\") "
         .. "and might contain no characters higher than 255"
     end
 
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(finaleplugin.ScriptGroupName)
-    dialog:CreateStatic(0, y_diff):SetWidth(x + 70)
-        :SetText("Enter required character (glyph) number:")
-    dialog:CreateStatic(0, y_diff + 25):SetWidth(x + 100):SetHeight(50)
-        :SetText(msg)
-    local glyph = dialog:CreateEdit(x, 0):SetText(config.glyph)
+    local m_off = finenv.UI():IsOnMac() and 3 or 0 -- y-offset for Mac text box
+    local glyph_edit = dialog:CreateEdit(180, 30 - m_off)
+    local default_font = finale.FCFontInfo()
+    default_font:LoadFontPrefs(finale.FONTPREF_MUSIC)
+    dialog:CreateButton(80, 0):SetWidth(150)
+        :SetText("Select Custom Glyph")
+        :AddHandleCommand(function()
+            base_glyph = dialog:CreateChildUI()
+                :DisplaySymbolDialog(default_font, base_glyph)
+            if base_glyph ~= 0 then
+                config.glyph = library.is_font_smufl_font() and
+                    string.format("0x%X", base_glyph) or tostring(base_glyph)
+                    glyph_edit:SetText(config.glyph)
+            end
+        end)
+    dialog:CreateStatic(50, 30):SetWidth(230):SetText("Custom Glyph Number:")
+    dialog:CreateStatic(0, 55):SetWidth(330):SetHeight(50):SetText(msg)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function() glyph:SetKeyboardFocus() end)
+    dialog:RegisterInitWindow(function()
+        config.glyph = library.is_font_smufl_font() and
+            string.format("0x%X", base_glyph) or tostring(base_glyph)
+        glyph_edit:SetText(config.glyph):SetKeyboardFocus()
+    end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    dialog:RegisterHandleOkButtonPressed(function() config.glyph = glyph:GetText() end)
+    dialog:RegisterHandleOkButtonPressed(function() config.glyph = glyph_edit:GetText() end)
     return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
 end
 
@@ -204,9 +217,8 @@ local function user_chooses_shape()
             local join = finenv.UI():IsOnMac() and "\t" or ": "
             shape_list:Clear()
             for i, v in ipairs(dialog_options) do
-                local item = (i ~= 4) and v[1] or "Guitar Diamond"
-                shape_list:AddString(config[v[1]] .. join .. item)
-                if v[1]:lower() == config.shape then
+                shape_list:AddString(config[v[1]] .. join .. v[1])
+                if config.shape == v[1]:lower() or config.shape == v[3] then
                     shape_list:SetSelectedItem(i - 1)
                 end
             end
@@ -233,7 +245,7 @@ local function user_chooses_shape()
     local max = layer.max_layers()
     dialog:CreateStatic(x_offset, y):SetText("Layer number (1-" .. max .. "):"):SetWidth(110)
     y = y + y_step-- + 2
-    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- + vertical offset for Mac edit boxes
+    local mac_offset = finenv.UI():IsOnMac() and 3 or 0 -- vertical offset for Mac edit boxes
     local save_layer = config.layer_num
     local layer_num = dialog:CreateEdit(x_offset + 38, y - mac_offset):SetWidth(20)
         :SetText(save_layer)
@@ -267,7 +279,7 @@ local function user_chooses_shape()
     end)
     dialog:RegisterHandleOkButtonPressed(function()
         local item = shape_list:GetSelectedItem() + 1
-        config.shape = dialog_options[item][1]:lower()
+        config.shape = dialog_options[item][3] or dialog_options[item][1]:lower()
         config.layer_num = layer_num:GetInteger()
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
@@ -280,11 +292,10 @@ local function change_noteheads()
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
 
     if no_dialog or mod_key or user_chooses_shape() then
-        if config.shape == "number" then
+        if config.shape == "custom" then -- "Custom Glyph" is chosen
             if not user_chooses_glyph() then return end -- user cancelled
             config.shape = tonumber(config.glyph) -- glyph -> shape NUMBER
         end
-
         for entry in eachentrysaved(finenv.Region(), config.layer_num) do
             if entry:IsNote() then
                 for note in each(entry) do
