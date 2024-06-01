@@ -5215,24 +5215,8 @@ function plugindef()
         v1.0.1      First release
     ]]
     finaleplugin.Notes = [[
-        This script will insert or delete one or more measures; it will then adjust the start and
-    finaleplugin.RTFNotes = [[
-        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
-        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-        \widowctrl\hyphauto
-        \fs18
-        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script will insert or delete one or more measures; it will then adjust the start and end measures of the current and subsequent measure number regions.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 It can also optionally:\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Adjust the start numbers of subsequent numeric regions\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Adjust the numeric prefixes of subsequent regions\sa180\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 For example, given three measure regions {\f1 1-5, 5A-5B, 6-10}, if two measures are inserted into the first region and both optional adjustments are enabled, the regions will then look like {\f1 1-7, 7A-7B, 8-12}.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The script will stop adjusting start numbers and numeric prefixes if it encounters a region with a numeric start number of 1 (indicating a new movement).\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Note:} At the moment, the script will only delete measures which sit within a single measure region.\par}
-        }
-    ]]
-    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_insert_and_shift_regions.hash"
-        end measures of the current and subsequent measure number regions. 
+        This script will insert or delete one or more measures; it will then adjust the start
+        and end measures of the current and subsequent measure number regions. 
 
         It can also optionally:
 
@@ -5261,6 +5245,22 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
         mode = "Delete"
     ]]    
+    finaleplugin.RTFNotes = [[
+        {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
+        {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+        \widowctrl\hyphauto
+        \fs18
+        {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script will insert or delete one or more measures; it will then adjust the start and end measures of the current and subsequent measure number regions.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 It can also optionally:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Adjust the start numbers of subsequent numeric regions\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Adjust the numeric prefixes of subsequent regions\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 For example, given three measure regions {\f1 1-5, 5A-5B, 6-10}, if two measures are inserted into the first region and both optional adjustments are enabled, the regions will then look like {\f1 1-7, 7A-7B, 8-12}.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The script will stop adjusting start numbers and numeric prefixes if it encounters a region with a numeric start number of 1 (indicating a new movement).\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Note:} At the moment, the script will only delete measures which sit within a single measure region.\par}
+        }
+    ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_insert_and_shift_regions.hash"
 
     return "Insert Measures and Shift Regions...", "Insert Measures and Shift Regions", 
         "Inserts one or more measures and adjusts measure number regions"
