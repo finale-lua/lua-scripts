@@ -347,6 +347,56 @@ return true
         expect(result).toEqual(expected);
     });
 
+    it('should find the last occurrence of end', () => {
+        const name = 'test.lua';
+        const contents = `
+function plugindef()
+    finaleplugin.Foo = [[
+        end
+    ]]
+end
+`;
+
+        const expected = `
+function plugindef()
+    finaleplugin.Foo = [[
+        end
+    ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/test.hash"
+end
+`;
+
+        const result = injectExtras(name, contents);
+        expect(result).toEqual(expected);
+    });
+
+
+    it('should find the last occurrence of return', () => {
+        const name = 'test.lua';
+        const contents = `
+function plugindef()
+    finaleplugin.Foo = [[
+        return
+    ]]
+    return "Foo"
+end
+`;
+
+        const expected = `
+function plugindef()
+    finaleplugin.Foo = [[
+        return
+    ]]
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/test.hash"
+    return "Foo"
+end
+`;
+
+        const result = injectExtras(name, contents);
+        expect(result).toEqual(expected);
+    });
+
+
     it('should return the unaltered contents if the search criteria is not found', () => {
         const name = 'test.lua';
         const contents = `
