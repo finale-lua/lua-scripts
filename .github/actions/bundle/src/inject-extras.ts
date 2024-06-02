@@ -15,21 +15,23 @@ export const injectExtras = (name: string, contents: string): string => {
     return parts.prolog + parts.plugindef + parts.epilog;
 }
 
-const inject = (contents: string, injection: string): string => {
+const inject = (plugindef: string, injection: string): string => {    
     if (injection) {
-        const returnRegex = /^(\s*)return/gm;
-        const endRegex = /^(\s*)*end/gm;
+        const getLastIndex = (regex: RegExp): number => {
+            let match, result = Infinity;
+            while ((match = regex.exec(plugindef))) {
+                result = match.index;
+            }
+            return result;
+        }
 
-        const returnMatch = returnRegex.exec(contents);
-        const endMatch = endRegex.exec(contents);
-
-        const index = Math.min(
-            returnMatch ? returnMatch.index : Infinity,
-            endMatch ? endMatch.index : Infinity
-        );
-        return contents.slice(0, index) + injection + '\n' + contents.slice(index);
+        const endIndex = getLastIndex(/^(\s*)end(\s*)$/gm);
+        const returnIndex = getLastIndex(/^(\s*)return/gm);        
+        
+        const index = Math.min(endIndex, returnIndex);
+        return plugindef.slice(0, index) + injection + '\n' + plugindef.slice(index);
     } else {
-        return contents;
+        return plugindef;
     }
 }
 

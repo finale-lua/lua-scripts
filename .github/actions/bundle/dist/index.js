@@ -6975,17 +6975,22 @@ const injectExtras = (name, contents) => {
     return parts.prolog + parts.plugindef + parts.epilog;
 };
 exports.injectExtras = injectExtras;
-const inject = (contents, injection) => {
+const inject = (plugindef, injection) => {
     if (injection) {
-        const returnRegex = /^(\s*)return/gm;
-        const endRegex = /^(\s*)*end/gm;
-        const returnMatch = returnRegex.exec(contents);
-        const endMatch = endRegex.exec(contents);
-        const index = Math.min(returnMatch ? returnMatch.index : Infinity, endMatch ? endMatch.index : Infinity);
-        return contents.slice(0, index) + injection + '\n' + contents.slice(index);
+        const getLastIndex = (regex) => {
+            let match, result = Infinity;
+            while ((match = regex.exec(plugindef))) {
+                result = match.index;
+            }
+            return result;
+        };
+        const endIndex = getLastIndex(/^(\s*)end(\s*)$/gm);
+        const returnIndex = getLastIndex(/^(\s*)return/gm);
+        const index = Math.min(endIndex, returnIndex);
+        return plugindef.slice(0, index) + injection + '\n' + plugindef.slice(index);
     }
     else {
-        return contents;
+        return plugindef;
     }
 };
 const getHashURL = (name) => {
