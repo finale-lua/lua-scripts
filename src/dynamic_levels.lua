@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.05"
+    finaleplugin.Version = "0.06"
     finaleplugin.Date = "2024/06/04"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
@@ -49,9 +49,9 @@ local dyn_char = library.is_font_smufl_font() and
         0xe527, 0xe528, 0xe529, 0xe52a, 0xe52b, 0xe520, 0xe52c, -- pppppp -> mp
         0xe52d, 0xe522, 0xe52f, 0xe530, 0xe531, 0xe532, 0xe533, -- mf -> ffffff
     } or
-    { -- char number for non-SMuFL dynamics (1-14)
-          0,   0, 175, 184, 185, 112, 80, -- pppp -> mp (no glyph for 5p, 6p)
-         70, 102, 196, 236, 235,   0,  0, -- mf -> ffff (no glyph for 5f, 6f)
+    { -- char number for non-SMuFL dynamics (1-10)
+         175, 184, 185, 112,  80, -- pppp -> mp
+          70, 102, 196, 236, 235  -- mf -> ffff
     }
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -168,11 +168,6 @@ local function change_dynamics(dialog)
                     local target = math.min(math.max(1, i + shift), #dyn_char)
                     if str.LuaString == utf8.char(v) then -- dynamic match
                         if found[target] then -- replacement exists
-                            while found[target] == 0 do -- missing glyph!
-                                if     target <  3 then target = target + 1
-                                elseif target > 12 then target = target - 1
-                                end
-                            end
                             e:SetID(found[target]):Save()
                         else -- need to create new dynamic
                             if not config.create_new then -- ask permission
