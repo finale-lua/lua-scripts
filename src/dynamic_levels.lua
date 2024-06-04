@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.06"
+    finaleplugin.Version = "0.07"
     finaleplugin.Date = "2024/06/04"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
@@ -23,7 +23,7 @@ function plugindef()
         "Make dynamic marks in the selection louder or softer by stages"
 end
 
-local hotkey = { -- customise hotkeys (upper case only)
+local hotkey = { -- customise hotkeys (lowercase only)
     direction = "z", -- toggle Louder/Softer
     show_info = "q",
 }
@@ -133,19 +133,17 @@ local function change_dynamics(dialog)
     local matches = 0 -- count successes
     local shift = config.levels -- how many dynamic levels to move?
     if config.direction == 1 then shift = -shift end -- getting softer not louder
+    local dyn_len = library.is_font_smufl_font() and 3 or 2 -- max length of dynamic string
     -- match all target dynamics from existing expressions
-    local exp_defs = finale.FCTextExpressionDefs()
+    local exp_defs = mixin.FCMTextExpressionDefs()
     exp_defs:LoadAll()
     for exp_def in each(exp_defs) do
         if exp_def.CategoryID == 1 and exp_def.UseCategoryFont then -- "standard" dynamic?
             local str = exp_def:CreateTextString()
             str:TrimEnigmaTags()
-            for i, v in ipairs(dyn_char) do -- match all required characters
-                if not found[i] then
-                    if v == 0 then
-                        found[i] = 0 -- missing non-SMuFL char
-                        matches = matches + 1
-                    elseif str.LuaString == utf8.char(v) then
+            if str.LuaString:len() <= dyn_len then -- dynamic length
+                for i, v in ipairs(dyn_char) do -- match all required characters
+                    if not found[i] and str.LuaString == utf8.char(v) then
                         found[i] = exp_def.ItemNo -- matched char
                         matches = matches + 1
                     end
@@ -164,21 +162,23 @@ local function change_dynamics(dialog)
             if exp_def and exp_def.UseCategoryFont then -- "standard" dynamic?
                 local str = exp_def:CreateTextString()
                 str:TrimEnigmaTags()
-                for i, v in ipairs(dyn_char) do -- look for matching dynamic
-                    local target = math.min(math.max(1, i + shift), #dyn_char)
-                    if str.LuaString == utf8.char(v) then -- dynamic match
-                        if found[target] then -- replacement exists
-                            e:SetID(found[target]):Save()
-                        else -- need to create new dynamic
-                            if not config.create_new then -- ask permission
-                                config.create_new = create_dynamics_alert(dialog)
-                            end
-                            if config.create_new then -- create missing dynamic exp_def
-                                found[target] = create_exp_def(utf8.char(dyn_char[target]))
+                if str.LuaString:len() <= dyn_len then -- dynamic length
+                    for i, v in ipairs(dyn_char) do -- look for matching dynamic
+                        local target = math.min(math.max(1, i + shift), #dyn_char)
+                        if str.LuaString == utf8.char(v) then -- dynamic match
+                            if found[target] then -- replacement exists
                                 e:SetID(found[target]):Save()
+                            else -- create new dynamic
+                                if not config.create_new then -- ask permission
+                                    config.create_new = create_dynamics_alert(dialog)
+                                end
+                                if config.create_new then -- create missing dynamic exp_def
+                                    found[target] = create_exp_def(utf8.char(dyn_char[target]))
+                                    e:SetID(found[target]):Save()
+                                end
                             end
+                            break
                         end
-                        break
                     end
                 end
             end
@@ -196,7 +196,7 @@ local function run_the_dialog()
         -- local functions
         local function yd(diff) y = y + (diff or 20) end
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 300, 150)
+            utils.show_notes_dialog(dialog, "About " .. name, 300, 200)
         end
         local function cstat(horiz, vert, wide, str) -- dialog static text
             return dialog:CreateStatic(horiz, vert):SetWidth(wide):SetText(str)
