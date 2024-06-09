@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.37"
-    finaleplugin.Date = "2024/06/02"
+    finaleplugin.Version = "0.39"
+    finaleplugin.Date = "2024/06/09"
     finaleplugin.AdditionalMenuOptions = [[
         Noteheads Change Repeat
     ]]
@@ -40,7 +40,7 @@ function plugindef()
         __SMuFL__ (Unicode) numbers in the form __0xe0e1__ or __0xE0E1__. 
 
         To repeat the same action as last time without a confirmation dialog either select the 
-        __Noteheads Change Repeat__ menu item or hold down [Shift] when opening the script.
+        __Noteheads Change Repeat__ menu item or hold down [_Shift_] when opening the script.
     ]]
     return "Noteheads Change...", "Noteheads Change",
         "Change the shape of noteheads in the current selection"
@@ -58,7 +58,7 @@ local diamond = { smufl = 0xE0E1, non_smufl = 79 }
 local script_name = library.calc_script_name()
 local refocus_document = false
 
-local dialog_options = { -- notehead name (and key), HOTKEY
+local dialog_options = { -- notehead name (and key), hotkey (uppercase)
     { "Circled",        "C" },
     { "Custom Glyph",   "U", "custom" }, -- special key
     { "Default",        "A" },
@@ -77,7 +77,7 @@ local config = {
     layer_num = 1,
     ignore_duplicates = 0,
     shape = "default",
-    glyph = "0xe0e1",
+    glyph = diamond.smufl,
     window_pos_x = false,
     window_pos_y = false
 }
@@ -120,31 +120,27 @@ local function user_chooses_glyph()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(finaleplugin.ScriptGroupName)
     local m_off = finenv.UI():IsOnMac() and 3 or 0 -- y-offset for Mac text box
     local glyph_edit = dialog:CreateEdit(180, 30 - m_off)
+        local function set_glyph()
+            local g = library.is_font_smufl_font() and
+                string.format("0x%X", base_glyph) or tostring(base_glyph)
+            glyph_edit:SetText(g):SetKeyboardFocus()
+        end
     local default_font = finale.FCFontInfo()
     default_font:LoadFontPrefs(finale.FONTPREF_MUSIC)
     dialog:CreateButton(80, 0):SetWidth(150)
         :SetText("Select Custom Glyph")
         :AddHandleCommand(function()
-            base_glyph = dialog:CreateChildUI()
-                :DisplaySymbolDialog(default_font, base_glyph)
-            if base_glyph ~= 0 then
-                config.glyph = library.is_font_smufl_font() and
-                    string.format("0x%X", base_glyph) or tostring(base_glyph)
-                    glyph_edit:SetText(config.glyph)
-            end
+            base_glyph = dialog:CreateChildUI():DisplaySymbolDialog(default_font, base_glyph)
+            if base_glyph ~= 0 then set_glyph() end
         end)
     dialog:CreateStatic(50, 30):SetWidth(230):SetText("Custom Glyph Number:")
     dialog:CreateStatic(0, 55):SetWidth(330):SetHeight(50):SetText(msg)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function()
-        config.glyph = library.is_font_smufl_font() and
-            string.format("0x%X", base_glyph) or tostring(base_glyph)
-        glyph_edit:SetText(config.glyph):SetKeyboardFocus()
-    end)
+    dialog:RegisterInitWindow(function() set_glyph() end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    dialog:RegisterHandleOkButtonPressed(function() config.glyph = glyph_edit:GetText() end)
+    dialog:RegisterHandleOkButtonPressed(function() config.glyph = tonumber(glyph_edit:GetText()) end)
     return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
 end
 
