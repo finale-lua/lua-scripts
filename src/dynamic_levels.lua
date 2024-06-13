@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.07"
-    finaleplugin.Date = "2024/06/04"
+    finaleplugin.Version = "0.08"
+    finaleplugin.Date = "2024/06/08"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Make dynamic marks in the selection louder or softer by stages. 
@@ -31,7 +31,7 @@ local config = {
     direction    = 0, -- 0 == "Louder", 1 = "Softer"
     levels       = 1, -- how many "levels" louder or softer
     create_new   = false, -- don't create new dynamics without permission
-    timer_id     = 1,
+    timer_id     = 1, -- timer to track selected region changes (always Modeless)
     window_pos_x = false,
     window_pos_y = false,
 }
@@ -45,11 +45,11 @@ local name = plugindef():gsub("%.%.%.", "")
 local selection
 local saved_bounds = {}
 local dyn_char = library.is_font_smufl_font() and
-    { -- char number for SMuFL dynamics (1-14)
+    { -- char numbers for SMuFL dynamics (1-14)
         0xe527, 0xe528, 0xe529, 0xe52a, 0xe52b, 0xe520, 0xe52c, -- pppppp -> mp
         0xe52d, 0xe522, 0xe52f, 0xe530, 0xe531, 0xe532, 0xe533, -- mf -> ffffff
     } or
-    { -- char number for non-SMuFL dynamics (1-10)
+    { -- char numbers for non-SMuFL dynamics (1-10)
          175, 184, 185, 112,  80, -- pppp -> mp
           70, 102, 196, 236, 235  -- mf -> ffff
     }
@@ -102,15 +102,16 @@ local function track_selection()
 end
 
 local function create_dynamics_alert(dialog)
-    local msg = "Do you want this script to create additional dynamic expressions "
-    .. "as required? (A positive reply will be saved and used if this question arises again)."
+    local msg = "Do you want this script to create "
+    .. "additional dynamic expressions as required? "
+    .. "(A positive reply will be saved and used if this question arises again)."
     local ok = dialog and
            dialog:CreateChildUI():AlertYesNo(msg, nil)
         or finenv.UI():AlertYesNo(msg, nil)
     return ok == finale.YESRETURN
 end
 
-local function create_exp_def(exp_name)
+local function create_dyn_def(expression_text)
     local cat_def = finale.FCCategoryDef()
     cat_def:Load(1) -- default "DYNAMIC" category
     local finfo = finale.FCFontInfo()
@@ -118,7 +119,7 @@ local function create_exp_def(exp_name)
     local str = finale.FCString()
     str.LuaString = "^fontMus"
         .. finfo:CreateEnigmaString(finale.FCString()).LuaString
-        .. exp_name
+        .. expression_text
     local ted = mixin.FCMTextExpressionDef()
     ted:SaveNewTextBlock(str)
         :AssignToCategory(cat_def)
@@ -130,10 +131,10 @@ end
 
 local function change_dynamics(dialog)
     local found = {} -- collate matched dynamic expressions
-    local matches = 0 -- count successes
+    local match_count = 0
     local shift = config.levels -- how many dynamic levels to move?
-    if config.direction == 1 then shift = -shift end -- getting softer not louder
-    local dyn_len = library.is_font_smufl_font() and 3 or 2 -- max length of dynamic string
+    if config.direction == 1 then shift = -shift end -- softer not louder
+    local dyn_len = library.is_font_smufl_font() and 3 or 2 -- dynamic max string length
     -- match all target dynamics from existing expressions
     local exp_defs = mixin.FCMTextExpressionDefs()
     exp_defs:LoadAll()
@@ -141,16 +142,16 @@ local function change_dynamics(dialog)
         if exp_def.CategoryID == 1 and exp_def.UseCategoryFont then -- "standard" dynamic?
             local str = exp_def:CreateTextString()
             str:TrimEnigmaTags()
-            if str.LuaString:len() <= dyn_len then -- dynamic length
-                for i, v in ipairs(dyn_char) do -- match all required characters
+            if str.LuaString:len() <= dyn_len then -- within max dynamic length
+                for i, v in ipairs(dyn_char) do -- check all dynamic glyphs
                     if not found[i] and str.LuaString == utf8.char(v) then
                         found[i] = exp_def.ItemNo -- matched char
-                        matches = matches + 1
+                        match_count = match_count + 1
                     end
                 end
             end
-            if matches >= #dyn_char then break end
         end
+        if match_count >= #dyn_char then break end -- all collected
     end
     -- scan the selection for dynamics and change them
     finenv.StartNewUndoBlock(string.format("%s %s%d %s", name,
@@ -173,11 +174,11 @@ local function change_dynamics(dialog)
                                     config.create_new = create_dynamics_alert(dialog)
                                 end
                                 if config.create_new then -- create missing dynamic exp_def
-                                    found[target] = create_exp_def(utf8.char(dyn_char[target]))
+                                    found[target] = create_dyn_def(utf8.char(dyn_char[target]))
                                     e:SetID(found[target]):Save()
                                 end
                             end
-                            break
+                            break -- all done for this target dynamic
                         end
                     end
                 end
@@ -212,7 +213,7 @@ local function run_the_dialog()
                 elseif s:find(hotkey.direction) then flip_direction()
                 end
             else
-                save = s:sub(-1)
+                save = s:sub(-1) -- save last entered char only
             end
             ctl.levels:SetText(save)
         end
