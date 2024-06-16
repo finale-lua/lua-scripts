@@ -53,7 +53,7 @@ local https = osutils.internet
 
 local config =
 {
-    api_model = "gpt-4",
+    api_model = "gpt-4o",
     temperature = 0.2, -- fairly deterministic
     add_hyphens_prompt = [[
 Hyphenate the following text, delimiting words with spaces and syllables with hyphens.
