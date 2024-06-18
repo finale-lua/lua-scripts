@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.02"
-    finaleplugin.Date = "2024/06/17"
+    finaleplugin.Version = "0.03"
+    finaleplugin.Date = "2024/06/18"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Change the characteristics of every slur in the current selection. 
@@ -26,6 +26,7 @@ local mixin = require("library.mixin")
 local utils = require("library.utils")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
+local name = plugindef():gsub("%.%.%.", "")
 local selection
 local saved_bounds = {}
 
@@ -163,7 +164,14 @@ local function reassign_keystrokes(parent, index)
     return ok, is_duplicate
 end
 
-local function change_the_slurs()
+local function change_the_slurs(dialog)
+    if finenv.Region():IsEmpty() then
+        local msg = "Please select some music\nbefore running this script"
+        if dialog then dialog:CreateChildUI():AlertError(msg, name)
+        else finenv.UI():AlertError(msg, name)
+        end
+        return
+    end
     local selected = dialog_options[config.last_selected + 1]
     local state = selected[1]
     local checked = {}
@@ -200,7 +208,6 @@ local function run_the_dialog()
     local y_step = 17
     local box_wide = 150
     local box_high = (#dialog_options * y_step) + 4
-    local name = plugindef():gsub("%.%.%.", "")
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
     dialog:CreateStatic(0, 0):SetText("Change Slurs:"):SetWidth(box_wide)
     local key_list = dialog:CreateListBox(0, 22):SetWidth(box_wide):SetHeight(box_high)
@@ -254,7 +261,7 @@ local function run_the_dialog()
     end)
     dialog:RegisterHandleOkButtonPressed(function()
         config.last_selected = key_list:GetSelectedItem() -- save list choice (0-based)
-        change_the_slurs()
+        change_the_slurs(dialog)
     end)
     dialog:RegisterCloseWindow(function(self)
         self:StopTimer(config.timer_id)
@@ -269,7 +276,7 @@ local function change_slurs()
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
 
     track_selection() -- track current selected region
-    if mod_key then change_the_slurs()
+    if mod_key then change_the_slurs(nil)
     else run_the_dialog()
     end
 end
