@@ -2,17 +2,17 @@ function plugindef()
     finaleplugin.RequireSelection = false
     finaleplugin.HandlesUndo = true
     finaleplugin.Author = "Carl Vine"
-    finaleplugin.AuthorURL = "https://carlvine.com/lua/"
-    finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.08"
-    finaleplugin.Date = "2024/06/08"
+    finaleplugin.AuthorURL = "https://carlvine.com/lua"
+    finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
+    finaleplugin.Version = "0.09"
+    finaleplugin.Date = "2024/06/19"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Make dynamic marks in the selection louder or softer by stages. 
         This functionality is buried within __JWChange__ but is useful 
         and I thought was worth bringing nearer the surface. 
         This script works similarly but allows jumping up to 9 _levels_ at once. 
-        The dynamic range is from __pppppp__ to __ffffff__, though 
+        The dynamic range is from __pppppp__ to __ffffff__, though scores using 
         older (non-_SMuFL_) fonts are restricted to the range __pppp__-__ffff__. 
 
         To repeat the previous level shift without a confirmation dialog 
@@ -105,10 +105,8 @@ local function create_dynamics_alert(dialog)
     local msg = "Do you want this script to create "
     .. "additional dynamic expressions as required? "
     .. "(A positive reply will be saved and used if this question arises again)."
-    local ok = dialog and
-           dialog:CreateChildUI():AlertYesNo(msg, nil)
-        or finenv.UI():AlertYesNo(msg, nil)
-    return ok == finale.YESRETURN
+    local ui = dialog and dialog:CreateChildUI() or finenv.UI()
+    return ui:AlertYesNo(msg, name) == finale.YESRETURN
 end
 
 local function create_dyn_def(expression_text)
@@ -130,6 +128,11 @@ local function create_dyn_def(expression_text)
 end
 
 local function change_dynamics(dialog)
+    if finenv.Region():IsEmpty() then
+        local ui = dialog and dialog:CreateChildUI() or finenv.UI()
+        ui:AlertError("Please select some music\nbefore running this script", name)
+        return
+    end
     local found = {} -- collate matched dynamic expressions
     local match_count = 0
     local shift = config.levels -- how many dynamic levels to move?
@@ -191,13 +194,13 @@ end
 
 local function run_the_dialog()
     local y, m_offset = 0, finenv.UI():IsOnMac() and 3 or 0
-    local save
+    local save = config.levels
     local ctl = {}
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(name:sub(1, 7))
         -- local functions
         local function yd(diff) y = y + (diff or 20) end
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 300, 200)
+            utils.show_notes_dialog(dialog, "About " .. name, 330, 160)
         end
         local function cstat(horiz, vert, wide, str) -- dialog static text
             return dialog:CreateStatic(horiz, vert):SetWidth(wide):SetText(str)
@@ -237,7 +240,6 @@ local function run_the_dialog()
     cstat(23, y + 11, 25, "(" .. hotkey.direction .. ")")
     -- levels
     cstat(65, y, 55, "Levels:")
-    save = config.levels
     ctl.levels = dialog:CreateEdit(110, y - m_offset):SetText(config.levels):SetWidth(20)
         :AddHandleCommand(function() key_subs() end)
     yd(21)
