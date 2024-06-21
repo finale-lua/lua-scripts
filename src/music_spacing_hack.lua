@@ -4,14 +4,14 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.10"
-    finaleplugin.Date = "2024/05/03"
+    finaleplugin.Version = "0.12"
+    finaleplugin.Date = "2024/06/21"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         There's a couple of __Music Spacing__ options that I 
         change frequently for different spacing scenarios. 
-        This little hack uses a couple of hotkeys 
-        to do that very quickly, without a mouse and without navigating 
+        This little hack uses a couple of hotkeys to do that 
+        quickly using only keyboard entry without navigating 
         the whole __Document__ → __Document Options__ → 
         __Music Spacing__ → __Avoid Collision of__ → menu/dialog system.
     ]]
@@ -21,28 +21,32 @@ function plugindef()
 end
 
 local config = {
+    dummy        = "dummy",
     window_pos_x = false,
     window_pos_y = false,
     measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
 }
-local checks = { -- prefs Property key; hotkey; text description; type
+local checks = { -- spacing_prefs Property key; hotkey; text description; type
     { "AvoidArticulations", "A", "Articulations" },
-    { "AvoidChords",      "S", "Chords" },
-    { "AvoidClefs",       "D", "Clefs" },
-    { "AvoidHiddenNotes", "W", "Hidden Notes" },
-    { "AvoidLedgerLines", "E", "Ledger Lines" },
-    { "AvoidLyrics",      "R", "Lyrics" },
+    { "AvoidChords",        "S", "Chords" },
+    { "AvoidClefs",         "D", "Clefs" },
+    { "AvoidHiddenNotes",   "W", "Hidden Notes" },
+    { "AvoidLedgerLines",   "E", "Ledger Lines" },
+    { "AvoidLyrics",        "R", "Lyrics" },
 }
 local unisons = {
-    { finale.UNISSPACE_NONE,               "X", "None" },
-    { finale.UNISSPACE_DIFFERENTNOTEHEADS, "V", "Different Noteheads" },
-    { finale.UNISSPACE_ALLNOTEHEADS,       "B", "All Noteheads" },
+    { finale.UNISSPACE_NONE,               "V", "None" },
+    { finale.UNISSPACE_DIFFERENTNOTEHEADS, "B", "Different Noteheads" },
+    { finale.UNISSPACE_ALLNOTEHEADS,       "N", "All Noteheads" },
 }
 local others = {
     {"change_hotkeys",        "H", "Change Hotkeys"},
     {"AutomaticMusicSpacing", "Z", "Automatic Music Spacing"},
-    {"script_info",           "Q", "Show Script Info"}
+    {"script_info",           "Q", "Show Script Info"},
+    {"manual_pos",            "X", "Manual Positioning"}
 }
+local manual_pos = { "Clear", "Incorporate", "Ignore" } -- 0 .. 1 .. 2 popup
+
 -- copy hotkeys to config
 for _, t in ipairs{checks, unisons, others} do
     for _, v in ipairs(t) do
@@ -57,9 +61,9 @@ local library = require("library.general_library")
 local script_name = library.calc_script_name()
 local name = plugindef():gsub("%.%.%.", "")
 local refocus_document = false
-local prefs = finale.FCMusicSpacingPrefs()
+local spacing_prefs = finale.FCMusicSpacingPrefs()
 local gen_prefs = finale.FCGeneralPrefs()
-prefs:LoadFirst()
+spacing_prefs:LoadFirst()
 gen_prefs:LoadFirst()
 configuration.get_user_settings(script_name, config)
 
@@ -175,13 +179,21 @@ local function run_the_dialog()
             dialog:CreateCheckbox(cx, cy, cname):SetText(ctext):SetWidth(cwide):SetCheck(check)
         end
         local function toggle_check(id)
-            local ctl = dialog:GetControl(id)
-            ctl:SetCheck((ctl:GetCheck() + 1) % 2)
+            local c = dialog:GetControl(id)
+            c:SetCheck((c:GetCheck() + 1) % 2)
         end
         local function toggle_unison(id)
             for i = unisons[1][1], unisons[3][1] do
                 dialog:GetControl(tostring(i)):SetCheck(i == id and 1 or 0)
             end
+        end
+        local function fill_pos_popup()
+            local popup = dialog:GetControl(others[4][1])
+            popup:Clear()
+            for _, v in ipairs(manual_pos) do
+                popup:AddString(v .. " (" .. config.manual_pos .. ")")
+            end
+            popup:SetSelectedItem(spacing_prefs.ManualPositioning) -- 0, 1 or 2
         end
         local function change_keys()
             local ok, is_duplicate = true, true
@@ -191,14 +203,16 @@ local function run_the_dialog()
             if ok then
                 for _, t in ipairs{checks, unisons, others} do
                     for _, v in ipairs(t) do
-                        if v[1] ~= "script_info" then
+                        if v[1] ~= "script_info" and v[1] ~= "manual_pos" then
                             dialog:GetControl("T" .. v[1]):SetText(config[tostring(v[1])])
                         end
                     end
                 end
+                configuration.save_user_settings(script_name, config)
             else -- re-seed hotkeys from user config
                 configuration.get_user_settings(script_name, config)
             end
+            fill_pos_popup()
             dialog:GetControl("max_width"):SetKeyboardFocus()
         end
         local function key_check(ctl)
@@ -209,13 +223,16 @@ local function run_the_dialog()
                 elseif s:find(config.AutomaticMusicSpacing) then
                     toggle_check("AutomaticMusicSpacing")
                 elseif s:find(config.script_info) then show_info()
+                elseif s:find(config.manual_pos) then -- toggle ManPosn Popup
+                    local c = dialog:GetControl(others[4][1])
+                    c:SetSelectedItem((c:GetSelectedItem() + 1) % 3)
                 else
                     local matched = false
-                    for _, array in ipairs{{checks, toggle_check}, {unisons, toggle_unison}} do
+                    for _, t in ipairs{{checks, toggle_check}, {unisons, toggle_unison}} do
                         if not matched then
-                            for _, v in ipairs(array[1]) do
+                            for _, v in ipairs(t[1]) do
                                 if s:find(config[tostring(v[1])]) then
-                                    array[2](v[1])
+                                    t[2](v[1]) -- run the matching toggle subroutine
                                     matched = true
                                     break
                                 end
@@ -223,7 +240,7 @@ local function run_the_dialog()
                         end
                     end
                 end
-            else -- save new "clean" numnber
+            else -- save new "clean" number
                 saved = s:sub(1, 8):lower() -- 8-chars max
             end
             ctl:SetText(saved)
@@ -236,7 +253,7 @@ local function run_the_dialog()
     dy()
     for _, v in ipairs(checks) do
         cstat(0, y, config[v[1]], x[1], "T" .. v[1])
-        ccheck(x[1], y, v[1], v[3], x[3], (prefs[v[1]] and 1 or 0))
+        ccheck(x[1], y, v[1], v[3], x[3], (spacing_prefs[v[1]] and 1 or 0))
         dy()
     end
     cstat(x[1], y, "Unison Noteheads:", x[3])
@@ -244,23 +261,26 @@ local function run_the_dialog()
     for _, v in ipairs(unisons) do
         local id = tostring(v[1])
         cstat(x[1], y, config[id], x[2], "T" .. v[1])
-        ccheck(x[2], y, id, v[3], x[3] - x[1], (prefs.UnisonsMode == v[1]) and 1 or 0)
-        dialog:GetControl(id)
-            :AddHandleCommand(function() toggle_unison(v[1]) end)
+        ccheck(x[2], y, id, v[3], x[3] - x[1], (spacing_prefs.UnisonsMode == v[1]) and 1 or 0)
+        dialog:GetControl(id):AddHandleCommand(function() toggle_unison(v[1]) end)
         dy()
     end
     dy(8)
     cstat(0, y, "Max Width:", x[2] + 25)
-    dialog:CreateMeasurementEdit(x[2] + 27, y - m_offset, "max_width")
-        :SetWidth(90):SetMeasurementInteger(prefs.MaxMeasureWidth)
+    dialog:CreateMeasurementEdit(x[2] + 27, y - m_offset, "max_width"):SetWidth(105)
+        :SetMeasurementInteger(spacing_prefs.MaxMeasureWidth)
         :AddHandleCommand(function(self) key_check(self) end)
     saved = dialog:GetControl("max_width"):GetText()
     dy(25)
     cstat(x[2] - 10, y, "Units:", 37)
-    dialog:CreateMeasurementUnitPopup(x[2] + 27, y, "popup"):SetWidth(90)
+    dialog:CreateMeasurementUnitPopup(x[2] + 27, y, "popup"):SetWidth(105)
         :AddHandleCommand(function()
             saved = dialog:GetControl("max_width"):GetText()
         end)
+    dy(25)
+    cstat(3, y, "Man. Posn:", x[2] + 27) -- "Manual Positioning" popup
+    local manpos = dialog:CreatePopup(x[2] + 27, y, others[4][1]):SetWidth(105)
+    fill_pos_popup() -- add menu items
     dy(25)
     cstat(0, y, config.change_hotkeys, x[2], "Tchange_hotkeys")
     dialog:CreateButton(x[1], y):SetText("Change Hotkeys"):SetWidth(100)
@@ -275,24 +295,24 @@ local function run_the_dialog()
     dialog_set_position(dialog)
     dialog:RegisterInitWindow(function(self)
         self:GetControl("max_width"):SetKeyboardFocus()
-        local q = self:GetControl("q")
-        local bold = q:CreateFontInfo():SetBold(true)
-        q:SetFont(bold)
+        local bold = self:GetControl("q"):CreateFontInfo():SetBold(true)
+        self:GetControl("q"):SetFont(bold)
         self:GetControl("title"):SetFont(bold)
     end)
     dialog:RegisterHandleOkButtonPressed(function(self)
         for _, v in ipairs(checks) do
-            prefs[v[1]] = (self:GetControl(v[1]):GetCheck() == 1)
+            spacing_prefs[v[1]] = (self:GetControl(v[1]):GetCheck() == 1)
         end
         for _, v in ipairs(unisons) do
             if (self:GetControl(tostring(v[1])):GetCheck() == 1) then
-                prefs.UnisonsMode = v[1] -- matched the active Mode setting
+                spacing_prefs.UnisonsMode = v[1] -- matched the active Mode setting
                 break
             end
         end
         local n = self:GetControl("max_width"):GetMeasurementInteger()
-        prefs.MaxMeasureWidth = math.max(n, 50)
-        prefs:Save()
+        spacing_prefs.MaxMeasureWidth = math.max(n, 50)
+        spacing_prefs.ManualPositioning = manpos:GetSelectedItem()
+        spacing_prefs:Save()
         gen_prefs.AutomaticMusicSpacing = (self:GetControl("AutomaticMusicSpacing"):GetCheck() == 1)
         gen_prefs:Save()
         config.measurement_unit = self:GetMeasurementUnit()
