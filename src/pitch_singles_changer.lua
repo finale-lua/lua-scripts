@@ -4,25 +4,25 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.18"
-    finaleplugin.Date = "2024/06/30"
+    finaleplugin.Version = "0.19"
+    finaleplugin.Date = "2024/07/01"
     finaleplugin.CategoryTags = "Entries, Pitch, Transposition"
     finaleplugin.MinJWLuaVersion = 0.67
     finaleplugin.Notes = [[
         Change one specific pitch to another. 
-        Pitch specification is precise and immutable: 
+        Pitch specification is exact and immutable: 
 
         > • First character: note name __A__-__G__  
         > &nbsp;  (Lower case will be replaced by upper case)  
         > • Last character: octave number __0__-__9__  
-        > • In between: accidentals if any (__b/bb/bbb__ ... __#/##/###__)  
+        > • In between: accidentals if any (__bbb/bb/b__ ... __#/##/###__)  
         > &nbsp;  (you can use __s__ instead of __#__) 
 
         __C4__ is middle C. __B4__ is a major seventh above that. 
         Mistakes in the pitch name format must be corrected 
         before pitches will be changed. 
         For transposing instruments on transposing scores select 
-        __Written Pitch__ to affect the pitch you see on screen. 
+        __Written Pitch__ to change the note that you see on screen. 
     ]]
     return "Pitch Singles Changer...",
         "Pitch Singles Changer",
@@ -32,6 +32,7 @@ end
 local hotkey = { -- (uppercase only)
     written_pitch = "W",
     show_info     = "Q",
+    value_swap    = "Z",
 }
 local config = {
     pitch_set = '["C4", "C5"]', -- JSON encoded pitch replacement set
@@ -53,13 +54,13 @@ local selection
 local saved_bounds = {}
 local naming_rules = [[
 PITCH NAME RULES:
-• First character: note name A-G  
-(uppercase applied automatically)  
-• Last character: octave number 0-9  
+• First character: note name A-G
+(uppercase entry is automatic)
+• Last character: octave number 0-9
 • In between: accidentals if any
-(b/bb/bbb ... #/##/###)  
-(you can use s instead of #)
-]]
+(bbb/bb/b ... #/##/###)
+(you can use s instead of #) ]]
+
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
@@ -137,13 +138,15 @@ local function make_the_changes(dialog)
         return
     end
     local pitches = cjson.decode(config.pitch_set)
-    finenv.StartNewUndoBlock(string.format("Pitch Change %s %s-%s", selection, pitches[1], pitches[2]))
+    finenv.StartNewUndoBlock(
+        string.format("Pitch Change %s %s-%s", selection, pitches[1], pitches[2])
+    )
     local pitch_str = finale.FCString()
     local measure, staff, keysig = 0, 0, nil
 
     for entry in eachentrysaved(finenv.Region(), config.layer_num) do
         local e_m, e_s = entry.Measure, entry.Staff
-        if measure ~= e_m and staff ~= e_s then
+        if measure ~= e_m or staff ~= e_s then
             measure = e_m
             staff = e_s
             keysig = finale.FCCell(e_m, e_s):GetKeySignature()
@@ -174,7 +177,7 @@ local function run_the_dialog()
         end
         local function cedit(dx, dy, txt, width)
             local y_off = finenv.UI():IsOnMac() and 3 or 0
-            return dialog:CreateEdit(dx, dy - y_off):SetWidth(width):SetText(txt)
+            return dialog:CreateEdit(dx, dy - y_off):SetText(txt):SetWidth(width)
         end
         local function on_timer() -- look for changes in selected region
             for k, v in pairs(saved_bounds) do
@@ -188,6 +191,12 @@ local function run_the_dialog()
         local function show_info()
             utils.show_notes_dialog(dialog, "About " .. name, 400, 200)
         end
+        local function value_swap()
+            answer[2]:SetText(save[1])
+            answer[1]:SetText(save[2])
+            save[1] = save[2]
+            save[2] = answer[2]:GetText()
+        end
         local function key_substitutions(id)
             local s = answer[id]:GetText():upper()
             if (id == 0 and s:find("[^0-4]"))
@@ -195,7 +204,8 @@ local function run_the_dialog()
                 if s:find(hotkey.written_pitch) then
                     local ch = ctl.written_pitch
                     ch:SetCheck((ch:GetCheck() + 1) % 2)
-                elseif s:find(hotkey.show_info) then show_info()
+                elseif s:find(hotkey.show_info)  then show_info()
+                elseif s:find(hotkey.value_swap) then value_swap()
                 end
             else
                 save[id] = (id == 0) and s:sub(-1) -- layer number
@@ -204,38 +214,43 @@ local function run_the_dialog()
             answer[id]:SetText(save[id])
         end
     local pitches = cjson.decode(config.pitch_set)
-    cstat(0, y, "Change From:", 100)
+    cstat(55,  y, "From:", 50, "from")
+    cstat(145, y, "To:",   50, "to")
+    yd(20)
+    cstat(0, y, "Change", 50, "change")
     save[1] = pitches[1]
-    answer[1] = cedit(x[1], y, save[1], 45)
+    answer[1] = cedit(55, y, save[1], 45)
     answer[1]:AddHandleCommand(function() key_substitutions(1) end)
-    cstat(x[2], y, "To:", 20)
+    dialog:CreateButton(107, y):SetText("←→"):SetWidth(30)
+        :AddHandleCommand(function() value_swap() end)
     save[2] = pitches[2]
-    answer[2] = cedit(x[3], y, save[2], 45)
+    answer[2] = cedit(145, y, save[2], 45)
     answer[2]:AddHandleCommand(function() key_substitutions(2) end)
     yd(25)
     --
     cstat(0, y, "Layer (0-4):", 78)
     answer[3] = cedit(x[1] - 11, y, config.layer_num, 20)
     answer[3]:AddHandleCommand(function() key_substitutions(3) end)
-    ctl.written_pitch = dialog:CreateCheckbox(x[1] + 30, y):SetWidth(85)
+    ctl.written_pitch = dialog:CreateCheckbox(107, y):SetWidth(85)
         :SetCheck(config.written_pitch and 1 or 0):SetText("Written Pitch")
-    yd(22)
-    dialog:CreateHorizontalLine(0, y - 3, x[3] + 50)
+    yd(25)
+    dialog:CreateHorizontalLine(0, y - 4, x[3] + 40)
     cstat(0, y, "Pitch examples: C4 / G#5 / Abb2", 180)
     yd()
     cstat(0, y, "(C4 = middle C)", 110)
-    ctl.q = dialog:CreateButton(x[3] + 25, y - 3):SetWidth(20):SetText("?")
+    dialog:CreateButton(x[3] + 20, y - 3, "q"):SetWidth(20):SetText("?")
         :AddHandleCommand(function() show_info() end)
     yd()
-    cstat(0, y, "Selected:", 54)
-    cstat(54, y, selection, x[3] - 4, "info")
-
+    cstat(0, y, "Region:", 45)
+    cstat(45, y, selection, x[3] - 4, "info")
+    --
     dialog:CreateOkButton():SetText("Apply")
     dialog:CreateCancelButton():SetText("Close")
     dialog_set_position(dialog)
     dialog:RegisterHandleTimer(on_timer)
     dialog:RegisterInitWindow(function(self)
-        ctl.q:SetFont(ctl.q:CreateFontInfo():SetBold(true))
+        local bold = self:GetControl("q"):CreateFontInfo():SetBold(true)
+        for _, v in ipairs{"q", "change", "from", "to"} do self:GetControl(v):SetFont(bold) end
         self:SetTimer(config.timer_id, 125)
     end)
     dialog:RegisterHandleOkButtonPressed(function()
@@ -254,9 +269,8 @@ local function run_the_dialog()
         config.layer_num = answer[3]:GetInteger()
         config.written_pitch = (ctl.written_pitch:GetCheck() == 1)
         if #errors > 0 then -- errors flagged
-            local msg = (#errors > 1) and
-                "These pitch names are invalid:\n"
-                or "This pitch name is invalid:\n"
+            local msg = "Please correct " ..
+                ((#errors > 1) and "these pitch names:\n" or "this pitch name:\n")
             msg = msg .. table.concat(errors, " / ") .. "\n\n" .. naming_rules
             dialog:CreateChildUI():AlertError(msg, "Error: " .. name)
         else -- everything OK
