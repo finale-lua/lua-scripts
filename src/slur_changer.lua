@@ -4,15 +4,15 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.03"
-    finaleplugin.Date = "2024/06/18"
+    finaleplugin.Version = "0.05"
+    finaleplugin.Date = "2024/07/09"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Change the characteristics of every slur in the current selection. 
-        Type the matching programmable _hotkey_ and click __Apply__ [_Return_/_Enter_]. 
-
-        Change these options on individual slurs by right-clicking with the 
-        _SmartShape_ tool, or change a whole set of slurs at once with this script.
+        Type the programmable _hotkey_ and click __Apply__ [_Return_/_Enter_]. 
+        If slurs are __Note-Attached__ you can isolate them by __Layer Number__. 
+        Use this script to change a whole set of slurs at once instead of 
+        individually by right-clicking with the _SmartShape_ tool. 
 
         To repeat the last action without a confirmation dialog 
         hold down _Shift_ when opening the script. 
@@ -24,6 +24,7 @@ end
 local configuration = require("library.configuration")
 local mixin = require("library.mixin")
 local utils = require("library.utils")
+local layer_lib = require("library.layer")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
 local name = plugindef():gsub("%.%.%.", "")
@@ -33,6 +34,7 @@ local saved_bounds = {}
 local config = {
     dummy         = "dummy", -- stop warning about table string mismatch
     last_selected = 0,     -- menu item number (0-based) selected
+    layer         = 0,
     modeless      = false, -- false = modal / true = modeless
     timer_id      = 1,
     window_pos_x  = nil,
@@ -49,10 +51,14 @@ local dialog_options = { -- NAME key; HOTKEY; text description (ordered)
     { "SMARTSHAPE_DASHEDSLURUP",   "D", "Dashed: Over" },
     { "SMARTSHAPE_DASHEDSLURDOWN", "F", "Dashed: Under" },
     { "SMARTSHAPE_DASHEDSLURAUTO", "G", "Dashed: Auto" },
-    { "SS_OFFSTATE",               "B", "Engraver: ON" },
-    { "SS_ONSTATE",                "N", "Engraver: OFF" },
-    { "SS_AUTOSTATE",              "M", "Engraver: AUTO" },
-    { "erase",                     ";", "Erase All" },
+    { "ENG_SS_OFFSTATE",           "B", "Engraver: ON" },
+    { "ENG_SS_ONSTATE",            "N", "Engraver: OFF" },
+    { "ENG_SS_AUTOSTATE",          "M", "Engraver: AUTO" },
+    { "ACC_SS_OFFSTATE",           "J", "Accidental Avoid: ON" },
+    { "ACC_SS_ONSTATE",            "K", "Accidental Avoid: OFF" },
+    { "ACC_SS_AUTOSTATE",          "L", "Accidental Avoid: AUTO" },
+    { "remove",                    "R", "Remove Manual Adj." },
+    { "erase",                     "E", "Erase All" },
     { "default",                   "Z", "Default Values" }
 }
 for _, v in ipairs(dialog_options) do config[v[1]] = v[2] end -- (map hotkeys)
@@ -164,39 +170,78 @@ local function reassign_keystrokes(parent, index)
     return ok, is_duplicate
 end
 
+local function slur_match_layer(slur)
+    if config.layer == 0 then return true end -- no layer filtering
+    local left_seg = slur:GetTerminateSegmentLeft()
+    local cell = finale.FCNoteEntryCell(left_seg.Measure, left_seg.Staff)
+    cell:Load()
+    local entry = cell:FindEntryNumber(left_seg.EntryNumber)
+    return (entry.LayerNumber == config.layer) -- layer number matched
+end
+
+local function slur_manual_clear(slur)
+    slur.PresetShape = true
+    slur:IsAutoSlur(true)
+    slur:SetSlurFlags(true)
+    slur:SetEngraverSlur(finale.SS_AUTOSTATE)
+    local ctrl_points = {
+        "ControlPoint1OffsetX", "ControlPoint1OffsetY",
+        "ControlPoint2OffsetX", "ControlPoint2OffsetY"
+    }
+    local adj = slur:GetCtrlPointAdjust()
+    adj.CustomShaped = false
+    for _, v in ipairs(ctrl_points) do adj[v] = 0 end
+    --
+    for _, segment in ipairs{
+        slur:GetTerminateSegmentLeft(), slur:GetTerminateSegmentRight()
+    } do
+        for _, v in ipairs(ctrl_points) do segment[v] = 0 end
+        for _, v in ipairs{
+            "BreakOffsetX", "BreakOffsetY", "EndpointOffsetX", "EndpointOffsetY",
+        } do
+            segment[v] = 0
+        end
+    end
+end
+
 local function change_the_slurs(dialog)
     if finenv.Region():IsEmpty() then
-        local msg = "Please select some music\nbefore running this script"
-        if dialog then dialog:CreateChildUI():AlertError(msg, name)
-        else finenv.UI():AlertError(msg, name)
-        end
+        local ui = dialog and dialog:CreateChildUI() or finenv.UI()
+        ui:AlertError("Please select some music\nbefore running this script", name)
         return
     end
     local selected = dialog_options[config.last_selected + 1]
     local state = selected[1]
     local checked = {}
-    finenv.StartNewUndoBlock(string.format("Slur %s %s", selected[3]:gsub(" ", ""), selection))
-
+    local undo = string.format("Slur %s %s", selected[3]:gsub(" ", ""), selection)
+    if config.layer > 0 then undo = undo .. " L" .. config.layer end
+    finenv.StartNewUndoBlock(undo)
+    --
+    local ss_state = state:sub(5) -- one of "SS_ONSTATE", "SS_OFFSTATE", "SS_AUTOSTATE"
     for mark in loadallforregion(finale.FCSmartShapeMeasureMarks(), finenv.Region()) do
-        local shape = mark:CreateSmartShape()
-        if not checked[shape.ItemNo] then -- only examine shapes once
-            checked[shape.ItemNo] = true
-            if shape and shape:IsSlur() then
+        local slur = mark:CreateSmartShape()
+        if not checked[slur.ItemNo] then -- only examine shapes once
+            checked[slur.ItemNo] = true
+            if slur and slur:IsSlur() and
+                (not slur:IsEntryBased() or slur_match_layer(slur))
+            then
                 if state == "default" then
-                    shape.EngraverSlur = finale.SS_AUTOSTATE
-                    shape.ShapeType = finale.SMARTSHAPE_SLURAUTO
-                    shape.Visible = true
-                    shape:GetCtrlPointAdjust():SetDefaultSlurShape()
-                elseif state:find("visible") then shape.Visible = state:find("yes")
-                elseif state == "erase" then shape:DeleteData()
+                    slur.EngraverSlur = finale.SS_AUTOSTATE
+                    slur.ShapeType = finale.SMARTSHAPE_SLURAUTO
+                    slur.Visible = true
+                    slur:GetCtrlPointAdjust():SetDefaultSlurShape()
+                elseif state:find("visible") then slur.Visible = state:find("yes")
+                elseif state == "erase" then slur:DeleteData()
+                elseif state == "remove" then slur_manual_clear(slur)
                 elseif state == "flip" then
-                    local a = shape:IsDashedSlur() and "DASHEDSLUR" or "SLUR"
-                    local b = (shape:IsOverSlur() or shape:IsAutoSlur()) and "DOWN" or "UP"
-                    shape.ShapeType = finale["SMARTSHAPE_" .. a .. b]
-                elseif state:find("SS_") then shape.EngraverSlur = finale[state]
-                else shape.ShapeType = finale[state]
+                    local a = slur:IsDashedSlur() and "DASHEDSLUR" or "SLUR"
+                    local b = (slur:IsOverSlur() or slur:IsAutoSlur()) and "DOWN" or "UP"
+                    slur.ShapeType = finale["SMARTSHAPE_" .. a .. b]
+                elseif state:find("ENG_") then slur.EngraverSlur = finale[ss_state]
+                elseif state:find("ACC_") then slur.AvoidAccidentals = finale[ss_state]
+                else slur.ShapeType = finale[state]
                 end
-                shape:Save()
+                slur:Save()
             end
         end
     end
@@ -206,8 +251,10 @@ end
 
 local function run_the_dialog()
     local y_step = 17
-    local box_wide = 150
+    local box_wide = 180
     local box_high = (#dialog_options * y_step) + 4
+    local max = layer_lib.max_layers()
+    --
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
     dialog:CreateStatic(0, 0):SetText("Change Slurs:"):SetWidth(box_wide)
     local key_list = dialog:CreateListBox(0, 22):SetWidth(box_wide):SetHeight(box_high)
@@ -246,9 +293,28 @@ local function run_the_dialog()
     dialog:CreateButton(box_wide - 20, 0, "q"):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
     local x_off = box_wide / 6
-    local y = box_high + 30
+    local y = box_high + 29
     dialog:CreateButton(x_off, y):SetText("Change Hotkeys")
         :AddHandleCommand(function() change_keys() end):SetWidth(x_off * 4)
+    y = y + 22
+    x_off = 20
+    dialog:CreateStatic(x_off, y):SetWidth(58):SetText("Layer 1-" .. max .. ":")
+    local save_layer = config.layer or 0
+    local offset = finenv.UI():IsOnMac() and 3 or 0
+    local layer = dialog:CreateEdit(x_off + 60, y - offset):SetWidth(20):SetInteger(save_layer)
+        :AddHandleCommand(function(self)
+            local s = self:GetText():lower()
+            if s:find("[^0-" .. max .. "]") then
+                if s:find("[?q]") then show_info()
+                elseif s:find("r") then change_keys()
+                end
+            else
+                save_layer = (s == "") and 0 or tonumber(s)
+            end
+            self:SetInteger(save_layer):SetKeyboardFocus()
+        end)
+    dialog:CreateStatic(x_off + 83, y):SetWidth(50):SetText("(0 = all)")
+
     dialog:CreateOkButton():SetText("Apply")
     dialog:CreateCancelButton():SetText("Close")
     dialog_set_position(dialog)
@@ -261,6 +327,7 @@ local function run_the_dialog()
     end)
     dialog:RegisterHandleOkButtonPressed(function()
         config.last_selected = key_list:GetSelectedItem() -- save list choice (0-based)
+        config.layer = layer:GetInteger()
         change_the_slurs(dialog)
     end)
     dialog:RegisterCloseWindow(function(self)
