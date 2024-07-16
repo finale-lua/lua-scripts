@@ -4,19 +4,19 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.09"
-    finaleplugin.Date = "2024/06/19"
+    finaleplugin.Version = "0.10"
+    finaleplugin.Date = "2024/07/17"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
-        Make dynamic marks in the selection louder or softer by stages. 
+        Make dynamic marks in the selection louder or softer in stages. 
         This functionality is buried within __JWChange__ but is useful 
-        and I thought was worth bringing nearer the surface. 
+        enough to bring closer to the surface. 
         This script works similarly but allows jumping up to 9 _levels_ at once. 
         The dynamic range is from __pppppp__ to __ffffff__, though scores using 
-        older (non-_SMuFL_) fonts are restricted to the range __pppp__-__ffff__. 
+        older (non-__SMuFL__) fonts are restricted to the range __pppp__-__ffff__. 
 
         To repeat the previous level shift without a confirmation dialog 
-        hold down [Shift] when starting the script. 
+        hold down [_Shift_] when starting the script. 
     ]]
     return "Dynamic Levels...",
         "Dynamic Levels",
@@ -24,8 +24,9 @@ function plugindef()
 end
 
 local hotkey = { -- customise hotkeys (lowercase only)
-    direction = "z", -- toggle Louder/Softer
-    show_info = "q",
+    direction  = "z", -- toggle Louder/Softer
+    create_new = "e", -- toggle create_new
+    show_info  = "q",
 }
 local config = {
     direction    = 0, -- 0 == "Louder", 1 = "Softer"
@@ -78,7 +79,7 @@ local function get_staff_name(staff_num)
     return str
 end
 
-local function track_selection()
+local function set_bounds()
     local bounds = { -- primary region selection boundaries
         "StartStaff", "StartMeasure", "StartMeasurePos",
         "EndStaff",   "EndMeasure",   "EndMeasurePos",
@@ -102,18 +103,20 @@ local function track_selection()
 end
 
 local function create_dynamics_alert(dialog)
-    local msg = "Do you want this script to create "
-    .. "additional dynamic expressions as required? "
-    .. "(A positive reply will be saved and used if this question arises again)."
+    local msg = "The required replacement dynamic doesn't exist in this file. "
+        .. "Do you want this script to create "
+        .. "additional dynamic expressions as required? "
+        .. "(You can change this decision later in the dialog window.)"
     local ui = dialog and dialog:CreateChildUI() or finenv.UI()
     return ui:AlertYesNo(msg, name) == finale.YESRETURN
 end
 
-local function create_dyn_def(expression_text)
+local function create_dynamic_def(expression_text, hidden)
     local cat_def = finale.FCCategoryDef()
     cat_def:Load(1) -- default "DYNAMIC" category
     local finfo = finale.FCFontInfo()
     cat_def:GetMusicFontInfo(finfo)
+    finfo.EnigmaStyles = finale["ENIGMASTYLE_" .. (hidden and "HIDDEN" or "PLAIN")]
     local str = finale.FCString()
     str.LuaString = "^fontMus"
         .. finfo:CreateEnigmaString(finale.FCString()).LuaString
@@ -127,58 +130,75 @@ local function create_dyn_def(expression_text)
     return ted:GetItemNo() -- save new item number
 end
 
+local function is_hidden_exp(exp_def)
+    local str = exp_def:CreateTextString()
+    return str:CreateLastFontInfo().Hidden
+end
+
 local function change_dynamics(dialog)
     if finenv.Region():IsEmpty() then
         local ui = dialog and dialog:CreateChildUI() or finenv.UI()
         ui:AlertError("Please select some music\nbefore running this script", name)
         return
     end
-    local found = {} -- collate matched dynamic expressions
-    local match_count = 0
+    local found = { show = {}, hide = {} } -- collate matched dynamic expressions
+    local match_count = { show = 0, hide = 0 }
     local shift = config.levels -- how many dynamic levels to move?
     if config.direction == 1 then shift = -shift end -- softer not louder
     local dyn_len = library.is_font_smufl_font() and 3 or 2 -- dynamic max string length
-    -- match all target dynamics from existing expressions
-    local exp_defs = mixin.FCMTextExpressionDefs()
-    exp_defs:LoadAll()
-    for exp_def in each(exp_defs) do
-        if exp_def.CategoryID == 1 and exp_def.UseCategoryFont then -- "standard" dynamic?
-            local str = exp_def:CreateTextString()
-            str:TrimEnigmaTags()
-            if str.LuaString:len() <= dyn_len then -- within max dynamic length
-                for i, v in ipairs(dyn_char) do -- check all dynamic glyphs
-                    if not found[i] and str.LuaString == utf8.char(v) then
-                        found[i] = exp_def.ItemNo -- matched char
-                        match_count = match_count + 1
+
+        -- match all target dynamics from existing expressions
+        local function match_dynamics(hidden) -- hidden is true or false
+            local mode = hidden and "hide" or "show"
+            local exp_defs = mixin.FCMTextExpressionDefs()
+            exp_defs:LoadAll()
+            for exp_def in each(exp_defs) do
+                if exp_def.CategoryID == 1 and hidden == is_hidden_exp(exp_def) then
+                    local str = exp_def:CreateTextString()
+                    str:TrimEnigmaTags()
+                    if str.LuaString:len() <= dyn_len then -- within max dynamic length
+                        for i, v in ipairs(dyn_char) do -- check all dynamic glyphs
+                            if not found[mode][i] and str.LuaString == utf8.char(v) then
+                                found[mode][i] = exp_def.ItemNo -- matched char
+                                match_count[mode] = match_count[mode] + 1
+                            end
+                        end
                     end
                 end
+                if match_count[mode] >= #dyn_char then break end -- all collected
             end
         end
-        if match_count >= #dyn_char then break end -- all collected
-    end
+    match_dynamics(true)
+    match_dynamics(false)
     -- scan the selection for dynamics and change them
-    finenv.StartNewUndoBlock(string.format("%s %s%d %s", name,
+    finenv.StartNewUndoBlock(string.format("Dynamics %s%d %s",
         (config.direction == 0 and "+" or "-"), config.levels, selection)
     )
     for e in loadallforregion(mixin.FCMExpressions(), finenv.Region()) do
         if expression.is_dynamic(e) then
             local exp_def = e:CreateTextExpressionDef()
-            if exp_def and exp_def.UseCategoryFont then -- "standard" dynamic?
+            if exp_def then
+                local hidden = is_hidden_exp(exp_def)
+                local mode = hidden and "hide" or "show"
                 local str = exp_def:CreateTextString()
                 str:TrimEnigmaTags()
                 if str.LuaString:len() <= dyn_len then -- dynamic length
                     for i, v in ipairs(dyn_char) do -- look for matching dynamic
                         local target = math.min(math.max(1, i + shift), #dyn_char)
                         if str.LuaString == utf8.char(v) then -- dynamic match
-                            if found[target] then -- replacement exists
-                                e:SetID(found[target]):Save()
+                            if found[mode][target] then -- replacement exists
+                                e:SetID(found[mode][target]):Save()
                             else -- create new dynamic
                                 if not config.create_new then -- ask permission
                                     config.create_new = create_dynamics_alert(dialog)
                                 end
                                 if config.create_new then -- create missing dynamic exp_def
-                                    found[target] = create_dyn_def(utf8.char(dyn_char[target]))
-                                    e:SetID(found[target]):Save()
+                                    if dialog then -- update checkbox condition
+                                        dialog:GetControl("create_new"):SetCheck(1)
+                                    end
+                                    local t = utf8.char(dyn_char[target])
+                                    found[mode][target] = create_dynamic_def(t, hidden)
+                                    e:SetID(found[mode][target]):Save()
                                 end
                             end
                             break -- all done for this target dynamic
@@ -196,7 +216,7 @@ local function run_the_dialog()
     local y, m_offset = 0, finenv.UI():IsOnMac() and 3 or 0
     local save = config.levels
     local ctl = {}
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name:sub(1, 7))
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle("Dynamics")
         -- local functions
         local function yd(diff) y = y + (diff or 20) end
         local function show_info()
@@ -214,6 +234,9 @@ local function run_the_dialog()
             if s:find("[^1-9]") then
                 if     s:find(hotkey.show_info) then show_info()
                 elseif s:find(hotkey.direction) then flip_direction()
+                elseif s:find(hotkey.create_new) then
+                    local c = ctl.create_new
+                    c:SetCheck((c:GetCheck() + 1) % 2)
                 end
             else
                 save = s:sub(-1) -- save last entered char only
@@ -223,7 +246,7 @@ local function run_the_dialog()
         local function on_timer() -- track changes in selected region
             for k, v in pairs(saved_bounds) do
                 if finenv.Region()[k] ~= v then -- selection changed
-                    track_selection() -- update selection tracker
+                    set_bounds() -- update selection tracker
                     break -- all done
                 end
             end
@@ -232,7 +255,7 @@ local function run_the_dialog()
     yd()
     -- RadioButtonGroup
     local labels = finale.FCStrings()
-    labels:CopyFromStringTable({"Louder", "Softer"})
+    labels:CopyFromStringTable{ "Louder", "Softer" }
     ctl.direction = dialog:CreateRadioButtonGroup(0, y + 1, 2)
         :SetText(labels):SetWidth(55):SetSelectedItem(config.direction)
     local softer = ctl.direction:GetItemAt(1) -- 2nd button
@@ -245,9 +268,14 @@ local function run_the_dialog()
     yd(21)
     ctl.q = dialog:CreateButton(110, y):SetText("?"):SetWidth(20)
        :AddHandleCommand(function() show_info() end)
+    yd(21)
+    ctl.create_new = dialog:CreateCheckbox(0, y, "create_new")
+        :SetText("Enable creation of new\ndynamic expressions")
+        :SetWidth(150):SetCheck(config.create_new and 1 or 0)
+        :SetHeight(30)
     -- wrap it up
-    dialog:CreateOkButton():SetText("Apply")
-    dialog:CreateCancelButton()
+    dialog:CreateOkButton()    :SetText("Apply")
+    dialog:CreateCancelButton():SetText("Close")
     dialog:RegisterInitWindow(function(self)
         self:SetTimer(config.timer_id, 125)
         local bold = ctl.q:CreateFontInfo():SetBold(true)
@@ -259,6 +287,7 @@ local function run_the_dialog()
     dialog:RegisterHandleOkButtonPressed(function()
         config.direction = ctl.direction:GetSelectedItem()
         config.levels = ctl.levels:GetInteger()
+        config.create_new = (ctl.create_new:GetCheck() == 1)
         change_dynamics(dialog)
     end)
     dialog:RegisterCloseWindow(function(self)
@@ -272,7 +301,7 @@ local function dynamic_levels()
     configuration.get_user_settings(script_name, config, true)
     local qim = finenv.QueryInvokedModifierKeys
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
-    track_selection() -- track current selected region
+    set_bounds() -- track current selected region
     --
     if mod_key then
         change_dynamics(nil)
