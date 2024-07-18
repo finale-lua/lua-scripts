@@ -4,15 +4,15 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.10"
+    finaleplugin.Version = "0.11"
     finaleplugin.Date = "2024/07/17"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
-        Make dynamic marks in the selection louder or softer in stages. 
-        This functionality is buried within __JWChange__ but is useful 
-        enough to bring closer to the surface. 
+        Make dynamic marks in the selection louder or softer by stages. 
+        This functionality is buried within the __JW Change__ plugin 
+        but is useful enough to make it accessible more easily. 
         This script works similarly but allows jumping up to 9 _levels_ at once. 
-        The dynamic range is from __pppppp__ to __ffffff__, though scores using 
+        Dynamics range from __pppppp__ to __ffffff__, though scores using 
         older (non-__SMuFL__) fonts are restricted to the range __pppp__-__ffff__. 
 
         To repeat the previous level shift without a confirmation dialog 
@@ -32,7 +32,6 @@ local config = {
     direction    = 0, -- 0 == "Louder", 1 = "Softer"
     levels       = 1, -- how many "levels" louder or softer
     create_new   = false, -- don't create new dynamics without permission
-    timer_id     = 1, -- timer to track selected region changes (always Modeless)
     window_pos_x = false,
     window_pos_y = false,
 }
@@ -44,7 +43,6 @@ local library = require("library.general_library")
 local script_name = library.calc_script_name()
 local name = plugindef():gsub("%.%.%.", "")
 local selection
-local saved_bounds = {}
 local dyn_char = library.is_font_smufl_font() and
     { -- char numbers for SMuFL dynamics (1-14)
         0xe527, 0xe528, 0xe529, 0xe52a, 0xe52b, 0xe520, 0xe52c, -- pppppp -> mp
@@ -79,16 +77,8 @@ local function get_staff_name(staff_num)
     return str
 end
 
-local function set_bounds()
-    local bounds = { -- primary region selection boundaries
-        "StartStaff", "StartMeasure", "StartMeasurePos",
-        "EndStaff",   "EndMeasure",   "EndMeasurePos",
-    }
+local function update_selection()
     local rgn = finenv.Region()
-    for _, property in ipairs(bounds) do
-        saved_bounds[property] = rgn[property]
-    end
-    -- update selection
     selection = "no staff, no selection" -- default
     if not rgn:IsEmpty() then
         selection = get_staff_name(rgn.StartStaff)
@@ -147,7 +137,7 @@ local function change_dynamics(dialog)
     if config.direction == 1 then shift = -shift end -- softer not louder
     local dyn_len = library.is_font_smufl_font() and 3 or 2 -- dynamic max string length
 
-        -- match all target dynamics from existing expressions
+        -- match all target dynamics within existing dynamic expressions
         local function match_dynamics(hidden) -- hidden is true or false
             local mode = hidden and "hide" or "show"
             local exp_defs = mixin.FCMTextExpressionDefs()
@@ -170,10 +160,12 @@ local function change_dynamics(dialog)
         end
     match_dynamics(true)
     match_dynamics(false)
-    -- scan the selection for dynamics and change them
+    -- start
+    update_selection() -- update current score selection
     finenv.StartNewUndoBlock(string.format("Dynamics %s%d %s",
         (config.direction == 0 and "+" or "-"), config.levels, selection)
     )
+    -- scan the selection for dynamics and change them
     for e in loadallforregion(mixin.FCMExpressions(), finenv.Region()) do
         if expression.is_dynamic(e) then
             local exp_def = e:CreateTextExpressionDef()
@@ -196,7 +188,7 @@ local function change_dynamics(dialog)
                                     if dialog then -- update checkbox condition
                                         dialog:GetControl("create_new"):SetCheck(1)
                                     end
-                                    local t = utf8.char(dyn_char[target])
+                                    local t = utf8.char(dyn_char[target]) -- dynamic text char
                                     found[mode][target] = create_dynamic_def(t, hidden)
                                     e:SetID(found[mode][target]):Save()
                                 end
@@ -225,31 +217,21 @@ local function run_the_dialog()
         local function cstat(horiz, vert, wide, str) -- dialog static text
             return dialog:CreateStatic(horiz, vert):SetWidth(wide):SetText(str)
         end
-        local function flip_direction()
-            local n = ctl.direction:GetSelectedItem()
-            ctl.direction:SetSelectedItem((n + 1) % 2)
-        end
         local function key_subs()
             local s = ctl.levels:GetText():lower()
             if s:find("[^1-9]") then
                 if     s:find(hotkey.show_info) then show_info()
-                elseif s:find(hotkey.direction) then flip_direction()
+                elseif s:find(hotkey.direction) then
+                    local n = ctl.direction:GetSelectedItem()
+                    ctl.direction:SetSelectedItem((n + 1) % 2)
                 elseif s:find(hotkey.create_new) then
-                    local c = ctl.create_new
-                    c:SetCheck((c:GetCheck() + 1) % 2)
+                    local n = ctl.create_new:GetCheck()
+                    ctl.create_new:SetCheck((n + 1) % 2)
                 end
             else
                 save = s:sub(-1) -- save last entered char only
             end
             ctl.levels:SetText(save)
-        end
-        local function on_timer() -- track changes in selected region
-            for k, v in pairs(saved_bounds) do
-                if finenv.Region()[k] ~= v then -- selection changed
-                    set_bounds() -- update selection tracker
-                    break -- all done
-                end
-            end
         end
     ctl.title = cstat(10, y, 120, name:upper())
     yd()
@@ -265,25 +247,24 @@ local function run_the_dialog()
     cstat(65, y, 55, "Levels:")
     ctl.levels = dialog:CreateEdit(110, y - m_offset):SetText(config.levels):SetWidth(20)
         :AddHandleCommand(function() key_subs() end)
-    yd(21)
+    yd()
     ctl.q = dialog:CreateButton(110, y):SetText("?"):SetWidth(20)
        :AddHandleCommand(function() show_info() end)
-    yd(21)
+    yd(23)
     ctl.create_new = dialog:CreateCheckbox(0, y, "create_new")
-        :SetText("Enable creation of new\ndynamic expressions")
-        :SetWidth(150):SetCheck(config.create_new and 1 or 0)
-        :SetHeight(30)
+        :SetWidth(145):SetCheck(config.create_new and 1 or 0)
+        :SetText("Enable Creation of New")
+    yd(13)
+    cstat(13, y, 135, "Dynamic Expressions (" .. hotkey.create_new .. ")")
     -- wrap it up
     dialog:CreateOkButton()    :SetText("Apply")
     dialog:CreateCancelButton():SetText("Close")
-    dialog:RegisterInitWindow(function(self)
-        self:SetTimer(config.timer_id, 125)
+    dialog:RegisterInitWindow(function()
         local bold = ctl.q:CreateFontInfo():SetBold(true)
         ctl.q:SetFont(bold)
         ctl.title:SetFont(bold)
     end)
     dialog_set_position(dialog)
-    dialog:RegisterHandleTimer(on_timer)
     dialog:RegisterHandleOkButtonPressed(function()
         config.direction = ctl.direction:GetSelectedItem()
         config.levels = ctl.levels:GetInteger()
@@ -291,7 +272,6 @@ local function run_the_dialog()
         change_dynamics(dialog)
     end)
     dialog:RegisterCloseWindow(function(self)
-        self:StopTimer(config.timer_id)
         dialog_save_position(self)
     end)
     dialog:RunModeless()
@@ -301,8 +281,7 @@ local function dynamic_levels()
     configuration.get_user_settings(script_name, config, true)
     local qim = finenv.QueryInvokedModifierKeys
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
-    set_bounds() -- track current selected region
-    --
+
     if mod_key then
         change_dynamics(nil)
     else
