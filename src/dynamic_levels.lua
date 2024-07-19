@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.11"
-    finaleplugin.Date = "2024/07/17"
+    finaleplugin.Version = "0.12"
+    finaleplugin.Date = "2024/07/20"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Make dynamic marks in the selection louder or softer by stages. 
@@ -42,7 +42,6 @@ local utils = require("library.utils")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
 local name = plugindef():gsub("%.%.%.", "")
-local selection
 local dyn_char = library.is_font_smufl_font() and
     { -- char numbers for SMuFL dynamics (1-14)
         0xe527, 0xe528, 0xe529, 0xe52a, 0xe52b, 0xe520, 0xe52c, -- pppppp -> mp
@@ -79,16 +78,18 @@ end
 
 local function update_selection()
     local rgn = finenv.Region()
-    selection = "no staff, no selection" -- default
-    if not rgn:IsEmpty() then
-        selection = get_staff_name(rgn.StartStaff)
+    if rgn:IsEmpty() then
+        return ""
+    else
+        local s = get_staff_name(rgn.StartStaff)
         if rgn.EndStaff ~= rgn.StartStaff then
-            selection = selection .. "-" .. get_staff_name(rgn.EndStaff)
+            s = s .. "-" .. get_staff_name(rgn.EndStaff)
         end
-        selection = selection .. " m." .. rgn.StartMeasure
+        s = s .. " m." .. rgn.StartMeasure
         if rgn.StartMeasure ~= rgn.EndMeasure then
-            selection = selection .. "-" .. rgn.EndMeasure
+            s = s .. "-" .. rgn.EndMeasure
         end
+        return s
     end
 end
 
@@ -126,7 +127,8 @@ local function is_hidden_exp(exp_def)
 end
 
 local function change_dynamics(dialog)
-    if finenv.Region():IsEmpty() then
+    local selection = update_selection()
+    if selection == "" then -- empty region
         local ui = dialog and dialog:CreateChildUI() or finenv.UI()
         ui:AlertError("Please select some music\nbefore running this script", name)
         return
@@ -161,7 +163,6 @@ local function change_dynamics(dialog)
     match_dynamics(true)
     match_dynamics(false)
     -- start
-    update_selection() -- update current score selection
     finenv.StartNewUndoBlock(string.format("Dynamics %s%d %s",
         (config.direction == 0 and "+" or "-"), config.levels, selection)
     )
