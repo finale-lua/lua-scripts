@@ -4,32 +4,31 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.33" -- trying RegisterMouseTracking
-    finaleplugin.Date = "2024/04/10"
+    finaleplugin.Version = "0.36"
+    finaleplugin.Date = "2024/06/30"
     finaleplugin.CategoryTags = "Rests, Selection"
     finaleplugin.MinJWLuaVersion = 0.72
     finaleplugin.Notes = [[
         Slide rests up and down on the nominated layer with continuous visual feedback. 
         This was designed especially to help align rests midway 
         between staves with cross-staff notes. 
-        The _Mid-Staff Above_ and _Mid-Staff Below_ buttons achieve this with one click. 
-        Cancel the script to leave rests unchanged. 
+        The __Mid-Staff Above__ and __Mid-Staff Below__ buttons achieve this with one click. 
+        (Note that the midpoint is measured in __Page View__ and may look different 
+        in __Scroll View__). Cancel the script to leave rests unchanged. 
 
         _Reset Zero_ sets nil offset. 
-        Note that on transposing instruments this is __not__ the middle 
+        On transposing instruments this is __not__ the middle 
         of the staff if _Display in Concert Pitch_ is selected. 
-        In those instances use _Floating Rests_ to return them to 
-        their virgin state where the only offset is that set at 
+        In those cases use _Floating Rests_ to return them to 
+        their virgin state where the offset is determined by  
         _Document_ → _Document Options_ → _Layers_ → _Adjust Floating Rests by..._
 
         At startup all rests in the chosen layer are moved to the 
         same offset as the first rest on that layer in the selection. 
         Layer numbers can be changed "on the fly" to help 
         balance rests across multiple layers. 
-        Select __Modeless__ if you prefer the dialog window to 
-        "float" above your score so you can change the score selection 
-        while it's active. In this mode, click __Apply__ [Return/Enter] 
-        to "set" new rest positions and __Cancel__ [Escape] to close the window. 
+        Select __Modeless Dialog__ if you want the dialog window to persist 
+        on-screen for repeated use until you click _Cancel_ [_Escape_]. 
         Cancelling __Modeless__ will apply the _next_ time you use the script.
 
         > If __Layer Number__ is highlighted these __Key Commands__ are available: 
@@ -66,10 +65,6 @@ local first_offset = 0 -- set to real offset of first rest in selection
 local refocus_document = false
 local save_displacement, adjacent_offsets, saved_bounds = {}, {}, {}
 local name = plugindef():gsub("%.%.%.", "")
-local bounds = { -- primary region selection boundaries
-    "StartStaff", "StartMeasure", "StartMeasurePos",
-    "EndStaff",   "EndMeasure",   "EndMeasurePos",
-}
 local mouse_tracking = false
 local selection
 
@@ -88,22 +83,21 @@ local function dialog_save_position(dialog)
     configuration.save_user_settings(script_name, config)
 end
 
-local function measure_duration(measure_number)
-    local m = finale.FCMeasure()
-    return m:Load(measure_number) and m:GetDuration() or 0
-end
-
 local function get_staff_name(staff_num)
     local staff = finale.FCStaff()
     staff:Load(staff_num)
-    local str = staff:CreateDisplayFullNameString().LuaString
+    local str = staff:CreateDisplayAbbreviatedNameString().LuaString
     if not str or str == "" then
-        str = "Staff " .. staff_num
+        str = "Staff" .. staff_num
     end
     return str
 end
 
 local function initialise_parameters()
+    local bounds = { -- primary region selection boundaries
+        "StartStaff", "StartMeasure", "StartMeasurePos",
+        "EndStaff",   "EndMeasure",   "EndMeasurePos",
+    }
     local rgn = finenv.Region()
     selection = { staff = "no staff", region = "no selection"} -- default
     adjacent_offsets = {} -- start with blank collection
@@ -113,21 +107,18 @@ local function initialise_parameters()
     end
     if rgn:IsEmpty() then return end -- nothing else to initialise
 
-    -- update_selection_id: measures
-    local r1 = rgn.StartMeasure + (rgn.StartMeasurePos / measure_duration(rgn.StartMeasure))
-    local m = measure_duration(rgn.EndMeasure)
-    local r2 = rgn.EndMeasure + (math.min(rgn.EndMeasurePos, m) / m)
-    selection.region = string.format("m%.2f-m%.2f", r1, r2)
+    -- measures
+    selection.region = "m." .. rgn.StartMeasure
+    if rgn.StartMeasure ~= rgn.EndMeasure then
+        selection.region = selection.region .. "-" .. rgn.EndMeasure
+    end
     -- staves
     selection.staff = get_staff_name(rgn.StartStaff)
-    if rgn.EndStaff ~= rgn.StartStaff then
-        selection.staff = selection.staff .. " → " .. get_staff_name(rgn.EndStaff)
+    if rgn.StartStaff ~= rgn.EndStaff then
+        selection.staff = selection.staff .. "-" .. get_staff_name(rgn.EndStaff)
+        return
     end
-
-    -- set_adjacent_offsets
-    local start_staff = rgn.StartStaff
-    if start_staff ~= rgn.EndStaff then return end -- single staff required
-
+    -- set_adjacent_offsets (single staff required)
     local start_slot = rgn:CalcSlotNumber(rgn.StartStaff)
     local next_staff = {} -- locate staff above/below
     local stack = mixin.FCMMusicRegion()
@@ -140,7 +131,7 @@ local function initialise_parameters()
     end
     local system_staves = finale.FCSystemStaves()
     system_staves:LoadAllForRegion(stack)
-    local sys_staff = system_staves:FindStaff(start_staff)
+    local sys_staff = system_staves:FindStaff(rgn.StartStaff)
     if sys_staff then
         local start_position = sys_staff.Distance
         for key, staff_num in pairs(next_staff) do -- find 0, 1 or 2 adjacent_offsets
@@ -152,7 +143,7 @@ local function initialise_parameters()
 end
 
 local function start_undo_block(layer_num, shift)
-    local id = string.format("%s %s L.%d pos.%d", name, selection.region, layer_num, shift)
+    local id = string.format("Rests %s %s L%d pos%d", selection.staff, selection.region, layer_num, shift)
     finenv.StartNewUndoBlock(id, false)
 end
 
@@ -171,15 +162,6 @@ local function get_rest_offset(entry)
     entry:MakeMovableRest()
     local rest = entry:GetItemAt(0)
     return rest:CalcStaffPosition() - rest_pos
-end
-
-local function offset_rest(entry, shift, float)
-    if float then
-        entry:SetFloatingRest(true)
-    else
-        local offset = get_rest_offset(entry)
-        entry:SetRestDisplacement(entry:GetRestDisplacement() + shift - offset)
-    end
 end
 
 local function first_rest_offset(layer_num)
@@ -208,7 +190,7 @@ end
 
 local function restore_rest_positions()
     if config.modeless then
-        finenv.StartNewUndoBlock(name .. " " .. selection.region .. " reset", false)
+        finenv.StartNewUndoBlock("Rests " .. selection.region .. " reset", false)
     end
     for entry in eachentrysaved(finenv.Region()) do
         local v = save_displacement[entry.EntryNumber]
@@ -232,22 +214,27 @@ local function run_the_dialog_box()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Shift Rests")
         -- local functions
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 500, 440)
+            utils.show_notes_dialog(dialog, "About " .. name, 500, 455)
             refocus_document = true
         end
         local function yd(diff)
             y = diff and (y + diff) or (y + 25)
         end
         local function shift_rests(shift, float)
-            if config.modeless and not mouse_tracking then -- not a mouse-track event
+            if not mouse_tracking then
                 start_undo_block(save_layer, shift)
             end
             for entry in eachentrysaved(finenv.Region(), save_layer) do
                 if entry:IsRest() then
-                    offset_rest(entry, shift, float)
+                    if float then
+                        entry:SetFloatingRest(true)
+                    else
+                        local offset = get_rest_offset(entry)
+                        entry:SetRestDisplacement(entry:GetRestDisplacement() + shift - offset)
+                    end
                 end
             end
-            if config.modeless and not mouse_tracking then
+            if not mouse_tracking then
                 finenv.EndUndoBlock(true)
             end
             finenv.Region():Redraw()
@@ -357,26 +344,23 @@ local function run_the_dialog_box()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     if config.modeless then dialog:RegisterHandleTimer(on_timer) end
-    dialog:RegisterHandleOkButtonPressed(function()
-        save_rest_positions() -- save rest positions so "Close" leaves correct positions
-    end)
     dialog:RegisterMouseTrackingStarted(function(cntl)
         mouse_tracking = true
-        if config.modeless then
-            start_undo_block(save_layer, cntl:GetThumbPosition() - center)
-        end
+        start_undo_block(save_layer, cntl:GetThumbPosition() - center)
     end)
     dialog:RegisterMouseTrackingStopped(function()
-        if config.modeless and mouse_tracking then
+        if mouse_tracking then
             mouse_tracking = false
             finenv.EndUndoBlock(true)
         end
     end)
     dialog:RegisterInitWindow(function(self)
-        dialog:SetOkButtonCanClose(not config.modeless)
         if config.modeless then self:SetTimer(config.timer_id, 125) end
         q:SetFont(q:CreateFontInfo():SetBold(true))
         answer.layer_num:SetKeyboardFocus()
+    end)
+    dialog:RegisterHandleOkButtonPressed(function()
+        save_rest_positions() -- save rest positions so "Close" leaves correct positions
     end)
     local change_mode = false
     dialog:RegisterCloseWindow(function(self)
@@ -388,10 +372,10 @@ local function run_the_dialog_box()
         config.layer_num = answer.layer_num:GetInteger()
         dialog_save_position(self)
     end)
-    if config.modeless then   -- "modeless"
+    if config.modeless then
         dialog:RunModeless()
     else
-        dialog:ExecuteModal() -- "modal"
+        dialog:ExecuteModal()
         if refocus_document then finenv.UI():ActivateDocumentWindow() end
     end
     return change_mode
@@ -406,13 +390,9 @@ local function slide_rests()
         )
         return
     end
-    local mode_change = true -- cycle from Modal -> Modeless
     initialise_parameters()
     save_rest_positions()
-    while mode_change do
-        finaleplugin.HandlesUndo = config.modeless -- restrict custom Undo to Modeless
-        mode_change = run_the_dialog_box()
-    end
+    while run_the_dialog_box() do end
 end
 
 slide_rests()
