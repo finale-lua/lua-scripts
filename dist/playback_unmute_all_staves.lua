@@ -93,15 +93,15 @@ package.preload["library.layer"] = package.preload["library.layer"] or function(
     return layer
 end
 function plugindef()
-    finaleplugin.RequireSelection = true
+    finaleplugin.RequireSelection = false
     finaleplugin.Author = "Nick Mazuk"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.3"
-    finaleplugin.Date = "March 16, 2023"
+    finaleplugin.Version = "1.0.4"
+    finaleplugin.Date = "June 12, 2024"
     finaleplugin.CategoryTags = "Playback"
     finaleplugin.AuthorURL = "https://nickmazuk.com"
     finaleplugin.Notes = [[
-        Run this script and all staves will be unmuted.
+        Run this script and all staves will be unmuted and all solos will be cleared.
     ]]
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
@@ -109,13 +109,17 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Run this script and all staves will be unmuted.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Run this script and all staves will be unmuted and all solos will be cleared.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/playback_unmute_all_staves.hash"
     return "Unmute all staves", "Unmute all staves", "Unmutes all staves"
 end
 local layer = require("library.layer")
+function set_layer_playback_data(layer_playback_data)
+    layer_playback_data.Play = true
+    layer_playback_data.Solo = false
+end
 function playback_unmute_all_staves()
     local full_doc_region = finale.FCMusicRegion()
     full_doc_region:SetFullDocument()
@@ -126,10 +130,10 @@ function playback_unmute_all_staves()
         staff:Load(staff_number)
         local playback_data = staff:CreateInstrumentPlaybackData()
         for this_layer = 1, layer.max_layers() do
-            playback_data:GetNoteLayerData(this_layer).Play = true
+            set_layer_playback_data(playback_data:GetNoteLayerData(this_layer))
         end
-        playback_data:GetChordLayerData().Play = true
-        playback_data:GetMidiExpressionLayerData().Play = true
+        set_layer_playback_data(playback_data:GetChordLayerData())
+        set_layer_playback_data(playback_data:GetMidiExpressionLayerData())
         playback_data:Save()
     end
 end

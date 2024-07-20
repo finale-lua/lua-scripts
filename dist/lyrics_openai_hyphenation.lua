@@ -5335,7 +5335,7 @@ local osutils = require("luaosutils")
 local https = osutils.internet
 local config =
 {
-    api_model = "gpt-4",
+    api_model = "gpt-4o",
     temperature = 0.2,
     add_hyphens_prompt = [[
 Hyphenate the following text, delimiting words with spaces and syllables with hyphens.
