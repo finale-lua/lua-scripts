@@ -5300,8 +5300,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.35"
-    finaleplugin.Date = "2024/05/04"
+    finaleplugin.Version = "0.39"
+    finaleplugin.Date = "2024/07/05"
     finaleplugin.AdditionalMenuOptions = [[
         Pitch Changer Repeat
     ]]
@@ -5322,26 +5322,22 @@ function plugindef()
         2017 plug-in to work on Macs with non-Intel processors.
 
         Identify __from__ and __to__ pitches by note name (__a-g__ or __A-G__) 
-        followed by accidental (#-##-###, b-bb-bbb) as required. 
+        followed by accidental (__bbb/bb/b__ ... __#/##/###__) as required. 
         Matching pitches will be changed in every octave. 
         For transposing instruments on transposing scores select 
         __Written Pitch__ to affect the pitch you see on screen. 
         To repeat the last change without a confirmation dialog use 
-        the _Pitch Changer Repeat_ menu or hold down [Shift] when opening the script. 
+        the _Pitch Changer Repeat_ menu or hold down [_Shift_] when opening the script. 
 
-        Select __Modeless__ if you prefer the dialog window to 
-        "float" above your score so you can change the score selection 
-        while it remains active. In this mode, click __Apply__ [Return/Enter] 
-        to make changes and __Cancel__ [Escape] to close the window. 
+        Select __Modeless Dialog__ if you want the dialog window to persist 
+        on-screen for repeated use until you click _Cancel_ [_Escape_]. 
         Cancelling __Modeless__ will apply the _next_ time you use the script.
 
         > __Key Commands:__ 
 
-        > - __a-g__ (__A-G__): Note Names
-        > - __0-4__: Layer number (delete key not needed)
-        > - __z__: Direction Closest 
-        > - __x__: Direction Up 
-        > - __v__: Direction Down  
+        > - __A__-__G__: Note Names (automatically capitalised)
+        > - __0__-__4__: Layer number (delete key not needed)
+        > - __z__: Toggle "Direction" Mode
         > - __w__: Swap the __From:__ and __To:__ values 
         > - __s__: Shortcut for __#__ 
         > - __m__: Toggle the __Modeless__ setting 
@@ -5355,14 +5351,12 @@ function plugindef()
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script revives Jari Williamsson\u8217's {\i JW Change Pitches} 2017 plug-in to work on Macs with non-Intel processors.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Identify {\b from} and {\b to} pitches by note name ({\b a-g} or {\b A-G}) followed by accidental (#-##-###, b-bb-bbb) as required. Matching pitches will be changed in every octave. For transposing instruments on transposing scores select {\b Written Pitch} to affect the pitch you see on screen. To repeat the last change without a confirmation dialog use the {\i Pitch Changer Repeat} menu or hold down [Shift] when opening the script.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select {\b Modeless} if you prefer the dialog window to \u8220"float\u8221" above your score so you can change the score selection while it remains active. In this mode, click {\b Apply} [Return/Enter] to make changes and {\b Cancel} [Escape] to close the window. Cancelling {\b Modeless} will apply the {\i next} time you use the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Identify {\b from} and {\b to} pitches by note name ({\b a-g} or {\b A-G}) followed by accidental ({\b bbb/bb/b} \u8230? {\b #/##/###}) as required. Matching pitches will be changed in every octave. For transposing instruments on transposing scores select {\b Written Pitch} to affect the pitch you see on screen. To repeat the last change without a confirmation dialog use the {\i Pitch Changer Repeat} menu or hold down [{\i Shift}] when opening the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select {\b Modeless Dialog} if you want the dialog window to persist on-screen for repeated use until you click {\i Cancel} [{\i Escape}]. Cancelling {\b Modeless} will apply the {\i next} time you use the script.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 {\b Key Commands:}\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b a-g} ({\b A-G}): Note Names\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-4}: Layer number (delete key not needed)\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: Direction Closest\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x}: Direction Up\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b v}: Direction Down\line \par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b A}-{\b G}: Note Names (automatically capitalised)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0}-{\b 4}: Layer number (delete key not needed)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: Toggle \u8220"Direction\u8221" Mode\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b w}: Swap the {\b From:} and {\b To:} values\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b s}: Shortcut for {\b #}\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b m}: Toggle the {\b Modeless} setting\par}
@@ -5375,30 +5369,29 @@ function plugindef()
 end
 repeat_change = repeat_change or false
 local hotkey = {
-    Closest   = "Z",
-    Up        = "X",
-    Down      = "V",
-    Swap      = "W",
-    Modeless  = "M",
-    Written   = "R",
-    Show_Info = "Q",
+    direction = "Z",
+    swap      = "W",
+    sharp     = "S",
+    modeless  = "M",
+    written   = "R",
+    show_info = "Q",
 }
 local directions = { "Closest", "Up", "Down" }
 for i, v in ipairs(directions) do
-    directions[i] = string.format("%s (%s)", v, hotkey[v]:lower())
+    directions[i] = string.format("%s (%s)", v, hotkey.direction:lower())
 end
 local config = {
-    find_string = "F#",
-    find_pitch = "F",
-    find_offset = 1,
-    new_string = "Eb",
-    new_pitch = "E",
-    new_offset = -1,
-    direction = 1,
-    layer_num = 0,
+    find_string  = "F#",
+    find_pitch   = "F",
+    find_offset  = 1,
+    new_string   = "Eb",
+    new_pitch    = "E",
+    new_offset   = -1,
+    direction    = 1,
+    layer_num    = 0,
     written_pitch = false,
-    timer_id    = 1,
-    modeless    = false,
+    timer_id     = 1,
+    modeless     = false,
     window_pos_x = false,
     window_pos_y = false,
 }
@@ -5411,10 +5404,6 @@ local script_name = library.calc_script_name()
 local refocus_document = false
 local selection
 local saved_bounds = {}
-local bounds = {
-    "StartStaff", "StartMeasure", "StartMeasurePos",
-    "EndStaff",   "EndMeasure",   "EndMeasurePos",
-}
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
         dialog:StorePosition()
@@ -5438,7 +5427,10 @@ local function get_staff_name(staff_num)
     return str
 end
 local function track_selection()
-
+    local bounds = {
+        "StartStaff", "StartMeasure", "StartMeasurePos",
+        "EndStaff",   "EndMeasure",   "EndMeasurePos",
+    }
     local rgn = finenv.Region()
     for _, property in ipairs(bounds) do
         saved_bounds[property] = rgn[property]
@@ -5471,30 +5463,31 @@ end
 local function octave_direction()
     local find = string.byte(config.find_pitch) - 67
     local new = string.byte(config.new_pitch) - 67
-    local find_off, new_off = config.find_offset, config.new_offset
+    local diff = new - find
     local oct = 0
+    if find >= 0 and new < 0 then oct = -1
+    elseif find < 0 and new >= 0 then oct = 1
+    end
     if config.direction == 1 then
-        if ((find - new) > 3 and (new_off < 0)) then
-            oct = 1
-        elseif ((new - find) > 3 and (find_off < 0)) then
-            oct = -1
+        if     diff >  3 then oct = oct - 1
+        elseif diff < -3 then oct = oct + 1
         end
-    elseif config.direction == 2 then
-        if  (find < 0 and new > 0) or
-            (new < find and (find < 0 or new >= 0)) or
-            (new == find and new_off < find_off) then
-            oct = 1
-        end
-    else
-        if  (new < 0 and find > 0) or
-            (new > find and (find >= 0 or new < 0)) or
-            (new == find and new_off > find_off) then
-            oct = -1
-        end
+    elseif config.direction == 2 and diff < 0 then
+        oct = oct + 1
+    elseif config.direction == 3 and diff > 0 then
+        oct = oct - 1
     end
     return oct
 end
-local function change_the_pitches()
+local function change_the_pitches(dialog)
+    if finenv.Region():IsEmpty() then
+        local ui = dialog and dialog:CreateChildUI() or finenv.UI()
+        ui:AlertError(
+            "Please select some music\nbefore running this script",
+            finaleplugin.ScriptGroupName
+        )
+        return
+    end
     finenv.StartNewUndoBlock(
         string.format("Pitch Change %s-%s %s",
             config.find_string, config.new_string, selection)
@@ -5535,7 +5528,7 @@ local function run_the_dialog()
 
         local function yd(diff) y = y + (diff or 25) end
         local function Show_Info()
-            utils.show_notes_dialog(dialog, "About " .. name, 420, 430)
+            utils.show_notes_dialog(dialog, "About " .. name, 400, 370)
             refocus_document = true
         end
         local function cstat(horiz, vert, wide, str)
@@ -5555,15 +5548,15 @@ local function run_the_dialog()
             if (kind == "layer" and s:find("[^0-4]"))
               or (kind ~= "layer" and s:find("[^A-G#]")) then
 
-                if     s:find(hotkey.Closest) then pitch.popup:SetSelectedItem(0)
-                elseif s:find(hotkey.Up) then pitch.popup:SetSelectedItem(1)
-                elseif s:find(hotkey.Down) then pitch.popup:SetSelectedItem(2)
-                elseif s:find("S") and kind ~= "layer" then
-                    save_text[kind] = s:gsub("S", "#")
-                elseif s:find(hotkey.Swap) then value_swap()
-                elseif s:find(hotkey.Show_Info) then Show_Info()
-                elseif s:find(hotkey.Modeless) then toggle_check("modeless")
-                elseif s:find(hotkey.Written) then toggle_check("written_pitch")
+                if     s:find(hotkey.direction) then
+                    local n = pitch.popup:GetSelectedItem()
+                    pitch.popup:SetSelectedItem((n + 1) % 3)
+                elseif s:find(hotkey.sharp) and kind ~= "layer" then
+                    save_text[kind] = s:gsub(hotkey.sharp, "#")
+                elseif s:find(hotkey.swap) then value_swap()
+                elseif s:find(hotkey.show_info) then Show_Info()
+                elseif s:find(hotkey.modeless) then toggle_check("modeless")
+                elseif s:find(hotkey.written) then toggle_check("written_pitch")
                 end
             else
                 s = (kind == "layer") and s:sub(-1) or (s:sub(1, 1) .. s:sub(2):lower())
@@ -5624,15 +5617,12 @@ local function run_the_dialog()
     yd(14)
     ctl.info = dialog:CreateStatic(16, y):SetText(selection):SetWidth(x_pos[4] + 65)
 
-    dialog:CreateOkButton():SetText(config.modeless and "Apply" or "Change")
-    dialog:CreateCancelButton()
+    dialog:CreateOkButton()    :SetText(config.modeless and "Apply" or "Change")
+    dialog:CreateCancelButton():SetText(config.modeless and "Close" or "Cancel")
     dialog:RegisterInitWindow(function(self)
-        self:SetOkButtonCanClose(not config.modeless)
         if config.modeless then self:SetTimer(config.timer_id, 125) end
         local bold = ctl.from:CreateFontInfo():SetBold(true)
-        ctl.from:SetFont(bold)
-        ctl.to:SetFont(bold)
-        ctl.direction:SetFont(bold)
+        for _, v in ipairs{"from", "to", "direction", "q"} do ctl[v]:SetFont(bold) end
         pitch.find:SetKeyboardFocus()
     end)
     local change_mode, user_error = false, false
@@ -5640,17 +5630,17 @@ local function run_the_dialog()
     if config.modeless then dialog:RegisterHandleTimer(on_timer) end
     dialog:RegisterHandleOkButtonPressed(function()
         errors = {}
-        local good_name1, good_name2 = encode_pitches("find"), encode_pitches("new")
-        if good_name1 and good_name2 then
+        local good1, good2 = encode_pitches("find"), encode_pitches("new")
+        if good1 and good2 then
             config.layer_num = pitch.layer:GetInteger()
             config.direction = pitch.popup:GetSelectedItem() + 1
             config.written_pitch = (ctl.written_pitch:GetCheck() == 1)
-            change_the_pitches()
+            change_the_pitches(dialog)
         else
             local msg = (#errors > 1) and
                 "These pitch names are invalid:\n" or "This pitch name is invalid:\n"
             msg = "Pitch names cannot be empty and must start "
-                .. "with a single note name (a-g or A-G) followed by "
+                .. "with a single note name (A-G) followed by "
                 .. "accidentals (#-###, b-bbb) as required.\n\n"
                 .. msg .. table.concat(errors, "; ")
             dialog:CreateChildUI():AlertError(msg, name .. " Error")
@@ -5674,13 +5664,6 @@ local function run_the_dialog()
 end
 local function change_pitch()
     configuration.get_user_settings(script_name, config, true)
-    if not config.modeless and finenv.Region():IsEmpty() then
-        finenv.UI():AlertError(
-            "Please select some music\nbefore running this script.",
-            finaleplugin.ScriptGroupName
-        )
-        return
-    end
     local qim = finenv.QueryInvokedModifierKeys
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
     track_selection()
