@@ -5538,8 +5538,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.34"
-    finaleplugin.Date = "2024/05/20"
+    finaleplugin.Version = "0.39"
+    finaleplugin.Date = "2024/06/09"
     finaleplugin.AdditionalMenuOptions = [[
         Noteheads Change Repeat
     ]]
@@ -5547,16 +5547,16 @@ function plugindef()
         Noteheads Change Repeat
     ]]
     finaleplugin.AdditionalDescriptions = [[
-        Change notehead shapes on a specific layer of the current selection (no dialog)
+        Change the shape of noteheads in the current selection (no dialog)
     ]]
     finaleplugin.AdditionalPrefixes = [[
         no_dialog = true
     ]]
     finaleplugin.MinJWLuaVersion = 0.70
-    finaleplugin.ScriptGroupName = "Noteheads Change by Layer"
-    finaleplugin.ScriptGroupDescription = "Change notehead shapes on a specific layer of the current selection"
+    finaleplugin.ScriptGroupName = "Noteheads Change"
+    finaleplugin.ScriptGroupDescription = "Change the shape of noteheads in the current selection"
     finaleplugin.Notes = [[
-        Change __notehead shapes__ on a specific layer of the current 
+        Change __notehead shapes__ on one or all layers of the current 
         selection to one of these options: 
 
         > Circled | Default | Diamond | Guitar Diamond  
@@ -5571,11 +5571,11 @@ function plugindef()
         to duration values. Most duration-dependent shapes are not available 
         in Finale's old (non-SMuFL) _Maestro_ and _Engraver_ fonts. 
         _Diamond (Guitar)_ is like _Diamond_ except quarter notes and shorter use filled diamonds. 
-        _Number_ lets you specify any font character as a number including 
+        _Custom Glyph_ lets you specify any font character as a number including 
         __SMuFL__ (Unicode) numbers in the form __0xe0e1__ or __0xE0E1__. 
 
         To repeat the same action as last time without a confirmation dialog either select the 
-        __Noteheads Change Repeat__ menu item or hold down [Shift] when opening the script.
+        __Noteheads Change Repeat__ menu item or hold down [_Shift_] when opening the script.
     ]]
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
@@ -5583,16 +5583,16 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Change {\b notehead shapes} on a specific layer of the current selection to one of these options:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Change {\b notehead shapes} on one or all layers of the current selection to one of these options:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 Circled | Default | Diamond | Guitar Diamond\line Hidden | Number | Round | Slash | Square\line Strikethrough | Triangle | Wedge | X\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script produces an ordered list of notehead types, each line beginning with a configurable {\i hotkey}. Call the script, type the {\i hotkey} and hit [Return].\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 In {\b SMuFL} fonts like {\i Finale Maestro}, shapes can vary according to duration values. Most duration-dependent shapes are not available in Finale\u8217's old (non-SMuFL) {\i Maestro} and {\i Engraver} fonts. {\i Diamond (Guitar)} is like {\i Diamond} except quarter notes and shorter use filled diamonds. {\i Number} lets you specify any font character as a number including {\b SMuFL} (Unicode) numbers in the form {\b 0xe0e1} or {\b 0xE0E1}.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To repeat the same action as last time without a confirmation dialog either select the {\b Noteheads Change Repeat} menu item or hold down [Shift] when opening the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 In {\b SMuFL} fonts like {\i Finale Maestro}, shapes can vary according to duration values. Most duration-dependent shapes are not available in Finale\u8217's old (non-SMuFL) {\i Maestro} and {\i Engraver} fonts. {\i Diamond (Guitar)} is like {\i Diamond} except quarter notes and shorter use filled diamonds. {\i Custom Glyph} lets you specify any font character as a number including {\b SMuFL} (Unicode) numbers in the form {\b 0xe0e1} or {\b 0xE0E1}.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To repeat the same action as last time without a confirmation dialog either select the {\b Noteheads Change Repeat} menu item or hold down [{\i Shift}] when opening the script.\par}
         }
     ]]
-    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/noteheads_change_by_layer.hash"
-    return "Noteheads Change by Layer...", "Noteheads Change by Layer",
-        "Change notehead shapes on a specific layer of the current selection"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/noteheads_change.hash"
+    return "Noteheads Change...", "Noteheads Change",
+        "Change the shape of noteheads in the current selection"
 end
 no_dialog = no_dialog or false
 local notehead = require("library.notehead")
@@ -5605,25 +5605,25 @@ local diamond = { smufl = 0xE0E1, non_smufl = 79 }
 local script_name = library.calc_script_name()
 local refocus_document = false
 local dialog_options = {
-    { "Circled", "C" },
-    { "Default", "A" },
-    { "Diamond", "D" },
-    { "Diamond_Guitar", "G" },
-    { "Hidden",  "H" },
-    { "Number",  "N" },
-    { "Round",   "R" },
-    { "Slash",   "S" },
-    { "Square",  "Q" },
-    { "Strikethrough", "E" },
-    { "Triangle", "T" },
-    { "Wedge",    "W" },
-    { "X",        "Z" }
+    { "Circled",        "C" },
+    { "Custom Glyph",   "U", "custom" },
+    { "Default",        "A" },
+    { "Diamond",        "D" },
+    { "Guitar Diamond", "G", "diamond_guitar" },
+    { "Hidden",         "H" },
+    { "Round",          "R" },
+    { "Slash",          "S" },
+    { "Square",         "Q" },
+    { "Strikethrough",  "E" },
+    { "Triangle",       "T" },
+    { "Wedge",          "W" },
+    { "X",              "Z" }
 }
 local config = {
     layer_num = 1,
     ignore_duplicates = 0,
     shape = "default",
-    glyph = "0xe0e1",
+    glyph = diamond.smufl,
     window_pos_x = false,
     window_pos_y = false
 }
@@ -5644,35 +5644,45 @@ local function dialog_save_position(dialog)
     configuration.save_user_settings(script_name, config)
 end
 local function user_chooses_glyph()
-    local x = 230
-    local y_diff = finenv.UI():IsOnMac() and 3 or 0
     local base_glyph = tonumber(config.glyph) or diamond.smufl
     local msg
     if library.is_font_smufl_font() then
         if base_glyph < 0xE000 then base_glyph = diamond.smufl end
-        config.glyph = string.format("0x%X", base_glyph)
-        msg = "... as a plain integer, or hex value like \"0xE0E1\". "
-            .. "The Default Music Font is SMuFL compliant so glyph numbers "
+        msg = "... as an integer or hex value like \"0xE0E1\". "
+            .. "The Default Music Font of the current document "
+            .. "is SMuFL compliant so glyph numbers "
             .. "should be higher than 57344 (\"0xE000\")."
     else
         if base_glyph >= 0x1000 then base_glyph = diamond.non_smufl end
-        config.glyph = tostring(base_glyph)
-        msg = "The Default Music Font is not SMuFL compliant so glyph numbers "
+        msg = "The Default Music Font of the current document "
+        .. "is not SMuFL compliant so glyph numbers "
         .. "should be lower than 4096 (\"0x1000\") "
         .. "and might contain no characters higher than 255"
     end
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(finaleplugin.ScriptGroupName)
-    dialog:CreateStatic(0, y_diff):SetWidth(x + 70)
-        :SetText("Enter required character (glyph) number:")
-    dialog:CreateStatic(0, y_diff + 25):SetWidth(x + 100):SetHeight(50)
-        :SetText(msg)
-    local glyph = dialog:CreateEdit(x, 0):SetText(config.glyph)
+    local m_off = finenv.UI():IsOnMac() and 3 or 0
+    local glyph_edit = dialog:CreateEdit(180, 30 - m_off)
+        local function set_glyph()
+            local g = library.is_font_smufl_font() and
+                string.format("0x%X", base_glyph) or tostring(base_glyph)
+            glyph_edit:SetText(g):SetKeyboardFocus()
+        end
+    local default_font = finale.FCFontInfo()
+    default_font:LoadFontPrefs(finale.FONTPREF_MUSIC)
+    dialog:CreateButton(80, 0):SetWidth(150)
+        :SetText("Select Custom Glyph")
+        :AddHandleCommand(function()
+            base_glyph = dialog:CreateChildUI():DisplaySymbolDialog(default_font, base_glyph)
+            if base_glyph ~= 0 then set_glyph() end
+        end)
+    dialog:CreateStatic(50, 30):SetWidth(230):SetText("Custom Glyph Number:")
+    dialog:CreateStatic(0, 55):SetWidth(330):SetHeight(50):SetText(msg)
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
-    dialog:RegisterInitWindow(function() glyph:SetKeyboardFocus() end)
+    dialog:RegisterInitWindow(function() set_glyph() end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    dialog:RegisterHandleOkButtonPressed(function() config.glyph = glyph:GetText() end)
+    dialog:RegisterHandleOkButtonPressed(function() config.glyph = tonumber(glyph_edit:GetText()) end)
     return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
 end
 local function reassign_keystrokes(parent, index)
@@ -5743,9 +5753,8 @@ local function user_chooses_shape()
             local join = finenv.UI():IsOnMac() and "\t" or ": "
             shape_list:Clear()
             for i, v in ipairs(dialog_options) do
-                local item = (i ~= 4) and v[1] or "Guitar Diamond"
-                shape_list:AddString(config[v[1]] .. join .. item)
-                if v[1]:lower() == config.shape then
+                shape_list:AddString(config[v[1]] .. join .. v[1])
+                if config.shape == v[1]:lower() or config.shape == v[3] then
                     shape_list:SetSelectedItem(i - 1)
                 end
             end
@@ -5805,7 +5814,7 @@ local function user_chooses_shape()
     end)
     dialog:RegisterHandleOkButtonPressed(function()
         local item = shape_list:GetSelectedItem() + 1
-        config.shape = dialog_options[item][1]:lower()
+        config.shape = dialog_options[item][3] or dialog_options[item][1]:lower()
         config.layer_num = layer_num:GetInteger()
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
@@ -5816,7 +5825,7 @@ local function change_noteheads()
     local qim = finenv.QueryInvokedModifierKeys
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
     if no_dialog or mod_key or user_chooses_shape() then
-        if config.shape == "number" then
+        if config.shape == "custom" then
             if not user_chooses_glyph() then return end
             config.shape = tonumber(config.glyph)
         end
