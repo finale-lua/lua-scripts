@@ -5607,8 +5607,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.28"
-    finaleplugin.Date = "2024/02/07"
+    finaleplugin.Version = "0.32"
+    finaleplugin.Date = "2024/07/12"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         This script takes music from a nominated layer in the selected staff 
@@ -5618,46 +5618,45 @@ function plugindef()
         If the destination measure is empty a whole-measure rest 
         will be created as a reminder that the cue isn't played. 
 
-        Cue notes are often shown in a different octave to accommodate 
-        the clef and transposition of the destination. 
-        Use _Cue Octave Offset_ setting for this. 
+        Use __Cue Octave Offset__ to change the register of a cue to 
+        suit the clef and transposition of the destination. 
         Cues can interact visually with "played" material in countless ways 
         so settings probably need to change between scenarios. 
 
         The cue copy is reduced in size and muted, and can optionally duplicate 
         articulations, expressions, lyrics and smart shapes. 
-        "Note-based" smart shapes are copied, typically slurs and glissandos, 
+        __Note-based__ smart shapes are copied, typically slurs and glissandos, 
         because they actually "attach" to the cued notes. 
 
-        This script stores cue names in a text expression category called _Cue Names_ 
-        which will be created automatically if needed. 
+        This script stores cue names in a text expression category called 
+        __Cue Names__ which will be created automatically if needed. 
         Once created you can adjust its text and position parameters 
         like any other expression category. 
 
         Rests in the cue will be offset by the value you have set 
-        for layer 1 at _Document_ → _Document Options_ → _Layers_. 
-        They will automatically offset in the same direction as 
+        for layer 1 at _Document_ &rarr; _Document Options_ &rarr; _Layers_. 
+        They will automatically be offset in the same direction as 
         the nominated cue stem direction.
 
         > __Command Keys__  
-        > In the _Destination Staff_ window, hit the tab key to move the cursor  
-        > into a numeric field and these key commands become available: 
+        > In the __Destination Staff__ window, highlight one of the 
+        > numeric fields and these key commands become available: 
 
-        > - __q__ - show these script notes 
-        > - __w__ - flip [copy articulations] 
-        > - __e__ - flip [copy expressions] 
-        > - __r__ - flip [copy smartshapes] 
-        > - __t__ - flip [copy lyrics] 
-        > - __y__ - flip [mute cuenotes]  
-        > - __a__ - check all options 
-        > - __s__ - check no options 
-        > - __d__ - select all staves 
-        > - __f__ - select no staves 
-        > - __g__ - select empty staves  
-        > - __z (-)__ - octave -1 
-        > - __x (+)__ - octave +1 
-        > - __c__ - flip stem direction 
-        > - __v__ - flip [destination stems opposite] 
+        > - __q__: show script info 
+        > - __w__: toggle [copy articulations] 
+        > - __e__: toggle [copy expressions] 
+        > - __r__: toggle [copy smartshapes] 
+        > - __t__: toggle [copy lyrics] 
+        > - __y__: toggle [mute cuenotes]  
+        > - __a__: check all options 
+        > - __s__: check no options 
+        > - __d__: select all staves 
+        > - __f__: select no staves 
+        > - __g__: select empty staves  
+        > - __z (-)__: octave -1 
+        > - __x (+)__: octave +1 
+        > - __c__: toggle stem direction 
+        > - __v__: toggle [destination stems opposite] 
     ]]
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
@@ -5666,30 +5665,32 @@ function plugindef()
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script takes music from a nominated layer in the selected staff and creates a {\b Cue} version on one or more other staves. It is intended to create cue notes above or below existing \u8220"played\u8221" material in the destination. If the destination measure is empty a whole-measure rest will be created as a reminder that the cue isn\u8217't played.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Cue notes are often shown in a different octave to accommodate the clef and transposition of the destination. Use {\i Cue Octave Offset} setting for this. Cues can interact visually with \u8220"played\u8221" material in countless ways so settings probably need to change between scenarios.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The cue copy is reduced in size and muted, and can optionally duplicate articulations, expressions, lyrics and smart shapes. \u8220"Note-based\u8221" smart shapes are copied, typically slurs and glissandos, because they actually \u8220"attach\u8221" to the cued notes.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script stores cue names in a text expression category called {\i Cue Names} which will be created automatically if needed. Once created you can adjust its text and position parameters like any other expression category.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Rests in the cue will be offset by the value you have set for layer 1 at {\i Document} \u8594? {\i Document Options} \u8594? {\i Layers}. They will automatically offset in the same direction as the nominated cue stem direction.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 {\b Command Keys}\line In the {\i Destination Staff} window, hit the tab key to move the cursor\line into a numeric field and these key commands become available:\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q} - show these script notes\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b w} - flip [copy articulations]\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e} - flip [copy expressions]\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b r} - flip [copy smartshapes]\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b t} - flip [copy lyrics]\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b y} - flip [mute cuenotes]\line \par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b a} - check all options\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b s} - check no options\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d} - select all staves\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b f} - select no staves\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b g} - select empty staves\line \par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z (-)} - octave -1\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x (+)} - octave +1\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b c} - flip stem direction\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b v} - flip [destination stems opposite]\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Use {\b Cue Octave Offset} to change the register of a cue to suit the clef and transposition of the destination. Cues can interact visually with \u8220"played\u8221" material in countless ways so settings probably need to change between scenarios.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The cue copy is reduced in size and muted, and can optionally duplicate articulations, expressions, lyrics and smart shapes. {\b Note-based} smart shapes are copied, typically slurs and glissandos, because they actually \u8220"attach\u8221" to the cued notes.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script stores cue names in a text expression category called {\b Cue Names} which will be created automatically if needed. Once created you can adjust its text and position parameters like any other expression category.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Rests in the cue will be offset by the value you have set for layer 1 at {\i Document} \u8594? {\i Document Options} \u8594? {\i Layers}. They will automatically be offset in the same direction as the nominated cue stem direction.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 {\b Command Keys}\line In the {\b Destination Staff} window, highlight one of the numeric fields and these key commands become available:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: show script info\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b w}: toggle [copy articulations]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b e}: toggle [copy expressions]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b r}: toggle [copy smartshapes]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b t}: toggle [copy lyrics]\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b y}: toggle [mute cuenotes]\line \par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b a}: check all options\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b s}: check no options\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b d}: select all staves\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b f}: select no staves\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b g}: select empty staves\line \par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z (-)}: octave -1\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x (+)}: octave +1\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b c}: toggle stem direction\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b v}: toggle [destination stems opposite]\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/cue_notes_overlay.hash"
-    return "Cue Notes Overlay...", "Cue Notes Overlay", "Copy as cue notes to another staff"
+    return "Cue Notes Overlay...",
+        "Cue Notes Overlay",
+        "Copy as cue notes to another staff"
 end
 local config = {
     copy_articulations  =   false,
@@ -5707,13 +5708,35 @@ local config = {
     cuename_item        =   0,
     overwrite_layer     =   4,
 
-    shift_expression_down = -24 * 9,
-    shift_expression_left = -24,
+    shift_exp_up        =    24,
+    shift_exp_down      =   -24 * 9,
+    shift_exp_left      =   -24,
 
     cue_category_name   =   "Cue Names",
     cue_font_smaller    =   1,
     window_pos_x        =   false,
     window_pos_y        =   false,
+}
+local hotkey = {
+    show_info          = "q",
+    copy_articulations = "w",
+    copy_expressions   = "e",
+    copy_smartshapes   = "r",
+    copy_lyrics        = "t",
+    mute_cuenotes      = "y",
+
+    set_all        = "a",
+    clear_all      = "s",
+    all_staves     = "d",
+    no_staves      = "f",
+    empty_staves   = "g",
+
+    octave_dn1     = "z",
+    octave_dn2     = "-",
+    octave_up1     = "x",
+    octave_up2     = "+",
+    stem_direction = "c",
+    stems_oppose   = "v",
 }
 local options = {
     check =   { "copy_articulations", "copy_expressions", "copy_smartshapes", "copy_lyrics", "mute_cuenotes" },
@@ -5774,11 +5797,10 @@ end
 local function get_staff_name(staff_num)
     local staff = finale.FCStaff()
     staff:Load(staff_num)
-    local str = staff:CreateDisplayFullNameString()
-    local name = { full = str.LuaString }
-    str = staff:CreateDisplayAbbreviatedNameString()
-    name.abbrev = str.LuaString
-    return name
+    return {
+        full   = staff:CreateDisplayFullNameString().LuaString,
+        abbrev = staff:CreateDisplayAbbreviatedNameString().LuaString
+    }
 end
 local function new_cue_name(source_staff)
     local name = get_staff_name(source_staff)
@@ -5810,7 +5832,7 @@ local function choose_name_index(name_list, source_staff)
     dialog:CreateStatic(0, 17):SetText("Select cue name:"):SetWidth(100)
     make_info_button(dialog, 180, 17)
     local staff_list = dialog:CreateListBox(0, 40):SetWidth(200)
-        :AddString("*** new name ***")
+        :AddString("*** new cue name ***")
     for i, v in ipairs(name_list) do
         staff_list:AddString(v[1])
         if v[2] == config.cuename_item then staff_list:SetSelectedItem(i) end
@@ -5845,11 +5867,11 @@ local function create_new_expression(exp_name, category_number)
     config.cuename_item = ted:GetItemNo()
 end
 local function choose_destination_staff(source_staff)
-    local source_name
     local rgn = finale.FCMusicRegion()
     rgn:SetCurrentSelection()
     rgn:SetFullMeasureStack()
 
+    local source_name
     local staff_list = {}
     for staff_number in eachstaff(rgn) do
         local name = get_staff_name(staff_number)
@@ -5925,21 +5947,21 @@ local function choose_destination_staff(source_staff)
                       or s:find("[^0-9]")
                     )
                 ) then
-                if     s:find("[q?]") then info_dialog()
-                elseif s:find("w") then flip_check("copy_articulations")
-                elseif s:find("e") then flip_check("copy_expressions")
-                elseif s:find("r") then flip_check("copy_smartshapes")
-                elseif s:find("t") then flip_check("copy_lyrics")
-                elseif s:find("y") then flip_check("mute_cuenotes")
-                elseif s:find("a") then set_check_state(1)
-                elseif s:find("s") then set_check_state(0)
-                elseif s:find("d") then set_list_state(1)
-                elseif s:find("f") then set_list_state(0)
-                elseif s:find("g") then set_list_state(-1)
-                elseif s:find("[-z_]") then octave_change(1)
-                elseif s:find("[+x=]") then octave_change(-1)
-                elseif s:find("c") then flip_direction()
-                elseif s:find("v") then flip_check("stems_oppose")
+                if     s:find(hotkey.show_info)     then info_dialog()
+                elseif s:find(hotkey.mute_cuenotes) then flip_check("mute_cuenotes")
+                elseif s:find(hotkey.set_all)       then set_check_state(1)
+                elseif s:find(hotkey.clear_all)     then set_check_state(0)
+                elseif s:find(hotkey.all_staves)    then set_list_state(1)
+                elseif s:find(hotkey.no_staves)     then set_list_state(0)
+                elseif s:find(hotkey.empty_staves)  then set_list_state(-1)
+                elseif s:find(hotkey.octave_dn1) or s:find(hotkey.octave_dn2) then octave_change(1)
+                elseif s:find(hotkey.octave_up1) or s:find(hotkey.octave_up2) then octave_change(-1)
+                elseif s:find(hotkey.stem_direction) then flip_direction()
+                elseif s:find(hotkey.stems_oppose)   then flip_check("stems_oppose")
+                else
+                    for _, v in ipairs(options.check) do
+                        if s:find(hotkey[v]) then flip_check(v) break end
+                    end
                 end
                 ctl:SetText(saved[name]):SetKeyboardFocus()
             elseif s ~= "" then
@@ -6040,12 +6062,11 @@ local function choose_overwrite_layer(staff_name, empty_layers)
     dialog:CreateStatic(0, 55):SetText("Please confirm:"):SetWidth(100)
     local list = dialog:CreateListBox(0, 75):SetWidth(wide):SetHeight(70)
     for i = 1, layer.max_layers() do
-        local si = tostring(i)
         if i == config.cuenote_layer then
-            list:AddString("overwrite CUENOTE layer " .. si)
+            list:AddString("overwrite CUENOTE layer " .. i)
         else
             msg = empty_layers[i] and "use empty layer " or "overwrite layer "
-            list:AddString(msg .. si)
+            list:AddString(msg .. i)
         end
         if i == config.overwrite_layer then list:SetSelectedItem(i - 1) end
     end
@@ -6228,6 +6249,17 @@ local function new_expression_category(new_name)
     local ok = new_category:SaveNewWithType(finale.DEFAULTCATID_TECHNIQUETEXT)
     return ok, (ok and new_category:GetID() or 0)
 end
+local function find_first_non_rest(staff, measure)
+    local nel = finale.FCNoteEntryLayer(config.source_layer - 1, staff, measure, measure)
+    nel:Load()
+    for i = 0, (nel.Count - 1) do
+        local e = nel:GetItemAt(i)
+        if e ~= nil and e:IsNote() then
+            return e.MeasurePos
+        end
+    end
+    return 0
+end
 local function create_cue_notes()
     configuration.get_user_settings(script_name, config, true)
     local cue_names = { }
@@ -6285,22 +6317,22 @@ local function create_cue_notes()
         return
     end
 
+    local vert_shift = (config.stem_direction == 1) and config.shift_exp_down or config.shift_exp_up
+    local measure_pos = find_first_non_rest(start_staff, source_region.StartMeasure)
     for _, one_staff in ipairs(destination_staves) do
         if notelayer_copy(source_region, one_staff) then
             local cue_name = mixin.FCMExpression()
             cue_name:SetStaff(one_staff)
                 :SetVisible(true)
-                :SetMeasurePos(0)
+                :SetMeasurePos(measure_pos)
+                :SetLayerAssignment(config.cuenote_layer)
                 :SetScaleWithEntry(false)
                 :SetPartAssignment(true)
                 :SetScoreAssignment(true)
                 :SetID(config.cuename_item)
-                :SetHorizontalPos(config.shift_expression_left)
+                :SetHorizontalPos(config.shift_exp_left)
+                :SetVerticalPos(vert_shift)
                 :SaveNewToCell(finale.FCCell(source_region.StartMeasure, one_staff))
-            if config.stem_direction == 1 then
-                cue_name.VerticalPos = config.shift_expression_down
-                cue_name:Save()
-            end
         end
     end
     refocus()
