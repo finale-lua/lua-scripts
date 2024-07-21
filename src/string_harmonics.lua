@@ -3,33 +3,42 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.62"
-    finaleplugin.Date = "2024/06/02"
+    finaleplugin.Version = "0.63"
+    finaleplugin.Date = "2024/07/21"
     finaleplugin.Notes = [[
-        Create diamond noteheads on the top note of dyads identified as viable string harmonics. 
-        Note that this uses MIDI note values to identify acceptable intervals to 
-        avoid the complications of key signatures and transposing instruments. 
-        This is inelegant but simple and should work in most situations! 
+        This script converts the __upper__ note of allowable _string harmonic_
+        dyads (two-note chords) into __diamond__ noteheads. 
+        The first twelve harmonics of the lower _root_ pitch are recognised. 
+
+        Three other scripts currently in the 
+        [FinaleLua.com ](https://FinaleLua.com) repository 
+        ("_String harmonics_ __X__ _sounding pitch_") take single-pitch 
+        _sounding_ notes and create an equivalent played _string harmonic_ by adding a
+        __diamond-headed__ _harmonic_ note, and transposing the resulting dyad 
+        downwards by the interval of the harmonic.
     ]]
-    return "String Harmonics", "String Harmonics",
-        "Create diamond noteheads on the top note of dyads identified as viable string harmonics"
+    return "String Harmonics",
+        "String Harmonics",
+        "Identify suitable string harmonic dyads and change the top note to a diamond notehead"
 end
 
 local notehead = require("library.notehead")
 
 function string_harmonics()
-    -- allowable intervals for string harmonics, measured in interval STEPS
-    local allowed = { 3, 4, 5, 7, 9, 12, 16, 19, 24, 28, 31 }
-    local allowable = {}
-    for _, v in ipairs(allowed) do allowable[v] = true end
-
+    -- recognised intervals for string harmonics measured in semitone STEPS,
+    -- mapped to the corresponding diatonic interval
+    local allowed = {
+         [3] = 2,   [4] = 2,   [5] = 3,  [7] = 4,
+         [9] = 5,  [12] = 7,  [16] = 9, [19] = 11,
+        [24] = 14, [28] = 16, [31] = 18
+    }
     for entry in eachentrysaved(finenv.Region()) do
-        if entry:IsNote() and (entry.Count == 2) then -- only treat 2-note chords
+        if entry:IsNote() and (entry.Count == 2) then -- only treat dyads
             local highest = entry:CalcHighestNote(nil)
             local lowest = entry:CalcLowestNote(nil)
             local midi_diff = highest:CalcMIDIKey() - lowest:CalcMIDIKey()
-
-            if allowable[midi_diff] then -- only permissible intervals
+            local displacement_diff = highest.Displacement - lowest.Displacement
+            if allowed[midi_diff] and allowed[midi_diff] == displacement_diff then
                 finale.FCNoteheadMod():EraseAt(lowest)
                 notehead.change_shape(highest, "diamond")
             end
