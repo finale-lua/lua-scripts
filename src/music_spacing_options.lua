@@ -4,20 +4,22 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.12"
-    finaleplugin.Date = "2024/06/21"
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.Version = "0.14"
+    finaleplugin.Date = "2024/07/21"
+    finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
-        There's a couple of __Music Spacing__ options that I 
-        change frequently for different spacing scenarios. 
-        This little hack uses a couple of hotkeys to do that 
-        quickly using only keyboard entry without navigating 
-        the whole __Document__ → __Document Options__ → 
-        __Music Spacing__ → __Avoid Collision of__ → menu/dialog system.
+        Quickly change __music spacing__ options (with optional hotkeys). 
+        These options are otherwise only available using the messy combined 
+        menu/dialog/menu process of 
+        __Document__ &rarr; __Document Options__ &rarr; __Music Spacing__ &rarr; __Avoid Collision of__...
+
+        It also offers easy access to the __Automatic Music Spacing__ option 
+        which is otherwise only available at 
+        __Finale__ &rarr; __Settings__ &rarr; __Edit__ &rarr;  __Automatic Music Spacing__.
     ]]
-    return "Music Spacing Hack...",
-        "Music Spacing Hack",
-        "A keyboard hack to quickly change music spacing options"
+    return "Music Spacing Options...",
+        "Music Spacing Options",
+        "Quickly change music spacing options (with optional hotkeys)"
 end
 
 local config = {
@@ -40,10 +42,10 @@ local unisons = {
     { finale.UNISSPACE_ALLNOTEHEADS,       "N", "All Noteheads" },
 }
 local others = {
-    {"change_hotkeys",        "H", "Change Hotkeys"},
-    {"AutomaticMusicSpacing", "Z", "Automatic Music Spacing"},
-    {"script_info",           "Q", "Show Script Info"},
-    {"manual_pos",            "X", "Manual Positioning"}
+    { "change_hotkeys", "H", "Change Hotkeys" },
+    { "auto_spacing",   "Z", "Automatic Music Spacing" },
+    { "script_info",    "Q", "Show Script Info" },
+    { "manual_pos",     "X", "Manual Positioning" }
 }
 local manual_pos = { "Clear", "Incorporate", "Ignore" } -- 0 .. 1 .. 2 popup
 
@@ -62,8 +64,8 @@ local script_name = library.calc_script_name()
 local name = plugindef():gsub("%.%.%.", "")
 local refocus_document = false
 local spacing_prefs = finale.FCMusicSpacingPrefs()
-local gen_prefs = finale.FCGeneralPrefs()
 spacing_prefs:LoadFirst()
+local gen_prefs = finale.FCGeneralPrefs()
 gen_prefs:LoadFirst()
 configuration.get_user_settings(script_name, config)
 
@@ -164,12 +166,12 @@ local function run_the_dialog()
     local m_offset = finenv.UI():IsOnMac() and 3 or 0
     local saved
 
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name:sub(1, -5))
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name:sub(1, 13))
     dialog:SetMeasurementUnit(config.measurement_unit)
         -- local functions
         local function dy(diff) y = y + (diff and diff or 17) end
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 300, 150)
+            utils.show_notes_dialog(dialog, "About " .. name, 300, 175)
             refocus_document = true
         end
         local function cstat(cx, cy, ctext, cwide, cname)
@@ -208,7 +210,6 @@ local function run_the_dialog()
                         end
                     end
                 end
-                configuration.save_user_settings(script_name, config)
             else -- re-seed hotkeys from user config
                 configuration.get_user_settings(script_name, config)
             end
@@ -217,11 +218,9 @@ local function run_the_dialog()
         end
         local function key_check(ctl)
             local s = ctl:GetText():upper()
-            if s:find("[^.P0-9]") then
-                if s:find(config.change_hotkeys) then
-                    change_keys()
-                elseif s:find(config.AutomaticMusicSpacing) then
-                    toggle_check("AutomaticMusicSpacing")
+            if s:find("[^ .P0-9]") then
+                if s:find(config.change_hotkeys) then change_keys()
+                elseif s:find(config.auto_spacing) then toggle_check("auto_spacing")
                 elseif s:find(config.script_info) then show_info()
                 elseif s:find(config.manual_pos) then -- toggle ManPosn Popup
                     local c = dialog:GetControl(others[4][1])
@@ -245,7 +244,7 @@ local function run_the_dialog()
             end
             ctl:SetText(saved)
         end
-    cstat(0, y, "THE " .. name:upper(), 160, "title")
+    cstat(10, y, name:upper(), 155, "title")
     dy(25)
     cstat(0, y, "Avoid Collisions of:", x[3])
     dialog:CreateButton(x[2] + x[3] - 50, y, "q"):SetText("?"):SetWidth(20)
@@ -286,9 +285,9 @@ local function run_the_dialog()
     dialog:CreateButton(x[1], y):SetText("Change Hotkeys"):SetWidth(100)
         :AddHandleCommand(function() change_keys() end)
     dy(22)
-    local val = others[2]
+    local val = others[2] -- AUTOMATIC MUSIC SPACING
     cstat(0, y, config[val[1]], x[1], "T" .. val[1])
-    ccheck(x[1], y, val[1], val[3], x[3], (gen_prefs[val[1]] and 1 or 0))
+    ccheck(x[1], y, val[1], val[3], x[3], (gen_prefs.AutomaticMusicSpacing and 1 or 0))
 
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
@@ -313,7 +312,7 @@ local function run_the_dialog()
         spacing_prefs.MaxMeasureWidth = math.max(n, 50)
         spacing_prefs.ManualPositioning = manpos:GetSelectedItem()
         spacing_prefs:Save()
-        gen_prefs.AutomaticMusicSpacing = (self:GetControl("AutomaticMusicSpacing"):GetCheck() == 1)
+        gen_prefs.AutomaticMusicSpacing = (self:GetControl("auto_spacing"):GetCheck() == 1)
         gen_prefs:Save()
         config.measurement_unit = self:GetMeasurementUnit()
     end)
