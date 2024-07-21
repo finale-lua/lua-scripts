@@ -5206,16 +5206,18 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.10"
-    finaleplugin.Date = "2024/05/03"
-    finaleplugin.MinJWLuaVersion = 0.62
+    finaleplugin.Version = "0.14"
+    finaleplugin.Date = "2024/07/21"
+    finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
-        There's a couple of __Music Spacing__ options that I 
-        change frequently for different spacing scenarios. 
-        This little hack uses a couple of hotkeys 
-        to do that very quickly, without a mouse and without navigating 
-        the whole __Document__ → __Document Options__ → 
-        __Music Spacing__ → __Avoid Collision of__ → menu/dialog system.
+        Quickly change __music spacing__ options (with optional hotkeys). 
+        These options are otherwise only available using the messy combined 
+        menu/dialog/menu process of 
+        __Document__ &rarr; __Document Options__ &rarr; __Music Spacing__ &rarr; __Avoid Collision of__...
+
+        It also offers easy access to the __Automatic Music Spacing__ option 
+        which is otherwise only available at 
+        __Finale__ &rarr; __Settings__ &rarr; __Edit__ &rarr;  __Automatic Music Spacing__.
     ]]
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
@@ -5223,37 +5225,41 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 There\u8217's a couple of {\b Music Spacing} options that I change frequently for different spacing scenarios. This little hack uses a couple of hotkeys to do that very quickly, without a mouse and without navigating the whole {\b Document} \u8594? {\b Document Options} \u8594? {\b Music Spacing} \u8594? {\b Avoid Collision of} \u8594? menu/dialog system.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Quickly change {\b music spacing} options (with optional hotkeys). These options are otherwise only available using the messy combined menu/dialog/menu process of {\b Document} \u8594? {\b Document Options} \u8594? {\b Music Spacing} \u8594? {\b Avoid Collision of}\u8230?\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 It also offers easy access to the {\b Automatic Music Spacing} option which is otherwise only available at {\b Finale} \u8594? {\b Settings} \u8594? {\b Edit} \u8594? {\b Automatic Music Spacing}.\par}
         }
     ]]
-    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/music_spacing_hack.hash"
-    return "Music Spacing Hack...",
-        "Music Spacing Hack",
-        "A keyboard hack to quickly change music spacing options"
+    finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/music_spacing_options.hash"
+    return "Music Spacing Options...",
+        "Music Spacing Options",
+        "Quickly change music spacing options (with optional hotkeys)"
 end
 local config = {
+    dummy        = "dummy",
     window_pos_x = false,
     window_pos_y = false,
     measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
 }
 local checks = {
     { "AvoidArticulations", "A", "Articulations" },
-    { "AvoidChords",      "S", "Chords" },
-    { "AvoidClefs",       "D", "Clefs" },
-    { "AvoidHiddenNotes", "W", "Hidden Notes" },
-    { "AvoidLedgerLines", "E", "Ledger Lines" },
-    { "AvoidLyrics",      "R", "Lyrics" },
+    { "AvoidChords",        "S", "Chords" },
+    { "AvoidClefs",         "D", "Clefs" },
+    { "AvoidHiddenNotes",   "W", "Hidden Notes" },
+    { "AvoidLedgerLines",   "E", "Ledger Lines" },
+    { "AvoidLyrics",        "R", "Lyrics" },
 }
 local unisons = {
-    { finale.UNISSPACE_NONE,               "X", "None" },
-    { finale.UNISSPACE_DIFFERENTNOTEHEADS, "V", "Different Noteheads" },
-    { finale.UNISSPACE_ALLNOTEHEADS,       "B", "All Noteheads" },
+    { finale.UNISSPACE_NONE,               "V", "None" },
+    { finale.UNISSPACE_DIFFERENTNOTEHEADS, "B", "Different Noteheads" },
+    { finale.UNISSPACE_ALLNOTEHEADS,       "N", "All Noteheads" },
 }
 local others = {
-    {"change_hotkeys",        "H", "Change Hotkeys"},
-    {"AutomaticMusicSpacing", "Z", "Automatic Music Spacing"},
-    {"script_info",           "Q", "Show Script Info"}
+    { "change_hotkeys", "H", "Change Hotkeys" },
+    { "auto_spacing",   "Z", "Automatic Music Spacing" },
+    { "script_info",    "Q", "Show Script Info" },
+    { "manual_pos",     "X", "Manual Positioning" }
 }
+local manual_pos = { "Clear", "Incorporate", "Ignore" }
 for _, t in ipairs{checks, unisons, others} do
     for _, v in ipairs(t) do
         config[tostring(v[1])] = v[2]
@@ -5266,9 +5272,9 @@ local library = require("library.general_library")
 local script_name = library.calc_script_name()
 local name = plugindef():gsub("%.%.%.", "")
 local refocus_document = false
-local prefs = finale.FCMusicSpacingPrefs()
+local spacing_prefs = finale.FCMusicSpacingPrefs()
+spacing_prefs:LoadFirst()
 local gen_prefs = finale.FCGeneralPrefs()
-prefs:LoadFirst()
 gen_prefs:LoadFirst()
 configuration.get_user_settings(script_name, config)
 local function dialog_set_position(dialog)
@@ -5364,12 +5370,12 @@ local function run_the_dialog()
     local y = 0
     local m_offset = finenv.UI():IsOnMac() and 3 or 0
     local saved
-    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name:sub(1, -5))
+    local dialog = mixin.FCXCustomLuaWindow():SetTitle(name:sub(1, 13))
     dialog:SetMeasurementUnit(config.measurement_unit)
 
         local function dy(diff) y = y + (diff and diff or 17) end
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 300, 150)
+            utils.show_notes_dialog(dialog, "About " .. name, 300, 175)
             refocus_document = true
         end
         local function cstat(cx, cy, ctext, cwide, cname)
@@ -5379,13 +5385,21 @@ local function run_the_dialog()
             dialog:CreateCheckbox(cx, cy, cname):SetText(ctext):SetWidth(cwide):SetCheck(check)
         end
         local function toggle_check(id)
-            local ctl = dialog:GetControl(id)
-            ctl:SetCheck((ctl:GetCheck() + 1) % 2)
+            local c = dialog:GetControl(id)
+            c:SetCheck((c:GetCheck() + 1) % 2)
         end
         local function toggle_unison(id)
             for i = unisons[1][1], unisons[3][1] do
                 dialog:GetControl(tostring(i)):SetCheck(i == id and 1 or 0)
             end
+        end
+        local function fill_pos_popup()
+            local popup = dialog:GetControl(others[4][1])
+            popup:Clear()
+            for _, v in ipairs(manual_pos) do
+                popup:AddString(v .. " (" .. config.manual_pos .. ")")
+            end
+            popup:SetSelectedItem(spacing_prefs.ManualPositioning)
         end
         local function change_keys()
             local ok, is_duplicate = true, true
@@ -5395,7 +5409,7 @@ local function run_the_dialog()
             if ok then
                 for _, t in ipairs{checks, unisons, others} do
                     for _, v in ipairs(t) do
-                        if v[1] ~= "script_info" then
+                        if v[1] ~= "script_info" and v[1] ~= "manual_pos" then
                             dialog:GetControl("T" .. v[1]):SetText(config[tostring(v[1])])
                         end
                     end
@@ -5403,23 +5417,25 @@ local function run_the_dialog()
             else
                 configuration.get_user_settings(script_name, config)
             end
+            fill_pos_popup()
             dialog:GetControl("max_width"):SetKeyboardFocus()
         end
         local function key_check(ctl)
             local s = ctl:GetText():upper()
-            if s:find("[^.P0-9]") then
-                if s:find(config.change_hotkeys) then
-                    change_keys()
-                elseif s:find(config.AutomaticMusicSpacing) then
-                    toggle_check("AutomaticMusicSpacing")
+            if s:find("[^ .P0-9]") then
+                if s:find(config.change_hotkeys) then change_keys()
+                elseif s:find(config.auto_spacing) then toggle_check("auto_spacing")
                 elseif s:find(config.script_info) then show_info()
+                elseif s:find(config.manual_pos) then
+                    local c = dialog:GetControl(others[4][1])
+                    c:SetSelectedItem((c:GetSelectedItem() + 1) % 3)
                 else
                     local matched = false
-                    for _, array in ipairs{{checks, toggle_check}, {unisons, toggle_unison}} do
+                    for _, t in ipairs{{checks, toggle_check}, {unisons, toggle_unison}} do
                         if not matched then
-                            for _, v in ipairs(array[1]) do
+                            for _, v in ipairs(t[1]) do
                                 if s:find(config[tostring(v[1])]) then
-                                    array[2](v[1])
+                                    t[2](v[1])
                                     matched = true
                                     break
                                 end
@@ -5432,7 +5448,7 @@ local function run_the_dialog()
             end
             ctl:SetText(saved)
         end
-    cstat(0, y, "THE " .. name:upper(), 160, "title")
+    cstat(10, y, name:upper(), 155, "title")
     dy(25)
     cstat(0, y, "Avoid Collisions of:", x[3])
     dialog:CreateButton(x[2] + x[3] - 50, y, "q"):SetText("?"):SetWidth(20)
@@ -5440,7 +5456,7 @@ local function run_the_dialog()
     dy()
     for _, v in ipairs(checks) do
         cstat(0, y, config[v[1]], x[1], "T" .. v[1])
-        ccheck(x[1], y, v[1], v[3], x[3], (prefs[v[1]] and 1 or 0))
+        ccheck(x[1], y, v[1], v[3], x[3], (spacing_prefs[v[1]] and 1 or 0))
         dy()
     end
     cstat(x[1], y, "Unison Noteheads:", x[3])
@@ -5448,23 +5464,26 @@ local function run_the_dialog()
     for _, v in ipairs(unisons) do
         local id = tostring(v[1])
         cstat(x[1], y, config[id], x[2], "T" .. v[1])
-        ccheck(x[2], y, id, v[3], x[3] - x[1], (prefs.UnisonsMode == v[1]) and 1 or 0)
-        dialog:GetControl(id)
-            :AddHandleCommand(function() toggle_unison(v[1]) end)
+        ccheck(x[2], y, id, v[3], x[3] - x[1], (spacing_prefs.UnisonsMode == v[1]) and 1 or 0)
+        dialog:GetControl(id):AddHandleCommand(function() toggle_unison(v[1]) end)
         dy()
     end
     dy(8)
     cstat(0, y, "Max Width:", x[2] + 25)
-    dialog:CreateMeasurementEdit(x[2] + 27, y - m_offset, "max_width")
-        :SetWidth(90):SetMeasurementInteger(prefs.MaxMeasureWidth)
+    dialog:CreateMeasurementEdit(x[2] + 27, y - m_offset, "max_width"):SetWidth(105)
+        :SetMeasurementInteger(spacing_prefs.MaxMeasureWidth)
         :AddHandleCommand(function(self) key_check(self) end)
     saved = dialog:GetControl("max_width"):GetText()
     dy(25)
     cstat(x[2] - 10, y, "Units:", 37)
-    dialog:CreateMeasurementUnitPopup(x[2] + 27, y, "popup"):SetWidth(90)
+    dialog:CreateMeasurementUnitPopup(x[2] + 27, y, "popup"):SetWidth(105)
         :AddHandleCommand(function()
             saved = dialog:GetControl("max_width"):GetText()
         end)
+    dy(25)
+    cstat(3, y, "Man. Posn:", x[2] + 27)
+    local manpos = dialog:CreatePopup(x[2] + 27, y, others[4][1]):SetWidth(105)
+    fill_pos_popup()
     dy(25)
     cstat(0, y, config.change_hotkeys, x[2], "Tchange_hotkeys")
     dialog:CreateButton(x[1], y):SetText("Change Hotkeys"):SetWidth(100)
@@ -5472,31 +5491,31 @@ local function run_the_dialog()
     dy(22)
     local val = others[2]
     cstat(0, y, config[val[1]], x[1], "T" .. val[1])
-    ccheck(x[1], y, val[1], val[3], x[3], (gen_prefs[val[1]] and 1 or 0))
+    ccheck(x[1], y, val[1], val[3], x[3], (gen_prefs.AutomaticMusicSpacing and 1 or 0))
     dialog:CreateOkButton()
     dialog:CreateCancelButton()
     dialog_set_position(dialog)
     dialog:RegisterInitWindow(function(self)
         self:GetControl("max_width"):SetKeyboardFocus()
-        local q = self:GetControl("q")
-        local bold = q:CreateFontInfo():SetBold(true)
-        q:SetFont(bold)
+        local bold = self:GetControl("q"):CreateFontInfo():SetBold(true)
+        self:GetControl("q"):SetFont(bold)
         self:GetControl("title"):SetFont(bold)
     end)
     dialog:RegisterHandleOkButtonPressed(function(self)
         for _, v in ipairs(checks) do
-            prefs[v[1]] = (self:GetControl(v[1]):GetCheck() == 1)
+            spacing_prefs[v[1]] = (self:GetControl(v[1]):GetCheck() == 1)
         end
         for _, v in ipairs(unisons) do
             if (self:GetControl(tostring(v[1])):GetCheck() == 1) then
-                prefs.UnisonsMode = v[1]
+                spacing_prefs.UnisonsMode = v[1]
                 break
             end
         end
         local n = self:GetControl("max_width"):GetMeasurementInteger()
-        prefs.MaxMeasureWidth = math.max(n, 50)
-        prefs:Save()
-        gen_prefs.AutomaticMusicSpacing = (self:GetControl("AutomaticMusicSpacing"):GetCheck() == 1)
+        spacing_prefs.MaxMeasureWidth = math.max(n, 50)
+        spacing_prefs.ManualPositioning = manpos:GetSelectedItem()
+        spacing_prefs:Save()
+        gen_prefs.AutomaticMusicSpacing = (self:GetControl("auto_spacing"):GetCheck() == 1)
         gen_prefs:Save()
         config.measurement_unit = self:GetMeasurementUnit()
     end)
