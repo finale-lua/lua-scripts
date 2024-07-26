@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.05"
-    finaleplugin.Date = "2024/07/09"
+    finaleplugin.Version = "0.08"
+    finaleplugin.Date = "2024/07/26"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
         Change the characteristics of every slur in the current selection. 
@@ -17,7 +17,8 @@ function plugindef()
         To repeat the last action without a confirmation dialog 
         hold down _Shift_ when opening the script. 
     ]]
-    return "Slur Changer...", "Slur Changer",
+    return "Slur Changer...",
+        "Slur Changer",
         "Change the characteristics of slurs in the current selection"
 end
 
@@ -28,8 +29,6 @@ local layer_lib = require("library.layer")
 local library = require("library.general_library")
 local script_name = library.calc_script_name()
 local name = plugindef():gsub("%.%.%.", "")
-local selection
-local saved_bounds = {}
 
 local config = {
     dummy         = "dummy", -- stop warning about table string mismatch
@@ -41,27 +40,28 @@ local config = {
     window_pos_y  = nil,
     -- other default values copied from dialog_options{} below
 }
-local dialog_options = { -- NAME key; HOTKEY; text description (ordered)
+local dialog_options = { -- NAME key; HOTKEY; menu listing (ordered)
     { "visible_yes",               "V", "Visible" },
     { "visible_no",                "I", "Invisible" },
-    { "flip",                      "X", "Flip" },
-    { "SMARTSHAPE_SLURUP",         "O", "Slur: Over" },
-    { "SMARTSHAPE_SLURDOWN",       "U", "Slur: Under" },
-    { "SMARTSHAPE_SLURAUTO",       "A", "Slur: Auto" },
-    { "SMARTSHAPE_DASHEDSLURUP",   "D", "Dashed: Over" },
-    { "SMARTSHAPE_DASHEDSLURDOWN", "F", "Dashed: Under" },
-    { "SMARTSHAPE_DASHEDSLURAUTO", "G", "Dashed: Auto" },
-    { "ENG_SS_OFFSTATE",           "B", "Engraver: ON" },
-    { "ENG_SS_ONSTATE",            "N", "Engraver: OFF" },
-    { "ENG_SS_AUTOSTATE",          "M", "Engraver: AUTO" },
-    { "ACC_SS_OFFSTATE",           "J", "Accidental Avoid: ON" },
-    { "ACC_SS_ONSTATE",            "K", "Accidental Avoid: OFF" },
-    { "ACC_SS_AUTOSTATE",          "L", "Accidental Avoid: AUTO" },
+    { "flip",                      "X", "Flip Direction" },
+    { "SMARTSHAPE_SLURAUTO",       "A", "Slur Direction Auto" },
+    { "SMARTSHAPE_SLURUP",         "O", "Slur Direction Over" },
+    { "SMARTSHAPE_SLURDOWN",       "U", "Slur Direction Under" },
+    { "SMARTSHAPE_DASHEDSLURAUTO", "D", "Dashed Auto" },
+    { "SMARTSHAPE_DASHEDSLURUP",   "F", "Dashed Over" },
+    { "SMARTSHAPE_DASHEDSLURDOWN", "G", "Dashed Under" },
+    { "ENGRAV_AUTO",               "B", "Engraver Slur Auto" },
+    { "ENGRAV_ON",                 "N", "Engraver Slur On" },
+    { "ENGRAV_OFF" ,               "M", "Engraver Slur Off" },
+    { "AVACCI_AUTO",               "J", "Avoid Accidentals Auto" },
+    { "AVACCI_ON",                 "K", "Avoid Accidentals On" },
+    { "AVACCI_OFF",                "L", "Avoid Accidentals Off" },
     { "remove",                    "R", "Remove Manual Adj." },
     { "erase",                     "E", "Erase All" },
     { "default",                   "Z", "Default Values" }
 }
 for _, v in ipairs(dialog_options) do config[v[1]] = v[2] end -- (map hotkeys)
+local ss_3state = { ON = 0, OFF = 1, AUTO = 2 }
 
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -88,27 +88,19 @@ local function get_staff_name(staff_num)
     return str
 end
 
-local function track_selection()
-    local bounds = { -- primary region selection boundaries
-        "StartStaff", "StartMeasure", "StartMeasurePos",
-        "EndStaff",   "EndMeasure",   "EndMeasurePos",
-    }
-    -- update selection
+local function update_selection()
     local rgn = finenv.Region()
-    if rgn:IsEmpty() then
-        selection = "no staff, no selection" -- default
+    if rgn:IsEmpty() then return
     else
-        for _, property in ipairs(bounds) do
-            saved_bounds[property] = rgn[property]
-        end
-        selection = get_staff_name(rgn.StartStaff)
+        local s = get_staff_name(rgn.StartStaff)
         if rgn.EndStaff ~= rgn.StartStaff then
-            selection = selection .. "-" .. get_staff_name(rgn.EndStaff)
+            s = s .. "-" .. get_staff_name(rgn.EndStaff)
         end
-        selection = selection .. " m." .. rgn.StartMeasure
+        s = s .. " m." .. rgn.StartMeasure
         if rgn.StartMeasure ~= rgn.EndMeasure then
-            selection = selection .. "-" .. rgn.EndMeasure
+            s = s .. "-" .. rgn.EndMeasure
         end
+        return s
     end
 end
 
@@ -179,11 +171,16 @@ local function slur_match_layer(slur)
     return (entry.LayerNumber == config.layer) -- layer number matched
 end
 
+local function slur_defaults(slur)
+    slur.EngraverSlur = ss_3state.AUTO
+    slur.PresetShape  = true
+    slur.ShapeType    = finale.SMARTSHAPE_SLURAUTO
+    slur.Visible      = true
+    slur:GetCtrlPointAdjust():SetDefaultSlurShape()
+end
+
 local function slur_manual_clear(slur)
-    slur.PresetShape = true
-    slur:IsAutoSlur(true)
-    slur:SetSlurFlags(true)
-    slur:SetEngraverSlur(finale.SS_AUTOSTATE)
+    slur_defaults(slur)
     local ctrl_points = {
         "ControlPoint1OffsetX", "ControlPoint1OffsetY",
         "ControlPoint2OffsetX", "ControlPoint2OffsetY"
@@ -204,45 +201,34 @@ local function slur_manual_clear(slur)
     end
 end
 
-local function change_the_slurs(dialog)
-    if finenv.Region():IsEmpty() then
-        local ui = dialog and dialog:CreateChildUI() or finenv.UI()
-        ui:AlertError("Please select some music\nbefore running this script", name)
-        return
-    end
+local function change_the_slurs()
     local selected = dialog_options[config.last_selected + 1]
     local state = selected[1]
-    local checked = {}
-    local undo = string.format("Slur %s %s", selected[3]:gsub(" ", ""), selection)
+    local undo = string.format("Slur %s %s", selected[3]:gsub(" ", ""), update_selection())
     if config.layer > 0 then undo = undo .. " L" .. config.layer end
     finenv.StartNewUndoBlock(undo)
     --
-    local ss_state = state:sub(5) -- one of "SS_ONSTATE", "SS_OFFSTATE", "SS_AUTOSTATE"
-    for mark in loadallforregion(finale.FCSmartShapeMeasureMarks(), finenv.Region()) do
+    local ss_state = state:sub(8) -- one of AUTO/ON/OFF for "ENGRAV_" & "AVACCI_" states
+    local marks = finale.FCSmartShapeMeasureMarks()
+    marks:LoadAllForRegion(finenv.Region(), true)
+    for mark in each(marks) do
         local slur = mark:CreateSmartShape()
-        if not checked[slur.ItemNo] then -- only examine shapes once
-            checked[slur.ItemNo] = true
-            if slur and slur:IsSlur() and
-                (not slur:IsEntryBased() or slur_match_layer(slur))
-            then
-                if state == "default" then
-                    slur.EngraverSlur = finale.SS_AUTOSTATE
-                    slur.ShapeType = finale.SMARTSHAPE_SLURAUTO
-                    slur.Visible = true
-                    slur:GetCtrlPointAdjust():SetDefaultSlurShape()
-                elseif state:find("visible") then slur.Visible = state:find("yes")
-                elseif state == "erase" then slur:DeleteData()
-                elseif state == "remove" then slur_manual_clear(slur)
-                elseif state == "flip" then
-                    local a = slur:IsDashedSlur() and "DASHEDSLUR" or "SLUR"
-                    local b = (slur:IsOverSlur() or slur:IsAutoSlur()) and "DOWN" or "UP"
-                    slur.ShapeType = finale["SMARTSHAPE_" .. a .. b]
-                elseif state:find("ENG_") then slur.EngraverSlur = finale[ss_state]
-                elseif state:find("ACC_") then slur.AvoidAccidentals = finale[ss_state]
-                else slur.ShapeType = finale[state]
-                end
-                slur:Save()
+        if slur and slur:IsSlur() and
+            (not slur:IsEntryBased() or slur_match_layer(slur))
+        then
+            if     state == "default" then slur_defaults(slur)
+            elseif state:find("visible") then slur.Visible = state:find("yes")
+            elseif state == "erase" then slur:DeleteData()
+            elseif state == "remove" then slur_manual_clear(slur)
+            elseif state == "flip" then
+                local a = slur:IsDashedSlur() and "DASHEDSLUR" or "SLUR"
+                local b = (slur:IsOverSlur() or slur:IsAutoSlur()) and "DOWN" or "UP"
+                slur.ShapeType = finale["SMARTSHAPE_" .. a .. b]
+            elseif state:find("ENGRAV") then slur.EngraverSlur     = ss_3state[ss_state]
+            elseif state:find("AVACCI") then slur.AvoidAccidentals = ss_3state[ss_state]
+            else slur.ShapeType = finale[state]
             end
+            slur:Save()
         end
     end
     finenv.EndUndoBlock(true)
@@ -260,7 +246,7 @@ local function run_the_dialog()
     local key_list = dialog:CreateListBox(0, 22):SetWidth(box_wide):SetHeight(box_high)
         -- local functions
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. name, 400, 140)
+            utils.show_notes_dialog(dialog, "About " .. name, 400, 125)
         end
         local function fill_key_list()
             local join = finenv.UI():IsOnMac() and "\t" or ": "
@@ -276,17 +262,9 @@ local function run_the_dialog()
                 ok, is_duplicate = reassign_keystrokes(dialog, key_list:GetSelectedItem() + 1)
             end
             if ok then fill_key_list()
-            else configuration.get_user_settings(script_name, config) -- reinstall hotkeys
+            else configuration.get_user_settings(script_name, config) -- reinstall saved hotkeys
             end
             key_list:SetKeyboardFocus()
-        end
-        local function on_timer() -- track changes in selected region
-            for k, v in pairs(saved_bounds) do
-                if finenv.Region()[k] ~= v then -- selection changed
-                    track_selection() -- update selection tracker
-                    break -- all done
-                end
-            end
         end
 
     fill_key_list()
@@ -305,7 +283,7 @@ local function run_the_dialog()
         :AddHandleCommand(function(self)
             local s = self:GetText():lower()
             if s:find("[^0-" .. max .. "]") then
-                if s:find("[?q]") then show_info()
+                if  s:find("[?q]") then show_info()
                 elseif s:find("r") then change_keys()
                 end
             else
@@ -318,9 +296,7 @@ local function run_the_dialog()
     dialog:CreateOkButton():SetText("Apply")
     dialog:CreateCancelButton():SetText("Close")
     dialog_set_position(dialog)
-    dialog:RegisterHandleTimer(on_timer)
-    dialog:RegisterInitWindow(function(self)
-        self:SetTimer(config.timer_id, 125)
+    dialog:RegisterInitWindow(function()
         key_list:SetKeyboardFocus()
         local q = dialog:GetControl("q")
         q:SetFont(q:CreateFontInfo():SetBold(true))
@@ -328,22 +304,22 @@ local function run_the_dialog()
     dialog:RegisterHandleOkButtonPressed(function()
         config.last_selected = key_list:GetSelectedItem() -- save list choice (0-based)
         config.layer = layer:GetInteger()
-        change_the_slurs(dialog)
+        change_the_slurs()
     end)
-    dialog:RegisterCloseWindow(function(self)
-        self:StopTimer(config.timer_id)
-        dialog_save_position(self)
-    end)
+    dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     dialog:RunModeless()
 end
 
 local function change_slurs()
+    if finenv.Region():IsEmpty() then
+        finenv.UI():AlertError("Please select some music\nbefore running this script", name)
+        return
+    end
     configuration.get_user_settings(script_name, config, true)
     local qim = finenv.QueryInvokedModifierKeys
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
 
-    track_selection() -- track current selected region
-    if mod_key then change_the_slurs(nil)
+    if mod_key then change_the_slurs()
     else run_the_dialog()
     end
 end
