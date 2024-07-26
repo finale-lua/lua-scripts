@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.08"
+    finaleplugin.Version = "0.09"
     finaleplugin.Date = "2024/07/26"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.Notes = [[
@@ -90,7 +90,7 @@ end
 
 local function update_selection()
     local rgn = finenv.Region()
-    if rgn:IsEmpty() then return
+    if rgn:IsEmpty() then return nil
     else
         local s = get_staff_name(rgn.StartStaff)
         if rgn.EndStaff ~= rgn.StartStaff then
@@ -204,7 +204,9 @@ end
 local function change_the_slurs()
     local selected = dialog_options[config.last_selected + 1]
     local state = selected[1]
-    local undo = string.format("Slur %s %s", selected[3]:gsub(" ", ""), update_selection())
+    local s = update_selection()
+    if not s then return end
+    local undo = string.format("Slur %s %s", selected[3]:gsub(" ", ""), s)
     if config.layer > 0 then undo = undo .. " L" .. config.layer end
     finenv.StartNewUndoBlock(undo)
     --
@@ -287,7 +289,7 @@ local function run_the_dialog()
                 elseif s:find("r") then change_keys()
                 end
             else
-                save_layer = (s == "") and 0 or tonumber(s)
+                save_layer = (s ~= "") and tonumber(s) or 0
             end
             self:SetInteger(save_layer):SetKeyboardFocus()
         end)
