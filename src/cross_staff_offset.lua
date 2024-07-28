@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.65" -- with Modeless option
+    finaleplugin.Version = "v1.66" -- with Modeless option
     finaleplugin.Date = "2024/07/28"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
@@ -80,7 +80,20 @@ local function get_staff_name(staff_num)
     return staff_name
 end
 
-local function change_offsets()
+local function nil_region_error(dialog)
+    if finenv.Region():IsEmpty() then
+        local ui = dialog and dialog:CreateChildUI() or finenv.UI()
+        ui:AlertError(
+            "Please select some music\nbefore running this script.",
+            finaleplugin.ScriptGroupName
+        )
+        return true
+    end
+    return false
+end
+
+local function change_offsets(dialog)
+    if nil_region_error(dialog) then return end
     local rgn = finenv.Region()
     finenv.StartNewUndoBlock(
         string.format("%s %s m.%d-%d",
@@ -227,7 +240,7 @@ local function run_the_dialog()
         if submission_error() then
             user_error = true
         else -- go ahead and change the offsets
-            change_offsets()
+            change_offsets(dialog)
         end
     end)
     dialog:RegisterCloseWindow(function(self)
@@ -245,10 +258,11 @@ local function run_the_dialog()
 end
 
 local function cross_staff_offset()
+    if not config.modeless and nil_region_error() then return end
     local qim = finenv.QueryInvokedModifierKeys
     local shift_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
 
-    if shift_key  then
+    if shift_key then
         change_offsets()
     else
         while run_the_dialog() do end
