@@ -1,11 +1,11 @@
 function plugindef()
-    finaleplugin.RequireSelection = true
+    finaleplugin.RequireSelection = false
     finaleplugin.HandlesUndo = true
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "v1.64" -- Modeless option
-    finaleplugin.Date = "2024/04/13"
+    finaleplugin.Version = "v1.65" -- with Modeless option
+    finaleplugin.Date = "2024/07/28"
     finaleplugin.MinJWLuaVersion = 0.62
     finaleplugin.Notes = [[
         When crossing notes to adjacent staves the stems of _crossed_ notes 
@@ -22,6 +22,7 @@ function plugindef()
 
         > - __u__: reset default __up__ values 
         > - __d__: reset default __down__ values 
+        > - __m__: toggle __Modeless__ 
         > - __q__: display these notes 
         > - __0 - 4__: layer number (delete key not needed)  
         > - To change measurement units: 
@@ -74,7 +75,7 @@ local function get_staff_name(staff_num)
     staff:Load(staff_num)
     local staff_name = staff:CreateDisplayAbbreviatedNameString().LuaString
     if not staff_name or staff_name == "" then
-        staff_name = "Staff " .. staff_num
+        staff_name = "Staff" .. staff_num
     end
     return staff_name
 end
@@ -83,7 +84,7 @@ local function change_offsets()
     local rgn = finenv.Region()
     finenv.StartNewUndoBlock(
         string.format("%s %s m.%d-%d",
-            name, get_staff_name(rgn.StartStaff), rgn.StartMeasure, rgn.EndMeasure
+            name:gsub(" ", ""), get_staff_name(rgn.StartStaff),rgn.StartMeasure, rgn.EndMeasure
         )
     )
     for entry in eachentrysaved(rgn, config.layer_num) do
@@ -98,7 +99,7 @@ end
 local function run_the_dialog()
     local x_grid = { 0, 113, 184 }
     local y, y_step = 3, 23
-    local default_value = 24
+    local default_value = 24 -- assumed staff line spacing in EVPUs
     local e_width = 64
     local box, save_value = {}, {}
     local max = layer.max_layers()
@@ -142,8 +143,9 @@ local function run_the_dialog()
                 or (id == 3 and s:find("[^0-" .. max .. "]"))
                 then
                 if     s:find("[?q]") then show_info()
-                elseif s:find("u") then set_defaults( 1) -- up
-                elseif s:find("d") then set_defaults(-1) -- down
+                elseif s:find("[ud]") then -- toggle up/down
+                    box[id]:SetText(save_value[id]) -- pre-save old value
+                    set_defaults(s:find("u") and 1 or -1)
                 elseif s:find("m") then -- toggle modeless
                     box[modeless]:SetCheck((box[modeless]:GetCheck() + 1) % 2)
                 elseif s:find("[eicoas]") then -- change measurement unit
@@ -157,19 +159,18 @@ local function run_the_dialog()
                         end
                     end
                 end
-                box[id]:SetText(save_value[id])
-            elseif s ~= "" then -- save new "clean" numnber
-                if id == 3 then
-                    s = s:sub(-1) -- 1-char layer number
+            else
+                if id == 3 then -- layer number
+                    s = s:sub(-1) -- 1-char max
                 else
                     if s == "." then s = "0." -- offsets, leading zero
                     elseif s == "-." then s = "-0."
                     end
                     s = s:sub(1, 8)
                 end
-                box[id]:SetText(s)
-                save_value[id] = s
+                save_value[id] = (s == "") and "0" or s
             end
+            box[id]:SetText(save_value[id])
         end
         local function submission_error()
             local values = { 576, config.cross_staff_offset, config.non_cross_offset }
@@ -239,7 +240,6 @@ local function run_the_dialog()
         dialog:RunModeless()
     else
         dialog:ExecuteModal() -- "modal"
-        if refocus_document then finenv.UI():ActivateDocumentWindow() end
     end
     return change_mode or user_error
 end
@@ -252,6 +252,7 @@ local function cross_staff_offset()
         change_offsets()
     else
         while run_the_dialog() do end
+        if refocus_document then finenv.UI():ActivateDocumentWindow() end
     end
 end
 
