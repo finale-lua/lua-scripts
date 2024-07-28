@@ -3,12 +3,12 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "http://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.07"
-    finaleplugin.Date = "2024/07/27"
+    finaleplugin.Version = "0.08"
+    finaleplugin.Date = "2024/07/28"
     finaleplugin.Notes = [[
         Change the assigned playback layer and position for all expressions 
         in the current selection. 
-        Layers __1-4__ are the _standard_ playback layers. 
+        Layers __1__-__4__ are the _standard_ playback layers. 
         Layer numbers __0__, __5__ and __6__ are interpreted respectively 
         as __Current__, __Chord__ and __Expression__ Layers for playback. 
 
@@ -30,9 +30,14 @@ local start_options = { -- "Begin Playback At:" (ordered)
         finale.EXPRPLAYSTART_POSINMEASURE
     }
 }
+local special_layer = {
+    [0] = "(\"Current\" Layer)",
+    [5] = "(Chord Layer)",
+    [6] = "(Expression Layer)",
+}
 local c = { -- user config values
     layer    = 0,
-    start_at = 1, -- {start_options} chosen index (1-based)
+    start_at = 0, -- {start_options} chosen index (0-based)
     window_pos_x = false,
     window_pos_y = false,
 }
@@ -78,8 +83,8 @@ local function user_dialog()
             utils.show_notes_dialog(dialog, "About " .. name, 300, 155)
             refocus_document = true
         end
-        local function cstat(x, wide, str)
-            dialog:CreateStatic(x, y):SetWidth(wide):SetText(str)
+        local function cstat(x, wide, str, id)
+            dialog:CreateStatic(x, y, id):SetWidth(wide):SetText(str)
         end
     cstat(0, 190, "Assign Playback of All Expressions")
     y = y + 22
@@ -93,9 +98,11 @@ local function user_dialog()
                 end
             else
                 save = tonumber(s:sub(-1)) or 0
+                dialog:GetControl("data"):SetText(special_layer[save] or "")
             end
             self:SetInteger(save):SetKeyboardFocus()
         end)
+    cstat(x_off + 28, 110, (special_layer[save] or ""), "data")
     y = y + 22
     cstat(0, 160, "Begin Playback At:")
     dialog:CreateButton(165, y, "q"):SetText("?"):SetWidth(20)
@@ -105,7 +112,7 @@ local function user_dialog()
     labels:CopyFromStringTable(start_options[1])
     dialog:CreateRadioButtonGroup(x_off, y, 3, "start_at")
         :SetText(labels):SetWidth(130)
-        :SetSelectedItem(c.start_at - 1)
+        :SetSelectedItem(c.start_at)
     y = y + 14
     cstat(x_off / 2, 50, "[" .. hotkey.start_at .. "]")
     dialog:CreateOkButton()
@@ -116,7 +123,7 @@ local function user_dialog()
         q:SetFont(q:CreateFontInfo():SetBold(true)) end)
     dialog:RegisterHandleOkButtonPressed(function()
         c.layer = dialog:GetControl("layer"):GetInteger()
-        c.start_at = dialog:GetControl("start_at"):GetSelectedItem() + 1
+        c.start_at = dialog:GetControl("start_at"):GetSelectedItem() -- 0-based
     end)
     dialog:RegisterCloseWindow(function(self) dialog_save_position(self) end)
     return (dialog:ExecuteModal() == finale.EXECMODAL_OK)
@@ -134,7 +141,7 @@ local function playback_layer()
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
 
     if mod_key or user_dialog() then
-        local start_option = start_options[2][c.start_at] -- user choice -> actual index
+        local start_option = start_options[2][c.start_at + 1] -- user choice -> actual index
         local expressions = finale.FCExpressions()
         expressions:LoadAllForRegion(finenv.Region())
         for exp in each(expressions) do
