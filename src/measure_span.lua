@@ -3,8 +3,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.94"
-    finaleplugin.Date = "2024/04/30"
+    finaleplugin.Version = "0.95b"
+    finaleplugin.Date = "2024/07/29"
     finaleplugin.CategoryTags = "Measure, Time Signature, Meter"
     finaleplugin.MinJWLuaVersion = 0.70
     finaleplugin.AdditionalMenuOptions = [[
@@ -105,8 +105,8 @@ local function dialog_save_position(dialog)
 end
 
 local function user_options()
-    local x_grid = { 15, 70, 190, 210, 305, 110 }
-    local i_width = 142
+    local x_grid = { 15, 70, 193, 210, 305, 110 }
+    local i_width = 138
     local y = 0
 
     local dlg = mixin.FCXCustomLuaWindow():SetTitle(finaleplugin.ScriptGroupName)
@@ -121,7 +121,7 @@ local function user_options()
             if chigh then stat:SetHeight(chigh) end
         end
         local function ccheck(cx, cy, cname, cwide, check, ctext, chigh)
-            cx = x_grid[cx]
+            cx = (type(cx) == "string") and tonumber(cx) or x_grid[cx]
             local chk = dlg:CreateCheckbox(cx, cy, cname):SetWidth(cwide)
                 :SetText(ctext):SetCheck(check)
             if chigh then chk:SetHeight(chigh) end
@@ -130,91 +130,97 @@ local function user_options()
             dlg:CreateHorizontalLine(cx, cy, cwide)
         end
 
-    cstat(1, y + 1, "DIVIDE EACH MEASURE INTO TWO:", x_grid[4], nil, "div1")
+    cstat("0", y + 1, "DIVIDE", 50, nil, "div1")
+    cstat("43", y + 1, "Every Measure Into Two:", x_grid[3], nil, nil)
     yd(20)
-    cstat(1, y, "Halve the numerator:", x_grid[3])
+    cstat(1, y, "Halve the Numerator:", x_grid[3])
     ccheck(3, y, "1", i_width, (config.halve_numerator and 1 or 0), " [6/4] → [3/4][3/4]")
     yd()
     cstat(2, y, "OR")
     yd()
-    cstat(1, y, "Double the denominator:", x_grid[3])
+    cstat(1, y, "Double the Denominator:", x_grid[3])
     ccheck(3, y, "2", i_width, (config.halve_numerator and 0 or 1), " [6/4] → [6/8][6/8]")
     yd(25)
     chl(1, y, x_grid[5])
     yd(10)
-    cstat(1, y, "If halving a numerator with an ODD number of beats:", x_grid[5])
+    cstat(1, y, "If Halving a Numerator With an Odd Number of Beats:", x_grid[5])
     yd(17)
-    cstat(1, y, "More beats in first measure:", x_grid[4] + 20)
+    cstat(1, y, "More Beats in First Measure:", x_grid[4] + 20)
     ccheck(3, y, "3", i_width, (config.odd_more_first and 1 or 0), " 3 → 2 + 1 etc.")
     yd()
     cstat(2, y, "OR")
     yd()
-    cstat(1, y, "More beats in second measure:", x_grid[4] + 20)
+    cstat(1, y, "More Beats in Second Measure:", x_grid[4] + 20)
     ccheck(3, y, "4", i_width, (config.odd_more_first and 0 or 1), " 3 → 1 + 2 etc.")
     yd(27)
     chl(0, y, x_grid[3] + i_width)
     chl(0, y + 2, x_grid[3] + i_width)
     chl(0, y + 3, x_grid[3] + i_width)
     yd(13)
-    cstat(1, y + 1, "JOIN PAIRS OF MEASURES:", x_grid[3], nil, "div2")
+    cstat("0", y + 1, "JOIN", 35, nil, "div2")
+    cstat("33", y + 1, "Each Pair of Measures:", x_grid[3])
     yd(20)
-    cstat(1, y, "If both measures have the same time signature ...", x_grid[5])
+    cstat(1, y, "If Both Measures Have the Same Time Signature:", x_grid[5])
     yd(17)
-    cstat(1, y, "Double the numerator:", x_grid[3])
-    ccheck(3, y, "5", i_width, (config.double_join and 1 or 0), " [3/8][3/8] → [6/8]")
+    cstat("30", y, "Halve the Denominator:", x_grid[3])
+    ccheck(3, y, "6", i_width, (config.double_join and 0 or 1), " [6/8][6/8] → [6/4]")
     yd()
-    cstat(2, y, "OR")
+    cstat("85", y, "OR")
     yd()
-    cstat(1, y, "Halve the denominator:", x_grid[3])
-    ccheck(3, y, "6", i_width, (config.double_join and 0 or 1), " [3/8][3/8] → [3/4]")
+    cstat("30", y, "Double the Numerator:", x_grid[3])
+    ccheck(3, y, "5", i_width, (config.double_join and 1 or 0), " [6/8][6/8] → [12/8]")
     yd(25)
     chl(1, y, x_grid[5])
     yd(5)
-    cstat(1, y, "otherwise ...", x_grid[2])
+    cstat(1, y, "Else if They Have Different Time Signatures:", x_grid[5])
     yd(17)
-    cstat(1, y, "Consolidate time signatures:", x_grid[4])
+    cstat("30", y, "Consolidate Time Signatures:", x_grid[4])
     ccheck(3, y, "8", i_width, (config.composite_join and 0 or 1),
-        " [2/4][3/8] → [7/8]\n (lose beaming groups)", 30)
+        " [2/4][3/8] → [7/8]\n (Lose Beam Groups)", 30)
     yd(17)
-    cstat(2, y, "OR")
+    cstat("85", y, "OR")
     yd(17)
-    cstat(1, y, "Composite time signatures:", x_grid[3])
+    cstat("30", y, "Composite Time Signatures:", x_grid[3])
     ccheck(3, y, "7", i_width, (config.composite_join and 1 or 0),
-        " [2/4][3/8] → [2/4+3/8]\n (keep beaming groups)", 30)
+        " [2/4][3/8] → [2/4+3/8]\n (Keep Beam Groups)", 30)
     yd(35)
-    ccheck(1, y, "display_meter", x_grid[5] + 10, (config.display_meter and 1 or 0),
-        " Create \"display\" time signature when compositing\n "
-        .. "[2/4][3/8] → [2/4+3/8] displaying \"7/8\" )", 30
+    ccheck("30", y, "display_meter", x_grid[5] + 10, (config.display_meter and 1 or 0),
+        " Create \"Display\" Time Signature When Compositing\n "
+        .. "   ([2/4][3/8] → [2/4+3/8] Displaying \"7/8\")", 32
     )
     yd(36)
     chl(0, y, x_grid[3] + i_width)
     chl(0, y + 2, x_grid[3] + i_width)
     chl(0, y + 3, x_grid[3] + i_width)
     yd(12)
-    cstat("0", y, "Preserve smart shapes within\n(Larger spans take longer)", x_grid[3], 30)
+    cstat("0", y, "Preserve Smart Shapes Within\n(Larger Spans Take Longer)", x_grid[3], 32)
     local popup = dlg:CreatePopup(x_grid[3] - 27, y - 1, "shape_extend")
         :SetWidth(40):SetSelectedItem(config.shape_extend - 2)
     for i = 2, 10 do
         popup:AddString(i)
     end
-    cstat("206", y, "measure span")
+    cstat("204", y, "- Measure Span")
     yd(38)
     cstat("0", y, "ON COMPLETION:", i_width, nil, "div3")
-    ccheck(6, y, "note_spacing", i_width, (config.note_spacing and 1 or 0), "Respace notes")
+    ccheck(6, y, "note_spacing", i_width, (config.note_spacing and 1 or 0), "Respace Notes")
     dlg:CreateButton(x_grid[5], y, "q"):SetText("?"):SetWidth(20)
         :AddHandleCommand(function()
             utils.show_notes_dialog(dlg, "About " .. finaleplugin.ScriptGroupName)
             refocus_document = true
         end)
     yd(18)
-    ccheck(6, y, "rebeam", i_width + 40, (config.rebeam and 1 or 0), "Rebeam note groups")
+    ccheck(6, y, "rebeam", i_width + 20, (config.rebeam and 1 or 0), "Rebeam Note Groups")
     yd(18)
-    ccheck(6, y, "repaginate", i_width, (config.repaginate and 1 or 0), "Repaginate entire score")
+    ccheck(6, y, "repaginate", i_width + 20, (config.repaginate and 1 or 0), "Repaginate Entire Score")
 
     -- radio button action
     local function radio_change(id, check) -- for checkboxes "1" to "8"
         local toggle = (id % 2 == 0) and (id - 1) or (id + 1)
         dlg:GetControl(tostring(toggle)):SetCheck((check + 1) % 2) -- "ON" <-> "OFF"
+        if id > 6 then
+            local state = check == ((id == 7) and 1 or 0)
+            dlg:GetControl("display_meter"):SetEnable(state)
+        end
     end
     for id = 1, 8 do -- add to HandleCommand to 8 buttons
         dlg:GetControl(tostring(id))
@@ -236,13 +242,12 @@ local function user_options()
         config.shape_extend = (self:GetControl("shape_extend"):GetSelectedItem() + 2)
     end)
     dlg:RegisterCloseWindow(function(self) dialog_save_position(self) end)
-    dlg:RegisterInitWindow(function()
-        local div1 = dlg:GetControl("div1")
-        local bold = div1:CreateFontInfo():SetBold(true)
-        div1:SetFont(bold)
-        dlg:GetControl("div2"):SetFont(bold)
-        dlg:GetControl("div3"):SetFont(bold)
-        dlg:GetControl("q"):SetFont(bold)
+    dlg:RegisterInitWindow(function(self)
+        local bold = self:GetControl("div1"):CreateFontInfo():SetBold(true)
+        for _, v in ipairs{"div1", "div2", "div3", "q"} do
+            dlg:GetControl(v):SetFont(bold)
+        end
+        self:GetControl("display_meter"):SetEnable(config.composite_join)
     end)
     return (dlg:ExecuteModal(nil) == finale.EXECMODAL_OK)
 end
@@ -275,8 +280,8 @@ local function repaginate()
 end
 
 function copy_measure_values(measure_1, measure_2)
-    for _, v in ipairs({ "PositioningNotesMode", "Barline",
-        "SpaceAfter", "SpaceBefore", "UseTimeSigForDisplay" }) do
+    for _, v in ipairs{ "PositioningNotesMode", "Barline",
+        "SpaceAfter", "SpaceBefore", "UseTimeSigForDisplay" } do
             measure_2[v] = measure_1[v]
     end
     measure_1.Barline = finale.BARLINE_NORMAL
