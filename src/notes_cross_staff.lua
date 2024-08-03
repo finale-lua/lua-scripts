@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.95i"
-    finaleplugin.Date = "2024/05/22"
+    finaleplugin.Version = "0.95k"
+    finaleplugin.Date = "2024/07/23"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below"
 	finaleplugin.Notes = [[
@@ -16,10 +16,10 @@ function plugindef()
         stem reversal, horizontal note shift (to counteract stem reversal), 
         note pattern matching and beam height adjustment. 
 
-        Hold [Shift] when starting the script to quickly cross staves 
+        Hold [_Shift_] when starting the script to quickly cross staves 
         without a confirmation dialog, with the settings last used. 
         Select __Modeless Dialog__ if you want the dialog window to persist 
-        on-screen for repeated use until you click _Cancel_ [Escape].
+        on-screen for repeated use until you click __Close__ [_Escape_].
 
         __Reverse Stems For Mid-Staff Beams__  
         To centre beams _between_ the staves, the stems of __Crossed__ 
@@ -64,7 +64,7 @@ local units = { -- map keystrokes onto Measurement Unit ENUMs
     c = finale.MEASUREMENTUNIT_CENTIMETERS, o = finale.MEASUREMENTUNIT_POINTS,
     a = finale.MEASUREMENTUNIT_PICAS,       s = finale.MEASUREMENTUNIT_SPACES,
 }
-local hotkey = { -- customise Key Commands (lower case only)
+local hotkey = { -- customise Key Commands (lowercase only)
     rest_fill     = "d",
     not_unbeamed  = "f",
     reversing     = "g",
@@ -75,26 +75,26 @@ local hotkey = { -- customise Key Commands (lower case only)
     modeless      = "m",
     script_info   = "q",
     -- optionally re-map MEASUREMENTUNIT hotkeys:
-    e =   "e",
-    i =   "i",
-    c =   "c",
-    o =   "o",
-    a =   "a",
-    s =   "s",
+    e = "e",
+    i = "i",
+    c = "c",
+    o = "o",
+    a = "a",
+    s = "s",
 }
 local config = {
     rest_fill     = true, -- fill destination with invisible rest
     not_unbeamed  = true, -- true to prevent unbeamed notes
     reversing     = true, -- true to allow reversing cross-note stems
     whole_measure = false, -- horizontal shift across whole measure
-    measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
-    layer_num     = 0,
-    direction     = "Up", -- (or "Down")
+    direction     = "Up",  -- (or "Down")
     modeless      = false,
+    layer_num     = 0,
     count_notes   = 1, -- "Cross" x notes
     count_out_of  = 1, -- "out of" y notes
     window_pos_x  = false,
     window_pos_y  = false,
+    measurement_unit = finale.MEASUREMENTUNIT_DEFAULT,
 }
 
 local offsets = { -- (ordered) name; default value; text description; h_offset
@@ -144,7 +144,8 @@ local function get_staff_name(staff_num)
     return str
 end
 
-local function next_staff_or_error(rgn, dialog)
+local function next_staff_or_error(dialog)
+    local rgn = finenv.Region()
     local msg = ""
     local stack = mixin.FCMMusicRegion()
     stack:SetRegion(rgn):SetFullMeasureStack()
@@ -168,11 +169,8 @@ local function next_staff_or_error(rgn, dialog)
         end
     end
     if msg ~= "" then -- **ERROR**
-        if dialog then
-            dialog:CreateChildUI():AlertError(msg, name .. ": Error")
-        else
-            finenv.UI():AlertError(msg, name .. ": Error")
-        end
+        local ui = dialog and dialog:CreateChildUI() or finenv.UI()
+        ui:AlertError(msg, name .. ": Error")
         return -1 -- flag error
     end
     return stack:CalcStaffNumber(next_slot)
@@ -197,8 +195,8 @@ end
 
 local function clean_entry(entry) -- erase pre-exisiting conditions
     if entry:IsNote() then
-        for i = 1, entry.Count do
-            finale.FCCrossStaffMod():EraseAt(entry:GetItemAt(i - 1))
+        for note in each(entry) do
+            finale.FCCrossStaffMod():EraseAt(note)
         end
         local mods = finale.FCCrossStaffMods(entry)
         mods:LoadAll()
@@ -224,12 +222,12 @@ local function destination_rests(rgn, dest_staff_num)
         note_cell:Load()
         if note_cell.Count == 0 then -- destination empty so proceed
             local m = finale.FCMeasure()
-            local m_duration = m:Load(measure_num) and m:GetDuration() or finale.WHOLE_NOTE
+            local duration = m:Load(measure_num) and m:GetDuration() or finale.WHOLE_NOTE
             local new_rest = note_cell:AppendEntriesInLayer(layer_num, 1)
             if new_rest then
-                new_rest:MakeRest():SetDuration(m_duration):SetLegality(true):SetVisible(false)
+                new_rest:MakeRest():SetDuration(duration):SetLegality(true):SetVisible(false)
                 note_cell:Save()
-            end
+                end
         end
     end
 end
@@ -304,7 +302,7 @@ local function cross_staff(dialog)
     local rgn = mixin.FCMMusicRegion()
     rgn:SetRegion(finenv.Region())
 
-    local next_staff = next_staff_or_error(rgn, dialog)
+    local next_staff = next_staff_or_error(dialog)
     if next_staff < 0 then return false end -- error finding "next staff"
     -- ready to cross staves
     finenv.StartNewUndoBlock(string.format("Cross-Staff %s -> %s m.%d",
@@ -363,7 +361,6 @@ local function cross_staff(dialog)
         end
         finale.FCNoteEntry.MarkEntryMetricsForUpdate()
     end
-
     -- pass 4 (measure) stem reversal & crossing
     bsen = nil
     for entry in eachentrysaved(whole_measure, config.layer_num) do
@@ -382,8 +379,8 @@ local function cross_staff(dialog)
             end
         end
     end
-    bsen = nil
     -- pass 5 (measure) shift beam if "mixed" crossed-and-uncrossed
+    bsen = nil
     for entry in eachentrysaved(whole_measure, config.layer_num) do
         if entry:IsNote() then
             local enum = entry.EntryNumber
@@ -447,7 +444,7 @@ end
 
 local function run_the_dialog()
     local max = layer.max_layers()
-    local x = { 140, 210, 245}
+    local x = { 140, 210, 245 }
     local y = 0
     local answer, save_value = {}, {} -- "Edit" controls / saved "text" values
     local dialog = mixin.FCXCustomLuaWindow():SetTitle(name)
@@ -458,19 +455,31 @@ local function run_the_dialog()
             refocus_document = true
         end
         local function dy(diff)
-            y = diff and (y + diff) or (y + 25)
+            y = y + (diff or 25)
         end
         local function cstat(cx, cy, ctext, cwide)
-            local stat = dialog:CreateStatic(cx, cy):SetText(ctext)
-            if cwide then stat:SetWidth(cwide) end
-            return stat
+            local s = dialog:CreateStatic(cx, cy):SetText(ctext)
+            if cwide then s:SetWidth(cwide) end
+            return s
+        end
+        local function offset_enable_status()
+            local up = answer.direction:GetSelectedItem() -- 0 = "Up", 1 = "Down"
+            local status = (answer.reversing:GetCheck() == 1) -- "reversing" = true
+            for i = 0, 1 do -- check "Up" then "Down" values
+                local enable = status and (i == up)
+                -- enable/disable matching "Offset" labels, "off1"/"off3"
+                answer["off" .. i * 2 + 1]:SetEnable(enable)
+                for j = 1, 2 do
+                    answer[offsets[i * 2 + j][1]]:SetEnable(enable)
+                end
+            end
         end
         local function set_offset_disable()
-            local enable = answer.reversing:GetCheck() == 1
-            for i = 1, 4 do answer[offsets[i][1]]:SetEnable(enable) end
-            for _, v in ipairs{"whole_measure", "h1", "h2", "h3", "off1", "off3"} do
-                answer[v]:SetEnable(enable)
+            local status = (answer.reversing:GetCheck() == 1) -- "reversing" = true
+            for _, v in ipairs{"whole_measure", "h0", "h1", "h2", "zero", "default"} do
+                answer[v]:SetEnable(status)
             end
+            offset_enable_status()
             answer[pattern[1][1]]:SetKeyboardFocus()
         end
         local function update_saved()
@@ -509,11 +518,14 @@ local function run_the_dialog()
                 elseif s:find(hotkey.direction)   then
                         local n = answer.direction:GetSelectedItem()
                         answer.direction:SetSelectedItem((n + 1) % 2)
+                        offset_enable_status()
                 else -- remaining simple checkboxes
                     for k, v in pairs(hotkey) do
                         if s:find(v) then
                             answer[k]:SetCheck((answer[k]:GetCheck() + 1) % 2)
-                            if k == "reversing" then set_offset_disable() end
+                            if k == "reversing" then set_offset_disable()
+                            else answer[k]:SetCheck((answer[k]:GetCheck() + 1) % 2)
+                            end
                             break
                         end
                     end
@@ -538,8 +550,9 @@ local function run_the_dialog()
     answer.direction = dialog:CreatePopup(0, y - 1):SetWidth(90)
         :AddStrings("Cross Up", "Cross Down")  -- item# == 0 or 1
         :SetSelectedItem(config.direction == "Up" and 0 or 1)
+        :AddHandleCommand(function() offset_enable_status() end)
     answer.modeless = dialog:CreateCheckbox(131, y):SetWidth(120)
-        :SetCheck(config.modeless and 1 or 0):SetText("\"Modeless\" Dialog")
+        :SetCheck(config.modeless and 1 or 0):SetText("Modeless Dialog")
     answer.q = dialog:CreateButton(x[2] + 44, y):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
     dy()
@@ -569,16 +582,17 @@ local function run_the_dialog()
     dy(8)
     dialog:CreateHorizontalLine(0, y - 5, x[2] + 64)
     dialog:CreateHorizontalLine(0, y - 4, x[2] + 64)
-    answer.h1 = cstat(x[1] + 4, y + 2, "HORIZONTAL OFFSETS", 130)
+    answer.h0 = cstat(x[1] + 4, y + 2, "HORIZONTAL OFFSETS", 130)
     dy(12)
     cstat(0, y - 7, "Units:", 37)
     answer.popup = dialog:CreateMeasurementUnitPopup(37, y - 8):SetWidth(90)
         :AddHandleCommand(function() update_saved() end)
-    answer.h2 = cstat(x[1], y + 2, "Crossed", 70)
-    answer.h3 = cstat(x[2] - 4, y + 2, "Not Crossed", 70)
+    answer.h1 = cstat(x[1], y + 2, "Crossed", 70)
+    answer.h2 = cstat(x[2] - 4, y + 2, "Not Crossed", 70)
 
     for i, v in ipairs(offsets) do -- OFFSET MEASUREMENTS
         if (i % 2 == 1) then dy(20) end
+        if i == 5 then dy(25) end -- "beam vertical" sits BELOW the "Horiz" buttons
         answer[v[1]] = dialog:CreateMeasurementEdit((i % 2 == 1) and x[1] or x[2], y - y_off)
             :SetMeasurementInteger(config[v[1]]):SetWidth(63)
             :AddHandleCommand(function() key_check(v[1]) end)
@@ -588,21 +602,20 @@ local function run_the_dialog()
     end
     -- set "saved" edit values
     update_saved()
-    dy(20)
-    dialog:CreateButton(x[1], y):SetWidth(105)
-        :SetText("Zero Horiz. (" .. hotkey.set_zero .. ")")
-        :AddHandleCommand(function() set_default_values(0) end)
-    dialog:CreateButton(20, y):SetWidth(105)
+    dy(-23) -- move back ABOVE the "beam vertical" box
+    answer.default = dialog:CreateButton(20, y):SetWidth(105)
         :SetText("Default Horiz. (" .. hotkey.set_default .. ")")
         :AddHandleCommand(function() set_default_values() end)
-
-    dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
-    dialog:CreateCancelButton()
+    answer.zero = dialog:CreateButton(x[1], y):SetWidth(105)
+        :SetText("Zero Horiz. (" .. hotkey.set_zero .. ")")
+        :AddHandleCommand(function() set_default_values(0) end)
+    --
+    dialog:CreateOkButton()    :SetText(config.modeless and "Apply" or "OK")
+    dialog:CreateCancelButton():SetText(config.modeless and "Close" or "Cancel")
     dialog_set_position(dialog)
     local change_mode, user_error = false, false
-    dialog:RegisterInitWindow(function(self)
+    dialog:RegisterInitWindow(function()
         set_offset_disable()
-        self:SetOkButtonCanClose(not config.modeless)
         answer.q:SetFont(answer.q:CreateFontInfo():SetBold(true))
     end)
     dialog:RegisterHandleOkButtonPressed(function(self)
