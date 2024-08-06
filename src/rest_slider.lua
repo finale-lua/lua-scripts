@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.44"
-    finaleplugin.Date = "2024/08/05" -- had to remove "RegisterMouseTracking()" process
+    finaleplugin.Version = "0.45"
+    finaleplugin.Date = "2024/08/06" -- had to remove "RegisterMouseTracking()" process
     finaleplugin.CategoryTags = "Rests, Selection"
     finaleplugin.MinJWLuaVersion = 0.72
     finaleplugin.Notes = [[
@@ -178,22 +178,22 @@ local function get_staff_name(staff_num)
 end
 
 local function setup_data()
-    local rgn = finenv.Region()
     save_rgn:SetCurrentSelection() -- update "saved" region
-    selection = "no selection"
+    selection = "no selection" -- default listing
     adjacent_offsets = {} -- start with blank collection
-    if empty_region then return end -- nothing else to initialise
+    if empty_region then return end -- nothing else to set up
 
     -- measures
+    local rgn = finenv.Region()
     selection = "m." .. rgn.StartMeasure
     if rgn.StartMeasure ~= rgn.EndMeasure then
         selection = selection .. "-" .. rgn.EndMeasure
     end
     -- staves
-    selection = selection .. " m." .. get_staff_name(rgn.StartStaff)
+    selection = selection .. " " .. get_staff_name(rgn.StartStaff)
     if rgn.StartStaff ~= rgn.EndStaff then
         selection = selection .. "-" .. get_staff_name(rgn.EndStaff)
-        return
+        return -- all done for single staff selection
     end
 
     -- set_adjacent_offsets (single staff required)
