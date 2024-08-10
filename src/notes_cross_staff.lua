@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "https://creativecommons.org/licenses/by/4.0/"
-    finaleplugin.Version = "0.95k"
-    finaleplugin.Date = "2024/07/23"
+    finaleplugin.Version = "0.95l"
+    finaleplugin.Date = "2024/08/10"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.ScriptGroupDescription = "Selected notes are cross-staffed to the next staff above or below"
 	finaleplugin.Notes = [[
@@ -82,6 +82,12 @@ local hotkey = { -- customise Key Commands (lowercase only)
     a = "a",
     s = "s",
 }
+local checks = { -- checkbox key; text description (ordered)
+    { "rest_fill",    "Add Invisible Rest To Empty Destination" },
+    { "not_unbeamed", "Don't Cross Unbeamed Notes" },
+    { "reversing",    "Reverse Stems For Mid-Staff Beams" },
+    { "whole_measure", "Shift Horizontals Across Whole Measure" }
+}
 local config = {
     rest_fill     = true, -- fill destination with invisible rest
     not_unbeamed  = true, -- true to prevent unbeamed notes
@@ -107,12 +113,6 @@ local offsets = { -- (ordered) name; default value; text description; h_offset
 -- copy default offset values to config
 for _, v in ipairs(offsets) do config[v[1]] = v[2] end
 
-local checks = { -- checkbox key; text description (ordered)
-    { "rest_fill",    "Add Invisible Rest To Empty Destination" },
-    { "not_unbeamed", "Don't Cross Unbeamed Notes" },
-    { "reversing",    "Reverse Stems For Mid-Staff Beams" },
-    { "whole_measure", "Shift Horizontals Across Whole Measure" }
-}
 local entry_text = { "note", "notes" }
 local pattern = {
     { "count_notes", "Cross", 37 },
@@ -500,7 +500,7 @@ local function run_the_dialog()
             if  (s:find("p") and dialog:GetMeasurementUnit() ~= finale.MEASUREMENTUNIT_PICAS)
                 or s:find("[^-.p0-9]")
                 or (id == "layer_num" and s:find("[^0-" .. max .. "]"))
-                or (id:find("count") and s:find("[^1-9]"))
+                or (id:find("count") and s:find("[-.p0]"))
                     then
                 if s:find("[eicoas]") then -- change UNITS
                     for k, v in pairs(units) do
@@ -523,9 +523,7 @@ local function run_the_dialog()
                     for k, v in pairs(hotkey) do
                         if s:find(v) then
                             answer[k]:SetCheck((answer[k]:GetCheck() + 1) % 2)
-                            if k == "reversing" then set_offset_disable()
-                            else answer[k]:SetCheck((answer[k]:GetCheck() + 1) % 2)
-                            end
+                            if k == "reversing" then set_offset_disable() end
                             break
                         end
                     end
