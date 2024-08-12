@@ -5828,8 +5828,8 @@ function plugindef()
     finaleplugin.Author = "Carl Vine"
     finaleplugin.AuthorURL = "https://carlvine.com/lua/"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "0.16"
-    finaleplugin.Date = "2024/05/03"
+    finaleplugin.Version = "0.18"
+    finaleplugin.Date = "2024/07/29"
     finaleplugin.MinJWLuaVersion = 0.72
     finaleplugin.CategoryTags = "Pitch, Transposition"
     finaleplugin.ScriptGroupName = "Transpose Diatonic"
@@ -5840,15 +5840,13 @@ function plugindef()
         To repeat the last action without a confirmation dialog 
         hold down [Shift] when starting the script. 
 
-        Select __Modeless__ if you prefer the dialog window to 
-        "float" above your score and you can change the score selection 
-        while the script remains active. In this mode click __Apply__ 
-        [Return] to transpose and __Cancel__ [Escape] to close the window. 
+        Select __Modeless Dialog__ if you want the dialog window to persist 
+        on-screen for repeated use until you click __Close__ [_Escape_]. 
         Cancelling __Modeless__ will apply the _next_ 
         time you use the script.
 
         > These key commands are available  
-        > if a "numeric" field is highlighted: 
+        > if a _numeric_ field is highlighted: 
 
         > - __1-8__: interval (unison, 2nd, 3rd, .. 8ve) 
         > - __0-8__: extra octave 
@@ -5857,7 +5855,7 @@ function plugindef()
         > - __q__: show this script information 
         > - __z__: toggle _Up/Down_
         > - __x__: toggle _Preserve Existing Notes_
-        > - __c__: toggle _Modeless_
+        > - __m__: toggle _Modeless_
 	]]
     finaleplugin.RTFNotes = [[
         {\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier New;}}
@@ -5866,8 +5864,8 @@ function plugindef()
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Notes and chords in the current music selection are transposed up or down by the chosen diatonic interval. Affect all layers or just one. To repeat the last action without a confirmation dialog hold down [Shift] when starting the script.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select {\b Modeless} if you prefer the dialog window to \u8220"float\u8221" above your score and you can change the score selection while the script remains active. In this mode click {\b Apply} [Return] to transpose and {\b Cancel} [Escape] to close the window. Cancelling {\b Modeless} will apply the {\i next} time you use the script.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 These key commands are available\line if a \u8220"numeric\u8221" field is highlighted:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select {\b Modeless Dialog} if you want the dialog window to persist on-screen for repeated use until you click {\b Close} [{\i Escape}]. Cancelling {\b Modeless} will apply the {\i next} time you use the script.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 These key commands are available\line if a {\i numeric} field is highlighted:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 1-8}: interval (unison, 2nd, 3rd, .. 8ve)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-8}: extra octave\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b 0-4}: layer number ({\b 0} = all layers)\par}
@@ -5875,7 +5873,7 @@ function plugindef()
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: show this script information\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: toggle {\i Up/Down}\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x}: toggle {\i Preserve Existing Notes}\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b c}: toggle {\i Modeless}\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b m}: toggle {\i Modeless}\sa180\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/transpose_diatonic.hash"
@@ -5892,10 +5890,6 @@ local refocus_document = false
 local selection
 local interval_names = { "unis.", "2nd", "3rd", "4th", "5th", "6th", "7th", "8ve"}
 local saved_bounds = {}
-local bounds = {
-    "StartStaff", "StartMeasure", "StartMeasurePos",
-    "EndStaff",   "EndMeasure",   "EndMeasurePos",
-}
 local config = {
     interval     = 1,
     octave       = 0,
@@ -5914,13 +5908,13 @@ local numerics = {
 }
 local checks = {
     { "do_preserve", "Preserve Existing Notes" },
-    { "modeless",    "\"Modeless\" Dialog" }
+    { "modeless",    "Modeless Dialog" }
 }
 local hotkey = {
     show_info   = "q",
     direction   = "z",
     do_preserve = "x",
-    modeless    = "c",
+    modeless    = "m",
 }
 local function dialog_set_position(dialog)
     if config.window_pos_x and config.window_pos_y then
@@ -5946,10 +5940,12 @@ local function get_staff_name(staff_num)
 end
 local function update_selection()
     local rgn = finenv.Region()
-    if rgn:IsEmpty() then
-        saved_bounds = {0, 0, 0, 0, 0, 0}
-        selection = "no staff, no selection"
-    else
+    selection = "no staff, no selection"
+    if not rgn:IsEmpty() then
+        local bounds = {
+            "StartStaff", "StartMeasure", "StartMeasurePos",
+            "EndStaff",   "EndMeasure",   "EndMeasurePos",
+        }
         for _, prop in ipairs(bounds) do
             saved_bounds[prop] = rgn[prop]
         end
@@ -5963,14 +5959,25 @@ local function update_selection()
         end
     end
 end
-local function transpose_diatonic()
+local function nil_region_error(dialog)
+    if finenv.Region():IsEmpty() then
+        local ui = dialog and dialog:CreateChildUI() or finenv.UI()
+        ui:AlertError(
+            "Please select some music\nbefore running this script.",
+            finaleplugin.ScriptGroupName
+        )
+        return true
+    end
+    return false
+end
+local function transpose_diatonic(dialog)
+    if nil_region_error(dialog) then return end
     local direction = (config.direction * -2) + 1
     local shift = ((config.octave * 7) + config.interval - 1) * direction
     if shift ~= 0 then
         finenv.StartNewUndoBlock(
-            string.format("Transp. Diat. %s %s %s oct%d",
-                selection, (config.direction == 1 and "Dn" or "Up"),
-                interval_names[config.interval], config.octave),
+            string.format("Transp. Diat. %s %s",
+                (config.direction == 0 and "Up" or "Dn"), selection),
             false
         )
         for entry in eachentrysaved(finenv.Region(), config.layer) do
@@ -5989,10 +5996,10 @@ local function run_the_dialog()
     local dialog = mixin.FCXCustomLuaWindow():SetTitle("Transpose")
 
         local function show_info()
-            utils.show_notes_dialog(dialog, "About " .. finaleplugin.ScriptGroupName, 400, 345)
+            utils.show_notes_dialog(dialog, "About " .. finaleplugin.ScriptGroupName, 400, 320)
             refocus_document = true
         end
-        local function dy(diff) y = diff and (y + diff) or (y + y_inc) end
+        local function dy(diff) y = y + (diff or y_inc) end
         local function cs(cx, cy, ctext, cwide)
             local stat = dialog:CreateStatic(cx, cy):SetText(ctext)
             local _ = cwide and stat:SetWidth(cwide) or stat:DoAutoResizeWidth()
@@ -6002,27 +6009,27 @@ local function run_the_dialog()
             answer[id]:SetCheck((answer[id]:GetCheck() + 1) % 2)
         end
         local function key_command(id)
-            local ctl = answer[id]
-            local val = ctl:GetText():lower()
-            if     val:find("[^0-8]")
-                or (id == "layer" and val:find("[^0-" .. max .. "]"))
-                or (id == "interval" and val:find("0"))
+            local s = answer[id]:GetText():lower()
+            if     s:find("[^0-8]")
+                or (id == "layer" and s:find("[^0-" .. max .. "]"))
+                or (id == "interval" and s:find("0"))
                     then
-                if val:find(hotkey.direction) then
+                if s:find(hotkey.direction) then
                     local n = answer.direction:GetSelectedItem()
                     answer.direction:SetSelectedItem((n + 1) % 2)
-                elseif val:find(hotkey.modeless) then toggle_check("modeless")
-                elseif val:find(hotkey.do_preserve) then toggle_check("do_preserve")
-                elseif val:find(hotkey.show_info) then show_info()
+                elseif s:find(hotkey.modeless) then toggle_check("modeless")
+                elseif s:find(hotkey.do_preserve) then toggle_check("do_preserve")
+                elseif s:find(hotkey.show_info) then show_info()
                 end
-            elseif val ~= "" then
-                save[id] = val:sub(-1)
+            else
+                save[id] = s:sub(-1)
+                if save[id] == "" then save[id] = "0" end
                 if id == "interval" then
-                    local n = tonumber(save[id]) or 1
-                    answer.msg:SetText(interval_names[n])
+                    if save[id] == "0" then save[id] = "1" end
+                    answer.msg:SetText(interval_names[tonumber(save[id])])
                 end
             end
-            ctl:SetText(save[id]):SetKeyboardFocus()
+            answer[id]:SetText(save[id]):SetKeyboardFocus()
         end
         local function on_timer()
             for k, v in pairs(saved_bounds) do
@@ -6056,12 +6063,11 @@ local function run_the_dialog()
     answer.q = dialog:CreateButton(x_step + 43, y - y_inc - 1):SetText("?"):SetWidth(20)
         :AddHandleCommand(function() show_info() end)
     answer.info = cs(0, y, selection, x_step + 40)
-    dialog:CreateOkButton():SetText(config.modeless and "Apply" or "OK")
-    dialog:CreateCancelButton()
+    dialog:CreateOkButton()    :SetText(config.modeless and "Apply" or "OK")
+    dialog:CreateCancelButton():SetText(config.modeless and "Close" or "Cancel")
     dialog_set_position(dialog)
     if config.modeless then dialog:RegisterHandleTimer(on_timer) end
     dialog:RegisterInitWindow(function(self)
-        dialog:SetOkButtonCanClose(not config.modeless)
         if config.modeless then self:SetTimer(config.timer_id, 125) end
         local bold = answer.a:CreateFontInfo():SetBold(true)
         for _, v in ipairs{"a", "q", "msg"} do
@@ -6076,7 +6082,7 @@ local function run_the_dialog()
         end
         config.direction = answer.direction:GetSelectedItem()
         config.do_preserve = (answer.do_preserve:GetCheck() == 1)
-        transpose_diatonic()
+        transpose_diatonic(dialog)
     end)
     dialog:RegisterCloseWindow(function(self)
         if config.modeless then self:StopTimer(config.timer_id) end
@@ -6095,13 +6101,7 @@ local function run_the_dialog()
 end
 function do_diatonic()
     configuration.get_user_settings(script_name, config, true)
-    if not config.modeless and finenv.Region():IsEmpty() then
-        finenv.UI():AlertError(
-            "Please select some music\nbefore running this script.",
-            finaleplugin.ScriptGroupName
-        )
-        return
-    end
+    if not config.modeless and nil_region_error() then return end
     local qim = finenv.QueryInvokedModifierKeys
     local mod_key = qim and (qim(finale.CMDMODKEY_ALT) or qim(finale.CMDMODKEY_SHIFT))
     update_selection()
