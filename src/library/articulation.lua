@@ -71,4 +71,22 @@ function articulation.calc_main_character_dimensions(artic_def)
     return text_mets:CalcWidthEVPUs(), text_mets:CalcHeightEVPUs()
 end
 
+--[[
+% reset_to_default
+
+Implements all calls necessary to reset the articulation to default positioning. These settings achieve
+the same result as hitting the Clear key for the Articulation in the Finale UI.
+
+@artic (FCArticulation)
+@artic_def (FCArticulationDef) optional definition for this articulation (calculated if not supplied)
+]]
+
+function articulation.reset_to_default(artic, artic_def)
+    artic_def = artic_def or artic:CreateArticulationDef()
+    artic.StackingMode = finale.ARTICSTACKING_USEDEFINITION
+    artic.PlacementMode = finale.ARTICPLACEMENT_AUTOMATIC
+    artic:ResetPos(artic_def)
+end
+
+
 return articulation

@@ -1,8 +1,8 @@
 function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.1"
-    finaleplugin.Date = "February 28, 2020"
+    finaleplugin.Version = "1.1"
+    finaleplugin.Date = "July 29, 2024"
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.MinFinaleVersionRaw = 0x1a000000
     finaleplugin.MinJWLuaVersion = 0.58
@@ -13,8 +13,11 @@ Due to complications arising from how Finale stored articulation positions befor
 Due to issues around maintaining the context for automatic stacking, it must be run under RGP Lua. JW Lua does not have the necessary
 logic to manage the stacking context.
     ]]
-    return "Reset Automatic Articulation Positions", "Reset Automatic Articulation Positions", "Resets the position of automatically positioned articulations while ignoring those with manual positioning."
+    return "Reset Automatic Articulation Positions", "Reset Automatic Articulation Positions",
+        "Resets the position of automatically positioned articulations while ignoring those with manual positioning."
 end
+
+local articulation = require("library/articulation")
 
 -- Before Finale 26, the automatic positioning of articulations was calculated by Finale and stored as the default offset
 -- values of the assignment. Starting with Finale 26, the automatic positioning of articulations is inherent in the
@@ -26,22 +29,24 @@ end
 function articulation_reset_auto_positioning()
     for note_entry in eachentry(finenv.Region()) do
         local articulations = note_entry:CreateArticulations()
-        for articulation in each(articulations) do
+        for artic_assign in each(articulations) do
             local articulation_def = finale.FCArticulationDef()
-            if articulation_def:Load(articulation.ID) then
+            if articulation_def:Load(artic_assign.ID) then
                 local do_save = false
                 if articulation_def.CenterHorizontally then
-                    articulation.HorizontalPos = 0
+                    artic_assign.HorizontalPos = 0
                     do_save = true
                 end
                 if finale.ARTPOS_MANUAL_POSITIONING ~= articulation_def.AutoPosSide then
-                    local save_horzpos = articulation.HorizontalPos
-                    articulation:ResetPos(articulation_def) -- use ResetPos to fix up Finale's internal stacking flags
-                    articulation.HorizontalPos = save_horzpos
+                    local save_horzpos = artic_assign.HorizontalPos
+                    local save_flip = artic_assign.PlacementMode
+                    articulation.reset_to_default(artic_assign, articulation_def) -- use reset_to_default to fix up Finale's internal stacking flags
+                    artic_assign.HorizontalPos = save_horzpos
+                    artic_assign.PlacementMode = save_flip
                     do_save = true
                 end
                 if do_save then
-                    articulation:Save()
+                    artic_assign:Save()
                 end
             end
         end
