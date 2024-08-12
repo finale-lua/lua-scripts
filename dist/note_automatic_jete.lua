@@ -351,6 +351,13 @@ package.preload["library.articulation"] = package.preload["library.articulation"
         end
         return text_mets:CalcWidthEVPUs(), text_mets:CalcHeightEVPUs()
     end
+
+    function articulation.reset_to_default(artic, artic_def)
+        artic_def = artic_def or artic:CreateArticulationDef()
+        artic.StackingMode = finale.ARTICSTACKING_USEDEFINITION
+        artic.PlacementMode = finale.ARTICPLACEMENT_AUTOMATIC
+        artic:ResetPos(artic_def)
+    end
     return articulation
 end
 package.preload["library.utils"] = package.preload["library.utils"] or function()

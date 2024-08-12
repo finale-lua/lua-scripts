@@ -5,6 +5,7 @@
 - [delete_from_entry_by_char_num(entry, char_num)](#delete_from_entry_by_char_num)
 - [is_note_side(artic, curr_pos)](#is_note_side)
 - [calc_main_character_dimensions(artic_def)](#calc_main_character_dimensions)
+- [reset_to_default()](#reset_to_default)
 
 ### delete_from_entry_by_char_num
 
@@ -57,3 +58,17 @@ Uses `FCTextMetrics:LoadArticulation` to determine the dimensions of the main ch
 | Return type | Description |
 | ----------- | ----------- |
 | `number, number` | the width and height of the main articulation character in (possibly fractional) evpus, or 0, 0 if it failed to load metrics |
+
+### reset_to_default
+
+```lua
+articulation.reset_to_default()
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/articulation.lua#L84)
+
+Implements all calls necessary to reset the articulation to default positioning. These settings achieve
+the same result as hitting the Clear key for the Articulation in the Finale UI.
+
+@artic (FCArticulation)
+@artic_def (FCArticulationDef) optional definition for this articulation (calculated if not supplied)

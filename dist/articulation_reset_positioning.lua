@@ -1,8 +1,8 @@
 function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.1"
-    finaleplugin.Date = "February 28, 2020"
+    finaleplugin.Version = "1.1"
+    finaleplugin.Date = "July 29, 2024"
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.MinFinaleVersionRaw = 0x1a000000
     finaleplugin.MinJWLuaVersion = 0.58
@@ -25,13 +25,13 @@ logic to manage the stacking context.
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/articulation_reset_positioning.hash"
     return "Reset Articulation Positions", "Reset Articulation Positions", "Resets the position of all selected articulations."
 end
+local articulation = require("library/articulation")
 function articulation_reset_positioning()
     for note_entry in eachentry(finenv.Region()) do
         local articulations = note_entry:CreateArticulations()
-        for articulation in each(articulations) do
-            local artic_def = articulation:CreateArticulationDef()
-            articulation:ResetPos(artic_def)
-            articulation:Save()
+        for artic_assign in each(articulations) do
+            articulation.reset_to_default(artic_assign)
+            artic_assign:Save()
         end
     end
 end
