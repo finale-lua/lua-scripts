@@ -1,8 +1,8 @@
 function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.1"
-    finaleplugin.Date = "July 29, 2024"
+    finaleplugin.Version = "1.1.1"
+    finaleplugin.Date = "September 22, 2024"
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.MinFinaleVersionRaw = 0x1a000000
     finaleplugin.MinJWLuaVersion = 0.58
@@ -16,7 +16,7 @@ logic to manage the stacking context.
     return "Reset Articulation Positions", "Reset Articulation Positions", "Resets the position of all selected articulations."
 end
 
-local articulation = require("library/articulation")
+local articulation = require("library.articulation")
 
 -- Before Finale 26, the automatic positioning of articulations was calculated by Finale and stored as the default offset
 -- values of the assignment. Starting with Finale 26, the automatic positioning of articulations is inherent in the
