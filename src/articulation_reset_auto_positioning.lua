@@ -17,7 +17,7 @@ logic to manage the stacking context.
         "Resets the position of automatically positioned articulations while ignoring those with manual positioning."
 end
 
-local articulation = require("library/articulation")
+local articulation = require("library.articulation")
 
 -- Before Finale 26, the automatic positioning of articulations was calculated by Finale and stored as the default offset
 -- values of the assignment. Starting with Finale 26, the automatic positioning of articulations is inherent in the
