@@ -30,8 +30,10 @@ function do_open_dialog(document)
     local path_name = finale.FCString()
     local file_name = finale.FCString()
     local file_path = finale.FCString()
-    document:GetPath(file_path)
-    file_path:SplitToPathAndFile(path_name, file_name)
+    if document then
+        document:GetPath(file_path)
+        file_path:SplitToPathAndFile(path_name, file_name)
+    end
     local full_file_name = file_name.LuaString
     local extension = mixin.FCMString()
         :SetLuaString(file_name.LuaString)
@@ -54,28 +56,59 @@ function do_open_dialog(document)
     return selected_file_name.LuaString
 end
 
-function process_document(score_partwise)
-    local doc_region = finale.FCMusicRegion()
-    doc_region:SetFullDocument()
-    -- Finale-exported musicxml files are score-partwise, as is the eachcell() function
-    local xml_part = score_partwise:FirstChildElement("part")
-    for staff in eachstaff(doc_region) do
-        if not xml_part then
-            error("No xml part element found for staff " .. staff .. ".")
-        end
-        local staff_region = finale.FCMusicRegion()
-        staff_region:SetFullDocument()
-        staff_region:SetStartStaff(staff)
-        staff_region:SetEndStaff(staff)
-        local xml_measure = xml_part:FirstChildElement("measure")
-        for measure in eachcell(staff_region) do
-            if not xml_measure or xml_measure:IntAttribute("number") ~= measure then
-                error("No xml measure element found for measure " .. measure .. " in staff " .. staff .. ".")
+function fix_octave_shift(xml_measure)
+    for xml_direction in xmlelements(xml_measure, "direction") do
+        local xml_direction_type = xml_direction:FirstChildElement("direction-type")
+        if xml_direction_type then
+            local octave_shift = xml_direction_type:FirstChildElement("octave-shift")
+            if octave_shift then
+                local direction_copy = xml_direction:DeepClone(xml_direction:GetDocument())
+                local shift_type = octave_shift:Attribute("type")
+                if shift_type == "stop" then
+                    local next_note = xml_direction:NextSiblingElement("note")
+                    if next_note and not next_note:FirstChildElement("rest") then
+                        xml_measure:DeleteChild(xml_direction)
+                        xml_measure:InsertAfterChild(next_note, direction_copy)
+                    end
+                elseif shift_type == "up" or shift_type == "down" then
+                    local sign = shift_type == "down" and 1 or -1 -- direction to transpose grace notes
+                    local octaves = (octave_shift:IntAttribute("size", 8) - 1) / 7
+                    print (sign, octaves, "size:", octave_shift:IntAttribute("size", 8))
+                    local prev_grace_note
+                    local prev_note = xml_direction:PreviousSiblingElement("note")
+                    while prev_note do
+                        if not prev_note:FirstChildElement("rest") and prev_note:FirstChildElement("grace") then
+                            prev_grace_note = prev_note
+                            local pitch = prev_note:FirstChildElement("pitch")
+                            local octave = pitch and pitch:FirstChildElement("octave")
+                            if octave then
+                                octave:SetIntText(octave:IntText() + sign*octaves)
+                            end
+                        else
+                            break
+                        end
+                        prev_note = prev_note:PreviousSiblingElement("note")
+                    end
+                    if prev_grace_note then
+                        xml_measure:DeleteChild(xml_direction)
+                        local prev_element = prev_grace_note:PreviousSiblingElement()
+                        if prev_element then
+                            xml_measure:InsertAfterChild(prev_element, direction_copy)
+                        else
+                            xml_measure:InsertFirstChild(direction_copy)
+                        end
+                    end
+                end
             end
-            print("staff", staff, "measure", measure)
-            xml_measure = xml_measure:NextSiblingElement("measure")
         end
-        xml_part = xml_part:NextSiblingElement("part")
+    end
+end
+
+function process_xml(score_partwise)
+    for xml_part in xmlelements(score_partwise, "part") do
+        for xml_measure in xmlelements(xml_part, "measure") do
+            fix_octave_shift(xml_measure)
+        end
     end
 end
 
@@ -90,14 +123,14 @@ function music_xml_massage_export()
     local musicxml = tinyxml2.XMLDocument()
     local result = musicxml:LoadFile(xml_file)
     if result ~= tinyxml2.XML_SUCCESS then
-        error("Unable to open " .. xml_file .. ".")
+        error("Unable to process " .. xml_file .. ". " .. musicxml:ErrorStr())
         return
     end
     local score_partwise = musicxml:FirstChildElement("score-partwise")
     if not score_partwise then
         error("File " .. xml_file .. " does not appear to be a Finale-exported MusicXML file.")
     end
-    process_document(score_partwise)
+    process_xml(score_partwise)
     musicxml:SaveFile(xml_file)
 end
 
