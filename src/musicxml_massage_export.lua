@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "September 24, 2024"
+    finaleplugin.Version = "1.0.1"
+    finaleplugin.Date = "September 25, 2024"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.Notes = [[
@@ -29,7 +29,7 @@ end
 
 local text_extension = ".musicxml"
 
-local function remove_processing_instructions(file_path)
+local function remove_processing_instructions(file_path, output_name)
     -- Open the original file for reading
     local input_file <close> = io.open(file_path, "r")
     if not input_file then
@@ -45,8 +45,8 @@ local function remove_processing_instructions(file_path)
     end
     -- Close the input file
     input_file:close()
-    -- Open the file for writing (overwrite the original file)
-    local output_file <close> = io.open(file_path, "w")
+    -- Open the file for writing (overwrite any file already there)
+    local output_file <close> = io.open(output_name, "w")
     if not output_file then
         error("Cannot open file for writing: " .. file_path)
     end
@@ -164,10 +164,11 @@ function music_xml_massage_export()
     if not xml_file then
         return
     end
+    local output_name = append_massaged_to_filename(xml_file)
     -- tinyxml2 can't parse processing instructions, so remove them
-    remove_processing_instructions(xml_file) -- hopefully not necessary forever
+    remove_processing_instructions(xml_file, output_name) -- hopefully not necessary forever
     local musicxml = tinyxml2.XMLDocument()
-    local result = musicxml:LoadFile(xml_file)
+    local result = musicxml:LoadFile(output_name)
     if result ~= tinyxml2.XML_SUCCESS then
         error("Unable to process " .. xml_file .. ". " .. musicxml:ErrorStr())
         return
@@ -177,7 +178,6 @@ function music_xml_massage_export()
         error("File " .. xml_file .. " does not appear to be a Finale-exported MusicXML file.")
     end
     process_xml(score_partwise)
-    local output_name = append_massaged_to_filename(xml_file)
     musicxml:SaveFile(output_name)
     finenv.UI():AlertInfo("Processed to " .. output_name .. ".", "Processed File")
 end
