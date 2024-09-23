@@ -9,7 +9,7 @@ function plugindef()
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.Notes = [[
-        This script reads a musicxml file exported from Finale and makes modifies it to
+        This script reads a musicxml file exported from Finale and modifies it to
         improve the importing into Dorico or MuseScore. The best process is as follows:
 
         1. Export your document as uncompressed MusicXML.
