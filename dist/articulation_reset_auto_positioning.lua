@@ -363,8 +363,8 @@ end
 function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.1"
-    finaleplugin.Date = "July 29, 2024"
+    finaleplugin.Version = "1.1.1"
+    finaleplugin.Date = "September 22, 2024"
     finaleplugin.CategoryTags = "Articulation"
     finaleplugin.MinFinaleVersionRaw = 0x1a000000
     finaleplugin.MinJWLuaVersion = 0.58
