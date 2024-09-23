@@ -24,7 +24,7 @@ function plugindef()
         Due to a limitation in the xml parser, all xml processing instructions are removed. These are metadata that neither
         Dorico nor MuseScore use, so their removal should not affect importing into those programs.
     ]]
-    return "Massage MusicXML...", "", "Massages the MusicXML for the current open document."
+    return "Massage MusicXML...", "", "Massages MusicXML to make it easier to import to Dorico and MuseScore."
 end
 
 local text_extension = ".musicxml"
