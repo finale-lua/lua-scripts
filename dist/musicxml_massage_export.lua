@@ -9,7 +9,7 @@ function plugindef()
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.Notes = [[
-        This script reads a musicxml file exported from Finale and makes modifies it to
+        This script reads a musicxml file exported from Finale and modifies it to
         improve the importing into Dorico or MuseScore. The best process is as follows:
 
         1. Export your document as uncompressed MusicXML.
@@ -30,7 +30,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script reads a musicxml file exported from Finale and makes modifies it to improve the importing into Dorico or MuseScore. The best process is as follows:\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script reads a musicxml file exported from Finale and modifies it to improve the importing into Dorico or MuseScore. The best process is as follows:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Export your document as uncompressed MusicXML.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run this plugin on the output *.musicxml document.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab The massaged file name has " massaged" appended to the file name.\par}
@@ -41,7 +41,7 @@ function plugindef()
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/musicxml_massage_export.hash"
-    return "Massage MusicXML...", "", "Massages the MusicXML for the current open document."
+    return "Massage MusicXML...", "", "Massages MusicXML to make it easier to import to Dorico and MuseScore."
 end
 local text_extension = ".musicxml"
 local function remove_processing_instructions(file_path)
