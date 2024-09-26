@@ -2,34 +2,20 @@ function plugindef()
     finaleplugin.RequireDocument = false
     finaleplugin.RequireSelection = false
     finaleplugin.NoStore = true
-    finaleplugin.Author = "Robert Patterson (folder scanning added by Carl Vine)"
+    finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.6"
-    finaleplugin.Date = "October 2, 2024"
-    finaleplugin.LoadLuaOSUtils = true
+    finaleplugin.Version = "1.0.2"
+    finaleplugin.Date = "September 26, 2024"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.74
-    finaleplugin.AdditionalMenuOptions = [[
-        Massage MusicXML Single File...
-    ]]
-    finaleplugin.AdditionalUndoText = [[
-        Massage MusicXML Single File
-    ]]
-    finaleplugin.AdditionalDescriptions = [[
-        Massage a MusicXML file to improve importing to Dorico and MuseScore
-    ]]
-    finaleplugin.AdditionalPrefixes = [[
-        do_single_file = true
-    ]]
-    finaleplugin.ScriptGroupName = "Staff Explode"
     finaleplugin.Notes = [[
-        This script reads musicxml files exported from Finale and modifies them to
-        improve importing into Dorico or MuseScore. The best process is as follows:
+        This script reads a musicxml file exported from Finale and modifies it to
+        improve the importing into Dorico or MuseScore. The best process is as follows:
 
         1. Export your document as uncompressed MusicXML.
         2. Run this plugin on the output *.musicxml document.
         3. The massaged file name has " massaged" appended to the file name.
-        3. Import the massaged *.musicxml file into Dorico or MuseScore.
+        3. Import the massaged *.musicxml into Dorico or MuseScore.
 
         Here is a list of some of the changes the script makes:
 
@@ -38,42 +24,67 @@ function plugindef()
         Due to a limitation in the xml parser, all xml processing instructions are removed. These are metadata that neither
         Dorico nor MuseScore use, so their removal should not affect importing into those programs.
     ]]
-    return "Massage MusicXML Folder...",
-        "Massage MusicXML Folder",
-        "Massage a folder of MusicXML files to improve importing to Dorico and MuseScore."
+    return "Massage MusicXML...", "Massage MusicXML", "Massages MusicXML to make it easier to import to Dorico and MuseScore."
 end
 
-do_single_file = do_single_file or false
-local xml_extension = ".musicxml"
-local add_to_filename = " massaged"
+local text_extension = ".musicxml"
 
-local function alert_error(file_list)
-    local msg = (#file_list > 1 and "These files do not " or "This file does not ")
-        .. "appear to be MusicXML exported from Finale:\n\n"
-        .. table.concat(file_list, "\n")
-    finenv.UI():AlertError(msg, plugindef())
-end
-
-local function remove_processing_instructions(input_name, output_name)
-    local input_file <close> = io.open(input_name, "r")
+local function remove_processing_instructions(file_path, output_name)
+    -- Open the original file for reading
+    local input_file <close> = io.open(file_path, "r")
     if not input_file then
-        error("Cannot open file: " .. input_name)
+        error("Cannot open file: " .. file_path)
     end
-    local lines = {} -- assemble the output file line by line
+    -- Read the contents of the file
+    local lines = {}
     for line in input_file:lines() do
+        -- Keep the XML declaration (<?xml ... ?>), remove other processing instructions (<?...?>)
         if line:match("^%s*<%?xml") or not line:match("^%s*<%?.*%?>") then
             table.insert(lines, line)
         end
     end
+    -- Close the input file
     input_file:close()
+    -- Open the file for writing (overwrite any file already there)
     local output_file <close> = io.open(output_name, "w")
     if not output_file then
-        error("Cannot open file for writing: " .. output_name)
+        error("Cannot open file for writing: " .. file_path)
     end
+    -- Write the cleaned lines to the file
     for _, line in ipairs(lines) do
         output_file:write(line .. "\n")
     end
+    -- Close the output file
     output_file:close()
+end
+
+function do_open_dialog(document)
+    local path_name = finale.FCString()
+    local file_name = finale.FCString()
+    local file_path = finale.FCString()
+    if document then
+        document:GetPath(file_path)
+        file_path:SplitToPathAndFile(path_name, file_name)
+    end
+    local full_file_name = file_name.LuaString
+    local extension = finale.FCString(file_name.LuaString)
+    extension:ExtractFileExtension()
+    if extension.Length > 0 then
+        file_name:TruncateAt(file_name:FindLast("." .. extension.LuaString))
+    end
+    file_name:AppendLuaString(text_extension)
+    local open_dialog = finale.FCFileOpenDialog(finenv.UI())
+    open_dialog:SetWindowTitle(finale.FCString("Open MusicXML for " .. full_file_name))
+    open_dialog:AddFilter(finale.FCString("*" .. text_extension), finale.FCString("MusicXML File"))
+    open_dialog:SetInitFolder(path_name)
+    open_dialog:SetFileName(file_name)
+    open_dialog:AssureFileExtension(text_extension)
+    if not open_dialog:Execute() then
+        return nil
+    end
+    local selected_file_name = finale.FCString()
+    open_dialog:GetFileName(selected_file_name)
+    return selected_file_name.LuaString
 end
 
 function fix_octave_shift(xml_measure)
@@ -91,7 +102,7 @@ function fix_octave_shift(xml_measure)
                         xml_measure:InsertAfterChild(next_note, direction_copy)
                     end
                 elseif shift_type == "up" or shift_type == "down" then
-                    local sign = shift_type == "down" and 1 or -1
+                    local sign = shift_type == "down" and 1 or -1 -- direction to transpose grace notes
                     local octaves = (octave_shift:IntAttribute("size", 8) - 1) / 7
                     local prev_grace_note
                     local prev_note = xml_direction:PreviousSiblingElement("note")
@@ -131,93 +142,44 @@ function process_xml(score_partwise)
     end
 end
 
-function process_one_file(input_file)
-    local path, filename, extension = input_file:match("^(.-)([^\\/]-)%.([^\\/%.]+)$")
+function append_massaged_to_filename(filepath)
+    -- Extract the path, filename, and extension
+    local path, filename, extension = filepath:match("^(.-)([^\\/]-)%.([^\\/%.]+)$")
+
+    -- Check if the path extraction was successful
     if not path or not filename or not extension then
         error("Invalid file path format")
     end
-    local output_file = path .. filename .. add_to_filename .. xml_extension
 
-    remove_processing_instructions(input_file, output_file)
-    local musicxml = tinyxml2.XMLDocument()
-    local result = musicxml:LoadFile(output_file)
-    if result ~= tinyxml2.XML_SUCCESS then
-        os.remove(output_file) -- delete erroneous file
-        return input_file -- XML error
-    end
-    local score_partwise = musicxml:FirstChildElement("score-partwise")
-    if not score_partwise then
-        os.remove(output_file) -- delete erroneous file
-        return input_file -- massaging failed
-    end
-    process_xml(score_partwise)
-    musicxml:SaveFile(output_file)
-    return ""
-end
-
-function process_directory(path_name)
-    local folder_dialog = finale.FCFolderBrowseDialog(finenv.UI())
-    folder_dialog:SetWindowTitle(finale.FCString("Select Folder of MusicXML Files:"))
-    folder_dialog:SetFolderPath(path_name)
-    if not folder_dialog:Execute() then
-        return nil -- user cancelled
-    end
-    local selected_directory = finale.FCString()
-    folder_dialog:GetFolderPath(selected_directory)
-    local src_dir = selected_directory.LuaString
-
-    -- scan the directory, identifying valid candidate files
-    local error_list = {}
-    local lfs = require("lfs")
-    for file in lfs.dir(src_dir) do
-        if file ~= "." and file ~= ".." and file:sub(-xml_extension:len()) == xml_extension then
-            local file_error = process_one_file(src_dir .. "/" .. file)
-            if file_error ~= "" then
-                table.insert(error_list, file_error)
-            end
-
-        end
-    end
-    if #error_list > 0 then
-        alert_error(error_list)
-    end
-end
-
-function do_open_dialog(path_name)
-    local open_dialog = finale.FCFileOpenDialog(finenv.UI())
-    open_dialog:SetWindowTitle(finale.FCString("Select a MusicXML File:"))
-    open_dialog:AddFilter(finale.FCString("*" .. xml_extension), finale.FCString("MusicXML File"))
-    open_dialog:SetInitFolder(path_name)
-    open_dialog:AssureFileExtension(xml_extension)
-    if not open_dialog:Execute() then
-        return nil
-    end
-    local selected_file_name = finale.FCString()
-    open_dialog:GetFileName(selected_file_name)
-    return selected_file_name.LuaString
+    -- Construct the new file path with " massaged" appended to the filename
+    local new_filepath = path .. filename .. " massaged." .. extension
+    return new_filepath
 end
 
 function music_xml_massage_export()
     local documents = finale.FCDocuments()
     documents:LoadAll()
     local document = documents:FindCurrent()
-    local path_name = finale.FCString()
-    if document then -- extract active pathname
-        document:GetPath(path_name)
-        path_name:SplitToPathAndFile(path_name, nil)
+    local xml_file = do_open_dialog(document)
+    if not xml_file then
+        return
     end
-
-    if do_single_file then
-        local xml_file = do_open_dialog(path_name)
-        if xml_file then
-            local file_error = process_one_file(xml_file)
-            if file_error ~= "" then
-                alert_error{file_error}
-            end
-        end
-    else
-        process_directory(path_name)
+    local output_name = append_massaged_to_filename(xml_file)
+    -- tinyxml2 can't parse processing instructions, so remove them
+    remove_processing_instructions(xml_file, output_name) -- hopefully not necessary forever
+    local musicxml = tinyxml2.XMLDocument()
+    local result = musicxml:LoadFile(output_name)
+    if result ~= tinyxml2.XML_SUCCESS then
+        error("Unable to process " .. xml_file .. ". " .. musicxml:ErrorStr())
+        return
     end
+    local score_partwise = musicxml:FirstChildElement("score-partwise")
+    if not score_partwise then
+        error("File " .. xml_file .. " does not appear to be a Finale-exported MusicXML file.")
+    end
+    process_xml(score_partwise)
+    musicxml:SaveFile(output_name)
+    finenv.UI():AlertInfo("Processed to " .. output_name .. ".", "Processed File")
 end
 
 music_xml_massage_export()
