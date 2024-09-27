@@ -62,16 +62,26 @@ function get_file_path_no_extension()
     return path_name.LuaString, file_name.LuaString, full_file_name
 end
 
-function set_element_text(style_element, name, value, setter_func)
-    if setter_func == "SetDoubleText" then
-        value = string.format("%.5g", value)
-        setter_func = "SetText"
+function set_element_text(style_element, name, value)
+    local setter_func = "SetText"
+    if type(value) == "number" then
+        if math.type(value) == "float" then
+            value = string.format("%.5g", value)
+            setter_func = "SetText"
+        else
+            setter_func = "SetIntText"
+        end
+    end
+    if type(value) == "boolean" then
+        value = value and 1 or 0
+        setter_func = "SetIntText"
     end
     local element = style_element:FirstChildElement(name)
     if not element then
         element = style_element:InsertNewChildElement(name)
     end
     element[setter_func](element, value)
+    return element
 end
 
 function muse_font_efx(font_info)
@@ -92,30 +102,25 @@ function muse_font_efx(font_info)
 end
 
 function write_page_prefs(style_element)
-    set_element_text(style_element, "pageWidth", page_prefs.PageWidth / 288, "SetDoubleText")
-    set_element_text(style_element, "pageHeight", page_prefs.PageHeight / 288, "SetDoubleText")
+    set_element_text(style_element, "pageWidth", page_prefs.PageWidth / 288)
+    set_element_text(style_element, "pageHeight", page_prefs.PageHeight / 288)
     set_element_text(style_element, "pagePrintableWidth",
-        (page_prefs.PageWidth - page_prefs.LeftPageRightMargin - page_prefs.LeftPageRightMargin) / 288,
-        "SetDoubleText")
-    set_element_text(style_element, "pageEvenLeftMargin", page_prefs.LeftPageLeftMargin / 288, "SetDoubleText")
+        (page_prefs.PageWidth - page_prefs.LeftPageRightMargin - page_prefs.LeftPageRightMargin) / 288)
+    set_element_text(style_element, "pageEvenLeftMargin", page_prefs.LeftPageLeftMargin / 288)
     set_element_text(style_element, "pageOddLeftMargin",
-        (page_prefs.UseFacingPages and page_prefs.RightPageLeftMargin or page_prefs.LeftPageLeftMargin) /
-        288, "SetDoubleText")
-    set_element_text(style_element, "pageEvenTopMargin", page_prefs.LeftPageTopMargin / 288, "SetDoubleText")
-    set_element_text(style_element, "pageEvenBottomMargin", page_prefs.LeftPageBottomMargin / 288, "SetDoubleText")
+        (page_prefs.UseFacingPages and page_prefs.RightPageLeftMargin or page_prefs.LeftPageLeftMargin) / 288)
+    set_element_text(style_element, "pageEvenTopMargin", page_prefs.LeftPageTopMargin / 288)
+    set_element_text(style_element, "pageEvenBottomMargin", page_prefs.LeftPageBottomMargin / 288)
     set_element_text(style_element, "pageOddTopMargin",
-        (page_prefs.UseFacingPages and page_prefs.RightPageTopMargin or page_prefs.LeftPageTopMargin) /
-        288, "SetDoubleText")
+        (page_prefs.UseFacingPages and page_prefs.RightPageTopMargin or page_prefs.LeftPageTopMargin) / 288)
     set_element_text(style_element, "pageOddBottomMargin",
-        (page_prefs.UseFacingPages and page_prefs.RightPageBottomMargin or page_prefs.LeftPageBottomMargin) /
-        288, "SetDoubleText")
-    set_element_text(style_element, "pageTwosided", page_prefs.UseFacingPages and 1 or 0, "SetIntText")
-    set_element_text(style_element, "enableIndentationOnFirstSystem", page_prefs.UseFirstSystemMargins and 1 or 0,
-    "SetIntText")
-    set_element_text(style_element, "firstSystemIndentationValue", page_prefs.FirstSystemLeft / 24, "SetDoubleText")
+        (page_prefs.UseFacingPages and page_prefs.RightPageBottomMargin or page_prefs.LeftPageBottomMargin) / 288)
+    set_element_text(style_element, "pageTwosided", page_prefs.UseFacingPages)
+    set_element_text(style_element, "enableIndentationOnFirstSystem", page_prefs.UseFirstSystemMargins)
+    set_element_text(style_element, "firstSystemIndentationValue", page_prefs.FirstSystemLeft / 24)
     local page_percent = page_prefs.PageScaling / 100
     local staff_percent = (page_prefs.SystemStaffHeight / (96 * 16)) * (page_prefs.SystemScaling / 100)
-    set_element_text(style_element, "Spatium", ((24 * staff_percent * page_percent) / 288) * 25.4, "SetDoubleText") -- millimeters
+    set_element_text(style_element, "Spatium", ((24 * staff_percent * page_percent) / 288) * 25.4) -- millimeters
 end
 
 function write_lyrics_prefs(style_element)
@@ -128,10 +133,10 @@ function write_lyrics_prefs(style_element)
             local font = str and str.Length > 0 and enigma_string.trim_first_enigma_font_tags(str)
             font_info = font or font_info
         end
-        set_element_text(style_element, "lyrics" .. even_odd .. "FontFace", font_info.Name, "SetText")
-        set_element_text(style_element, "lyrics" .. even_odd .. "FontSize", font_info.Size * (font_info.Absolute and 1 or 0.83333), "SetDoubleText")
-        set_element_text(style_element, "lyrics" .. even_odd .. "FontSpatiumDependent", font_info.Absolute and 0 or 1, "SetIntText")
-        set_element_text(style_element, "lyrics" .. even_odd .. "FontStyle", muse_font_efx(font_info), "SetIntText")
+        set_element_text(style_element, "lyrics" .. even_odd .. "FontFace", font_info.Name)
+        set_element_text(style_element, "lyrics" .. even_odd .. "FontSize", font_info.Size * (font_info.Absolute and 1 or 0.83333))
+        set_element_text(style_element, "lyrics" .. even_odd .. "FontSpatiumDependent", not font_info.Absolute)
+        set_element_text(style_element, "lyrics" .. even_odd .. "FontStyle", muse_font_efx(font_info))
     end
 end
 
