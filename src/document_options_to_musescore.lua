@@ -27,15 +27,30 @@ local enigma_string = require("library.enigma_string")
 local text_extension = ".mss"
 
 -- Finale preferences:
+local distance_prefs
+local size_prefs
+local misc_prefs
 local page_prefs
+local spacing_prefs
+local repeat_prefs
 
 function open_current_prefs()
+    distance_prefs = finale.FCDistancePrefs()
+    distance_prefs:Load(1)
+    size_prefs = finale.FCSizePrefs()
+    size_prefs:Load(1)
+    misc_prefs = finale.FCMiscDocPrefs()
+    misc_prefs:Load(1)
     page_prefs = finale.FCPageFormatPrefs()
     if finale.FCPart(finale.PARTID_CURRENT):IsPart() then
         page_prefs:LoadParts()
     else
         page_prefs:LoadScore()
     end
+    spacing_prefs = finale.FCMusicSpacingPrefs()
+    spacing_prefs:Load(1)
+    repeat_prefs = finale.FCRepeatPrefs()
+    repeat_prefs:Load(1)
 end
 
 -- returns Lua strings for path, file name without extension, full file path
@@ -140,6 +155,22 @@ function write_lyrics_prefs(style_element)
     end
 end
 
+function write_barline_prefs(style_element)
+    set_element_text(style_element, "minMeasureWidth", spacing_prefs.MinMeasureWidth / 24) 
+    set_element_text(style_element, "barWidth", size_prefs.ThinBarlineThickness / 1536) -- EFIX per space
+    set_element_text(style_element, "doubleBarWidth", size_prefs.ThinBarlineThickness / 1536)
+    set_element_text(style_element, "endBarWidth", size_prefs.HeavyBarlineThickness / 1536)
+    set_element_text(style_element, "doubleBarDistance", (distance_prefs.BarlineDoubleSpace - (size_prefs.ThinBarlineThickness/2)) / 1536)
+    set_element_text(style_element, "endBarDistance", (distance_prefs.BarlineFinalSpace - (size_prefs.ThinBarlineThickness/2)) / 1536)
+    set_element_text(style_element, "repeatBarlineDotSeparation", repeat_prefs.ForwardSpace / 24)
+    set_element_text(style_element, "repeatBarTips", repeat_prefs.WingStyle ~= finale.REPWING_NONE)
+    set_element_text(style_element, "startBarlineSingle", misc_prefs.LeftBarlineDisplaySingle)
+    set_element_text(style_element, "startBarlineMultiple", misc_prefs.LeftBarlineDisplayMultiple)
+    set_element_text(style_element, "bracketWidth", 0.5) -- hard-coded in Finale
+    set_element_text(style_element, "bracketDistance", -distance_prefs.GroupBracketDefaultDistance / 24)
+    set_element_text(style_element, "akkoladeBarDistance", -distance_prefs.GroupBracketDefaultDistance / 24)
+end
+
 function write_xml()
     local mssxml <close> = tinyxml2.XMLDocument()
     local existing_path = global_dialog:GetControl("file_path"):GetText()
@@ -163,6 +194,7 @@ function write_xml()
     open_current_prefs()
     write_page_prefs(style_element)
     write_lyrics_prefs(style_element)
+    write_barline_prefs(style_element)
     local output_path = select_target()
     if output_path then
         if mssxml:SaveFile(output_path) ~= tinyxml2.XML_SUCCESS then
