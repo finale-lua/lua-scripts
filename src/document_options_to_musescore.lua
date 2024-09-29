@@ -31,6 +31,7 @@ local current_is_part
 local distance_prefs
 local size_prefs
 local misc_prefs
+local music_character_prefs
 local page_prefs
 local spacing_prefs
 local repeat_prefs
@@ -43,6 +44,8 @@ function open_current_prefs()
     size_prefs:Load(1)
     misc_prefs = finale.FCMiscDocPrefs()
     misc_prefs:Load(1)
+    music_character_prefs = finale.FCMusicCharacterPrefs()
+    music_character_prefs:Load(1)
     page_prefs = finale.FCPageFormatPrefs()
     if current_is_part then
         page_prefs:LoadParts()
@@ -118,79 +121,101 @@ function muse_font_efx(font_info)
     return retval
 end
 
+local EVPU_PER_INCH = 288
+local EVPU_PER_MM = 288 / 25.4
+local EVPU_PER_SPACE = 24
+local EFIX_PER_SPACE = EVPU_PER_SPACE * 64
+
 function write_page_prefs(style_element)
-    set_element_text(style_element, "pageWidth", page_prefs.PageWidth / 288)
-    set_element_text(style_element, "pageHeight", page_prefs.PageHeight / 288)
+    set_element_text(style_element, "pageWidth", page_prefs.PageWidth / EVPU_PER_INCH)
+    set_element_text(style_element, "pageHeight", page_prefs.PageHeight / EVPU_PER_INCH)
     set_element_text(style_element, "pagePrintableWidth",
-        (page_prefs.PageWidth - page_prefs.LeftPageRightMargin - page_prefs.LeftPageRightMargin) / 288)
-    set_element_text(style_element, "pageEvenLeftMargin", page_prefs.LeftPageLeftMargin / 288)
+        (page_prefs.PageWidth - page_prefs.LeftPageRightMargin - page_prefs.LeftPageRightMargin) / EVPU_PER_INCH)
+    set_element_text(style_element, "pageEvenLeftMargin", page_prefs.LeftPageLeftMargin / EVPU_PER_INCH)
     set_element_text(style_element, "pageOddLeftMargin",
-        (page_prefs.UseFacingPages and page_prefs.RightPageLeftMargin or page_prefs.LeftPageLeftMargin) / 288)
-    set_element_text(style_element, "pageEvenTopMargin", page_prefs.LeftPageTopMargin / 288)
-    set_element_text(style_element, "pageEvenBottomMargin", page_prefs.LeftPageBottomMargin / 288)
+        (page_prefs.UseFacingPages and page_prefs.RightPageLeftMargin or page_prefs.LeftPageLeftMargin) / EVPU_PER_INCH)
+    set_element_text(style_element, "pageEvenTopMargin", page_prefs.LeftPageTopMargin / EVPU_PER_INCH)
+    set_element_text(style_element, "pageEvenBottomMargin", page_prefs.LeftPageBottomMargin / EVPU_PER_INCH)
     set_element_text(style_element, "pageOddTopMargin",
-        (page_prefs.UseFacingPages and page_prefs.RightPageTopMargin or page_prefs.LeftPageTopMargin) / 288)
+        (page_prefs.UseFacingPages and page_prefs.RightPageTopMargin or page_prefs.LeftPageTopMargin) / EVPU_PER_INCH)
     set_element_text(style_element, "pageOddBottomMargin",
-        (page_prefs.UseFacingPages and page_prefs.RightPageBottomMargin or page_prefs.LeftPageBottomMargin) / 288)
+        (page_prefs.UseFacingPages and page_prefs.RightPageBottomMargin or page_prefs.LeftPageBottomMargin) / EVPU_PER_INCH)
     set_element_text(style_element, "pageTwosided", page_prefs.UseFacingPages)
     set_element_text(style_element, "enableIndentationOnFirstSystem", page_prefs.UseFirstSystemMargins)
-    set_element_text(style_element, "firstSystemIndentationValue", page_prefs.FirstSystemLeft / 24)
+    set_element_text(style_element, "firstSystemIndentationValue", page_prefs.FirstSystemLeft / EVPU_PER_SPACE)
     local page_percent = page_prefs.PageScaling / 100
-    local staff_percent = (page_prefs.SystemStaffHeight / (96 * 16)) * (page_prefs.SystemScaling / 100)
-    set_element_text(style_element, "Spatium", ((24 * staff_percent * page_percent) / 288) * 25.4) -- millimeters
+    local staff_percent = (page_prefs.SystemStaffHeight / (EVPU_PER_SPACE * 4 * 16)) * (page_prefs.SystemScaling / 100)
+    set_element_text(style_element, "Spatium", (EVPU_PER_SPACE * staff_percent * page_percent) / EVPU_PER_MM)
 end
 
 function write_lyrics_prefs(style_element)
     local font_info = finale.FCFontInfo()
     local lyrics_text = finale.FCVerseLyricsText()
     font_info:LoadFontPrefs(finale.FONTPREF_LYRICSVERSE)
-    for verse_number, even_odd in ipairs({"Odd", "Even"}) do
+    for verse_number, even_odd in ipairs({ "Odd", "Even" }) do
         if lyrics_text:Load(verse_number) then
             local str = lyrics_text:CreateString()
             local font = str and str.Length > 0 and enigma_string.trim_first_enigma_font_tags(str)
             font_info = font or font_info
         end
         set_element_text(style_element, "lyrics" .. even_odd .. "FontFace", font_info.Name)
-        set_element_text(style_element, "lyrics" .. even_odd .. "FontSize", font_info.Size * (font_info.Absolute and 1 or 0.83333))
+        set_element_text(style_element, "lyrics" .. even_odd .. "FontSize",
+        font_info.Size * (font_info.Absolute and 1 or 0.83333))
         set_element_text(style_element, "lyrics" .. even_odd .. "FontSpatiumDependent", not font_info.Absolute)
         set_element_text(style_element, "lyrics" .. even_odd .. "FontStyle", muse_font_efx(font_info))
     end
 end
 
 function write_line_measure_prefs(style_element)
-    set_element_text(style_element, "minMeasureWidth", spacing_prefs.MinMeasureWidth / 24) 
-    set_element_text(style_element, "barWidth", size_prefs.ThinBarlineThickness / 1536) -- EFIX per space
-    set_element_text(style_element, "doubleBarWidth", size_prefs.ThinBarlineThickness / 1536)
-    set_element_text(style_element, "endBarWidth", size_prefs.HeavyBarlineThickness / 1536)
+    set_element_text(style_element, "barWidth", size_prefs.ThinBarlineThickness / EFIX_PER_SPACE)
+    set_element_text(style_element, "doubleBarWidth", size_prefs.ThinBarlineThickness / EFIX_PER_SPACE)
+    set_element_text(style_element, "endBarWidth", size_prefs.HeavyBarlineThickness / EFIX_PER_SPACE)
     -- Finale's double bar distance is measured from the beginning of the thin line
-    set_element_text(style_element, "doubleBarDistance", (distance_prefs.BarlineDoubleSpace - size_prefs.ThinBarlineThickness) / 1536)
+    set_element_text(style_element, "doubleBarDistance", (distance_prefs.BarlineDoubleSpace - size_prefs.ThinBarlineThickness) / EFIX_PER_SPACE)
     -- Finale's final bar distance is the separatioln amount
-    set_element_text(style_element, "endBarDistance", (distance_prefs.BarlineFinalSpace) / 1536)
-    set_element_text(style_element, "repeatBarlineDotSeparation", repeat_prefs.ForwardSpace / 24)
+    set_element_text(style_element, "endBarDistance", (distance_prefs.BarlineFinalSpace) / EFIX_PER_SPACE)
+    set_element_text(style_element, "repeatBarlineDotSeparation", repeat_prefs.ForwardSpace / EVPU_PER_SPACE)
     set_element_text(style_element, "repeatBarTips", repeat_prefs.WingStyle ~= finale.REPWING_NONE)
     set_element_text(style_element, "startBarlineSingle", misc_prefs.LeftBarlineDisplaySingle)
     set_element_text(style_element, "startBarlineMultiple", misc_prefs.LeftBarlineDisplayMultiple)
     set_element_text(style_element, "bracketWidth", 0.5) -- hard-coded in Finale
-    set_element_text(style_element, "bracketDistance", -distance_prefs.GroupBracketDefaultDistance / 24)
-    set_element_text(style_element, "akkoladeBarDistance", -distance_prefs.GroupBracketDefaultDistance / 24)
-    set_element_text(style_element, "clefLeftMargin", distance_prefs.ClefSpaceBefore / 24)
-    set_element_text(style_element, "keysigLeftMargin", distance_prefs.KeySpaceBefore / 24)
+    set_element_text(style_element, "bracketDistance", -distance_prefs.GroupBracketDefaultDistance / EVPU_PER_SPACE)
+    set_element_text(style_element, "akkoladeBarDistance", -distance_prefs.GroupBracketDefaultDistance / EVPU_PER_SPACE)
+    set_element_text(style_element, "clefLeftMargin", distance_prefs.ClefSpaceBefore / EVPU_PER_SPACE)
+    set_element_text(style_element, "keysigLeftMargin", distance_prefs.KeySpaceBefore / EVPU_PER_SPACE)
     local time_sig_space_before = current_is_part and distance_prefs.TimeSigPartsSpaceBefore or distance_prefs.TimeSigSpaceBefore
-    set_element_text(style_element, "timesigLeftMargin", time_sig_space_before / 24)
-    set_element_text(style_element, "clefKeyDistance", (distance_prefs.ClefSpaceAfter + distance_prefs.ClefKeyExtraSpace + distance_prefs.KeySpaceBefore) / 24)
-    set_element_text(style_element, "clefTimesigDistance", (distance_prefs.ClefSpaceAfter + distance_prefs.ClefTimeExtraSpace + time_sig_space_before) / 24)
-    set_element_text(style_element, "keyTimesigDistance", (distance_prefs.KeySpaceAfter + distance_prefs.KeyTimeExtraSpace + time_sig_space_before) / 24)
-    set_element_text(style_element, "keyBarlineDistance", repeat_prefs.AfterKeySpace / 24)
-    set_element_text(style_element, "systemHeaderDistance", distance_prefs.KeySpaceAfter / 24)
-    set_element_text(style_element, "systemHeaderTimeSigDistance", distance_prefs.TimeSigSpaceAfter / 24)
-    set_element_text(style_element, "clefBarlineDistance", repeat_prefs.AfterClefSpace / 24)
-    set_element_text(style_element, "timesigBarlineDistance", repeat_prefs.AfterClefSpace / 24)
+    set_element_text(style_element, "timesigLeftMargin", time_sig_space_before / EVPU_PER_SPACE)
+    set_element_text(style_element, "clefKeyDistance", (distance_prefs.ClefSpaceAfter + distance_prefs.ClefKeyExtraSpace + distance_prefs.KeySpaceBefore) / EVPU_PER_SPACE)
+    set_element_text(style_element, "clefTimesigDistance", (distance_prefs.ClefSpaceAfter + distance_prefs.ClefTimeExtraSpace + time_sig_space_before) / EVPU_PER_SPACE)
+    set_element_text(style_element, "keyTimesigDistance", (distance_prefs.KeySpaceAfter + distance_prefs.KeyTimeExtraSpace + time_sig_space_before) / EVPU_PER_SPACE)
+    set_element_text(style_element, "keyBarlineDistance", repeat_prefs.AfterKeySpace / EVPU_PER_SPACE)
+    -- differences in how MuseScore and Finale interpret these settings means the following two are better off left alone
+    -- set_element_text(style_element, "systemHeaderDistance", distance_prefs.KeySpaceAfter / EVPU_PER_SPACE)
+    -- set_element_text(style_element, "systemHeaderTimeSigDistance", distance_prefs.TimeSigSpaceAfter / EVPU_PER_SPACE)
+    set_element_text(style_element, "clefBarlineDistance", repeat_prefs.AfterClefSpace / EVPU_PER_SPACE)
+    set_element_text(style_element, "timesigBarlineDistance", repeat_prefs.AfterClefSpace / EVPU_PER_SPACE)  
+    set_element_text(style_element, "measureRepeatNumberPos", -(music_character_prefs.VerticalTwoMeasureRepeatOffset + 0.5) / EVPU_PER_SPACE)
+    set_element_text(style_element, "staffLineWidth", size_prefs.StaffLineThickness / EFIX_PER_SPACE)
+    set_element_text(style_element, "ledgerLineWidth", size_prefs.LedgerLineThickness / EFIX_PER_SPACE)
+    set_element_text(style_element, "ledgerLineLength", (size_prefs.LedgerLeftHalf + size_prefs.LedgerRightHalf) / (2 * EVPU_PER_SPACE))
+
 end
 
 -- keysigAccidentalDistance fudge factor +4 EVPU
 -- keysigNaturalDistance    fudge factor +6 EVPU
 
 function write_stem_prefs(style_element)
+    set_element_text(style_element, "useStraightNoteFlags", music_character_prefs.UseStraightFlags)
+    set_element_text(style_element, "stemWidth", size_prefs.StemLineThickness / EFIX_PER_SPACE)
+    set_element_text(style_element, "shortenStem", true)
+    set_element_text(style_element, "stemLength", size_prefs.NormalStemLength / EVPU_PER_SPACE)
+    set_element_text(style_element, "shortestStem", size_prefs.ShortenedStemLength / EVPU_PER_SPACE)
+end
+
+function write_spacing_prefs(style_element)
+    set_element_text(style_element, "minMeasureWidth", spacing_prefs.MinMeasureWidth / EVPU_PER_SPACE) 
+    set_element_text(style_element, "minNoteDistance", spacing_prefs.MinimumItemDistance / EVPU_PER_SPACE)
+    set_element_text(style_element, "measureSpacing", spacing_prefs.ScalingFactor)
 end
 
 function write_xml()
@@ -218,6 +243,7 @@ function write_xml()
     write_lyrics_prefs(style_element)
     write_line_measure_prefs(style_element)
     write_stem_prefs(style_element)
+    write_spacing_prefs(style_element)
     local output_path = select_target()
     if output_path then
         if mssxml:SaveFile(output_path) ~= tinyxml2.XML_SUCCESS then
