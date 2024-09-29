@@ -27,6 +27,7 @@ local enigma_string = require("library.enigma_string")
 local text_extension = ".mss"
 
 -- Finale preferences:
+local current_is_part
 local distance_prefs
 local size_prefs
 local misc_prefs
@@ -35,6 +36,7 @@ local spacing_prefs
 local repeat_prefs
 
 function open_current_prefs()
+    current_is_part = finale.FCPart(finale.PARTID_CURRENT):IsPart()
     distance_prefs = finale.FCDistancePrefs()
     distance_prefs:Load(1)
     size_prefs = finale.FCSizePrefs()
@@ -42,7 +44,7 @@ function open_current_prefs()
     misc_prefs = finale.FCMiscDocPrefs()
     misc_prefs:Load(1)
     page_prefs = finale.FCPageFormatPrefs()
-    if finale.FCPart(finale.PARTID_CURRENT):IsPart() then
+    if current_is_part then
         page_prefs:LoadParts()
     else
         page_prefs:LoadScore()
@@ -155,13 +157,15 @@ function write_lyrics_prefs(style_element)
     end
 end
 
-function write_barline_prefs(style_element)
+function write_line_measure_prefs(style_element)
     set_element_text(style_element, "minMeasureWidth", spacing_prefs.MinMeasureWidth / 24) 
     set_element_text(style_element, "barWidth", size_prefs.ThinBarlineThickness / 1536) -- EFIX per space
     set_element_text(style_element, "doubleBarWidth", size_prefs.ThinBarlineThickness / 1536)
     set_element_text(style_element, "endBarWidth", size_prefs.HeavyBarlineThickness / 1536)
-    set_element_text(style_element, "doubleBarDistance", (distance_prefs.BarlineDoubleSpace - (size_prefs.ThinBarlineThickness/2)) / 1536)
-    set_element_text(style_element, "endBarDistance", (distance_prefs.BarlineFinalSpace - (size_prefs.ThinBarlineThickness/2)) / 1536)
+    -- Finale's double bar distance is measured from the beginning of the thin line
+    set_element_text(style_element, "doubleBarDistance", (distance_prefs.BarlineDoubleSpace - size_prefs.ThinBarlineThickness) / 1536)
+    -- Finale's final bar distance is the separatioln amount
+    set_element_text(style_element, "endBarDistance", (distance_prefs.BarlineFinalSpace) / 1536)
     set_element_text(style_element, "repeatBarlineDotSeparation", repeat_prefs.ForwardSpace / 24)
     set_element_text(style_element, "repeatBarTips", repeat_prefs.WingStyle ~= finale.REPWING_NONE)
     set_element_text(style_element, "startBarlineSingle", misc_prefs.LeftBarlineDisplaySingle)
@@ -169,6 +173,24 @@ function write_barline_prefs(style_element)
     set_element_text(style_element, "bracketWidth", 0.5) -- hard-coded in Finale
     set_element_text(style_element, "bracketDistance", -distance_prefs.GroupBracketDefaultDistance / 24)
     set_element_text(style_element, "akkoladeBarDistance", -distance_prefs.GroupBracketDefaultDistance / 24)
+    set_element_text(style_element, "clefLeftMargin", distance_prefs.ClefSpaceBefore / 24)
+    set_element_text(style_element, "keysigLeftMargin", distance_prefs.KeySpaceBefore / 24)
+    local time_sig_space_before = current_is_part and distance_prefs.TimeSigPartsSpaceBefore or distance_prefs.TimeSigSpaceBefore
+    set_element_text(style_element, "timesigLeftMargin", time_sig_space_before / 24)
+    set_element_text(style_element, "clefKeyDistance", (distance_prefs.ClefSpaceAfter + distance_prefs.ClefKeyExtraSpace + distance_prefs.KeySpaceBefore) / 24)
+    set_element_text(style_element, "clefTimesigDistance", (distance_prefs.ClefSpaceAfter + distance_prefs.ClefTimeExtraSpace + time_sig_space_before) / 24)
+    set_element_text(style_element, "keyTimesigDistance", (distance_prefs.KeySpaceAfter + distance_prefs.KeyTimeExtraSpace + time_sig_space_before) / 24)
+    set_element_text(style_element, "keyBarlineDistance", repeat_prefs.AfterKeySpace / 24)
+    set_element_text(style_element, "systemHeaderDistance", distance_prefs.KeySpaceAfter / 24)
+    set_element_text(style_element, "systemHeaderTimeSigDistance", distance_prefs.TimeSigSpaceAfter / 24)
+    set_element_text(style_element, "clefBarlineDistance", repeat_prefs.AfterClefSpace / 24)
+    set_element_text(style_element, "timesigBarlineDistance", repeat_prefs.AfterClefSpace / 24)
+end
+
+-- keysigAccidentalDistance fudge factor +4 EVPU
+-- keysigNaturalDistance    fudge factor +6 EVPU
+
+function write_stem_prefs(style_element)
 end
 
 function write_xml()
@@ -194,7 +216,8 @@ function write_xml()
     open_current_prefs()
     write_page_prefs(style_element)
     write_lyrics_prefs(style_element)
-    write_barline_prefs(style_element)
+    write_line_measure_prefs(style_element)
+    write_stem_prefs(style_element)
     local output_path = select_target()
     if output_path then
         if mssxml:SaveFile(output_path) ~= tinyxml2.XML_SUCCESS then
