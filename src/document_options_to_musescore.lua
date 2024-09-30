@@ -26,6 +26,14 @@ local enigma_string = require("library.enigma_string")
 
 local text_extension = ".mss"
 
+-- hard-coded scaling values
+local EVPU_PER_INCH <const> = 288
+local EVPU_PER_MM <const> = 288 / 25.4
+local EVPU_PER_SPACE <const> = 24
+local EFIX_PER_EVPU <const> = 64
+local EFIX_PER_SPACE <const> = EVPU_PER_SPACE * EFIX_PER_EVPU
+local MUSE_FINALE_SCALE_DIFFERENTIAL <const> = 20 / 24
+
 -- Finale preferences:
 local current_is_part
 local default_music_font
@@ -36,6 +44,10 @@ local music_character_prefs
 local page_prefs
 local spacing_prefs
 local repeat_prefs
+local smart_shape_prefs
+local part_scope_prefs
+local layer_one_prefs
+local mmrest_prefs
 
 function open_current_prefs()
     local font_prefs = finale.FCFontPrefs()
@@ -60,6 +72,14 @@ function open_current_prefs()
     spacing_prefs:Load(1)
     repeat_prefs = finale.FCRepeatPrefs()
     repeat_prefs:Load(1)
+    smart_shape_prefs = finale.FCSmartShapePrefs()
+    smart_shape_prefs:Load(1)
+    part_scope_prefs = finale.FCPartScopePrefs()
+    part_scope_prefs:Load(1) -- loads for current part or score
+    layer_one_prefs = finale.FCLayerPrefs()
+    layer_one_prefs:Load(0)
+    mmrest_prefs = finale.FCMultiMeasureRestPrefs()
+    mmrest_prefs:Load(1)
 end
 
 -- returns Lua strings for path, file name without extension, full file path
@@ -137,11 +157,20 @@ function muse_mag_val(default_font_setting)
     return 1.0
 end
 
-local EVPU_PER_INCH = 288
-local EVPU_PER_MM = 288 / 25.4
-local EVPU_PER_SPACE = 24
-local EFIX_PER_EVPU = 64
-local EFIX_PER_SPACE = EVPU_PER_SPACE * EFIX_PER_EVPU
+function write_font_pref(style_element, name_prefix, font_info)
+    set_element_text(style_element, name_prefix .. "FontFace", font_info.Name)
+    set_element_text(style_element, name_prefix .. "FontSize", font_info.Size * (font_info.Absolute and 1 or MUSE_FINALE_SCALE_DIFFERENTIAL))
+    set_element_text(style_element, name_prefix .. "FontSpatiumDependent", not font_info.Absolute)
+    set_element_text(style_element, name_prefix .. "FontStyle", muse_font_efx(font_info))
+end
+
+function write_category_text_font_pref(style_element, name_prefix, category_id)
+    local cat = finale.FCCategoryDef()
+    if not cat:Load(category_id) then
+        error("Unable to load caregory def for " .. name_prefix)
+    end
+    write_font_pref(style_element, name_prefix, cat:CreateTextFontInfo())
+end
 
 function write_page_prefs(style_element)
     set_element_text(style_element, "pageWidth", page_prefs.PageWidth / EVPU_PER_INCH)
@@ -175,11 +204,7 @@ function write_lyrics_prefs(style_element)
             local font = str and str.Length > 0 and enigma_string.trim_first_enigma_font_tags(str)
             font_info = font or font_info
         end
-        set_element_text(style_element, "lyrics" .. even_odd .. "FontFace", font_info.Name)
-        set_element_text(style_element, "lyrics" .. even_odd .. "FontSize",
-        font_info.Size * (font_info.Absolute and 1 or 0.83333))
-        set_element_text(style_element, "lyrics" .. even_odd .. "FontSpatiumDependent", not font_info.Absolute)
-        set_element_text(style_element, "lyrics" .. even_odd .. "FontStyle", muse_font_efx(font_info))
+        write_font_pref(style_element, "lyrics" .. even_odd, font_info)
     end
 end
 
@@ -217,6 +242,14 @@ function write_line_measure_prefs(style_element)
     set_element_text(style_element, "ledgerLineLength", (size_prefs.LedgerLeftHalf + size_prefs.LedgerRightHalf) / (2 * EVPU_PER_SPACE))
     set_element_text(style_element, "keysigAccidentalDistance", (distance_prefs.KeySpaceBetweenAccidentals + 4) / EVPU_PER_SPACE) -- observed fudge factor
     set_element_text(style_element, "keysigNaturalDistance", (distance_prefs.KeySpaceBetweenAccidentals + 6) / EVPU_PER_SPACE) -- observed fudge factor
+    set_element_text(style_element, "smallClefMag", misc_prefs.ClefResize / 100)
+    set_element_text(style_element, "genClef", not misc_prefs.OnlyFirstSystemClef)
+    set_element_text(style_element, "genKeysig", not misc_prefs.KeySigOnlyFirstSystem)
+    set_element_text(style_element, "genCourtesyTimesig", misc_prefs.CourtesyTimeSigAtSystemEnd)
+    set_element_text(style_element, "genCourtesyKeysig", misc_prefs.CourtesyKeySigAtSystemEnd)
+    set_element_text(style_element, "genCourtesyClef", misc_prefs.CourtesyClefAtSystemEnd)
+    set_element_text(style_element, "keySigCourtesyBarlineMode", misc_prefs.DoubleBarlineAtKeyChange)
+    set_element_text(style_element, "hideEmptyStaves", not current_is_part)
 end
 
 function write_stem_prefs(style_element)
@@ -240,13 +273,45 @@ function write_note_related_prefs(style_element)
     set_element_text(style_element, "beamWidth", size_prefs.BeamThickness / EFIX_PER_SPACE)
     set_element_text(style_element, "useWideBeams", distance_prefs.SecondaryBeamSpace > 0.75 * EVPU_PER_SPACE)
     -- Finale randomly adds twice the stem width to the length of a beam stub. (Observed behavior)
-    set_element_text(style_element, "beamMinLen", (size_prefs.BrokenBeamLength + (2*size_prefs.StemLineThickness/EFIX_PER_EVPU)) / EVPU_PER_SPACE)
+    set_element_text(style_element, "beamMinLen", (size_prefs.BrokenBeamLength + (2 * size_prefs.StemLineThickness / EFIX_PER_EVPU)) / EVPU_PER_SPACE)
     set_element_text(style_element, "beamNoSlope", misc_prefs.BeamSlopeStyle == finale.BEAMSLOPE_FLATTENALL)
     set_element_text(style_element, "dotMag", muse_mag_val(finale.FONTPREF_AUGMENTATIONDOT))
     set_element_text(style_element, "dotNoteDistance", distance_prefs.AugmentationDotNoteSpace / EVPU_PER_SPACE)
     set_element_text(style_element, "dotRestDistance", distance_prefs.AugmentationDotNoteSpace / EVPU_PER_SPACE)
     set_element_text(style_element, "dotDotDistance", distance_prefs.AugmentationDotSpace / EVPU_PER_SPACE)
     set_element_text(style_element, "articulationMag", muse_mag_val(finale.FONTPREF_ARTICULATION))
+    set_element_text(style_element, "graceNoteMag", size_prefs.GraceNoteSize / 100)
+    set_element_text(style_element, "concertPitch", part_scope_prefs.DisplayInConcertPitch)
+    set_element_text(style_element, "multiVoiceRestTwoSpaceOffset", math.abs(layer_one_prefs.RestOffset) >= 4)
+end
+
+function write_smart_shape_prefs(style_element)
+    set_element_text(style_element, "hairpinHeight", smart_shape_prefs.HairpinDefaultOpening / EVPU_PER_SPACE)
+    set_element_text(style_element, "hairpinContHeight", 0.5) -- not configurable in Finale: hard-coded to a half space
+    set_element_text(style_element, "hairpinLineWidth", smart_shape_prefs.HairpinLineWidth / EFIX_PER_SPACE)
+    write_category_text_font_pref(style_element, "hairpin", finale.DEFAULTCATID_DYNAMICS)
+    local line_width_evpu <const> = smart_shape_prefs.HairpinLineWidth / EFIX_PER_EVPU
+    set_element_text(style_element, "hairpinLineDashLineLen", smart_shape_prefs.LineDashLength / line_width_evpu)
+    set_element_text(style_element, "hairpinLineDashGapLen", smart_shape_prefs.LineDashSpace / line_width_evpu)
+end
+
+function write_measure_number_prefs(style_element)
+    local meas_num_regions = finale.FCMeasureNumberRegions()
+    set_element_text(style_element, "showMeasureNumber", meas_num_regions:LoadAll() > 0)
+    if meas_num_regions.Count > 0 then
+        local meas_nums = meas_num_regions:GetItemAt(0)
+        set_element_text(style_element, "showMeasureNumberOne", not meas_nums:GetHideFirstNumber())
+        set_element_text(style_element, "measureNumberInterval", meas_nums:GetMultipleValue())
+        set_element_text(style_element, "measureNumberSystem", meas_nums:GetShowOnSystemStart() and not meas_nums:GetShowMultiples())
+    end
+    set_element_text(style_element, "createMultiMeasureRests", current_is_part)
+    set_element_text(style_element, "minEmptyMeasures", mmrest_prefs.StartNumberingAt)    
+    set_element_text(style_element, "minMMRestWidth", mmrest_prefs.Width / EVPU_PER_SPACE)
+    set_element_text(style_element, "mmRestNumberPos", (-mmrest_prefs.NumberVerticalAdjust / EVPU_PER_SPACE) + 1)
+    set_element_text(style_element, "multiMeasureRestMargin", mmrest_prefs.ShapeStartAdjust / EVPU_PER_SPACE)
+    set_element_text(style_element, "oldStyleMultiMeasureRests", mmrest_prefs.UseSymbols)
+    set_element_text(style_element, "mmRestOldStyleMaxMeasures", mmrest_prefs.UseSymbolsLessThan + 1)
+    set_element_text(style_element, "mmRestOldStyleSpacing", mmrest_prefs.SymbolSpace / EVPU_PER_SPACE)
 end
 
 function write_xml()
@@ -276,6 +341,8 @@ function write_xml()
     write_stem_prefs(style_element)
     write_spacing_prefs(style_element)
     write_note_related_prefs(style_element)
+    write_smart_shape_prefs(style_element)
+    write_measure_number_prefs(style_element)
     local output_path = select_target()
     if output_path then
         if mssxml:SaveFile(output_path) ~= tinyxml2.XML_SUCCESS then
