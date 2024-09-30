@@ -28,6 +28,7 @@ local text_extension = ".mss"
 
 -- Finale preferences:
 local current_is_part
+local default_music_font
 local distance_prefs
 local size_prefs
 local misc_prefs
@@ -37,6 +38,9 @@ local spacing_prefs
 local repeat_prefs
 
 function open_current_prefs()
+    local font_prefs = finale.FCFontPrefs()
+    font_prefs:Load(finale.FONTPREF_MUSIC)
+    default_music_font = font_prefs:CreateFontInfo()
     current_is_part = finale.FCPart(finale.PARTID_CURRENT):IsPart()
     distance_prefs = finale.FCDistancePrefs()
     distance_prefs:Load(1)
@@ -84,15 +88,16 @@ end
 
 function set_element_text(style_element, name, value)
     local setter_func = "SetText"
-    if type(value) == "number" then
+    if type(value) == "nil" then
+        error("incorrect property for " .. name)
+    elseif type(value) == "number" then
         if math.type(value) == "float" then
             value = string.format("%.5g", value)
             setter_func = "SetText"
         else
             setter_func = "SetIntText"
         end
-    end
-    if type(value) == "boolean" then
+    elseif type(value) == "boolean" then
         value = value and 1 or 0
         setter_func = "SetIntText"
     end
@@ -121,10 +126,22 @@ function muse_font_efx(font_info)
     return retval
 end
 
+function muse_mag_val(default_font_setting)
+    local font_prefs = finale.FCFontPrefs()
+    if font_prefs:Load(default_font_setting) then
+        local font_info = font_prefs:CreateFontInfo()
+        if font_info.Name == default_music_font.Name then
+            return font_info.Size / default_music_font.Size
+        end
+    end
+    return 1.0
+end
+
 local EVPU_PER_INCH = 288
 local EVPU_PER_MM = 288 / 25.4
 local EVPU_PER_SPACE = 24
-local EFIX_PER_SPACE = EVPU_PER_SPACE * 64
+local EFIX_PER_EVPU = 64
+local EFIX_PER_SPACE = EVPU_PER_SPACE * EFIX_PER_EVPU
 
 function write_page_prefs(style_element)
     set_element_text(style_element, "pageWidth", page_prefs.PageWidth / EVPU_PER_INCH)
@@ -198,11 +215,9 @@ function write_line_measure_prefs(style_element)
     set_element_text(style_element, "staffLineWidth", size_prefs.StaffLineThickness / EFIX_PER_SPACE)
     set_element_text(style_element, "ledgerLineWidth", size_prefs.LedgerLineThickness / EFIX_PER_SPACE)
     set_element_text(style_element, "ledgerLineLength", (size_prefs.LedgerLeftHalf + size_prefs.LedgerRightHalf) / (2 * EVPU_PER_SPACE))
-
+    set_element_text(style_element, "keysigAccidentalDistance", (distance_prefs.KeySpaceBetweenAccidentals + 4) / EVPU_PER_SPACE) -- observed fudge factor
+    set_element_text(style_element, "keysigNaturalDistance", (distance_prefs.KeySpaceBetweenAccidentals + 6) / EVPU_PER_SPACE) -- observed fudge factor
 end
-
--- keysigAccidentalDistance fudge factor +4 EVPU
--- keysigNaturalDistance    fudge factor +6 EVPU
 
 function write_stem_prefs(style_element)
     set_element_text(style_element, "useStraightNoteFlags", music_character_prefs.UseStraightFlags)
@@ -210,12 +225,28 @@ function write_stem_prefs(style_element)
     set_element_text(style_element, "shortenStem", true)
     set_element_text(style_element, "stemLength", size_prefs.NormalStemLength / EVPU_PER_SPACE)
     set_element_text(style_element, "shortestStem", size_prefs.ShortenedStemLength / EVPU_PER_SPACE)
+    set_element_text(style_element, "stemSlashThickness", size_prefs.GraceSlashThickness / EFIX_PER_SPACE)
 end
 
 function write_spacing_prefs(style_element)
-    set_element_text(style_element, "minMeasureWidth", spacing_prefs.MinMeasureWidth / EVPU_PER_SPACE) 
+    set_element_text(style_element, "minMeasureWidth", spacing_prefs.MinMeasureWidth / EVPU_PER_SPACE)
     set_element_text(style_element, "minNoteDistance", spacing_prefs.MinimumItemDistance / EVPU_PER_SPACE)
     set_element_text(style_element, "measureSpacing", spacing_prefs.ScalingFactor)
+end
+
+function write_note_related_prefs(style_element)
+    set_element_text(style_element, "accidentalDistance", distance_prefs.AccidentalMultiSpace / EVPU_PER_SPACE)
+    set_element_text(style_element, "accidentalNoteDistance", distance_prefs.AccidentalNoteSpace / EVPU_PER_SPACE)
+    set_element_text(style_element, "beamWidth", size_prefs.BeamThickness / EFIX_PER_SPACE)
+    set_element_text(style_element, "useWideBeams", distance_prefs.SecondaryBeamSpace > 0.75 * EVPU_PER_SPACE)
+    -- Finale randomly adds twice the stem width to the length of a beam stub. (Observed behavior)
+    set_element_text(style_element, "beamMinLen", (size_prefs.BrokenBeamLength + (2*size_prefs.StemLineThickness/EFIX_PER_EVPU)) / EVPU_PER_SPACE)
+    set_element_text(style_element, "beamNoSlope", misc_prefs.BeamSlopeStyle == finale.BEAMSLOPE_FLATTENALL)
+    set_element_text(style_element, "dotMag", muse_mag_val(finale.FONTPREF_AUGMENTATIONDOT))
+    set_element_text(style_element, "dotNoteDistance", distance_prefs.AugmentationDotNoteSpace / EVPU_PER_SPACE)
+    set_element_text(style_element, "dotRestDistance", distance_prefs.AugmentationDotNoteSpace / EVPU_PER_SPACE)
+    set_element_text(style_element, "dotDotDistance", distance_prefs.AugmentationDotSpace / EVPU_PER_SPACE)
+    set_element_text(style_element, "articulationMag", muse_mag_val(finale.FONTPREF_ARTICULATION))
 end
 
 function write_xml()
@@ -244,6 +275,7 @@ function write_xml()
     write_line_measure_prefs(style_element)
     write_stem_prefs(style_element)
     write_spacing_prefs(style_element)
+    write_note_related_prefs(style_element)
     local output_path = select_target()
     if output_path then
         if mssxml:SaveFile(output_path) ~= tinyxml2.XML_SUCCESS then
