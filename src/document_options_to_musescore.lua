@@ -19,6 +19,10 @@ function plugindef()
     return "Export Settings to MuseScore...", "Export Settings to MuseScore", "Export document options from the current document to a MuseScore style file."
 end
 
+-- A lot of Finale settings do not translate to MuseScore very well. They are commented out to show that
+-- we tested them but they did not produce useful results.
+
+
 -- luacheck: ignore 11./global_dialog
 
 local mixin = require("library.mixin")
@@ -48,6 +52,7 @@ local smart_shape_prefs
 local part_scope_prefs
 local layer_one_prefs
 local mmrest_prefs
+local tie_prefs
 
 function open_current_prefs()
     local font_prefs = finale.FCFontPrefs()
@@ -80,6 +85,8 @@ function open_current_prefs()
     layer_one_prefs:Load(0)
     mmrest_prefs = finale.FCMultiMeasureRestPrefs()
     mmrest_prefs:Load(1)
+    tie_prefs = finale.FCTiePrefs()
+    tie_prefs:Load(1)
 end
 
 -- returns Lua strings for path, file name without extension, full file path
@@ -164,10 +171,18 @@ function write_font_pref(style_element, name_prefix, font_info)
     set_element_text(style_element, name_prefix .. "FontStyle", muse_font_efx(font_info))
 end
 
+function write_default_font_pref(style_element, name_prefix, default_font_id)
+    local default_font = finale.FCFontPrefs()
+    if not default_font:Load(default_font_id) then
+        error("Unable to load default font preff for " .. name_prefix)
+    end
+    write_font_pref(style_element, name_prefix, default_font:CreateFontInfo())
+end
+
 function write_category_text_font_pref(style_element, name_prefix, category_id)
     local cat = finale.FCCategoryDef()
     if not cat:Load(category_id) then
-        error("Unable to load caregory def for " .. name_prefix)
+        error("Unable to load category def for " .. name_prefix)
     end
     write_font_pref(style_element, name_prefix, cat:CreateTextFontInfo())
 end
@@ -192,6 +207,10 @@ function write_page_prefs(style_element)
     local page_percent = page_prefs.PageScaling / 100
     local staff_percent = (page_prefs.SystemStaffHeight / (EVPU_PER_SPACE * 4 * 16)) * (page_prefs.SystemScaling / 100)
     set_element_text(style_element, "Spatium", (EVPU_PER_SPACE * staff_percent * page_percent) / EVPU_PER_MM)
+    if default_music_font.IsSMuFLFont then
+        set_element_text(style_element, "musicalSymbolFont", default_music_font.Name)
+        set_element_text(style_element, "musicalTextFont", default_music_font.Name .. " Text")
+    end
 end
 
 function write_lyrics_prefs(style_element)
@@ -265,6 +284,7 @@ function write_spacing_prefs(style_element)
     set_element_text(style_element, "minMeasureWidth", spacing_prefs.MinMeasureWidth / EVPU_PER_SPACE)
     set_element_text(style_element, "minNoteDistance", spacing_prefs.MinimumItemDistance / EVPU_PER_SPACE)
     set_element_text(style_element, "measureSpacing", spacing_prefs.ScalingFactor)
+    set_element_text(style_element, "minTieLength", spacing_prefs.MinimumDistanceWithTies / EVPU_PER_SPACE)
 end
 
 function write_note_related_prefs(style_element)
@@ -293,6 +313,14 @@ function write_smart_shape_prefs(style_element)
     local line_width_evpu <const> = smart_shape_prefs.HairpinLineWidth / EFIX_PER_EVPU
     set_element_text(style_element, "hairpinLineDashLineLen", smart_shape_prefs.LineDashLength / line_width_evpu)
     set_element_text(style_element, "hairpinLineDashGapLen", smart_shape_prefs.LineDashSpace / line_width_evpu)
+    set_element_text(style_element, "slurEndWidth", smart_shape_prefs.SlurTipWidth / (10000 * EVPU_PER_SPACE))
+    --set_element_text(style_element, "slurMidWidth", math.max(smart_shape_prefs.SlurThicknessVerticalLeft, smart_shape_prefs.SlurThicknessVerticalRight) / EVPU_PER_SPACE)
+    set_element_text(style_element, "slurDottedWidth", smart_shape_prefs.LineWidth / EFIX_PER_SPACE)
+    set_element_text(style_element, "tieEndWidth", tie_prefs.TipWidth / (10000 * EVPU_PER_SPACE))
+    --set_element_text(style_element, "tieMidWidth", math.max(tie_prefs.ThicknessLeft, tie_prefs.ThicknessRight) / EVPU_PER_SPACE)
+    set_element_text(style_element, "tieDottedWidth", smart_shape_prefs.LineWidth / EFIX_PER_SPACE)
+    set_element_text(style_element, "tiePlacementSingleNote", tie_prefs.UseOuterPlacement and "outside" or "inside")
+    set_element_text(style_element, "tiePlacementChord", tie_prefs.UseOuterPlacement and "outside" or "inside")
 end
 
 function write_measure_number_prefs(style_element)
@@ -302,16 +330,31 @@ function write_measure_number_prefs(style_element)
         local meas_nums = meas_num_regions:GetItemAt(0)
         set_element_text(style_element, "showMeasureNumberOne", not meas_nums:GetHideFirstNumber())
         set_element_text(style_element, "measureNumberInterval", meas_nums:GetMultipleValue())
-        set_element_text(style_element, "measureNumberSystem", meas_nums:GetShowOnSystemStart() and not meas_nums:GetShowMultiples())
+        set_element_text(style_element, "measureNumberSystem",
+            meas_nums:GetShowOnSystemStart() and not meas_nums:GetShowMultiples())
     end
     set_element_text(style_element, "createMultiMeasureRests", current_is_part)
-    set_element_text(style_element, "minEmptyMeasures", mmrest_prefs.StartNumberingAt)    
+    set_element_text(style_element, "minEmptyMeasures", mmrest_prefs.StartNumberingAt)
     set_element_text(style_element, "minMMRestWidth", mmrest_prefs.Width / EVPU_PER_SPACE)
-    set_element_text(style_element, "mmRestNumberPos", (-mmrest_prefs.NumberVerticalAdjust / EVPU_PER_SPACE) + 1)
-    set_element_text(style_element, "multiMeasureRestMargin", mmrest_prefs.ShapeStartAdjust / EVPU_PER_SPACE)
+    set_element_text(style_element, "mmRestNumberPos", (mmrest_prefs.NumberVerticalAdjust / EVPU_PER_SPACE) + 1)
+    --set_element_text(style_element, "multiMeasureRestMargin", mmrest_prefs.ShapeStartAdjust / EVPU_PER_SPACE)
     set_element_text(style_element, "oldStyleMultiMeasureRests", mmrest_prefs.UseSymbols)
     set_element_text(style_element, "mmRestOldStyleMaxMeasures", mmrest_prefs.UseSymbolsLessThan + 1)
     set_element_text(style_element, "mmRestOldStyleSpacing", mmrest_prefs.SymbolSpace / EVPU_PER_SPACE)
+end
+
+function write_repeat_ending_prefs(style_element)
+    --local element = set_element_text(style_element, "voltaPosAbove", "")
+    --element:SetDoubleAttribute("x", 0)
+    --element:SetDoubleAttribute("y", repeat_prefs.EndingBracketHeight / EVPU_PER_SPACE)
+    --set_element_text(style_element, "voltaHook", repeat_prefs.EndingFrontHookLength / EVPU_PER_SPACE)
+    set_element_text(style_element, "voltaLineWidth", repeat_prefs.EndingLineThickness / EFIX_PER_SPACE)
+    set_element_text(style_element, "voltaLineStyle", "solid")
+    write_default_font_pref(style_element, "volta", finale.FONTPREF_ENDING)
+    set_element_text(style_element, "voltaAlign", "left,baseline")
+    --element = set_element_text(style_element, "voltaOffset", "")
+    --element:SetDoubleAttribute("x", repeat_prefs.EndingHorizontalText / EVPU_PER_SPACE)
+    --element:SetDoubleAttribute("y", repeat_prefs.EndingVerticalText / EVPU_PER_SPACE)
 end
 
 function write_xml()
@@ -343,6 +386,7 @@ function write_xml()
     write_note_related_prefs(style_element)
     write_smart_shape_prefs(style_element)
     write_measure_number_prefs(style_element)
+    write_repeat_ending_prefs(style_element)
     local output_path = select_target()
     if output_path then
         if mssxml:SaveFile(output_path) ~= tinyxml2.XML_SUCCESS then
