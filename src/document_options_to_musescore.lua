@@ -22,7 +22,6 @@ end
 -- A lot of Finale settings do not translate to MuseScore very well. They are commented out to show that
 -- we tested them but they did not produce useful results.
 
-
 -- luacheck: ignore 11./global_dialog
 
 local mixin = require("library.mixin")
@@ -53,6 +52,7 @@ local part_scope_prefs
 local layer_one_prefs
 local mmrest_prefs
 local tie_prefs
+local tuplet_prefs
 
 function open_current_prefs()
     local font_prefs = finale.FCFontPrefs()
@@ -87,6 +87,8 @@ function open_current_prefs()
     mmrest_prefs:Load(1)
     tie_prefs = finale.FCTiePrefs()
     tie_prefs:Load(1)
+    tuplet_prefs = finale.FCTupletPrefs()
+    tuplet_prefs:Load(1)
 end
 
 -- returns Lua strings for path, file name without extension, full file path
@@ -268,6 +270,7 @@ function write_line_measure_prefs(style_element)
     set_element_text(style_element, "genCourtesyKeysig", misc_prefs.CourtesyKeySigAtSystemEnd)
     set_element_text(style_element, "genCourtesyClef", misc_prefs.CourtesyClefAtSystemEnd)
     set_element_text(style_element, "keySigCourtesyBarlineMode", misc_prefs.DoubleBarlineAtKeyChange)
+    set_element_text(style_element, "timeSigCourtesyBarlineMode", 0)
     set_element_text(style_element, "hideEmptyStaves", not current_is_part)
 end
 
@@ -310,9 +313,10 @@ function write_smart_shape_prefs(style_element)
     set_element_text(style_element, "hairpinContHeight", 0.5) -- not configurable in Finale: hard-coded to a half space
     set_element_text(style_element, "hairpinLineWidth", smart_shape_prefs.HairpinLineWidth / EFIX_PER_SPACE)
     write_category_text_font_pref(style_element, "hairpin", finale.DEFAULTCATID_DYNAMICS)
-    local line_width_evpu <const> = smart_shape_prefs.HairpinLineWidth / EFIX_PER_EVPU
-    set_element_text(style_element, "hairpinLineDashLineLen", smart_shape_prefs.LineDashLength / line_width_evpu)
-    set_element_text(style_element, "hairpinLineDashGapLen", smart_shape_prefs.LineDashSpace / line_width_evpu)
+    local hairpin_line_width_evpu <const> = smart_shape_prefs.HairpinLineWidth / EFIX_PER_EVPU
+    local line_width_evpu <const> = smart_shape_prefs.LineWidth / EFIX_PER_EVPU
+    set_element_text(style_element, "hairpinLineDashLineLen", smart_shape_prefs.LineDashLength / hairpin_line_width_evpu)
+    set_element_text(style_element, "hairpinLineDashGapLen", smart_shape_prefs.LineDashSpace / hairpin_line_width_evpu)
     set_element_text(style_element, "slurEndWidth", smart_shape_prefs.SlurTipWidth / (10000 * EVPU_PER_SPACE))
     --set_element_text(style_element, "slurMidWidth", math.max(smart_shape_prefs.SlurThicknessVerticalLeft, smart_shape_prefs.SlurThicknessVerticalRight) / EVPU_PER_SPACE)
     set_element_text(style_element, "slurDottedWidth", smart_shape_prefs.LineWidth / EFIX_PER_SPACE)
@@ -321,6 +325,12 @@ function write_smart_shape_prefs(style_element)
     set_element_text(style_element, "tieDottedWidth", smart_shape_prefs.LineWidth / EFIX_PER_SPACE)
     set_element_text(style_element, "tiePlacementSingleNote", tie_prefs.UseOuterPlacement and "outside" or "inside")
     set_element_text(style_element, "tiePlacementChord", tie_prefs.UseOuterPlacement and "outside" or "inside")
+    set_element_text(style_element, "ottavaHookAbove", smart_shape_prefs.HookLength / EFIX_PER_SPACE)
+    set_element_text(style_element, "ottavaHookBelow", -smart_shape_prefs.HookLength / EFIX_PER_SPACE)
+    set_element_text(style_element, "ottavaLineWidth", smart_shape_prefs.LineWidth / EFIX_PER_SPACE)
+    set_element_text(style_element, "ottavaLineStyle", "dashed")
+    set_element_text(style_element, "ottavaDashLineLen", smart_shape_prefs.LineDashLength / line_width_evpu)
+    set_element_text(style_element, "ottavaDashGapLen", smart_shape_prefs.LineDashSpace / line_width_evpu)
 end
 
 function write_measure_number_prefs(style_element)
@@ -328,18 +338,20 @@ function write_measure_number_prefs(style_element)
     set_element_text(style_element, "showMeasureNumber", meas_num_regions:LoadAll() > 0)
     if meas_num_regions.Count > 0 then
         local meas_nums = meas_num_regions:GetItemAt(0)
-        set_element_text(style_element, "showMeasureNumberOne", not meas_nums:GetHideFirstNumber())
-        set_element_text(style_element, "measureNumberInterval", meas_nums:GetMultipleValue())
-        set_element_text(style_element, "measureNumberSystem",
-            meas_nums:GetShowOnSystemStart() and not meas_nums:GetShowMultiples())
+        set_element_text(style_element, "showMeasureNumberOne", not meas_nums:GetHideFirstNumber(current_is_part))
+        set_element_text(style_element, "measureNumberInterval", meas_nums:GetMultipleValue(current_is_part))
+        set_element_text(style_element, "measureNumberSystem", meas_nums:GetShowOnSystemStart(current_is_part) and not meas_nums:GetShowMultiples(current_is_part))
+        local font_info = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:CreateStartFontInfo(current_is_part) or meas_nums:CreateMultipleFontInfo(current_is_part)
+        write_font_pref(style_element, "measureNumber", font_info)
+        
     end
     set_element_text(style_element, "createMultiMeasureRests", current_is_part)
     set_element_text(style_element, "minEmptyMeasures", mmrest_prefs.StartNumberingAt)
     set_element_text(style_element, "minMMRestWidth", mmrest_prefs.Width / EVPU_PER_SPACE)
     set_element_text(style_element, "mmRestNumberPos", (mmrest_prefs.NumberVerticalAdjust / EVPU_PER_SPACE) + 1)
     --set_element_text(style_element, "multiMeasureRestMargin", mmrest_prefs.ShapeStartAdjust / EVPU_PER_SPACE)
-    set_element_text(style_element, "oldStyleMultiMeasureRests", mmrest_prefs.UseSymbols)
-    set_element_text(style_element, "mmRestOldStyleMaxMeasures", mmrest_prefs.UseSymbolsLessThan + 1)
+    set_element_text(style_element, "oldStyleMultiMeasureRests", mmrest_prefs.UseSymbols and mmrest_prefs.UseSymbolsLessThan > 1)
+    set_element_text(style_element, "mmRestOldStyleMaxMeasures", math.max(mmrest_prefs.UseSymbolsLessThan - 1, 0))
     set_element_text(style_element, "mmRestOldStyleSpacing", mmrest_prefs.SymbolSpace / EVPU_PER_SPACE)
 end
 
@@ -355,6 +367,107 @@ function write_repeat_ending_prefs(style_element)
     --element = set_element_text(style_element, "voltaOffset", "")
     --element:SetDoubleAttribute("x", repeat_prefs.EndingHorizontalText / EVPU_PER_SPACE)
     --element:SetDoubleAttribute("y", repeat_prefs.EndingVerticalText / EVPU_PER_SPACE)
+end
+
+function write_tuplet_prefs(style_element)
+    set_element_text(style_element, "tupletOutOfStaff", tuplet_prefs.AvoidStaff)
+    set_element_text(style_element, "tupletStemLeftDistance", tuplet_prefs.LeftExtension / EVPU_PER_SPACE)
+    set_element_text(style_element, "tupletStemRightDistance", tuplet_prefs.RightExtension / EVPU_PER_SPACE)
+    set_element_text(style_element, "tupletNoteLeftDistance", tuplet_prefs.LeftExtension / EVPU_PER_SPACE)
+    set_element_text(style_element, "tupletNoteRightDistance", tuplet_prefs.RightExtension / EVPU_PER_SPACE)
+    set_element_text(style_element, "tupletBracketWidth", tuplet_prefs.BracketThickness / EFIX_PER_SPACE)
+    if tuplet_prefs.PlacementMode == finale.TUPLETPLACEMENT_ABOVE then
+        set_element_text(style_element, "tupletDirection", 1)
+    elseif tuplet_prefs.PlacementMode == finale.TUPLETPLACEMENT_BELOW then
+        set_element_text(style_element, "tupletDirection", 2)
+    else
+        set_element_text(style_element, "tupletDirection", 0)
+    end
+    if tuplet_prefs.NumberStyle == finale.TUPLETNUMBER_NONE then
+        set_element_text(style_element, "tupletNumberType", 2)
+    elseif tuplet_prefs.NumberStyle == finale.TUPLETNUMBER_REGULAR then
+        set_element_text(style_element, "tupletNumberType", 0)
+    else
+        set_element_text(style_element, "tupletNumberType", 1)
+    end
+    if tuplet_prefs.ShapeStyle == finale.TUPLETSHAPE_NONE then
+        set_element_text(style_element, "tupletBracketType", 2)
+    elseif tuplet_prefs.BracketMode == finale.TUPLETBRACKET_ALWAYS then
+        set_element_text(style_element, "tupletBracketType", 1)
+    else
+        set_element_text(style_element, "tupletBracketType", 0)
+    end
+    local font_pref = finale.FCFontPrefs()
+    if not font_pref:Load(finale.FONTPREF_TUPLET) then
+        error("unable to load font pref for tuplets")
+    end
+    local font_info = font_pref:CreateFontInfo()
+    if font_info.IsSMuFLFont then
+        set_element_text(style_element, "tupletMusicalSymbolsScale", muse_mag_val(finale.FONTPREF_TUPLET))
+        set_element_text(style_element, "tupletUseSymbols", true)
+    else
+        write_font_pref(style_element, "tuplet", font_info)
+        set_element_text(style_element, "tupletMusicalSymbolsScale", 1)
+        set_element_text(style_element, "tupletUseSymbols", false)
+    end
+    set_element_text(style_element, "tupletBracketHookHeight",
+    math.max(tuplet_prefs.LeftHookLength, tuplet_prefs.RightHookLength) / EVPU_PER_SPACE)
+end
+
+function write_marking_prefs(style_element)
+    local cat = finale.FCCategoryDef()
+    if not cat:Load(finale.DEFAULTCATID_DYNAMICS) then
+        error("unable to load FCCategoryDef for dynamics")
+    end
+    local font_info = finale.FCFontInfo()
+    local override = cat:GetMusicFontInfo(font_info) and font_info.IsSMuFLFont and font_info.FontID ~= 0
+    set_element_text(style_element, "dynamicsOverrideFont", override)
+    if override then
+        set_element_text(style_element, "dynamicsFont", font_info.Name)
+        set_element_text(style_element, "dynamicsSize", font_info.Size / default_music_font.Size)
+    else
+        set_element_text(style_element, "dynamicsFont", default_music_font.Name)
+        set_element_text(style_element, "dynamicsSize",
+            font_info.IsSMuFLFont and (font_info.Size / default_music_font.Size) or 1)
+    end
+    local font_pref = finale.FCFontPrefs()
+    if not font_pref:Load(finale.FONTPREF_TEXTBLOCK) then
+        error("unable to load font prefs for Text Blocks")
+    end
+    font_info = font_pref:CreateFontInfo()
+    write_font_pref(style_element, "default", font_info)
+    -- since the following depend on Page Titles, just update the font face with the TEXTBLOCK font name
+    set_element_text(style_element, "titleFontFace", font_info.Name)
+    set_element_text(style_element, "subTitleFontFace", font_info.Name)
+    set_element_text(style_element, "composerFontFace", font_info.Name)
+    set_element_text(style_element, "lyricistFontFace", font_info.Name)
+    write_default_font_pref(style_element, "longInstrument", finale.FONTPREF_STAFFNAME)
+    local position = finale.FCStaffNamePositionPrefs()
+    local function justify_to_alignment()
+        if position.Justification == finale.TEXTJUSTIFY_LEFT then
+            return "left,center"
+        elseif position.Justification == finale.TEXTJUSTIFY_RIGHT then
+            return "right,center"
+        else
+            return "center,center"
+        end
+    end
+    position:LoadFull()
+    set_element_text(style_element, "longInstrumentAlign", justify_to_alignment())
+    write_default_font_pref(style_element, "shortInstrument", finale.FONTPREF_ABRVSTAFFNAME)
+    position:LoadAbbreviated()
+    set_element_text(style_element, "shortInstrumentAlign", justify_to_alignment())
+    write_default_font_pref(style_element, "partInstrument", finale.FONTPREF_STAFFNAME)
+    write_category_text_font_pref(style_element, "dynamics", finale.DEFAULTCATID_DYNAMICS)
+    write_category_text_font_pref(style_element, "expression", finale.DEFAULTCATID_EXPRESSIVETEXT)
+    write_category_text_font_pref(style_element, "tempo", finale.DEFAULTCATID_TEMPOMARKS)
+    write_category_text_font_pref(style_element, "tempoChange", finale.DEFAULTCATID_TEMPOALTERATIONS)
+    set_element_text(style_element, "tempoChangeLineWidth", smart_shape_prefs.LineWidth / EFIX_PER_SPACE)
+    set_element_text(style_element, "tempoChangeLineStyle", "dashed")
+    local line_width_evpu <const> = smart_shape_prefs.LineWidth / EFIX_PER_EVPU
+    set_element_text(style_element, "tempoChangeDashLineLen", smart_shape_prefs.LineDashLength / line_width_evpu)
+    set_element_text(style_element, "tempoChangeDashGapLen", smart_shape_prefs.LineDashSpace / line_width_evpu)
+    write_category_text_font_pref(style_element, "metronome", finale.DEFAULTCATID_TEMPOMARKS)
 end
 
 function write_xml()
@@ -387,6 +500,8 @@ function write_xml()
     write_smart_shape_prefs(style_element)
     write_measure_number_prefs(style_element)
     write_repeat_ending_prefs(style_element)
+    write_tuplet_prefs(style_element)
+    write_marking_prefs(style_element)
     local output_path = select_target()
     if output_path then
         if mssxml:SaveFile(output_path) ~= tinyxml2.XML_SUCCESS then
