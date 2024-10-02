@@ -4,13 +4,13 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson (folder scanning added by Carl Vine)"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.5"
+    finaleplugin.Version = "1.0.6"
     finaleplugin.Date = "October 2, 2024"
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.AdditionalMenuOptions = [[
-        Massage MusicXML Single File
+        Massage MusicXML Single File...
     ]]
     finaleplugin.AdditionalUndoText = [[
         Massage MusicXML Single File
@@ -38,7 +38,7 @@ function plugindef()
         Due to a limitation in the xml parser, all xml processing instructions are removed. These are metadata that neither
         Dorico nor MuseScore use, so their removal should not affect importing into those programs.
     ]]
-    return "Massage MusicXML Folder",
+    return "Massage MusicXML Folder...",
         "Massage MusicXML Folder",
         "Massage a folder of MusicXML files to improve importing to Dorico and MuseScore."
 end
