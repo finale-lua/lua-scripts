@@ -626,28 +626,26 @@ function select_target()
     return selected_file_name.LuaString
 end
 
---[[
-function select_existing_target()
-    local path_name, file_name, full_file_name = get_file_path_no_extension()
-    file_name = file_name .. text_extension
-    local open_dialog = finale.FCFileOpenDialog(finenv.UI())
-    open_dialog:SetWindowTitle(finale.FCString("Open MuseScore style settings for " .. full_file_name))
-    open_dialog:AddFilter(finale.FCString("*" .. text_extension), finale.FCString("MuseScore Style Settings File"))
-    open_dialog:SetInitFolder(path_name)
-    open_dialog:SetFileName(file_name)
-    open_dialog:AssureFileExtension(text_extension)
+function select_directory()
+    local default_folder_path = finale.FCString()
+    default_folder_path:SetMusicFolderPath()
+    local open_dialog = finale.FCFolderBrowseDialog(finenv.UI())
+    open_dialog:SetWindowTitle(finale.FCString("Select folder containing Finale files"))
+    open_dialog:SetFolderPath(default_folder_path)
     if not open_dialog:Execute() then
         return nil
     end
-    local selected_file_name = finale.FCString()
-    open_dialog:GetFileName(selected_file_name)
-    return selected_file_name.LuaString
+    local selected_folder = finale.FCString()
+    open_dialog:GetFolderPath(selected_folder)
+    return selected_folder.LuaString
 end
-]]
 
 function document_options_to_musescore()
     if finale.FCDocuments():LoadAll() <= 0 then
-        finenv.UI():AlertInfo("ToDo: batch processing.", "No Open Document")
+        local selected_directory = select_directory()
+        if selected_directory then
+            finenv.UI():AlertInfo("ToDo: batch process folder " .. selected_directory, "No Open Document")
+        end
         return
     end
     current_is_part = finale.FCPart(finale.PARTID_CURRENT):IsPart()
