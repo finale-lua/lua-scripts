@@ -189,6 +189,30 @@ function write_category_text_font_pref(style_element, name_prefix, category_id)
     write_font_pref(style_element, name_prefix, cat:CreateTextFontInfo())
 end
 
+function write_line_prefs(style_element, name_prefix, width_efix, dash_length, dash_gap, style_string)
+    local line_width_evpu <const> = width_efix / EFIX_PER_EVPU
+    set_element_text(style_element, name_prefix .. "LineWidth", width_efix / EFIX_PER_SPACE)
+    if style_string then
+        set_element_text(style_element, name_prefix .. "LineStyle", style_string)
+    end
+    set_element_text(style_element, name_prefix .. "DashLineLen", dash_length / line_width_evpu)
+    set_element_text(style_element, name_prefix .. "DashGapLen", dash_gap / line_width_evpu)
+end
+
+function write_frame_prefs(style_element, name_prefix, enclosure)
+    if not enclosure or enclosure.Shape == finale.ENCLOSURE_NONE then
+        set_element_text(style_element, name_prefix .. "FrameType", 0)
+        return -- do not override any other defaults if no enclosure shape
+    elseif enclosure.Shape == finale.ENCLOSURE_ELLIPSE then
+        set_element_text(style_element, name_prefix .. "FrameType", 2)
+    else
+        set_element_text(style_element, name_prefix .. "FrameType", 1)
+    end
+    set_element_text(style_element, name_prefix .. "FramePadding", enclosure.HorizontalMargin / EVPU_PER_SPACE)
+    set_element_text(style_element, name_prefix .. "FrameWidth", enclosure.LineWidth / EFIX_PER_SPACE)
+    set_element_text(style_element, name_prefix .. "FrameRound", enclosure.RoundedCorners)
+end
+
 function write_page_prefs(style_element)
     set_element_text(style_element, "pageWidth", page_prefs.PageWidth / EVPU_PER_INCH)
     set_element_text(style_element, "pageHeight", page_prefs.PageHeight / EVPU_PER_INCH)
@@ -311,12 +335,8 @@ end
 function write_smart_shape_prefs(style_element)
     set_element_text(style_element, "hairpinHeight", smart_shape_prefs.HairpinDefaultOpening / EVPU_PER_SPACE)
     set_element_text(style_element, "hairpinContHeight", 0.5) -- not configurable in Finale: hard-coded to a half space
-    set_element_text(style_element, "hairpinLineWidth", smart_shape_prefs.HairpinLineWidth / EFIX_PER_SPACE)
     write_category_text_font_pref(style_element, "hairpin", finale.DEFAULTCATID_DYNAMICS)
-    local hairpin_line_width_evpu <const> = smart_shape_prefs.HairpinLineWidth / EFIX_PER_EVPU
-    local line_width_evpu <const> = smart_shape_prefs.LineWidth / EFIX_PER_EVPU
-    set_element_text(style_element, "hairpinLineDashLineLen", smart_shape_prefs.LineDashLength / hairpin_line_width_evpu)
-    set_element_text(style_element, "hairpinLineDashGapLen", smart_shape_prefs.LineDashSpace / hairpin_line_width_evpu)
+    write_line_prefs(style_element, "hairpin", smart_shape_prefs.HairpinLineWidth, smart_shape_prefs.LineDashLength, smart_shape_prefs.LineDashSpace)
     set_element_text(style_element, "slurEndWidth", smart_shape_prefs.SlurTipWidth / (10000 * EVPU_PER_SPACE))
     --set_element_text(style_element, "slurMidWidth", math.max(smart_shape_prefs.SlurThicknessVerticalLeft, smart_shape_prefs.SlurThicknessVerticalRight) / EVPU_PER_SPACE)
     set_element_text(style_element, "slurDottedWidth", smart_shape_prefs.LineWidth / EFIX_PER_SPACE)
@@ -325,12 +345,10 @@ function write_smart_shape_prefs(style_element)
     set_element_text(style_element, "tieDottedWidth", smart_shape_prefs.LineWidth / EFIX_PER_SPACE)
     set_element_text(style_element, "tiePlacementSingleNote", tie_prefs.UseOuterPlacement and "outside" or "inside")
     set_element_text(style_element, "tiePlacementChord", tie_prefs.UseOuterPlacement and "outside" or "inside")
-    set_element_text(style_element, "ottavaHookAbove", smart_shape_prefs.HookLength / EFIX_PER_SPACE)
-    set_element_text(style_element, "ottavaHookBelow", -smart_shape_prefs.HookLength / EFIX_PER_SPACE)
-    set_element_text(style_element, "ottavaLineWidth", smart_shape_prefs.LineWidth / EFIX_PER_SPACE)
-    set_element_text(style_element, "ottavaLineStyle", "dashed")
-    set_element_text(style_element, "ottavaDashLineLen", smart_shape_prefs.LineDashLength / line_width_evpu)
-    set_element_text(style_element, "ottavaDashGapLen", smart_shape_prefs.LineDashSpace / line_width_evpu)
+    set_element_text(style_element, "ottavaHookAbove", smart_shape_prefs.HookLength / EVPU_PER_SPACE)
+    set_element_text(style_element, "ottavaHookBelow", -smart_shape_prefs.HookLength / EVPU_PER_SPACE)
+    write_line_prefs(style_element, "ottava", smart_shape_prefs.LineWidth, smart_shape_prefs.LineDashLength, smart_shape_prefs.LineDashSpace, "dashed")
+    set_element_text(style_element, "ottavaNumbersOnly", smart_shape_prefs.OctavesAsText)
 end
 
 function write_measure_number_prefs(style_element)
@@ -341,9 +359,54 @@ function write_measure_number_prefs(style_element)
         set_element_text(style_element, "showMeasureNumberOne", not meas_nums:GetHideFirstNumber(current_is_part))
         set_element_text(style_element, "measureNumberInterval", meas_nums:GetMultipleValue(current_is_part))
         set_element_text(style_element, "measureNumberSystem", meas_nums:GetShowOnSystemStart(current_is_part) and not meas_nums:GetShowMultiples(current_is_part))
+        local function process_segment(font_info, enclosure, justification, alignment, vertical, prefix)
+            local function justification_string(justi)
+                if justi == finale.MNJUSTIFY_LEFT then
+                    return "left,baseline"
+                elseif justi == finale.MNJUSTIFY_CENTER then
+                    return "center,baseline"
+                else
+                    return "right,baseline"
+                end
+            end
+            local function horz_alignment(align)
+                if align == finale.MNALIGN_LEFT then
+                    return 0
+                elseif align == finale.MNALIGN_CENTER then
+                    return 1
+                else
+                    return 2
+                end
+            end
+            local function vert_alignment(vert)
+                return vert >= 0 and 0 or 1
+            end
+            write_font_pref(style_element, prefix, font_info)
+            set_element_text(style_element, prefix .. "VPlacement", vert_alignment(vertical))
+            set_element_text(style_element, prefix .. "HPlacement", horz_alignment(alignment))
+            print(justification_string(justification))
+            set_element_text(style_element, prefix .. "Align", justification_string(justification))
+            write_frame_prefs(style_element, prefix, enclosure)
+        end
         local font_info = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:CreateStartFontInfo(current_is_part) or meas_nums:CreateMultipleFontInfo(current_is_part)
-        write_font_pref(style_element, "measureNumber", font_info)
-        
+        local enclosure = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:GetEnclosureStart(current_is_part) or meas_nums:GetEnclosureMultiple(current_is_part)
+        local justification = meas_nums:GetShowMultiples(current_is_part) and meas_nums:GetMultipleJustification(current_is_part) or meas_nums:GetStartJustification(current_is_part)
+        local alignment = meas_nums:GetShowMultiples(current_is_part) and meas_nums:GetMultipleAlignment(current_is_part) or meas_nums:GetStartAlignment(current_is_part)
+        local vertical = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:GetStartVerticalPosition(current_is_part) or meas_nums:GetMultipleVerticalPosition(current_is_part)
+        set_element_text(style_element, "measureNumberOffsetType", 1)
+        process_segment(font_info, enclosure, justification, alignment, vertical, "measureNumber")
+        set_element_text(style_element, "mmRestShowMeasureNumberRange", meas_nums:GetShowMultiMeasureRange(current_is_part))
+        local left_char = meas_nums:GetMultiMeasureBracketLeft(current_is_part)
+        if left_char == 0 then
+            set_element_text(style_element, "mmRestRangeBracketType", 2)
+        elseif left_char == '(' then
+            set_element_text(style_element, "mmRestRangeBracketType", 1)
+        else
+            set_element_text(style_element, "mmRestRangeBracketType", 0)
+        end
+        process_segment(meas_nums:CreateMultiMeasureFontInfo(current_is_part), meas_nums:GetEnclosureMultiple(current_is_part),
+                meas_nums:GetMultiMeasureJustification(current_is_part), meas_nums:GetMultiMeasureAlignment(current_is_part),
+                meas_nums:GetMultiMeasureVerticalPosition(current_is_part), "mmRestRange")
     end
     set_element_text(style_element, "createMultiMeasureRests", current_is_part)
     set_element_text(style_element, "minEmptyMeasures", mmrest_prefs.StartNumberingAt)
@@ -462,11 +525,7 @@ function write_marking_prefs(style_element)
     write_category_text_font_pref(style_element, "expression", finale.DEFAULTCATID_EXPRESSIVETEXT)
     write_category_text_font_pref(style_element, "tempo", finale.DEFAULTCATID_TEMPOMARKS)
     write_category_text_font_pref(style_element, "tempoChange", finale.DEFAULTCATID_TEMPOALTERATIONS)
-    set_element_text(style_element, "tempoChangeLineWidth", smart_shape_prefs.LineWidth / EFIX_PER_SPACE)
-    set_element_text(style_element, "tempoChangeLineStyle", "dashed")
-    local line_width_evpu <const> = smart_shape_prefs.LineWidth / EFIX_PER_EVPU
-    set_element_text(style_element, "tempoChangeDashLineLen", smart_shape_prefs.LineDashLength / line_width_evpu)
-    set_element_text(style_element, "tempoChangeDashGapLen", smart_shape_prefs.LineDashSpace / line_width_evpu)
+    write_line_prefs(style_element, "tempoChange", smart_shape_prefs.LineWidth, smart_shape_prefs.LineDashLength, smart_shape_prefs.LineDashSpace, "dashed")
     write_category_text_font_pref(style_element, "metronome", finale.DEFAULTCATID_TEMPOMARKS)
 end
 
