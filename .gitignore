@@ -8,25 +8,12 @@ jwluatagfile.xml
 SciLexer.dll
 jwlua64.fxtco
 
-*.png
-
 # ignore Finale files (used for testing)
 *.mus
 *.musx
 *.mxl
 *.musicxml
-
-# ignore MuseScore files (used for testing)
-*.mscz
-*.mscx
 *.mss
-audiosettings.json
-viewsettings.json
-container.xml
-
-# ignore Dorico files (used for testing)
-*.dorico
-*.doricolib
 
 # script_settings folder is for setting user-specific parameters
 # and should not be tracked in this repo
