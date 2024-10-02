@@ -9,7 +9,7 @@ function plugindef()
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.Notes = [[
-        Exports settings from one or more Finale documents into a MuseScore `.mss` style file.
+        Exports settings from one or more Finale documents into a MuseScore `.mss` style settings file.
         Only a subset of possible MuseScore settings are exported. The rest will be taken
         from the default settings you have set up for MuseScore when you load it in MuseScore.
 
@@ -45,10 +45,16 @@ end
 
 -- luacheck: ignore 11./global_dialog
 
+local lfs = require("lfs")
+local text = require("luaosutils").text
+
+
 local enigma_string = require("library.enigma_string")
 
+local musx_extension = ".musx"
+local mus_extension = ".musx"
 local text_extension = ".mss"
---local part_extension = ".part" .. text_extension
+local part_extension = ".part" .. text_extension
 local mss_version = "4.40"
 
 -- hard-coded scaling values
@@ -116,16 +122,10 @@ function open_current_prefs()
 end
 
 -- returns Lua strings for path, file name without extension, full file path
-function get_file_path_no_extension()
+function get_file_path_no_extension(file_path_str)
     local path_name = finale.FCString()
     local file_name = finale.FCString()
-    local file_path = finale.FCString()
-    local documents = finale.FCDocuments()
-    documents:LoadAll()
-    local document = documents:FindCurrent()
-    if document then
-        document:GetPath(file_path)
-    end
+    local file_path = finale.FCString(file_path_str)
     file_path:SplitToPathAndFile(path_name, file_name)
     local full_file_name = file_name.LuaString
     local extension = finale.FCString(file_name.LuaString)
@@ -609,9 +609,35 @@ function write_xml(output_path)
     end
 end
 
-function select_target()
-    local path_name, file_name = get_file_path_no_extension()
-    file_name = file_name .. text_extension
+function process_folder(utf8_folder_path)
+    local lfs_folder_path = text.convert_encoding(utf8_folder_path, text.get_utf8_codepage(), text.get_default_codepage())
+    for finale_doc in lfs.dir(lfs_folder_path) do
+        if finale_doc ~= "." and finale_doc ~= ".." then
+            local lfs_full_path = lfs_folder_path .. "/" .. finale_doc
+            local utf8_full_path = text.convert_encoding(lfs_full_path, text.get_default_codepage(), text.get_utf8_codepage())
+            if (finale_doc:sub(-musx_extension:len()) == musx_extension) or (finale_doc:sub(-mus_extension:len()) == mus_extension) then
+                -- all temp
+                local path_name, file_name_no_ext = get_file_path_no_extension(utf8_full_path)
+                local file_name = file_name_no_ext .. (current_is_part and part_extension or text_extension)
+                finenv.UI():AlertInfo("ToDo: batch process file " .. path_name .. "/" .. file_name, "No Open Document")
+                return false -- temp
+                --write_xml(path_name .. "/" .. file_name)
+            else
+                local attr = lfs.attributes(lfs_full_path)
+                if attr and attr.mode == "directory" then
+                    if not process_folder(utf8_full_path) then
+                        return false
+                    end
+                end
+            end
+        end
+    end
+    return true
+end
+
+function select_target(file_path_str)
+    local path_name, file_name_no_ext = get_file_path_no_extension(file_path_str)
+    local file_name = file_name_no_ext .. (current_is_part and part_extension or text_extension)
     local save_dialog = finale.FCFileSaveAsDialog(finenv.UI())
     save_dialog:SetWindowTitle(finale.FCString("Save MuseScore style settings as"))
     save_dialog:AddFilter(finale.FCString("*" .. text_extension), finale.FCString("MuseScore Style Settings File"))
@@ -632,6 +658,7 @@ function select_directory()
     local open_dialog = finale.FCFolderBrowseDialog(finenv.UI())
     open_dialog:SetWindowTitle(finale.FCString("Select folder containing Finale files"))
     open_dialog:SetFolderPath(default_folder_path)
+    open_dialog:SetUseFinaleAPI(finenv:UI():IsOnMac())
     if not open_dialog:Execute() then
         return nil
     end
@@ -641,15 +668,19 @@ function select_directory()
 end
 
 function document_options_to_musescore()
-    if finale.FCDocuments():LoadAll() <= 0 then
+    local documents = finale.FCDocuments()
+    local document = documents:FindCurrent()
+    if not document then
         local selected_directory = select_directory()
         if selected_directory then
-            finenv.UI():AlertInfo("ToDo: batch process folder " .. selected_directory, "No Open Document")
+            process_folder(selected_directory)
         end
         return
     end
+    local file_path_fcstr = finale.FCString()
+    document:GetPath(file_path_fcstr)
     current_is_part = finale.FCPart(finale.PARTID_CURRENT):IsPart()
-    local output_path = select_target()
+    local output_path = select_target(file_path_fcstr.LuaString)
     if output_path then
         write_xml(output_path)
     end
