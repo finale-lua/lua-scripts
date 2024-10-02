@@ -53,6 +53,7 @@ local layer_one_prefs
 local mmrest_prefs
 local tie_prefs
 local tuplet_prefs
+local text_exps
 
 function open_current_prefs()
     local font_prefs = finale.FCFontPrefs()
@@ -89,6 +90,8 @@ function open_current_prefs()
     tie_prefs:Load(1)
     tuplet_prefs = finale.FCTupletPrefs()
     tuplet_prefs:Load(1)
+    text_exps = finale.FCTextExpressionDefs()
+    text_exps:LoadAll()
 end
 
 -- returns Lua strings for path, file name without extension, full file path
@@ -181,14 +184,6 @@ function write_default_font_pref(style_element, name_prefix, default_font_id)
     write_font_pref(style_element, name_prefix, default_font:CreateFontInfo())
 end
 
-function write_category_text_font_pref(style_element, name_prefix, category_id)
-    local cat = finale.FCCategoryDef()
-    if not cat:Load(category_id) then
-        error("Unable to load category def for " .. name_prefix)
-    end
-    write_font_pref(style_element, name_prefix, cat:CreateTextFontInfo())
-end
-
 function write_line_prefs(style_element, name_prefix, width_efix, dash_length, dash_gap, style_string)
     local line_width_evpu <const> = width_efix / EFIX_PER_EVPU
     set_element_text(style_element, name_prefix .. "LineWidth", width_efix / EFIX_PER_SPACE)
@@ -200,7 +195,7 @@ function write_line_prefs(style_element, name_prefix, width_efix, dash_length, d
 end
 
 function write_frame_prefs(style_element, name_prefix, enclosure)
-    if not enclosure or enclosure.Shape == finale.ENCLOSURE_NONE then
+    if not enclosure or enclosure.Shape == finale.ENCLOSURE_NONE or enclosure.LineWidth == 0 then
         set_element_text(style_element, name_prefix .. "FrameType", 0)
         return -- do not override any other defaults if no enclosure shape
     elseif enclosure.Shape == finale.ENCLOSURE_ELLIPSE then
@@ -210,7 +205,22 @@ function write_frame_prefs(style_element, name_prefix, enclosure)
     end
     set_element_text(style_element, name_prefix .. "FramePadding", enclosure.HorizontalMargin / EVPU_PER_SPACE)
     set_element_text(style_element, name_prefix .. "FrameWidth", enclosure.LineWidth / EFIX_PER_SPACE)
-    set_element_text(style_element, name_prefix .. "FrameRound", enclosure.RoundedCorners)
+    print(enclosure.RoundedCornerRadius)
+    set_element_text(style_element, name_prefix .. "FrameRound", enclosure.RoundedCorners and enclosure.RoundedCornerRadius / EFIX_PER_EVPU or 0)
+end
+
+function write_category_text_font_pref(style_element, name_prefix, category_id)
+    local cat = finale.FCCategoryDef()
+    if not cat:Load(category_id) then
+        error("Unable to load category def for " .. name_prefix)
+    end
+    write_font_pref(style_element, name_prefix, cat:CreateTextFontInfo())
+    for exp in each(text_exps) do
+        if exp.CategoryID == category_id then
+            write_frame_prefs(style_element, name_prefix, exp.UseEnclosure and exp:CreateEnclosure() or nil)
+            break
+        end
+    end
 end
 
 function write_page_prefs(style_element)
@@ -359,7 +369,7 @@ function write_measure_number_prefs(style_element)
         set_element_text(style_element, "showMeasureNumberOne", not meas_nums:GetHideFirstNumber(current_is_part))
         set_element_text(style_element, "measureNumberInterval", meas_nums:GetMultipleValue(current_is_part))
         set_element_text(style_element, "measureNumberSystem", meas_nums:GetShowOnSystemStart(current_is_part) and not meas_nums:GetShowMultiples(current_is_part))
-        local function process_segment(font_info, enclosure, justification, alignment, vertical, prefix)
+        local function process_segment(font_info, enclosure, use_enclosure, justification, alignment, vertical, prefix)
             local function justification_string(justi)
                 if justi == finale.MNJUSTIFY_LEFT then
                     return "left,baseline"
@@ -384,17 +394,17 @@ function write_measure_number_prefs(style_element)
             write_font_pref(style_element, prefix, font_info)
             set_element_text(style_element, prefix .. "VPlacement", vert_alignment(vertical))
             set_element_text(style_element, prefix .. "HPlacement", horz_alignment(alignment))
-            print(justification_string(justification))
             set_element_text(style_element, prefix .. "Align", justification_string(justification))
-            write_frame_prefs(style_element, prefix, enclosure)
+            write_frame_prefs(style_element, prefix, use_enclosure and enclosure or nil)
         end
         local font_info = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:CreateStartFontInfo(current_is_part) or meas_nums:CreateMultipleFontInfo(current_is_part)
         local enclosure = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:GetEnclosureStart(current_is_part) or meas_nums:GetEnclosureMultiple(current_is_part)
+        local use_enclosure = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:GetUseEnclosureStart(current_is_part) or meas_nums:GetUseEnclosureMultiple(current_is_part)
         local justification = meas_nums:GetShowMultiples(current_is_part) and meas_nums:GetMultipleJustification(current_is_part) or meas_nums:GetStartJustification(current_is_part)
         local alignment = meas_nums:GetShowMultiples(current_is_part) and meas_nums:GetMultipleAlignment(current_is_part) or meas_nums:GetStartAlignment(current_is_part)
         local vertical = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:GetStartVerticalPosition(current_is_part) or meas_nums:GetMultipleVerticalPosition(current_is_part)
         set_element_text(style_element, "measureNumberOffsetType", 1)
-        process_segment(font_info, enclosure, justification, alignment, vertical, "measureNumber")
+        process_segment(font_info, enclosure, use_enclosure, justification, alignment, vertical, "measureNumber")
         set_element_text(style_element, "mmRestShowMeasureNumberRange", meas_nums:GetShowMultiMeasureRange(current_is_part))
         local left_char = meas_nums:GetMultiMeasureBracketLeft(current_is_part)
         if left_char == 0 then
@@ -404,7 +414,7 @@ function write_measure_number_prefs(style_element)
         else
             set_element_text(style_element, "mmRestRangeBracketType", 0)
         end
-        process_segment(meas_nums:CreateMultiMeasureFontInfo(current_is_part), meas_nums:GetEnclosureMultiple(current_is_part),
+        process_segment(meas_nums:CreateMultiMeasureFontInfo(current_is_part), meas_nums:GetEnclosureMultiple(current_is_part), meas_nums:GetUseEnclosureMultiple(current_is_part),
                 meas_nums:GetMultiMeasureJustification(current_is_part), meas_nums:GetMultiMeasureAlignment(current_is_part),
                 meas_nums:GetMultiMeasureVerticalPosition(current_is_part), "mmRestRange")
     end
@@ -524,9 +534,38 @@ function write_marking_prefs(style_element)
     write_category_text_font_pref(style_element, "dynamics", finale.DEFAULTCATID_DYNAMICS)
     write_category_text_font_pref(style_element, "expression", finale.DEFAULTCATID_EXPRESSIVETEXT)
     write_category_text_font_pref(style_element, "tempo", finale.DEFAULTCATID_TEMPOMARKS)
-    write_category_text_font_pref(style_element, "tempoChange", finale.DEFAULTCATID_TEMPOALTERATIONS)
+    write_category_text_font_pref(style_element, "tempoChange", finale.DEFAULTCATID_EXPRESSIVETEXT)
     write_line_prefs(style_element, "tempoChange", smart_shape_prefs.LineWidth, smart_shape_prefs.LineDashLength, smart_shape_prefs.LineDashSpace, "dashed")
     write_category_text_font_pref(style_element, "metronome", finale.DEFAULTCATID_TEMPOMARKS)
+    set_element_text(style_element, "translatorFontFace", font_info.Name)
+    write_category_text_font_pref(style_element, "systemText", finale.DEFAULTCATID_EXPRESSIVETEXT)
+    write_category_text_font_pref(style_element, "staffText", finale.DEFAULTCATID_TECHNIQUETEXT)
+    write_category_text_font_pref(style_element, "rehearsalMark", finale.DEFAULTCATID_REHEARSALMARK)
+    write_default_font_pref(style_element, "repeatLeft", finale.FONTPREF_REPEAT)
+    write_default_font_pref(style_element, "repeatRight", finale.FONTPREF_REPEAT)
+    write_font_pref(style_element, "frame", font_info)
+    write_category_text_font_pref(style_element, "textLine", finale.DEFAULTCATID_TECHNIQUETEXT)
+    write_category_text_font_pref(style_element, "systemTextLine", finale.DEFAULTCATID_EXPRESSIVETEXT)
+    write_category_text_font_pref(style_element, "glissando", finale.DEFAULTCATID_TECHNIQUETEXT)
+    write_category_text_font_pref(style_element, "bend", finale.DEFAULTCATID_TECHNIQUETEXT)
+    write_font_pref(style_element, "header", font_info)
+    write_font_pref(style_element, "footer", font_info)
+    write_font_pref(style_element, "copyright", font_info)
+    write_font_pref(style_element, "pageNumber", font_info)
+    write_font_pref(style_element, "instrumentChange", font_info)
+    write_font_pref(style_element, "sticking", font_info)
+    write_font_pref(style_element, "user1", font_info)
+    write_font_pref(style_element, "user2", font_info)
+    write_font_pref(style_element, "user3", font_info)
+    write_font_pref(style_element, "user4", font_info)
+    write_font_pref(style_element, "user5", font_info)
+    write_font_pref(style_element, "user6", font_info)
+    write_font_pref(style_element, "user7", font_info)
+    write_font_pref(style_element, "user8", font_info)
+    write_font_pref(style_element, "user9", font_info)
+    write_font_pref(style_element, "user10", font_info)
+    write_font_pref(style_element, "user11", font_info)
+    write_font_pref(style_element, "user12", font_info)
 end
 
 function write_xml()
