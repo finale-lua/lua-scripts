@@ -5,18 +5,39 @@ function plugindef()
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "1.0"
-    finaleplugin.Date = "September 25, 2024"
+    finaleplugin.Date = "October 2, 2024"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.74
     finaleplugin.Notes = [[
-        Exports settings from the current document into a MuseScore `.mss` style file.
-        Only a subset of possible MuseScore settings are exported. You can choose either to modify
-        an existing file (e.g., from MuseScore) or create a new file with only the exported settings.
+        Exports settings from one or more Finale documents into a MuseScore `.mss` style file.
+        Only a subset of possible MuseScore settings are exported. The rest will be taken
+        from the default settings you have set up for MuseScore when you load it in MuseScore.
 
-        If you view a part in Finale, the script loads page format and other information for the part
-        rather than the score.
+        This script addresses two uses cases.
+
+        ## Setting up your MuseScore defaults to match Finale's ##
+
+        - Open a Finale template file or document style file that you wish to use as the basis for your MuseScore defaults.
+        - Select the score or part for which you wish to export style settings.
+        - Choose "Export Document Preferences to MuseScore...".
+        - Choose a location where to save the output. It is recommended to append `.part.mss` to the name of the style settings for parts.
+        - Import each of the score and part settings into a blank document in MuseScore.
+        - Make any style adjustments as needed and then save them back out. (This gives them all the settings.)
+        - Use the score `.mss` file for Preferences->Score->Style.
+        - Use the parts `.mss` file for Preferences->Score->Style for part.
+
+        Now any new projects will start up with these defaults.
+
+        ## Improving MusicXML imports of your documents ##
+
+        - Choose "Export Document Preferences to MuseScore..." with no document open.
+        - Select a folder containing your Finale files. All subfolders will be searched as well.
+        - For every Finale file found, a parallel `.mss` file is created.
+        - If the source Finale file contains at least one linked part, a parallel `.part.mss` file is created as well (from the first part found).
+        - After importing the MusicXML version of your document, use Style->Load style in MuseScore to load the settings for the document.
+        - Repeat the process for each part, if any.
     ]]
-    return "Export Settings to MuseScore...", "Export Settings to MuseScore", "Export document options from the current document to a MuseScore style file."
+    return "Export Document Preferences to MuseScore...", "Export Document Preferences to MuseScore", "Export document options from one or more Finale documents to MuseScore style files for score and parts."
 end
 
 -- A lot of Finale settings do not translate to MuseScore very well. They are commented out to show that
@@ -24,10 +45,11 @@ end
 
 -- luacheck: ignore 11./global_dialog
 
-local mixin = require("library.mixin")
 local enigma_string = require("library.enigma_string")
 
 local text_extension = ".mss"
+--local part_extension = ".part" .. text_extension
+local mss_version = "4.40"
 
 -- hard-coded scaling values
 local EVPU_PER_INCH <const> = 288
@@ -59,7 +81,6 @@ function open_current_prefs()
     local font_prefs = finale.FCFontPrefs()
     font_prefs:Load(finale.FONTPREF_MUSIC)
     default_music_font = font_prefs:CreateFontInfo()
-    current_is_part = finale.FCPart(finale.PARTID_CURRENT):IsPart()
     distance_prefs = finale.FCDistancePrefs()
     distance_prefs:Load(1)
     size_prefs = finale.FCSizePrefs()
@@ -99,14 +120,11 @@ function get_file_path_no_extension()
     local path_name = finale.FCString()
     local file_name = finale.FCString()
     local file_path = finale.FCString()
-    global_dialog:GetControl("file_path"):GetText(file_path)
-    if file_path.Length <= 0 then
-        local documents = finale.FCDocuments()
-        documents:LoadAll()
-        local document = documents:FindCurrent()
-            if document then
-            document:GetPath(file_path)
-        end
+    local documents = finale.FCDocuments()
+    documents:LoadAll()
+    local document = documents:FindCurrent()
+    if document then
+        document:GetPath(file_path)
     end
     file_path:SplitToPathAndFile(path_name, file_name)
     local full_file_name = file_name.LuaString
@@ -205,7 +223,6 @@ function write_frame_prefs(style_element, name_prefix, enclosure)
     end
     set_element_text(style_element, name_prefix .. "FramePadding", enclosure.HorizontalMargin / EVPU_PER_SPACE)
     set_element_text(style_element, name_prefix .. "FrameWidth", enclosure.LineWidth / EFIX_PER_SPACE)
-    print(enclosure.RoundedCornerRadius)
     set_element_text(style_element, name_prefix .. "FrameRound", enclosure.RoundedCorners and enclosure.RoundedCornerRadius / EFIX_PER_EVPU or 0)
 end
 
@@ -568,26 +585,13 @@ function write_marking_prefs(style_element)
     write_font_pref(style_element, "user12", font_info)
 end
 
-function write_xml()
+function write_xml(output_path)
     local mssxml <close> = tinyxml2.XMLDocument()
-    local existing_path = global_dialog:GetControl("file_path"):GetText()
-    if #existing_path > 0 then
-        local result = mssxml:LoadFile(existing_path)
-        if result ~= tinyxml2.XML_SUCCESS then
-            error("Unable to parse " .. existing_path .. ". " .. mssxml:ErrorStr())
-            return
-        end
-    else
-        mssxml:InsertEndChild(mssxml:NewDeclaration(nil))
-        local ms_element = mssxml:NewElement("museScore")
-        ms_element:SetAttribute("version", "4.40")
-        mssxml:InsertEndChild(ms_element)
-        ms_element:InsertNewChildElement("Style")
-    end
-    local style_element = tinyxml2.XMLHandle(mssxml):FirstChildElement("museScore"):FirstChildElement("Style"):ToElement()
-    if not style_element then
-        error(existing_path .. " is not a valid .mss file.")
-    end
+    mssxml:InsertEndChild(mssxml:NewDeclaration(nil))
+    local ms_element = mssxml:NewElement("museScore")
+    ms_element:SetAttribute("version", mss_version)
+    mssxml:InsertEndChild(ms_element)
+    local style_element = ms_element:InsertNewChildElement("Style")
     open_current_prefs()
     write_page_prefs(style_element)
     write_lyrics_prefs(style_element)
@@ -600,11 +604,8 @@ function write_xml()
     write_repeat_ending_prefs(style_element)
     write_tuplet_prefs(style_element)
     write_marking_prefs(style_element)
-    local output_path = select_target()
-    if output_path then
-        if mssxml:SaveFile(output_path) ~= tinyxml2.XML_SUCCESS then
-            error("Unable to save " .. existing_path .. ". " .. mssxml:ErrorStr())
-        end
+    if mssxml:SaveFile(output_path) ~= tinyxml2.XML_SUCCESS then
+        error("Unable to save " .. output_path .. ". " .. mssxml:ErrorStr())
     end
 end
 
@@ -625,6 +626,7 @@ function select_target()
     return selected_file_name.LuaString
 end
 
+--[[
 function select_existing_target()
     local path_name, file_name, full_file_name = get_file_path_no_extension()
     file_name = file_name .. text_extension
@@ -641,49 +643,18 @@ function select_existing_target()
     open_dialog:GetFileName(selected_file_name)
     return selected_file_name.LuaString
 end
-
-function create_dialog_box()
-    local dialog = mixin.FCXCustomLuaWindow()
-        :SetTitle("Export Settings to MuseScore")
-    local current_y = 0
-    -- file to process
-    dialog:CreateStatic(0, current_y + 2, "file_path_label")
-        :SetText("Use Existing:")
-        :DoAutoResizeWidth(0)
-    dialog:CreateStatic(0, current_y + 2, "file_path")
-        :SetText("")
-        :SetWidth(400)
-        :AssureNoHorizontalOverlap(dialog:GetControl("file_path_label"), 5)
-    dialog:CreateButton(0, current_y, "choose_file")
-        :SetText("Select...")
-        :DoAutoResizeWidth(0)
-        :AssureNoHorizontalOverlap(dialog:GetControl("file_path"), 5)
-        :AddHandleCommand(function(_control)
-            local filepath = select_existing_target()
-            if filepath then
-                dialog:GetControl("file_path"):SetText(filepath)
-            end
-        end)
-    -- ok/cancel
-    dialog:CreateOkButton()
-    dialog:CreateCancelButton()
-    -- registrations
-    dialog:RegisterHandleOkButtonPressed(function(self)
-        if finale.FCDocuments():LoadAll() <= 0 then
-            self:CreateChildUI():AlertInfo("Please open a document to pull settings from.", "No Open Document")
-            return
-        end
-        write_xml()
-    end)
-    dialog:RegisterInitWindow(function(self)
-        self:GetControl("file_path"):SetText("")
-    end)
-    return dialog
-end
+]]
 
 function document_options_to_musescore()
-    global_dialog = global_dialog or create_dialog_box()
-    global_dialog:RunModeless()
+    if finale.FCDocuments():LoadAll() <= 0 then
+        finenv.UI():AlertInfo("ToDo: batch processing.", "No Open Document")
+        return
+    end
+    current_is_part = finale.FCPart(finale.PARTID_CURRENT):IsPart()
+    local output_path = select_target()
+    if output_path then
+        write_xml(output_path)
+    end
 end
 
 document_options_to_musescore()
