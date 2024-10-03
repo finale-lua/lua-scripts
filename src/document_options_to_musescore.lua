@@ -15,7 +15,7 @@ function plugindef()
 
         This script addresses two uses cases.
 
-        ## Setting up your MuseScore defaults to match Finale's ##
+        ## Setting up your MuseScore defaults to be close to those of Finale ##
 
         - Open a Finale template file or document style file that you wish to use as the basis for your MuseScore defaults.
         - Select the score or part for which you wish to export style settings.
