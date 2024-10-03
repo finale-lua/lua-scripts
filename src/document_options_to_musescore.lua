@@ -7,7 +7,7 @@ function plugindef()
     finaleplugin.Version = "1.0"
     finaleplugin.Date = "October 2, 2024"
     finaleplugin.CategoryTags = "Document"
-    finaleplugin.MinJWLuaVersion = 0.74
+    finaleplugin.MinJWLuaVersion = 0.75
     finaleplugin.Notes = [[
         Exports settings from one or more Finale documents into a MuseScore `.mss` style settings file.
         Only a subset of possible MuseScore settings are exported. The rest will be taken
@@ -52,7 +52,7 @@ local text = require("luaosutils").text
 local enigma_string = require("library.enigma_string")
 
 local musx_extension = ".musx"
-local mus_extension = ".musx"
+local mus_extension = ".mus"
 local text_extension = ".mss"
 local part_extension = ".part" .. text_extension
 local mss_version = "4.40"
@@ -609,21 +609,43 @@ function write_xml(output_path)
     end
 end
 
+function process_document(document_file_path)
+    local document = finale.FCDocument()
+    if document:Open(finale.FCString(document_file_path), true, finale.FCString("Open File"), false) then
+        local parts = finale.FCParts()
+        parts:LoadAll()
+        -- it is not actually necessary to switch to the part to get its settings
+        local path_name, file_name_no_ext = get_file_path_no_extension(document_file_path)
+        current_is_part = false
+        write_xml(path_name .. "/" .. file_name_no_ext .. text_extension)
+        for part in each(parts) do
+            if not part:IsScore() then
+                current_is_part = true
+                write_xml(path_name .. "/" .. file_name_no_ext .. part_extension)
+                break
+            end
+        end
+        document:CloseCurrentDocumentWindow()
+        document:Close()
+        document:SwitchBack() -- may not technically be necessary, since no doc was open, but it doesn't hurt anything
+    end
+end
+
 function process_folder(utf8_folder_path)
+    print("processing folder " .. utf8_folder_path)
     local lfs_folder_path = text.convert_encoding(utf8_folder_path, text.get_utf8_codepage(), text.get_default_codepage())
     for finale_doc in lfs.dir(lfs_folder_path) do
         if finale_doc ~= "." and finale_doc ~= ".." then
             local lfs_full_path = lfs_folder_path .. "/" .. finale_doc
             local utf8_full_path = text.convert_encoding(lfs_full_path, text.get_default_codepage(), text.get_utf8_codepage())
             if (finale_doc:sub(-musx_extension:len()) == musx_extension) or (finale_doc:sub(-mus_extension:len()) == mus_extension) then
-                -- all temp
-                local path_name, file_name_no_ext = get_file_path_no_extension(utf8_full_path)
-                local file_name = file_name_no_ext .. (current_is_part and part_extension or text_extension)
-                finenv.UI():AlertInfo("ToDo: batch process file " .. path_name .. "/" .. file_name, "No Open Document")
-                return false -- temp
-                --write_xml(path_name .. "/" .. file_name)
+                process_document(utf8_full_path)
+                --return false -- temp
             else
                 local attr = lfs.attributes(lfs_full_path)
+                if not attr then
+                    print("unable to check if " .. utf8_full_path .. " is a folder.")
+                end
                 if attr and attr.mode == "directory" then
                     if not process_folder(utf8_full_path) then
                         return false
