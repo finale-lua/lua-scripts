@@ -48,8 +48,9 @@ end
 local lfs = require("lfs")
 local text = require("luaosutils").text
 
-
 local enigma_string = require("library.enigma_string")
+
+local logfile_name = "FinaleMuseScoreSettingsExportLog.txt"
 
 local musx_extension = ".musx"
 local mus_extension = ".mus"
@@ -65,8 +66,28 @@ local EFIX_PER_EVPU <const> = 64
 local EFIX_PER_SPACE <const> = EVPU_PER_SPACE * EFIX_PER_EVPU
 local MUSE_FINALE_SCALE_DIFFERENTIAL <const> = 20 / 24
 
--- Finale preferences:
+-- Current state
+local error_occured = false
 local current_is_part
+local currently_processing
+local logfile_path
+
+function log_message(msg, is_error)
+    if is_error and not logfile_path then
+        error(msg, 2)
+    end
+    if is_error then
+        error_occured = true
+    end
+    local file <close> = io.open(logfile_path, "a")
+    if not file then
+        error("unable to append to logfile " .. logfile_path)
+    end
+    file:write("[" .. (is_error and "Error " or "Success ") .. os.date("%Y-%m-%d %H:%M:%S") .. "] " .. currently_processing .. " " .. msg .. "\n")
+    file:close()
+end
+
+-- Finale preferences:
 local default_music_font
 local distance_prefs
 local size_prefs
@@ -139,7 +160,7 @@ end
 function set_element_text(style_element, name, value)
     local setter_func = "SetText"
     if type(value) == "nil" then
-        error("incorrect property for " .. name)
+        log_message("incorrect property for " .. name, true)
     elseif type(value) == "number" then
         if math.type(value) == "float" then
             value = string.format("%.5g", value)
@@ -197,7 +218,7 @@ end
 function write_default_font_pref(style_element, name_prefix, default_font_id)
     local default_font = finale.FCFontPrefs()
     if not default_font:Load(default_font_id) then
-        error("Unable to load default font preff for " .. name_prefix)
+        log_message("Unable to load default font pref for " .. name_prefix, true)
     end
     write_font_pref(style_element, name_prefix, default_font:CreateFontInfo())
 end
@@ -229,7 +250,7 @@ end
 function write_category_text_font_pref(style_element, name_prefix, category_id)
     local cat = finale.FCCategoryDef()
     if not cat:Load(category_id) then
-        error("Unable to load category def for " .. name_prefix)
+        log_message("unable to load category def for " .. name_prefix, true)
     end
     write_font_pref(style_element, name_prefix, cat:CreateTextFontInfo())
     for exp in each(text_exps) do
@@ -489,7 +510,7 @@ function write_tuplet_prefs(style_element)
     end
     local font_pref = finale.FCFontPrefs()
     if not font_pref:Load(finale.FONTPREF_TUPLET) then
-        error("unable to load font pref for tuplets")
+        log_message("unable to load font pref for tuplets", true)
     end
     local font_info = font_pref:CreateFontInfo()
     if font_info.IsSMuFLFont then
@@ -507,7 +528,7 @@ end
 function write_marking_prefs(style_element)
     local cat = finale.FCCategoryDef()
     if not cat:Load(finale.DEFAULTCATID_DYNAMICS) then
-        error("unable to load FCCategoryDef for dynamics")
+        log_message("unable to load FCCategoryDef for dynamics", true)
     end
     local font_info = finale.FCFontInfo()
     local override = cat:GetMusicFontInfo(font_info) and font_info.IsSMuFLFont and font_info.FontID ~= 0
@@ -522,7 +543,7 @@ function write_marking_prefs(style_element)
     end
     local font_pref = finale.FCFontPrefs()
     if not font_pref:Load(finale.FONTPREF_TEXTBLOCK) then
-        error("unable to load font prefs for Text Blocks")
+        log_message("unable to load font prefs for Text Blocks", true)
     end
     font_info = font_pref:CreateFontInfo()
     write_font_pref(style_element, "default", font_info)
@@ -592,6 +613,8 @@ function write_xml(output_path)
     ms_element:SetAttribute("version", mss_version)
     mssxml:InsertEndChild(ms_element)
     local style_element = ms_element:InsertNewChildElement("Style")
+    currently_processing = output_path
+    error_occured = false
     open_current_prefs()
     write_page_prefs(style_element)
     write_lyrics_prefs(style_element)
@@ -605,7 +628,11 @@ function write_xml(output_path)
     write_tuplet_prefs(style_element)
     write_marking_prefs(style_element)
     if mssxml:SaveFile(output_path) ~= tinyxml2.XML_SUCCESS then
-        error("Unable to save " .. output_path .. ". " .. mssxml:ErrorStr())
+        log_message("unable to save " .. output_path .. ". " .. mssxml:ErrorStr(), true)
+    elseif logfile_path then
+        log_message(error_occured and " saved with errors" or "", false)
+    else
+        finenv:UI():AlertInfo(output_path .. (error_occured and " saved with errors." or " saved."), "Success")
     end
 end
 
@@ -632,7 +659,6 @@ function process_document(document_file_path)
 end
 
 function process_folder(utf8_folder_path)
-    print("processing folder " .. utf8_folder_path)
     local lfs_folder_path = text.convert_encoding(utf8_folder_path, text.get_utf8_codepage(), text.get_default_codepage())
     for finale_doc in lfs.dir(lfs_folder_path) do
         if finale_doc ~= "." and finale_doc ~= ".." then
@@ -640,21 +666,14 @@ function process_folder(utf8_folder_path)
             local utf8_full_path = text.convert_encoding(lfs_full_path, text.get_default_codepage(), text.get_utf8_codepage())
             if (finale_doc:sub(-musx_extension:len()) == musx_extension) or (finale_doc:sub(-mus_extension:len()) == mus_extension) then
                 process_document(utf8_full_path)
-                --return false -- temp
             else
                 local attr = lfs.attributes(lfs_full_path)
-                if not attr then
-                    print("unable to check if " .. utf8_full_path .. " is a folder.")
-                end
                 if attr and attr.mode == "directory" then
-                    if not process_folder(utf8_full_path) then
-                        return false
-                    end
+                    process_folder(utf8_full_path)
                 end
             end
         end
     end
-    return true
 end
 
 function select_target(file_path_str)
@@ -691,20 +710,27 @@ end
 
 function document_options_to_musescore()
     local documents = finale.FCDocuments()
+    documents:LoadAll()
     local document = documents:FindCurrent()
     if not document then
         local selected_directory = select_directory()
         if selected_directory then
+            logfile_path = text.convert_encoding(selected_directory, text.get_utf8_codepage(), text.get_default_codepage()) .. "/" .. logfile_name
+            local file <close> = io.open(logfile_path, "w")
+            if not file then
+                error("unable to create logfile " .. logfile_path)
+            end
+            file:close()
             process_folder(selected_directory)
         end
-        return
-    end
-    local file_path_fcstr = finale.FCString()
-    document:GetPath(file_path_fcstr)
-    current_is_part = finale.FCPart(finale.PARTID_CURRENT):IsPart()
-    local output_path = select_target(file_path_fcstr.LuaString)
-    if output_path then
-        write_xml(output_path)
+    else
+        local file_path_fcstr = finale.FCString()
+        document:GetPath(file_path_fcstr)
+        current_is_part = finale.FCPart(finale.PARTID_CURRENT):IsPart()
+        local output_path = select_target(file_path_fcstr.LuaString)
+        if output_path then
+            write_xml(output_path)
+        end
     end
 end
 
