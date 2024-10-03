@@ -83,7 +83,11 @@ function log_message(msg, is_error)
     if not file then
         error("unable to append to logfile " .. logfile_path)
     end
-    file:write("[" .. (is_error and "Error " or "Success ") .. os.date("%Y-%m-%d %H:%M:%S") .. "] " .. currently_processing .. " " .. msg .. "\n")
+    local log_entry = "[" .. (is_error and "Error " or "Success ") .. os.date("%Y-%m-%d %H:%M:%S") .. "] " .. currently_processing .. " " .. msg
+    if finenv.ConsoleIsAvailable then
+        print(log_entry)
+    end
+    file:write(log_entry .. "\n")
     file:close()
 end
 
@@ -652,6 +656,7 @@ function process_document(document_file_path)
                 break
             end
         end
+        document.Dirty = false
         document:CloseCurrentDocumentWindow()
         document:SwitchBack() -- may not technically be necessary, since no doc was open, but it doesn't hurt anything
     end
@@ -721,7 +726,10 @@ function document_options_to_musescore()
             end
             file:close()
             process_folder(selected_directory)
-            finenv:UI():AlertInfo("Processed " .. selected_directory, "Processing Complete")
+            if not finenv.ConsoleIsAvailable then
+                local completed_msg = "Processed " .. selected_directory
+                finenv:UI():AlertInfo(completed_msg, "Processing Complete")
+            end
         end
     else
         local file_path_fcstr = finale.FCString()
