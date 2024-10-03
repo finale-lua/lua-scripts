@@ -653,7 +653,6 @@ function process_document(document_file_path)
             end
         end
         document:CloseCurrentDocumentWindow()
-        document:Close()
         document:SwitchBack() -- may not technically be necessary, since no doc was open, but it doesn't hurt anything
     end
 end
