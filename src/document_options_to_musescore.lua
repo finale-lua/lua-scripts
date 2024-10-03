@@ -638,7 +638,7 @@ end
 
 function process_document(document_file_path)
     local document = finale.FCDocument()
-    if document:Open(finale.FCString(document_file_path), true, finale.FCString("Open File"), false) then
+    if document:Open(finale.FCString(document_file_path), true, nil, false, false, true) then
         local parts = finale.FCParts()
         parts:LoadAll()
         -- it is not actually necessary to switch to the part to get its settings
@@ -722,6 +722,7 @@ function document_options_to_musescore()
             end
             file:close()
             process_folder(selected_directory)
+            finenv:UI():AlertInfo("Processed " .. selected_directory, "Processing Complete")
         end
     else
         local file_path_fcstr = finale.FCString()
