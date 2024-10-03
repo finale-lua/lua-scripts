@@ -158,6 +158,7 @@ function get_file_path_no_extension(file_path_str)
     if extension.Length > 0 then
         file_name:TruncateAt(file_name:FindLast("." .. extension.LuaString))
     end
+    path_name:AssureEndingPathDelimiter()
     return path_name.LuaString, file_name.LuaString, full_file_name
 end
 
@@ -648,11 +649,11 @@ function process_document(document_file_path)
         -- it is not actually necessary to switch to the part to get its settings
         local path_name, file_name_no_ext = get_file_path_no_extension(document_file_path)
         current_is_part = false
-        write_xml(path_name .. "/" .. file_name_no_ext .. text_extension)
+        write_xml(path_name .. file_name_no_ext .. text_extension)
         for part in each(parts) do
             if not part:IsScore() then
                 current_is_part = true
-                write_xml(path_name .. "/" .. file_name_no_ext .. part_extension)
+                write_xml(path_name .. file_name_no_ext .. part_extension)
                 break
             end
         end
@@ -663,10 +664,12 @@ function process_document(document_file_path)
 end
 
 function process_folder(utf8_folder_path)
-    local lfs_folder_path = text.convert_encoding(utf8_folder_path, text.get_utf8_codepage(), text.get_default_codepage())
+    local folder_path_fcstr = finale.FCString(utf8_folder_path)
+    folder_path_fcstr:AssureEndingPathDelimiter()
+    local lfs_folder_path = text.convert_encoding(folder_path_fcstr.LuaString, text.get_utf8_codepage(), text.get_default_codepage())
     for finale_doc in lfs.dir(lfs_folder_path) do
         if finale_doc ~= "." and finale_doc ~= ".." then
-            local lfs_full_path = lfs_folder_path .. "/" .. finale_doc
+            local lfs_full_path = lfs_folder_path .. finale_doc
             local utf8_full_path = text.convert_encoding(lfs_full_path, text.get_default_codepage(), text.get_utf8_codepage())
             if (finale_doc:sub(-musx_extension:len()) == musx_extension) or (finale_doc:sub(-mus_extension:len()) == mus_extension) then
                 process_document(utf8_full_path)
@@ -709,6 +712,7 @@ function select_directory()
     end
     local selected_folder = finale.FCString()
     open_dialog:GetFolderPath(selected_folder)
+    selected_folder:AssureEndingPathDelimiter()
     return selected_folder.LuaString
 end
 
@@ -719,7 +723,7 @@ function document_options_to_musescore()
     if not document then
         local selected_directory = select_directory()
         if selected_directory then
-            logfile_path = text.convert_encoding(selected_directory, text.get_utf8_codepage(), text.get_default_codepage()) .. "/" .. logfile_name
+            logfile_path = text.convert_encoding(selected_directory, text.get_utf8_codepage(), text.get_default_codepage()) .. logfile_name
             local file <close> = io.open(logfile_path, "w")
             if not file then
                 error("unable to create logfile " .. logfile_path)
