@@ -660,6 +660,9 @@ function process_document(document_file_path)
         document.Dirty = false
         document:CloseCurrentDocumentWindow()
         document:SwitchBack() -- may not technically be necessary, since no doc was open, but it doesn't hurt anything
+    else
+        currently_processing = document_file_path
+        log_message("unable to open Finale document", true)
     end
 end
 
@@ -672,7 +675,12 @@ function process_folder(utf8_folder_path)
             local lfs_full_path = lfs_folder_path .. finale_doc
             local utf8_full_path = text.convert_encoding(lfs_full_path, text.get_default_codepage(), text.get_utf8_codepage())
             if (finale_doc:sub(-musx_extension:len()) == musx_extension) or (finale_doc:sub(-mus_extension:len()) == mus_extension) then
-                process_document(utf8_full_path)
+                if finale_doc:sub(1, 2) == "._" then
+                    currently_processing = utf8_full_path
+                    log_message("skipping macOS resource fork", true)
+                else
+                    process_document(utf8_full_path)
+                end
             else
                 local attr = lfs.attributes(lfs_full_path)
                 if attr and attr.mode == "directory" then
