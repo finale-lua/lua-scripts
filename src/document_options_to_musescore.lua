@@ -37,7 +37,7 @@ function plugindef()
         - After importing the MusicXML version of your document, use Style->Load style in MuseScore to load the settings for the document.
         - Repeat the process for each part, if any.
     ]]
-    return "Export Document Preferences to MuseScore...", "Export Document Preferences to MuseScore", "Export document options from one or more Finale documents to MuseScore style files for score and parts."
+    return "Export Document Options to MuseScore...", "Export Document Options to MuseScore", "Export document options from one or more Finale documents to MuseScore style files for score and parts."
 end
 
 -- A lot of Finale settings do not translate to MuseScore very well. They are commented out to show that
