@@ -658,12 +658,16 @@ function process_document(document_file_path)
             end
         end
         document.Dirty = false
-        document:CloseCurrentDocumentWindow()
-        document:SwitchBack() -- may not technically be necessary, since no doc was open, but it doesn't hurt anything
+        local closed = document:CloseCurrentDocumentAndWindow(false) -- false: rollback any edits (which there should be none)
+        if not closed then
+            currently_processing = document_file_path
+            log_message("failed to close", true)
+        end
     else
         currently_processing = document_file_path
         log_message("unable to open Finale document", true)
     end
+    document:SwitchBack()
 end
 
 function process_folder(utf8_folder_path)
