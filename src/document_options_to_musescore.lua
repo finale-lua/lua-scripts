@@ -48,6 +48,7 @@ end
 local lfs = require("lfs")
 local text = require("luaosutils").text
 
+local mixin = require("library.mixin")
 local enigma_string = require("library.enigma_string")
 
 local logfile_name = "FinaleMuseScoreSettingsExportLog.txt"
@@ -67,6 +68,7 @@ local EFIX_PER_SPACE <const> = EVPU_PER_SPACE * EFIX_PER_EVPU
 local MUSE_FINALE_SCALE_DIFFERENTIAL <const> = 20 / 24
 
 -- Current state
+local TIMER_ID <const> = 1 -- value that identifies our timer
 local error_occured = false
 local current_is_part
 local currently_processing
@@ -670,25 +672,78 @@ function process_document(document_file_path)
     document:SwitchBack()
 end
 
-function process_folder(utf8_folder_path)
+function create_status_dialog(selected_directory, files_to_process)
+    local dialog = mixin.FCXCustomLuaWindow()
+        :SetTitle("Export Settings to MuseScore")
+    local current_y = 0
+    -- processing folder
+    dialog:CreateStatic(0, current_y + 2, "folder_label")
+        :SetText("Folder:")
+        :DoAutoResizeWidth(0)
+    dialog:CreateStatic(0, current_y + 2, "folder")
+        :SetText("")
+        :SetWidth(400)
+        :AssureNoHorizontalOverlap(dialog:GetControl("folder_label"), 5)
+        :StretchToAlignWithRight()
+    current_y = current_y + 20
+    -- processing file
+    dialog:CreateStatic(0, current_y + 2, "file_path_label")
+        :SetText("File:")
+        :DoAutoResizeWidth(0)
+    dialog:CreateStatic(0, current_y + 2, "file_path")
+        :SetText("")
+        :SetWidth(300)
+        :AssureNoHorizontalOverlap(dialog:GetControl("file_path_label"), 5)
+        :HorizontallyAlignLeftWith(dialog:GetControl("folder"))
+        :StretchToAlignWithRight()
+    -- cancel
+    dialog:CreateCancelButton("cancel")
+    -- registrations
+    dialog:RegisterInitWindow(function(self)
+        self:SetTimer(TIMER_ID, 100) -- 100 milliseconds
+    end)
+    dialog:RegisterHandleTimer(function(self, timer)
+        assert(timer == TIMER_ID, "incorrect timer id value " .. timer)
+        if #files_to_process <= 0 then
+            self:GetControl("folder"):SetText(selected_directory)
+            self:GetControl("file_path"):SetText("Export complete.")
+            self:StopTimer(TIMER_ID)
+            self:GetControl("cancel"):SetText("Close")
+            return
+        end
+        self:GetControl("folder"):SetText("..." .. files_to_process[1].folder:sub(#selected_directory))
+            :RedrawImmediate()
+        self:GetControl("file_path"):SetText(files_to_process[1].name)
+            :RedrawImmediate()
+        process_document(files_to_process[1].folder .. files_to_process[1].name)
+        table.remove(files_to_process, 1)
+    end)
+    dialog:RegisterCloseWindow(function(self)
+        self:StopTimer(TIMER_ID)
+        finenv.RetainLuaState = false
+    end)
+    dialog:RunModeless()
+end
+
+function collect_files(utf8_folder_path, files_to_process)
     local folder_path_fcstr = finale.FCString(utf8_folder_path)
     folder_path_fcstr:AssureEndingPathDelimiter()
-    local lfs_folder_path = text.convert_encoding(folder_path_fcstr.LuaString, text.get_utf8_codepage(), text.get_default_codepage())
-    for finale_doc in lfs.dir(lfs_folder_path) do
-        if finale_doc ~= "." and finale_doc ~= ".." then
-            local lfs_full_path = lfs_folder_path .. finale_doc
-            local utf8_full_path = text.convert_encoding(lfs_full_path, text.get_default_codepage(), text.get_utf8_codepage())
-            if (finale_doc:sub(-musx_extension:len()) == musx_extension) or (finale_doc:sub(-mus_extension:len()) == mus_extension) then
-                if finale_doc:sub(1, 2) == "._" then
-                    currently_processing = utf8_full_path
+    utf8_folder_path = folder_path_fcstr.LuaString
+    local lfs_folder_path = text.convert_encoding(utf8_folder_path, text.get_utf8_codepage(), text.get_default_codepage())
+    for lfs_finale_doc in lfs.dir(lfs_folder_path) do
+        if lfs_finale_doc ~= "." and lfs_finale_doc ~= ".." then
+            local utf8_finale_doc = text.convert_encoding(lfs_finale_doc, text.get_default_codepage(), text.get_utf8_codepage())
+            if (lfs_finale_doc:sub(-musx_extension:len()) == musx_extension) or (lfs_finale_doc:sub(-mus_extension:len()) == mus_extension) then
+                if lfs_folder_path:sub(1, 2) == "._" then
+                    currently_processing = utf8_folder_path .. utf8_finale_doc
                     log_message("skipping macOS resource fork", true)
                 else
-                    process_document(utf8_full_path)
+                    table.insert(files_to_process, {name = utf8_finale_doc, folder = utf8_folder_path})
                 end
             else
-                local attr = lfs.attributes(lfs_full_path)
+                local attr = lfs.attributes(lfs_folder_path .. lfs_finale_doc)
                 if attr and attr.mode == "directory" then
-                    process_folder(utf8_full_path)
+                    collect_files(utf8_folder_path .. utf8_finale_doc, files_to_process)
                 end
             end
         end
@@ -741,11 +796,10 @@ function document_options_to_musescore()
                 error("unable to create logfile " .. logfile_path)
             end
             file:close()
-            process_folder(selected_directory)
-            if not finenv.ConsoleIsAvailable then
-                local completed_msg = "Processed " .. selected_directory
-                finenv:UI():AlertInfo(completed_msg, "Processing Complete")
-            end
+            local files_to_process = {}
+            collect_files(selected_directory, files_to_process)
+            print("files to process", #files_to_process)
+            create_status_dialog(selected_directory, files_to_process)
         end
     else
         local file_path_fcstr = finale.FCString()
