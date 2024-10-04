@@ -19,7 +19,7 @@ function plugindef()
 
         - Open a Finale template file or document style file that you wish to use as the basis for your MuseScore defaults.
         - Select the score or part for which you wish to export style settings.
-        - Choose "Export Document Preferences to MuseScore...".
+        - Choose "Export Document Options to MuseScore...".
         - Choose a location where to save the output. It is recommended to append `.part.mss` to the name of the style settings for parts.
         - Import each of the score and part settings into a blank document in MuseScore.
         - Make any style adjustments as needed and then save them back out. (This gives them all the settings.)
@@ -30,14 +30,23 @@ function plugindef()
 
         ## Improving MusicXML imports of your documents ##
 
-        - Choose "Export Document Preferences to MuseScore..." with no document open.
+        - Choose "Export Folder Document Options to MuseScore..." with no document open.
         - Select a folder containing your Finale files. All subfolders will be searched as well.
         - For every Finale file found, a parallel `.mss` file is created.
         - If the source Finale file contains at least one linked part, a parallel `.part.mss` file is created as well (from the first part found).
         - After importing the MusicXML version of your document, use Style->Load style in MuseScore to load the settings for the document.
         - Repeat the process for each part, if any.
     ]]
-    return "Export Document Options to MuseScore...", "Export Document Options to MuseScore", "Export document options from one or more Finale documents to MuseScore style files for score and parts."
+    finaleplugin.AdditionalMenuOptions = [[
+        Export Folder Document Options to MuseScore...
+    ]]
+    finaleplugin.AdditionalDescriptions = [[
+        Recursively search a folder and its subfolders and export document options for Finale files to score and part MuseScore style files.
+    ]]
+    finaleplugin.AdditionalPrefixes = [[
+        do_folder = true
+    ]]
+    return "Export Document Options to MuseScore...", "Export Document Options to MuseScore", "Export document options for the current Finale document and part view to a MuseScore style file."
 end
 
 -- A lot of Finale settings do not translate to MuseScore very well. They are commented out to show that
@@ -50,6 +59,8 @@ local text = require("luaosutils").text
 
 local mixin = require("library.mixin")
 local enigma_string = require("library.enigma_string")
+
+do_folder = do_folder or false
 
 local logfile_name = "FinaleMuseScoreSettingsExportLog.txt"
 
@@ -708,6 +719,8 @@ function create_status_dialog(selected_directory, files_to_process)
             self:GetControl("folder"):SetText(selected_directory)
             self:GetControl("file_path"):SetText("Export complete.")
             self:StopTimer(TIMER_ID)
+            currently_processing = selected_directory
+            log_message("processing complete")
             self:GetControl("cancel"):SetText("Close")
             return
         end
@@ -720,6 +733,10 @@ function create_status_dialog(selected_directory, files_to_process)
     end)
     dialog:RegisterCloseWindow(function(self)
         self:StopTimer(TIMER_ID)
+        if #files_to_process > 0 then
+            currently_processing = selected_directory
+            log_message("processing aborted by user", true)
+        end
         finenv.RetainLuaState = false
     end)
     dialog:RunModeless()
@@ -787,7 +804,11 @@ function document_options_to_musescore()
     local documents = finale.FCDocuments()
     documents:LoadAll()
     local document = documents:FindCurrent()
-    if not document then
+    if do_folder then
+        if document then
+            finenv:UI():AlertInfo("Run this plugin with no documents open.", "")
+            return
+        end
         local selected_directory = select_directory()
         if selected_directory then
             logfile_path = text.convert_encoding(selected_directory, text.get_utf8_codepage(), text.get_default_codepage()) .. logfile_name
@@ -798,10 +819,13 @@ function document_options_to_musescore()
             file:close()
             local files_to_process = {}
             collect_files(selected_directory, files_to_process)
-            print("files to process", #files_to_process)
             create_status_dialog(selected_directory, files_to_process)
         end
     else
+        if not document then
+            finenv:UI():AlertInfo("Run this plugin with a document open.", "")
+            return
+        end
         local file_path_fcstr = finale.FCString()
         document:GetPath(file_path_fcstr)
         current_is_part = finale.FCPart(finale.PARTID_CURRENT):IsPart()
