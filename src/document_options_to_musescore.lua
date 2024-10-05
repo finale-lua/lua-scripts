@@ -763,7 +763,7 @@ function collect_files(utf8_folder_path, files_to_process)
         if lfs_finale_doc ~= "." and lfs_finale_doc ~= ".." then
             local utf8_finale_doc = text.convert_encoding(lfs_finale_doc, text.get_default_codepage(), text.get_utf8_codepage())
             if (lfs_finale_doc:sub(-musx_extension:len()) == musx_extension) or (lfs_finale_doc:sub(-mus_extension:len()) == mus_extension) then
-                if lfs_folder_path:sub(1, 2) == "._" then
+                if lfs_finale_doc:sub(1, 2) == "._" then
                     currently_processing = utf8_folder_path .. utf8_finale_doc
                     log_message("skipping macOS resource fork", true)
                 else
