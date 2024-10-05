@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson (folder scanning added by Carl Vine)"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.6"
-    finaleplugin.Date = "October 2, 2024"
+    finaleplugin.Version = "1.0.7"
+    finaleplugin.Date = "October 6, 2024"
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.74
@@ -21,7 +21,7 @@ function plugindef()
     finaleplugin.AdditionalPrefixes = [[
         do_single_file = true
     ]]
-    finaleplugin.ScriptGroupName = "Staff Explode"
+    finaleplugin.ScriptGroupName = "Massage MusicXML"
     finaleplugin.Notes = [[
         This script reads musicxml files exported from Finale and modifies them to
         improve importing into Dorico or MuseScore. The best process is as follows:
