@@ -654,6 +654,10 @@ function write_xml(output_path)
     end
 end
 
+-- Windows closes plugin dialogs when the last document window closes, so keep the first
+-- one open till all are done (on Windows only)
+local first_document
+
 function process_document(document_file_path)
     local document = finale.FCDocument()
     if document:Open(finale.FCString(document_file_path), true, nil, false, false, true) then
@@ -670,11 +674,15 @@ function process_document(document_file_path)
                 break
             end
         end
-        document.Dirty = false
-        local closed = document:CloseCurrentDocumentAndWindow(false) -- false: rollback any edits (which there should be none)
-        if not closed then
-            currently_processing = document_file_path
-            log_message("failed to close", true)
+        if finenv.UI():IsOnWindows() and not first_document then
+            first_document = document
+        else
+            document.Dirty = false
+            local closed = document:CloseCurrentDocumentAndWindow(false) -- false: rollback any edits (which there should be none)
+            if not closed then
+                currently_processing = document_file_path
+                log_message("failed to close", true)
+            end
         end
     else
         currently_processing = document_file_path
@@ -736,6 +744,10 @@ function create_status_dialog(selected_directory, files_to_process)
         if #files_to_process > 0 then
             currently_processing = selected_directory
             log_message("processing aborted by user", true)
+        end
+        if first_document then
+            first_document.Dirty = false
+            first_document:CloseCurrentDocumentAndWindow(false)
         end
         finenv.RetainLuaState = false
     end)
