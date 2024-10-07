@@ -374,9 +374,9 @@ function process_one_file(input_file)
         if condition then
             log_message(msg, true)
             os.remove(text.convert_encoding(output_file, text.get_utf8_codepage(), text.get_default_codepage())) -- delete erroneous file
+            close_document()
             return true
         end
-        close_document()
         return false
     end
 
