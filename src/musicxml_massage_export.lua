@@ -359,22 +359,53 @@ function process_one_file(input_file)
         document, close_required, switchback_required = open_finale_document(document_path)
     end
 
-    log_message("***** START OF PROCESSING *****")
+    local function close_document()
+        if document then
+            if close_required then
+                document:CloseCurrentDocumentAndWindow()
+            end
+            if switchback_required then
+                document:SwitchBack()
+            end
+        end
+    end
 
+    local function abort_if(condition, msg)
+        if condition then
+            log_message(msg, true)
+            os.remove(text.convert_encoding(output_file, text.get_utf8_codepage(), text.get_default_codepage())) -- delete erroneous file
+            return true
+        end
+        close_document()
+        return false
+    end
+
+    log_message("***** START OF PROCESSING *****")
     remove_processing_instructions(input_file, output_file)
     local musicxml = tinyxml2.XMLDocument()
     local result = musicxml:LoadFile(output_file)
-    if result ~= tinyxml2.XML_SUCCESS then
-        log_message("file does not appear to be exported from Finale", true)
-        os.remove(text.convert_encoding(output_file, text.get_utf8_codepage(), text.get_default_codepage())) -- delete erroneous file
+    if abort_if(result ~= tinyxml2.XML_SUCCESS, "error parsing XML: " .. musicxml:ErrorStr()) then
         return
     end
     local score_partwise = musicxml:FirstChildElement("score-partwise")
-    if not score_partwise then
-        log_message("file does not appear to be exported from Finale", true)
-        os.remove(text.convert_encoding(output_file, text.get_utf8_codepage(), text.get_default_codepage())) -- delete erroneous file
+    if abort_if(not score_partwise, "file does not appear to be exported from Finale") then
         return
     end
+    local encoding_element = tinyxml2.XMLHandle(score_partwise)
+        :FirstChildElement("identification")
+        :FirstChildElement("encoding")
+        :ToElement()
+    local software_element = encoding_element and encoding_element:FirstChildElement("software")
+    local encoding_date_element = encoding_element and encoding_element:FirstChildElement("encoding-date")
+    if abort_if(not software_element or not encoding_date_element, "missing required element 'software' and/or 'encoding-date'") then
+        return
+    end
+    local creator_software = software_element and software_element:GetText() or "Unspecified"
+    if abort_if(creator_software:sub(1, 6) ~= "Finale", "unable to process file exported by " .. creator_software) then
+        return
+    end
+    software_element:SetText("Massage Finale MusicXML Script " .. finaleplugin.Version .. " for " .. (finenv.UI():IsOnMac() and "Mac" or "Windows"))
+    encoding_date_element:SetText(os.date("%Y-%m-%d"))
     process_xml(score_partwise, document)
     currently_processing = output_file
     if musicxml:SaveFile(output_file) then
@@ -386,20 +417,14 @@ function process_one_file(input_file)
     else
         log_message("unable to save massaged file: " .. musicxml:ErrorStr(), true)
     end
-    if document then
-        if close_required then
-            document:CloseCurrentDocumentAndWindow()
-        end
-        if switchback_required then
-            document:SwitchBack()
-        end
-    end
+    close_document()
 end
 
 function process_directory(path_name)
     local folder_dialog = finale.FCFolderBrowseDialog(finenv.UI())
     folder_dialog:SetWindowTitle(finale.FCString("Select Folder of MusicXML Files:"))
     folder_dialog:SetFolderPath(path_name)
+    folder_dialog:SetUseFinaleAPI(finenv:UI():IsOnMac())
     if not folder_dialog:Execute() then
         return false -- user cancelled
     end

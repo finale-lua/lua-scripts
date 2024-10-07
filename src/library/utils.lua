@@ -510,7 +510,7 @@ Does nothing for plugin versions before RGP Lua 0.68.
 ]]
 function utils.eachfile(directory_path, recursive)
     if finenv.MajorVersion <= 0 and finenv.MinorVersion < 68 then
-        return function() return nil end
+        error("utils.eachfile requires at least RGP Lua v0.68.", 2)
     end
 
     recursive = recursive or false
@@ -535,7 +535,7 @@ function utils.eachfile(directory_path, recursive)
                             coroutine.yield(subdir, subfile)
                         end
                     end
-                elseif lfs_file:sub(1, 2) ~= "._" then -- skip macOS resource files
+                elseif (mode == "file" or mode == "link") and lfs_file:sub(1, 2) ~= "._" then -- skip macOS resource files
                     coroutine.yield(directory_path, utf8_file)
                 end
             end
