@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "October 2, 2024"
+    finaleplugin.Version = "1.0.1"
+    finaleplugin.Date = "October 6, 2024"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.75
     finaleplugin.Notes = [[
@@ -54,21 +54,21 @@ end
 
 -- luacheck: ignore 11./global_dialog
 
-local lfs = require("lfs")
 local text = require("luaosutils").text
 
 local mixin = require("library.mixin")
 local enigma_string = require("library.enigma_string")
+local utils = require("library.utils")
 
 do_folder = do_folder or false
 
 local logfile_name = "FinaleMuseScoreSettingsExportLog.txt"
 
-local musx_extension = ".musx"
-local mus_extension = ".mus"
-local text_extension = ".mss"
-local part_extension = ".part" .. text_extension
-local mss_version = "4.40"
+local MUSX_EXTENSION <const> = ".musx"
+local MUS_EXTENSION <const> = ".mus"
+local TEXT_EXTENSION <const> = ".mss"
+local PART_EXTENSION <const> = ".part" .. TEXT_EXTENSION
+local MSS_VERSION <const> = "4.40"
 
 -- hard-coded scaling values
 local EVPU_PER_INCH <const> = 288
@@ -157,22 +157,6 @@ function open_current_prefs()
     tuplet_prefs:Load(1)
     text_exps = finale.FCTextExpressionDefs()
     text_exps:LoadAll()
-end
-
--- returns Lua strings for path, file name without extension, full file path
-function get_file_path_no_extension(file_path_str)
-    local path_name = finale.FCString()
-    local file_name = finale.FCString()
-    local file_path = finale.FCString(file_path_str)
-    file_path:SplitToPathAndFile(path_name, file_name)
-    local full_file_name = file_name.LuaString
-    local extension = finale.FCString(file_name.LuaString)
-    extension:ExtractFileExtension()
-    if extension.Length > 0 then
-        file_name:TruncateAt(file_name:FindLast("." .. extension.LuaString))
-    end
-    path_name:AssureEndingPathDelimiter()
-    return path_name.LuaString, file_name.LuaString, full_file_name
 end
 
 function set_element_text(style_element, name, value)
@@ -628,7 +612,7 @@ function write_xml(output_path)
     local mssxml <close> = tinyxml2.XMLDocument()
     mssxml:InsertEndChild(mssxml:NewDeclaration(nil))
     local ms_element = mssxml:NewElement("museScore")
-    ms_element:SetAttribute("version", mss_version)
+    ms_element:SetAttribute("version", MSS_VERSION)
     mssxml:InsertEndChild(ms_element)
     local style_element = ms_element:InsertNewChildElement("Style")
     currently_processing = output_path
@@ -664,13 +648,13 @@ function process_document(document_file_path)
         local parts = finale.FCParts()
         parts:LoadAll()
         -- it is not actually necessary to switch to the part to get its settings
-        local path_name, file_name_no_ext = get_file_path_no_extension(document_file_path)
+        local path_name, file_name_no_ext = utils.split_file_path(document_file_path)
         current_is_part = false
-        write_xml(path_name .. file_name_no_ext .. text_extension)
+        write_xml(path_name .. file_name_no_ext .. TEXT_EXTENSION)
         for part in each(parts) do
             if not part:IsScore() then
                 current_is_part = true
-                write_xml(path_name .. file_name_no_ext .. part_extension)
+                write_xml(path_name .. file_name_no_ext .. PART_EXTENSION)
                 break
             end
         end
@@ -754,40 +738,15 @@ function create_status_dialog(selected_directory, files_to_process)
     dialog:RunModeless()
 end
 
-function collect_files(utf8_folder_path, files_to_process)
-    local folder_path_fcstr = finale.FCString(utf8_folder_path)
-    folder_path_fcstr:AssureEndingPathDelimiter()
-    utf8_folder_path = folder_path_fcstr.LuaString
-    local lfs_folder_path = text.convert_encoding(utf8_folder_path, text.get_utf8_codepage(), text.get_default_codepage())
-    for lfs_finale_doc in lfs.dir(lfs_folder_path) do
-        if lfs_finale_doc ~= "." and lfs_finale_doc ~= ".." then
-            local utf8_finale_doc = text.convert_encoding(lfs_finale_doc, text.get_default_codepage(), text.get_utf8_codepage())
-            if (lfs_finale_doc:sub(-musx_extension:len()) == musx_extension) or (lfs_finale_doc:sub(-mus_extension:len()) == mus_extension) then
-                if lfs_finale_doc:sub(1, 2) == "._" then
-                    currently_processing = utf8_folder_path .. utf8_finale_doc
-                    log_message("skipping macOS resource fork", true)
-                else
-                    table.insert(files_to_process, {name = utf8_finale_doc, folder = utf8_folder_path})
-                end
-            else
-                local attr = lfs.attributes(lfs_folder_path .. lfs_finale_doc)
-                if attr and attr.mode == "directory" then
-                    collect_files(utf8_folder_path .. utf8_finale_doc, files_to_process)
-                end
-            end
-        end
-    end
-end
-
 function select_target(file_path_str)
-    local path_name, file_name_no_ext = get_file_path_no_extension(file_path_str)
-    local file_name = file_name_no_ext .. (current_is_part and part_extension or text_extension)
+    local path_name, file_name_no_ext = utils.split_file_path(file_path_str)
+    local file_name = file_name_no_ext .. (current_is_part and PART_EXTENSION or TEXT_EXTENSION)
     local save_dialog = finale.FCFileSaveAsDialog(finenv.UI())
     save_dialog:SetWindowTitle(finale.FCString("Save MuseScore style settings as"))
-    save_dialog:AddFilter(finale.FCString("*" .. text_extension), finale.FCString("MuseScore Style Settings File"))
+    save_dialog:AddFilter(finale.FCString("*" .. TEXT_EXTENSION), finale.FCString("MuseScore Style Settings File"))
     save_dialog:SetInitFolder(finale.FCString(path_name))
     save_dialog:SetFileName(finale.FCString(file_name))
-    save_dialog:AssureFileExtension(text_extension)
+    save_dialog:AssureFileExtension(TEXT_EXTENSION)
     if not save_dialog:Execute() then
         return nil
     end
@@ -830,7 +789,12 @@ function document_options_to_musescore()
             end
             file:close()
             local files_to_process = {}
-            collect_files(selected_directory, files_to_process)
+            for folder, filename in utils.eachfile(selected_directory, true) do
+                print(folder, filename)
+                if (filename:sub(-MUSX_EXTENSION:len()) == MUSX_EXTENSION) or (filename:sub(-MUS_EXTENSION:len()) == MUS_EXTENSION) then
+                    table.insert(files_to_process, {name = filename, folder = folder})
+                end
+            end
             create_status_dialog(selected_directory, files_to_process)
         end
     else
