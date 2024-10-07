@@ -62,6 +62,7 @@ local logfile_path
 local error_occured = false
 local error_count = 0
 local currently_processing
+local current_part
 local current_staff
 local current_measure
 
@@ -73,7 +74,7 @@ function log_message(msg, is_error)
     local log_entry = "[" .. os.date("%Y-%m-%d %H:%M:%S") .. "] " .. currently_processing .. " "
     if current_staff > 0 and current_measure > 0 then
         local staff_text = (function()
-            local retval = "p" .. current_staff
+            local retval = "p" .. current_part
             local staff = finale:FCStaff()
             if staff:Load(finale.FCMusicRegion():CalcStaffNumber(current_staff)) then
                 local name = staff:CreateTrimmedFullNameString()
@@ -210,7 +211,7 @@ local duration_types = {
     ["1024th"] = EDU_PER_QUARTER / 256,
 }
 
-function process_xml_with_finale_document(xml_measure, staff_slot, measure, duration_unit)
+function process_xml_with_finale_document(xml_measure, staff_slot, measure, duration_unit, staff_num)
     local region = finale.FCMusicRegion()
     region.StartSlot = staff_slot
     region.StartMeasure = measure
@@ -221,11 +222,24 @@ function process_xml_with_finale_document(xml_measure, staff_slot, measure, dura
     local next_note
     for entry in eachentry(region) do
         if entry.Visible then -- Dolet does not create note elements for invisible entries
-            if not next_note then
-                next_note = xml_measure:FirstChildElement("note")
-            else
-                next_note = next_note:NextSiblingElement("note")
-            end
+            next_note = (function()
+                local retval = next_note
+                repeat
+                    if not retval then
+                        retval = xml_measure:FirstChildElement("note")
+                    else
+                        retval = retval:NextSiblingElement("note")
+                    end
+                    if retval then
+                        local staff_element = retval:FirstChildElement("staff")
+                        local this_staff_num = staff_element and staff_element:IntText(1) or 1
+                        if this_staff_num == staff_num then
+                            break
+                        end
+                    end
+                until not retval
+                return retval
+            end)()
             if not next_note then
                 log_message("xml notes do not match open document", true)
                 return false
@@ -283,26 +297,40 @@ function process_xml(score_partwise, document)
     if not document then
         log_message("WARNNG: corresponding Finale document not found")
     end
-    current_staff = 0
+    current_staff = 1
+    current_part = 1
     for xml_part in xmlelements(score_partwise, "part") do
-        current_staff = current_staff + 1
         current_measure = 0
         local duration_unit = EDU_PER_QUARTER
+        local staves_used = 1
         for xml_measure in xmlelements(xml_part, "measure") do
-            local divisions = tinyxml2.XMLHandle(xml_measure)
+            local attributes = tinyxml2.XMLHandle(xml_measure)
                 :FirstChildElement("attributes")
-                :FirstChildElement("divisions")
+            local divisions = attributes:FirstChildElement("divisions")
                 :ToElement()
             if divisions then
                 duration_unit = EDU_PER_QUARTER / divisions:DoubleText(1)
             end
+            local staves = attributes:FirstChildElement("staves")
+                :ToElement()
+            local num_staves = staves and staves:IntText(1) or 1
+            if num_staves > staves_used then
+                staves_used = num_staves
+            end
             current_measure = current_measure + 1
             if document then
-                process_xml_with_finale_document(xml_measure, current_staff, current_measure, duration_unit)
+                for staff_num = 1, num_staves do
+                    local staff_offset = staff_num - 1
+                    current_staff = current_staff + staff_offset
+                    process_xml_with_finale_document(xml_measure, current_staff, current_measure, duration_unit, staff_num)
+                    current_staff = current_staff - staff_offset
+                end
             end
             fix_octave_shift(xml_measure)
             fix_fermata_whole_rests(xml_measure)
         end
+        current_staff = current_staff + staves_used
+        current_part = current_part + 1
     end
     current_staff = 0
     current_measure = 0
