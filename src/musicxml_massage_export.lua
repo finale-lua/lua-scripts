@@ -31,16 +31,26 @@ function plugindef()
         3. The massaged file name has " massaged" appended to the file name.
         3. Import the massaged *.musicxml file into Dorico or MuseScore.
 
-        Here is a list of some of the changes the script makes:
+        Here is a list of the changes the script makes:
 
         - 8va/8vb and 15ma/15mb symbols are extended to include the last note and extended left to include leading grace notes.
         - Remove "real" whole rests from fermata measures. This issue arises when the fermata was attached to a "real" whole rest.
         The fermata is retained in the MusicXML, but the whole rest is removed. This makes for a better import, especially into MuseScore 4.
         - When a parallel `.musx` or `.mus` file is found, changes all rests in the MusicXML to floating if they were floating rests
-        in the original Finale file.
+        in the original Finale file. (You can suppress this by processing your xml files from a different folder than the Finale file.)
 
         Due to a limitation in the xml parser, all xml processing instructions are removed. These are metadata that neither
         Dorico nor MuseScore use, so their removal should not affect importing into those programs.
+
+        When tracking a Finale document, certain situations will cause the script to log errors and stop processing a measure/staff cell
+        for floating rests. Perhaps the most common are
+
+        - cross staff notes
+        - beams over barlines made with the Beam Over Barline plugin
+
+        The script is as conservative as possible, so generally you can ignore errors. Your best bet is to import the resulting massaged
+        xml file and see if you prefer it to the original. The log file is named `FinaleMassageMusicXMLLog.txt` and is to be found in the base
+        folder from which you started processing.
     ]]
     return "Massage MusicXML Folder...",
         "Massage MusicXML Folder",
@@ -64,6 +74,7 @@ local error_count = 0
 local currently_processing
 local current_part
 local current_staff
+local current_staff_offset
 local current_measure
 
 function log_message(msg, is_error)
@@ -76,8 +87,8 @@ function log_message(msg, is_error)
         local staff_text = (function()
             local retval = "p" .. current_part
             local staff = finale:FCStaff()
-            if staff:Load(finale.FCMusicRegion():CalcStaffNumber(current_staff)) then
-                local name = staff:CreateTrimmedFullNameString()
+            if staff:Load(finale.FCMusicRegion():CalcStaffNumber(current_staff + current_staff_offset)) then
+                local name = staff:CreateDisplayFullNameString()
                 retval = retval .. "[" .. name.LuaString .. "]"
             end
             return retval
@@ -100,7 +111,8 @@ function log_message(msg, is_error)
 end
 
 local function remove_processing_instructions(input_name, output_name)
-    local input_file <close> = io.open(text.convert_encoding(input_name, text.get_utf8_codepage(), text.get_default_codepage()), "r")
+    local input_file <close> = io.open(
+    text.convert_encoding(input_name, text.get_utf8_codepage(), text.get_default_codepage()), "r")
     if not input_file then
         error("Cannot open file: " .. input_name)
     end
@@ -114,7 +126,8 @@ local function remove_processing_instructions(input_name, output_name)
         end
     end
     input_file:close()
-    local output_file <close> = io.open(text.convert_encoding(output_name, text.get_utf8_codepage(), text.get_default_codepage()), "w")
+    local output_file <close> = io.open(
+    text.convert_encoding(output_name, text.get_utf8_codepage(), text.get_default_codepage()), "w")
     if not output_file then
         error("Cannot open file for writing: " .. output_name)
     end
@@ -127,8 +140,44 @@ local function remove_processing_instructions(input_name, output_name)
     end
 end
 
+function staff_number_from_note(xml_note)
+    local xml_staff = xml_note:FirstChildElement("staff")
+    return xml_staff and xml_staff:IntText(1) or 1
+end
+
+function octave_shift_directions(node)
+    local child = node and node:FirstChildElement("direction") or nil
+    local octave_shift = nil
+
+    -- Find the next octave-shift element starting from a given node
+    local function find_next_octave_shift()
+        while child do
+            local direction_type = child:FirstChildElement("direction-type")
+            if direction_type then
+                octave_shift = direction_type:FirstChildElement("octave-shift")
+                if octave_shift then
+                    break -- Found an octave-shift, stop searching
+                end
+            end
+            child = child:NextSiblingElement("direction") -- move to next direction element
+        end
+    end
+
+    -- Initialize by finding the first octave-shift element
+    find_next_octave_shift()
+
+    return function()
+        local current_octave_shift = child
+        if child then
+            child = child:NextSiblingElement("direction") -- move to the next direction element
+            find_next_octave_shift() -- search for the next octave-shift
+        end
+        return current_octave_shift
+    end
+end
+
 function fix_octave_shift(xml_measure)
-    for xml_direction in xmlelements(xml_measure, "direction") do
+    for xml_direction in octave_shift_directions(xml_measure) do
         local xml_direction_type = xml_direction:FirstChildElement("direction-type")
         if xml_direction_type then
             local octave_shift = xml_direction_type:FirstChildElement("octave-shift")
@@ -137,9 +186,18 @@ function fix_octave_shift(xml_measure)
                 local shift_type = octave_shift:Attribute("type")
                 if shift_type == "stop" then
                     local next_note = xml_direction:NextSiblingElement("note")
+                    -- skip over extra notes in chords
+                    if next_note then
+                        local chord_check = next_note:NextSiblingElement("note")
+                        while chord_check and chord_check:FirstChildElement("chord") do
+                            next_note = chord_check
+                            chord_check = chord_check:NextSiblingElement("note")
+                        end
+                    end
                     if next_note and not next_note:FirstChildElement("rest") then
                         xml_measure:DeleteChild(xml_direction)
                         xml_measure:InsertAfterChild(next_note, direction_copy)
+                        current_staff_offset = staff_number_from_note(next_note) - 1
                         log_message("extended octave_shift element of size " .. octave_shift:IntAttribute("size", 8) .. " by one note.")
                     end
                 elseif shift_type == "up" or shift_type == "down" then
@@ -168,6 +226,7 @@ function fix_octave_shift(xml_measure)
                         else
                             xml_measure:InsertFirstChild(direction_copy)
                         end
+                        current_staff_offset = staff_number_from_note(prev_grace_note) - 1
                         log_message("adjusted octave_shift element of size " .. octave_shift:IntAttribute("size", 8) .. " for preceding grace notes.")
                     end
                 end
@@ -185,6 +244,7 @@ function fix_fermata_whole_rests(xml_measure)
                 for notations in xmlelements(xml_note, "notations") do
                     if notations:FirstChildElement("fermata") then
                         xml_note:DeleteChild(note_type)
+                        current_staff_offset = staff_number_from_note(xml_note) - 1
                         log_message("removed real whole rest under fermata.")
                         break
                     end
@@ -230,12 +290,8 @@ function process_xml_with_finale_document(xml_measure, staff_slot, measure, dura
                     else
                         retval = retval:NextSiblingElement("note")
                     end
-                    if retval then
-                        local staff_element = retval:FirstChildElement("staff")
-                        local this_staff_num = staff_element and staff_element:IntText(1) or 1
-                        if this_staff_num == staff_num then
-                            break
-                        end
+                    if retval and staff_num == staff_number_from_note(retval) then
+                        break
                     end
                 until not retval
                 return retval
@@ -297,8 +353,9 @@ function process_xml(score_partwise, document)
     if not document then
         log_message("WARNNG: corresponding Finale document not found")
     end
-    current_staff = 1
     current_part = 1
+    current_staff = 1
+    current_staff_offset = 0
     for xml_part in xmlelements(score_partwise, "part") do
         current_measure = 0
         local duration_unit = EDU_PER_QUARTER
@@ -320,17 +377,16 @@ function process_xml(score_partwise, document)
             current_measure = current_measure + 1
             if document then
                 for staff_num = 1, num_staves do
-                    local staff_offset = staff_num - 1
-                    current_staff = current_staff + staff_offset
-                    process_xml_with_finale_document(xml_measure, current_staff, current_measure, duration_unit, staff_num)
-                    current_staff = current_staff - staff_offset
+                    current_staff_offset = staff_num - 1
+                    process_xml_with_finale_document(xml_measure, current_staff + current_staff_offset, current_measure, duration_unit, staff_num)
                 end
             end
             fix_octave_shift(xml_measure)
             fix_fermata_whole_rests(xml_measure)
         end
-        current_staff = current_staff + staves_used
         current_part = current_part + 1
+        current_staff = current_staff + staves_used
+        current_staff_offset = 0
     end
     current_staff = 0
     current_measure = 0
