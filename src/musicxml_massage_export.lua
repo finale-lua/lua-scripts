@@ -35,7 +35,7 @@ function plugindef()
 
         - 8va/8vb and 15ma/15mb symbols are extended to include the last note and extended left to include leading grace notes.
         - Remove "real" whole rests from fermata measures. This issue arises when the fermata was attached to a "real" whole rest.
-        The fermata is retained in the MusicXML, but the whole rest it removed. This makes for a better import.
+        The fermata is retained in the MusicXML, but the whole rest is removed. This makes for a better import, especially into MuseScore 4.
         - When a parallel `.musx` or `.mus` file is found, changes all rests in the MusicXML to floating if they were floating rests
         in the original Finale file.
 
@@ -60,6 +60,7 @@ local EDU_PER_QUARTER <const> = 1024
 local LOGFILE_NAME <const> = "FinaleMassageMusicXMLLog.txt"
 local logfile_path
 local error_occured = false
+local error_count = 0
 local currently_processing
 local current_staff
 local current_measure
@@ -67,6 +68,7 @@ local current_measure
 function log_message(msg, is_error)
     if is_error then
         error_occured = true
+        error_count = error_count + 1
     end
     local log_entry = "[" .. os.date("%Y-%m-%d %H:%M:%S") .. "] " .. currently_processing .. " "
     if current_staff > 0 and current_measure > 0 then
@@ -217,9 +219,6 @@ function process_xml_with_finale_document(xml_measure, staff_slot, measure, dura
     region.EndMeasure = measure
     region:SetEndMeasurePosRight()
     local next_note
-    if staff_slot == 5 and measure == 296 then
-       --require('mobdebug').start()
-    end
     for entry in eachentry(region) do
         if entry.Visible then -- Dolet does not create note elements for invisible entries
             if not next_note then
@@ -237,11 +236,11 @@ function process_xml_with_finale_document(xml_measure, staff_slot, measure, dura
             note_type_duration = note_type_duration * (2 - 1 / (2 ^ num_dots))
             if not note_type_duration or note_type_duration ~= entry.Duration then
                 -- try actual durations
+                local EPSILON <const> = 1.001 -- allow actual durations to be off by a single EDU, to account for tuplets, plus 0.001 rounding slop
                 local duration_node = next_note:FirstChildElement("duration")
                 local xml_duration = (duration_node and duration_node:DoubleText() or 0) * duration_unit
-                xml_duration = math.floor(xml_duration*10000 + 0.5) / 10000
-                if xml_duration ~= entry.ActualDuration then
-                    log_message("xml durations do not match document: [" .. entry.ActualDuration .. ", " .. xml_duration .. "])", true)
+                if math.abs(entry.ActualDuration - xml_duration) > EPSILON then
+                    log_message("xml durations do not match document: [" .. entry.Duration .. ", " .. note_type_duration .. "])", true)
                     return false
                 end    
             end
@@ -324,8 +323,6 @@ function open_finale_document(document_path)
                 switchback_required = true
             end
             return document, false, switchback_required
-        else
-            print(this_path, document_path)
         end
     end
     local document = finale.FCDocument()
@@ -340,6 +337,7 @@ function process_one_file(input_file)
     currently_processing = input_file
     current_staff = 0
     current_measure = 0
+    error_count = 0
 
     local path, filename, extension = utils.split_file_path(input_file)
     assert(#path > 0 and #filename > 0 and #extension > 0, "invalid file path format")
@@ -378,8 +376,13 @@ function process_one_file(input_file)
         return
     end
     process_xml(score_partwise, document)
+    currently_processing = output_file
     if musicxml:SaveFile(output_file) then
-        log_message("successfully saved massaged file")
+        if error_count > 0 then
+            log_message("successfully saved file with " .. error_count .. " processing errors.")
+        else
+            log_message("successfully saved file")
+        end
     else
         log_message("unable to save massaged file: " .. musicxml:ErrorStr(), true)
     end
@@ -406,7 +409,7 @@ function process_directory(path_name)
 
     create_logfile(selected_directory.LuaString)
 
-    for dir_name, file_name in utils.eachfile(selected_directory.LuaString) do
+    for dir_name, file_name in utils.eachfile(selected_directory.LuaString, true) do
         if file_name:sub(-XML_EXTENSION:len()) == XML_EXTENSION then
             process_one_file(dir_name .. file_name)
         end
