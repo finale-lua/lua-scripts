@@ -233,8 +233,8 @@ function process_xml_with_finale_document(xml_measure, staff_slot, measure, dura
             local note_type_node = next_note:FirstChildElement("type")
             local note_type_duration = note_type_node and duration_types[note_type_node:GetText()]
             local num_dots = next_note:ChildElementCount("dot")
-            note_type_duration = note_type_duration * (2 - 1 / (2 ^ num_dots))
-            if not note_type_duration or note_type_duration ~= entry.Duration then
+            note_type_duration = note_type_duration and (note_type_duration* (2 - 1 / (2 ^ num_dots))) or -1
+            if note_type_duration ~= entry.Duration then
                 -- try actual durations
                 local EPSILON <const> = 1.001 -- allow actual durations to be off by a single EDU, to account for tuplets, plus 0.001 rounding slop
                 local duration_node = next_note:FirstChildElement("duration")
@@ -344,7 +344,8 @@ function process_one_file(input_file)
     local output_file = path .. filename .. ADD_TO_FILENAME .. XML_EXTENSION
     local document_path = (function()
         local function exist(try_path)
-            local attr = lfs.attributes(text.convert_encoding(try_path, text.get_utf8_codepage(), text.get_utf8_codepage()))
+            local attr = lfs.attributes(text.convert_encoding(try_path, text.get_utf8_codepage(),
+                text.get_utf8_codepage()))
             return attr and attr.mode == "file"
         end
         local try_path = path .. filename .. ".musx"
@@ -353,7 +354,7 @@ function process_one_file(input_file)
         if exist(try_path) then return try_path end
         return nil
     end)()
-    
+
     local document, close_required, switchback_required
     if document_path then
         document, close_required, switchback_required = open_finale_document(document_path)
@@ -404,7 +405,8 @@ function process_one_file(input_file)
     if abort_if(creator_software:sub(1, 6) ~= "Finale", "unable to process file exported by " .. creator_software) then
         return
     end
-    software_element:SetText("Massage Finale MusicXML Script " .. finaleplugin.Version .. " for " .. (finenv.UI():IsOnMac() and "Mac" or "Windows"))
+    software_element:SetText("Massage Finale MusicXML Script " ..
+    finaleplugin.Version .. " for " .. (finenv.UI():IsOnMac() and "Mac" or "Windows"))
     encoding_date_element:SetText(os.date("%Y-%m-%d"))
     process_xml(score_partwise, document)
     currently_processing = output_file
@@ -420,6 +422,21 @@ function process_one_file(input_file)
     close_document()
 end
 
+function process_files(file_list, logfile_folder)
+    logfile_path = text.convert_encoding(logfile_folder, text.get_utf8_codepage(), text.get_default_codepage()) .. LOGFILE_NAME
+    local file <close> = io.open(logfile_path, "w")
+    if not file then
+        error("unable to create logfile " .. logfile_path)
+    end
+    file:close()
+
+    for _, file_info in ipairs(file_list) do
+        process_one_file(file_info.folder .. file_info.name)
+    end
+
+    finenv.UI():AlertInfo(error_occured and "Processed with errors" or "Processed without errors", "Complete")
+end
+
 function process_directory(path_name)
     local folder_dialog = finale.FCFolderBrowseDialog(finenv.UI())
     folder_dialog:SetWindowTitle(finale.FCString("Select Folder of MusicXML Files:"))
@@ -430,15 +447,19 @@ function process_directory(path_name)
     end
     local selected_directory = finale.FCString()
     folder_dialog:GetFolderPath(selected_directory)
-    folder_dialog:AssureEndingPathDelimiter()
+    selected_directory:AssureEndingPathDelimiter()
 
-    create_logfile(selected_directory.LuaString)
-
+    local file_list = {}
     for dir_name, file_name in utils.eachfile(selected_directory.LuaString, true) do
         if file_name:sub(-XML_EXTENSION:len()) == XML_EXTENSION then
-            process_one_file(dir_name .. file_name)
+            table.insert(file_list, { name = file_name, folder = dir_name })
         end
     end
+    if #file_list <= 0 then
+        finenv.UI():AlertInfo("No MusicXML files found.", "Nothing To Process")
+        return false
+    end
+    process_files(file_list, selected_directory.LuaString)
     return true
 end
 
@@ -456,15 +477,6 @@ function do_open_dialog(path_name)
     return selected_file_name.LuaString
 end
 
-function create_logfile(path_name)
-    logfile_path = text.convert_encoding(path_name, text.get_utf8_codepage(), text.get_default_codepage()) .. LOGFILE_NAME
-    local file <close> = io.open(logfile_path, "w")
-    if not file then
-        error("unable to create logfile " .. logfile_path, 2)
-    end
-    file:close()
-end
-
 function music_xml_massage_export()
     local documents = finale.FCDocuments()
     documents:LoadAll()
@@ -478,20 +490,15 @@ function music_xml_massage_export()
     end
     path_name:AssureEndingPathDelimiter()
 
-    local massaged = false
     if do_single_file then
         local xml_file = do_open_dialog(path_name)
         if xml_file then
-            create_logfile(utils.split_file_path(xml_file))
-            process_one_file(xml_file)
-            massaged = true
+            local path, name, extension = utils.split_file_path(xml_file)
+            assert(extension == XML_EXTENSION, "incorrect file type selected")
+            process_files({{ folder = path, name = name .. extension }}, path)
         end
     else
-        massaged = process_directory(path_name)
-    end
-    
-    if massaged then
-        finenv.UI():AlertInfo(error_occured and "Processed with errors" or "Processed without errors", "Complete")
+        process_directory(path_name)
     end
 end
 
