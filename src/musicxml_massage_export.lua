@@ -5,7 +5,7 @@ function plugindef()
     finaleplugin.Author = "Robert Patterson and Carl Vine"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "2.0"
-    finaleplugin.Date = "October 6, 2024"
+    finaleplugin.Date = "October 8, 2024"
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.75
@@ -146,18 +146,18 @@ end
 
 -- custom iterator that returns only "octave-shift" direction nodes
 -- this allows us to skip the ones we have moved to the right
-function octave_shift_directions(node)
+function directions_of_type(node, node_name)
     local child = node and node:FirstChildElement("direction") or nil
-    local octave_shift = nil
+    local node_for_type = nil
 
     -- Find the next octave-shift element starting from a given node
     local function find_next_octave_shift()
         while child do
             local direction_type = child:FirstChildElement("direction-type")
             if direction_type then
-                octave_shift = direction_type:FirstChildElement("octave-shift")
-                if octave_shift then
-                    break -- Found an octave-shift, stop searching
+                node_for_type = direction_type:FirstChildElement(node_name)
+                if node_for_type then
+                    break -- Found the type, stop searching
                 end
             end
             child = child:NextSiblingElement("direction") -- move to next direction element
@@ -177,14 +177,14 @@ function octave_shift_directions(node)
     end
 end
 
-function fix_octave_shift(xml_measure)
-    for xml_direction in octave_shift_directions(xml_measure) do
+function fix_direction_brackets(xml_measure, direction_type)
+    for xml_direction in directions_of_type(xml_measure, direction_type) do
         local xml_direction_type = xml_direction:FirstChildElement("direction-type")
         if xml_direction_type then
-            local octave_shift = xml_direction_type:FirstChildElement("octave-shift")
-            if octave_shift then
+            local node_for_type = xml_direction_type:FirstChildElement(direction_type)
+            if node_for_type then
                 local direction_copy = xml_direction:DeepClone(xml_direction:GetDocument())
-                local shift_type = octave_shift:Attribute("type")
+                local shift_type = node_for_type:Attribute("type")
                 if shift_type == "stop" then
                     local next_note = xml_direction:NextSiblingElement("note")
                     -- skip over extra notes in chords
@@ -199,11 +199,15 @@ function fix_octave_shift(xml_measure)
                         xml_measure:DeleteChild(xml_direction)
                         xml_measure:InsertAfterChild(next_note, direction_copy)
                         current_staff_offset = staff_number_from_note(next_note) - 1
-                        log_message("extended octave_shift element of size " .. octave_shift:IntAttribute("size", 8) .. " by one note/chord.")
+                        if direction_type == "octave-shift" then
+                            log_message("extended octave-shift element of size " .. node_for_type:IntAttribute("size", 8) .. " by one note/chord.")
+                        else
+                            log_message("extended " .. direction_type .. " element by one note/chord.")
+                        end
                     end
-                elseif shift_type == "up" or shift_type == "down" then
+                elseif direction_type == "octave-shift" and shift_type == "up" or shift_type == "down" then
                     local sign = shift_type == "down" and 1 or -1
-                    local octaves = (octave_shift:IntAttribute("size", 8) - 1) / 7
+                    local octaves = (node_for_type:IntAttribute("size", 8) - 1) / 7
                     local prev_grace_note
                     local prev_note = xml_direction:PreviousSiblingElement("note")
                     while prev_note do
@@ -228,7 +232,7 @@ function fix_octave_shift(xml_measure)
                             xml_measure:InsertFirstChild(direction_copy)
                         end
                         current_staff_offset = staff_number_from_note(prev_grace_note) - 1
-                        log_message("adjusted octave_shift element of size " .. octave_shift:IntAttribute("size", 8) .. " to include preceding grace notes.")
+                        log_message("adjusted octave-shift element of size " .. node_for_type:IntAttribute("size", 8) .. " to include preceding grace notes.")
                     end
                 end
             end
@@ -382,7 +386,9 @@ function process_xml(score_partwise, document)
                     process_xml_with_finale_document(xml_measure, current_staff + current_staff_offset, current_measure, duration_unit, staff_num)
                 end
             end
-            fix_octave_shift(xml_measure)
+            fix_direction_brackets(xml_measure, "octave-shift")
+            --it turns out extending brackets is of questionable benefit in both MuseScore and Dorico, so omit for now
+            --fix_direction_brackets(xml_measure, "bracket")
             fix_fermata_whole_rests(xml_measure)
         end
         current_part = current_part + 1
