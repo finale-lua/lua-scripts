@@ -467,7 +467,7 @@ function process_one_file(input_file)
 
     log_message("***** START OF PROCESSING *****")
     remove_processing_instructions(input_file, output_file)
-    local musicxml = tinyxml2.XMLDocument()
+    local musicxml <close> = tinyxml2.XMLDocument()
     local result = musicxml:LoadFile(output_file)
     if abort_if(result ~= tinyxml2.XML_SUCCESS, "error parsing XML: " .. musicxml:ErrorStr()) then
         return
@@ -518,7 +518,7 @@ function process_files(file_list, logfile_folder)
         process_one_file(file_info.folder .. file_info.name)
     end
 
-    finenv.UI():AlertInfo(error_occured and "Processed with errors" or "Processed without errors", "Complete")
+    finenv.UI():AlertInfo(error_occured and ("Processed with errors. See " .. logfile_path) or "Processed without errors", "Complete")
 end
 
 function process_directory(path_name)
