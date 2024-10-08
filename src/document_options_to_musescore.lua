@@ -62,7 +62,7 @@ local utils = require("library.utils")
 
 do_folder = do_folder or false
 
-local logfile_name = "FinaleMuseScoreSettingsExportLog.txt"
+local LOGFILE_NAME <const> = "FinaleMuseScoreSettingsExportLog.txt"
 
 local MUSX_EXTENSION <const> = ".musx"
 local MUS_EXTENSION <const> = ".mus"
@@ -708,9 +708,10 @@ function create_status_dialog(selected_directory, files_to_process)
     dialog:RegisterHandleTimer(function(self, timer)
         assert(timer == TIMER_ID, "incorrect timer id value " .. timer)
         if #files_to_process <= 0 then
-            self:GetControl("folder"):SetText(selected_directory)
-            self:GetControl("file_path"):SetText("Export complete.")
             self:StopTimer(TIMER_ID)
+            self:GetControl("folder"):SetText(selected_directory)
+            self:GetControl("file_path_label"):SetText("Log:")
+            self:GetControl("file_path"):SetText(LOGFILE_NAME .. " (export complete)")
             currently_processing = selected_directory
             log_message("processing complete")
             self:GetControl("cancel"):SetText("Close")
@@ -782,7 +783,7 @@ function document_options_to_musescore()
         end
         local selected_directory = select_directory()
         if selected_directory then
-            logfile_path = text.convert_encoding(selected_directory, text.get_utf8_codepage(), text.get_default_codepage()) .. logfile_name
+            logfile_path = text.convert_encoding(selected_directory, text.get_utf8_codepage(), text.get_default_codepage()) .. LOGFILE_NAME
             local file <close> = io.open(logfile_path, "w")
             if not file then
                 error("unable to create logfile " .. logfile_path)

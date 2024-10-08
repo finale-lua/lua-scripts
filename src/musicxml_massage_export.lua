@@ -48,7 +48,7 @@ function plugindef()
         - cross staff notes
         - beams over barlines made with the Beam Over Barline plugin
 
-        The script is as conservative as possible, so generally you can ignore errors. Your best bet is to import the resulting massaged
+        The script is as conservative as possible, so generally you can ignore these errors. Your best bet is to import the resulting massaged
         xml file and see if you prefer it to the original. The log file is named `FinaleMassageMusicXMLLog.txt` and is to be found in the base
         folder from which you started processing.
     ]]
@@ -61,15 +61,16 @@ local lfs = require("lfs")
 local text = require("luaosutils").text
 
 local utils = require("library.utils")
+local mixin = require("library.mixin")
 
 do_single_file = do_single_file or false
 local XML_EXTENSION <const> = ".musicxml"
 local ADD_TO_FILENAME <const> = " massaged"
 local EDU_PER_QUARTER <const> = 1024
 
+local TIMER_ID <const> = 1 -- value that identifies our timer
 local LOGFILE_NAME <const> = "FinaleMassageMusicXMLLog.txt"
 local logfile_path
-local error_occured = false
 local error_count = 0
 local currently_processing
 local current_part
@@ -79,7 +80,6 @@ local current_measure
 
 function log_message(msg, is_error)
     if is_error then
-        error_occured = true
         error_count = error_count + 1
     end
     local log_entry = "[" .. os.date("%Y-%m-%d %H:%M:%S") .. "] " .. currently_processing .. " "
@@ -111,8 +111,7 @@ function log_message(msg, is_error)
 end
 
 local function remove_processing_instructions(input_name, output_name)
-    local input_file <close> = io.open(
-    text.convert_encoding(input_name, text.get_utf8_codepage(), text.get_default_codepage()), "r")
+    local input_file <close> = io.open(text.convert_encoding(input_name, text.get_utf8_codepage(), text.get_default_codepage()), "r")
     if not input_file then
         error("Cannot open file: " .. input_name)
     end
@@ -145,6 +144,8 @@ function staff_number_from_note(xml_note)
     return xml_staff and xml_staff:IntText(1) or 1
 end
 
+-- custom iterator that returns only "octave-shift" direction nodes
+-- this allows us to skip the ones we have moved to the right
 function octave_shift_directions(node)
     local child = node and node:FirstChildElement("direction") or nil
     local octave_shift = nil
@@ -198,7 +199,7 @@ function fix_octave_shift(xml_measure)
                         xml_measure:DeleteChild(xml_direction)
                         xml_measure:InsertAfterChild(next_note, direction_copy)
                         current_staff_offset = staff_number_from_note(next_note) - 1
-                        log_message("extended octave_shift element of size " .. octave_shift:IntAttribute("size", 8) .. " by one note.")
+                        log_message("extended octave_shift element of size " .. octave_shift:IntAttribute("size", 8) .. " by one note/chord.")
                     end
                 elseif shift_type == "up" or shift_type == "down" then
                     local sign = shift_type == "down" and 1 or -1
@@ -227,7 +228,7 @@ function fix_octave_shift(xml_measure)
                             xml_measure:InsertFirstChild(direction_copy)
                         end
                         current_staff_offset = staff_number_from_note(prev_grace_note) - 1
-                        log_message("adjusted octave_shift element of size " .. octave_shift:IntAttribute("size", 8) .. " for preceding grace notes.")
+                        log_message("adjusted octave_shift element of size " .. octave_shift:IntAttribute("size", 8) .. " to include preceding grace notes.")
                     end
                 end
             end
@@ -297,7 +298,7 @@ function process_xml_with_finale_document(xml_measure, staff_slot, measure, dura
                 return retval
             end)()
             if not next_note then
-                log_message("xml notes do not match open document", true)
+                log_message("WARNING: xml notes do not match open document")
                 return false
             end
             local note_type_node = next_note:FirstChildElement("type")
@@ -310,7 +311,7 @@ function process_xml_with_finale_document(xml_measure, staff_slot, measure, dura
                 local duration_node = next_note:FirstChildElement("duration")
                 local xml_duration = (duration_node and duration_node:DoubleText() or 0) * duration_unit
                 if math.abs(entry.ActualDuration - xml_duration) > EPSILON then
-                    log_message("xml durations do not match document: [" .. entry.Duration .. ", " .. note_type_duration .. "])", true)
+                    log_message("WARNING: xml durations do not match document: [" .. entry.Duration .. ", " .. note_type_duration .. "])")
                     return false
                 end    
             end
@@ -318,7 +319,7 @@ function process_xml_with_finale_document(xml_measure, staff_slot, measure, dura
             if entry:IsRest() then
                 local rest_element = next_note:FirstChildElement("rest")
                 if not rest_element then
-                    log_message("xml corresponding note value in document is not a rest", true)
+                    log_message("WARNING: xml corresponding note value in document is not a rest")
                     return false
                 end
                 if entry.FloatingRest then
@@ -414,7 +415,9 @@ function open_finale_document(document_path)
         log_message("unable to open corresponding Finale document", true)
         return nil, false, false
     end
-    return document, true, true
+    -- on Windows we have to keep at least one document open or else our modeless window is closed without warning
+    local close_required = finenv.UI():IsOnMac() or documents.Count > 0 -- this count was before we called document:Open, so 0 is correct
+    return document, close_required, true
 end
 
 function process_one_file(input_file)
@@ -429,7 +432,7 @@ function process_one_file(input_file)
     local document_path = (function()
         local function exist(try_path)
             local attr = lfs.attributes(text.convert_encoding(try_path, text.get_utf8_codepage(),
-                text.get_utf8_codepage()))
+                text.get_default_codepage()))
             return attr and attr.mode == "file"
         end
         local try_path = path .. filename .. ".musx"
@@ -506,19 +509,70 @@ function process_one_file(input_file)
     close_document()
 end
 
-function process_files(file_list, logfile_folder)
-    logfile_path = text.convert_encoding(logfile_folder, text.get_utf8_codepage(), text.get_default_codepage()) .. LOGFILE_NAME
-    local file <close> = io.open(logfile_path, "w")
-    if not file then
-        error("unable to create logfile " .. logfile_path)
-    end
-    file:close()
-
-    for _, file_info in ipairs(file_list) do
-        process_one_file(file_info.folder .. file_info.name)
-    end
-
-    finenv.UI():AlertInfo(error_occured and ("Processed with errors. See " .. logfile_path) or "Processed without errors", "Complete")
+function process_files(file_list, selected_path)
+    local dialog = mixin.FCXCustomLuaWindow()
+        :SetTitle("Massage MusicXML Files")
+    local current_y = 0
+    -- processing folder
+    dialog:CreateStatic(0, current_y + 2, "folder_label")
+        :SetText("Folder:")
+        :DoAutoResizeWidth(0)
+    dialog:CreateStatic(0, current_y + 2, "folder")
+        :SetText("")
+        :SetWidth(400)
+        :AssureNoHorizontalOverlap(dialog:GetControl("folder_label"), 5)
+        :StretchToAlignWithRight()
+    current_y = current_y + 20
+    -- processing file
+    dialog:CreateStatic(0, current_y + 2, "file_path_label")
+        :SetText("File:")
+        :DoAutoResizeWidth(0)
+    dialog:CreateStatic(0, current_y + 2, "file_path")
+        :SetText("")
+        :SetWidth(300)
+        :AssureNoHorizontalOverlap(dialog:GetControl("file_path_label"), 5)
+        :HorizontallyAlignLeftWith(dialog:GetControl("folder"))
+        :StretchToAlignWithRight()
+    -- cancel
+    dialog:CreateCancelButton("cancel")
+    -- registrations
+    dialog:RegisterInitWindow(function(self)
+        logfile_path = text.convert_encoding(selected_path, text.get_utf8_codepage(), text.get_default_codepage()) .. LOGFILE_NAME
+        local file <close> = io.open(logfile_path, "w")
+        if not file then
+            error("unable to create logfile " .. logfile_path)
+        end
+        file:close()
+        self:SetTimer(TIMER_ID, 100) -- 100 milliseconds
+    end)
+    dialog:RegisterHandleTimer(function(self, timer)
+        assert(timer == TIMER_ID, "incorrect timer id value " .. timer)
+        if #file_list <= 0 then
+            self:StopTimer(TIMER_ID)
+            self:GetControl("folder"):SetText(selected_path)
+            self:GetControl("file_path_label"):SetText("Log:")
+            self:GetControl("file_path"):SetText(LOGFILE_NAME .. " (processing complete)")
+            currently_processing = selected_path
+            log_message("processing complete")
+            self:GetControl("cancel"):SetText("Close")
+            return
+        end
+        self:GetControl("folder"):SetText("..." .. file_list[1].folder:sub(#selected_path))
+            :RedrawImmediate()
+        self:GetControl("file_path"):SetText(file_list[1].name)
+            :RedrawImmediate()
+        process_one_file(file_list[1].folder .. file_list[1].name)
+        table.remove(file_list, 1)
+    end)
+    dialog:RegisterCloseWindow(function(self)
+        self:StopTimer(TIMER_ID)
+        if #file_list > 0 then
+            currently_processing = selected_path
+            log_message("processing aborted by user", true)
+        end
+        finenv.RetainLuaState = false
+    end)
+    dialog:RunModeless()
 end
 
 function process_directory(path_name)
