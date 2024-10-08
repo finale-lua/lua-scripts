@@ -502,7 +502,7 @@ The following are skipped.
 - "." and ".."
 - any file name starting withn "._" (These are macOS resource forks and can be seen on Windows as well when searching a macOS shared drive.)
 
-Does nothing for plugin versions before RGP Lua 0.68.
+Generates a runtime error for plugin versions before RGP Lua 0.68.
 
 @ directory_path (string) the directory path to search, encoded utf8.
 @ [recursive)] (boolean) true if subdirectories should always be searched. Defaults to false.
