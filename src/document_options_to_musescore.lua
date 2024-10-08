@@ -791,7 +791,6 @@ function document_options_to_musescore()
             file:close()
             local files_to_process = {}
             for folder, filename in utils.eachfile(selected_directory, true) do
-                print(folder, filename)
                 if (filename:sub(-MUSX_EXTENSION:len()) == MUSX_EXTENSION) or (filename:sub(-MUS_EXTENSION:len()) == MUS_EXTENSION) then
                     table.insert(files_to_process, {name = filename, folder = folder})
                 end

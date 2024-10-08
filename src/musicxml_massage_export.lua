@@ -474,7 +474,7 @@ function process_one_file(input_file)
         return false
     end
 
-    log_message("***** START OF PROCESSING *****")
+    log_message("\n\n***** START OF PROCESSING *****")
     remove_processing_instructions(input_file, output_file)
     local musicxml <close> = tinyxml2.XMLDocument()
     local result = musicxml:LoadFile(output_file)

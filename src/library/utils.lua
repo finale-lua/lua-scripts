@@ -481,12 +481,23 @@ function utils.split_file_path(full_path)
     local path_name = finale.FCString()
     local file_name = finale.FCString()
     local file_path = finale.FCString(full_path)
-    file_path:SplitToPathAndFile(path_name, file_name)
+    -- work around bug in SplitToPathAndFile when path is not specified
+    if file_path:FindFirst("/") >= 0 or (finenv.UI():IsOnWindows() and file_path:FindFirst("\\") >= 0) then
+        file_path:SplitToPathAndFile(path_name, file_name)
+    else
+        file_name.LuaString = full_path
+    end
     -- do not use FCString.ExtractFileExtension() because it has a hard-coded limit of 7 characters (!)
     local extension = file_name.LuaString:match("^.+(%..+)$")
     extension = extension or ""
     if #extension > 0 then
-        file_name:TruncateAt(file_name:FindLast(extension))
+        -- FCString.FindLast is unsafe if extension is not ASCII, so avoid using it
+        local truncate_pos = file_name.Length - finale.FCString(extension).Length
+        if truncate_pos > 0 then
+            file_name:TruncateAt(truncate_pos)
+        else
+            extension = ""
+        end
     end
     path_name:AssureEndingPathDelimiter()
     return path_name.LuaString, file_name.LuaString, extension
