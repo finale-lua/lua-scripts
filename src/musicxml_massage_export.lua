@@ -42,13 +42,13 @@ function plugindef()
         Due to a limitation in the xml parser, all xml processing instructions are removed. These are metadata that neither
         Dorico nor MuseScore use, so their removal should not affect importing into those programs.
 
-        When tracking a Finale document, certain situations will cause the script to log errors and stop processing a measure/staff cell
-        for floating rests. Perhaps the most common are
+        When tracking a Finale document, certain situations will cause the script to log warnings and stop processing a measure/staff cell
+        for floating rests. The most common are
 
         - cross staff notes
         - beams over barlines made with the Beam Over Barline plugin
 
-        The script is as conservative as possible, so generally you can ignore these errors. Your best bet is to import the resulting massaged
+        The script is as conservative as possible, so generally you can ignore these warnings. Your best bet is to import the resulting massaged
         xml file and see if you prefer it to the original. The log file is named `FinaleMassageMusicXMLLog.txt` and is to be found in the base
         folder from which you started processing.
     ]]
