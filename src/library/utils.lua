@@ -467,4 +467,91 @@ function utils.win_mac(windows_value, mac_value)
     return mac_value
 end
 
+--[[
+% split_file_path
+
+Splits a file path into folder, file name, and extension.
+
+@ full_path (string) The full file path in a Lua string.
+: (string) the folder path always including the final delimeter slash (macOS) or backslash (Windows). This may be an empty string.
+: (string) the filename without its extension
+: (string) the extension including its leading "." or an empty string if no extension.
+]]
+function utils.split_file_path(full_path)
+    local path_name = finale.FCString()
+    local file_name = finale.FCString()
+    local file_path = finale.FCString(full_path)
+    -- work around bug in SplitToPathAndFile when path is not specified
+    if file_path:FindFirst("/") >= 0 or (finenv.UI():IsOnWindows() and file_path:FindFirst("\\") >= 0) then
+        file_path:SplitToPathAndFile(path_name, file_name)
+    else
+        file_name.LuaString = full_path
+    end
+    -- do not use FCString.ExtractFileExtension() because it has a hard-coded limit of 7 characters (!)
+    local extension = file_name.LuaString:match("^.+(%..+)$")
+    extension = extension or ""
+    if #extension > 0 then
+        -- FCString.FindLast is unsafe if extension is not ASCII, so avoid using it
+        local truncate_pos = file_name.Length - finale.FCString(extension).Length
+        if truncate_pos > 0 then
+            file_name:TruncateAt(truncate_pos)
+        else
+            extension = ""
+        end
+    end
+    path_name:AssureEndingPathDelimiter()
+    return path_name.LuaString, file_name.LuaString, extension
+end
+
+--[[
+% eachfile
+
+Iterates a file path using lfs and feeds each directory and file name to a function.
+The directory names fed to the iterator function always contain path delimeters at the end.
+The following are skipped.
+
+- "." and ".."
+- any file name starting withn "._" (These are macOS resource forks and can be seen on Windows as well when searching a macOS shared drive.)
+
+Generates a runtime error for plugin versions before RGP Lua 0.68.
+
+@ directory_path (string) the directory path to search, encoded utf8.
+@ [recursive)] (boolean) true if subdirectories should always be searched. Defaults to false.
+: (function) iterator function to be used in for loop.
+]]
+function utils.eachfile(directory_path, recursive)
+    if finenv.MajorVersion <= 0 and finenv.MinorVersion < 68 then
+        error("utils.eachfile requires at least RGP Lua v0.68.", 2)
+    end
+
+    recursive = recursive or false
+
+    local lfs = require('lfs')
+    local text = require('luaosutils').text
+
+    local fcstr = finale.FCString(directory_path)
+    fcstr:AssureEndingPathDelimiter()
+    directory_path = fcstr.LuaString
+
+    local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
+
+    return coroutine.wrap(function()
+        for lfs_file in lfs.dir(lfs_directory_path) do
+            if lfs_file ~= "." and lfs_file ~= ".." then
+                local utf8_file = text.convert_encoding(lfs_file, text.get_default_codepage(), text.get_utf8_codepage())
+                local mode = lfs.attributes(lfs_directory_path .. lfs_file, "mode")
+                if mode == "directory" then
+                    if recursive then
+                        for subdir, subfile in utils.eachfile(directory_path .. utf8_file, recursive) do
+                            coroutine.yield(subdir, subfile)
+                        end
+                    end
+                elseif (mode == "file" or mode == "link") and lfs_file:sub(1, 2) ~= "._" then -- skip macOS resource files
+                    coroutine.yield(directory_path, utf8_file)
+                end
+            end
+        end
+    end)
+end
+
 return utils

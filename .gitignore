@@ -38,6 +38,7 @@ mobdebug.lua
 
 src/**/personal*
 dist/**/personal*
+personal/*
 
 .vscode/settings.json
 */**/.vscode
