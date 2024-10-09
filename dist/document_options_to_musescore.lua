@@ -3628,277 +3628,6 @@ package.preload["library.general_library"] = package.preload["library.general_li
     end
     return library
 end
-package.preload["library.utils"] = package.preload["library.utils"] or function()
-
-    local utils = {}
-
-
-
-
-    function utils.copy_table(t, to_table, overwrite)
-        overwrite = (overwrite == nil) and true or false
-        if type(t) == "table" then
-            local new = type(to_table) == "table" and to_table or {}
-            for k, v in pairs(t) do
-                local new_key = utils.copy_table(k)
-                local new_value = utils.copy_table(v)
-                if overwrite then
-                    new[new_key] = new_value
-                else
-                    new[new_key] = new[new_key] == nil and new_value or new[new_key]
-                end
-            end
-            setmetatable(new, utils.copy_table(getmetatable(t)))
-            return new
-        else
-            return t
-        end
-    end
-
-    function utils.table_remove_first(t, value)
-        for k = 1, #t do
-            if t[k] == value then
-                table.remove(t, k)
-                return
-            end
-        end
-    end
-
-    function utils.table_is_empty(t)
-        if type(t) ~= "table" then
-            return false
-        end
-        for _, _ in pairs(t) do
-            return false
-        end
-        return true
-    end
-
-    function utils.iterate_keys(t)
-        local a, b, c = pairs(t)
-        return function()
-            c = a(b, c)
-            return c
-        end
-    end
-
-    function utils.create_keys_table(t)
-        local retval = {}
-        for k, _ in pairsbykeys(t) do
-            table.insert(retval, k)
-        end
-        return retval
-    end
-
-    function utils.create_lookup_table(t)
-        local lookup = {}
-        for _, v in pairs(t) do
-            lookup[v] = true
-        end
-        return lookup
-    end
-
-    function utils.round(value, places)
-        places = places or 0
-        local multiplier = 10^places
-        local ret = math.floor(value * multiplier + 0.5)
-
-        return places == 0 and ret or ret / multiplier
-    end
-
-    function utils.to_integer_if_whole(value)
-        local int = math.floor(value)
-        return value == int and int or value
-    end
-
-    function utils.calc_roman_numeral(num)
-        local thousands = {'M','MM','MMM'}
-        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
-        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
-        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
-        local roman_numeral = ''
-        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
-        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
-        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
-        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
-        return roman_numeral
-    end
-
-    function utils.calc_ordinal(num)
-        local units = num % 10
-        local tens = num % 100
-        if units == 1 and tens ~= 11 then
-            return num .. "st"
-        elseif units == 2 and tens ~= 12 then
-            return num .. "nd"
-        elseif units == 3 and tens ~= 13 then
-            return num .. "rd"
-        end
-        return num .. "th"
-    end
-
-    function utils.calc_alphabet(num)
-        local letter = ((num - 1) % 26) + 1
-        local n = math.floor((num - 1) / 26)
-        return string.char(64 + letter) .. (n > 0 and n or "")
-    end
-
-    function utils.clamp(num, minimum, maximum)
-        return math.min(math.max(num, minimum), maximum)
-    end
-
-    function utils.ltrim(str)
-        return string.match(str, "^%s*(.*)")
-    end
-
-    function utils.rtrim(str)
-        return string.match(str, "(.-)%s*$")
-    end
-
-    function utils.trim(str)
-        return utils.ltrim(utils.rtrim(str))
-    end
-
-    local pcall_wrapper
-    local rethrow_placeholder = "tryfunczzz"
-    local pcall_line = debug.getinfo(1, "l").currentline + 2
-    function utils.call_and_rethrow(levels, tryfunczzz, ...)
-        return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
-
-    end
-
-    local source = debug.getinfo(1, "S").source
-    local source_is_file = source:sub(1, 1) == "@"
-    if source_is_file then
-        source = source:sub(2)
-    end
-
-    pcall_wrapper = function(levels, success, result, ...)
-        if not success then
-            local file
-            local line
-            local msg
-            file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
-            msg = msg or result
-            local file_is_truncated = file and file:sub(1, 3) == "..."
-            file = file_is_truncated and file:sub(4) or file
-
-
-
-            if file
-                and line
-                and source_is_file
-                and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
-                and tonumber(line) == pcall_line
-            then
-                local d = debug.getinfo(levels, "n")
-
-                msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
-
-                if d.namewhat == "method" then
-                    local arg = msg:match("^bad argument #(%d+)")
-                    if arg then
-                        msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
-                    end
-                end
-                error(msg, levels + 1)
-
-
-            else
-                error(result, 0)
-            end
-        end
-        return ...
-    end
-
-    function utils.rethrow_placeholder()
-        return "'" .. rethrow_placeholder .. "'"
-    end
-
-    function utils.show_notes_dialog(parent, caption, width, height)
-        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
-            return
-        end
-        if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
-            error("argument 1 must be nil or an instance of FCResourceWindow", 2)
-        end
-        local function dedent(input)
-            local first_line_indent = input:match("^(%s*)")
-            local pattern = "\n" .. string.rep(" ", #first_line_indent)
-            local result = input:gsub(pattern, "\n")
-            result = result:gsub("^%s+", "")
-            return result
-        end
-        local function replace_font_sizes(rtf)
-            local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
-            if font_sizes_json then
-                local cjson = require("cjson.safe")
-                local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
-                if font_sizes and font_sizes.os then
-                    local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
-                    if (font_sizes.os == this_os) then
-                        rtf = rtf:gsub("fs%d%d", font_sizes)
-                    end
-                end
-            end
-            return rtf
-        end
-        if not caption then
-            caption = plugindef():gsub("%.%.%.", "")
-            if finaleplugin.Version then
-                local version = finaleplugin.Version
-                if string.sub(version, 1, 1) ~= "v" then
-                    version = "v" .. version
-                end
-                caption = string.format("%s %s", caption, version)
-            end
-        end
-        if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
-            finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)
-        else
-            local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
-            if finaleplugin.RTFNotes then
-                notes = replace_font_sizes(notes)
-            end
-            width = width or 500
-            height = height or 350
-
-            local dlg = finale.FCCustomLuaWindow()
-            dlg:SetTitle(finale.FCString(caption))
-            local edit_text = dlg:CreateTextEditor(10, 10)
-            edit_text:SetWidth(width)
-            edit_text:SetHeight(height)
-            edit_text:SetUseRichText(finaleplugin.RTFNotes)
-            edit_text:SetReadOnly(true)
-            edit_text:SetWordWrap(true)
-            local ok = dlg:CreateOkButton()
-            dlg:RegisterInitWindow(
-                function()
-                    local notes_str = finale.FCString(notes)
-                    if edit_text:GetUseRichText() then
-                        edit_text:SetRTFString(notes_str)
-                    else
-                        local edit_font = finale.FCFontInfo()
-                        edit_font.Name = "Arial"
-                        edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
-                        edit_text:SetFont(edit_font)
-                        edit_text:SetText(notes_str)
-                    end
-                    edit_text:ResetColors()
-                    ok:SetKeyboardFocus()
-                end)
-            dlg:ExecuteModal(parent)
-        end
-    end
-
-    function utils.win_mac(windows_value, mac_value)
-        if finenv.UI():IsOnWindows() then
-            return windows_value
-        end
-        return mac_value
-    end
-    return utils
-end
 package.preload["library.localization"] = package.preload["library.localization"] or function()
 
     local localization = {}
@@ -5190,14 +4919,341 @@ package.preload["library.enigma_string"] = package.preload["library.enigma_strin
     end
     return enigma_string
 end
+package.preload["library.utils"] = package.preload["library.utils"] or function()
+
+    local utils = {}
+
+
+
+
+    function utils.copy_table(t, to_table, overwrite)
+        overwrite = (overwrite == nil) and true or false
+        if type(t) == "table" then
+            local new = type(to_table) == "table" and to_table or {}
+            for k, v in pairs(t) do
+                local new_key = utils.copy_table(k)
+                local new_value = utils.copy_table(v)
+                if overwrite then
+                    new[new_key] = new_value
+                else
+                    new[new_key] = new[new_key] == nil and new_value or new[new_key]
+                end
+            end
+            setmetatable(new, utils.copy_table(getmetatable(t)))
+            return new
+        else
+            return t
+        end
+    end
+
+    function utils.table_remove_first(t, value)
+        for k = 1, #t do
+            if t[k] == value then
+                table.remove(t, k)
+                return
+            end
+        end
+    end
+
+    function utils.table_is_empty(t)
+        if type(t) ~= "table" then
+            return false
+        end
+        for _, _ in pairs(t) do
+            return false
+        end
+        return true
+    end
+
+    function utils.iterate_keys(t)
+        local a, b, c = pairs(t)
+        return function()
+            c = a(b, c)
+            return c
+        end
+    end
+
+    function utils.create_keys_table(t)
+        local retval = {}
+        for k, _ in pairsbykeys(t) do
+            table.insert(retval, k)
+        end
+        return retval
+    end
+
+    function utils.create_lookup_table(t)
+        local lookup = {}
+        for _, v in pairs(t) do
+            lookup[v] = true
+        end
+        return lookup
+    end
+
+    function utils.round(value, places)
+        places = places or 0
+        local multiplier = 10^places
+        local ret = math.floor(value * multiplier + 0.5)
+
+        return places == 0 and ret or ret / multiplier
+    end
+
+    function utils.to_integer_if_whole(value)
+        local int = math.floor(value)
+        return value == int and int or value
+    end
+
+    function utils.calc_roman_numeral(num)
+        local thousands = {'M','MM','MMM'}
+        local hundreds = {'C','CC','CCC','CD','D','DC','DCC','DCCC','CM'}
+        local tens = {'X','XX','XXX','XL','L','LX','LXX','LXXX','XC'}	
+        local ones = {'I','II','III','IV','V','VI','VII','VIII','IX'}
+        local roman_numeral = ''
+        if math.floor(num/1000)>0 then roman_numeral = roman_numeral..thousands[math.floor(num/1000)] end
+        if math.floor((num%1000)/100)>0 then roman_numeral=roman_numeral..hundreds[math.floor((num%1000)/100)] end
+        if math.floor((num%100)/10)>0 then roman_numeral=roman_numeral..tens[math.floor((num%100)/10)] end
+        if num%10>0 then roman_numeral = roman_numeral..ones[num%10] end
+        return roman_numeral
+    end
+
+    function utils.calc_ordinal(num)
+        local units = num % 10
+        local tens = num % 100
+        if units == 1 and tens ~= 11 then
+            return num .. "st"
+        elseif units == 2 and tens ~= 12 then
+            return num .. "nd"
+        elseif units == 3 and tens ~= 13 then
+            return num .. "rd"
+        end
+        return num .. "th"
+    end
+
+    function utils.calc_alphabet(num)
+        local letter = ((num - 1) % 26) + 1
+        local n = math.floor((num - 1) / 26)
+        return string.char(64 + letter) .. (n > 0 and n or "")
+    end
+
+    function utils.clamp(num, minimum, maximum)
+        return math.min(math.max(num, minimum), maximum)
+    end
+
+    function utils.ltrim(str)
+        return string.match(str, "^%s*(.*)")
+    end
+
+    function utils.rtrim(str)
+        return string.match(str, "(.-)%s*$")
+    end
+
+    function utils.trim(str)
+        return utils.ltrim(utils.rtrim(str))
+    end
+
+    local pcall_wrapper
+    local rethrow_placeholder = "tryfunczzz"
+    local pcall_line = debug.getinfo(1, "l").currentline + 2
+    function utils.call_and_rethrow(levels, tryfunczzz, ...)
+        return pcall_wrapper(levels, pcall(function(...) return 1, tryfunczzz(...) end, ...))
+
+    end
+
+    local source = debug.getinfo(1, "S").source
+    local source_is_file = source:sub(1, 1) == "@"
+    if source_is_file then
+        source = source:sub(2)
+    end
+
+    pcall_wrapper = function(levels, success, result, ...)
+        if not success then
+            local file
+            local line
+            local msg
+            file, line, msg = result:match("([a-zA-Z]-:?[^:]+):([0-9]+): (.+)")
+            msg = msg or result
+            local file_is_truncated = file and file:sub(1, 3) == "..."
+            file = file_is_truncated and file:sub(4) or file
+
+
+
+            if file
+                and line
+                and source_is_file
+                and (file_is_truncated and source:sub(-1 * file:len()) == file or file == source)
+                and tonumber(line) == pcall_line
+            then
+                local d = debug.getinfo(levels, "n")
+
+                msg = msg:gsub("'" .. rethrow_placeholder .. "'", "'" .. (d.name or "") .. "'")
+
+                if d.namewhat == "method" then
+                    local arg = msg:match("^bad argument #(%d+)")
+                    if arg then
+                        msg = msg:gsub("#" .. arg, "#" .. tostring(tonumber(arg) - 1), 1)
+                    end
+                end
+                error(msg, levels + 1)
+
+
+            else
+                error(result, 0)
+            end
+        end
+        return ...
+    end
+
+    function utils.rethrow_placeholder()
+        return "'" .. rethrow_placeholder .. "'"
+    end
+
+    function utils.show_notes_dialog(parent, caption, width, height)
+        if not finaleplugin.RTFNotes and not finaleplugin.Notes then
+            return
+        end
+        if parent and (type(parent) ~= "userdata" or not parent.ExecuteModal) then
+            error("argument 1 must be nil or an instance of FCResourceWindow", 2)
+        end
+        local function dedent(input)
+            local first_line_indent = input:match("^(%s*)")
+            local pattern = "\n" .. string.rep(" ", #first_line_indent)
+            local result = input:gsub(pattern, "\n")
+            result = result:gsub("^%s+", "")
+            return result
+        end
+        local function replace_font_sizes(rtf)
+            local font_sizes_json  = rtf:match("{\\info%s*{\\comment%s*(.-)%s*}}")
+            if font_sizes_json then
+                local cjson = require("cjson.safe")
+                local font_sizes = cjson.decode('{' .. font_sizes_json .. '}')
+                if font_sizes and font_sizes.os then
+                    local this_os = finenv.UI():IsOnWindows() and 'win' or 'mac'
+                    if (font_sizes.os == this_os) then
+                        rtf = rtf:gsub("fs%d%d", font_sizes)
+                    end
+                end
+            end
+            return rtf
+        end
+        if not caption then
+            caption = plugindef():gsub("%.%.%.", "")
+            if finaleplugin.Version then
+                local version = finaleplugin.Version
+                if string.sub(version, 1, 1) ~= "v" then
+                    version = "v" .. version
+                end
+                caption = string.format("%s %s", caption, version)
+            end
+        end
+        if finenv.MajorVersion == 0 and finenv.MinorVersion < 68 and finaleplugin.Notes then
+            finenv.UI():AlertInfo(dedent(finaleplugin.Notes), caption)
+        else
+            local notes = dedent(finaleplugin.RTFNotes or finaleplugin.Notes)
+            if finaleplugin.RTFNotes then
+                notes = replace_font_sizes(notes)
+            end
+            width = width or 500
+            height = height or 350
+
+            local dlg = finale.FCCustomLuaWindow()
+            dlg:SetTitle(finale.FCString(caption))
+            local edit_text = dlg:CreateTextEditor(10, 10)
+            edit_text:SetWidth(width)
+            edit_text:SetHeight(height)
+            edit_text:SetUseRichText(finaleplugin.RTFNotes)
+            edit_text:SetReadOnly(true)
+            edit_text:SetWordWrap(true)
+            local ok = dlg:CreateOkButton()
+            dlg:RegisterInitWindow(
+                function()
+                    local notes_str = finale.FCString(notes)
+                    if edit_text:GetUseRichText() then
+                        edit_text:SetRTFString(notes_str)
+                    else
+                        local edit_font = finale.FCFontInfo()
+                        edit_font.Name = "Arial"
+                        edit_font.Size = finenv.UI():IsOnWindows() and 9 or 12
+                        edit_text:SetFont(edit_font)
+                        edit_text:SetText(notes_str)
+                    end
+                    edit_text:ResetColors()
+                    ok:SetKeyboardFocus()
+                end)
+            dlg:ExecuteModal(parent)
+        end
+    end
+
+    function utils.win_mac(windows_value, mac_value)
+        if finenv.UI():IsOnWindows() then
+            return windows_value
+        end
+        return mac_value
+    end
+
+    function utils.split_file_path(full_path)
+        local path_name = finale.FCString()
+        local file_name = finale.FCString()
+        local file_path = finale.FCString(full_path)
+
+        if file_path:FindFirst("/") >= 0 or (finenv.UI():IsOnWindows() and file_path:FindFirst("\\") >= 0) then
+            file_path:SplitToPathAndFile(path_name, file_name)
+        else
+            file_name.LuaString = full_path
+        end
+
+        local extension = file_name.LuaString:match("^.+(%..+)$")
+        extension = extension or ""
+        if #extension > 0 then
+
+            local truncate_pos = file_name.Length - finale.FCString(extension).Length
+            if truncate_pos > 0 then
+                file_name:TruncateAt(truncate_pos)
+            else
+                extension = ""
+            end
+        end
+        path_name:AssureEndingPathDelimiter()
+        return path_name.LuaString, file_name.LuaString, extension
+    end
+
+    function utils.eachfile(directory_path, recursive)
+        if finenv.MajorVersion <= 0 and finenv.MinorVersion < 68 then
+            error("utils.eachfile requires at least RGP Lua v0.68.", 2)
+        end
+        recursive = recursive or false
+        local lfs = require('lfs')
+        local text = require('luaosutils').text
+        local fcstr = finale.FCString(directory_path)
+        fcstr:AssureEndingPathDelimiter()
+        directory_path = fcstr.LuaString
+        local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
+        return coroutine.wrap(function()
+            for lfs_file in lfs.dir(lfs_directory_path) do
+                if lfs_file ~= "." and lfs_file ~= ".." then
+                    local utf8_file = text.convert_encoding(lfs_file, text.get_default_codepage(), text.get_utf8_codepage())
+                    local mode = lfs.attributes(lfs_directory_path .. lfs_file, "mode")
+                    if mode == "directory" then
+                        if recursive then
+                            for subdir, subfile in utils.eachfile(directory_path .. utf8_file, recursive) do
+                                coroutine.yield(subdir, subfile)
+                            end
+                        end
+                    elseif (mode == "file" or mode == "link") and lfs_file:sub(1, 2) ~= "._" then
+                        coroutine.yield(directory_path, utf8_file)
+                    end
+                end
+            end
+        end)
+    end
+    return utils
+end
 function plugindef()
     finaleplugin.RequireDocument = false
     finaleplugin.RequireSelection = false
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0"
-    finaleplugin.Date = "October 2, 2024"
+    finaleplugin.Version = "1.0.1"
+    finaleplugin.Date = "October 6, 2024"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.75
     finaleplugin.Notes = [[
@@ -5246,18 +5302,18 @@ function plugindef()
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Exports settings from one or more Finale documents into a MuseScore {\f1 .mss} style settings file. Only a subset of possible MuseScore settings are exported. The rest will be taken from the default settings you have set up for MuseScore when you load it in MuseScore.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script addresses two uses cases.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \b \fs23 Setting up your MuseScore defaults to be close to those of Finale\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs23 Setting up your MuseScore defaults to be close to those of Finale\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Open a Finale template file or document style file that you wish to use as the basis for your MuseScore defaults.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select the score or part for which you wish to export style settings.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Document Options to MuseScore\u8230?\u8221".\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Document Options to MuseScore\u8230 ?\u8221".\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose a location where to save the output. It is recommended to append {\f1 .part.mss} to the name of the style settings for parts.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Import each of the score and part settings into a blank document in MuseScore.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Make any style adjustments as needed and then save them back out. (This gives them all the settings.)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use the score {\f1 .mss} file for Preferences->Score->Style.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use the parts {\f1 .mss} file for Preferences->Score->Style for part.\sa180\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Now any new projects will start up with these defaults.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \b \fs23 Improving MusicXML imports of your documents\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Folder Document Options to MuseScore\u8230?\u8221" with no document open.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs23 Improving MusicXML imports of your documents\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Folder Document Options to MuseScore\u8230 ?\u8221" with no document open.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select a folder containing your Finale files. All subfolders will be searched as well.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab For every Finale file found, a parallel {\f1 .mss} file is created.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If the source Finale file contains at least one linked part, a parallel {\f1 .part.mss} file is created as well (from the first part found).\par}
@@ -5268,17 +5324,17 @@ function plugindef()
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/document_options_to_musescore.hash"
     return "Export Document Options to MuseScore...", "Export Document Options to MuseScore", "Export document options for the current Finale document and part view to a MuseScore style file."
 end
-local lfs = require("lfs")
 local text = require("luaosutils").text
 local mixin = require("library.mixin")
 local enigma_string = require("library.enigma_string")
+local utils = require("library.utils")
 do_folder = do_folder or false
-local logfile_name = "FinaleMuseScoreSettingsExportLog.txt"
-local musx_extension = ".musx"
-local mus_extension = ".mus"
-local text_extension = ".mss"
-local part_extension = ".part" .. text_extension
-local mss_version = "4.40"
+local LOGFILE_NAME <const> = "FinaleMuseScoreSettingsExportLog.txt"
+local MUSX_EXTENSION <const> = ".musx"
+local MUS_EXTENSION <const> = ".mus"
+local TEXT_EXTENSION <const> = ".mss"
+local PART_EXTENSION <const> = ".part" .. TEXT_EXTENSION
+local MSS_VERSION <const> = "4.40"
 local EVPU_PER_INCH <const> = 288
 local EVPU_PER_MM <const> = 288 / 25.4
 local EVPU_PER_SPACE <const> = 24
@@ -5359,20 +5415,6 @@ function open_current_prefs()
     tuplet_prefs:Load(1)
     text_exps = finale.FCTextExpressionDefs()
     text_exps:LoadAll()
-end
-function get_file_path_no_extension(file_path_str)
-    local path_name = finale.FCString()
-    local file_name = finale.FCString()
-    local file_path = finale.FCString(file_path_str)
-    file_path:SplitToPathAndFile(path_name, file_name)
-    local full_file_name = file_name.LuaString
-    local extension = finale.FCString(file_name.LuaString)
-    extension:ExtractFileExtension()
-    if extension.Length > 0 then
-        file_name:TruncateAt(file_name:FindLast("." .. extension.LuaString))
-    end
-    path_name:AssureEndingPathDelimiter()
-    return path_name.LuaString, file_name.LuaString, full_file_name
 end
 function set_element_text(style_element, name, value)
     local setter_func = "SetText"
@@ -5808,7 +5850,7 @@ function write_xml(output_path)
     local mssxml <close> = tinyxml2.XMLDocument()
     mssxml:InsertEndChild(mssxml:NewDeclaration(nil))
     local ms_element = mssxml:NewElement("museScore")
-    ms_element:SetAttribute("version", mss_version)
+    ms_element:SetAttribute("version", MSS_VERSION)
     mssxml:InsertEndChild(ms_element)
     local style_element = ms_element:InsertNewChildElement("Style")
     currently_processing = output_path
@@ -5840,13 +5882,13 @@ function process_document(document_file_path)
         local parts = finale.FCParts()
         parts:LoadAll()
 
-        local path_name, file_name_no_ext = get_file_path_no_extension(document_file_path)
+        local path_name, file_name_no_ext = utils.split_file_path(document_file_path)
         current_is_part = false
-        write_xml(path_name .. file_name_no_ext .. text_extension)
+        write_xml(path_name .. file_name_no_ext .. TEXT_EXTENSION)
         for part in each(parts) do
             if not part:IsScore() then
                 current_is_part = true
-                write_xml(path_name .. file_name_no_ext .. part_extension)
+                write_xml(path_name .. file_name_no_ext .. PART_EXTENSION)
                 break
             end
         end
@@ -5899,9 +5941,10 @@ function create_status_dialog(selected_directory, files_to_process)
     dialog:RegisterHandleTimer(function(self, timer)
         assert(timer == TIMER_ID, "incorrect timer id value " .. timer)
         if #files_to_process <= 0 then
-            self:GetControl("folder"):SetText(selected_directory)
-            self:GetControl("file_path"):SetText("Export complete.")
             self:StopTimer(TIMER_ID)
+            self:GetControl("folder"):SetText(selected_directory)
+            self:GetControl("file_path_label"):SetText("Log:")
+            self:GetControl("file_path"):SetText(LOGFILE_NAME .. " (export complete)")
             currently_processing = selected_directory
             log_message("processing complete")
             self:GetControl("cancel"):SetText("Close")
@@ -5928,39 +5971,15 @@ function create_status_dialog(selected_directory, files_to_process)
     end)
     dialog:RunModeless()
 end
-function collect_files(utf8_folder_path, files_to_process)
-    local folder_path_fcstr = finale.FCString(utf8_folder_path)
-    folder_path_fcstr:AssureEndingPathDelimiter()
-    utf8_folder_path = folder_path_fcstr.LuaString
-    local lfs_folder_path = text.convert_encoding(utf8_folder_path, text.get_utf8_codepage(), text.get_default_codepage())
-    for lfs_finale_doc in lfs.dir(lfs_folder_path) do
-        if lfs_finale_doc ~= "." and lfs_finale_doc ~= ".." then
-            local utf8_finale_doc = text.convert_encoding(lfs_finale_doc, text.get_default_codepage(), text.get_utf8_codepage())
-            if (lfs_finale_doc:sub(-musx_extension:len()) == musx_extension) or (lfs_finale_doc:sub(-mus_extension:len()) == mus_extension) then
-                if lfs_finale_doc:sub(1, 2) == "._" then
-                    currently_processing = utf8_folder_path .. utf8_finale_doc
-                    log_message("skipping macOS resource fork", true)
-                else
-                    table.insert(files_to_process, {name = utf8_finale_doc, folder = utf8_folder_path})
-                end
-            else
-                local attr = lfs.attributes(lfs_folder_path .. lfs_finale_doc)
-                if attr and attr.mode == "directory" then
-                    collect_files(utf8_folder_path .. utf8_finale_doc, files_to_process)
-                end
-            end
-        end
-    end
-end
 function select_target(file_path_str)
-    local path_name, file_name_no_ext = get_file_path_no_extension(file_path_str)
-    local file_name = file_name_no_ext .. (current_is_part and part_extension or text_extension)
+    local path_name, file_name_no_ext = utils.split_file_path(file_path_str)
+    local file_name = file_name_no_ext .. (current_is_part and PART_EXTENSION or TEXT_EXTENSION)
     local save_dialog = finale.FCFileSaveAsDialog(finenv.UI())
     save_dialog:SetWindowTitle(finale.FCString("Save MuseScore style settings as"))
-    save_dialog:AddFilter(finale.FCString("*" .. text_extension), finale.FCString("MuseScore Style Settings File"))
+    save_dialog:AddFilter(finale.FCString("*" .. TEXT_EXTENSION), finale.FCString("MuseScore Style Settings File"))
     save_dialog:SetInitFolder(finale.FCString(path_name))
     save_dialog:SetFileName(finale.FCString(file_name))
-    save_dialog:AssureFileExtension(text_extension)
+    save_dialog:AssureFileExtension(TEXT_EXTENSION)
     if not save_dialog:Execute() then
         return nil
     end
@@ -5994,14 +6013,18 @@ function document_options_to_musescore()
         end
         local selected_directory = select_directory()
         if selected_directory then
-            logfile_path = text.convert_encoding(selected_directory, text.get_utf8_codepage(), text.get_default_codepage()) .. logfile_name
+            logfile_path = text.convert_encoding(selected_directory, text.get_utf8_codepage(), text.get_default_codepage()) .. LOGFILE_NAME
             local file <close> = io.open(logfile_path, "w")
             if not file then
                 error("unable to create logfile " .. logfile_path)
             end
             file:close()
             local files_to_process = {}
-            collect_files(selected_directory, files_to_process)
+            for folder, filename in utils.eachfile(selected_directory, true) do
+                if (filename:sub(-MUSX_EXTENSION:len()) == MUSX_EXTENSION) or (filename:sub(-MUS_EXTENSION:len()) == MUS_EXTENSION) then
+                    table.insert(files_to_process, {name = filename, folder = folder})
+                end
+            end
             create_status_dialog(selected_directory, files_to_process)
         end
     else

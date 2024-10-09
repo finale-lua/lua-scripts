@@ -5034,6 +5034,62 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         end
         return mac_value
     end
+
+    function utils.split_file_path(full_path)
+        local path_name = finale.FCString()
+        local file_name = finale.FCString()
+        local file_path = finale.FCString(full_path)
+
+        if file_path:FindFirst("/") >= 0 or (finenv.UI():IsOnWindows() and file_path:FindFirst("\\") >= 0) then
+            file_path:SplitToPathAndFile(path_name, file_name)
+        else
+            file_name.LuaString = full_path
+        end
+
+        local extension = file_name.LuaString:match("^.+(%..+)$")
+        extension = extension or ""
+        if #extension > 0 then
+
+            local truncate_pos = file_name.Length - finale.FCString(extension).Length
+            if truncate_pos > 0 then
+                file_name:TruncateAt(truncate_pos)
+            else
+                extension = ""
+            end
+        end
+        path_name:AssureEndingPathDelimiter()
+        return path_name.LuaString, file_name.LuaString, extension
+    end
+
+    function utils.eachfile(directory_path, recursive)
+        if finenv.MajorVersion <= 0 and finenv.MinorVersion < 68 then
+            error("utils.eachfile requires at least RGP Lua v0.68.", 2)
+        end
+        recursive = recursive or false
+        local lfs = require('lfs')
+        local text = require('luaosutils').text
+        local fcstr = finale.FCString(directory_path)
+        fcstr:AssureEndingPathDelimiter()
+        directory_path = fcstr.LuaString
+        local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
+        return coroutine.wrap(function()
+            for lfs_file in lfs.dir(lfs_directory_path) do
+                if lfs_file ~= "." and lfs_file ~= ".." then
+                    local utf8_file = text.convert_encoding(lfs_file, text.get_default_codepage(), text.get_utf8_codepage())
+                    local mode = lfs.attributes(lfs_directory_path .. lfs_file, "mode")
+                    if mode == "directory" then
+                        if recursive then
+                            for subdir, subfile in utils.eachfile(directory_path .. utf8_file, recursive) do
+                                coroutine.yield(subdir, subfile)
+                            end
+                        end
+                    elseif (mode == "file" or mode == "link") and lfs_file:sub(1, 2) ~= "._" then
+                        coroutine.yield(directory_path, utf8_file)
+                    end
+                end
+            end
+        end)
+    end
     return utils
 end
 package.preload["library.note_entry"] = package.preload["library.note_entry"] or function()
@@ -5913,7 +5969,7 @@ function plugindef()
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script presents an alphabetical list of 24 individual types of data to delete, each line beginning with a configurable {\i hotkey}. Call the script, type the {\i hotkey} and hit [Enter] or [Return]. Half of the datatypes can be filtered by layer.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Delete Independently}:\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 Articulations\u8226? | Articulations on Rests\u8226? | Chords | Cross Staff Entries\u8226?\line Custom Lines | Dynamics\u8226? | Expressions (Not Dynamics)\u8226?\line Expressions (All)\u8226? | Expressions (Measure-Attached) | Glissandos\line Hairpins | Lyrics\u8226? | MIDI Continuous Data | MIDI Note Data\u8226?\line Note Position Offsets\u8226? | Notehead Modifications\u8226? | Notes\u8226?\line Secondary Beam Breaks\u8226? | Slurs | Smart Shapes (Note Attached)\u8226?\line Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles\line Tuplets\u8226? | User Selected\u8230? | (\u8226? = filter by layer)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 Articulations\u8226 ? | Articulations on Rests\u8226 ? | Chords | Cross Staff Entries\u8226 ?\line Custom Lines | Dynamics\u8226 ? | Expressions (Not Dynamics)\u8226 ?\line Expressions (All)\u8226 ? | Expressions (Measure-Attached) | Glissandos\line Hairpins | Lyrics\u8226 ? | MIDI Continuous Data | MIDI Note Data\u8226 ?\line Note Position Offsets\u8226 ? | Notehead Modifications\u8226 ? | Notes\u8226 ?\line Secondary Beam Breaks\u8226 ? | Slurs | Smart Shapes (Note Attached)\u8226 ?\line Smart Shapes (Beat Attached) | Smart Shapes (All) | Staff Styles\line Tuplets\u8226 ? | User Selected\u8230 ? | (\u8226 ? = filter by layer)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To delete the same data as last time without a confirmation dialog hold down [Shift] when starting the script.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Expression Layers}\line Expressions are not fixed to particular notes but can be \u8220"assigned\u8221" to a specific note layer. This {\i assignment} number is used for layer filtering here, and may not always correspond to the note layer you expect.\par}
         }

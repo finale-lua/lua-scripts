@@ -4765,6 +4765,62 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         end
         return mac_value
     end
+
+    function utils.split_file_path(full_path)
+        local path_name = finale.FCString()
+        local file_name = finale.FCString()
+        local file_path = finale.FCString(full_path)
+
+        if file_path:FindFirst("/") >= 0 or (finenv.UI():IsOnWindows() and file_path:FindFirst("\\") >= 0) then
+            file_path:SplitToPathAndFile(path_name, file_name)
+        else
+            file_name.LuaString = full_path
+        end
+
+        local extension = file_name.LuaString:match("^.+(%..+)$")
+        extension = extension or ""
+        if #extension > 0 then
+
+            local truncate_pos = file_name.Length - finale.FCString(extension).Length
+            if truncate_pos > 0 then
+                file_name:TruncateAt(truncate_pos)
+            else
+                extension = ""
+            end
+        end
+        path_name:AssureEndingPathDelimiter()
+        return path_name.LuaString, file_name.LuaString, extension
+    end
+
+    function utils.eachfile(directory_path, recursive)
+        if finenv.MajorVersion <= 0 and finenv.MinorVersion < 68 then
+            error("utils.eachfile requires at least RGP Lua v0.68.", 2)
+        end
+        recursive = recursive or false
+        local lfs = require('lfs')
+        local text = require('luaosutils').text
+        local fcstr = finale.FCString(directory_path)
+        fcstr:AssureEndingPathDelimiter()
+        directory_path = fcstr.LuaString
+        local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
+        return coroutine.wrap(function()
+            for lfs_file in lfs.dir(lfs_directory_path) do
+                if lfs_file ~= "." and lfs_file ~= ".." then
+                    local utf8_file = text.convert_encoding(lfs_file, text.get_default_codepage(), text.get_utf8_codepage())
+                    local mode = lfs.attributes(lfs_directory_path .. lfs_file, "mode")
+                    if mode == "directory" then
+                        if recursive then
+                            for subdir, subfile in utils.eachfile(directory_path .. utf8_file, recursive) do
+                                coroutine.yield(subdir, subfile)
+                            end
+                        end
+                    elseif (mode == "file" or mode == "link") and lfs_file:sub(1, 2) ~= "._" then
+                        coroutine.yield(directory_path, utf8_file)
+                    end
+                end
+            end
+        end)
+    end
     return utils
 end
 package.preload["library.client"] = package.preload["library.client"] or function()
@@ -5363,10 +5419,10 @@ function plugindef()
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select any number of measures and this script changes their \u8220"span\u8221" by manipulating the time signatures, either dividing each one into two or combining pairs of measures together.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Join}\line Combine each pair of measures in the selection by combining their time signatures. If they have the same time signature either double the numerator ([3/4][3/4] \u8594? [6/4]) or halve the denominator ([3/4][3/4] \u8594? [3/2]). If the time signatures are different, choose to either {\i Composite} them ([2/4][3/8] \u8594? [2/4 + 3/8]) or {\i Consolidate} them ([2/4][3/8] \u8594? [7/8]). (Consolidation loses current beam groupings). You can choose that a consolidated \u8220"display\u8221" time signature is created automatically when compositing meters. {\i Join} only works on an even number of measures.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Divide}\line Divide every selected measure into two, changing the time signature by either halving the numerator ([6/4] \u8594? [3/4][3/4]) or doubling the denominator ([6/4] \u8594? [6/8][6/8]). If the measure has an odd number of beats, choose whether to put more beats in the first measure (5\u8594?3+2) or the second (5\u8594?2+3). Measures containing composite meters will be divided after the first composite group, or if there is only one group, after its first element.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Join}\line Combine each pair of measures in the selection by combining their time signatures. If they have the same time signature either double the numerator ([3/4][3/4] \u8594 ? [6/4]) or halve the denominator ([3/4][3/4] \u8594 ? [3/2]). If the time signatures are different, choose to either {\i Composite} them ([2/4][3/8] \u8594 ? [2/4 + 3/8]) or {\i Consolidate} them ([2/4][3/8] \u8594 ? [7/8]). (Consolidation loses current beam groupings). You can choose that a consolidated \u8220"display\u8221" time signature is created automatically when compositing meters. {\i Join} only works on an even number of measures.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Divide}\line Divide every selected measure into two, changing the time signature by either halving the numerator ([6/4] \u8594 ? [3/4][3/4]) or doubling the denominator ([6/4] \u8594 ? [6/8][6/8]). If the measure has an odd number of beats, choose whether to put more beats in the first measure (5\u8594 ?3+2) or the second (5\u8594 ?2+3). Measures containing composite meters will be divided after the first composite group, or if there is only one group, after its first element.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b In All Cases}\line Incomplete measures will be filled with rests before {\b Join} or {\b Divide}. Measures containing too many notes will be trimmed to the \u8220"real\u8221" duration of the time signature. {\b Display only} time signatures are erased. Measures are either deleted or shifted in every operation so smart shapes spanning the selected music need to be \u8220"restored\u8221". Selecting a {\b Span} of {\b 5} will look for smart shapes to restore from 5 measures before until 5 after the selected region. (This takes noticeably longer than a {\b Span} of {\b 2}).\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Options}\line To configure script settings select the {\i Measure Span Options\u8230?} menu or hold down [Shift] when using {\b Join} or {\b Divide}.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Options}\line To configure script settings select the {\i Measure Span Options\u8230 ?} menu or hold down [Shift] when using {\b Join} or {\b Divide}.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/measure_span.hash"

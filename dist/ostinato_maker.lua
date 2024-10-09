@@ -4671,6 +4671,62 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         end
         return mac_value
     end
+
+    function utils.split_file_path(full_path)
+        local path_name = finale.FCString()
+        local file_name = finale.FCString()
+        local file_path = finale.FCString(full_path)
+
+        if file_path:FindFirst("/") >= 0 or (finenv.UI():IsOnWindows() and file_path:FindFirst("\\") >= 0) then
+            file_path:SplitToPathAndFile(path_name, file_name)
+        else
+            file_name.LuaString = full_path
+        end
+
+        local extension = file_name.LuaString:match("^.+(%..+)$")
+        extension = extension or ""
+        if #extension > 0 then
+
+            local truncate_pos = file_name.Length - finale.FCString(extension).Length
+            if truncate_pos > 0 then
+                file_name:TruncateAt(truncate_pos)
+            else
+                extension = ""
+            end
+        end
+        path_name:AssureEndingPathDelimiter()
+        return path_name.LuaString, file_name.LuaString, extension
+    end
+
+    function utils.eachfile(directory_path, recursive)
+        if finenv.MajorVersion <= 0 and finenv.MinorVersion < 68 then
+            error("utils.eachfile requires at least RGP Lua v0.68.", 2)
+        end
+        recursive = recursive or false
+        local lfs = require('lfs')
+        local text = require('luaosutils').text
+        local fcstr = finale.FCString(directory_path)
+        fcstr:AssureEndingPathDelimiter()
+        directory_path = fcstr.LuaString
+        local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
+        return coroutine.wrap(function()
+            for lfs_file in lfs.dir(lfs_directory_path) do
+                if lfs_file ~= "." and lfs_file ~= ".." then
+                    local utf8_file = text.convert_encoding(lfs_file, text.get_default_codepage(), text.get_utf8_codepage())
+                    local mode = lfs.attributes(lfs_directory_path .. lfs_file, "mode")
+                    if mode == "directory" then
+                        if recursive then
+                            for subdir, subfile in utils.eachfile(directory_path .. utf8_file, recursive) do
+                                coroutine.yield(subdir, subfile)
+                            end
+                        end
+                    elseif (mode == "file" or mode == "link") and lfs_file:sub(1, 2) ~= "._" then
+                        coroutine.yield(directory_path, utf8_file)
+                    end
+                end
+            end
+        end)
+    end
     return utils
 end
 package.preload["library.client"] = package.preload["library.client"] or function()
@@ -5249,8 +5305,8 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Copy the current selection and paste it consecutively to the right a nominated number of times. The replicas can span barlines ignoring time signatures. The same effect can be achieved with {\i Edit} \u8594? {\i Paste Multiple}, but this script is simpler to use and works intuitively on the current music selection in a single step.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To repeat the last action without a confirmation dialog hold down [Shift] when starting the script. Independently include or remove articulations, expressions, smartshapes, lyrics or chords from the repeats. Your choice at {\i Finale} \u8594? {\i Settings\u8230?} \u8594? {\i Edit} \u8594? {\i Automatic Music Spacing} determines whether or not the music is {\i respaced} on completion.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Copy the current selection and paste it consecutively to the right a nominated number of times. The replicas can span barlines ignoring time signatures. The same effect can be achieved with {\i Edit} \u8594 ? {\i Paste Multiple}, but this script is simpler to use and works intuitively on the current music selection in a single step.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To repeat the last action without a confirmation dialog hold down [Shift] when starting the script. Independently include or remove articulations, expressions, smartshapes, lyrics or chords from the repeats. Your choice at {\i Finale} \u8594 ? {\i Settings\u8230 ?} \u8594 ? {\i Edit} \u8594 ? {\i Automatic Music Spacing} determines whether or not the music is {\i respaced} on completion.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select {\b Modeless} if you prefer the dialog window to \u8220"float\u8221" above your score so you can change the score selection while the script is active. In this mode, click {\b Apply} [Return/Enter] to create an ostinato and {\b Cancel} [Escape] to close the window. Cancelling {\b Modeless} will apply the {\i next} time you use the script.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 These {\b Key Commands} are available when the {\b times} field is highlighted:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b q}: show these script notes\par}

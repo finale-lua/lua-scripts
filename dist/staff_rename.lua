@@ -267,6 +267,62 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         end
         return mac_value
     end
+
+    function utils.split_file_path(full_path)
+        local path_name = finale.FCString()
+        local file_name = finale.FCString()
+        local file_path = finale.FCString(full_path)
+
+        if file_path:FindFirst("/") >= 0 or (finenv.UI():IsOnWindows() and file_path:FindFirst("\\") >= 0) then
+            file_path:SplitToPathAndFile(path_name, file_name)
+        else
+            file_name.LuaString = full_path
+        end
+
+        local extension = file_name.LuaString:match("^.+(%..+)$")
+        extension = extension or ""
+        if #extension > 0 then
+
+            local truncate_pos = file_name.Length - finale.FCString(extension).Length
+            if truncate_pos > 0 then
+                file_name:TruncateAt(truncate_pos)
+            else
+                extension = ""
+            end
+        end
+        path_name:AssureEndingPathDelimiter()
+        return path_name.LuaString, file_name.LuaString, extension
+    end
+
+    function utils.eachfile(directory_path, recursive)
+        if finenv.MajorVersion <= 0 and finenv.MinorVersion < 68 then
+            error("utils.eachfile requires at least RGP Lua v0.68.", 2)
+        end
+        recursive = recursive or false
+        local lfs = require('lfs')
+        local text = require('luaosutils').text
+        local fcstr = finale.FCString(directory_path)
+        fcstr:AssureEndingPathDelimiter()
+        directory_path = fcstr.LuaString
+        local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
+        return coroutine.wrap(function()
+            for lfs_file in lfs.dir(lfs_directory_path) do
+                if lfs_file ~= "." and lfs_file ~= ".." then
+                    local utf8_file = text.convert_encoding(lfs_file, text.get_default_codepage(), text.get_utf8_codepage())
+                    local mode = lfs.attributes(lfs_directory_path .. lfs_file, "mode")
+                    if mode == "directory" then
+                        if recursive then
+                            for subdir, subfile in utils.eachfile(directory_path .. utf8_file, recursive) do
+                                coroutine.yield(subdir, subfile)
+                            end
+                        end
+                    elseif (mode == "file" or mode == "link") and lfs_file:sub(1, 2) ~= "._" then
+                        coroutine.yield(directory_path, utf8_file)
+                    end
+                end
+            end
+        end)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -435,8 +491,8 @@ Speaking of the Bb Clarinet... Accidentals are displayed with square brackets, s
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script creates a dialog containing the full and abbreviated names of all selected instruments, including multi-staff instruments such as organ or piano. This allows for quick renaming of staves, with far less mouse clicking than trying to rename them from the Score Manager.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 If there is no selection, all staves will be loaded.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 There are buttons for each instrument that will copy the full name into the abbreviated name field.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 There is a popup at the bottom of the list that will automatically set all transposing instruments to show either the instrument and then the transposition (e.g.\u160?\u8220"Clarinet in Bb\u8221"), or the transposition and then the instrument (e.g.\u160?\u8220"Bb Clarinet\u8221").\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Speaking of the Bb Clarinet\u8230? Accidentals are displayed with square brackets, so the dialog will show \u8220"B[b] Clarinet\u8221". This is then converted into symbols using the appropriate Enigma tags. All other font info is retained.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 There is a popup at the bottom of the list that will automatically set all transposing instruments to show either the instrument and then the transposition (e.g.\u160 ?\u8220"Clarinet in Bb\u8221"), or the transposition and then the instrument (e.g.\u160 ?\u8220"Bb Clarinet\u8221").\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Speaking of the Bb Clarinet\u8230 ? Accidentals are displayed with square brackets, so the dialog will show \u8220"B[b] Clarinet\u8221". This is then converted into symbols using the appropriate Enigma tags. All other font info is retained.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_rename.hash"

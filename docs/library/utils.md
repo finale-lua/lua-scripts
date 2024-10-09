@@ -23,6 +23,8 @@ A library of general Lua utility functions.
 - [rethrow_placeholder()](#rethrow_placeholder)
 - [show_notes_dialog(parent, caption, width, height)](#show_notes_dialog)
 - [win_mac(windows_value, mac_value)](#win_mac)
+- [split_file_path(full_path)](#split_file_path)
+- [eachfile(directory_path)](#eachfile)
 
 ### copy_table
 
@@ -373,3 +375,50 @@ Returns the winval or the macval depending on which operating system the script 
 | Return type | Description |
 | ----------- | ----------- |
 | `any` | The windows_value or mac_value based on finenv.UI()IsOnWindows() |
+
+### split_file_path
+
+```lua
+utility_functions.split_file_path(full_path)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L480)
+
+Splits a file path into folder, file name, and extension.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `full_path` | `string` | The full file path in a Lua string. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` | the folder path always including the final delimeter slash (macOS) or backslash (Windows). This may be an empty string. |
+| `string` | the filename without its extension |
+| `string` | the extension including its leading "." or an empty string if no extension. |
+
+### eachfile
+
+```lua
+utility_functions.eachfile(directory_path)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L522)
+
+Iterates a file path using lfs and feeds each directory and file name to a function.
+The directory names fed to the iterator function always contain path delimeters at the end.
+The following are skipped.
+
+- "." and ".."
+- any file name starting withn "._" (These are macOS resource forks and can be seen on Windows as well when searching a macOS shared drive.)
+
+Generates a runtime error for plugin versions before RGP Lua 0.68.
+
+@ [recursive)] (boolean) true if subdirectories should always be searched. Defaults to false.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `directory_path` | `string` | the directory path to search, encoded utf8. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `function` | iterator function to be used in for loop. |

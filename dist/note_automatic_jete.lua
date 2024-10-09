@@ -629,6 +629,62 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         end
         return mac_value
     end
+
+    function utils.split_file_path(full_path)
+        local path_name = finale.FCString()
+        local file_name = finale.FCString()
+        local file_path = finale.FCString(full_path)
+
+        if file_path:FindFirst("/") >= 0 or (finenv.UI():IsOnWindows() and file_path:FindFirst("\\") >= 0) then
+            file_path:SplitToPathAndFile(path_name, file_name)
+        else
+            file_name.LuaString = full_path
+        end
+
+        local extension = file_name.LuaString:match("^.+(%..+)$")
+        extension = extension or ""
+        if #extension > 0 then
+
+            local truncate_pos = file_name.Length - finale.FCString(extension).Length
+            if truncate_pos > 0 then
+                file_name:TruncateAt(truncate_pos)
+            else
+                extension = ""
+            end
+        end
+        path_name:AssureEndingPathDelimiter()
+        return path_name.LuaString, file_name.LuaString, extension
+    end
+
+    function utils.eachfile(directory_path, recursive)
+        if finenv.MajorVersion <= 0 and finenv.MinorVersion < 68 then
+            error("utils.eachfile requires at least RGP Lua v0.68.", 2)
+        end
+        recursive = recursive or false
+        local lfs = require('lfs')
+        local text = require('luaosutils').text
+        local fcstr = finale.FCString(directory_path)
+        fcstr:AssureEndingPathDelimiter()
+        directory_path = fcstr.LuaString
+        local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
+        return coroutine.wrap(function()
+            for lfs_file in lfs.dir(lfs_directory_path) do
+                if lfs_file ~= "." and lfs_file ~= ".." then
+                    local utf8_file = text.convert_encoding(lfs_file, text.get_default_codepage(), text.get_utf8_codepage())
+                    local mode = lfs.attributes(lfs_directory_path .. lfs_file, "mode")
+                    if mode == "directory" then
+                        if recursive then
+                            for subdir, subfile in utils.eachfile(directory_path .. utf8_file, recursive) do
+                                coroutine.yield(subdir, subfile)
+                            end
+                        end
+                    elseif (mode == "file" or mode == "link") and lfs_file:sub(1, 2) ~= "._" then
+                        coroutine.yield(directory_path, utf8_file)
+                    end
+                end
+            end
+        end)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -1354,7 +1410,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script automatically creates a \u8220"jet\u233?\u8221"-style bowing effect. These mimic examples shown on p.\u160?404 of \u8220"Behind Bars\u8221" by Elaine Gould. For the best results with staccato dots, use an articulation with \u8220"Avoid Staff Lines\u8221" unchecked.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script automatically creates a \u8220"jet\u233 ?\u8221"-style bowing effect. These mimic examples shown on p.\u160 ?404 of \u8220"Behind Bars\u8221" by Elaine Gould. For the best results with staccato dots, use an articulation with \u8220"Avoid Staff Lines\u8221" unchecked.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 By default, the script searches for articulations using the \u8216'.\u8217' character (ASCII code 46) for non-SMuFL fonts and the SMuFL dot character (UTF code 0xe4a2) for SMuFL fonts. This character must be the Main Character in Finale\u8217's articulation definition dialog. You can override this to search for a different character code using a configuration file. (See below.)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To use the script, you enter the notes you want to display, and it removes the noteheads in between the first and last notehead, adjusts any staccato dots, and adds a gliss mark (tab slide) between the first and last notes, unless there is one already there. If you want a slur as well, add it manually before or after running the script.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The steps to use this script are:\par}

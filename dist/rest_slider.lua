@@ -4765,6 +4765,62 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         end
         return mac_value
     end
+
+    function utils.split_file_path(full_path)
+        local path_name = finale.FCString()
+        local file_name = finale.FCString()
+        local file_path = finale.FCString(full_path)
+
+        if file_path:FindFirst("/") >= 0 or (finenv.UI():IsOnWindows() and file_path:FindFirst("\\") >= 0) then
+            file_path:SplitToPathAndFile(path_name, file_name)
+        else
+            file_name.LuaString = full_path
+        end
+
+        local extension = file_name.LuaString:match("^.+(%..+)$")
+        extension = extension or ""
+        if #extension > 0 then
+
+            local truncate_pos = file_name.Length - finale.FCString(extension).Length
+            if truncate_pos > 0 then
+                file_name:TruncateAt(truncate_pos)
+            else
+                extension = ""
+            end
+        end
+        path_name:AssureEndingPathDelimiter()
+        return path_name.LuaString, file_name.LuaString, extension
+    end
+
+    function utils.eachfile(directory_path, recursive)
+        if finenv.MajorVersion <= 0 and finenv.MinorVersion < 68 then
+            error("utils.eachfile requires at least RGP Lua v0.68.", 2)
+        end
+        recursive = recursive or false
+        local lfs = require('lfs')
+        local text = require('luaosutils').text
+        local fcstr = finale.FCString(directory_path)
+        fcstr:AssureEndingPathDelimiter()
+        directory_path = fcstr.LuaString
+        local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
+        return coroutine.wrap(function()
+            for lfs_file in lfs.dir(lfs_directory_path) do
+                if lfs_file ~= "." and lfs_file ~= ".." then
+                    local utf8_file = text.convert_encoding(lfs_file, text.get_default_codepage(), text.get_utf8_codepage())
+                    local mode = lfs.attributes(lfs_directory_path .. lfs_file, "mode")
+                    if mode == "directory" then
+                        if recursive then
+                            for subdir, subfile in utils.eachfile(directory_path .. utf8_file, recursive) do
+                                coroutine.yield(subdir, subfile)
+                            end
+                        end
+                    elseif (mode == "file" or mode == "link") and lfs_file:sub(1, 2) ~= "._" then
+                        coroutine.yield(directory_path, utf8_file)
+                    end
+                end
+            end
+        end)
+    end
     return utils
 end
 package.preload["library.client"] = package.preload["library.client"] or function()
@@ -5341,7 +5397,7 @@ function plugindef()
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Slide rests up and down on the nominated layer with continuous visual feedback. If a single staff is selected then the {\b Mid-Staff Above} and {\b Mid-Staff Below} buttons align rests midway between adjacent staves with one click. (The {\b midpoint} is measured in {\b Page View} and may look different in {\b Scroll View}). {\b Cancel} the action to leave rests unchanged.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Reset Zero} sets nil offset. On transposing instruments this is {\b not} the middle of the staff if {\i Display in Concert Pitch} is selected. In those cases use {\i Floating Rests} to return them to their virgin state where the offset is determined by\line {\i Document} \u8594? {\i Document Options} \u8594? {\i Layers} \u8594? {\i Adjust Floating Rests by\u8230?}\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b Reset Zero} sets nil offset. On transposing instruments this is {\b not} the middle of the staff if {\i Display in Concert Pitch} is selected. In those cases use {\i Floating Rests} to return them to their virgin state where the offset is determined by\line {\i Document} \u8594 ? {\i Document Options} \u8594 ? {\i Layers} \u8594 ? {\i Adjust Floating Rests by\u8230 ?}\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 At startup all rests in the chosen layer are moved to the same offset as the first rest on that layer. Rests can be changed on multiple layers in the one action.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 If {\b Layer Number} is highlighted these {\b Key Commands} are available:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b a} ({\b -}): move rests down one step\par}

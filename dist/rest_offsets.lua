@@ -4034,6 +4034,62 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         end
         return mac_value
     end
+
+    function utils.split_file_path(full_path)
+        local path_name = finale.FCString()
+        local file_name = finale.FCString()
+        local file_path = finale.FCString(full_path)
+
+        if file_path:FindFirst("/") >= 0 or (finenv.UI():IsOnWindows() and file_path:FindFirst("\\") >= 0) then
+            file_path:SplitToPathAndFile(path_name, file_name)
+        else
+            file_name.LuaString = full_path
+        end
+
+        local extension = file_name.LuaString:match("^.+(%..+)$")
+        extension = extension or ""
+        if #extension > 0 then
+
+            local truncate_pos = file_name.Length - finale.FCString(extension).Length
+            if truncate_pos > 0 then
+                file_name:TruncateAt(truncate_pos)
+            else
+                extension = ""
+            end
+        end
+        path_name:AssureEndingPathDelimiter()
+        return path_name.LuaString, file_name.LuaString, extension
+    end
+
+    function utils.eachfile(directory_path, recursive)
+        if finenv.MajorVersion <= 0 and finenv.MinorVersion < 68 then
+            error("utils.eachfile requires at least RGP Lua v0.68.", 2)
+        end
+        recursive = recursive or false
+        local lfs = require('lfs')
+        local text = require('luaosutils').text
+        local fcstr = finale.FCString(directory_path)
+        fcstr:AssureEndingPathDelimiter()
+        directory_path = fcstr.LuaString
+        local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
+        return coroutine.wrap(function()
+            for lfs_file in lfs.dir(lfs_directory_path) do
+                if lfs_file ~= "." and lfs_file ~= ".." then
+                    local utf8_file = text.convert_encoding(lfs_file, text.get_default_codepage(), text.get_utf8_codepage())
+                    local mode = lfs.attributes(lfs_directory_path .. lfs_file, "mode")
+                    if mode == "directory" then
+                        if recursive then
+                            for subdir, subfile in utils.eachfile(directory_path .. utf8_file, recursive) do
+                                coroutine.yield(subdir, subfile)
+                            end
+                        end
+                    elseif (mode == "file" or mode == "link") and lfs_file:sub(1, 2) ~= "._" then
+                        coroutine.yield(directory_path, utf8_file)
+                    end
+                end
+            end
+        end)
+    end
     return utils
 end
 package.preload["library.localization"] = package.preload["library.localization"] or function()
@@ -5641,8 +5697,8 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script alters the vertical position of rests. It duplicates Finale\u8217's inbuilt \u8220"Move Rests\u8230?\u8221" plug-in but with less mouse activity. It is also a quick way to reset rest positions in every layer, the default setting.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 New rests are \u8220"floating\u8221" and will avoid entries in other layers (if present) using the setting for \u8220"Adjust Floating Rests by\u8230?\u8221" at Finale \u8594? Document \u8594? Document Options \u8594? Layers.\line This script can stop them \u8220"floating\u8221", instead \u8220"fixing\u8221" them to a specific offset from the default position. On transposing staves these \u8220"fixed\u8221" rests will behave like notes and change position if \u8220"Display in Concert Pitch\u8221" is selected.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script alters the vertical position of rests. It duplicates Finale\u8217's inbuilt \u8220"Move Rests\u8230 ?\u8221" plug-in but with less mouse activity. It is also a quick way to reset rest positions in every layer, the default setting.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 New rests are \u8220"floating\u8221" and will avoid entries in other layers (if present) using the setting for \u8220"Adjust Floating Rests by\u8230 ?\u8221" at Finale \u8594 ? Document \u8594 ? Document Options \u8594 ? Layers.\line This script can stop them \u8220"floating\u8221", instead \u8220"fixing\u8221" them to a specific offset from the default position. On transposing staves these \u8220"fixed\u8221" rests will behave like notes and change position if \u8220"Display in Concert Pitch\u8221" is selected.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Hit the \u8220"f\u8221" key or select the \u8220"Floating Rests\u8221" checkbox to return all rests on the chosen layer to \u8220"floating\u8221". Hit the \u8220"q\u8221" key to view these notes. To repeat the same action as before without a confirmation dialog, hold down the SHIFT key when starting the script.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 == INFO ==\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 A Space is the vertical distance between staff lines, and a Step is half a Space. The distance between the top and bottom lines of a 5-line staff is 4 Spaces or 8 Steps. Rests usually \u8220"centre\u8221" on the middle staff line, 4 Steps below the top line of a 5-line staff. This script, like Finale, shifts rests by Steps relative to the default position.\par}
