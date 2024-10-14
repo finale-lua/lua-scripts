@@ -161,7 +161,7 @@ local function crypt_enigmaxml_buffer(buffer)
 end
 
 --[[
-%extract_enigmaxml
+% extract_enigmaxml
 
 EnigmaXML is the underlying file format of a Finale `.musx` file. It is undocumented
 by MakeMusic and must be extracted from the `.musx` file. There is an effort to document
