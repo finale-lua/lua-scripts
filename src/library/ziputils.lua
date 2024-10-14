@@ -9,7 +9,7 @@ Dependencies:
 - MacOS users must have `unzip` and `gunzip`, but these are usually installed with the OS.
 
 Pay careful attention to the comments about how strings are encoded. They are either encoded
-**platform** or **utf-8**. On macOS, platform encoding is always utf-8, but on Windows it can
+**platform** or **utf8**. On macOS, platform encoding is always utf8, but on Windows it can
 be any number of encodings depending on the locale settings and version of Windows. You can use
 `luaosutils.text` to convert them back and forth. Both `luaosutils.process.execute`
 requires platform encoding as do `lfs` and all built-in Lua `io` functions.
