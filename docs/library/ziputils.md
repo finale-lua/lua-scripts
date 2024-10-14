@@ -24,6 +24,7 @@ of Lua for Finale can at least load the library.
 - [calc_temp_output_path(archive_path)](#calc_temp_output_path)
 - [calc_gunzip_command(archive_path)](#calc_gunzip_command)
 - [calc_is_gzip(buffer)](#calc_is_gzip)
+- [extract_enigmaxml(filepath)](#extract_enigmaxml)
 
 ### calc_rmdir_command
 
@@ -132,3 +133,27 @@ Detects if an input buffer is a gzip archive. Sometimes, Finale gzips the intern
 | Return type | Description |
 | ----------- | ----------- |
 | `boolean` | true if the buffer is a gzip archive |
+
+### extract_enigmaxml
+
+```lua
+ziputils.extract_enigmaxml(filepath)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L177)
+
+EnigmaXML is the underlying file format of a Finale `.musx` file. It is undocumented
+by MakeMusic and must be extracted from the `.musx` file. There is an effort to document
+it underway at the [EnigmaXML Documentation](https://github.com/finale-lua/ziputils-documentation)
+repository.
+
+This function extracts the EnigmaXML buffer from a `.musx` file. Note that it does not work with Finale's
+older `.mus` format.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `filepath` | `string` | utf8-encoded file path to a `.musx` file. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` | utf8-encoded buffer of xml data containing the EnigmaXml extracted from the `.musx`. |
