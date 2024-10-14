@@ -632,41 +632,4 @@ function library.get_default_music_font_name()
     end
 end
 
---[[
-%crypt_musx_file_buffer
-
-Symmetrical encryption/decryption for `.musx` files. Finale `.musx` files are byte-for-byte encrypted
-gzip archives. The archives contain xml and other data for the Finale document. This function accepts
-either a buffer of encrypted text and returns plaintext or accepts plaintext and returns encrypted text.
-
-To decrypt a `.musx`,
-
-- read the `.musx` file into a buffer using binary read mode
-- pass it to this function
-- save the return buffer as `.gz` using binary write mode
-
-Reverse the process to create a `.musx` from a `.gz` file.
-
-@ buffer (string) buffer of binary data containing plaintext or encrypted text of a `.musx` file.
-: (string) buffer of binary data containing encrypted text or plaintext corresponding to the input buffer.
-]]
-function library.crypt_musx_file_buffer(buffer)
-    local state = 0x28006D45 -- this value was determined empirically
-    local result = {}
-    
-    for i = 1, #buffer do
-        -- BSD rand()
-        state = (state * 0x41c64e6d + 0x3039) & 0xFFFFFFFF  -- Simulate 32-bit overflow
-        local upper = state >> 16
-        local c = upper + math.floor(upper / 255)
-        
-        local byte = string.byte(buffer, i)
-        byte = byte ~ (c & 0xFF)  -- XOR operation on the byte
-        
-        table.insert(result, string.char(byte))
-    end
-    
-    return table.concat(result)
-end
-
 return library
