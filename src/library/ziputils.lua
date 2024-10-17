@@ -5,7 +5,6 @@ Functions for unzipping files. (Future may include zipping as well.)
 
 Dependencies:
 
-- Windows users must have `7z` installed. You can download it [here](https://www.7-zip.org/).
 - MacOS users must have `unzip` and `gunzip`, but these are usually installed with the OS.
 
 Pay careful attention to the comments about how strings are encoded. They are either encoded
@@ -100,7 +99,16 @@ function ziputils.calc_temp_output_path(archive_path)
     if finenv.UI():IsOnMac() then
         zipcommand = "unzip \"" .. archive_path .. "\" -d " .. output_dir
     else
-        zipcommand = "cmd /c 7z x -o" .. output_dir .. " \"" .. archive_path .. "\""
+        zipcommand = [[
+            $archivePath = '%s'
+            $outputDir = '%s'
+            $zipPath = $archivePath + '.zip'
+            Copy-Item -Path $archivePath -Destination $zipPath
+            Expand-Archive -Path $zipPath -DestinationPath $outputDir
+            Remove-Item -Path $zipPath
+        ]]
+        zipcommand = string.format(zipcommand, archive_path, output_dir)
+        zipcommand = string.format("powershell -c & { %s }", zipcommand)
     end
     return output_dir, zipcommand
 end
@@ -119,7 +127,15 @@ function ziputils.calc_gunzip_command(archive_path)
     if finenv.UI():IsOnMac() then
         return "gunzip -c " .. archive_path
     else
-        return "7z e -so  " .. archive_path
+        local command = [[
+            $fs = New-Object IO.Filestream('%s',([IO.FileMode]::Open),([IO.FileAccess]::Read),([IO.FileShare]::Read))
+            $gz = New-Object IO.Compression.GzipStream($fs,[IO.Compression.CompressionMode]::Decompress)
+            $sr = New-Object IO.StreamReader($gz)
+            while (-not $sr.EndOfStream) { Write-Output $sr.ReadLine() }
+            $sr.Close()
+        ]]
+        command = string.format(command, archive_path)
+        return string.format("powershell -c & { %s }", command)
     end
 end
 
