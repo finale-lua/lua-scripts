@@ -10,8 +10,6 @@ to this version of PowerShell.
 - The macOS version uses `unzip` and `gunzip`.
 - Except as noted, the necessary tools are pre-installed with a typical installation of any version
 of the OS that supports 64-bit Finale.
-- The PowerShell commands are not compatible with `io.popen`, so Windows callers should check `client.supports("luaosutils")`
-before calling `client.execute` with these commands.
 
 Thie library expects strings to be client-encoded.  On macOS, client encoding is always utf8,
 but on Windows it can be any number of encodings depending on the locale settings and version of Windows.

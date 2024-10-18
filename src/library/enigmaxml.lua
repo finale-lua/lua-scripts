@@ -53,10 +53,7 @@ older `.mus` format.
 ]]
 function enigmaxml.extract_enigmaxml(filepath)
     local not_supported_message
-    if not client.supports("luaosutils") and false then --finenv.UI():IsOnWindows() then
-        -- io.popen doesn't work with our Windows PowerShell commands
-        not_supported_message = "enigmaxma.extract_enigmaxml requires embedded luaosutils"
-    elseif finenv.TrustedMode == finenv.TrustedModeType.UNTRUSTED then
+    if finenv.TrustedMode == finenv.TrustedModeType.UNTRUSTED then
         not_supported_message = "enigmaxml.extract_enigmaxml must run in Trusted mode."
     elseif not finaleplugin.ExecuteExternalCode then
         not_supported_message = "enigmaxml.extract_enigmaxml must have finaleplugin.ExecuteExternalCode set to true."
