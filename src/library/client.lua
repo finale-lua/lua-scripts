@@ -164,20 +164,19 @@ end
 --[[
 % encode_with_client_codepage
 
-If the client supports LuaOSUtils, the filepath is encoded from UTF-8 to the current client
-encoding. On macOS, this is always also UTF-8, so the situation where the string may be re-encoded
-is only on Windows. (Recent versions of Windows also allow UTF-8 as the client encoding, so it may
+If the client supports `luaosutils`, the filepath is encoded from utf8 to the current client
+encoding. On macOS, this is always also utf8, so the situation where the string may be re-encoded
+is only on Windows. (Recent versions of Windows also allow utf8 as the client encoding, so it may
 not be re-encoded even on Windows.)
 
-If LuaOSUtils is not available, the string is returned unchanged.
+If `luaosutils` is not available, the string is returned unchanged.
 
 A primary use-case for this function is filepaths. Windows requires 8-bit filepaths to be encoded
 with the client codepage.
 
-@ input_string (string) the UTF-encoded string to re-encode
-: (string) the string re-encoded with the clieng codepage
+@ input_string (string) the utf8-encoded string to re-encode
+: (string) the string re-encoded with the client codepage
 ]]
-
 function client.encode_with_client_codepage(input_string)
     if client.supports("luaosutils") then
         local text = require("luaosutils").text
@@ -186,6 +185,59 @@ function client.encode_with_client_codepage(input_string)
         end
     end
     return input_string
+end
+
+--[[
+% encode_with_utf8_codepage
+
+If the client supports `luaosutils`, the filepath is encoded from the current client encoding
+to utf8. On macOS, the client encoding is always also utf8, so the situation where the string may
+be re-encoded is only on Windows. (Recent versions of Windows also allow utf8 as the client encoding, so it may
+not be re-encoded even on Windows.)
+
+If `luaosutils` is not available, the string is returned unchanged.
+
+A primary use-case for this function is filepaths. Windows requires 8-bit filepaths to be encoded
+with the client codepage.
+
+@ input_string (string) the client-encoded string to re-encode
+: (string) the string re-encoded with the utf8 codepage
+]]
+function client.encode_with_utf8_codepage(input_string)
+    if client.supports("luaosutils") then
+        local text = require("luaosutils").text
+        if text and text.get_default_codepage() ~= text.get_utf8_codepage() then
+            return text.convert_encoding(input_string, text.get_default_codepage(), text.get_utf8_codepage())
+        end
+    end
+    return input_string
+end
+
+--[[
+% execute
+
+If the client supports `luaosutils`, the command is executed using `luaosutils.execute`. Otherwise it uses `io.popen`.
+In either case, the output from the command is returned.
+
+Starting with v0.67, this function throws an error if the script is not trusted or has not set
+`finaleplugin.ExecuteExternalCode` to `true`.
+
+@ command (string) The command to execute encoded with **client encoding**.
+: (string) The `stdout` from the command, in whatever encoding it generated.
+]]
+function client.execute(command)
+    if client.supports("luaosutils") then
+        local process = require("luaosutils").process
+        if process then
+            return process.execute(command)
+        end
+    end
+    print("popen " .. command)
+    local handle = io.popen(command)
+    if not handle then return nil end
+    local retval = handle:read("*a")
+    handle:close()
+    return retval
 end
 
 return client
