@@ -330,7 +330,7 @@ the .json files for each font. The table is in the format:
 ]]
 
 function library.get_smufl_font_list()
-    local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
+    local osutils = client.supports("luaosutils") and require("luaosutils")
     local font_names = {}
     local add_to_table = function(for_user)
         local smufl_directory = calc_smufl_directory(for_user)
@@ -339,13 +339,9 @@ function library.get_smufl_font_list()
             if osutils then
                 return osutils.process.list_dir(smufl_directory, options)
             end
-            -- Starting in 0.67, io.popen may fail due to being untrusted.
+            -- Starting in 0.67, execute may fail due to being untrusted.
             local cmd = finenv.UI():IsOnWindows() and "dir " or "ls "
-            local handle = io.popen(cmd .. options .. " \"" .. smufl_directory .. "\"")
-            if not handle then return "" end
-            local retval = handle:read("*a")
-            handle:close()
-            return retval
+            return client.execute(cmd .. options .. " \"" .. smufl_directory .. "\"") or ""
         end
         local is_font_available = function(dir)
             local fc_dir = finale.FCString()

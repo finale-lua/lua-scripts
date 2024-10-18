@@ -58,10 +58,10 @@ function plugindef()
 end
 
 local lfs = require("lfs")
-local text = require("luaosutils").text
 
 local utils = require("library.utils")
 local mixin = require("library.mixin")
+local client = require("library.client")
 
 do_single_file = do_single_file or false
 local XML_EXTENSION <const> = ".musicxml"
@@ -111,7 +111,7 @@ function log_message(msg, is_error)
 end
 
 local function remove_processing_instructions(input_name, output_name)
-    local input_file <close> = io.open(text.convert_encoding(input_name, text.get_utf8_codepage(), text.get_default_codepage()), "r")
+    local input_file <close> = io.open(client.encode_with_client_codepage(input_name), "r")
     if not input_file then
         error("Cannot open file: " .. input_name)
     end
@@ -125,8 +125,7 @@ local function remove_processing_instructions(input_name, output_name)
         end
     end
     input_file:close()
-    local output_file <close> = io.open(
-    text.convert_encoding(output_name, text.get_utf8_codepage(), text.get_default_codepage()), "w")
+    local output_file <close> = io.open(client.encode_with_client_codepage(output_name), "w")
     if not output_file then
         error("Cannot open file for writing: " .. output_name)
     end
@@ -437,8 +436,7 @@ function process_one_file(input_file)
     local output_file = path .. filename .. ADD_TO_FILENAME .. XML_EXTENSION
     local document_path = (function()
         local function exist(try_path)
-            local attr = lfs.attributes(text.convert_encoding(try_path, text.get_utf8_codepage(),
-                text.get_default_codepage()))
+            local attr = lfs.attributes(client.encode_with_client_codepage(try_path))
             return attr and attr.mode == "file"
         end
         local try_path = path .. filename .. ".musx"
@@ -467,7 +465,7 @@ function process_one_file(input_file)
     local function abort_if(condition, msg)
         if condition then
             log_message(msg, true)
-            os.remove(text.convert_encoding(output_file, text.get_utf8_codepage(), text.get_default_codepage())) -- delete erroneous file
+            os.remove(client.encode_with_client_codepage(output_file)) -- delete erroneous file
             close_document()
             return true
         end
@@ -543,7 +541,7 @@ function process_files(file_list, selected_path)
     dialog:CreateCancelButton("cancel")
     -- registrations
     dialog:RegisterInitWindow(function(self)
-        logfile_path = text.convert_encoding(selected_path, text.get_utf8_codepage(), text.get_default_codepage()) .. LOGFILE_NAME
+        logfile_path = client.encode_with_client_codepage(selected_path) .. LOGFILE_NAME
         local file <close> = io.open(logfile_path, "w")
         if not file then
             error("unable to create logfile " .. logfile_path)
