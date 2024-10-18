@@ -5281,8 +5281,8 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Quickly change {\b music spacing} options (with optional hotkeys). These options are otherwise only available using the messy combined menu/dialog/menu process of {\b Document} \u8594 ? {\b Document Options} \u8594 ? {\b Music Spacing} \u8594 ? {\b Avoid Collision of}\u8230 ?\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 It also offers easy access to the {\b Automatic Music Spacing} option which is otherwise only available at {\b Finale} \u8594 ? {\b Settings} \u8594 ? {\b Edit} \u8594 ? {\b Automatic Music Spacing}.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Quickly change {\b music spacing} options (with optional hotkeys). These options are otherwise only available using the messy combined menu/dialog/menu process of {\b Document} \u8594? {\b Document Options} \u8594? {\b Music Spacing} \u8594? {\b Avoid Collision of}\u8230?\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 It also offers easy access to the {\b Automatic Music Spacing} option which is otherwise only available at {\b Finale} \u8594? {\b Settings} \u8594? {\b Edit} \u8594? {\b Automatic Music Spacing}.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/music_spacing_options.hash"

@@ -258,7 +258,7 @@ function plugindef()
         \widowctrl\hyphauto
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 A good trick in Sibelius is hitting the {\b S} key to create a slur across currently selected notes. Activate this script in {\i Finale} with a macro hotkey utility to do the same thing. Each layer will be slurred independently, and if there are several runs of notes separated by rests, each run will be slurred separately. If you want to automate slurs on specific rhythmic patterns then try {\b JW Pattern} (\u8594 ? {\i Performance Notation} \u8594 ? {\i Slurs}) or {\b TGTools} (\u8594 ? {\i Music} \u8594 ? {\i Create Slurs\u8230 ?}).\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 A good trick in Sibelius is hitting the {\b S} key to create a slur across currently selected notes. Activate this script in {\i Finale} with a macro hotkey utility to do the same thing. Each layer will be slurred independently, and if there are several runs of notes separated by rests, each run will be slurred separately. If you want to automate slurs on specific rhythmic patterns then try {\b JW Pattern} (\u8594? {\i Performance Notation} \u8594? {\i Slurs}) or {\b TGTools} (\u8594? {\i Music} \u8594? {\i Create Slurs\u8230?}).\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/slur_selection.hash"

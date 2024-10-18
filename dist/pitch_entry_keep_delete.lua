@@ -5611,7 +5611,7 @@ function plugindef()
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Select a note within each chord to either keep or delete, numbered from either the top or bottom of each chord.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b 1} deletes (or keeps) the top (or bottom) note\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b 2} deletes (or keeps) the 2nd note from the top (or bottom)\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab etc. \u8230 ?\sa180\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab etc. \u8230?\sa180\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 If {\b Note Number} or {\b Layer} are highlighted\line then these {\b Key Commands} are available:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b z}: toggle keep/delete\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b x}: toggle top/bottom\par}

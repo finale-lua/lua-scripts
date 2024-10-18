@@ -5182,7 +5182,7 @@ function plugindef()
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script reads musicxml files exported from Finale and modifies them to improve importing into Dorico or MuseScore. The best process is as follows:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Export your document as uncompressed MusicXML.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run this plugin on the output *.musicxml document.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab The massaged file name has \u8221" massaged\u8221" appended to the file name.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab The massaged file name has " massaged" appended to the file name.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Import the massaged *.musicxml file into Dorico or MuseScore.\sa180\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Here is a list of the changes the script makes:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 8va/8vb and 15ma/15mb symbols are extended to include the last note and extended left to include leading grace notes.\par}

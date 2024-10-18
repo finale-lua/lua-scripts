@@ -4,14 +4,17 @@ Functions for unzipping files. (Future may include zipping as well.)
 
 Dependencies:
 
-- Windows users must have `7z` installed. You can download it [here](https://www.7-zip.org/).
-- MacOS users must have `unzip` and `gunzip`, but these are usually installed with the OS.
+- The Windows version uses `PowerShell`.
+- The macOS version uses `unzip` and `gunzip`.
+- In both cases the necessary tools are pre-installed with a typical installation of any version
+of the OS that supports 64-bit Finale.
 
 Pay careful attention to the comments about how strings are encoded. They are either encoded
 **platform** or **utf8**. On macOS, platform encoding is always utf8, but on Windows it can
 be any number of encodings depending on the locale settings and version of Windows. You can use
-`luaosutils.text` to convert them back and forth. Both `luaosutils.process.execute`
-requires platform encoding as do `lfs` and all built-in Lua `io` functions.
+`luaosutils.text` to convert them back and forth. (Use the `get_default_codepage` function to get
+the platform encoding.) The `luaosutils.process.execute` function requires platform encoding as do
+`lfs` and all built-in Lua `os` and `io` functions that take strings as input.
 
 Note that many functions require later versions of RGP Lua that include `luaosutils`
 and/or `lfs`. But the these dependencies are embedded in each function so that any version
@@ -32,7 +35,7 @@ of Lua for Finale can at least load the library.
 ziputils.calc_rmdir_command(path_to_remove)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L49)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L52)
 
 Returns the platform-dependent command to remove a directory. It can be passed
 to `luaosutils.process.execute`.
@@ -55,7 +58,7 @@ But it works on any directory.
 ziputils.calc_delete_file_command(path_to_remove)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L66)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L69)
 
 Returns the platform-dependent command to delete a file. It can be passed
 to `luaosutils.process.execute`.
@@ -78,13 +81,12 @@ But it works on any directory.
 ziputils.calc_temp_output_path(archive_path)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L86)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L88)
 
 Returns a path that can be used as a temporary target for unzipping. The caller may create it
 either as a file or a directory, because it is guaranteed not to exist when it is returned and it does
 not have a terminating path delimiter. Also returns a platform-dependent unzip command that can be
 passed to `luaosutils.process.execute` to unzip the input archive into the temporary name as a directory.
-The command may not be compatible with `os.execute`.
 
 This function requires `luaosutils`.
 
@@ -103,9 +105,9 @@ This function requires `luaosutils`.
 ziputils.calc_gunzip_command(archive_path)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L118)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L128)
 
-Returns the platform-dependent command to gunzip a file. It can be passed
+Returns the platform-dependent command to gunzip a file to `stdout`. It can be passed
 to `luaosutils.process.execute`, which will then return the text directly.
 
 | Input | Type | Description |
@@ -122,9 +124,9 @@ to `luaosutils.process.execute`, which will then return the text directly.
 ziputils.calc_is_gzip(buffer)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L134)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L152)
 
-Detects if an input buffer is a gzip archive. Sometimes, Finale gzips the internal EnigmaXML document.
+Detects if an input buffer is a gzip archive.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -140,7 +142,7 @@ Detects if an input buffer is a gzip archive. Sometimes, Finale gzips the intern
 ziputils.extract_enigmaxml(filepath)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L177)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L195)
 
 EnigmaXML is the underlying file format of a Finale `.musx` file. It is undocumented
 by MakeMusic and must be extracted from the `.musx` file. There is an effort to document

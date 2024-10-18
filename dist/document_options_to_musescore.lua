@@ -5302,18 +5302,18 @@ function plugindef()
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Exports settings from one or more Finale documents into a MuseScore {\f1 .mss} style settings file. Only a subset of possible MuseScore settings are exported. The rest will be taken from the default settings you have set up for MuseScore when you load it in MuseScore.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script addresses two uses cases.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs23 Setting up your MuseScore defaults to be close to those of Finale\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \b \fs23 Setting up your MuseScore defaults to be close to those of Finale\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Open a Finale template file or document style file that you wish to use as the basis for your MuseScore defaults.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select the score or part for which you wish to export style settings.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Document Options to MuseScore\u8230 ?\u8221".\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Document Options to MuseScore\u8230?\u8221".\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose a location where to save the output. It is recommended to append {\f1 .part.mss} to the name of the style settings for parts.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Import each of the score and part settings into a blank document in MuseScore.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Make any style adjustments as needed and then save them back out. (This gives them all the settings.)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use the score {\f1 .mss} file for Preferences->Score->Style.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use the parts {\f1 .mss} file for Preferences->Score->Style for part.\sa180\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Now any new projects will start up with these defaults.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs23 Improving MusicXML imports of your documents\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Folder Document Options to MuseScore\u8230 ?\u8221" with no document open.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \b \fs23 Improving MusicXML imports of your documents\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Folder Document Options to MuseScore\u8230?\u8221" with no document open.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select a folder containing your Finale files. All subfolders will be searched as well.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab For every Finale file found, a parallel {\f1 .mss} file is created.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If the source Finale file contains at least one linked part, a parallel {\f1 .part.mss} file is created as well (from the first part found).\par}

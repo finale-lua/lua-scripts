@@ -5408,7 +5408,7 @@ function plugindef()
         finaletips.nu/index.php/download/
         }}}
         ) plug-in to work on Macs with non-Intel processors, but also offers customised angle, size and placement options, optional slashing of single grace notes and filtering by layer.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Unchecking {\i Slash Single Grace Notes} will {\i remove} slashes on individual (unbeamed) notes, but only if {\i Always Slash Flagged Grace Notes} is {\b not} selected at {\i Document} \u8594 ? {\i Document Options\u8230 ?} \u8594 ? {\i Grace Notes}.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Unchecking {\i Slash Single Grace Notes} will {\i remove} slashes on individual (unbeamed) notes, but only if {\i Always Slash Flagged Grace Notes} is {\b not} selected at {\i Document} \u8594? {\i Document Options\u8230?} \u8594? {\i Grace Notes}.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 To change script parameters use the {\i Configuration} menu or hold down [Shift] when opening the script.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 {\b Key Commands:}\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b g}: toggle \u8220"slash single grace notes\u8221"\par}
