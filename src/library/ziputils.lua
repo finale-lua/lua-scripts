@@ -5,14 +5,17 @@ Functions for unzipping files. (Future may include zipping as well.)
 
 Dependencies:
 
-- Windows users must have `7z` installed. You can download it [here](https://www.7-zip.org/).
-- MacOS users must have `unzip` and `gunzip`, but these are usually installed with the OS.
+- The Windows version uses `PowerShell`.
+- The macOS version uses `unzip` and `gunzip`.
+- In both cases the necessary tools are pre-installed with a typical installation of any version
+of the OS that supports 64-bit Finale.
 
 Pay careful attention to the comments about how strings are encoded. They are either encoded
 **platform** or **utf8**. On macOS, platform encoding is always utf8, but on Windows it can
 be any number of encodings depending on the locale settings and version of Windows. You can use
-`luaosutils.text` to convert them back and forth. Both `luaosutils.process.execute`
-requires platform encoding as do `lfs` and all built-in Lua `io` functions.
+`luaosutils.text` to convert them back and forth. (Use the `get_default_codepage` function to get
+the platform encoding.) The `luaosutils.process.execute` function requires platform encoding as do
+`lfs` and all built-in Lua `os` and `io` functions that take strings as input.
 
 Note that many functions require later versions of RGP Lua that include `luaosutils`
 and/or `lfs`. But the these dependencies are embedded in each function so that any version
@@ -75,7 +78,6 @@ Returns a path that can be used as a temporary target for unzipping. The caller 
 either as a file or a directory, because it is guaranteed not to exist when it is returned and it does
 not have a terminating path delimiter. Also returns a platform-dependent unzip command that can be
 passed to `luaosutils.process.execute` to unzip the input archive into the temporary name as a directory.
-The command may not be compatible with `os.execute`.
 
 This function requires `luaosutils`.
 
@@ -100,7 +102,16 @@ function ziputils.calc_temp_output_path(archive_path)
     if finenv.UI():IsOnMac() then
         zipcommand = "unzip \"" .. archive_path .. "\" -d " .. output_dir
     else
-        zipcommand = "cmd /c 7z x -o" .. output_dir .. " \"" .. archive_path .. "\""
+        zipcommand = [[
+            $archivePath = '%s'
+            $outputDir = '%s'
+            $zipPath = $archivePath + '.zip'
+            Copy-Item -Path $archivePath -Destination $zipPath
+            Expand-Archive -Path $zipPath -DestinationPath $outputDir
+            Remove-Item -Path $zipPath
+        ]]
+        zipcommand = string.format(zipcommand, archive_path, output_dir)
+        zipcommand = string.format("powershell -c & { %s }", zipcommand)
     end
     return output_dir, zipcommand
 end
@@ -108,9 +119,8 @@ end
 --[[
 % calc_gunzip_command
 
-Returns the platform-dependent command to gunzip a file. It can be passed
+Returns the platform-dependent command to gunzip a file to `stdout`. It can be passed
 to `luaosutils.process.execute`, which will then return the text directly.
-
 
 @ archive_path (string) platform-encoded path of source gzip archive.
 : (string) platform-encoded command string to execute.
@@ -119,14 +129,22 @@ function ziputils.calc_gunzip_command(archive_path)
     if finenv.UI():IsOnMac() then
         return "gunzip -c " .. archive_path
     else
-        return "7z e -so  " .. archive_path
+        local command = [[
+            $fs = New-Object IO.Filestream('%s',([IO.FileMode]::Open),([IO.FileAccess]::Read),([IO.FileShare]::Read))
+            $gz = New-Object IO.Compression.GzipStream($fs,[IO.Compression.CompressionMode]::Decompress)
+            $sr = New-Object IO.StreamReader($gz)
+            while (-not $sr.EndOfStream) { Write-Output $sr.ReadLine() }
+            $sr.Close()
+        ]]
+        command = string.format(command, archive_path)
+        return string.format("powershell -c & { %s }", command)
     end
 end
 
 --[[
 % calc_is_gzip
 
-Detects if an input buffer is a gzip archive. Sometimes, Finale gzips the internal EnigmaXML document.
+Detects if an input buffer is a gzip archive.
 
 @ buffer (string) binary data to check if it is a gzip archive
 : (boolean) true if the buffer is a gzip archive
@@ -182,6 +200,11 @@ function ziputils.extract_enigmaxml(filepath)
     if extension ~= ".musx" then
         error(filepath .. " is not a .musx file.", 2)
     end
+
+    -- Steps to extract:
+    --      Unzip the `.musx` (which is `.zip` in disguise)
+    --      Run the `score.dat` file through `crypt_enigmaxml_buffer` to get a gzip archive of the EnigmaXML file.
+    --      Gunzip the extracted EnigmaXML gzip archive into a string and return it.
 
     local text = require("luaosutils").text
     local process = require("luaosutils").process
