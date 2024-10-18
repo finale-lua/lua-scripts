@@ -108,11 +108,14 @@ function ziputils.calc_gunzip_command(archive_path)
         return "gunzip -c " .. archive_path
     else
         local command = table.concat({
-            "$fs = New-Object IO.Filestream('%s',([IO.FileMode]::Open),([IO.FileAccess]::Read),([IO.FileShare]::Read))",
-            "$gz = New-Object IO.Compression.GzipStream($fs,[IO.Compression.CompressionMode]::Decompress)",
-            "$sr = New-Object IO.StreamReader($gz)",
-            "while (-not $sr.EndOfStream) { Write-Output $sr.ReadLine() }",
-            "$sr.Close()"
+            "$fs = New-Object IO.FileStream('%s', [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)",
+            "$gz = New-Object IO.Compression.GzipStream($fs, [IO.Compression.CompressionMode]::Decompress)",
+            "$buffer = New-Object byte[] 4096",  -- Define a buffer size (e.g., 4096 bytes)
+            "while (($read = $gz.Read($buffer, 0, $buffer.Length)) -gt 0) {",
+            "    [Console]::OpenStandardOutput().Write($buffer, 0, $read)",
+            "}",
+            "$gz.Close()",
+            "$fs.Close()"
         }, "; ")
         command = string.format(command, archive_path)
         return string.format("powershell -c \"%s\"", command)

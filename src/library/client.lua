@@ -232,7 +232,6 @@ function client.execute(command)
             return process.execute(command)
         end
     end
-    print("popen " .. command)
     local handle = io.popen(command)
     if not handle then return nil end
     local retval = handle:read("*a")
