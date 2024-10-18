@@ -40,16 +40,11 @@ end
 --[[
 % extract_enigmaxml
 
-EnigmaXML is the underlying file format of a Finale `.musx` file. It is undocumented
-by MakeMusic and must be extracted from the `.musx` file. There is an effort to document
-it underway at the [EnigmaXML Documentation](https://github.com/finale-lua/ziputils-documentation)
-repository.
-
 This function extracts the EnigmaXML buffer from a `.musx` file. Note that it does not work with Finale's
 older `.mus` format.
 
 @ filepath (string) utf8-encoded file path to a `.musx` file.
-: (string) utf8-encoded buffer of xml data containing the EnigmaXml extracted from the `.musx`.
+: (string) buffer of EnigmaXml data extracted from the `.musx`. (The xml declaration specifies the encoding, but expect it to be utf8.)
 ]]
 function enigmaxml.extract_enigmaxml(filepath)
     local not_supported_message
@@ -67,7 +62,7 @@ function enigmaxml.extract_enigmaxml(filepath)
     end
 
     -- Steps to extract:
-    --      Unzip the `.musx` (which is `.zip` in disguise)
+    --      Unzip the `.musx` (which is a `.zip` archive in disguise)
     --      Run the `score.dat` file through `crypt_enigmaxml_buffer` to get a gzip archive of the EnigmaXML file.
     --      Gunzip the extracted EnigmaXML gzip archive into a string and return it.
     
