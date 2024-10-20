@@ -291,7 +291,7 @@ the .json files for each font. The table is in the format:
 library.get_smufl_metadata_file(font_info)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L379)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L375)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -307,7 +307,7 @@ library.get_smufl_metadata_file(font_info)
 library.is_font_smufl_font(font_info)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L404)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L400)
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
@@ -323,7 +323,7 @@ library.is_font_smufl_font(font_info)
 library.simple_input(title, text, default)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L434)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L430)
 
 Creates a simple dialog box with a single 'edit' field for entering values into a script, similar to the old UserValueInput command. Will automatically resize the width to accomodate longer strings.
 
@@ -341,7 +341,7 @@ Creates a simple dialog box with a single 'edit' field for entering values into 
 library.is_finale_object(object)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L479)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L475)
 
 Attempts to determine if an object is a Finale object through ducktyping
 
@@ -359,7 +359,7 @@ Attempts to determine if an object is a Finale object through ducktyping
 library.get_parent_class(classname)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L492)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L488)
 
 Returns the name of the parent of a class.
 
@@ -377,7 +377,7 @@ Returns the name of the parent of a class.
 library.get_class_name(object)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L527)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L523)
 
 Returns the real class name of a Finale object. Some classes in older JW/RGPLua versions have incorrect class names, so this function attempts to resolve them with ducktyping
 
@@ -395,7 +395,7 @@ Returns the real class name of a Finale object. Some classes in older JW/RGPLua 
 library.system_indent_set_to_prefs(system, page_format_prefs)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L559)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L555)
 
 Sets the system to match the indentation in the page preferences currently in effect. (For score or part.)
 The page preferences may be provided optionally to avoid loading them for each call.
@@ -415,7 +415,7 @@ The page preferences may be provided optionally to avoid loading them for each c
 library.calc_script_filepath()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L583)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L579)
 
 Returns the full filepath of the running script.
 
@@ -429,7 +429,7 @@ Returns the full filepath of the running script.
 library.calc_script_name(include_extension)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L604)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L600)
 
 Returns the running script name, with or without extension.
 
@@ -447,7 +447,7 @@ Returns the running script name, with or without extension.
 library.get_default_music_font_name()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L626)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/general_library.lua#L622)
 
 Fetches the default music font from document options and processes the name into a usable format.
 

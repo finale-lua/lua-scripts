@@ -3613,6 +3613,30 @@ package.preload["library.client"] = package.preload["library.client"] or functio
         end
         return input_string
     end
+
+    function client.encode_with_utf8_codepage(input_string)
+        if client.supports("luaosutils") then
+            local text = require("luaosutils").text
+            if text and text.get_default_codepage() ~= text.get_utf8_codepage() then
+                return text.convert_encoding(input_string, text.get_default_codepage(), text.get_utf8_codepage())
+            end
+        end
+        return input_string
+    end
+
+    function client.execute(command)
+        if client.supports("luaosutils") then
+            local process = require("luaosutils").process
+            if process then
+                return process.execute(command)
+            end
+        end
+        local handle = io.popen(command)
+        if not handle then return nil end
+        local retval = handle:read("*a")
+        handle:close()
+        return retval
+    end
     return client
 end
 package.preload["library.general_library"] = package.preload["library.general_library"] or function()
@@ -3812,7 +3836,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     end
 
     function library.get_smufl_font_list()
-        local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
+        local osutils = client.supports("luaosutils") and require("luaosutils")
         local font_names = {}
         local add_to_table = function(for_user)
             local smufl_directory = calc_smufl_directory(for_user)
@@ -3823,11 +3847,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
                 end
 
                 local cmd = finenv.UI():IsOnWindows() and "dir " or "ls "
-                local handle = io.popen(cmd .. options .. " \"" .. smufl_directory .. "\"")
-                if not handle then return "" end
-                local retval = handle:read("*a")
-                handle:close()
-                return retval
+                return client.execute(cmd .. options .. " \"" .. smufl_directory .. "\"") or ""
             end
             local is_font_available = function(dir)
                 local fc_dir = finale.FCString()
@@ -4336,6 +4356,7 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         local fcstr = finale.FCString(directory_path)
         fcstr:AssureEndingPathDelimiter()
         directory_path = fcstr.LuaString
+
         local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
         return coroutine.wrap(function()
             for lfs_file in lfs.dir(lfs_directory_path) do

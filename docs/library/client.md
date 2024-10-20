@@ -15,6 +15,8 @@ the bulk of this library is helper functions to determine what the client suppor
 - [supports(feature)](#supports)
 - [assert_supports(feature)](#assert_supports)
 - [encode_with_client_codepage(input_string)](#encode_with_client_codepage)
+- [encode_with_utf8_codepage(input_string)](#encode_with_utf8_codepage)
+- [execute(command)](#execute)
 
 ### get_raw_finale_version
 
@@ -106,22 +108,70 @@ For a list of valid features, see the [`features` table in the codebase](https:/
 client.encode_with_client_codepage(input_string)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L181)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L180)
 
-If the client supports LuaOSUtils, the filepath is encoded from UTF-8 to the current client
-encoding. On macOS, this is always also UTF-8, so the situation where the string may be re-encoded
-is only on Windows. (Recent versions of Windows also allow UTF-8 as the client encoding, so it may
+If the client supports `luaosutils`, the filepath is encoded from utf8 to the current client
+encoding. On macOS, this is always also utf8, so the situation where the string may be re-encoded
+is only on Windows. (Recent versions of Windows also allow utf8 as the client encoding, so it may
 not be re-encoded even on Windows.)
 
-If LuaOSUtils is not available, the string is returned unchanged.
+If `luaosutils` is not available, the string is returned unchanged.
 
 A primary use-case for this function is filepaths. Windows requires 8-bit filepaths to be encoded
 with the client codepage.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
-| `input_string` | `string` | the UTF-encoded string to re-encode |
+| `input_string` | `string` | the utf8-encoded string to re-encode |
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string` | the string re-encoded with the clieng codepage |
+| `string` | the string re-encoded with the client codepage |
+
+### encode_with_utf8_codepage
+
+```lua
+client.encode_with_utf8_codepage(input_string)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L206)
+
+If the client supports `luaosutils`, the filepath is encoded from the current client encoding
+to utf8. On macOS, the client encoding is always also utf8, so the situation where the string may
+be re-encoded is only on Windows. (Recent versions of Windows also allow utf8 as the client encoding, so it may
+not be re-encoded even on Windows.)
+
+If `luaosutils` is not available, the string is returned unchanged.
+
+A primary use-case for this function is filepaths. Windows requires 8-bit filepaths to be encoded
+with the client codepage.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `input_string` | `string` | the client-encoded string to re-encode |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` | the string re-encoded with the utf8 codepage |
+
+### execute
+
+```lua
+client.execute(command)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L228)
+
+If the client supports `luaosutils`, the command is executed using `luaosutils.execute`. Otherwise it uses `io.popen`.
+In either case, the output from the command is returned.
+
+Starting with v0.67, this function throws an error if the script is not trusted or has not set
+`finaleplugin.ExecuteExternalCode` to `true`.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `command` | `string` | The command to execute encoded with **client encoding**. |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `string` | The `stdout` from the command, in whatever encoding it generated. |

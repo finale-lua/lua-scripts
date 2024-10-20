@@ -3101,118 +3101,6 @@ package.preload["library.lua_compatibility"] = package.preload["library.lua_comp
     end
     return true
 end
-package.preload["library.client"] = package.preload["library.client"] or function()
-
-    local client = {}
-    local function to_human_string(feature)
-        return string.gsub(feature, "_", " ")
-    end
-    local function requires_later_plugin_version(feature)
-        if feature then
-            return "This script uses " .. to_human_string(feature) .. " which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
-        end
-        return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
-    end
-    local function requires_rgp_lua(feature)
-        if feature then
-            return "This script uses " .. to_human_string(feature) .. " which is not available on JW Lua. Please use RGP Lua instead to use this script."
-        end
-        return "This script requires RGP Lua, the successor of JW Lua. Please use RGP Lua instead to use this script."
-    end
-    local function requires_plugin_version(version, feature)
-        if tonumber(version) <= 0.54 then
-            if feature then
-                return "This script uses " .. to_human_string(feature) .. " which requires RGP Lua or JW Lua version " .. version ..
-                           " or later. Please update your plugin to use this script."
-            end
-            return "This script requires RGP Lua or JW Lua version " .. version .. " or later. Please update your plugin to use this script."
-        end
-        if feature then
-            return "This script uses " .. to_human_string(feature) .. " which requires RGP Lua version " .. version .. " or later. Please update your plugin to use this script."
-        end
-        return "This script requires RGP Lua version " .. version .. " or later. Please update your plugin to use this script."
-    end
-    local function requires_finale_version(version, feature)
-        return "This script uses " .. to_human_string(feature) .. ", which is only available on Finale " .. version .. " or later"
-    end
-
-    function client.get_raw_finale_version(major, minor, build)
-        local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
-        if build then
-            retval = bit32.bor(retval, math.floor(build))
-        end
-        return retval
-    end
-
-    function client.get_lua_plugin_version()
-        local num_string = tostring(finenv.MajorVersion) .. "." .. tostring(finenv.MinorVersion)
-        return tonumber(num_string)
-    end
-    local features = {
-        clef_change = {
-            test = client.get_lua_plugin_version() >= 0.60,
-            error = requires_plugin_version("0.58", "a clef change"),
-        },
-        ["FCKeySignature::CalcTotalChromaticSteps"] = {
-            test = finenv.IsRGPLua and finale.FCKeySignature.__class.CalcTotalChromaticSteps,
-            error = requires_later_plugin_version("a custom key signature"),
-        },
-        ["FCCategory::SaveWithNewType"] = {
-            test = client.get_lua_plugin_version() >= 0.58,
-            error = requires_plugin_version("0.58"),
-        },
-        ["finenv.QueryInvokedModifierKeys"] = {
-            test = finenv.IsRGPLua and finenv.QueryInvokedModifierKeys,
-            error = requires_later_plugin_version(),
-        },
-        ["FCCustomLuaWindow::ShowModeless"] = {
-            test = finenv.IsRGPLua,
-            error = requires_rgp_lua("a modeless dialog")
-        },
-        ["finenv.RetainLuaState"] = {
-            test = finenv.IsRGPLua and finenv.RetainLuaState ~= nil,
-            error = requires_later_plugin_version(),
-        },
-        smufl = {
-            test = finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1),
-            error = requires_finale_version("27.1", "a SMUFL font"),
-        },
-        luaosutils = {
-            test = finenv.EmbeddedLuaOSUtils,
-            error = requires_later_plugin_version("the embedded luaosutils library")
-        }
-    }
-
-    function client.supports(feature)
-        if features[feature] == nil then
-            error("a test does not exist for feature " .. feature, 2)
-        end
-        return features[feature].test
-    end
-
-    function client.assert_supports(feature)
-        local error_level = finenv.DebugEnabled and 2 or 0
-        if not client.supports(feature) then
-            if features[feature].error then
-                error(features[feature].error, error_level)
-            end
-
-            error("Your Finale version does not support " .. to_human_string(feature), error_level)
-        end
-        return true
-    end
-
-    function client.encode_with_client_codepage(input_string)
-        if client.supports("luaosutils") then
-            local text = require("luaosutils").text
-            if text and text.get_default_codepage() ~= text.get_utf8_codepage() then
-                return text.convert_encoding(input_string, text.get_utf8_codepage(), text.get_default_codepage())
-            end
-        end
-        return input_string
-    end
-    return client
-end
 package.preload["library.general_library"] = package.preload["library.general_library"] or function()
 
     local library = {}
@@ -3410,7 +3298,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
     end
 
     function library.get_smufl_font_list()
-        local osutils = finenv.EmbeddedLuaOSUtils and require("luaosutils")
+        local osutils = client.supports("luaosutils") and require("luaosutils")
         local font_names = {}
         local add_to_table = function(for_user)
             local smufl_directory = calc_smufl_directory(for_user)
@@ -3421,11 +3309,7 @@ package.preload["library.general_library"] = package.preload["library.general_li
                 end
 
                 local cmd = finenv.UI():IsOnWindows() and "dir " or "ls "
-                local handle = io.popen(cmd .. options .. " \"" .. smufl_directory .. "\"")
-                if not handle then return "" end
-                local retval = handle:read("*a")
-                handle:close()
-                return retval
+                return client.execute(cmd .. options .. " \"" .. smufl_directory .. "\"") or ""
             end
             local is_font_available = function(dir)
                 local fc_dir = finale.FCString()
@@ -5225,6 +5109,7 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         local fcstr = finale.FCString(directory_path)
         fcstr:AssureEndingPathDelimiter()
         directory_path = fcstr.LuaString
+
         local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
         return coroutine.wrap(function()
             for lfs_file in lfs.dir(lfs_directory_path) do
@@ -5246,14 +5131,150 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
     end
     return utils
 end
+package.preload["library.client"] = package.preload["library.client"] or function()
+
+    local client = {}
+    local function to_human_string(feature)
+        return string.gsub(feature, "_", " ")
+    end
+    local function requires_later_plugin_version(feature)
+        if feature then
+            return "This script uses " .. to_human_string(feature) .. " which is only available in a later version of RGP Lua. Please update RGP Lua instead to use this script."
+        end
+        return "This script requires a later version of RGP Lua. Please update RGP Lua instead to use this script."
+    end
+    local function requires_rgp_lua(feature)
+        if feature then
+            return "This script uses " .. to_human_string(feature) .. " which is not available on JW Lua. Please use RGP Lua instead to use this script."
+        end
+        return "This script requires RGP Lua, the successor of JW Lua. Please use RGP Lua instead to use this script."
+    end
+    local function requires_plugin_version(version, feature)
+        if tonumber(version) <= 0.54 then
+            if feature then
+                return "This script uses " .. to_human_string(feature) .. " which requires RGP Lua or JW Lua version " .. version ..
+                           " or later. Please update your plugin to use this script."
+            end
+            return "This script requires RGP Lua or JW Lua version " .. version .. " or later. Please update your plugin to use this script."
+        end
+        if feature then
+            return "This script uses " .. to_human_string(feature) .. " which requires RGP Lua version " .. version .. " or later. Please update your plugin to use this script."
+        end
+        return "This script requires RGP Lua version " .. version .. " or later. Please update your plugin to use this script."
+    end
+    local function requires_finale_version(version, feature)
+        return "This script uses " .. to_human_string(feature) .. ", which is only available on Finale " .. version .. " or later"
+    end
+
+    function client.get_raw_finale_version(major, minor, build)
+        local retval = bit32.bor(bit32.lshift(math.floor(major), 24), bit32.lshift(math.floor(minor), 20))
+        if build then
+            retval = bit32.bor(retval, math.floor(build))
+        end
+        return retval
+    end
+
+    function client.get_lua_plugin_version()
+        local num_string = tostring(finenv.MajorVersion) .. "." .. tostring(finenv.MinorVersion)
+        return tonumber(num_string)
+    end
+    local features = {
+        clef_change = {
+            test = client.get_lua_plugin_version() >= 0.60,
+            error = requires_plugin_version("0.58", "a clef change"),
+        },
+        ["FCKeySignature::CalcTotalChromaticSteps"] = {
+            test = finenv.IsRGPLua and finale.FCKeySignature.__class.CalcTotalChromaticSteps,
+            error = requires_later_plugin_version("a custom key signature"),
+        },
+        ["FCCategory::SaveWithNewType"] = {
+            test = client.get_lua_plugin_version() >= 0.58,
+            error = requires_plugin_version("0.58"),
+        },
+        ["finenv.QueryInvokedModifierKeys"] = {
+            test = finenv.IsRGPLua and finenv.QueryInvokedModifierKeys,
+            error = requires_later_plugin_version(),
+        },
+        ["FCCustomLuaWindow::ShowModeless"] = {
+            test = finenv.IsRGPLua,
+            error = requires_rgp_lua("a modeless dialog")
+        },
+        ["finenv.RetainLuaState"] = {
+            test = finenv.IsRGPLua and finenv.RetainLuaState ~= nil,
+            error = requires_later_plugin_version(),
+        },
+        smufl = {
+            test = finenv.RawFinaleVersion >= client.get_raw_finale_version(27, 1),
+            error = requires_finale_version("27.1", "a SMUFL font"),
+        },
+        luaosutils = {
+            test = finenv.EmbeddedLuaOSUtils,
+            error = requires_later_plugin_version("the embedded luaosutils library")
+        }
+    }
+
+    function client.supports(feature)
+        if features[feature] == nil then
+            error("a test does not exist for feature " .. feature, 2)
+        end
+        return features[feature].test
+    end
+
+    function client.assert_supports(feature)
+        local error_level = finenv.DebugEnabled and 2 or 0
+        if not client.supports(feature) then
+            if features[feature].error then
+                error(features[feature].error, error_level)
+            end
+
+            error("Your Finale version does not support " .. to_human_string(feature), error_level)
+        end
+        return true
+    end
+
+    function client.encode_with_client_codepage(input_string)
+        if client.supports("luaosutils") then
+            local text = require("luaosutils").text
+            if text and text.get_default_codepage() ~= text.get_utf8_codepage() then
+                return text.convert_encoding(input_string, text.get_utf8_codepage(), text.get_default_codepage())
+            end
+        end
+        return input_string
+    end
+
+    function client.encode_with_utf8_codepage(input_string)
+        if client.supports("luaosutils") then
+            local text = require("luaosutils").text
+            if text and text.get_default_codepage() ~= text.get_utf8_codepage() then
+                return text.convert_encoding(input_string, text.get_default_codepage(), text.get_utf8_codepage())
+            end
+        end
+        return input_string
+    end
+
+    function client.execute(command)
+        if client.supports("luaosutils") then
+            local process = require("luaosutils").process
+            if process then
+                return process.execute(command)
+            end
+        end
+        local handle = io.popen(command)
+        if not handle then return nil end
+        local retval = handle:read("*a")
+        handle:close()
+        return retval
+    end
+    return client
+end
 function plugindef()
     finaleplugin.RequireDocument = false
     finaleplugin.RequireSelection = false
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.1"
-    finaleplugin.Date = "October 6, 2024"
+    finaleplugin.Version = "1.0.2"
+    finaleplugin.Date = "October 20, 2024"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.75
     finaleplugin.Notes = [[
@@ -5324,17 +5345,17 @@ function plugindef()
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/document_options_to_musescore.hash"
     return "Export Document Options to MuseScore...", "Export Document Options to MuseScore", "Export document options for the current Finale document and part view to a MuseScore style file."
 end
-local text = require("luaosutils").text
 local mixin = require("library.mixin")
 local enigma_string = require("library.enigma_string")
 local utils = require("library.utils")
+local client = require("library.client")
 do_folder = do_folder or false
 local LOGFILE_NAME <const> = "FinaleMuseScoreSettingsExportLog.txt"
 local MUSX_EXTENSION <const> = ".musx"
 local MUS_EXTENSION <const> = ".mus"
 local TEXT_EXTENSION <const> = ".mss"
 local PART_EXTENSION <const> = ".part" .. TEXT_EXTENSION
-local MSS_VERSION <const> = "4.40"
+local MSS_VERSION <const> = "4.50"
 local EVPU_PER_INCH <const> = 288
 local EVPU_PER_MM <const> = 288 / 25.4
 local EVPU_PER_SPACE <const> = 24
@@ -5624,6 +5645,7 @@ function write_note_related_prefs(style_element)
     set_element_text(style_element, "graceNoteMag", size_prefs.GraceNoteSize / 100)
     set_element_text(style_element, "concertPitch", part_scope_prefs.DisplayInConcertPitch)
     set_element_text(style_element, "multiVoiceRestTwoSpaceOffset", math.abs(layer_one_prefs.RestOffset) >= 4)
+    set_element_text(style_element, "mergeMatchingRests", misc_prefs.ConsolidateRestsAcrossLayers)
 end
 function write_smart_shape_prefs(style_element)
     set_element_text(style_element, "hairpinHeight", smart_shape_prefs.HairpinDefaultOpening / EVPU_PER_SPACE)
@@ -6013,7 +6035,7 @@ function document_options_to_musescore()
         end
         local selected_directory = select_directory()
         if selected_directory then
-            logfile_path = text.convert_encoding(selected_directory, text.get_utf8_codepage(), text.get_default_codepage()) .. LOGFILE_NAME
+            logfile_path = client.encode_with_client_codepage(selected_directory) .. LOGFILE_NAME
             local file <close> = io.open(logfile_path, "w")
             if not file then
                 error("unable to create logfile " .. logfile_path)

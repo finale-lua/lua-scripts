@@ -108,6 +108,30 @@ package.preload["library.client"] = package.preload["library.client"] or functio
         end
         return input_string
     end
+
+    function client.encode_with_utf8_codepage(input_string)
+        if client.supports("luaosutils") then
+            local text = require("luaosutils").text
+            if text and text.get_default_codepage() ~= text.get_utf8_codepage() then
+                return text.convert_encoding(input_string, text.get_default_codepage(), text.get_utf8_codepage())
+            end
+        end
+        return input_string
+    end
+
+    function client.execute(command)
+        if client.supports("luaosutils") then
+            local process = require("luaosutils").process
+            if process then
+                return process.execute(command)
+            end
+        end
+        local handle = io.popen(command)
+        if not handle then return nil end
+        local retval = handle:read("*a")
+        handle:close()
+        return retval
+    end
     return client
 end
 package.preload["library.clef"] = package.preload["library.clef"] or function()

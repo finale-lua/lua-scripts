@@ -4,21 +4,17 @@ Functions for unzipping files. (Future may include zipping as well.)
 
 Dependencies:
 
-- The Windows version uses `PowerShell`.
+- The Windows version uses `PowerShell 5`. Users of Windows 8.1 must manually upgrade
+to this version of PowerShell.
 - The macOS version uses `unzip` and `gunzip`.
-- In both cases the necessary tools are pre-installed with a typical installation of any version
+- Except as noted, the necessary tools are pre-installed with a typical installation of any version
 of the OS that supports 64-bit Finale.
 
-Pay careful attention to the comments about how strings are encoded. They are either encoded
-**platform** or **utf8**. On macOS, platform encoding is always utf8, but on Windows it can
-be any number of encodings depending on the locale settings and version of Windows. You can use
-`luaosutils.text` to convert them back and forth. (Use the `get_default_codepage` function to get
-the platform encoding.) The `luaosutils.process.execute` function requires platform encoding as do
-`lfs` and all built-in Lua `os` and `io` functions that take strings as input.
-
-Note that many functions require later versions of RGP Lua that include `luaosutils`
-and/or `lfs`. But the these dependencies are embedded in each function so that any version
-of Lua for Finale can at least load the library.
+Thie library expects strings to be client-encoded.  On macOS, client encoding is always utf8,
+but on Windows it can be any number of encodings depending on the locale settings and version of Windows.
+You can use `client.encode_with_client_codepage` to convert a utf8 string to client encoding.
+The `client.execute` function requires client encoding as do `lfs` and all built-in
+Lua `os` and `io` functions that take strings as input.
 
 ## Functions
 
@@ -27,7 +23,6 @@ of Lua for Finale can at least load the library.
 - [calc_temp_output_path(archive_path)](#calc_temp_output_path)
 - [calc_gunzip_command(archive_path)](#calc_gunzip_command)
 - [calc_is_gzip(buffer)](#calc_is_gzip)
-- [extract_enigmaxml(filepath)](#extract_enigmaxml)
 
 ### calc_rmdir_command
 
@@ -35,10 +30,10 @@ of Lua for Finale can at least load the library.
 ziputils.calc_rmdir_command(path_to_remove)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L52)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L37)
 
 Returns the platform-dependent command to remove a directory. It can be passed
-to `luaosutils.process.execute`.
+to `client.execute`.
 
 **WARNING** The command, if executed, permanently deletes the contents of the directory.
 You would normally call this on the temporary directory name from `calc_temp_output_path`.
@@ -46,11 +41,11 @@ But it works on any directory.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
-| `path_to_remove` | `string` | platform-encoded path of directory to remove. |
+| `path_to_remove` | `string` | client-encoded path of directory to remove. |
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string` | platform-encoded command string to execute. |
+| `string` | client-encoded command string to execute. |
 
 ### calc_delete_file_command
 
@@ -58,10 +53,10 @@ But it works on any directory.
 ziputils.calc_delete_file_command(path_to_remove)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L69)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L54)
 
 Returns the platform-dependent command to delete a file. It can be passed
-to `luaosutils.process.execute`.
+to `client.execute`.
 
 **WARNING** The command, if executed, permanently deletes the file.
 You would normally call this on the temporary directory name from `calc_temp_output_path`.
@@ -69,11 +64,11 @@ But it works on any directory.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
-| `path_to_remove` | `string` | platform-encoded path of directory to remove. |
+| `path_to_remove` | `string` | client-encoded path of directory to remove. |
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string` | platform-encoded command string to execute. |
+| `string` | client-encoded command string to execute. |
 
 ### calc_temp_output_path
 
@@ -81,23 +76,23 @@ But it works on any directory.
 ziputils.calc_temp_output_path(archive_path)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L88)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L72)
 
 Returns a path that can be used as a temporary target for unzipping. The caller may create it
 either as a file or a directory, because it is guaranteed not to exist when it is returned and it does
 not have a terminating path delimiter. Also returns a platform-dependent unzip command that can be
-passed to `luaosutils.process.execute` to unzip the input archive into the temporary name as a directory.
+passed to `client.execute` to unzip the input archive into the temporary name as a directory.
 
 This function requires `luaosutils`.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
-| `archive_path` (optional) | `string` | platform-encoded filepath to the zip archive that is included in the zip command. |
+| `archive_path` (optional) | `string` | client-encoded filepath to the zip archive that is included in the zip command. |
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string` | platform-encoded temporary path generated by the system. |
-| `string` | platform-encoded unzip command that can be used to unzip a multifile archived directory structure into the temporary path. |
+| `string` | client-encoded temporary path generated by the system. |
+| `string` | client-encoded unzip command that can be used to unzip a multifile archived directory structure into the temporary path. |
 
 ### calc_gunzip_command
 
@@ -105,18 +100,18 @@ This function requires `luaosutils`.
 ziputils.calc_gunzip_command(archive_path)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L128)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L106)
 
 Returns the platform-dependent command to gunzip a file to `stdout`. It can be passed
-to `luaosutils.process.execute`, which will then return the text directly.
+to `client.execute`, which will then return the text directly.
 
 | Input | Type | Description |
 | ----- | ---- | ----------- |
-| `archive_path` | `string` | platform-encoded path of source gzip archive. |
+| `archive_path` | `string` | client-encoded path of source gzip archive. |
 
 | Return type | Description |
 | ----------- | ----------- |
-| `string` | platform-encoded command string to execute. |
+| `string` | client-encoded command string to execute. |
 
 ### calc_is_gzip
 
@@ -124,7 +119,7 @@ to `luaosutils.process.execute`, which will then return the text directly.
 ziputils.calc_is_gzip(buffer)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L152)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L133)
 
 Detects if an input buffer is a gzip archive.
 
@@ -135,27 +130,3 @@ Detects if an input buffer is a gzip archive.
 | Return type | Description |
 | ----------- | ----------- |
 | `boolean` | true if the buffer is a gzip archive |
-
-### extract_enigmaxml
-
-```lua
-ziputils.extract_enigmaxml(filepath)
-```
-
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/ziputils.lua#L195)
-
-EnigmaXML is the underlying file format of a Finale `.musx` file. It is undocumented
-by MakeMusic and must be extracted from the `.musx` file. There is an effort to document
-it underway at the [EnigmaXML Documentation](https://github.com/finale-lua/ziputils-documentation)
-repository.
-
-This function extracts the EnigmaXML buffer from a `.musx` file. Note that it does not work with Finale's
-older `.mus` format.
-
-| Input | Type | Description |
-| ----- | ---- | ----------- |
-| `filepath` | `string` | utf8-encoded file path to a `.musx` file. |
-
-| Return type | Description |
-| ----------- | ----------- |
-| `string` | utf8-encoded buffer of xml data containing the EnigmaXml extracted from the `.musx`. |

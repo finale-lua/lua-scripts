@@ -304,6 +304,7 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
         local fcstr = finale.FCString(directory_path)
         fcstr:AssureEndingPathDelimiter()
         directory_path = fcstr.LuaString
+
         local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
         return coroutine.wrap(function()
             for lfs_file in lfs.dir(lfs_directory_path) do
