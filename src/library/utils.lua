@@ -533,6 +533,7 @@ function utils.eachfile(directory_path, recursive)
     fcstr:AssureEndingPathDelimiter()
     directory_path = fcstr.LuaString
 
+    -- direcly call text.convert_encoding to avoid dependency on library.utils
     local lfs_directory_path = text.convert_encoding(directory_path, text.get_utf8_codepage(), text.get_default_codepage())
 
     return coroutine.wrap(function()

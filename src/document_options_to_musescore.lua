@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.1"
-    finaleplugin.Date = "October 6, 2024"
+    finaleplugin.Version = "1.0.2"
+    finaleplugin.Date = "October 20, 2024"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.75
     finaleplugin.Notes = [[
@@ -54,11 +54,10 @@ end
 
 -- luacheck: ignore 11./global_dialog
 
-local text = require("luaosutils").text
-
 local mixin = require("library.mixin")
 local enigma_string = require("library.enigma_string")
 local utils = require("library.utils")
+local client = require("library.client")
 
 do_folder = do_folder or false
 
@@ -68,7 +67,7 @@ local MUSX_EXTENSION <const> = ".musx"
 local MUS_EXTENSION <const> = ".mus"
 local TEXT_EXTENSION <const> = ".mss"
 local PART_EXTENSION <const> = ".part" .. TEXT_EXTENSION
-local MSS_VERSION <const> = "4.40"
+local MSS_VERSION <const> = "4.50"
 
 -- hard-coded scaling values
 local EVPU_PER_INCH <const> = 288
@@ -380,6 +379,7 @@ function write_note_related_prefs(style_element)
     set_element_text(style_element, "graceNoteMag", size_prefs.GraceNoteSize / 100)
     set_element_text(style_element, "concertPitch", part_scope_prefs.DisplayInConcertPitch)
     set_element_text(style_element, "multiVoiceRestTwoSpaceOffset", math.abs(layer_one_prefs.RestOffset) >= 4)
+    set_element_text(style_element, "mergeMatchingRests", misc_prefs.ConsolidateRestsAcrossLayers)
 end
 
 function write_smart_shape_prefs(style_element)
@@ -783,7 +783,7 @@ function document_options_to_musescore()
         end
         local selected_directory = select_directory()
         if selected_directory then
-            logfile_path = text.convert_encoding(selected_directory, text.get_utf8_codepage(), text.get_default_codepage()) .. LOGFILE_NAME
+            logfile_path = client.encode_with_client_codepage(selected_directory) .. LOGFILE_NAME
             local file <close> = io.open(logfile_path, "w")
             if not file then
                 error("unable to create logfile " .. logfile_path)

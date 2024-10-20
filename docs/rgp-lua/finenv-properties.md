@@ -82,6 +82,18 @@ end
 
 ---
 
+#### EmbeddedLuaOSUtils\* (read-only property)
+
+If this property is true, it signifies that the `luaosutils` library is embedded in this version
+of _RGP Lua_ and can be successfully accessed with a `require` statement. You are also guaranteed
+that the minimum version of the embedded `luaosutils` is `2.2.0`.
+
+```lua
+local luaosutils = finenv.EmbeddedLuaOSUtils and require('luaosutils')
+```
+
+---
+
 #### EndUndoBlock\* (function)
 
 Ends the currently active Undo/Redo block in Finale (if any). Finale will only store Undo/Redo blocks that contain edit changes to the documents. These calls cannot be nested. If your script will make further changes to the document after this call, it should call `StartNewUndoBlock()` again before making them. Otherwise, Finale's Undo stack could become corrupted.
