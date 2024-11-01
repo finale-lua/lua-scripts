@@ -508,6 +508,8 @@ end
 
 Iterates a file path using lfs and feeds each directory and file name to a function.
 The directory names fed to the iterator function always contain path delimeters at the end.
+Both directory and file names are encoded utf8 on all platforms.
+
 The following are skipped.
 
 - "." and ".."
