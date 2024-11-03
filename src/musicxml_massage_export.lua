@@ -4,7 +4,7 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson and Carl Vine"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0.1"
+    finaleplugin.Version = "2.5"
     finaleplugin.Date = "October 9, 2024"
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.CategoryTags = "Document"
@@ -443,11 +443,16 @@ function process_one_file(input_file)
         if exist(try_path) then return try_path end
         try_path = path .. filename .. ".mus"
         if exist(try_path) then return try_path end
+        try_path = path .. "../" .. filename .. ".musx"
+        if exist(try_path) then return try_path end
+        try_path = path .. "../" .. filename .. ".mus"
+        if exist(try_path) then return try_path end
         return nil
     end)()
 
     local document, close_required, switchback_required
     if document_path then
+        print("found doc path: " .. document_path)
         document, close_required, switchback_required = open_finale_document(document_path)
     end
 
