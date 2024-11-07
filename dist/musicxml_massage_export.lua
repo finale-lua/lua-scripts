@@ -5140,17 +5140,79 @@ package.preload["library.client"] = package.preload["library.client"] or functio
     end
     return client
 end
+package.preload["library.ziputils"] = package.preload["library.ziputils"] or function()
+
+    local ziputils = {}
+    local client = require("library.client")
+
+    function ziputils.calc_rmdir_command(path_to_remove)
+        return (finenv.UI():IsOnMac() and "rm -r " or "cmd /c rmdir /s /q ") .. path_to_remove
+    end
+
+    function ziputils.calc_delete_file_command(path_to_remove)
+        return (finenv.UI():IsOnMac() and "rm " or "cmd /c del ") .. path_to_remove
+    end
+
+    function ziputils.calc_temp_output_path(archive_path)
+        archive_path = archive_path or ""
+        local output_dir = os.tmpname()
+        local rmcommand = ziputils.calc_delete_file_command(output_dir)
+        client.execute(rmcommand)
+        local zipcommand
+        if finenv.UI():IsOnMac() then
+            zipcommand = "unzip \"" .. archive_path .. "\" -d " .. output_dir
+        else
+            zipcommand = table.concat({
+                "$archivePath = '%s'",
+                "$outputDir = '%s'",
+                "$zipPath = $archivePath + '.zip'",
+                "Copy-Item -Path $archivePath -Destination $zipPath",
+                "Expand-Archive -Path $zipPath -DestinationPath $outputDir",
+                "Remove-Item -Path $zipPath",
+            }, "; ")
+            zipcommand = string.format(zipcommand, archive_path, output_dir)
+            zipcommand = string.format("powershell -c \"%s\"", zipcommand)
+        end
+        return output_dir, zipcommand
+    end
+
+    function ziputils.calc_gunzip_command(archive_path)
+        if finenv.UI():IsOnMac() then
+            return "gunzip -c " .. archive_path
+        else
+            local command = table.concat({
+                "$fs = New-Object IO.FileStream('%s', [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)",
+                "$gz = New-Object IO.Compression.GzipStream($fs, [IO.Compression.CompressionMode]::Decompress)",
+                "$buffer = New-Object byte[] 4096",
+                "while (($read = $gz.Read($buffer, 0, $buffer.Length)) -gt 0) {",
+                "    [Console]::OpenStandardOutput().Write($buffer, 0, $read)",
+                "}",
+                "$gz.Close()",
+                "$fs.Close()"
+            }, "; ")
+            command = string.format(command, archive_path)
+            return string.format("powershell -c \"%s\"", command)
+        end
+    end
+
+    function ziputils.calc_is_gzip(buffer)
+        local byte1, byte2, byte3, byte4 = string.byte(buffer, 1, 4)
+        return byte1 == 0x1F and byte2 == 0x8B and byte3 == 0x08 and byte4 == 0x00
+    end
+    return ziputils
+end
 function plugindef()
     finaleplugin.RequireDocument = false
     finaleplugin.RequireSelection = false
+    finaleplugin.ExecuteExternalCode = true
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson and Carl Vine"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.0.1"
-    finaleplugin.Date = "October 9, 2024"
+    finaleplugin.Version = "2.5"
+    finaleplugin.Date = "November 6, 2024"
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.CategoryTags = "Document"
-    finaleplugin.MinJWLuaVersion = 0.75
+    finaleplugin.MinJWLuaVersion = 0.76
     finaleplugin.AdditionalMenuOptions = [[
         Massage MusicXML Single File...
     ]]
@@ -5170,7 +5232,7 @@ function plugindef()
 
         1. Export your document as uncompressed MusicXML.
         2. Run this plugin on the output *.musicxml document.
-        3. The massaged file name has " massaged" appended to the file name.
+        3. The massaged file name has ".massaged" appended to the file name.
         3. Import the massaged *.musicxml file into Dorico or MuseScore.
 
         Here is a list of the changes the script makes:
@@ -5203,7 +5265,7 @@ function plugindef()
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script reads musicxml files exported from Finale and modifies them to improve importing into Dorico or MuseScore. The best process is as follows:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Export your document as uncompressed MusicXML.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Run this plugin on the output *.musicxml document.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab The massaged file name has " massaged" appended to the file name.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab The massaged file name has \u8220".massaged\u8221" appended to the file name.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Import the massaged *.musicxml file into Dorico or MuseScore.\sa180\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Here is a list of the changes the script makes:\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab 8va/8vb and 15ma/15mb symbols are extended to include the last note and extended left to include leading grace notes.\par}
@@ -5225,10 +5287,13 @@ local lfs = require("lfs")
 local utils = require("library.utils")
 local mixin = require("library.mixin")
 local client = require("library.client")
+local ziputils = require("library.ziputils")
 do_single_file = do_single_file or false
 local XML_EXTENSION <const> = ".musicxml"
-local ADD_TO_FILENAME <const> = " massaged"
+local MXL_EXTENSION <const> = ".mxl"
+local ADD_TO_FILENAME <const> = ".massaged"
 local EDU_PER_QUARTER <const> = 1024
+local LOGENTRY_SEPARATOR <const> = "\n\n"
 local TIMER_ID <const> = 1
 local LOGFILE_NAME <const> = "FinaleMassageMusicXMLLog.txt"
 local logfile_path
@@ -5238,11 +5303,25 @@ local current_part
 local current_staff
 local current_staff_offset
 local current_measure
-function log_message(msg, is_error)
+local options = {
+    { field = "extend-ottavas-right", desc = "Extend ottavas right for MuseScore and Dorico imports. (Uncheck for LilyPond.)", value = true},
+    { field = "extend-ottavas-left", desc = "Extend ottavas left to precede grace notes.", value = true},
+    { field = "fermata-whole-rests", desc = "Change whole rests under fermatas to full measure if nothing else in measure.", value = true},
+    { field = "refloat-rests", desc = "Refloat floating rests in multiple voices (requires Finale document.)", value = true}
+}
+local function get_option_value(field_name)
+    for _, option in ipairs(options) do
+        if option.field == field_name then
+            return option.value
+        end
+    end
+    error("unknown option value " .. field_name, 2)
+end
+function log_message(msg, is_error, exclude_currently_processing)
     if is_error then
         error_count = error_count + 1
     end
-    local log_entry = "[" .. os.date("%Y-%m-%d %H:%M:%S") .. "] " .. currently_processing .. " "
+    local log_entry = "[" .. os.date("%Y-%m-%d %H:%M:%S") .. "] " .. (exclude_currently_processing and "" or currently_processing) .. " "
     if current_staff > 0 and current_measure > 0 then
         local staff_text = (function()
             local retval = "p" .. current_part
@@ -5327,7 +5406,10 @@ function directions_of_type(node, node_name)
         return current_octave_shift
     end
 end
-function fix_direction_brackets(xml_measure, direction_type)
+function fix_direction_brackets(xml_measure, direction_type, extend_left, extend_right)
+    if not (extend_left or extend_right) then
+        return
+    end
     for xml_direction in directions_of_type(xml_measure, direction_type) do
         local xml_direction_type = xml_direction:FirstChildElement("direction-type")
         if xml_direction_type then
@@ -5336,53 +5418,57 @@ function fix_direction_brackets(xml_measure, direction_type)
                 local direction_copy = xml_direction:DeepClone(xml_direction:GetDocument())
                 local shift_type = node_for_type:Attribute("type")
                 if shift_type == "stop" then
-                    local next_note = xml_direction:NextSiblingElement("note")
+                    if extend_right then
+                        local next_note = xml_direction:NextSiblingElement("note")
 
-                    if next_note then
-                        local chord_check = next_note:NextSiblingElement("note")
-                        while chord_check and chord_check:FirstChildElement("chord") do
-                            next_note = chord_check
-                            chord_check = chord_check:NextSiblingElement("note")
+                        if next_note then
+                            local chord_check = next_note:NextSiblingElement("note")
+                            while chord_check and chord_check:FirstChildElement("chord") do
+                                next_note = chord_check
+                                chord_check = chord_check:NextSiblingElement("note")
+                            end
                         end
-                    end
-                    if next_note and not next_note:FirstChildElement("rest") then
-                        xml_measure:DeleteChild(xml_direction)
-                        xml_measure:InsertAfterChild(next_note, direction_copy)
-                        current_staff_offset = staff_number_from_note(next_note) - 1
-                        if direction_type == "octave-shift" then
-                            log_message("extended octave-shift element of size " .. node_for_type:IntAttribute("size", 8) .. " by one note/chord.")
-                        else
-                            log_message("extended " .. direction_type .. " element by one note/chord.")
+                        if next_note and not next_note:FirstChildElement("rest") then
+                            xml_measure:DeleteChild(xml_direction)
+                            xml_measure:InsertAfterChild(next_note, direction_copy)
+                            current_staff_offset = staff_number_from_note(next_note) - 1
+                            if direction_type == "octave-shift" then
+                                log_message("extended octave-shift element of size " .. node_for_type:IntAttribute("size", 8) .. " by one note/chord.")
+                            else
+                                log_message("extended " .. direction_type .. " element by one note/chord.")
+                            end
                         end
                     end
                 elseif direction_type == "octave-shift" and shift_type == "up" or shift_type == "down" then
-                    local sign = shift_type == "down" and 1 or -1
-                    local octaves = (node_for_type:IntAttribute("size", 8) - 1) / 7
-                    local prev_grace_note
-                    local prev_note = xml_direction:PreviousSiblingElement("note")
-                    while prev_note do
-                        if not prev_note:FirstChildElement("rest") and prev_note:FirstChildElement("grace") then
-                            prev_grace_note = prev_note
-                            local pitch = prev_note:FirstChildElement("pitch")
-                            local octave = pitch and pitch:FirstChildElement("octave")
-                            if octave then
-                                octave:SetIntText(octave:IntText() + sign*octaves)
+                    if extend_left then
+                        local sign = shift_type == "down" and 1 or -1
+                        local octaves = (node_for_type:IntAttribute("size", 8) - 1) / 7
+                        local prev_grace_note
+                        local prev_note = xml_direction:PreviousSiblingElement("note")
+                        while prev_note do
+                            if not prev_note:FirstChildElement("rest") and prev_note:FirstChildElement("grace") then
+                                prev_grace_note = prev_note
+                                local pitch = prev_note:FirstChildElement("pitch")
+                                local octave = pitch and pitch:FirstChildElement("octave")
+                                if octave then
+                                    octave:SetIntText(octave:IntText() + sign*octaves)
+                                end
+                            else
+                                break
                             end
-                        else
-                            break
+                            prev_note = prev_note:PreviousSiblingElement("note")
                         end
-                        prev_note = prev_note:PreviousSiblingElement("note")
-                    end
-                    if prev_grace_note then
-                        xml_measure:DeleteChild(xml_direction)
-                        local prev_element = prev_grace_note:PreviousSiblingElement()
-                        if prev_element then
-                            xml_measure:InsertAfterChild(prev_element, direction_copy)
-                        else
-                            xml_measure:InsertFirstChild(direction_copy)
+                        if prev_grace_note then
+                            xml_measure:DeleteChild(xml_direction)
+                            local prev_element = prev_grace_note:PreviousSiblingElement()
+                            if prev_element then
+                                xml_measure:InsertAfterChild(prev_element, direction_copy)
+                            else
+                                xml_measure:InsertFirstChild(direction_copy)
+                            end
+                            current_staff_offset = staff_number_from_note(prev_grace_note) - 1
+                            log_message("adjusted octave-shift element of size " .. node_for_type:IntAttribute("size", 8) .. " to include preceding grace notes.")
                         end
-                        current_staff_offset = staff_number_from_note(prev_grace_note) - 1
-                        log_message("adjusted octave-shift element of size " .. node_for_type:IntAttribute("size", 8) .. " to include preceding grace notes.")
                     end
                 end
             end
@@ -5501,7 +5587,7 @@ function process_xml_with_finale_document(xml_measure, staff_slot, measure, dura
     return true
 end
 function process_xml(score_partwise, document)
-    if not document then
+    if not document and get_option_value("refloat-rests") then
         log_message("WARNNG: corresponding Finale document not found")
     end
     current_part = 1
@@ -5526,16 +5612,18 @@ function process_xml(score_partwise, document)
                 staves_used = num_staves
             end
             current_measure = current_measure + 1
-            if document then
+            if document and get_option_value("refloat-rests") then
                 for staff_num = 1, num_staves do
                     current_staff_offset = staff_num - 1
                     process_xml_with_finale_document(xml_measure, current_staff + current_staff_offset, current_measure, duration_unit, staff_num)
                 end
             end
-            fix_direction_brackets(xml_measure, "octave-shift")
+            fix_direction_brackets(xml_measure, "octave-shift", get_option_value("extend-ottavas-left"), get_option_value("extend-ottavas-right"))
 
 
-            fix_fermata_whole_rests(xml_measure)
+            if get_option_value("fermata-whole-rests") then
+                fix_fermata_whole_rests(xml_measure)
+            end
         end
         current_part = current_part + 1
         current_staff = current_staff + staves_used
@@ -5562,22 +5650,25 @@ function open_finale_document(document_path)
     end
     local document = finale.FCDocument()
     if not document:Open(finale.FCString(document_path), true, nil, false, false, true) then
-        log_message("unable to open corresponding Finale document", true)
+        log_message("unable to open Finale document " .. document_path, true)
         return nil, false, false
     end
 
     local close_required = finenv.UI():IsOnMac() or documents.Count > 0
     return document, close_required, true
 end
-function process_one_file(input_file)
-    currently_processing = input_file
+function process_one_file(path, full_file_name)
+    currently_processing = path .. full_file_name
     current_staff = 0
     current_measure = 0
     error_count = 0
-    local path, filename, extension = utils.split_file_path(input_file)
+    local _, filename, extension = utils.split_file_path(full_file_name)
     assert(#path > 0 and #filename > 0 and #extension > 0, "invalid file path format")
     local output_file = path .. filename .. ADD_TO_FILENAME .. XML_EXTENSION
     local document_path = (function()
+        if not get_option_value("refloat-rests") then
+            return nil
+        end
         local function exist(try_path)
             local attr = lfs.attributes(client.encode_with_client_codepage(try_path))
             return attr and attr.mode == "file"
@@ -5586,8 +5677,27 @@ function process_one_file(input_file)
         if exist(try_path) then return try_path end
         try_path = path .. filename .. ".mus"
         if exist(try_path) then return try_path end
+        try_path = path .. "../" .. filename .. ".musx"
+        if exist(try_path) then return try_path end
+        try_path = path .. "../" .. filename .. ".mus"
+        if exist(try_path) then return try_path end
         return nil
     end)()
+    local input_file, zip_directory = (function()
+        local input_file = path .. full_file_name
+        if extension ~= MXL_EXTENSION then
+            return input_file, nil
+        end
+        local zip_directory, zip_command = ziputils.calc_temp_output_path(input_file)
+        if not client.execute(zip_command) then
+            return nil, zip_command .. " failed"
+        end
+        return client.encode_with_utf8_codepage(zip_directory) .. "/" .. filename .. XML_EXTENSION, zip_directory
+    end)()
+    if not input_file then
+        log_message(zip_directory, true)
+        return false
+    end
     local document, close_required, switchback_required
     if document_path then
         document, close_required, switchback_required = open_finale_document(document_path)
@@ -5602,16 +5712,24 @@ function process_one_file(input_file)
             end
         end
     end
+    local function clean_up()
+        close_document()
+        if zip_directory then
+            local rmdircmd = ziputils.calc_rmdir_command(zip_directory)
+            client.execute(rmdircmd)
+        end
+    end
+
     local function abort_if(condition, msg)
         if condition then
-            log_message(msg, true)
+            log_message(msg .. LOGENTRY_SEPARATOR, true)
             os.remove(client.encode_with_client_codepage(output_file))
-            close_document()
+            clean_up()
             return true
         end
         return false
     end
-    log_message("\n\n***** START OF PROCESSING *****")
+    log_message("***** START OF PROCESSING *****", false, true)
     remove_processing_instructions(input_file, output_file)
     local musicxml <close> = tinyxml2.XMLDocument()
     local result = musicxml:LoadFile(output_file)
@@ -5632,24 +5750,39 @@ function process_one_file(input_file)
         return
     end
     local creator_software = software_element and software_element:GetText() or "Unspecified"
-    if abort_if(creator_software:sub(1, 6) ~= "Finale", "unable to process file exported by " .. creator_software) then
+    if abort_if(creator_software:sub(1, 6) ~= "Finale", "skipping file exported by " .. creator_software) then
         return
     end
     software_element:SetText("Massage Finale MusicXML Script " ..
-    finaleplugin.Version .. " for " .. (finenv.UI():IsOnMac() and "Mac" or "Windows"))
+        finaleplugin.Version .. " for " .. (finenv.UI():IsOnMac() and "Mac" or "Windows"))
+    local original_encoding_date = encoding_date_element:GetText()
     encoding_date_element:SetText(os.date("%Y-%m-%d"))
+    local miscellaneous_element = encoding_element:FirstChildElement("miscellaneous")
+    if not miscellaneous_element then
+        miscellaneous_element = encoding_element:InsertNewChildElement("miscellaneous")
+    end
+    local function insert_miscellaneous_field(name, value)
+        local element = miscellaneous_element:InsertNewChildElement("miscellaneous-field")
+        element:SetAttribute("name", name)
+        element:SetText(tostring(value))
+    end
+    insert_miscellaneous_field("original-software", creator_software)
+    insert_miscellaneous_field("original-encoding-date", original_encoding_date)
+    for _, option in ipairs(options) do
+        insert_miscellaneous_field(option.field, option.value)
+    end
     process_xml(score_partwise, document)
     currently_processing = output_file
     if musicxml:SaveFile(output_file) then
         if error_count > 0 then
-            log_message("successfully saved file with " .. error_count .. " processing errors.")
+            log_message("successfully saved file with " .. error_count .. " processing errors." .. LOGENTRY_SEPARATOR)
         else
-            log_message("successfully saved file")
+            log_message("successfully saved file" .. LOGENTRY_SEPARATOR)
         end
     else
-        log_message("unable to save massaged file: " .. musicxml:ErrorStr(), true)
+        log_message("unable to save massaged file: " .. musicxml:ErrorStr() .. LOGENTRY_SEPARATOR, true)
     end
-    close_document()
+    clean_up()
 end
 function process_files(file_list, selected_path)
     local dialog = mixin.FCXCustomLuaWindow()
@@ -5660,8 +5793,8 @@ function process_files(file_list, selected_path)
         :SetText("Folder:")
         :DoAutoResizeWidth(0)
     dialog:CreateStatic(0, current_y + 2, "folder")
-        :SetText("")
-        :SetWidth(400)
+        :SetText(selected_path)
+        :SetWidth(700)
         :AssureNoHorizontalOverlap(dialog:GetControl("folder_label"), 5)
         :StretchToAlignWithRight()
     current_y = current_y + 20
@@ -5675,10 +5808,30 @@ function process_files(file_list, selected_path)
         :AssureNoHorizontalOverlap(dialog:GetControl("file_path_label"), 5)
         :HorizontallyAlignLeftWith(dialog:GetControl("folder"))
         :StretchToAlignWithRight()
+    current_y = current_y + 30
+    dialog:CreateHorizontalLine(0, current_y, 100)
+        :StretchToAlignWithRight()
 
+    for _, option in ipairs(options) do
+        current_y = current_y + 20
+        dialog:CreateCheckbox(0, current_y, option.field)
+            :SetText(option.desc)
+            :SetCheck(option.value and 1 or 0)
+            :DoAutoResizeWidth(0)
+            :StretchToAlignWithRight()
+    end
+
+    dialog:CreateOkButton("process")
+        :SetText("Process")
     dialog:CreateCancelButton("cancel")
 
-    dialog:RegisterInitWindow(function(self)
+    dialog:RegisterHandleOkButtonPressed(function(self)
+        self:GetControl("process"):SetEnable(false)
+        for _, option in ipairs(options) do
+            local checkbox = self:GetControl(option.field)
+            option.value = checkbox:GetCheck() == 1
+            checkbox:SetEnable(false)
+        end
         logfile_path = client.encode_with_client_codepage(selected_path) .. LOGFILE_NAME
         local file <close> = io.open(logfile_path, "w")
         if not file then
@@ -5703,7 +5856,7 @@ function process_files(file_list, selected_path)
             :RedrawImmediate()
         self:GetControl("file_path"):SetText(file_list[1].name)
             :RedrawImmediate()
-        process_one_file(file_list[1].folder .. file_list[1].name)
+        process_one_file(file_list[1].folder, file_list[1].name)
         table.remove(file_list, 1)
     end)
     dialog:RegisterCloseWindow(function(self)
@@ -5729,7 +5882,7 @@ function process_directory(path_name)
     selected_directory:AssureEndingPathDelimiter()
     local file_list = {}
     for dir_name, file_name in utils.eachfile(selected_directory.LuaString, true) do
-        if file_name:sub(-XML_EXTENSION:len()) == XML_EXTENSION then
+        if file_name:sub(-XML_EXTENSION:len()) == XML_EXTENSION or file_name:sub(-MXL_EXTENSION:len()) == MXL_EXTENSION then
             table.insert(file_list, { name = file_name, folder = dir_name })
         end
     end
@@ -5744,6 +5897,7 @@ function do_open_dialog(path_name)
     local open_dialog = finale.FCFileOpenDialog(finenv.UI())
     open_dialog:SetWindowTitle(finale.FCString("Select a MusicXML File:"))
     open_dialog:AddFilter(finale.FCString("*" .. XML_EXTENSION), finale.FCString("MusicXML File"))
+    open_dialog:AddFilter(finale.FCString("*" .. MXL_EXTENSION), finale.FCString("MusicXML Compressed File"))
     open_dialog:SetInitFolder(path_name)
     open_dialog:AssureFileExtension(XML_EXTENSION)
     if not open_dialog:Execute() then
@@ -5769,7 +5923,7 @@ function music_xml_massage_export()
         local xml_file = do_open_dialog(path_name)
         if xml_file then
             local path, name, extension = utils.split_file_path(xml_file)
-            assert(extension == XML_EXTENSION, "incorrect file type selected")
+            assert(extension == XML_EXTENSION or extension == MXL_EXTENSION, "incorrect file type selected")
             process_files({{ folder = path, name = name .. extension }}, path)
         end
     else
