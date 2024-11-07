@@ -5,11 +5,11 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson and Carl Vine"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "2.5"
-    finaleplugin.Date = "November 6, 2024"
+    finaleplugin.Version = "2.5.1"
+    finaleplugin.Date = "November 7, 2024"
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.CategoryTags = "Document"
-    finaleplugin.MinJWLuaVersion = 0.76
+    finaleplugin.MinJWLuaVersion = 0.77
     finaleplugin.AdditionalMenuOptions = [[
         Massage MusicXML Single File...
     ]]
@@ -704,10 +704,9 @@ end
 function do_open_dialog(path_name)
     local open_dialog = finale.FCFileOpenDialog(finenv.UI())
     open_dialog:SetWindowTitle(finale.FCString("Select a MusicXML File:"))
-    open_dialog:AddFilter(finale.FCString("*" .. XML_EXTENSION), finale.FCString("MusicXML File"))
     open_dialog:AddFilter(finale.FCString("*" .. MXL_EXTENSION), finale.FCString("MusicXML Compressed File"))
+    open_dialog:AddFilter(finale.FCString("*" .. XML_EXTENSION), finale.FCString("MusicXML File"))
     open_dialog:SetInitFolder(path_name)
-    open_dialog:AssureFileExtension(XML_EXTENSION)
     if not open_dialog:Execute() then
         return nil
     end
