@@ -6,7 +6,7 @@ function plugindef()
     finaleplugin.Author = "Robert Patterson and Carl Vine"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
     finaleplugin.Version = "2.5"
-    finaleplugin.Date = "October 9, 2024"
+    finaleplugin.Date = "November 6, 2024"
     finaleplugin.LoadLuaOSUtils = true
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.76
