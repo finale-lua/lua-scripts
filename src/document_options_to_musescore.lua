@@ -190,10 +190,10 @@ function muse_font_efx(font_info)
         retval = retval | 0x02
     end
     if font_info.Underline then
-        retval = retval | 0x03
+        retval = retval | 0x04
     end
     if font_info.Strikethrough then
-        retval = retval | 0x04
+        retval = retval | 0x08
     end
     return retval
 end
