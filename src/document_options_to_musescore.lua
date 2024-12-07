@@ -281,7 +281,7 @@ function write_page_prefs(style_element)
     set_element_text(style_element, "firstSystemIndentationValue", page_prefs.FirstSystemLeft / EVPU_PER_SPACE)
     local page_percent = page_prefs.PageScaling / 100
     local staff_percent = (page_prefs.SystemStaffHeight / (EVPU_PER_SPACE * 4 * 16)) * (page_prefs.SystemScaling / 100)
-    set_element_text(style_element, "Spatium", (EVPU_PER_SPACE * staff_percent * page_percent) / EVPU_PER_MM)
+    set_element_text(style_element, "spatium", (EVPU_PER_SPACE * staff_percent * page_percent) / EVPU_PER_MM)
     if default_music_font.IsSMuFLFont then
         set_element_text(style_element, "musicalSymbolFont", default_music_font.Name)
         set_element_text(style_element, "musicalTextFont", default_music_font.Name .. " Text")
