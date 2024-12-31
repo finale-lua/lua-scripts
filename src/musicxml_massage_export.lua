@@ -544,10 +544,9 @@ function process_one_file(path, full_file_name)
     if abort_if(not score_partwise, "file does not appear to be exported from Finale") then
         return
     end
-    local encoding_element = tinyxml2.XMLHandle(score_partwise)
-        :FirstChildElement("identification")
-        :FirstChildElement("encoding")
-        :ToElement()
+    local information_element = tinyxml2.XMLHandle(score_partwise):FirstChildElement("identification"):ToElement()
+    local encoding_element = tinyxml2.XMLHandle(information_element):FirstChildElement("encoding"):ToElement()
+    
     local software_element = encoding_element and encoding_element:FirstChildElement("software")
     local encoding_date_element = encoding_element and encoding_element:FirstChildElement("encoding-date")
     if abort_if(not software_element or not encoding_date_element, "missing required element 'software' and/or 'encoding-date'") then
@@ -561,9 +560,9 @@ function process_one_file(path, full_file_name)
         finaleplugin.Version .. " for " .. (finenv.UI():IsOnMac() and "Mac" or "Windows"))
     local original_encoding_date = encoding_date_element:GetText()
     encoding_date_element:SetText(os.date("%Y-%m-%d"))
-    local miscellaneous_element = encoding_element:FirstChildElement("miscellaneous")
+    local miscellaneous_element = information_element:FirstChildElement("miscellaneous")
     if not miscellaneous_element then
-        miscellaneous_element = encoding_element:InsertNewChildElement("miscellaneous")
+        miscellaneous_element = information_element:InsertNewChildElement("miscellaneous")
     end
     local function insert_miscellaneous_field(name, value)
         local element = miscellaneous_element:InsertNewChildElement("miscellaneous-field")
