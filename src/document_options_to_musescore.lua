@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.2"
-    finaleplugin.Date = "October 20, 2024"
+    finaleplugin.Version = "1.0.3"
+    finaleplugin.Date = "December 31, 2024"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.75
     finaleplugin.Notes = [[
