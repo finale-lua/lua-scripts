@@ -266,7 +266,7 @@ function write_page_prefs(style_element)
     set_element_text(style_element, "pageWidth", page_prefs.PageWidth / EVPU_PER_INCH)
     set_element_text(style_element, "pageHeight", page_prefs.PageHeight / EVPU_PER_INCH)
     set_element_text(style_element, "pagePrintableWidth",
-        (page_prefs.PageWidth - page_prefs.LeftPageRightMargin - page_prefs.LeftPageRightMargin) / EVPU_PER_INCH)
+        (page_prefs.PageWidth - page_prefs.LeftPageLeftMargin - page_prefs.LeftPageRightMargin) / EVPU_PER_INCH)
     set_element_text(style_element, "pageEvenLeftMargin", page_prefs.LeftPageLeftMargin / EVPU_PER_INCH)
     set_element_text(style_element, "pageOddLeftMargin",
         (page_prefs.UseFacingPages and page_prefs.RightPageLeftMargin or page_prefs.LeftPageLeftMargin) / EVPU_PER_INCH)
