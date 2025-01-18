@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.2"
-    finaleplugin.Date = "October 20, 2024"
+    finaleplugin.Version = "1.0.3"
+    finaleplugin.Date = "December 31, 2024"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.75
     finaleplugin.Notes = [[
@@ -190,10 +190,10 @@ function muse_font_efx(font_info)
         retval = retval | 0x02
     end
     if font_info.Underline then
-        retval = retval | 0x03
+        retval = retval | 0x04
     end
     if font_info.Strikethrough then
-        retval = retval | 0x04
+        retval = retval | 0x08
     end
     return retval
 end
@@ -266,7 +266,7 @@ function write_page_prefs(style_element)
     set_element_text(style_element, "pageWidth", page_prefs.PageWidth / EVPU_PER_INCH)
     set_element_text(style_element, "pageHeight", page_prefs.PageHeight / EVPU_PER_INCH)
     set_element_text(style_element, "pagePrintableWidth",
-        (page_prefs.PageWidth - page_prefs.LeftPageRightMargin - page_prefs.LeftPageRightMargin) / EVPU_PER_INCH)
+        (page_prefs.PageWidth - page_prefs.LeftPageLeftMargin - page_prefs.LeftPageRightMargin) / EVPU_PER_INCH)
     set_element_text(style_element, "pageEvenLeftMargin", page_prefs.LeftPageLeftMargin / EVPU_PER_INCH)
     set_element_text(style_element, "pageOddLeftMargin",
         (page_prefs.UseFacingPages and page_prefs.RightPageLeftMargin or page_prefs.LeftPageLeftMargin) / EVPU_PER_INCH)
@@ -281,7 +281,7 @@ function write_page_prefs(style_element)
     set_element_text(style_element, "firstSystemIndentationValue", page_prefs.FirstSystemLeft / EVPU_PER_SPACE)
     local page_percent = page_prefs.PageScaling / 100
     local staff_percent = (page_prefs.SystemStaffHeight / (EVPU_PER_SPACE * 4 * 16)) * (page_prefs.SystemScaling / 100)
-    set_element_text(style_element, "Spatium", (EVPU_PER_SPACE * staff_percent * page_percent) / EVPU_PER_MM)
+    set_element_text(style_element, "spatium", (EVPU_PER_SPACE * staff_percent * page_percent) / EVPU_PER_MM)
     if default_music_font.IsSMuFLFont then
         set_element_text(style_element, "musicalSymbolFont", default_music_font.Name)
         set_element_text(style_element, "musicalTextFont", default_music_font.Name .. " Text")
