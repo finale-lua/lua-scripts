@@ -5327,7 +5327,10 @@ function plugindef()
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This is designed to help navigate the many scripts crowding your {\i RGP Lua} menu. It provides access to Lua scripts and Finale menu items through a set of easily configurable palettes (dialog windows) organised by type of activity and triggered by simple \u8220"hotkey\u8221" keystrokes.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The {\i Hotkey Palette} principle is demonstrated expertly by Nick Mazuk on YouTube ([www.youtube.com/@nickmazuk ](https://www.youtube.com/@nickmazuk)). Scripts are grouped into primary categories like {\i Intervals}, {\i Layers}, {\i Notes & Chords}, {\i Measure Items} and so on as a set of palettes triggered by keystroke. Each primary palette calls up a second palette containing scripts in related areas, also triggered by keystroke. Reach hundreds of scripts in your collection using just two keystrokes with the actual hotkeys presented as a visual reminder. Actions you repeat often will link to muscle memory and become easier to recall.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 The {\i Hotkey Palette} principle is demonstrated expertly by Nick Mazuk on YouTube ({\field{\*\fldinst{HYPERLINK "https://www.youtube.com/@nickmazuk"}}{\fldrslt{\ul
+        www.youtube.com/@nickmazuk
+        }}}
+        ). Scripts are grouped into primary categories like {\i Intervals}, {\i Layers}, {\i Notes & Chords}, {\i Measure Items} and so on as a set of palettes triggered by keystroke. Each primary palette calls up a second palette containing scripts in related areas, also triggered by keystroke. Reach hundreds of scripts in your collection using just two keystrokes with the actual hotkeys presented as a visual reminder. Actions you repeat often will link to muscle memory and become easier to recall.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Nick uses Keyboard Maestro ({\field{\*\fldinst{HYPERLINK "https://keyboardmaestro.com"}}{\fldrslt{\ul
         keyboardmaestro.com
         }}}

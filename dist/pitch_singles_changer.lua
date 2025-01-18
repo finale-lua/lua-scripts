@@ -5310,7 +5310,7 @@ function plugindef()
         \fs18
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Change one specific pitch to another. Pitch specification is exact and immutable:\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 \u8226? First character: note name {\b A}-{\b G}\line \u160? (Lower case will be replaced by upper case)\line \u8226? Last character: octave number {\b 0}-{\b 9}\line \u8226? In between: accidentals if any ({\b bbb/bb/b} \u8230? {\b #/##/###})\line \u160? (you can use {\b s} instead of {\b #})\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li720 \fi0 \u8226 ? First character: note name {\b A}-{\b G}\line \u160 ? (Lower case will be replaced by upper case)\line \u8226 ? Last character: octave number {\b 0}-{\b 9}\line \u8226 ? In between: accidentals if any ({\b bbb/bb/b} \u8230 ? {\b #/##/###})\line \u160 ? (you can use {\b s} instead of {\b #})\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 {\b C4} is middle C. {\b B4} is a major seventh above that. Mistakes in the pitch name format must be corrected before pitches will be changed. For transposing instruments on transposing scores select {\b Written Pitch} to change the note that you see on screen.\par}
         }
     ]]

@@ -5273,8 +5273,8 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.2"
-    finaleplugin.Date = "October 20, 2024"
+    finaleplugin.Version = "1.0.3"
+    finaleplugin.Date = "December 31, 2024"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.75
     finaleplugin.Notes = [[
@@ -5323,18 +5323,18 @@ function plugindef()
         {\info{\comment "os":"mac","fs18":"fs24","fs26":"fs32","fs23":"fs29","fs20":"fs26"}}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Exports settings from one or more Finale documents into a MuseScore {\f1 .mss} style settings file. Only a subset of possible MuseScore settings are exported. The rest will be taken from the default settings you have set up for MuseScore when you load it in MuseScore.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 This script addresses two uses cases.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \b \fs23 Setting up your MuseScore defaults to be close to those of Finale\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs23 Setting up your MuseScore defaults to be close to those of Finale\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Open a Finale template file or document style file that you wish to use as the basis for your MuseScore defaults.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select the score or part for which you wish to export style settings.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Document Options to MuseScore\u8230?\u8221".\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Document Options to MuseScore\u8230 ?\u8221".\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose a location where to save the output. It is recommended to append {\f1 .part.mss} to the name of the style settings for parts.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Import each of the score and part settings into a blank document in MuseScore.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Make any style adjustments as needed and then save them back out. (This gives them all the settings.)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use the score {\f1 .mss} file for Preferences->Score->Style.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use the parts {\f1 .mss} file for Preferences->Score->Style for part.\sa180\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Now any new projects will start up with these defaults.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \b \fs23 Improving MusicXML imports of your documents\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Folder Document Options to MuseScore\u8230?\u8221" with no document open.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs23 Improving MusicXML imports of your documents\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Choose \u8220"Export Folder Document Options to MuseScore\u8230 ?\u8221" with no document open.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Select a folder containing your Finale files. All subfolders will be searched as well.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab For every Finale file found, a parallel {\f1 .mss} file is created.\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If the source Finale file contains at least one linked part, a parallel {\f1 .part.mss} file is created as well (from the first part found).\par}
@@ -5468,10 +5468,10 @@ function muse_font_efx(font_info)
         retval = retval | 0x02
     end
     if font_info.Underline then
-        retval = retval | 0x03
+        retval = retval | 0x04
     end
     if font_info.Strikethrough then
-        retval = retval | 0x04
+        retval = retval | 0x08
     end
     return retval
 end
@@ -5537,7 +5537,7 @@ function write_page_prefs(style_element)
     set_element_text(style_element, "pageWidth", page_prefs.PageWidth / EVPU_PER_INCH)
     set_element_text(style_element, "pageHeight", page_prefs.PageHeight / EVPU_PER_INCH)
     set_element_text(style_element, "pagePrintableWidth",
-        (page_prefs.PageWidth - page_prefs.LeftPageRightMargin - page_prefs.LeftPageRightMargin) / EVPU_PER_INCH)
+        (page_prefs.PageWidth - page_prefs.LeftPageLeftMargin - page_prefs.LeftPageRightMargin) / EVPU_PER_INCH)
     set_element_text(style_element, "pageEvenLeftMargin", page_prefs.LeftPageLeftMargin / EVPU_PER_INCH)
     set_element_text(style_element, "pageOddLeftMargin",
         (page_prefs.UseFacingPages and page_prefs.RightPageLeftMargin or page_prefs.LeftPageLeftMargin) / EVPU_PER_INCH)
@@ -5552,7 +5552,7 @@ function write_page_prefs(style_element)
     set_element_text(style_element, "firstSystemIndentationValue", page_prefs.FirstSystemLeft / EVPU_PER_SPACE)
     local page_percent = page_prefs.PageScaling / 100
     local staff_percent = (page_prefs.SystemStaffHeight / (EVPU_PER_SPACE * 4 * 16)) * (page_prefs.SystemScaling / 100)
-    set_element_text(style_element, "Spatium", (EVPU_PER_SPACE * staff_percent * page_percent) / EVPU_PER_MM)
+    set_element_text(style_element, "spatium", (EVPU_PER_SPACE * staff_percent * page_percent) / EVPU_PER_MM)
     if default_music_font.IsSMuFLFont then
         set_element_text(style_element, "musicalSymbolFont", default_music_font.Name)
         set_element_text(style_element, "musicalTextFont", default_music_font.Name .. " Text")

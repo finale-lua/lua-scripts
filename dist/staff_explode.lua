@@ -5985,11 +5985,11 @@ function plugindef()
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Staff Explode Singles (single notes onto successive staves)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Staff Explode Pairs (pairs of notes, omitting odd notes from bottom staff)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Staff Explode Pairs Up (pairs, but omitting odd notes from top staff)\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Staff Explode Split Pairs (pairs split: 1-3/2-4 | 1-4/2-5/3-6 \u8230? etc)\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Staff Explode Split Pairs (pairs split: 1-3/2-4 | 1-4/2-5/3-6 \u8230 ? etc)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Staff Explode From Layers (multiple layers on one staff to single layers on consecutive staves)\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Staff Explode To Layers (chords on each staff split into layers on the same staff)\sa180\par}
         {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 \u8220"Staff Explode To Layers\u8221" works on one or more staves at once. All other options require a single staff selection. As a special case, if a staff contains only single-note entries, Explode To Layers duplicates them in unison on layer 2 to create standard two-voice (unison) notation.\par}
-        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Your setting at Finale \u8594? Settings\u8230? \u8594? Edit \u8594? [Automatic Music Spacing] determines whether or not the music is RESPACED after each explosion.\par}
+        {\pard \sl264 \slmult1 \ql \f0 \sa180 \li0 \fi0 Your setting at Finale \u8594 ? Settings\u8230 ? \u8594 ? Edit \u8594 ? [Automatic Music Spacing] determines whether or not the music is RESPACED after each explosion.\par}
         }
     ]]
     finaleplugin.HashURL = "https://raw.githubusercontent.com/finale-lua/lua-scripts/master/hash/staff_explode.hash"
