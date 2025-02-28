@@ -56,7 +56,7 @@ jobs:
         uses: leafo/gh-actions-lua@v10
 
       - name: Install LuaRocks
-        uses: leafo/gh-actions-luarocks@v4
+        uses: leafo/gh-actions-luarocks@v5
 
       - name: Install lunajson
         run: luarocks install lunajson
