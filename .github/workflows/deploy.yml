@@ -11,6 +11,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ ! contains(github.event.head_commit.message, 'autopublish') }}
     steps:
       - name: Checkout this repository
         uses: actions/checkout@v4
@@ -53,10 +54,10 @@ jobs:
           cd ../../
 
       - name: Install Lua
-        uses: leafo/gh-actions-lua@v10
+        uses: leafo/gh-actions-lua@v11
 
       - name: Install LuaRocks
-        uses: leafo/gh-actions-luarocks@v4
+        uses: leafo/gh-actions-luarocks@v5
 
       - name: Install lunajson
         run: luarocks install lunajson
