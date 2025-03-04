@@ -21,7 +21,7 @@ A script's name as returned by plugindef() should be in title case. [Windows and
 
 > The capitalization rules for titles of books, movies, and other works vary a little between style guides. In general, you should capitalize the first word, all nouns, all verbs (even short ones, like is), all adjectives, and all proper nouns. That means you should lowercase articles, conjunctions, and prepositions—however, some style guides say to capitalize conjunctions and prepositions that are longer than five letters.
 
-Additionally, if you're creating a [script group](../rgp-lua/finaleplugin-properties.md#group-scripts), the start of each menu item should be the same. Menu bar items are sorted alphabetically. So that way when a user tries to find the different menu items in their menu bar, they are listed together.
+Additionally, if you're creating a [script group](../rgp-lua/finaleplugin-properties#group-scripts), the start of each menu item should be the same. Menu bar items are sorted alphabetically. So that way when a user tries to find the different menu items in their menu bar, they are listed together.
 
 ## 2. Use a consistent file name
 

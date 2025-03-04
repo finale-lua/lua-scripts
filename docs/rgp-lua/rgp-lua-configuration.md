@@ -63,7 +63,7 @@ Add/Edit Dialog
 
 **Optional Description.** Specifies the description to be used with this instance of the selected script file. If omitted, _RGP Lua_ uses the description returned by the `plugindef()` function in the script. This option is not available for Auto Folders.
 
-**Prefix.** This is a multi-line code window that allows you to enter a brief snippet of Lua code. If a prefix exists, _RGP Lua_ executes it in the Lua environment before executing the script file. One use case for it would be to initialize some global variables that the script uses as input parameters. Another might be to require a library for a script or an Auto Folder. Each script inherits any global values set by the prefix. This prefix executes immediately *after* the [System Prefix](system-prefix-dialog), if any.
+**Prefix.** This is a multi-line code window that allows you to enter a brief snippet of Lua code. If a prefix exists, _RGP Lua_ executes it in the Lua environment before executing the script file. One use case for it would be to initialize some global variables that the script uses as input parameters. Another might be to require a library for a script or an Auto Folder. Each script inherits any global values set by the prefix. This prefix executes immediately *after* the [System Prefix](#system-prefix-dialog), if any.
 
 Note that you can select the same script file more than once and use the prefix and optional menu text, undo text, and description fields to tailor it to a specific use case.
 
