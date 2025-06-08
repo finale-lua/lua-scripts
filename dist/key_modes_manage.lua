@@ -5144,8 +5144,8 @@ function plugindef()
     finaleplugin.MinJWLuaVersion = 0.72
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.1.0"
-    finaleplugin.Date = "April 6, 2024"
+    finaleplugin.Version = "1.1.1"
+    finaleplugin.Date = "June 8, 2025"
     finaleplugin.CategoryTags = "Key Signatures"
     finaleplugin.Notes = [[
 This script provides a simplified interface for managing the most common types
@@ -5911,6 +5911,7 @@ local function copy_dialog_to_def(dialog, def, for_create)
     def.AccidentalOrder, def.AccidentalAmounts = get_acci_order_and_amounts(dialog)
 
     def.ClefAccidentalPlacements = context.current_acci_octaves
+    def.HasClefAccidentalPlacements = next(context.current_acci_octaves) ~= nil
 
     return true
 end
