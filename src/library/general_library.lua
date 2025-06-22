@@ -369,26 +369,32 @@ end
 --[[
 % get_smufl_metadata_file
 
-@ [font_info] (FCFontInfo) if non-nil, the font to search for; if nil, search for the Default Music Font
+@ [font_info_or_name] (FCFontInfo) or (string) if non-nil, the font to search for; if nil, search for the Default Music Font; if string, search for the font by name
 : (file handle|nil)
 ]]
-function library.get_smufl_metadata_file(font_info)
-    if not font_info then
-        font_info = finale.FCFontInfo()
-        font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
+function library.get_smufl_metadata_file(font_info_or_name)
+    local font_name
+    if type(font_info_or_name) == "string" then
+        font_name = font_info_or_name
+    else
+        if not font_info_or_name then
+            font_info_or_name = finale.FCFontInfo()
+            font_info_or_name:LoadFontPrefs(finale.FONTPREF_MUSIC)
+        end
+        font_name = font_info_or_name.Name
     end
 
-    local try_prefix = function(prefix, font_info)   -- luacheck: ignore font_info
-        local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
+    local try_prefix = function(prefix)
+        local file_path = prefix .. font_name .. "/" .. font_name .. ".json"
         return io.open(file_path, "r")
     end
 
-    local user_file = try_prefix(calc_smufl_directory(true), font_info)
+    local user_file = try_prefix(calc_smufl_directory(true))
     if user_file then
         return user_file
     end
 
-    return try_prefix(calc_smufl_directory(false), font_info)
+    return try_prefix(calc_smufl_directory(false))
 end
 
 --[[
@@ -487,7 +493,9 @@ Returns the name of the parent of a class.
 ]]
 function library.get_parent_class(classname)
     local class = finale[classname]
-    if type(class) ~= "table" then return nil end
+    if type(class) ~= "table" then
+        return nil
+    end
     if not finenv.IsRGPLua then -- old jw lua
         local classt = class.__class
         if classt and classname ~= "__FCBase" then
@@ -504,8 +512,8 @@ function library.get_parent_class(classname)
         end
     else
         if class.__parent then
-            for k, _ in pairs(class.__parent) do   -- luacheck: ignore
-                return tostring(k)  -- in RGP Lua the v is just a dummy value, and the key is the classname of the parent
+            for k, _ in pairs(class.__parent) do -- luacheck: ignore
+                return tostring(k) -- in RGP Lua the v is just a dummy value, and the key is the classname of the parent
             end
         end
     end
