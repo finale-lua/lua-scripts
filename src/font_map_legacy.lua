@@ -17,12 +17,14 @@ end
 
 -- luacheck: ignore 11./global_dialog
 
+local utils = require("library.utils")
+local library = require("library.general_library")
 local mixin = require("library.mixin")
 local smufl_glyphs = require("library.smufl_glyphs")
-local utils = require("library.utils")
 local cjson = require("cjson")
 
 context = {
+    smufl_list = library.get_smufl_font_list(),
     current_font = finale.FCFontInfo("Maestro", 24),
     current_mapping = {},
     popup_keys = {},
@@ -55,13 +57,12 @@ end
 
 local function change_font(dialog, font_info)
     if font_info.IsSMuFLFont then
-        finenv.UI():AlertError("Unable to map SMuFL font " .. font_info:CreateDescription(), "SMuFL Font")
+        dialog:CreateChildUI():AlertError("Unable to map SMuFL font " .. font_info:CreateDescription(), "SMuFL Font")
         return
     end
     context.current_font = font_info
     context.current_mapping = {}
     context.popup_keys = {}
-    print(dialog:ClassName())
     local control = dialog:GetControl("legacy_box")
     control:SetText("")
     control:SetFont(context.current_font)
@@ -121,7 +122,7 @@ end
 
 local function on_select_font(control)
     local font_info = finale.FCFontInfo(context.current_font.Name, context.current_font.Size)
-    local font_dialog = finale.FCFontDialog(finenv.UI(), font_info)
+    local font_dialog = finale.FCFontDialog(control:GetParent():CreateChildUI(), font_info)
     font_dialog.UseSizes = true
     font_dialog.UseStyles = false
     if font_dialog:Execute() then
@@ -143,14 +144,23 @@ local function on_select_file(control)
     end
     local selected_file = finale.FCString()
     open_dialog:GetFileName(selected_file)
+    local path, name = utils.split_file_path(selected_file.LuaString)
+    if not finenv.UI():IsFontAvailable(finale.FCString(name)) then
+        dialog:CreateChildUI():AlertError("Font " .. name .. " is not available on the system.", "Missing Font")
+        return
+    end
+    local font_info = finale.FCFontInfo(name, context.current_font.Size)
+    if font_info.IsSMuFLFont then
+        dialog:CreateChildUI():AlertError("Font " .. name .. " is a SMuFL font.", "SMuFL Font")
+        return
+    end
     local file = io.open(selected_file.LuaString)
     if file then
         local json_contents = file:read("*a")
         file:close()
         local json = cjson.decode(json_contents)
-        local path, name = utils.split_file_path(selected_file.LuaString)
         context.current_directory = path
-        change_font(dialog, finale.FCFontInfo(name, context.current_font.Size))
+        change_font(dialog, font_info)
         context.current_mapping = {}
         for _, v in pairs(json) do
             context.current_mapping[tonumber(v.legacyCodepoint)] = parse_codepoint(v.codepoint)
@@ -182,6 +192,14 @@ local function on_symbol_select(box)
     enable_disable(dialog)
 end
 
+local function on_smufl_popup(popup)
+    local dialog = popup:GetParent()
+    local smufl_box = dialog:GetControl("smufl_box")
+    local fcstr = finale.FCString()
+    popup:GetItemText(popup:GetSelectedItem(), fcstr)
+    smufl_box:SetFont(finale.FCFontInfo(fcstr.LuaString, 24))
+end
+
 local function on_add_mapping(control)
     local dialog = control:GetParent()
     local popup = dialog:GetControl("mappings")
@@ -190,7 +208,7 @@ local function on_add_mapping(control)
     local smufl_point = get_codepoint(dialog:GetControl("smufl_box"))
     if (smufl_point == 0) then return end
     if context.current_mapping[legacy_point] then
-        if finale.YESRETURN ~= finenv:UI():AlertYesNo("Symbol " .. legacy_point .. " is already mapped to " .. format_codepoint(smufl_point) .. ". Continue?", "Already Mapped") then
+        if finale.YESRETURN ~= dialog:CreateChildUI():AlertYesNo("Symbol " .. legacy_point .. " is already mapped to " .. format_codepoint(smufl_point) .. ". Continue?", "Already Mapped") then
             return
         end
     end
@@ -230,6 +248,22 @@ function font_map_legacy()
         :DoAutoResizeWidth(0)
         :AssureNoHorizontalOverlap(dialog:GetControl("font_sel"), 10)
         :AddHandleCommand(on_select_file)
+    local smufl_popup = dialog:CreatePopup(0, current_y, "smufl_list")
+        :AssureNoHorizontalOverlap(dialog:GetControl("file_sel"), 10)
+        :StretchToAlignWithRight()
+        :AddHandleCommand(on_smufl_popup)
+    local start_index = 0
+    for name, _ in pairsbykeys(context.smufl_list) do
+        smufl_popup:AddString(name)
+        if name == "Finale Maestro" then
+            start_index = smufl_popup:GetCount() - 1
+        end
+    end
+    if smufl_popup:GetCount() <= 0 then
+        finenv.UI():AlertError("No SMuFL fonts found on system.", "SMuFL Required")
+        return
+    end
+    smufl_popup:SetSelectedItem(start_index)
     current_y = current_y + 1.5 * button_height
     -- font name
     dialog:CreateStatic(0, current_y, "show_font")
@@ -280,6 +314,10 @@ function font_map_legacy()
     -- close button
     dialog:CreateCancelButton("cancel"):SetText("Close")
     -- registrations
+    dialog:RegisterInitWindow(function(self)
+        on_smufl_popup(self:GetControl("smufl_list"))
+    end)
+    -- execute
     dialog:ExecuteModal() -- modal dialog prevents document changes in modeless callbacks
 end
 
