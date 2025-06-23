@@ -18,23 +18,39 @@ end
 -- luacheck: ignore 11./global_dialog
 
 local mixin = require("library.mixin")
-local smufl_glyphs =require("library.smufl_glyphs")
+local smufl_glyphs = require("library.smufl_glyphs")
+local utils = require("library.utils")
+local cjson = require("cjson")
 
 context = {
     current_font = finale.FCFontInfo("Maestro", 24),
     current_mapping = {},
-    popup_keys = {}
+    popup_keys = {},
+    current_directory = finenv.RunningLuaFolderPath()
 }
 
 local function format_codepoint(cp)
+    local codepoint_desc = "[" .. string.format("U+%04X", cp) .. "]"
     local glyph_name = smufl_glyphs.get_glyph_info(cp)
-    return "'" .. glyph_name .. "' [" .. string.format("U+%04X", cp) .. "]"
+    if glyph_name then
+        return "'" .. glyph_name .. "' " .. codepoint_desc
+    end
+    return codepoint_desc
+end
+
+local function parse_codepoint(codepoint_string)
+    return tonumber(codepoint_string:match("U%+(%x+)"), 16)
 end
 
 local function enable_disable(dialog)
-    local addable = #(dialog:GetControl("legacy_box"):GetText()) > 0 and
-        #(dialog:GetControl("smufl_box"):GetText()) > 0
+    local delable = #(dialog:GetControl("legacy_box"):GetText()) > 0
+    local addable = delable and #(dialog:GetControl("smufl_box"):GetText()) > 0
+    if delable then
+        local popup = dialog:GetControl("mappings")
+        delable = popup:GetCount() > 0 and context.popup_keys[popup:GetSelectedItem() + 1] ~= nil
+    end
     dialog:GetControl("add_mapping"):SetEnable(addable)
+    dialog:GetControl("delete_mapping"):SetEnable(delable)
 end
 
 local function change_font(dialog, font_info)
@@ -50,7 +66,7 @@ local function change_font(dialog, font_info)
     control:SetText("")
     control:SetFont(context.current_font)
     dialog:GetControl("show_font"):SetText(font_info:CreateDescription())
-    dialog:GetControl("popup"):Clear()
+    dialog:GetControl("mappings"):Clear()
     enable_disable(dialog)
 end
 
@@ -93,10 +109,14 @@ local function update_popup(popup, current_codepoint)
             current_index = k - 1
         end
     end
+    if not current_index and popup:GetCount() > 0 then
+        current_index = 0
+    end
     if current_index then
         popup:SetSelectedItem(current_index)
         on_popup(popup)
     end
+    enable_disable(popup:GetParent())
 end
 
 local function on_select_font(control)
@@ -113,6 +133,30 @@ local function on_select_font(control)
 end
 
 local function on_select_file(control)
+    local dialog = control:GetParent()
+    local open_dialog = mixin.FCMFileOpenDialog(dialog:CreateChildUI())
+        :SetWindowTitle(finale.FCString("Select existing JSON file"))
+        :SetInitFolder(finale.FCString(context.current_directory))
+        :AddFilter(finale.FCString("*.json"), finale.FCString("Font Mapping"))
+    if not open_dialog:Execute() then
+        return
+    end
+    local selected_file = finale.FCString()
+    open_dialog:GetFileName(selected_file)
+    local file = io.open(selected_file.LuaString)
+    if file then
+        local json_contents = file:read("*a")
+        file:close()
+        local json = cjson.decode(json_contents)
+        local path, name = utils.split_file_path(selected_file.LuaString)
+        context.current_directory = path
+        change_font(dialog, finale.FCFontInfo(name, context.current_font.Size))
+        context.current_mapping = {}
+        for _, v in pairs(json) do
+            context.current_mapping[tonumber(v.legacyCodepoint)] = parse_codepoint(v.codepoint)
+        end
+        update_popup(dialog:GetControl("mappings"))
+    end
 end
 
 local function on_edit_box(control)
@@ -154,6 +198,18 @@ local function on_add_mapping(control)
     update_popup(popup, legacy_point)
 end
 
+local function on_delete_mapping(control)
+    local dialog = control:GetParent()
+    local popup = dialog:GetControl("mappings")
+    if popup:GetCount() > 0 then
+        local legacy_codepoint = context.popup_keys[popup:GetSelectedItem() + 1]
+        if legacy_codepoint then
+            context.current_mapping[legacy_codepoint] = nil
+            update_popup(popup)
+        end
+    end
+end
+
 function font_map_legacy()
     local dialog = mixin.FCXCustomLuaWindow()
         :SetTitle("Map Legacy Fonts to SMuFL")
@@ -192,12 +248,18 @@ function font_map_legacy()
         :AddHandleCommand(function(control)
             on_symbol_select(control:GetParent():GetControl("legacy_box"))
         end)
-    dialog:CreateButton(0, current_y + editor_height / 2 - button_height / 2, "add_mapping")
+    dialog:CreateButton(0, current_y + editor_height / 2 - button_height, "add_mapping")
         :SetText("Add Mapping")
+        :SetWidth(120)
         :SetEnable(false)
-        :DoAutoResizeWidth(0)
         :AssureNoHorizontalOverlap(dialog:GetControl("legacy_box"), editor_width / 2)
         :AddHandleCommand(on_add_mapping)
+    dialog:CreateButton(0, current_y + editor_height / 2 + y_increment, "delete_mapping")
+        :SetText("Delete Mapping")
+        :SetWidth(120)
+        :SetEnable(false)
+        :AssureNoHorizontalOverlap(dialog:GetControl("legacy_box"), editor_width / 2)
+        :AddHandleCommand(on_delete_mapping)
     dialog:CreateEdit(0, current_y - smufl_y_diff, "smufl_box")
         :SetHeight(editor_height + smufl_y_diff)
         :SetWidth(editor_width)
