@@ -324,6 +324,14 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
             end
         end)
     end
+
+    function utils.parse_codepoint(codepoint_string)
+        return tonumber(codepoint_string:match("U%+(%x+)"), 16)
+    end
+
+    function utils.format_codepoint(codepoint)
+        return string.format("U+%04X", codepoint)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()

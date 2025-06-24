@@ -692,6 +692,14 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
             end
         end)
     end
+
+    function utils.parse_codepoint(codepoint_string)
+        return tonumber(codepoint_string:match("U%+(%x+)"), 16)
+    end
+
+    function utils.format_codepoint(codepoint)
+        return string.format("U+%04X", codepoint)
+    end
     return utils
 end
 package.preload["library.configuration"] = package.preload["library.configuration"] or function()
@@ -910,6 +918,10 @@ package.preload["library.client"] = package.preload["library.client"] or functio
         luaosutils = {
             test = finenv.EmbeddedLuaOSUtils,
             error = requires_later_plugin_version("the embedded luaosutils library")
+        },
+        cjson = {
+            test = client.get_lua_plugin_version() >= 0.67,
+            error = requires_plugin_version("0.67", "the embedded cjson library"),
         }
     }
 
@@ -1200,20 +1212,44 @@ package.preload["library.general_library"] = package.preload["library.general_li
         return font_names
     end
 
-    function library.get_smufl_metadata_file(font_info)
-        if not font_info then
-            font_info = finale.FCFontInfo()
-            font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
+    function library.get_smufl_metadata_file(font_info_or_name)
+        local font_name
+        if type(font_info_or_name) == "string" then
+            font_name = font_info_or_name
+        else
+            if not font_info_or_name then
+                font_info_or_name = finale.FCFontInfo()
+                font_info_or_name:LoadFontPrefs(finale.FONTPREF_MUSIC)
+            end
+            font_name = font_info_or_name.Name
         end
-        local try_prefix = function(prefix, font_info)
-            local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
+        local try_prefix = function(prefix)
+            local file_path = prefix .. font_name .. "/" .. font_name .. ".json"
             return io.open(file_path, "r")
         end
-        local user_file = try_prefix(calc_smufl_directory(true), font_info)
+        local user_file = try_prefix(calc_smufl_directory(true))
         if user_file then
             return user_file
         end
-        return try_prefix(calc_smufl_directory(false), font_info)
+        return try_prefix(calc_smufl_directory(false))
+    end
+
+    function library.get_smufl_metadata_table(font_info_or_name, subkey)
+        if not client.assert_supports("cjson") then
+            return
+        end
+        local cjson = require("cjson")
+        local json_file = library.get_smufl_metadata_file(font_info_or_name)
+        if not json_file then
+            return nil
+        end
+        local contents = json_file:read("*a")
+        json_file:close()
+        local json_table = cjson.decode(contents)
+        if json_table and subkey then
+            return json_table[subkey]
+        end
+        return json_table
     end
 
     function library.is_font_smufl_font(font_info)
@@ -1278,7 +1314,9 @@ package.preload["library.general_library"] = package.preload["library.general_li
 
     function library.get_parent_class(classname)
         local class = finale[classname]
-        if type(class) ~= "table" then return nil end
+        if type(class) ~= "table" then
+            return nil
+        end
         if not finenv.IsRGPLua then
             local classt = class.__class
             if classt and classname ~= "__FCBase" then

@@ -77,6 +77,10 @@ package.preload["library.client"] = package.preload["library.client"] or functio
         luaosutils = {
             test = finenv.EmbeddedLuaOSUtils,
             error = requires_later_plugin_version("the embedded luaosutils library")
+        },
+        cjson = {
+            test = client.get_lua_plugin_version() >= 0.67,
+            error = requires_plugin_version("0.67", "the embedded cjson library"),
         }
     }
 
@@ -367,20 +371,44 @@ package.preload["library.general_library"] = package.preload["library.general_li
         return font_names
     end
 
-    function library.get_smufl_metadata_file(font_info)
-        if not font_info then
-            font_info = finale.FCFontInfo()
-            font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
+    function library.get_smufl_metadata_file(font_info_or_name)
+        local font_name
+        if type(font_info_or_name) == "string" then
+            font_name = font_info_or_name
+        else
+            if not font_info_or_name then
+                font_info_or_name = finale.FCFontInfo()
+                font_info_or_name:LoadFontPrefs(finale.FONTPREF_MUSIC)
+            end
+            font_name = font_info_or_name.Name
         end
-        local try_prefix = function(prefix, font_info)
-            local file_path = prefix .. font_info.Name .. "/" .. font_info.Name .. ".json"
+        local try_prefix = function(prefix)
+            local file_path = prefix .. font_name .. "/" .. font_name .. ".json"
             return io.open(file_path, "r")
         end
-        local user_file = try_prefix(calc_smufl_directory(true), font_info)
+        local user_file = try_prefix(calc_smufl_directory(true))
         if user_file then
             return user_file
         end
-        return try_prefix(calc_smufl_directory(false), font_info)
+        return try_prefix(calc_smufl_directory(false))
+    end
+
+    function library.get_smufl_metadata_table(font_info_or_name, subkey)
+        if not client.assert_supports("cjson") then
+            return
+        end
+        local cjson = require("cjson")
+        local json_file = library.get_smufl_metadata_file(font_info_or_name)
+        if not json_file then
+            return nil
+        end
+        local contents = json_file:read("*a")
+        json_file:close()
+        local json_table = cjson.decode(contents)
+        if json_table and subkey then
+            return json_table[subkey]
+        end
+        return json_table
     end
 
     function library.is_font_smufl_font(font_info)
@@ -445,7 +473,9 @@ package.preload["library.general_library"] = package.preload["library.general_li
 
     function library.get_parent_class(classname)
         local class = finale[classname]
-        if type(class) ~= "table" then return nil end
+        if type(class) ~= "table" then
+            return nil
+        end
         if not finenv.IsRGPLua then
             local classt = class.__class
             if classt and classname ~= "__FCBase" then
@@ -556,18 +586,14 @@ function plugindef()
     return "Load SMuFL Engraving Defaults", "Load SMuFL Engraving Defaults", "Loads engraving defaults for the current SMuFL Default Music Font."
 end
 local library = require("library.general_library")
-local cjson = require("cjson")
 function smufl_load_engraving_defaults()
     local font_info = finale.FCFontInfo()
     font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
-    local font_json_file = library.get_smufl_metadata_file(font_info)
-    if nil == font_json_file then
+    local font_metadata = library.get_smufl_metadata_table(font_info, "engravingDefaults")
+    if not font_metadata then
         finenv.UI():AlertError("The current Default Music Font (" .. font_info.Name .. ") is not a SMuFL font, or else the json file with its engraving defaults is not installed.", "Default Music Font is not SMuFL")
         return
     end
-    local json = font_json_file:read("*all")
-    io.close(font_json_file)
-    local font_metadata = cjson.decode(json)
     local evpuPerSpace = 24.0
     local efixPerEvpu = 64.0
     local efixPerSpace = evpuPerSpace * efixPerEvpu
@@ -590,7 +616,7 @@ function smufl_load_engraving_defaults()
     tuplet_prefs:Load(1)
 
 
-    local beamSpacingFound = 0
+    local beamSpacingFound
     local beamWidthFound = math.floor(size_prefs.BeamThickness/efixPerEvpu + 0.5)
 
     local action = {
@@ -660,7 +686,7 @@ function smufl_load_engraving_defaults()
                 for def in each(expression_defs) do
                     if def.UseEnclosure then
                         local enclosure = def:CreateEnclosure()
-                        if ( nil ~= enclosure) then
+                        if nil ~= enclosure and enclosure.LineWidth > 0 then
                             enclosure.LineWidth = size_prefs.EnclosureThickness
                             enclosure:Save()
                         end
@@ -673,14 +699,14 @@ function smufl_load_engraving_defaults()
                     for _, for_parts in pairs({false, true}) do
                         if region:GetUseEnclosureStart(for_parts) then
                             local enc_start = region:GetEnclosureStart(for_parts)
-                            if nil ~= enc_start then
+                            if nil ~= enc_start and enc_start.LineWidth > 0 then
                                 enc_start.LineWidth = size_prefs.EnclosureThickness
                                 got1 = true
                             end
                         end
                         if region:GetUseEnclosureMultiple(for_parts) then
                             local enc_multiple = region:GetEnclosureMultiple(for_parts)
-                            if nil ~= enc_multiple then
+                            if nil ~= enc_multiple and enc_multiple.LineWidth > 0 then
                                 enc_multiple.LineWidth = size_prefs.EnclosureThickness
                                 got1 = true
                             end
@@ -695,7 +721,7 @@ function smufl_load_engraving_defaults()
                 for sepnum in each(separate_numbers) do
                     if sepnum.UseEnclosure then
                         local enc_sep = sepnum:GetEnclosure()
-                        if nil ~= enc_sep then
+                        if nil ~= enc_sep and enc_sep.LineWidth > 0 then
                             enc_sep.LineWidth = size_prefs.EnclosureThickness
                         end
                         sepnum:Save()
@@ -709,22 +735,14 @@ function smufl_load_engraving_defaults()
         hBarThickness = function(v) end
     }
 
-    for k, v in pairs(font_metadata.engravingDefaults) do
+    for k, v in pairs(font_metadata) do
         local action_function = action[k]
         if nil ~= action_function then
             action_function(tonumber(v))
         end
     end
-    if 0 ~= beamSpacingFound then
+    if beamSpacingFound then
         distance_prefs.SecondaryBeamSpace = beamSpacingFound + beamWidthFound
-
-
-
-
-        local finale_prefix = "Finale "
-        if finale_prefix == font_info.Name:sub(1, #finale_prefix) then
-            distance_prefs.SecondaryBeamSpace = beamSpacingFound
-        end
     end
 
     distance_prefs:Save()

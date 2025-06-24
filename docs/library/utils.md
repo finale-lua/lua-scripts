@@ -25,6 +25,8 @@ A library of general Lua utility functions.
 - [win_mac(windows_value, mac_value)](#win_mac)
 - [split_file_path(full_path)](#split_file_path)
 - [eachfile(directory_path)](#eachfile)
+- [parse_codepoint(codepoint_string)](#parse_codepoint)
+- [format_codepoint(codepoint)](#format_codepoint)
 
 ### copy_table
 
@@ -424,3 +426,39 @@ Generates a runtime error for plugin versions before RGP Lua 0.68.
 | Return type | Description |
 | ----------- | ----------- |
 | `function` | iterator function to be used in for loop. |
+
+### parse_codepoint
+
+```lua
+utility_functions.parse_codepoint(codepoint_string)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L568)
+
+Returns a Unicode codepoint as a number.
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `codepoint_string` | `string` | A string in the form "U+FFFF" representing the codepoint |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` | the codepoint as a number |
+
+### format_codepoint
+
+```lua
+utility_functions.format_codepoint(codepoint)
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/utils.lua#L580)
+
+Formats a Unicode codepoint into a string like "U+FFFF"
+
+| Input | Type | Description |
+| ----- | ---- | ----------- |
+| `codepoint` | `number` | A string in the form "U+FFFF" representing the codepoint |
+
+| Return type | Description |
+| ----------- | ----------- |
+| `number` | the codepoint as a number |

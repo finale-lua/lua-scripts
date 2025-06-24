@@ -77,6 +77,10 @@ package.preload["library.client"] = package.preload["library.client"] or functio
         luaosutils = {
             test = finenv.EmbeddedLuaOSUtils,
             error = requires_later_plugin_version("the embedded luaosutils library")
+        },
+        cjson = {
+            test = client.get_lua_plugin_version() >= 0.67,
+            error = requires_plugin_version("0.67", "the embedded cjson library"),
         }
     }
 
@@ -459,6 +463,14 @@ package.preload["library.utils"] = package.preload["library.utils"] or function(
                 end
             end
         end)
+    end
+
+    function utils.parse_codepoint(codepoint_string)
+        return tonumber(codepoint_string:match("U%+(%x+)"), 16)
+    end
+
+    function utils.format_codepoint(codepoint)
+        return string.format("U+%04X", codepoint)
     end
     return utils
 end

@@ -61,7 +61,7 @@ version.
 client.supports(feature)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L130)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L134)
 
 Checks the client supports a given feature. Returns true if the client
 supports the feature, false otherwise.
@@ -84,7 +84,7 @@ For a list of valid features, see the [`features` table in the codebase](https:/
 client.assert_supports(feature)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L151)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L155)
 
 Asserts that the client supports a given feature. If the client doesn't
 support the feature, this function will throw an friendly error then
@@ -108,7 +108,7 @@ For a list of valid features, see the [`features` table in the codebase](https:/
 client.encode_with_client_codepage(input_string)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L180)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L184)
 
 If the client supports `luaosutils`, the filepath is encoded from utf8 to the current client
 encoding. On macOS, this is always also utf8, so the situation where the string may be re-encoded
@@ -134,7 +134,7 @@ with the client codepage.
 client.encode_with_utf8_codepage(input_string)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L206)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L210)
 
 If the client supports `luaosutils`, the filepath is encoded from the current client encoding
 to utf8. On macOS, the client encoding is always also utf8, so the situation where the string may
@@ -160,7 +160,7 @@ with the client codepage.
 client.execute(command)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L228)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/client.lua#L232)
 
 If the client supports `luaosutils`, the command is executed using `luaosutils.execute`. Otherwise it uses `io.popen`.
 In either case, the output from the command is returned.

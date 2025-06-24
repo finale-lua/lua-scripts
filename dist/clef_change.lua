@@ -77,6 +77,10 @@ package.preload["library.client"] = package.preload["library.client"] or functio
         luaosutils = {
             test = finenv.EmbeddedLuaOSUtils,
             error = requires_later_plugin_version("the embedded luaosutils library")
+        },
+        cjson = {
+            test = client.get_lua_plugin_version() >= 0.67,
+            error = requires_plugin_version("0.67", "the embedded cjson library"),
         }
     }
 
