@@ -398,6 +398,31 @@ function library.get_smufl_metadata_file(font_info_or_name)
 end
 
 --[[
+% get_smufl_metadata_json
+
+@ [font_info_or_name] (FCFontInfo|string) if non-nil, the font to search for; if nil, search for the Default Music Font; if string, search for the font by name
+@ [string] the key of the subtable to return from the json
+: (table|nil)
+]]
+function library.get_smufl_metadata_table(font_info_or_name, subkey)
+    if not client.assert_supports("cjson") then
+        return
+    end
+    local cjson = require("cjson")
+    local json_file = library.get_smufl_metadata_file(font_info_or_name)
+    if not json_file then
+        return nil
+    end
+    local contents = json_file:read("*a")
+    json_file:close()
+    local json_table = cjson.decode(contents)
+    if json_table and subkey then
+        return json_table[subkey]
+    end
+    return json_table
+end
+
+--[[
 % is_font_smufl_font
 
 @ [font_info] (FCFontInfo) if non-nil, the font to check; if nil, check the Default Music Font

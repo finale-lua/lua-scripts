@@ -8,7 +8,6 @@ local smufl_glyphs = {}
 
 local utils = require("library.utils")
 local library = require("library.general_library")
-local cjson = require("cjson")
 
 local glyphs = {
     ["articStaccatissimoWedgeBelow"] = {codepoint = 0xE4A9, description = "Staccatissimo wedge below"},
@@ -5880,47 +5879,47 @@ local by_codepoint = {
     [0xEAF5] = "beamAccelRit2",
 }
 
-local function parse_codepoint(codepoint)
-    return tonumber(codepoint:match("U%+(%x+)"), 16)
-end
-
--- Add Finale Maestro optional glyphs.
-local font_metadata_file = library.get_smufl_metadata_file("Finale Maestro")
-if font_metadata_file then
-    local content = font_metadata_file:read("*a")
-    font_metadata_file:close()
-    local font_metadata = cjson.decode(content)
-    local optional_glyphs = font_metadata["optionalGlyphs"]
-    if optional_glyphs then
-        for name, info in pairs(optional_glyphs) do
-            if info.codepoint then
-                local codepoint = parse_codepoint(info.codepoint)
-                if codepoint and not glyphs[name] then
-                    glyphs[name] = {codepoint = codepoint, description = ""}
-                    by_codepoint[codepoint] = name
-                end
-            end
-        end
-    end
-end
-
 --[[
 % get_glyph_info
 
 Returns the SMuFL glyph name and a new table containing the `codepoint` and its `description`.
 
-@ codepoint_or_name (string) or (number) the name or codepoint for a SMuFL glyph
+@ codepoint_or_name (string|number) the name or codepoint for a SMuFL glyph
+@ [font_info_or_name] (string) or (font_info) the SMuFL font to search for optional glyphs
 : (string) The glyph name
 : (table) The glyph information
 ]]
-function smufl_glyphs.get_glyph_info(codepoint_or_name)
-    local name, info
+function smufl_glyphs.get_glyph_info(codepoint_or_name, font_info_or_name)
+    local name
     if type(codepoint_or_name) == "number" then
         name = by_codepoint[codepoint_or_name]
-        info = name and glyphs[name]
     elseif type(codepoint_or_name) == "string" then
         name = codepoint_or_name
-        info = glyphs[codepoint_or_name]
+    end
+    local info = name and glyphs[name]
+    if not info and font_info_or_name then
+        local optional_glyphs = library.get_smufl_metadata_table(font_info_or_name, "optionalGlyphs")
+        if optional_glyphs then
+            if type(codepoint_or_name) == "number" then
+                for k, v in pairs(optional_glyphs) do
+                    if v.codepoint then
+                        local codepoint = utils.parse_codepoint(v.codepoint)
+                        if codepoint == codepoint_or_name then
+                            name = k
+                            info = { codepoint = codepoint, description = "", optional = true }
+                            break
+                        end
+                    end
+                end
+            elseif type(codepoint_or_name) == "string" then
+                name = codepoint_or_name
+                local optinfo = optional_glyphs[name]
+                if optinfo and optinfo.codepoint then
+                    local codepoint = utils.parse_codepoint(optinfo.codepoint)
+                    info = codepoint and {codepoint = codepoint, description = "", optional = true}
+                end
+            end
+        end
     end
     return name, info and utils.copy_table(info) or nil
 end
@@ -5928,7 +5927,7 @@ end
 --[[
 % iterate_glyphs
 
-Returns an iterator over all SMuFL glyphs.
+Returns an iterator over the standard SMuFL glyphs as defined in glyphnames.json.
 
 Each iteration returns:
 1. The glyph name (string)

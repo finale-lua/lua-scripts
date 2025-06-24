@@ -9,19 +9,15 @@ function plugindef()
 end
 
 local library = require("library.general_library")
-local cjson = require("cjson")
 
 function smufl_load_engraving_defaults()
     local font_info = finale.FCFontInfo()
     font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
-    local font_json_file = library.get_smufl_metadata_file(font_info)
-    if nil == font_json_file then
+    local font_metadata = library.get_smufl_metadata_table(font_info, "engravingDefaults")
+    if not font_metadata then
         finenv.UI():AlertError("The current Default Music Font (" .. font_info.Name .. ") is not a SMuFL font, or else the json file with its engraving defaults is not installed.", "Default Music Font is not SMuFL")
         return
     end
-    local json = font_json_file:read("*all")
-    io.close(font_json_file)
-    local font_metadata = cjson.decode(json)
 
     local evpuPerSpace = 24.0
     local efixPerEvpu = 64.0
@@ -168,7 +164,7 @@ function smufl_load_engraving_defaults()
     }
 
     -- apply each action from the json file
-    for k, v in pairs(font_metadata.engravingDefaults) do
+    for k, v in pairs(font_metadata) do
         local action_function = action[k]
         if nil ~= action_function then
             action_function(tonumber(v))
