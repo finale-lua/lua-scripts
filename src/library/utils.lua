@@ -557,4 +557,28 @@ function utils.eachfile(directory_path, recursive)
     end)
 end
 
+--[[
+% parse_codepoint
+
+Returns a Unicode codepoint as a number.
+
+@ codepoint_string (string) A string in the form "U+FFFF" representing the codepoint
+: (number) the codepoint as a number
+]]
+function utils.parse_codepoint(codepoint_string)
+    return tonumber(codepoint_string:match("U%+(%x+)"), 16)
+end
+
+--[[
+% format_codepoint
+
+Formats a Unicode codepoint into a string like "U+FFFF"
+
+@ codepoint (number) A string in the form "U+FFFF" representing the codepoint
+: (number) the codepoint as a number
+]]
+function utils.format_codepoint(codepoint)
+    return string.format("U+%04X", codepoint)
+end
+
 return utils

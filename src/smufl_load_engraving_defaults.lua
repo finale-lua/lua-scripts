@@ -9,19 +9,15 @@ function plugindef()
 end
 
 local library = require("library.general_library")
-local cjson = require("cjson")
 
 function smufl_load_engraving_defaults()
     local font_info = finale.FCFontInfo()
     font_info:LoadFontPrefs(finale.FONTPREF_MUSIC)
-    local font_json_file = library.get_smufl_metadata_file(font_info)
-    if nil == font_json_file then
+    local font_metadata = library.get_smufl_metadata_table(font_info, "engravingDefaults")
+    if not font_metadata then
         finenv.UI():AlertError("The current Default Music Font (" .. font_info.Name .. ") is not a SMuFL font, or else the json file with its engraving defaults is not installed.", "Default Music Font is not SMuFL")
         return
     end
-    local json = font_json_file:read("*all")
-    io.close(font_json_file)
-    local font_metadata = cjson.decode(json)
 
     local evpuPerSpace = 24.0
     local efixPerEvpu = 64.0
@@ -47,7 +43,7 @@ function smufl_load_engraving_defaults()
 
     -- Beam spacing has to be calculated in terms of beam thickness, because the json spec
     -- calls for inner distance whereas Finale is top edge to top edge. So hold the value
-    local beamSpacingFound = 0
+    local beamSpacingFound
     local beamWidthFound = math.floor(size_prefs.BeamThickness/efixPerEvpu + 0.5)
 
     -- define actions for each of the fields of font_info.engravingDefaults
@@ -118,7 +114,7 @@ function smufl_load_engraving_defaults()
                 for def in each(expression_defs) do
                     if def.UseEnclosure then
                         local enclosure = def:CreateEnclosure()
-                        if ( nil ~= enclosure) then
+                        if nil ~= enclosure and enclosure.LineWidth > 0 then
                             enclosure.LineWidth = size_prefs.EnclosureThickness
                             enclosure:Save()
                         end
@@ -131,14 +127,14 @@ function smufl_load_engraving_defaults()
                     for _, for_parts in pairs({false, true}) do
                         if region:GetUseEnclosureStart(for_parts) then
                             local enc_start = region:GetEnclosureStart(for_parts)
-                            if nil ~= enc_start then
+                            if nil ~= enc_start and enc_start.LineWidth > 0 then
                                 enc_start.LineWidth = size_prefs.EnclosureThickness
                                 got1 = true
                             end
                         end
                         if region:GetUseEnclosureMultiple(for_parts) then
                             local enc_multiple = region:GetEnclosureMultiple(for_parts)
-                            if nil ~= enc_multiple then
+                            if nil ~= enc_multiple and enc_multiple.LineWidth > 0 then
                                 enc_multiple.LineWidth = size_prefs.EnclosureThickness
                                 got1 = true
                             end
@@ -153,7 +149,7 @@ function smufl_load_engraving_defaults()
                 for sepnum in each(separate_numbers) do
                     if sepnum.UseEnclosure then
                         local enc_sep = sepnum:GetEnclosure()
-                        if nil ~= enc_sep then
+                        if nil ~= enc_sep and enc_sep.LineWidth > 0 then
                             enc_sep.LineWidth = size_prefs.EnclosureThickness
                         end
                         sepnum:Save()
@@ -168,25 +164,15 @@ function smufl_load_engraving_defaults()
     }
 
     -- apply each action from the json file
-    for k, v in pairs(font_metadata.engravingDefaults) do
+    for k, v in pairs(font_metadata) do
         local action_function = action[k]
         if nil ~= action_function then
             action_function(tonumber(v))
         end
     end
 
-    if 0 ~= beamSpacingFound then
+    if beamSpacingFound then
         distance_prefs.SecondaryBeamSpace = beamSpacingFound + beamWidthFound
-
-        -- Currently, the json files for Finale measure beam separation from top edge to top edge
-        -- whereas the spec specifies that it be only the distance between the inner edges. This will
-        -- probably be corrected at some point, but for now hard-code around it. Hopefully this code will
-        -- get a Finale version check at some point.
-
-        local finale_prefix = "Finale "
-        if finale_prefix == font_info.Name:sub(1, #finale_prefix) then
-            distance_prefs.SecondaryBeamSpace = beamSpacingFound
-        end
     end
 
     -- save new preferences
