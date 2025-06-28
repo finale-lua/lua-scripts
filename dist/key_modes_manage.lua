@@ -5358,7 +5358,7 @@ local function calc_key_mode_desc(key_mode)
     if key:IsMajor() then
         return retval .. " Predefined Major"
     elseif key:IsMinor() then
-        return retval " Predefined Minor"
+        return retval .. " Predefined Minor"
     end
     if chromatic_steps ~= 12 then
         retval = retval .. " " .. chromatic_steps .. "-EDO"
