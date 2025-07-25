@@ -58,6 +58,7 @@ local mixin = require("library.mixin")
 local enigma_string = require("library.enigma_string")
 local utils = require("library.utils")
 local client = require("library.client")
+local score = require("library.score")
 
 do_folder = do_folder or false
 
@@ -119,6 +120,7 @@ local mmrest_prefs
 local tie_prefs
 local tuplet_prefs
 local text_exps
+local music_font_name
 
 function open_current_prefs()
     local font_prefs = finale.FCFontPrefs()
@@ -156,6 +158,25 @@ function open_current_prefs()
     tuplet_prefs:Load(1)
     text_exps = finale.FCTextExpressionDefs()
     text_exps:LoadAll()
+    music_font_name = default_music_font.Name -- piece of the rock
+    if default_music_font.IsSMuFLFont then
+        music_font_name = default_music_font.Name -- duplicate assignment avoids warning
+    elseif music_font_name == "Broadway Copyist" then
+        music_font_name = "Finale Broadway"
+    elseif music_font_name == "Engraver" then
+        music_font_name = "Finale Engraver"
+    elseif music_font_name == "Jazz" then
+        music_font_name = "Finale Jazz"
+    elseif music_font_name == "Maestro"
+        or music_font_name == "Pmusic"
+        or music_font_name == "Sonata" then
+        music_font_name = "Finale Maestro"
+    elseif music_font_name == "Petrucci" then
+        music_font_name = "Finale Legacy"
+        -- add more elseif blocks if needed
+    else
+        music_font_name = nil
+    end
 end
 
 function set_element_text(style_element, name, value)
@@ -282,9 +303,26 @@ function write_page_prefs(style_element)
     local page_percent = page_prefs.PageScaling / 100
     local staff_percent = (page_prefs.SystemStaffHeight / (EVPU_PER_SPACE * 4 * 16)) * (page_prefs.SystemScaling / 100)
     set_element_text(style_element, "spatium", (EVPU_PER_SPACE * staff_percent * page_percent) / EVPU_PER_MM)
-    if default_music_font.IsSMuFLFont then
-        set_element_text(style_element, "musicalSymbolFont", default_music_font.Name)
-        set_element_text(style_element, "musicalTextFont", default_music_font.Name .. " Text")
+    local first_system = finale.FCStaffSystem()
+    if first_system:LoadFirst() then
+        local min_size = 100
+        if first_system.UseStaffResize then
+            local system_staves = finale.FCSystemStaves()
+            system_staves.LoadAllForItem(first_system.ItemNo)
+            for system_staff in each(system_staves) do
+                if system_staff.Resize < min_size then
+                    min_size = system_staff.Resize
+                end
+            end
+        end
+        if min_size < 100 then
+            set_element_text(style_element, "smallStaffMag", min_size / 100)
+            set_element_text(style_element, "smallNoteMag", min_size / 100)
+        end
+    end
+    if music_font_name then
+        set_element_text(style_element, "musicalSymbolFont", music_font_name)
+        set_element_text(style_element, "musicalTextFont", music_font_name .. " Text")
     end
 end
 
@@ -315,7 +353,8 @@ function write_line_measure_prefs(style_element)
     set_element_text(style_element, "startBarlineSingle", misc_prefs.LeftBarlineDisplaySingle)
     set_element_text(style_element, "startBarlineMultiple", misc_prefs.LeftBarlineDisplayMultiple)
     set_element_text(style_element, "bracketWidth", 0.5) -- hard-coded in Finale
-    set_element_text(style_element, "bracketDistance", -distance_prefs.GroupBracketDefaultDistance / EVPU_PER_SPACE)
+    -- Finale subtracts half the bracket width on layout for bracket distance (observed).
+    set_element_text(style_element, "bracketDistance", ((-distance_prefs.GroupBracketDefaultDistance) - 0.25 * EVPU_PER_SPACE) / EVPU_PER_SPACE)
     set_element_text(style_element, "akkoladeBarDistance", -distance_prefs.GroupBracketDefaultDistance / EVPU_PER_SPACE)
     set_element_text(style_element, "clefLeftMargin", distance_prefs.ClefSpaceBefore / EVPU_PER_SPACE)
     set_element_text(style_element, "keysigLeftMargin", distance_prefs.KeySpaceBefore / EVPU_PER_SPACE)
@@ -328,7 +367,7 @@ function write_line_measure_prefs(style_element)
     -- differences in how MuseScore and Finale interpret these settings means the following two are better off left alone
     -- set_element_text(style_element, "systemHeaderDistance", distance_prefs.KeySpaceAfter / EVPU_PER_SPACE)
     -- set_element_text(style_element, "systemHeaderTimeSigDistance", distance_prefs.TimeSigSpaceAfter / EVPU_PER_SPACE)
-    set_element_text(style_element, "clefBarlineDistance", repeat_prefs.AfterClefSpace / EVPU_PER_SPACE)
+    set_element_text(style_element, "clefBarlineDistance", distance_prefs.ClefChangeOffset / EVPU_PER_SPACE)
     set_element_text(style_element, "timesigBarlineDistance", repeat_prefs.AfterClefSpace / EVPU_PER_SPACE)  
     set_element_text(style_element, "measureRepeatNumberPos", -(music_character_prefs.VerticalTwoMeasureRepeatOffset + 0.5) / EVPU_PER_SPACE)
     set_element_text(style_element, "staffLineWidth", size_prefs.StaffLineThickness / EFIX_PER_SPACE)
@@ -344,7 +383,7 @@ function write_line_measure_prefs(style_element)
     set_element_text(style_element, "genCourtesyClef", misc_prefs.CourtesyClefAtSystemEnd)
     set_element_text(style_element, "keySigCourtesyBarlineMode", misc_prefs.DoubleBarlineAtKeyChange)
     set_element_text(style_element, "timeSigCourtesyBarlineMode", 0)
-    set_element_text(style_element, "hideEmptyStaves", not current_is_part)
+    set_element_text(style_element, "hideEmptyStaves", score.calc_has_optimized_systems())
 end
 
 function write_stem_prefs(style_element)
@@ -371,10 +410,17 @@ function write_note_related_prefs(style_element)
     -- Finale randomly adds twice the stem width to the length of a beam stub. (Observed behavior)
     set_element_text(style_element, "beamMinLen", (size_prefs.BrokenBeamLength + (2 * size_prefs.StemLineThickness / EFIX_PER_EVPU)) / EVPU_PER_SPACE)
     set_element_text(style_element, "beamNoSlope", misc_prefs.BeamSlopeStyle == finale.BEAMSLOPE_FLATTENALL)
-    set_element_text(style_element, "dotMag", muse_mag_val(finale.FONTPREF_AUGMENTATIONDOT))
+    local dot_mag = muse_mag_val(finale.FONTPREF_AUGMENTATIONDOT)
+    set_element_text(style_element, "dotMag", dot_mag)
     set_element_text(style_element, "dotNoteDistance", distance_prefs.AugmentationDotNoteSpace / EVPU_PER_SPACE)
     set_element_text(style_element, "dotRestDistance", distance_prefs.AugmentationDotNoteSpace / EVPU_PER_SPACE)
-    set_element_text(style_element, "dotDotDistance", distance_prefs.AugmentationDotSpace / EVPU_PER_SPACE)
+    local dot_width = (function()
+        local metrics = finale.FCTextMetrics()
+        metrics:LoadSymbol(music_character_prefs.SymbolAugmentationDot, default_music_font, 100)
+        return metrics:CalcWidthEVPUs()
+    end)()
+    -- MuseScore dot-dot width includes the dot whereas Finale's is from right edge of previous to left edge of next
+    set_element_text(style_element, "dotDotDistance", (distance_prefs.AugmentationDotSpace + dot_mag * dot_width) / EVPU_PER_SPACE)
     set_element_text(style_element, "articulationMag", muse_mag_val(finale.FONTPREF_ARTICULATION))
     set_element_text(style_element, "graceNoteMag", size_prefs.GraceNoteSize / 100)
     set_element_text(style_element, "concertPitch", part_scope_prefs.DisplayInConcertPitch)
@@ -383,7 +429,7 @@ function write_note_related_prefs(style_element)
 end
 
 function write_smart_shape_prefs(style_element)
-    set_element_text(style_element, "hairpinHeight", smart_shape_prefs.HairpinDefaultOpening / EVPU_PER_SPACE)
+    set_element_text(style_element, "hairpinHeight", smart_shape_prefs.HairpinDefaultShortOpening / EVPU_PER_SPACE)
     set_element_text(style_element, "hairpinContHeight", 0.5) -- not configurable in Finale: hard-coded to a half space
     write_category_text_font_pref(style_element, "hairpin", finale.DEFAULTCATID_DYNAMICS)
     write_line_prefs(style_element, "hairpin", smart_shape_prefs.HairpinLineWidth, smart_shape_prefs.LineDashLength, smart_shape_prefs.LineDashSpace)
@@ -419,7 +465,7 @@ function write_measure_number_prefs(style_element)
                     return "right,baseline"
                 end
             end
-            local function horz_alignment(align)
+            local function horz_alignment(align) -- MuseScore 4.6 changes this to "left", "center", "right"
                 if align == finale.MNALIGN_LEFT then
                     return 0
                 elseif align == finale.MNALIGN_CENTER then
@@ -484,6 +530,10 @@ end
 
 function write_tuplet_prefs(style_element)
     set_element_text(style_element, "tupletOutOfStaff", tuplet_prefs.AvoidStaff)
+    -- tupletNumberRythmicCenter and tupletExtendToEndOfDuration are 4.6 settings, but MuseScore 4.5 should ignore them
+    -- while MuseScore 4.6 picks them up even out of a 4.5 file.
+    set_element_text(style_element, "tupletNumberRythmicCenter", tuplet_prefs.CenterUsingDuration); -- 4.6 setting
+    set_element_text(style_element, "tupletExtendToEndOfDuration", tuplet_prefs.BracketFullDuration); -- 4.6 setting
     set_element_text(style_element, "tupletStemLeftDistance", tuplet_prefs.LeftExtension / EVPU_PER_SPACE)
     set_element_text(style_element, "tupletStemRightDistance", tuplet_prefs.RightExtension / EVPU_PER_SPACE)
     set_element_text(style_element, "tupletNoteLeftDistance", tuplet_prefs.LeftExtension / EVPU_PER_SPACE)
