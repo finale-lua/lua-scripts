@@ -33,6 +33,7 @@
 - [set_all_parts_page_size(width, height)](#set_all_parts_page_size)
 - [apply_config(config, options)](#apply_config)
 - [calc_voice_staff(staff_num)](#calc_voice_staff)
+- [calc_has_optimized_systems()](#calc_has_optimized_systems)
 
 ### create_default_config
 
@@ -554,3 +555,17 @@ Determines whether the staff is a voice instrument.
 | Return type | Description |
 | ----------- | ----------- |
 | `boolean` | True if the staff is a voice instrument. |
+
+### calc_has_optimized_systems
+
+```lua
+score.calc_has_optimized_systems()
+```
+
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/score.lua#L835)
+
+Deterimines if this score contains optimized systems
+
+| Return type | Description |
+| ----------- | ----------- |
+| `boolean` | True if an optimized system is found |
