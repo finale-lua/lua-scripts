@@ -35,7 +35,10 @@ context = {
 local function format_mapping(mapping)
     local codepoint_desc = "[" .. utils.format_codepoint(mapping.codepoint) .. "]"
     if mapping.glyph then
-        return "'" ..  mapping.glyph .. "' " .. codepoint_desc
+        codepoint_desc = "'" .. mapping.glyph .. "' " .. codepoint_desc
+    end
+    if mapping.smuflFontName then
+        codepoint_desc = codepoint_desc .. "(" .. mapping.smuflFontName ..")"
     end
     return codepoint_desc
 end
@@ -84,11 +87,30 @@ local function set_codepoint(control, codepoint)
     control:SetText(fcstr)
 end
 
+local function on_smufl_popup(popup)
+    local dialog = popup:GetParent()
+    local smufl_box = dialog:GetControl("smufl_box")
+    local fcstr = finale.FCString()
+    popup:GetItemText(popup:GetSelectedItem(), fcstr)
+    smufl_box:SetFont(finale.FCFontInfo(fcstr.LuaString, 24))
+end
+
 local function on_popup(popup)
     local legacy_codepoint = context.popup_keys[popup:GetSelectedItem() + 1] or 0
     local current_mapping = legacy_codepoint > 0 and context.current_mapping[legacy_codepoint]
     local smufl_codepoint = current_mapping and current_mapping.codepoint or 0
     local dialog = popup:GetParent()
+    if current_mapping and current_mapping.smuflFontName then
+        local smufl_list = dialog:GetControl("smufl_list")
+        for index = 0, smufl_list:GetCount() - 1 do
+            local str = finale.FCString()
+            smufl_list:GetItemText(index, str)
+            if str.LuaString == current_mapping.smuflFontName then
+                smufl_list:SetSelectedItem(index)
+                on_smufl_popup(smufl_list)
+            end
+        end
+    end
     set_codepoint(dialog:GetControl("legacy_box"), legacy_codepoint)
     set_codepoint(dialog:GetControl("smufl_box"), smufl_codepoint)
 end
@@ -164,6 +186,7 @@ local function on_select_file(control)
             t.glyph = glyph
             t.codepoint = utils.parse_codepoint(v.codepoint)
             t.nameIsMakeMusic = v.nameIsMakeMusic
+            t.smuflFontName = v.smuflFontName
             if t.codepoint == 0xFFFD then
                 local smufl_box = dialog:GetControl("smufl_box")
                 local _, info = smufl_glyphs.get_glyph_info(glyph, smufl_box:CreateFontInfo())
@@ -200,14 +223,6 @@ local function on_symbol_select(box)
     enable_disable(dialog)
 end
 
-local function on_smufl_popup(popup)
-    local dialog = popup:GetParent()
-    local smufl_box = dialog:GetControl("smufl_box")
-    local fcstr = finale.FCString()
-    popup:GetItemText(popup:GetSelectedItem(), fcstr)
-    smufl_box:SetFont(finale.FCFontInfo(fcstr.LuaString, 24))
-end
-
 local function on_add_mapping(control)
     local dialog = control:GetParent()
     local popup = dialog:GetControl("mappings")
@@ -221,12 +236,16 @@ local function on_add_mapping(control)
             return
         end
     end
+    local font = dialog:GetControl("smufl_box"):CreateFontInfo()
     current_mapping = {codepoint = smufl_point}
-    local glyph, info = smufl_glyphs.get_glyph_info(smufl_point, dialog:GetControl("smufl_box"):CreateFontInfo())
+    local glyph, info = smufl_glyphs.get_glyph_info(smufl_point, font)
     if info then
         current_mapping.glyph = glyph
     else
         current_mapping.glyph = utils.format_codepoint(smufl_point)
+    end
+    if font and smufl_point >= 0xF400 and smufl_point <= 0xF8FF then
+        current_mapping.smuflFontName = font.Name
     end
     context.current_mapping[legacy_point] = current_mapping
     update_popup(popup, legacy_point)
@@ -263,6 +282,9 @@ local function emit_json(mapping, reverse_lookup)
             table.insert(parts, '\t\t"description": ' .. quote(entry.description))
         else
             table.insert(parts, '\t\t"description": ' .. quote(""))
+        end
+        if entry.smuflFontName then
+            table.insert(parts, '\t\t"smuflFontName": ' .. quote(entry.smuflFontName))
         end
         return "{\n" .. table.concat(parts, ",\n") .. "\n\t}"
     end

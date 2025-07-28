@@ -825,4 +825,31 @@ function score.calc_voice_staff(staff_num)
     return is_voice_staff
 end
 
+--[[
+% calc_has_optimized_systems()
+
+Deterimines if this score contains optimized systems
+
+: (boolean) True if an optimized system is found
+]]
+function score.calc_has_optimized_systems()
+    local staff_systems = finale.FCStaffSystems()
+    staff_systems:LoadAll()
+    local scroll_view = finale.FCSystemStaves()
+    scroll_view:LoadScrollView()
+    for staff_system in each(staff_systems) do
+        local next_system = finale.FCSystemStaves()
+        next_system:LoadAllForItem(staff_system.ItemNo)
+        if next_system.Count ~= scroll_view.Count then
+            return true
+        end
+        for staff_index = 0, next_system.Count - 1 do
+            if next_system:GetItemAt(staff_index).Staff ~= scroll_view:GetItemAt(staff_index).Staff then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 return score
