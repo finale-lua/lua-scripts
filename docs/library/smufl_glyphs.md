@@ -1,7 +1,8 @@
 # SMuFL Glyphs
 
-Provides immediate Lua access to the glyph names in the SMuFL `glyphnames.json` file.
-The `glyphs` and `by_codepoint` tables were programmatically generated from it.
+Provides immediate Lua access to the glyph names in the SMuFL `glyphnames.json` and
+`glyphnamesFinale.json files.
+The `glyphs` and `by_codepoint` tables were programmatically generated from them.
 
 ## Functions
 
@@ -14,7 +15,7 @@ The `glyphs` and `by_codepoint` tables were programmatically generated from it.
 smufl_glyphs.get_glyph_info(codepoint_or_name, font_info_or_name)
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/smufl_glyphs.lua#L5892)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/smufl_glyphs.lua#L7295)
 
 Returns the SMuFL glyph name and a new table containing the `codepoint` and its `description`.
 
@@ -34,7 +35,7 @@ Returns the SMuFL glyph name and a new table containing the `codepoint` and its 
 smufl_glyphs.iterate_glyphs()
 ```
 
-[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/smufl_glyphs.lua#L5938)
+[View source](https://github.com/finale-lua/lua-scripts/tree/refs/heads/master/src/library/smufl_glyphs.lua#L7341)
 
 Returns an iterator over the standard SMuFL glyphs as defined in glyphnames.json.
 
