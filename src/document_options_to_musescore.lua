@@ -583,15 +583,17 @@ function write_marking_prefs(style_element)
         log_message("unable to load FCCategoryDef for dynamics", true)
     end
     local font_info = finale.FCFontInfo()
-    local override = cat:GetMusicFontInfo(font_info) and font_info.IsSMuFLFont and font_info.FontID ~= 0
-    set_element_text(style_element, "dynamicsOverrideFont", override)
-    if override then
-        set_element_text(style_element, "dynamicsFont", font_info.Name)
-        set_element_text(style_element, "dynamicsSize", font_info.Size / default_music_font.Size)
-    else
-        set_element_text(style_element, "dynamicsFont", default_music_font.Name)
-        set_element_text(style_element, "dynamicsSize",
-            font_info.IsSMuFLFont and (font_info.Size / default_music_font.Size) or 1)
+    if cat:GetMusicFontInfo(font_info) then
+        local is_smufl = font_info.IsSMuFLFont
+        local override = is_smufl and font_info.FontID ~= 0
+        set_element_text(style_element, "dynamicsOverrideFont", override)
+        if override then
+            set_element_text(style_element, "dynamicsFont", font_info.Name)
+            set_element_text(style_element, "dynamicsSize", font_info.Size / default_music_font.Size)
+        elseif #music_font_name > 0 then
+            set_element_text(style_element, "dynamicsFont", music_font_name)
+            set_element_text(style_element, "dynamicsSize", font_info.Size / default_music_font.Size)
+        end
     end
     local font_pref = finale.FCFontPrefs()
     if not font_pref:Load(finale.FONTPREF_TEXTBLOCK) then
@@ -624,7 +626,7 @@ function write_marking_prefs(style_element)
     write_category_text_font_pref(style_element, "dynamics", finale.DEFAULTCATID_DYNAMICS)
     write_category_text_font_pref(style_element, "expression", finale.DEFAULTCATID_EXPRESSIVETEXT)
     write_category_text_font_pref(style_element, "tempo", finale.DEFAULTCATID_TEMPOMARKS)
-    write_category_text_font_pref(style_element, "tempoChange", finale.DEFAULTCATID_EXPRESSIVETEXT)
+    write_category_text_font_pref(style_element, "tempoChange", finale.DEFAULTCATID_TEMPOALTERATIONS)
     write_line_prefs(style_element, "tempoChange", smart_shape_prefs.LineWidth, smart_shape_prefs.LineDashLength, smart_shape_prefs.LineDashSpace, "dashed")
     write_category_text_font_pref(style_element, "metronome", finale.DEFAULTCATID_TEMPOMARKS)
     set_element_text(style_element, "translatorFontFace", font_info.Name)
@@ -634,10 +636,10 @@ function write_marking_prefs(style_element)
     write_default_font_pref(style_element, "repeatLeft", finale.FONTPREF_REPEAT)
     write_default_font_pref(style_element, "repeatRight", finale.FONTPREF_REPEAT)
     write_font_pref(style_element, "frame", font_info)
-    write_category_text_font_pref(style_element, "textLine", finale.DEFAULTCATID_TECHNIQUETEXT)
-    write_category_text_font_pref(style_element, "systemTextLine", finale.DEFAULTCATID_EXPRESSIVETEXT)
-    write_category_text_font_pref(style_element, "glissando", finale.DEFAULTCATID_TECHNIQUETEXT)
-    write_category_text_font_pref(style_element, "bend", finale.DEFAULTCATID_TECHNIQUETEXT)
+    write_font_pref(style_element, "textLine", font_info)
+    write_font_pref(style_element, "systemTextLine", font_info)
+    write_font_pref(style_element, "glissando", font_info)
+    write_font_pref(style_element, "bend", font_info)
     write_font_pref(style_element, "header", font_info)
     write_font_pref(style_element, "footer", font_info)
     write_font_pref(style_element, "copyright", font_info)
