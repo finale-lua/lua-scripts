@@ -54,7 +54,7 @@ jobs:
           cd ../../
 
       - name: Install Lua
-        uses: leafo/gh-actions-lua@v11
+        uses: leafo/gh-actions-lua@v12
 
       - name: Install LuaRocks
         uses: leafo/gh-actions-luarocks@v5
