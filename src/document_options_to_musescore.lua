@@ -4,8 +4,8 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.3"
-    finaleplugin.Date = "December 31, 2024"
+    finaleplugin.Version = "1.1.0"
+    finaleplugin.Date = "December 8, 2025"
     finaleplugin.CategoryTags = "Document"
     finaleplugin.MinJWLuaVersion = 0.75
     finaleplugin.Notes = [[
@@ -59,6 +59,7 @@ local enigma_string = require("library.enigma_string")
 local utils = require("library.utils")
 local client = require("library.client")
 local score = require("library.score")
+local library = require("library.general_library")
 
 do_folder = do_folder or false
 
@@ -68,7 +69,7 @@ local MUSX_EXTENSION <const> = ".musx"
 local MUS_EXTENSION <const> = ".mus"
 local TEXT_EXTENSION <const> = ".mss"
 local PART_EXTENSION <const> = ".part" .. TEXT_EXTENSION
-local MSS_VERSION <const> = "4.50"
+local MSS_VERSION <const> = "4.60"
 
 -- hard-coded scaling values
 local EVPU_PER_INCH <const> = 288
@@ -77,6 +78,8 @@ local EVPU_PER_SPACE <const> = 24
 local EFIX_PER_EVPU <const> = 64
 local EFIX_PER_SPACE <const> = EVPU_PER_SPACE * EFIX_PER_EVPU
 local MUSE_FINALE_SCALE_DIFFERENTIAL <const> = 20 / 24
+local MUSE_NUMERIC_PRECISION <const> = 5
+local NORMAL_STAFF_HEIGHT_SP <const> = 4
 
 -- Current state
 local TIMER_ID <const> = 1 -- value that identifies our timer
@@ -121,6 +124,7 @@ local tie_prefs
 local tuplet_prefs
 local text_exps
 local music_font_name
+local spatium_scaling
 
 function open_current_prefs()
     local font_prefs = finale.FCFontPrefs()
@@ -177,6 +181,13 @@ function open_current_prefs()
     else
         music_font_name = nil
     end
+    local page_percent = page_prefs.PageScaling / 100
+    local staff_percent = (page_prefs.SystemStaffHeight / (EVPU_PER_SPACE * 4 * 16)) * (page_prefs.SystemScaling / 100)
+    spatium_scaling = page_percent * staff_percent
+end
+
+local function format_muse_float(value)
+    return string.format("%" .. "." .. tostring(MUSE_NUMERIC_PRECISION) .. "g", value)
 end
 
 function set_element_text(style_element, name, value)
@@ -185,7 +196,7 @@ function set_element_text(style_element, name, value)
         log_message("incorrect property for " .. name, true)
     elseif type(value) == "number" then
         if math.type(value) == "float" then
-            value = string.format("%.5g", value)
+            value = format_muse_float(value)
             setter_func = "SetText"
         else
             setter_func = "SetIntText"
@@ -200,6 +211,34 @@ function set_element_text(style_element, name, value)
     end
     element[setter_func](element, value)
     return element
+end
+
+local function set_point_element(style_element, name, x, y)
+    local element = style_element:FirstChildElement(name)
+    if not element then
+        element = style_element:InsertNewChildElement(name)
+    end
+    element:SetText("")
+    element:SetAttribute("x", format_muse_float(x))
+    element:SetAttribute("y", format_muse_float(y))
+    return element
+end
+
+local function font_mag_val(font_info)
+    return font_info.Absolute and 1 or MUSE_FINALE_SCALE_DIFFERENTIAL
+end
+
+local function calc_font_ascent_in_spaces(font_info)
+    if not font_info then
+        return 0
+    end
+    local text_metrics = finale.FCTextMetrics()
+    local test_string = finale.FCString()
+    test_string.LuaString = "0123456789"
+    if not text_metrics:LoadString(test_string, font_info, 100 * font_mag_val(font_info)) then
+        return 0
+    end
+    return text_metrics.TopEVPUs / EVPU_PER_SPACE
 end
 
 function muse_font_efx(font_info)
@@ -232,7 +271,7 @@ end
 
 function write_font_pref(style_element, name_prefix, font_info)
     set_element_text(style_element, name_prefix .. "FontFace", font_info.Name)
-    set_element_text(style_element, name_prefix .. "FontSize", font_info.Size * (font_info.Absolute and 1 or MUSE_FINALE_SCALE_DIFFERENTIAL))
+    set_element_text(style_element, name_prefix .. "FontSize", font_info.Size * font_mag_val(font_info))
     set_element_text(style_element, name_prefix .. "FontSpatiumDependent", not font_info.Absolute)
     set_element_text(style_element, name_prefix .. "FontStyle", muse_font_efx(font_info))
 end
@@ -300,9 +339,7 @@ function write_page_prefs(style_element)
     set_element_text(style_element, "pageTwosided", page_prefs.UseFacingPages)
     set_element_text(style_element, "enableIndentationOnFirstSystem", page_prefs.UseFirstSystemMargins)
     set_element_text(style_element, "firstSystemIndentationValue", page_prefs.FirstSystemLeft / EVPU_PER_SPACE)
-    local page_percent = page_prefs.PageScaling / 100
-    local staff_percent = (page_prefs.SystemStaffHeight / (EVPU_PER_SPACE * 4 * 16)) * (page_prefs.SystemScaling / 100)
-    set_element_text(style_element, "spatium", (EVPU_PER_SPACE * staff_percent * page_percent) / EVPU_PER_MM)
+    set_element_text(style_element, "spatium", (EVPU_PER_SPACE * spatium_scaling) / EVPU_PER_MM)
     local first_system = finale.FCStaffSystem()
     if first_system:LoadFirst() then
         local min_size = 100
@@ -452,57 +489,116 @@ function write_measure_number_prefs(style_element)
     set_element_text(style_element, "showMeasureNumber", meas_num_regions:LoadAll() > 0)
     if meas_num_regions.Count > 0 then
         local meas_nums = meas_num_regions:GetItemAt(0)
-        set_element_text(style_element, "showMeasureNumberOne", not meas_nums:GetHideFirstNumber(current_is_part))
-        set_element_text(style_element, "measureNumberInterval", meas_nums:GetMultipleValue(current_is_part))
-        set_element_text(style_element, "measureNumberSystem", meas_nums:GetShowOnSystemStart(current_is_part) and not meas_nums:GetShowMultiples(current_is_part))
-        local function process_segment(font_info, enclosure, use_enclosure, justification, alignment, vertical, prefix)
-            local function justification_string(justi)
-                if justi == finale.MNJUSTIFY_LEFT then
-                    return "left,baseline"
-                elseif justi == finale.MNJUSTIFY_CENTER then
-                    return "center,baseline"
-                else
-                    return "right,baseline"
-                end
+        local parts_val = library.calc_parts_boolean_for_measure_number_region(meas_nums, current_is_part)
+        set_element_text(style_element, "showMeasureNumberOne", not meas_nums:GetHideFirstNumber(parts_val))
+        set_element_text(style_element, "measureNumberInterval", meas_nums:GetMultipleValue(parts_val))
+        local show_on_every = meas_nums:GetShowMultiples(parts_val)
+        local use_show_on_start = meas_nums:GetShowOnSystemStart(parts_val) and not show_on_every
+        set_element_text(style_element, "measureNumberSystem", use_show_on_start)
+
+        local function justification_string(justi)
+            if justi == finale.MNJUSTIFY_LEFT then
+                return "left,baseline"
+            elseif justi == finale.MNJUSTIFY_CENTER then
+                return "center,baseline"
             end
-            local function horz_alignment(align) -- MuseScore 4.6 changes this to "left", "center", "right"
-                if align == finale.MNALIGN_LEFT then
-                    return 0
-                elseif align == finale.MNALIGN_CENTER then
-                    return 1
-                else
-                    return 2
-                end
+            return "right,baseline"
+        end
+
+        local function align_string(align)
+            if align == finale.MNALIGN_LEFT then
+                return "left"
+            elseif align == finale.MNALIGN_CENTER then
+                return "center"
             end
-            local function vert_alignment(vert)
-                return vert >= 0 and 0 or 1
-            end
+            return "right"
+        end
+
+        local function vert_alignment(vert)
+            return vert >= 0 and 0 or 1
+        end
+
+        local function process_segment(font_info, enclosure, use_enclosure, justification, alignment, horizontal, vertical, prefix)
+            horizontal = horizontal or 0
+            vertical = vertical or 0
             write_font_pref(style_element, prefix, font_info)
             set_element_text(style_element, prefix .. "VPlacement", vert_alignment(vertical))
-            set_element_text(style_element, prefix .. "HPlacement", horz_alignment(alignment))
+            set_element_text(style_element, prefix .. "HPlacement", align_string(alignment))
             set_element_text(style_element, prefix .. "Align", justification_string(justification))
+            set_element_text(style_element, prefix .. "Position", align_string(justification))
+            local horizontal_sp = horizontal / EVPU_PER_SPACE
+            local vertical_sp = vertical / EVPU_PER_SPACE
+            local text_height_sp = calc_font_ascent_in_spaces(font_info) * spatium_scaling
+            set_point_element(style_element, prefix .. "PosAbove", horizontal_sp, math.min(-vertical_sp, 0))
+            set_point_element(style_element, prefix .. "PosBelow", horizontal_sp,
+                math.max(-(vertical_sp + NORMAL_STAFF_HEIGHT_SP) - text_height_sp, 0))
             write_frame_prefs(style_element, prefix, use_enclosure and enclosure or nil)
         end
-        local font_info = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:CreateStartFontInfo(current_is_part) or meas_nums:CreateMultipleFontInfo(current_is_part)
-        local enclosure = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:GetEnclosureStart(current_is_part) or meas_nums:GetEnclosureMultiple(current_is_part)
-        local use_enclosure = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:GetUseEnclosureStart(current_is_part) or meas_nums:GetUseEnclosureMultiple(current_is_part)
-        local justification = meas_nums:GetShowMultiples(current_is_part) and meas_nums:GetMultipleJustification(current_is_part) or meas_nums:GetStartJustification(current_is_part)
-        local alignment = meas_nums:GetShowMultiples(current_is_part) and meas_nums:GetMultipleAlignment(current_is_part) or meas_nums:GetStartAlignment(current_is_part)
-        local vertical = meas_nums:GetShowOnSystemStart(current_is_part) and meas_nums:GetStartVerticalPosition(current_is_part) or meas_nums:GetMultipleVerticalPosition(current_is_part)
+
+        local scroll_view = finale.FCSystemStaves()
+        scroll_view:LoadScrollView()
+        local staff = finale.FCStaff()
+        local top_on = false
+        local bottom_on = false
+        local any_interior_on = false
+        local all_staves_on = scroll_view.Count > 0
+        for index = 0, scroll_view.Count - 1 do
+            local staff_id = scroll_view:GetItemAt(index).Staff
+            local shows = false
+            if staff:Load(staff_id) then
+                shows = staff.ShowMeasureNumbers
+            end
+            all_staves_on = all_staves_on and shows
+            if index == 0 then
+                top_on = shows
+            elseif index == scroll_view.Count - 1 then
+                bottom_on = shows
+            elseif shows then
+                any_interior_on = true
+            end
+        end
+
+        local placement_mode = "on-so-staves"
+        local show_top = meas_nums:GetShowOnTopStaff(parts_val)
+        local show_bottom = meas_nums:GetShowOnBottomStaff(parts_val)
+        local exclude_others = meas_nums:GetExcludeOtherStaves(parts_val)
+        local use_above = exclude_others or (not any_interior_on and not bottom_on)
+        local use_below = exclude_others or (not any_interior_on and not top_on)
+        if use_above and show_top then
+            placement_mode = "above-system"
+        elseif use_below and show_bottom then
+            placement_mode = "below-system"
+        elseif all_staves_on then
+            placement_mode = "on-all-staves"
+        elseif show_bottom and not use_below then
+            log_message("Show on Bottom not supported when other staves also show measure numbers.")
+        end
+        set_element_text(style_element, "measureNumberPlacementMode", placement_mode)
+
+        local font_info = use_show_on_start and meas_nums:CreateStartFontInfo(parts_val) or meas_nums:CreateMultipleFontInfo(parts_val)
+        local enclosure = use_show_on_start and meas_nums:GetEnclosureStart(parts_val) or meas_nums:GetEnclosureMultiple(parts_val)
+        local use_enclosure = use_show_on_start and meas_nums:GetUseEnclosureStart(parts_val) or meas_nums:GetUseEnclosureMultiple(parts_val)
+        local justification = show_on_every and meas_nums:GetMultipleJustification(parts_val) or meas_nums:GetStartJustification(parts_val)
+        local alignment = show_on_every and meas_nums:GetMultipleAlignment(parts_val) or meas_nums:GetStartAlignment(parts_val)
+        local vertical = use_show_on_start and meas_nums:GetStartVerticalPosition(parts_val) or meas_nums:GetMultipleVerticalPosition(parts_val)
+        local horizontal = use_show_on_start and meas_nums:GetStartHorizontalPosition(parts_val) or meas_nums:GetMultipleHorizontalPosition(parts_val)
+        set_element_text(style_element, "measureNumberAlignToBarline", alignment == finale.MNALIGN_LEFT)
         set_element_text(style_element, "measureNumberOffsetType", 1)
-        process_segment(font_info, enclosure, use_enclosure, justification, alignment, vertical, "measureNumber")
-        set_element_text(style_element, "mmRestShowMeasureNumberRange", meas_nums:GetShowMultiMeasureRange(current_is_part))
-        local left_char = meas_nums:GetMultiMeasureBracketLeft(current_is_part)
+        process_segment(font_info, enclosure, use_enclosure, justification, alignment, horizontal, vertical, "measureNumber")
+        process_segment(font_info, enclosure, use_enclosure, justification, alignment, horizontal, vertical, "measureNumberAlternate")
+
+        set_element_text(style_element, "mmRestShowMeasureNumberRange", meas_nums:GetShowMultiMeasureRange(parts_val))
+        local left_char = meas_nums:GetMultiMeasureBracketLeft(parts_val)
         if left_char == 0 then
             set_element_text(style_element, "mmRestRangeBracketType", 2)
-        elseif left_char == '(' then
+        elseif left_char == string.byte('(') then
             set_element_text(style_element, "mmRestRangeBracketType", 1)
         else
             set_element_text(style_element, "mmRestRangeBracketType", 0)
         end
-        process_segment(meas_nums:CreateMultiMeasureFontInfo(current_is_part), meas_nums:GetEnclosureMultiple(current_is_part), meas_nums:GetUseEnclosureMultiple(current_is_part),
-                meas_nums:GetMultiMeasureJustification(current_is_part), meas_nums:GetMultiMeasureAlignment(current_is_part),
-                meas_nums:GetMultiMeasureVerticalPosition(current_is_part), "mmRestRange")
+        process_segment(meas_nums:CreateMultiMeasureFontInfo(parts_val), nil, false,
+                meas_nums:GetMultiMeasureJustification(parts_val), meas_nums:GetMultiMeasureAlignment(parts_val),
+                meas_nums:GetMultiMeasureHorizontalPosition(parts_val), meas_nums:GetMultiMeasureVerticalPosition(parts_val), "mmRestRange")
     end
     set_element_text(style_element, "createMultiMeasureRests", current_is_part)
     set_element_text(style_element, "minEmptyMeasures", mmrest_prefs.StartNumberingAt)
