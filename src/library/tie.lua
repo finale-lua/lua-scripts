@@ -555,7 +555,7 @@ function tie.calc_placement(note, tie_mod, for_pageview, direction, tie_prefs)
                         end
                     else
                         local next_note = next_entry:GetItemAt(next_entry.Count - 1)
-                        if next_note.Displacment > note.Displacement then
+                        if next_note.Displacement > note.Displacement then
                             end_placement = finale.TIEPLACE_OVERINNER
                         else
                             -- flaky behavior alert: this code might not work in a future release but
