@@ -741,7 +741,7 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
                             end
                         else
                             local next_note = next_entry:GetItemAt(next_entry.Count - 1)
-                            if next_note.Displacment > note.Displacement then
+                            if next_note.Displacement > note.Displacement then
                                 end_placement = finale.TIEPLACE_OVERINNER
                             else
 
@@ -883,7 +883,7 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
             if rplacement == finale.TIEPLACE_OVERINNER or rplacement == finale.TIEPLACE_UNDERINNER or rplacement == finale.TIEPLACE_UNDEROUTERSTEM then
                 incr_end = -INNER_INCREMENT
             else
-                horz_end = horz_end + (entry_metrics_start:GetNoteWidth(note.NoteIndex) * (1.0 - OUTER_NOTE_OFFSET_PCTG))
+                horz_end = horz_end + (entry_metrics:GetNoteWidth(note_index) * (1.0 - OUTER_NOTE_OFFSET_PCTG))
             end
         end
         local start_offset = tie_mod.StartHorizontalPos
@@ -908,15 +908,15 @@ package.preload["library.tie"] = package.preload["library.tie"] or function()
         end
         direction = direction and direction ~= finale.TIEMODDIR_AUTOMATIC and direction or tie.calc_direction(note, tie_mod, tie_prefs)
         local tie_placement_prefs = tie_prefs:CreateTiePlacementPrefs()
-        if tie_prefs.UseTieEndStyle then
+        if tie_mod and not tie_mod:IsStartTie() and tie_prefs.UseTieEndStyle then
             return finale.TCONTOURIDX_TIEENDS
         end
         local tie_length = calc_tie_length(note, tie_mod, for_pageview, direction, tie_prefs, tie_placement_prefs)
         local tie_contour_prefs = tie_prefs:CreateTieContourPrefs()
         if tie_length >= tie_contour_prefs:GetSpan(finale.TCONTOURIDX_LONG) then
-            return finale.TCONTOURIDX_LONG
+            return finale.TCONTOURIDX_LONG, tie_length
         elseif tie_length <= tie_contour_prefs:GetSpan(finale.TCONTOURIDX_SHORT) then
-            return finale.TCONTOURIDX_SHORT
+            return finale.TCONTOURIDX_SHORT, tie_length
         end
         return finale.TCONTOURIDX_MEDIUM, tie_length
     end
