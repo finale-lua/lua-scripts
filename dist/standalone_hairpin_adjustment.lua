@@ -1883,19 +1883,24 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
     if #expression_list > 0 then
         local dyn_exp = expression_list[1][2]
         local dyn_def = dyn_exp:CreateTextExpressionDef()
-        local dyn_width = expression_list[1][1]
+        local full_dyn_width = expression_list[1][1]
+        local start_dyn_width = full_dyn_width
+        local end_dyn_width = 0
         if finale.EXPRJUSTIFY_CENTER == dyn_def.HorizontalJustification then
-            dyn_width = dyn_width / 2
+            start_dyn_width = full_dyn_width / 2
+            end_dyn_width = full_dyn_width / 2
         elseif finale.EXPRJUSTIFY_RIGHT == dyn_def.HorizontalJustification then
-            dyn_width = 0
+            start_dyn_width = 0
+            end_dyn_width = full_dyn_width
         end
         local cell_metrics = finale.FCCellMetrics()
         cell_metrics:LoadAtCell(finale.FCCell(dyn_exp.Measure, dyn_exp.Staff))
         local staff_percent = cell_metrics.StaffScaling / cell_metrics.SystemScaling
-        dyn_width = dyn_width * staff_percent
+        start_dyn_width = start_dyn_width * staff_percent
+        end_dyn_width = end_dyn_width * staff_percent
         local handle_offset_from_edupos = expression.calc_handle_offset_for_smart_shape(dyn_exp)
         if left_or_right == "left" then
-            local total_x = dyn_width + config.left_dynamic_cushion + handle_offset_from_edupos
+            local total_x = start_dyn_width + config.left_dynamic_cushion + handle_offset_from_edupos
             the_seg:SetEndpointOffsetX(total_x)
         elseif left_or_right == "right" then
             local next_measure_gap = 0
@@ -1909,7 +1914,7 @@ function horizontal_hairpin_adjustment(left_or_right, hairpin, region_settings, 
                 end
             end
             cushion_bool = false
-            local total_x = (0 - dyn_width) + config.right_dynamic_cushion + next_measure_gap + handle_offset_from_edupos
+            local total_x = (0 - end_dyn_width) + config.right_dynamic_cushion + next_measure_gap + handle_offset_from_edupos
             the_seg:SetEndpointOffsetX(total_x)
         end
     end
