@@ -10,8 +10,7 @@ function plugindef()
         Upgraded files are written into a sibling subfolder named "-finale27" inside each source folder.
         That subfolder is skipped during traversal, so rerunning the script will not reprocess prior output.
 
-        The script leaves source files unchanged. If an upgraded file already exists and is newer than or the
-        same age as its source file, that file is skipped.
+        The script leaves source files unchanged. Existing upgraded files are overwritten on each run.
     ]]
     return "Upgrade Folder To Finale 27...", "Upgrade Folder To Finale 27",
         "Upgrade every .mus or .musx file in a folder tree to Finale 27 .musx copies"
@@ -31,6 +30,7 @@ local MUSX_EXTENSION <const> = ".musx"
 local TIMER_ID <const> = 1
 local COPY_CHUNK_SIZE <const> = 65536
 local PATH_DELIMITER <const> = finenv.UI():IsOnWindows() and "\\" or "/"
+local LOGFILE_NAME <const> = "finale27-upgrade.log"
 
 local function to_os_path(utf8_path)
     return client.encode_with_client_codepage(utf8_path)
@@ -38,11 +38,6 @@ end
 
 local function get_file_attributes(path)
     return lfs.attributes(to_os_path(path))
-end
-
-local function get_modification_time(path)
-    local attr = get_file_attributes(path)
-    return attr and attr.modification or -1
 end
 
 local function select_directory()
@@ -77,6 +72,47 @@ local function warn_if_not_finale_27_4()
             "Finale Version Warning"
         )
     end
+end
+
+local function make_relative_path(root_folder, full_path)
+    if full_path:sub(1, #root_folder) == root_folder then
+        return full_path:sub(#root_folder + 1)
+    end
+    return full_path
+end
+
+local function quote_if_needed(path)
+    if path:find("%s") then
+        return "\"" .. path .. "\""
+    end
+    return path
+end
+
+local function append_to_log(logfile_path, message)
+    local file <close> = io.open(to_os_path(logfile_path), "a")
+    if not file then
+        error("unable to append to logfile " .. logfile_path)
+    end
+    file:write(message .. "\n")
+    file:close()
+end
+
+local function log_message(logfile_path, message, label)
+    append_to_log(logfile_path, os.date("%Y-%m-%d %H:%M:%S") .. " " .. label .. " " .. message)
+end
+
+local function initialize_logfile(selected_directory)
+    local logfile_path = selected_directory .. LOGFILE_NAME
+    local file <close> = io.open(to_os_path(logfile_path), "w")
+    if not file then
+        error("unable to create logfile " .. logfile_path)
+    end
+    file:write("Finale 27 Upgrade Log\n")
+    file:write("Started: " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n")
+    file:write("Root Folder: " .. selected_directory .. "\n")
+    file:write("Running Finale Version: " .. format_raw_finale_version(finenv.RawFinaleVersion) .. "\n\n")
+    file:close()
+    return logfile_path
 end
 
 local function copy_file_binary(source_path, destination_path)
@@ -223,10 +259,6 @@ local function upgrade_document(task, state)
     end
 
     local output_path = output_folder_path .. task.output_name
-    if get_modification_time(output_path) >= get_modification_time(task.source_path) then
-        return "skipped", "up to date"
-    end
-
     local temp_copy_path = make_temp_copy_path(output_folder_path, task.file_name, task.extension)
     local copy_success, copy_err = copy_file_binary(task.source_path, temp_copy_path)
     if not copy_success then
@@ -252,20 +284,19 @@ end
 
 local function build_summary_text(state)
     return string.format(
-        "Done. Upgraded: %d  Skipped: %d  Failed: %d",
+        "Done. Upgraded: %d  Failed: %d",
         state.upgraded_count,
-        state.skipped_count,
         state.failed_count
     )
 end
 
-local function run_status_dialog(selected_directory, tasks)
+local function run_status_dialog(selected_directory, tasks, logfile_path)
     local state = {
         upgraded_count = 0,
-        skipped_count = 0,
         failed_count = 0,
         first_document = nil,
         canceled = false,
+        logfile_path = logfile_path,
     }
 
     local dialog = mixin.FCXCustomLuaWindow()
@@ -315,6 +346,7 @@ local function run_status_dialog(selected_directory, tasks)
         if #tasks == 0 then
             self:StopTimer(TIMER_ID)
             release_first_document(state)
+            log_message(state.logfile_path, build_summary_text(state), "Info")
             self:GetControl("folder"):SetText(selected_directory)
             self:GetControl("file"):SetText(state.canceled and "(canceled)" or "(complete)")
             self:GetControl("status"):SetText(build_summary_text(state))
@@ -329,16 +361,19 @@ local function run_status_dialog(selected_directory, tasks)
             :RedrawImmediate()
 
         local success, result = upgrade_document(task, state)
+        local relative_source_path = quote_if_needed(make_relative_path(selected_directory, task.source_path))
         if success == true then
             state.upgraded_count = state.upgraded_count + 1
+            log_message(
+                state.logfile_path,
+                relative_source_path .. " -> " .. quote_if_needed(make_relative_path(selected_directory, result)),
+                "SUCCESS"
+            )
             self:GetControl("status"):SetText("Upgraded to " .. task.output_name)
-        elseif success == "skipped" then
-            state.skipped_count = state.skipped_count + 1
-            self:GetControl("status"):SetText("Skipped: " .. result)
         else
             state.failed_count = state.failed_count + 1
             self:GetControl("status"):SetText("Failed: " .. result)
-            print("Failed upgrading " .. task.source_path .. ": " .. tostring(result))
+            log_message(state.logfile_path, relative_source_path .. " -> " .. tostring(result), "ERROR")
         end
         self:GetControl("status"):RedrawImmediate()
 
@@ -349,7 +384,7 @@ local function run_status_dialog(selected_directory, tasks)
         self:StopTimer(TIMER_ID)
         if #tasks > 0 then
             state.canceled = true
-            print("Batch upgrade canceled by user.")
+            log_message(state.logfile_path, "Batch upgrade canceled by user.", "Info")
         end
         release_first_document(state)
         finenv.RetainLuaState = false
@@ -376,13 +411,16 @@ local function upgrade_folder_to_finale_27()
         return
     end
 
+    local logfile_path = initialize_logfile(selected_directory)
     local tasks = collect_upgrade_tasks(selected_directory)
     if #tasks == 0 then
+        log_message(logfile_path, "No Finale .mus or .musx files found.", "Info")
         finenv.UI():AlertInfo("No Finale .mus or .musx files found in " .. selected_directory, "Nothing To Process")
         return
     end
 
-    run_status_dialog(selected_directory, tasks)
+    log_message(logfile_path, "Queued " .. tostring(#tasks) .. " Finale files for upgrade.", "Info")
+    run_status_dialog(selected_directory, tasks, logfile_path)
 end
 
 upgrade_folder_to_finale_27()
