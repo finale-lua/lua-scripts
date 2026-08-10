@@ -4,13 +4,24 @@ function plugindef()
     finaleplugin.NoStore = true
     finaleplugin.Author = "Robert Patterson"
     finaleplugin.Copyright = "CC0 https://creativecommons.org/publicdomain/zero/1.0/"
-    finaleplugin.Version = "1.0.3"
-    finaleplugin.Date = "June 22, 2025"
+    finaleplugin.Version = "1.1.0"
+    finaleplugin.Date = "August 7, 2026"
     finaleplugin.MinJWLuaVersion = 0.75
     finaleplugin.Notes = [[
         A utility for mapping legacy music font glyphs to SMuFL glyphs. It emits a json
-        file in the same format as those provided in the Finale installation for MakeMusic's
-        legacy fonts.
+        file in the format used by the smufl-mapping project:
+
+            { "fontMetadata": { ... }, "glyphs": { <glyph name>: [ <entries> ] } }
+
+        The `fontMetadata` block records what is known about the legacy font as a whole:
+        whether it is placed in the score (`engraving`) or set inline with running text
+        (`text`), whether it imitates plate engraving or manuscript, which SMuFL font
+        supersedes it, and how many staff spaces one em spans. Those font-level facts
+        cannot be derived from the glyph mappings, so they are entered here.
+
+        Files in the older flat format — including those shipped with Finale for
+        MakeMusic's legacy fonts, where every top-level key was a glyph name — are still
+        read. They are saved back out in the current format.
     ]]
     return "Map Legacy Fonts to SMuFL...", "Map Legacy Fonts to SMuFL", "Map legacy font glyphs to SMuFL glyphs"
 end
@@ -24,22 +35,58 @@ local mixin = require("library.mixin")
 local smufl_glyphs = require("library.smufl_glyphs")
 local cjson = require("cjson")
 
+-- The two enumerations from the fontMetadata schema. fontType is the font's role
+-- (where it goes) and fontStyle is its appearance; neither can be derived from the
+-- other, so a font may be handwritten and still be set inline with text.
+local FONT_TYPES = {
+    { value = "engraving", label = "engraving (placed in the score)" },
+    { value = "text",      label = "text (set inline with running text)" }
+}
+local FONT_STYLES = {
+    { value = "engraved",    label = "engraved (imitates plate engraving)" },
+    { value = "handwritten", label = "handwritten (imitates manuscript)" }
+}
+local NO_SUCCESSOR_LABEL = "(none established)"
+
 context = {
     smufl_list = library.get_smufl_font_list(),
     current_font = finale.FCFontInfo("Maestro", 24),
     current_mapping = {},
     entries_by_glyph = {},
     popup_entries = {},
+    font_metadata = {},
     current_directory = finenv.RunningLuaFolderPath()
 }
 
 local enable_disable
 local get_popup_entry
 
+-- cjson decodes JSON null to a sentinel rather than nil, so a present-but-null
+-- smuflSuccessorFont or staffSpacesPerEm arrives as cjson.null and would otherwise
+-- test as a value.
+local function json_or_nil(value)
+    if value == nil or value == cjson.null then
+        return nil
+    end
+    return value
+end
+
+local function default_font_metadata()
+    return {
+        fontType = "engraving",
+        fontStyle = "engraved",
+        smuflSuccessorFont = nil,
+        successorNotes = nil,
+        staffSpacesPerEm = nil,
+        sizeNotes = nil
+    }
+end
+
 local function reset_mapping_state()
     context.current_mapping = {}
     context.entries_by_glyph = {}
     context.popup_entries = {}
+    context.font_metadata = default_font_metadata()
 end
 
 local function parse_legacy_codepoint_string(str)
@@ -240,6 +287,84 @@ local function format_mapping(mapping)
     return codepoint_desc
 end
 
+local function enum_index(enum_list, value)
+    for index, item in ipairs(enum_list) do
+        if item.value == value then
+            return index - 1 -- popups are 0-based
+        end
+    end
+    return 0
+end
+
+local function select_popup_string(popup, text)
+    for index = 0, popup:GetCount() - 1 do
+        local str = finale.FCString()
+        popup:GetItemText(index, str)
+        if str.LuaString == text then
+            popup:SetSelectedItem(index)
+            return true
+        end
+    end
+    return false
+end
+
+local function popup_string(popup)
+    local str = finale.FCString()
+    popup:GetItemText(popup:GetSelectedItem(), str)
+    return str.LuaString
+end
+
+-- Push context.font_metadata into the controls. Called whenever the mapping is
+-- reset or a file is loaded.
+local function metadata_to_dialog(dialog)
+    local metadata = context.font_metadata
+    dialog:GetControl("font_type"):SetSelectedItem(enum_index(FONT_TYPES, metadata.fontType))
+    dialog:GetControl("font_style"):SetSelectedItem(enum_index(FONT_STYLES, metadata.fontStyle))
+    local successor = dialog:GetControl("successor")
+    if not metadata.smuflSuccessorFont or not select_popup_string(successor, metadata.smuflSuccessorFont) then
+        successor:SetSelectedItem(0) -- NO_SUCCESSOR_LABEL
+    end
+    dialog:GetControl("successor_notes"):SetText(metadata.successorNotes or "")
+    dialog:GetControl("spaces_per_em"):SetText(
+        metadata.staffSpacesPerEm and tostring(metadata.staffSpacesPerEm) or "")
+    dialog:GetControl("size_notes"):SetText(metadata.sizeNotes or "")
+end
+
+-- Pull the controls back into context.font_metadata. Returns nil plus a message
+-- when a field cannot be interpreted, so that save can refuse rather than write a
+-- file the validator will reject.
+local function metadata_from_dialog(dialog)
+    local function trimmed(name)
+        local text = utils.trim(dialog:GetControl(name):GetText())
+        return #text > 0 and text or nil
+    end
+
+    local metadata = default_font_metadata()
+    metadata.fontType = FONT_TYPES[dialog:GetControl("font_type"):GetSelectedItem() + 1].value
+    metadata.fontStyle = FONT_STYLES[dialog:GetControl("font_style"):GetSelectedItem() + 1].value
+
+    local successor = popup_string(dialog:GetControl("successor"))
+    if successor ~= NO_SUCCESSOR_LABEL then
+        metadata.smuflSuccessorFont = successor
+    end
+    metadata.successorNotes = trimmed("successor_notes")
+    metadata.sizeNotes = trimmed("size_notes")
+
+    -- Present-but-null is how the file says "opts out of size mapping", so an empty
+    -- box is a legitimate value rather than an omission.
+    local spaces_text = trimmed("spaces_per_em")
+    if spaces_text then
+        local spaces = tonumber(spaces_text)
+        if not spaces or spaces <= 0 then
+            return nil, "Staff spaces per em must be a number greater than zero, or blank to opt out of size mapping."
+        end
+        metadata.staffSpacesPerEm = spaces
+    end
+
+    context.font_metadata = metadata
+    return metadata
+end
+
 local function change_font(dialog, font_info)
     if font_info.IsSMuFLFont then
         dialog:CreateChildUI():AlertError("Unable to map SMuFL font " .. font_info:CreateDescription(), "SMuFL Font")
@@ -252,6 +377,8 @@ local function change_font(dialog, font_info)
     control:SetFont(context.current_font)
     dialog:GetControl("show_font"):SetText(font_info:CreateDescription())
     dialog:GetControl("mappings"):Clear()
+    dialog:GetControl("entry_notes"):SetText("")
+    metadata_to_dialog(dialog)
     enable_disable(dialog)
 end
 
@@ -283,15 +410,23 @@ get_popup_entry = function(popup)
     return context.popup_entries[index + 1]
 end
 
+-- An entry carrying notes is one whose mapping has not been confirmed by hand.
+-- The notes text says why; "Mark Verified" clears it once the slot has been checked.
+local function entry_is_flagged(entry)
+    return entry ~= nil and type(entry.notes) == "string" and #entry.notes > 0
+end
+
 enable_disable = function(dialog)
     local delable = #(dialog:GetControl("legacy_box"):GetText()) > 0
     local addable = delable and #(dialog:GetControl("smufl_box"):GetText()) > 0
+    local popup = dialog:GetControl("mappings")
+    local selection = popup:GetCount() > 0 and get_popup_entry(popup) or nil
     if delable then
-        local popup = dialog:GetControl("mappings")
-        delable = popup:GetCount() > 0 and get_popup_entry(popup) ~= nil
+        delable = selection ~= nil
     end
     dialog:GetControl("add_mapping"):SetEnable(addable)
     dialog:GetControl("delete_mapping"):SetEnable(delable)
+    dialog:GetControl("mark_verified"):SetEnable(entry_is_flagged(selection and selection.entry))
 end
 
 local function on_smufl_popup(popup)
@@ -321,6 +456,8 @@ local function on_popup(popup)
     end
     set_codepoint(dialog:GetControl("legacy_box"), legacy_codepoint)
     set_codepoint(dialog:GetControl("smufl_box"), smufl_codepoint)
+    dialog:GetControl("entry_notes"):SetText(
+        entry_is_flagged(current_mapping) and current_mapping.notes or "")
 end
 
 local function update_popup(popup, target_codepoint, target_entry)
@@ -353,6 +490,9 @@ local function update_popup(popup, target_codepoint, target_entry)
     local current_index
     for index, info in ipairs(context.popup_entries) do
         local label = tostring(info.legacy_codepoint) .. " maps to " .. format_mapping(info.entry)
+        if entry_is_flagged(info.entry) then
+            label = "[?] " .. label -- not yet confirmed by hand
+        end
         popup:AddString(label)
         if target_entry and info.entry == target_entry and info.legacy_codepoint == target_codepoint then
             current_index = index - 1
@@ -413,10 +553,41 @@ local function on_select_file(control)
             dialog:CreateChildUI():AlertError("Selected file is not a valid mapping.", "Invalid File")
             return
         end
+        -- The current format wraps the glyph table so that font-level facts are
+        -- distinguishable from glyph names; the older flat format, including the
+        -- files shipped with Finale, put glyph names at the top level.
+        local glyph_table = json
+        local metadata = nil
+        if type(json.fontMetadata) == "table" or type(json.glyphs) == "table" then
+            glyph_table = type(json.glyphs) == "table" and json.glyphs or {}
+            metadata = type(json.fontMetadata) == "table" and json.fontMetadata or nil
+        end
         context.current_directory = path
-        change_font(dialog, font_info)
+        change_font(dialog, font_info) -- resets metadata to defaults
+        if metadata then
+            local loaded = default_font_metadata()
+            local font_type = json_or_nil(metadata.fontType)
+            local font_style = json_or_nil(metadata.fontStyle)
+            -- Fall back to the defaults rather than carrying a value the schema
+            -- would reject straight back out again.
+            if font_type == "engraving" or font_type == "text" then
+                loaded.fontType = font_type
+            end
+            if font_style == "engraved" or font_style == "handwritten" then
+                loaded.fontStyle = font_style
+            end
+            loaded.smuflSuccessorFont = json_or_nil(metadata.smuflSuccessorFont)
+            loaded.successorNotes = json_or_nil(metadata.successorNotes)
+            loaded.sizeNotes = json_or_nil(metadata.sizeNotes)
+            local spaces = json_or_nil(metadata.staffSpacesPerEm)
+            if type(spaces) == "number" and spaces > 0 then
+                loaded.staffSpacesPerEm = spaces
+            end
+            context.font_metadata = loaded
+            metadata_to_dialog(dialog)
+        end
         local smufl_box = dialog:GetControl("smufl_box")
-        for glyph, value in pairs(json) do
+        for glyph, value in pairs(glyph_table) do
             if type(glyph) == "string" and type(value) == "table" then
                 local entries = value
                 if not entries[1] and (entries.codepoint or entries.legacyCodepoint) then
@@ -542,6 +713,20 @@ local function on_add_mapping(control)
     update_popup(popup, legacy_point, new_entry)
 end
 
+-- Clearing the notes is what records "I have checked this slot against the font".
+-- Correcting a mapping does not clear it on its own: an edit may itself be a guess,
+-- so confirmation stays an explicit act.
+local function on_mark_verified(control)
+    local dialog = control:GetParent()
+    local popup = dialog:GetControl("mappings")
+    local selection = get_popup_entry(popup)
+    if not selection or not entry_is_flagged(selection.entry) then
+        return
+    end
+    selection.entry.notes = nil
+    update_popup(popup, selection.legacy_codepoint, selection.entry)
+end
+
 local function on_delete_mapping(control)
     local dialog = control:GetParent()
     local popup = dialog:GetControl("mappings")
@@ -555,9 +740,39 @@ local function on_delete_mapping(control)
 end
 
 -- use hand-crafted json encoder to control order of elements
-local function emit_json(entries_by_glyph)
+local function emit_json(entries_by_glyph, metadata)
     local function quote(str)
         return '"' .. tostring(str):gsub('\\', '\\\\'):gsub('"', '\\"') .. '"'
+    end
+
+    -- staffSpacesPerEm is a JSON number, and the committed files write whole values
+    -- as "4.0". tostring(4.0) yields "4.0" in Lua 5.3+ but "4" in 5.1/5.2, so pin it.
+    local function format_number(value)
+        local text = string.format("%.10g", value)
+        if not text:find("[%.eE]") then
+            text = text .. ".0"
+        end
+        return text
+    end
+
+    local function emit_metadata()
+        local parts = {}
+        table.insert(parts, '        "fontType": ' .. quote(metadata.fontType))
+        table.insert(parts, '        "fontStyle": ' .. quote(metadata.fontStyle))
+        -- smuflSuccessorFont and staffSpacesPerEm are always written, even when
+        -- null: present-but-null is how the file says "none established" / "opts
+        -- out of size mapping", and an absent key would be an oversight instead.
+        table.insert(parts, '        "smuflSuccessorFont": ' ..
+            (metadata.smuflSuccessorFont and quote(metadata.smuflSuccessorFont) or "null"))
+        if metadata.successorNotes then
+            table.insert(parts, '        "successorNotes": ' .. quote(metadata.successorNotes))
+        end
+        table.insert(parts, '        "staffSpacesPerEm": ' ..
+            (metadata.staffSpacesPerEm and format_number(metadata.staffSpacesPerEm) or "null"))
+        if metadata.sizeNotes then
+            table.insert(parts, '        "sizeNotes": ' .. quote(metadata.sizeNotes))
+        end
+        return '    "fontMetadata": {\n' .. table.concat(parts, ",\n") .. "\n    },"
     end
 
     local function format_legacy_array(entry)
@@ -569,41 +784,41 @@ local function emit_json(entries_by_glyph)
             end
         end
         if #strings == 0 then
-            return '            "legacyCodepoints": []'
+            return '                "legacyCodepoints": []'
         end
         local parts = {}
         for _, str in ipairs(strings) do
-            table.insert(parts, '                ' .. quote(str))
+            table.insert(parts, '                    ' .. quote(str))
         end
-        return '            "legacyCodepoints": [\n' .. table.concat(parts, ",\n") .. '\n            ]'
+        return '                "legacyCodepoints": [\n' .. table.concat(parts, ",\n") .. '\n                ]'
     end
 
     local function emit_entry(entry)
         local parts = { format_legacy_array(entry) }
-        table.insert(parts, '            "codepoint": ' .. quote(utils.format_codepoint(entry.codepoint)))
-        table.insert(parts, '            "description": ' .. quote(entry.description or ""))
+        table.insert(parts, '                "codepoint": ' .. quote(utils.format_codepoint(entry.codepoint)))
+        table.insert(parts, '                "description": ' .. quote(entry.description or ""))
         if type(entry.nameIsMakeMusic) == "boolean" then
-            table.insert(parts, '            "nameIsMakeMusic": ' .. tostring(entry.nameIsMakeMusic))
+            table.insert(parts, '                "nameIsMakeMusic": ' .. tostring(entry.nameIsMakeMusic))
         end
         if entry.smuflFontName then
-            table.insert(parts, '            "smuflFontName": ' .. quote(entry.smuflFontName))
+            table.insert(parts, '                "smuflFontName": ' .. quote(entry.smuflFontName))
         end
         if entry.xOffset then
-            table.insert(parts, '            "xOffset": ' .. quote(tostring(entry.xOffset)))
+            table.insert(parts, '                "xOffset": ' .. quote(tostring(entry.xOffset)))
         end
         if entry.yOffset then
-            table.insert(parts, '            "yOffset": ' .. quote(tostring(entry.yOffset)))
+            table.insert(parts, '                "yOffset": ' .. quote(tostring(entry.yOffset)))
         end
         if type(entry.alternate) == "boolean" then
-            table.insert(parts, '            "alternate": ' .. tostring(entry.alternate))
+            table.insert(parts, '                "alternate": ' .. tostring(entry.alternate))
         end
         if entry.notes and #entry.notes > 0 then
-            table.insert(parts, '            "notes": ' .. quote(entry.notes))
+            table.insert(parts, '                "notes": ' .. quote(entry.notes))
         end
-        return "        {\n" .. table.concat(parts, ",\n") .. "\n        }"
+        return "            {\n" .. table.concat(parts, ",\n") .. "\n            }"
     end
 
-    local lines = { "{" }
+    local glyph_lines = {}
     local first_glyph = true
     for glyph, entry_list in pairsbykeys(entries_by_glyph) do
         if type(glyph) == "string" and type(entry_list) == "table" and #entry_list > 0 then
@@ -623,23 +838,36 @@ local function emit_json(entries_by_glyph)
                     return a_codepoint < b_codepoint
                 end)
                 if not first_glyph then
-                    lines[#lines] = lines[#lines] .. ","
+                    glyph_lines[#glyph_lines] = glyph_lines[#glyph_lines] .. ","
                 end
-                table.insert(lines, "    " .. quote(glyph) .. ": [")
+                table.insert(glyph_lines, "        " .. quote(glyph) .. ": [")
                 for index, entry in ipairs(sortable) do
                     local entry_text = emit_entry(entry)
                     if index < #sortable then
                         entry_text = entry_text .. ","
                     end
-                    table.insert(lines, entry_text)
+                    table.insert(glyph_lines, entry_text)
                 end
-                table.insert(lines, "    ]")
+                table.insert(glyph_lines, "        ]")
                 first_glyph = false
             end
         end
     end
+
+    local lines = { "{", emit_metadata() }
+    if #glyph_lines == 0 then
+        -- A font whose successor and sizing are known while its codepoint mappings
+        -- are not is a valid record, as for Sonata and Ash Music.
+        table.insert(lines, '    "glyphs": {}')
+    else
+        table.insert(lines, '    "glyphs": {')
+        for _, line in ipairs(glyph_lines) do
+            table.insert(lines, line)
+        end
+        table.insert(lines, "    }")
+    end
     table.insert(lines, "}")
-    return table.concat(lines, "\n")
+    return table.concat(lines, "\n") .. "\n" -- committed mapping files end with a newline
 end
 
 local function on_save(control)
@@ -656,9 +884,16 @@ local function on_save(control)
         end
         return false
     end
-    if not has_mappings() then
-        dialog:CreateChildUI():AlertInfo("Nothing has been mapped.", "No Mapping")
+    local metadata, metadata_error = metadata_from_dialog(dialog)
+    if not metadata then
+        dialog:CreateChildUI():AlertError(metadata_error, "Invalid Font Metadata")
         return
+    end
+    if not has_mappings() then
+        -- Not an error: the format allows a file that records what is known about
+        -- the font while its codepoint mappings are unavailable.
+        dialog:CreateChildUI():AlertInfo(
+            "No glyphs are mapped, so a metadata-only file will be written.", "Metadata Only")
     end
     local save_dialog = finale.FCFileSaveAsDialog(dialog:CreateChildUI())
     save_dialog:SetWindowTitle(finale.FCString("Save mapping as"))
@@ -687,7 +922,7 @@ local function on_save(control)
             end
         end
     end
-    local result = emit_json(context.entries_by_glyph)
+    local result = emit_json(context.entries_by_glyph, metadata)
     local file = io.open(client.encode_with_client_codepage(path_fstr.LuaString), "w")
     if not file then
         dialog:CreateChildUI():AlertError("Unable to write to file " .. path_fstr.LuaString .. ".", "File Error")
@@ -781,6 +1016,75 @@ function font_map_legacy()
         :StretchToAlignWithRight()
         :AddHandleCommand(on_popup)
     current_y = current_y + button_height + y_increment
+    -- Mappings that have not been confirmed by hand are prefixed "[?]" in the popup
+    -- above and explain themselves here.
+    dialog:CreateButton(0, current_y, "mark_verified")
+        :SetText("Mark Verified")
+        :DoAutoResizeWidth(0)
+        :SetEnable(false)
+        :AddHandleCommand(on_mark_verified)
+    dialog:CreateStatic(0, current_y, "entry_notes")
+        :AssureNoHorizontalOverlap(dialog:GetControl("mark_verified"), 10)
+        :StretchToAlignWithRight()
+    current_y = current_y + button_height + y_increment
+    -- font metadata: font-level facts that cannot be derived from the glyph
+    -- mappings, so they have to be entered rather than measured here.
+    local label_gap = 5
+    dialog:CreateStatic(0, current_y, "type_label")
+        :SetText("Type:")
+        :DoAutoResizeWidth()
+    local type_popup = dialog:CreatePopup(0, current_y, "font_type")
+        :SetWidth(200)
+        :AssureNoHorizontalOverlap(dialog:GetControl("type_label"), label_gap)
+    for _, item in ipairs(FONT_TYPES) do
+        type_popup:AddString(item.label)
+    end
+    type_popup:SetSelectedItem(0)
+    current_y = current_y + button_height + y_increment
+    dialog:CreateStatic(0, current_y, "style_label")
+        :SetText("Style:")
+        :DoAutoResizeWidth()
+    local style_popup = dialog:CreatePopup(0, current_y, "font_style")
+        :SetWidth(200)
+        :AssureNoHorizontalOverlap(dialog:GetControl("style_label"), label_gap)
+    for _, item in ipairs(FONT_STYLES) do
+        style_popup:AddString(item.label)
+    end
+    style_popup:SetSelectedItem(0)
+    current_y = current_y + button_height + y_increment
+    dialog:CreateStatic(0, current_y, "successor_label")
+        :SetText("SMuFL successor:")
+        :DoAutoResizeWidth()
+    local successor_popup = dialog:CreatePopup(0, current_y, "successor")
+        :AssureNoHorizontalOverlap(dialog:GetControl("successor_label"), label_gap)
+        :StretchToAlignWithRight()
+    successor_popup:AddString(NO_SUCCESSOR_LABEL)
+    for name, _ in pairsbykeys(context.smufl_list) do
+        successor_popup:AddString(name)
+    end
+    successor_popup:SetSelectedItem(0)
+    current_y = current_y + button_height + y_increment
+    dialog:CreateStatic(0, current_y, "successor_notes_label")
+        :SetText("Successor notes:")
+        :DoAutoResizeWidth()
+    dialog:CreateEdit(0, current_y, "successor_notes")
+        :AssureNoHorizontalOverlap(dialog:GetControl("successor_notes_label"), label_gap)
+        :StretchToAlignWithRight()
+    current_y = current_y + button_height + y_increment
+    dialog:CreateStatic(0, current_y, "spaces_label")
+        :SetText("Staff spaces per em (blank to opt out):")
+        :DoAutoResizeWidth()
+    dialog:CreateEdit(0, current_y, "spaces_per_em")
+        :SetWidth(60)
+        :AssureNoHorizontalOverlap(dialog:GetControl("spaces_label"), label_gap)
+    current_y = current_y + button_height + y_increment
+    dialog:CreateStatic(0, current_y, "size_notes_label")
+        :SetText("Size notes:")
+        :DoAutoResizeWidth()
+    dialog:CreateEdit(0, current_y, "size_notes")
+        :AssureNoHorizontalOverlap(dialog:GetControl("size_notes_label"), label_gap)
+        :StretchToAlignWithRight()
+    current_y = current_y + button_height + 2 * y_increment
     -- save and close buttons
     dialog:CreateButton(0, current_y, "save")
         :SetText("Save...")
@@ -793,6 +1097,8 @@ function font_map_legacy()
     -- registrations
     dialog:RegisterInitWindow(function(self)
         on_smufl_popup(self:GetControl("smufl_list"))
+        context.font_metadata = default_font_metadata()
+        metadata_to_dialog(self)
     end)
     -- execute
     dialog:ExecuteModal() -- modal dialog prevents document changes in modeless callbacks
