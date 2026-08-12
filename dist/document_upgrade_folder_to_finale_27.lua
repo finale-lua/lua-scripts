@@ -5374,11 +5374,12 @@ local function collect_upgrade_tasks(root_folder)
                     end
                 elseif item_mode == "file" or item_mode == "link" then
                     local _, file_name, extension = utils.split_file_path(item_utf8)
-                    if extension == MUS_EXTENSION or extension == MUSX_EXTENSION then
+                    local normalized_extension = extension and extension:lower() or ""
+                    if normalized_extension == MUS_EXTENSION or normalized_extension == MUSX_EXTENSION then
                         table.insert(tasks, {
                             folder = folder_utf8,
                             file_name = file_name,
-                            extension = extension,
+                            extension = normalized_extension,
                             source_name = item_utf8,
                             source_path = folder_utf8 .. item_utf8,
                         })
